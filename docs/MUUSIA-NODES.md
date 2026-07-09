@@ -1,13 +1,13 @@
-# MUUSIA v1.2 — Node Reference
+# MUUSIA v1.5 — Node Reference
 
-All 97 built-in nodes. Conventions used below: most generators accept a **Style**
+All 112 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (51)
+## Generators (63)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -226,7 +226,70 @@ Style inputs.
 (A–Z 0–9 **ÄÖÅ** punctuation), `|` for new lines, size = cap height, tracking, line
 height, alignment, canvas centring. Every letter is pen strokes, not outlines.
 
-## Modifiers (30)
+**Caustics** — top-down shallow-water light caustics: the surface is a sum of
+crossing noise wave trains, brightness is its curvature (Laplacian), and the bright
+focus ridges are traced as marching-squares iso-contours stitched into flowing
+threads. Focus gain, brightness threshold, contour bands, ripple scale, depth
+stretch, minimum line length.
+
+**Text on Path** — single-stroke text laid along a wired spine (same font as Text):
+each glyph sits at its arc-length position rotated to the local tangent. Align
+Start/Center/End, start offset %, baseline offset along the normal, Flip side,
+Repeat-to-fill with gap, curve sampling. Open and closed spines; falls back to a
+horizontal line when unwired.
+
+**Lace** — classic lace in three patterns: *Doily* (center flower, ring bands with
+seed-picked motifs — plain/double rings, zigzag diamond mesh, sector fans, picot
+loops — and a scalloped picot edge), *Edging* (header lines, mesh strip, scallops
+with fans and picots), *Mesh ground* (torchon diamond net with hashed spiders).
+Sectors, rings, detail, picots on/off, edging depth.
+
+**Macrame** — knotted cordwork: top bar with lark's-head loops, vertical cords
+pinching into square knots (oval + wrap line), seeded wiggly fringe. Patterns:
+*Alternating net*, *Diamonds* (knots travel edge-to-center), *Sinnet columns*.
+Cords, rows, knot size, fringe length and wiggle.
+
+**Knot** — mathematical decorative knots: *Torus p·q* (2·3 trefoil, 2·5 cinquefoil…)
+and *Lissajous* (three frequencies, seeded phases). Crossing gap cuts the under
+strand at every planar self-intersection using the 3-D z-order, producing a true
+over-under weave; gap 0 draws the unbroken curve. Tube ratio, rotation, sample step.
+
+**Murmuration** — a closed-form starling flock: every bird is a deterministic
+function of (time, index) — flock center follows a guide path, the flock breathes
+(pulse), swirls and stretches along travel. All time terms are sampled on a circle,
+so t=0 ≡ t=1: wire Frame's *t* into Time for a seamless loop. Flock paths: Wander /
+Oval / Figure-8 / Lissajous 2:3 / Trefoil, with a wander-mix for organic drift.
+Bird shapes Dash/Chevron/Dot with size variation for depth; optional flight-history
+trails whose point order equals flight direction.
+
+**Dazzle Camouflage** — WWI razzle-dazzle: recursive straight-chord splits carve the
+sheet into convex patches; each patch gets hatching at a quantized clashing angle
+(never repeating its neighbor), with blank, cross-hatch and wavy patch styles, and
+optional bold outlines. Serpentine stripe order.
+
+**Mycelial Net** — hyphal growth: queued tips step through noise-steered incremental
+turns and split into binary branches at a seeded rate; edge and point budgets end
+strands. Spore count, growth cycles, split rate, wander, internode, spawn radius.
+
+**Sand Line Hatch** — broken multi-segment scanlines whose ink probability is
+noise × density, producing grain-gradient fields; runs collapse to 2-point
+segments and lines alternate direction (serpentine).
+
+**Gravity Cascade** — a particle per orbit integrated through three seeded gravity
+wells with softened cores and friction decay: collapsing, wrapping, slingshotting
+arcs. Paths end at the sheet edge; points are decimated so tight orbits don't
+crawl.
+
+**Tape Saturation Harmonics** — parallel sinusoidal signal tracks hard-clipped at a
+saturation threshold, with low-frequency wow drift and fine flutter noise; clamped
+to the sheet, serpentine track order. Moiré-ribbon fields.
+
+**Hyperbolic Truchet Maze** — Truchet tiles on concentric rings: arcs join edge
+midpoints so strands continue seamlessly across cells (the original corner-diagonal
+style remains as an option). Ring-crowding slider packs rings toward the center
+(event-horizon look) or the rim.
+
+## Modifiers (33)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -318,6 +381,18 @@ a single stroke.
 **Hatch Fill** — fills closed shapes with hatching (angle, spacing, inset from both
 edges with parity checking); *Outside* region mode inverts via a synthetic frame
 ring.
+
+**Glitch Loom** — slices paths at horizontal loom rows and shifts each row by a
+seeded warp offset (clamped to the sheet); torn ends may spawn frayed threads that
+drip downward. Pitch, max shift, fray probability and length.
+
+**Origami Glitch Fold** — mirrors everything on one side of an adjustable fold line
+back across it, with a distance-proportional crease warp; optional Keep Original
+for layered folds. Output clamped to the sheet.
+
+**Cellular Mosaic Displace** — assigns points to lattice cells, splits paths at
+cell borders and displaces each fragment by its cell's seeded offset; optional
+sub-lattice quantize snap for a crystalline look. Duplicate points cleaned.
 
 ## Decorators (5)
 

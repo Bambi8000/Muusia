@@ -18,7 +18,7 @@ text are **English**.
 
 ## Files (all in outputs)
 
-- `muusia.jsx` — the whole app, one React file (~9430 lines, **97 nodes**, v1.4).
+- `muusia.jsx` — the whole app, one React file (~11180 lines, **112 nodes**, v1.5).
   Build target: `src/App.jsx` in a Vite project.
 - `MUUSIA-README.md` — project doc: install, concepts, UI, machines, animation, arch.
 - `MUUSIA-NODES.md` — every node explained.
@@ -84,18 +84,22 @@ off.
    "paren diff −1" is a **measurement artifact** (regex literals + the `"("`/`")"`
    glyph keys in SFONT), not a real error — esbuild compiles clean.
 
-## Current node inventory (97)
+## Current node inventory (112)
 
-- **Generators (51):** Grid, Tracks, Flow Field, Truchet, Lissajous, Phyllotaxis,
+- **Generators (63):** Grid, Tracks, Flow Field, Truchet, Lissajous, Phyllotaxis,
   L-System, Spirograph, Pendulum, Cycloid Machine, Contours, Circle Packing,
   Barcode, Solids, Mountains, Random Lines, Starfield, Ruler, Cables, Lathe, Fabric,
   Hairs, Potato, Trunks, Water, Skyline, Tiles, Reg Marks, Noise, Net, Building,
   Follow Lines, Wood Rings, Worm, Image, Growth, Concrete Poetry, Scan, Clouds, Stone,
-  Asteroids, Planets, Solar System, Test Card, Origami, Mesh, Ribbon, Halftone, Import SVG, Stroke, Text.
-- **Modifiers (30):** Apply Style, Wave, Jitter, Rotate, Glitch, Offset, Symmetry,
+  Asteroids, Planets, Solar System, Test Card, Origami, Mesh, Ribbon, Halftone, Import SVG, Stroke, Text,
+  Caustics, Text on Path, Lace, Macrame, Knot, Murmuration, Dazzle Camouflage,
+  Mycelial Net, Sand Line Hatch, Gravity Cascade, Tape Saturation Harmonics,
+  Hyperbolic Truchet Maze.
+- **Modifiers (33):** Apply Style, Wave, Jitter, Rotate, Glitch, Offset, Symmetry,
   Smooth, Magnet, Trim/Extend, Join Ends, Simplify, Lens, Warp, Mirror, Move/Scale,
   Fit to Canvas, Reverse, Skew, Align, Crop, Explosion, Stretch, Tangle Zone,
-  Scatter, Pen Cycle, Chop, Hatch Fill, Fresnel Lens, Travel Stop.
+  Scatter, Pen Cycle, Chop, Hatch Fill, Fresnel Lens, Travel Stop, Glitch Loom,
+  Origami Glitch Fold, Cellular Mosaic Displace.
 - **Decorators (5):** Stamp, Outline, Coil, Fur, End Caps.
 - **Combiners (5):** Mask, Merge, Split, Array, Group.
 - **Math (5):** Frame, Value, Math, Random, Fan.
