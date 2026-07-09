@@ -4885,6 +4885,1757 @@ const DEFS = {
     },
   },
 
+  caustics: {
+    name: "Caustics",
+    cat: "gen",
+    group: "nature",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "cell", label: "Sample cell mm", type: "slider", min: 1, max: 8, step: 0.25, def: 3 },
+      { key: "scale", label: "Ripple scale", type: "slider", min: 0.01, max: 0.12, step: 0.005, def: 0.045 },
+      { key: "octaves", label: "Detail octaves", type: "slider", min: 1, max: 4, step: 1, def: 3 },
+      { key: "focus", label: "Focus / caustic gain", type: "slider", min: 0.2, max: 4, step: 0.05, def: 1.4 },
+      { key: "thresh", label: "Brightness threshold", type: "slider", min: 0.1, max: 0.9, step: 0.02, def: 0.5 },
+      { key: "bands", label: "Contour bands", type: "slider", min: 1, max: 6, step: 1, def: 2 },
+      { key: "stretch", label: "Depth stretch", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35 },
+      { key: "minlen", label: "Min line mm", type: "slider", min: 0, max: 30, step: 1, def: 4 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
+      { key: "seed", label: "Seed", type: "seed", def: 41 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer);
+      const m = Math.max(0, p.margin);
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 5 || y1 - y0 < 5) return EMPTY;
+
+      const cell = Math.max(0.6, p.cell);
+      const cols = Math.max(2, Math.round((x1 - x0) / cell) + 1);
+      const rows = Math.max(2, Math.round((y1 - y0) / cell) + 1);
+      const sc = Math.max(0.001, p.scale);
+      const oct = Math.max(1, Math.min(4, Math.round(p.octaves)));
+      const seed = p.seed;
+
+      /* --- water-surface height as multi-octave value noise ---
+         Two slightly offset noise fields stand in for two crossing
+         wave trains; their interference makes the polygonal net. */
+      const stretchY = 1 - Math.max(0, Math.min(1, p.stretch)) * 0.6; /* squash y => elongated ripples toward viewer */
+      const surf = (x, y) => {
+        let v = 0, amp = 1, fq = 1, norm = 0;
+        for (let o = 0; o < oct; o++) {
+          const sx = x * sc * fq;
+          const sy = y * sc * fq * stretchY;
+          const a = noise2(sx, sy, seed + o * 17);
+          const b = noise2(sy * 1.3 + 11, sx * 1.3 + 5, seed + 100 + o * 17);
+          v += amp * (a + b) * 0.5;
+          norm += amp;
+          amp *= 0.5; fq *= 2;
+        }
+        return v / norm; /* [0,1) */
+      };
+
+      /* --- caustic brightness ≈ curvature (Laplacian) of the surface.
+         Where the wavy "lens" surface converges, light focuses -> bright.
+         We rectify and gamma it so only the crests read as lines. */
+      const h = cell; /* finite-difference step in mm */
+      const bright = (x, y) => {
+        const c = surf(x, y);
+        const lap =
+          surf(x + h, y) + surf(x - h, y) +
+          surf(x, y + h) + surf(x, y - h) - 4 * c;
+        /* positive curvature = focusing; scale by cell^2 to normalize */
+        let b = -lap * (1 / (sc * sc * h * h)) * 0.00004 * p.focus;
+        b = 0.5 + b; /* center around mid so threshold band works both ways */
+        return b;
+      };
+
+      /* --- sample the field on the grid --- */
+      const gx = (c) => x0 + (c / (cols - 1)) * (x1 - x0);
+      const gy = (r) => y0 + (r / (rows - 1)) * (y1 - y0);
+      const field = new Float64Array(cols * rows);
+      let fmin = Infinity, fmax = -Infinity;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const v = bright(gx(c), gy(r));
+          field[r * cols + c] = v;
+          if (v < fmin) fmin = v;
+          if (v > fmax) fmax = v;
+        }
+      }
+      const span = (fmax - fmin) || 1;
+      const at = (c, r) => (field[r * cols + c] - fmin) / span; /* normalized [0,1] */
+
+      /* --- marching squares iso-contours at one or more levels --- */
+      const paths = [];
+      const nb = Math.max(1, Math.min(12, Math.round(p.bands)));
+      const base = Math.max(0.02, Math.min(0.98, p.thresh));
+      const minLen = Math.max(0, p.minlen);
+
+      const interp = (va, vb, lvl) => {
+        const d = vb - va;
+        if (Math.abs(d) < 1e-9) return 0.5;
+        return (lvl - va) / d;
+      };
+
+      for (let bi = 0; bi < nb; bi++) {
+        /* spread bands around the base threshold */
+        const level = nb === 1 ? base
+          : base + (bi - (nb - 1) / 2) * (0.9 / nb) * 0.5;
+        const lvl = Math.max(0.01, Math.min(0.99, level));
+
+        for (let r = 0; r < rows - 1; r++) {
+          for (let c = 0; c < cols - 1; c++) {
+            const tl = at(c, r), tr = at(c + 1, r);
+            const bl = at(c, r + 1), br = at(c + 1, r + 1);
+            let idx = 0;
+            if (tl > lvl) idx |= 8;
+            if (tr > lvl) idx |= 4;
+            if (br > lvl) idx |= 2;
+            if (bl > lvl) idx |= 1;
+            if (idx === 0 || idx === 15) continue;
+
+            const xL = gx(c), xR = gx(c + 1), yT = gy(r), yB = gy(r + 1);
+            const eT = () => [xL + interp(tl, tr, lvl) * (xR - xL), yT];
+            const eB = () => [xL + interp(bl, br, lvl) * (xR - xL), yB];
+            const eLf = () => [xL, yT + interp(tl, bl, lvl) * (yB - yT)];
+            const eR = () => [xR, yT + interp(tr, br, lvl) * (yB - yT)];
+
+            const seg = (a, b) => {
+              paths.push({ pts: [a, b], closed: false, layer: L });
+            };
+
+            switch (idx) {
+              case 1: seg(eLf(), eB()); break;
+              case 2: seg(eB(), eR()); break;
+              case 3: seg(eLf(), eR()); break;
+              case 4: seg(eT(), eR()); break;
+              case 5: seg(eLf(), eT()); seg(eB(), eR()); break; /* saddle */
+              case 6: seg(eT(), eB()); break;
+              case 7: seg(eLf(), eT()); break;
+              case 8: seg(eLf(), eT()); break;
+              case 9: seg(eT(), eB()); break;
+              case 10: seg(eLf(), eB()); seg(eT(), eR()); break; /* saddle */
+              case 11: seg(eT(), eR()); break;
+              case 12: seg(eLf(), eR()); break;
+              case 13: seg(eB(), eR()); break;
+              case 14: seg(eLf(), eB()); break;
+            }
+          }
+        }
+      }
+
+      /* --- stitch touching segments into longer polylines so the pen
+         draws flowing caustic threads instead of thousands of dashes --- */
+      const q = (v) => Math.round(v * 100) / 100;
+      const kk = (pt) => q(pt[0]) + "," + q(pt[1]);
+      const map = new Map(); /* endpoint key -> list of {seg, end} */
+      const segs = paths.map((pa) => ({ a: pa.pts[0], b: pa.pts[1], used: false }));
+      const push = (key, ref) => {
+        let a = map.get(key); if (!a) { a = []; map.set(key, a); } a.push(ref);
+      };
+      segs.forEach((s, i) => { push(kk(s.a), { i, end: "a" }); push(kk(s.b), { i, end: "b" }); });
+
+      const chains = [];
+      for (let i = 0; i < segs.length; i++) {
+        if (segs[i].used) continue;
+        segs[i].used = true;
+        const chain = [segs[i].a, segs[i].b];
+        /* extend forward */
+        let grow = true;
+        while (grow) {
+          grow = false;
+          const tail = chain[chain.length - 1];
+          const cands = map.get(kk(tail)) || [];
+          for (const ref of cands) {
+            const s = segs[ref.i];
+            if (s.used) continue;
+            const other = ref.end === "a" ? s.b : s.a;
+            chain.push(other); s.used = true; grow = true; break;
+          }
+        }
+        /* extend backward */
+        grow = true;
+        while (grow) {
+          grow = false;
+          const head = chain[0];
+          const cands = map.get(kk(head)) || [];
+          for (const ref of cands) {
+            const s = segs[ref.i];
+            if (s.used) continue;
+            const other = ref.end === "a" ? s.b : s.a;
+            chain.unshift(other); s.used = true; grow = true; break;
+          }
+        }
+        chains.push(chain);
+      }
+
+      const out = [];
+      let acc = 0;
+      const BUDGET = 110000;
+      for (const chain of chains) {
+        if (chain.length < 2) continue;
+        if (minLen > 0 && pathLength(chain, false) < minLen) continue;
+        if (acc + chain.length > BUDGET) break;
+        acc += chain.length;
+        out.push({ pts: chain, closed: false, layer: L });
+      }
+
+      return applyStyle({ paths: out }, ins[0]);
+    },
+  },
+  textpath: {
+    name: "Text on Path",
+    cat: "gen",
+    group: "textimg",
+    ins: [Pin("paths", "Path"), Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "text", label: "Text", type: "text", def: "MUUSIA" },
+      { key: "size", label: "Size mm (cap height)", type: "slider", min: 2, max: 60, step: 0.5, def: 10 },
+      { key: "track", label: "Tracking %", type: "slider", min: 50, max: 300, step: 1, def: 100 },
+      { key: "align", label: "Align on path", type: "select", options: ["Start", "Center", "End"], def: "Center" },
+      { key: "startPct", label: "Start offset %", type: "slider", min: -50, max: 100, step: 1, def: 0 },
+      { key: "baseline", label: "Baseline offset mm", type: "slider", min: -40, max: 40, step: 0.5, def: 0 },
+      { key: "side", label: "Side", type: "select", options: ["Along", "Flip (read other side)"], def: "Along" },
+      { key: "repeat", label: "Repeat to fill", type: "check", def: false },
+      { key: "gap", label: "Repeat gap mm", type: "slider", min: 0, max: 60, step: 0.5, def: 8 },
+      { key: "res", label: "Curve sample mm", type: "slider", min: 0.3, max: 4, step: 0.1, def: 0.6 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer);
+      const F = SFONT; /* baked-in: module scope */
+      const sc = Math.max(0.01, p.size) / 10;
+      const tr = Math.max(0.1, p.track / 100);
+      const flip = p.side === "Flip (read other side)";
+
+      /* fallback spine: straight horizontal line if nothing wired */
+      const spines = ins[0] && ins[0].paths && ins[0].paths.length
+        ? ins[0].paths
+        : [{ pts: [[15, H / 2], [W - 15, H / 2]], closed: false, layer: L }];
+
+      /* advance width of one glyph including inter-letter gap */
+      const glyphW = (ch) => ((F[ch] || F[" "]).w + 2) * sc * tr;
+      const strForWidth = (s) => {
+        let w = 0;
+        for (const ch of s) w += glyphW(ch);
+        return w;
+      };
+
+      const chars = String(p.text || "").toUpperCase().split("");
+      const oneW = strForWidth(chars);
+      if (oneW <= 0) return applyStyle({ paths: [] }, ins[1]);
+
+      const paths = [];
+
+      for (const spine of spines) {
+        const base = resample(spine.pts, spine.closed, Math.max(0.2, p.res));
+        if (base.length < 2) continue;
+        const closed = !!spine.closed;
+        const pts2 = closed ? [...base, base[0]] : base;
+
+        /* arc-length table */
+        const cum = [0];
+        for (let i = 1; i < pts2.length; i++) {
+          cum.push(cum[i - 1] + Math.hypot(pts2[i][0] - pts2[i - 1][0], pts2[i][1] - pts2[i - 1][1]));
+        }
+        const total = cum[cum.length - 1];
+        if (total < 1) continue;
+
+        /* position + unit tangent at arc-length s */
+        const at = (s) => {
+          if (closed) { s = ((s % total) + total) % total; }
+          else { s = Math.max(0, Math.min(total, s)); }
+          let lo = 0, hi = cum.length - 1;
+          while (lo < hi - 1) {
+            const mid = (lo + hi) >> 1;
+            if (cum[mid] <= s) lo = mid; else hi = mid;
+          }
+          const f = (s - cum[lo]) / ((cum[hi] - cum[lo]) || 1);
+          const x = pts2[lo][0] + (pts2[hi][0] - pts2[lo][0]) * f;
+          const y = pts2[lo][1] + (pts2[hi][1] - pts2[lo][1]) * f;
+          let tx = pts2[hi][0] - pts2[lo][0], ty = pts2[hi][1] - pts2[lo][1];
+          const tl = Math.hypot(tx, ty) || 1;
+          return [x, y, tx / tl, ty / tl];
+        };
+
+        /* one pass lays out chars starting at arc-length s0 */
+        const layout = (s0) => {
+          let cursor = s0;
+          for (const ch of chars) {
+            const g = F[ch] || F[" "];
+            const adv = glyphW(ch);
+            /* place glyph centered on its own advance so rotation looks even */
+            const glyphCenter = cursor + adv / 2;
+            const [cx, cy, tx, ty] = at(glyphCenter);
+            /* tangent (reading direction) and normal */
+            let dx = tx, dy = ty, nx = -ty, ny = tx;
+            if (flip) { dx = -dx; dy = -dy; nx = -nx; ny = -ny; }
+            /* glyph local origin: left edge of glyph body, baseline at y=10*sc.
+               We want the glyph's own left edge at (cursor) along the path and
+               its baseline shifted by p.baseline along the normal. Local x measured
+               from glyph left; recenter so text advance aligns with path arc-length. */
+            const halfAdv = adv / 2;
+            for (const stroke of g.s) {
+              if (stroke.length < 2) continue;
+              const outPts = stroke.map(([gx, gy]) => {
+                /* local coords in mm: lx along reading dir (0..adv), ly up/down.
+                   baseline of font is gy=10 (bottom); shift so baseline sits on path. */
+                const lx = gx * sc - halfAdv;              /* center glyph on its advance */
+                const ly = (gy * sc - 10 * sc) + p.baseline; /* 0 at baseline, negative = up */
+                return [
+                  cx + dx * lx + nx * ly,
+                  cy + dy * lx + ny * ly,
+                ];
+              });
+              paths.push({ pts: outPts, closed: false, layer: L });
+            }
+            cursor += adv;
+          }
+          return cursor;
+        };
+
+        if (p.repeat) {
+          const stride = oneW + Math.max(0, p.gap);
+          let s = (p.startPct / 100) * total;
+          /* how many fit */
+          const room = closed ? total : (total - s);
+          let n = Math.max(1, Math.floor((room + Math.max(0, p.gap)) / stride));
+          if (closed) n = Math.max(1, Math.floor(total / stride));
+          for (let k = 0; k < n; k++) layout(s + k * stride);
+        } else {
+          let s0;
+          if (p.startPct !== 0) {
+            s0 = (p.startPct / 100) * total;
+          } else if (p.align === "Center") {
+            s0 = (total - oneW) / 2;
+          } else if (p.align === "End") {
+            s0 = total - oneW;
+          } else {
+            s0 = 0;
+          }
+          layout(s0);
+        }
+      }
+
+      return applyStyle({ paths }, ins[1]);
+    },
+  },
+  lace: {
+    name: "Lace",
+    cat: "gen",
+    group: "organic",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "mode", label: "Pattern", type: "select", options: ["Doily", "Edging", "Mesh ground"], def: "Doily" },
+      { key: "rings", label: "Rings (doily)", type: "slider", min: 1, max: 10, step: 1, def: 5 },
+      { key: "sectors", label: "Sectors / scallops", type: "slider", min: 4, max: 40, step: 1, def: 16 },
+      { key: "detail", label: "Detail", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+      { key: "picots", label: "Picots", type: "check", def: true },
+      { key: "depth", label: "Depth mm (edging)", type: "slider", min: 10, max: 80, step: 1, def: 30 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 7 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer);
+      const m = Math.max(0, p.margin);
+      const S = Math.max(4, Math.min(64, Math.round(p.sectors)));
+      const det = Math.max(0, Math.min(1, p.detail));
+      const TWO = Math.PI * 2;
+      const paths = [];
+      const circleAt = (cx, cy, r, n) => {
+        const pts = [];
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * TWO;
+          pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+        }
+        paths.push({ pts, closed: true, layer: L });
+      };
+
+      /* ============================ DOILY ============================ */
+      if (p.mode === "Doily") {
+        const cx = W / 2, cy = H / 2;
+        const maxR = Math.min(W, H) / 2 - m;
+        if (maxR < 12) return applyStyle({ paths: [] }, ins[0]);
+        const P = (r, a) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+        const picotR = p.picots ? Math.min(2.4, Math.max(1, maxR * 0.028)) : 0;
+        const scH = Math.max(4, Math.min(15, maxR * 0.15));
+        const outerBase = maxR - 2 * picotR - scH;
+
+        /* --- center flower --- */
+        const fR = maxR * 0.2;
+        const np = Math.min(16, Math.max(5, Math.round(S / 2)));
+        const NN = 9;
+        for (let j = 0; j < np; j++) {
+          const a = (j / np) * TWO;
+          const ca = Math.cos(a), sa = Math.sin(a);
+          const wid = fR * 0.5;
+          const pts = [];
+          for (let i = 0; i <= NN; i++) {
+            const u = i / NN, t = u * fR, rad = Math.sin(Math.PI * u) * wid * 0.5;
+            pts.push([cx + ca * t - sa * rad, cy + sa * t + ca * rad]);
+          }
+          for (let i = NN - 1; i >= 1; i--) {
+            const u = i / NN, t = u * fR, rad = -Math.sin(Math.PI * u) * wid * 0.5;
+            pts.push([cx + ca * t - sa * rad, cy + sa * t + ca * rad]);
+          }
+          paths.push({ pts, closed: true, layer: L });
+        }
+        circleAt(cx, cy, fR * 0.22, 12);
+
+        /* --- ring bands with hashed classic motifs --- */
+        const rIn = fR * 1.3;
+        const availB = outerBase - rIn - 2;
+        const K = Math.max(0, Math.min(10, Math.round(p.rings)));
+        if (availB > 6 && K > 0) {
+          const bh = availB / K;
+          for (let k = 0; k < K; k++) {
+            const r0 = rIn + k * bh + 0.8;
+            const r1 = rIn + (k + 1) * bh - 0.8;
+            if (r1 - r0 < 1.5) continue;
+            const rm = (r0 + r1) / 2;
+            const pick = hash2(k * 13 + 2, 5, p.seed);
+            if (pick < 0.16) {
+              /* plain ring */
+              circleAt(cx, cy, rm, Math.max(48, S * 5));
+            } else if (pick < 0.32) {
+              /* double ring */
+              circleAt(cx, cy, r0 + (r1 - r0) * 0.25, Math.max(48, S * 5));
+              circleAt(cx, cy, r0 + (r1 - r0) * 0.75, Math.max(48, S * 5));
+            } else if (pick < 0.56) {
+              /* zigzag mesh: two opposite-phase rings -> diamonds */
+              const M = S * 2;
+              for (let ph = 0; ph < 2; ph++) {
+                const pts = [];
+                for (let i = 0; i < M; i++) {
+                  const r = (i + ph) % 2 ? r1 : r0;
+                  pts.push(P(r, (i / M) * TWO));
+                }
+                paths.push({ pts, closed: true, layer: L });
+              }
+            } else if (pick < 0.8) {
+              /* fans: per-sector spokes + outer arc */
+              const st = TWO / S;
+              const nf = 3 + Math.round(det * 4);
+              for (let s = 0; s < S; s++) {
+                const a0 = s * st, ac = a0 + st / 2;
+                const piv = P(r0, ac);
+                for (let j = 0; j < nf; j++) {
+                  const aj = a0 + (0.12 + 0.76 * (nf === 1 ? 0.5 : j / (nf - 1))) * st;
+                  paths.push({ pts: [piv.slice(), P(r1 - 0.3, aj)], closed: false, layer: L });
+                }
+                const arc = [];
+                for (let j = 0; j <= 8; j++) {
+                  arc.push(P(r1 - 0.3, a0 + (0.12 + 0.76 * (j / 8)) * st));
+                }
+                paths.push({ pts: arc, closed: false, layer: L });
+              }
+            } else {
+              /* picot ring: circle with tiny outward loops */
+              circleAt(cx, cy, rm, Math.max(48, S * 5));
+              let pr = Math.min(2.2, Math.max(0.8, (r1 - r0) * 0.3));
+              pr = Math.min(pr, (r1 - rm) / 2);
+              if (pr > 0.4) {
+                for (let s = 0; s < S; s++) {
+                  const a = ((s + 0.5) / S) * TWO;
+                  const c = P(rm + pr, a);
+                  circleAt(c[0], c[1], pr, 8);
+                }
+              }
+            }
+          }
+        }
+
+        /* --- outer scalloped edge (classic finish) --- */
+        circleAt(cx, cy, outerBase, Math.max(48, S * 5));
+        const J = 10;
+        const sc = [];
+        for (let s = 0; s < S; s++) {
+          for (let j = 0; j < J; j++) {
+            const u = j / J;
+            const a = ((s + u) / S) * TWO;
+            const rad = outerBase + scH * Math.pow(Math.sin(Math.PI * u), 1.15);
+            sc.push(P(rad, a));
+          }
+        }
+        paths.push({ pts: sc, closed: true, layer: L });
+        if (picotR > 0) {
+          for (let s = 0; s < S; s++) {
+            const a = ((s + 0.5) / S) * TWO;
+            const c = P(maxR - picotR, a);
+            circleAt(c[0], c[1], picotR, 10);
+          }
+        }
+        return applyStyle({ paths }, ins[0]);
+      }
+
+      /* ============================ EDGING ============================ */
+      if (p.mode === "Edging") {
+        const x0 = m, x1 = W - m;
+        if (x1 - x0 < 20) return applyStyle({ paths: [] }, ins[0]);
+        const y0 = m;
+        const Dmax = H - 2 * m;
+        let pr = p.picots ? 2 : 0;
+        let D = Math.min(Math.max(10, p.depth), Dmax) - 2 * pr;
+        if (D < 10) { pr = 0; D = Math.min(Math.max(8, p.depth), Dmax); }
+        if (D < 8) return applyStyle({ paths: [] }, ins[0]);
+
+        /* header lines */
+        paths.push({ pts: [[x0, y0], [x1, y0]], closed: false, layer: L });
+        paths.push({ pts: [[x0, y0 + 1.8], [x1, y0 + 1.8]], closed: false, layer: L });
+
+        /* mesh strip: two opposite-phase zigzags */
+        const yA = y0 + 3.5;
+        const yB = yA + Math.max(4, D * 0.25);
+        const M2 = S * 2;
+        for (let ph = 0; ph < 2; ph++) {
+          const pts = [];
+          for (let i = 0; i <= M2; i++) {
+            const x = x0 + (i / M2) * (x1 - x0);
+            pts.push([x, (i + ph) % 2 ? yB : yA]);
+          }
+          paths.push({ pts, closed: false, layer: L });
+        }
+
+        /* scallops with fans + picots */
+        const yb = yB + 2;
+        const ybot = y0 + 3.5 + D;
+        if (ybot - yb > 4) {
+          const wSc = (x1 - x0) / S;
+          const J = 12;
+          const chain = [];
+          for (let s = 0; s < S; s++) {
+            for (let j = 0; j <= (s === S - 1 ? J : J - 1); j++) {
+              const u = j / J;
+              const x = x0 + ((s + u) / S) * (x1 - x0);
+              const y = yb + (ybot - yb) * Math.pow(Math.sin(Math.PI * u), 1.1);
+              chain.push([x, y]);
+            }
+          }
+          paths.push({ pts: chain, closed: false, layer: L });
+          const nf = 3 + Math.round(det * 4);
+          for (let s = 0; s < S; s++) {
+            const xs = x0 + s * wSc;
+            const piv = [xs + wSc / 2, yb + 0.5];
+            for (let j = 0; j < nf; j++) {
+              const u = 0.15 + 0.7 * (nf === 1 ? 0.5 : j / (nf - 1));
+              const x = xs + u * wSc;
+              const y = yb + (ybot - yb) * Math.pow(Math.sin(Math.PI * u), 1.1);
+              paths.push({ pts: [piv.slice(), [x, y - 0.4]], closed: false, layer: L });
+            }
+            if (pr > 0) {
+              const cxp = xs + wSc / 2;
+              circleAt(cxp, ybot + pr, pr, 10);
+            }
+          }
+        }
+        return applyStyle({ paths }, ins[0]);
+      }
+
+      /* ========================= MESH GROUND ========================= */
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 10 || y1 - y0 < 10) return applyStyle({ paths: [] }, ins[0]);
+      const g = 3.5 + (1 - det) * 9;
+      const cs = g * Math.SQRT2;
+      /* diagonal families clipped to rect */
+      const clipLine = (sign) => {
+        /* sign +1: x + y = c ; sign -1: x - y = c */
+        const cMin = sign > 0 ? x0 + y0 : x0 - y1;
+        const cMax = sign > 0 ? x1 + y1 : x1 - y0;
+        for (let c = cMin + cs / 2; c < cMax; c += cs) {
+          const cand = [];
+          const tryPt = (x, y) => {
+            if (x >= x0 - 1e-6 && x <= x1 + 1e-6 && y >= y0 - 1e-6 && y <= y1 + 1e-6) cand.push([x, y]);
+          };
+          if (sign > 0) {
+            tryPt(x0, c - x0); tryPt(x1, c - x1); tryPt(c - y0, y0); tryPt(c - y1, y1);
+          } else {
+            tryPt(x0, x0 - c); tryPt(x1, x1 - c); tryPt(c + y0, y0); tryPt(c + y1, y1);
+          }
+          /* dedupe + take extremes */
+          const uniq = [];
+          for (const q of cand) {
+            if (!uniq.some((u) => Math.abs(u[0] - q[0]) < 1e-6 && Math.abs(u[1] - q[1]) < 1e-6)) uniq.push(q);
+          }
+          if (uniq.length >= 2) {
+            uniq.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+            const a = uniq[0], b = uniq[uniq.length - 1];
+            if (Math.hypot(b[0] - a[0], b[1] - a[1]) > 1) {
+              paths.push({ pts: [a, b], closed: false, layer: L });
+            }
+          }
+        }
+      };
+      clipLine(1); clipLine(-1);
+      /* torchon spiders */
+      const nx = Math.floor((x1 - x0) / cs), ny = Math.floor((y1 - y0) / cs);
+      for (let i = 0; i < nx; i++) {
+        for (let j = 0; j < ny; j++) {
+          if (hash2(i * 3 + 1, j * 3 + 2, p.seed) >= det * 0.45) continue;
+          const cxx = x0 + (i + 0.5) * cs, cyy = y0 + (j + 0.5) * cs;
+          const d = g * 0.42;
+          if (cxx - d < x0 || cxx + d > x1 || cyy - d < y0 || cyy + d > y1) continue;
+          paths.push({
+            pts: [[cxx + d, cyy], [cxx, cyy + d], [cxx - d, cyy], [cxx, cyy - d]],
+            closed: true, layer: L,
+          });
+          paths.push({ pts: [[cxx - d * 0.55, cyy], [cxx + d * 0.55, cyy]], closed: false, layer: L });
+          paths.push({ pts: [[cxx, cyy - d * 0.55], [cxx, cyy + d * 0.55]], closed: false, layer: L });
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    },
+  },
+  macrame: {
+    name: "Macrame",
+    cat: "gen",
+    group: "organic",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "pattern", label: "Pattern", type: "select", options: ["Alternating net", "Diamonds", "Sinnet columns"], def: "Alternating net" },
+      { key: "cords", label: "Cords", type: "slider", min: 4, max: 40, step: 2, def: 12 },
+      { key: "rows", label: "Knot rows", type: "slider", min: 1, max: 40, step: 1, def: 9 },
+      { key: "knot", label: "Knot size mm", type: "slider", min: 1, max: 10, step: 0.25, def: 3 },
+      { key: "fringe", label: "Fringe mm", type: "slider", min: 0, max: 80, step: 1, def: 25 },
+      { key: "wiggle", label: "Fringe wiggle", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5 },
+      { key: "bar", label: "Top bar + loops", type: "check", def: true },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 11 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer);
+      const m = Math.max(0, p.margin);
+      let N = Math.max(4, Math.min(40, Math.round(p.cords)));
+      N -= N % 2;
+      const kd = Math.max(0.5, Math.min(12, p.knot));
+      const x0 = m, x1 = W - m;
+      if (x1 - x0 < N * 2) return applyStyle({ paths: [] }, ins[0]);
+      const xi = (i) => x0 + ((i + 0.5) / N) * (x1 - x0);
+
+      const ybar = m + 2;
+      const yTop = ybar + (p.bar ? 4 : 1);
+      const fringe = Math.max(0, p.fringe);
+      const avail = H - m - yTop - fringe - 2;
+      let R = Math.max(1, Math.min(40, Math.round(p.rows)));
+      if (avail < R * Math.max(2, kd)) {
+        R = Math.max(1, Math.floor(avail / Math.max(2, kd)));
+      }
+      if (avail < 4) return applyStyle({ paths: [] }, ins[0]);
+      const rowH = avail / R;
+      const yRow = (r) => yTop + (r + 0.5) * rowH;
+
+      /* which adjacent-cord pairs get a knot on row r (pair = left cord index) */
+      const pairsAt = (r) => {
+        const out = [];
+        if (p.pattern === "Sinnet columns") {
+          for (let i = 0; i + 1 < N; i += 2) out.push(i);
+        } else if (p.pattern === "Diamonds") {
+          const T = Math.max(2, N - 2);
+          const rr = r % T;
+          const cand = [rr, N - 2 - rr].filter((v) => v >= 0 && v + 1 < N);
+          cand.sort((a, b) => a - b);
+          let last = -9;
+          for (const c of cand) {
+            if (c - last >= 2) { out.push(c); last = c; }
+          }
+        } else {
+          /* alternating net */
+          for (let i = r % 2; i + 1 < N; i += 2) out.push(i);
+        }
+        return out;
+      };
+
+      const paths = [];
+      /* per-cord routing through its knots */
+      const cordPts = Array.from({ length: N }, (_, c) => [[xi(c), p.bar ? ybar + 1.2 : ybar]]);
+      const knots = []; /* [kx, ky] */
+      for (let r = 0; r < R; r++) {
+        const y = yRow(r);
+        for (const i of pairsAt(r)) {
+          const kx = (xi(i) + xi(i + 1)) / 2;
+          knots.push([kx, y]);
+          /* cords pinch into the knot and out below it */
+          const off = kd * 0.2;
+          cordPts[i].push([kx - off, y - kd * 0.5], [kx - off, y + kd * 0.5]);
+          cordPts[i + 1].push([kx + off, y - kd * 0.5], [kx + off, y + kd * 0.5]);
+        }
+      }
+      /* finish cords + fringe */
+      const yF0 = yTop + R * rowH + 1;
+      for (let c = 0; c < N; c++) {
+        const pts = cordPts[c];
+        const lastX = pts[pts.length - 1][0];
+        pts.push([lastX, yF0]);
+        if (fringe > 1) {
+          const fl = Math.min(fringe, H - m - yF0);
+          const steps = Math.max(2, Math.round(fl / 2));
+          for (let s = 1; s <= steps; s++) {
+            const yy = yF0 + (s / steps) * fl;
+            const wx = (noise2(yy * 0.25, c * 7.13, p.seed) - 0.5) * 2 * p.wiggle * 2.5;
+            pts.push([lastX + wx, yy]);
+          }
+        }
+        if (pts.length >= 2) paths.push({ pts, closed: false, layer: L });
+      }
+      /* knot ovals + wrap line */
+      for (const [kx, ky] of knots) {
+        const rx = kd * 0.55, ry = kd * 0.42;
+        const pts = [];
+        for (let q = 0; q < 12; q++) {
+          const a = (q / 12) * Math.PI * 2;
+          pts.push([kx + Math.cos(a) * rx, ky + Math.sin(a) * ry]);
+        }
+        paths.push({ pts, closed: true, layer: L });
+        paths.push({ pts: [[kx - rx * 0.55, ky], [kx + rx * 0.55, ky]], closed: false, layer: L });
+      }
+      /* top bar with lark's head loops */
+      if (p.bar) {
+        paths.push({ pts: [[x0, ybar], [x1, ybar]], closed: false, layer: L });
+        for (let c = 0; c < N; c++) {
+          const cxx = xi(c);
+          const pts = [];
+          for (let q = 0; q < 10; q++) {
+            const a = (q / 10) * Math.PI * 2;
+            pts.push([cxx + Math.cos(a) * 1.1, ybar + Math.sin(a) * 1.1]);
+          }
+          paths.push({ pts, closed: true, layer: L });
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    },
+  },
+  mathknot: {
+    name: "Knot",
+    cat: "gen",
+    group: "geometric",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "type", label: "Type", type: "select", options: ["Torus p·q", "Lissajous"], def: "Torus p·q" },
+      { key: "fp", label: "p (freq 1)", type: "slider", min: 1, max: 12, step: 1, def: 2 },
+      { key: "fq", label: "q (freq 2)", type: "slider", min: 1, max: 12, step: 1, def: 3 },
+      { key: "fz", label: "Freq Z (Lissajous)", type: "slider", min: 1, max: 12, step: 1, def: 7 },
+      { key: "tube", label: "Tube (torus)", type: "slider", min: 0.1, max: 0.9, step: 0.05, def: 0.5 },
+      { key: "gap", label: "Crossing gap mm", type: "slider", min: 0, max: 8, step: 0.1, def: 2.2 },
+      { key: "step", label: "Sample step mm", type: "slider", min: 0.3, max: 3, step: 0.1, def: 0.8 },
+      { key: "rot", label: "Rotate °", type: "slider", min: 0, max: 360, step: 1, def: 0 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+      { key: "seed", label: "Seed (Lissajous)", type: "seed", def: 5 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer);
+      const m = Math.max(0, p.margin);
+      const availW = W - 2 * m, availH = H - 2 * m;
+      if (availW < 10 || availH < 10) return applyStyle({ paths: [] }, ins[0]);
+
+      const fp = Math.max(1, Math.min(12, Math.round(p.fp)));
+      const fq = Math.max(1, Math.min(12, Math.round(p.fq)));
+      const fz = Math.max(1, Math.min(12, Math.round(p.fz)));
+      const tube = Math.max(0.05, Math.min(0.95, p.tube));
+      const step = Math.max(0.25, p.step);
+      const n = Math.max(240, Math.min(1600, Math.round(720 / step)));
+      const TWO = Math.PI * 2;
+
+      /* --- sample the 3D curve --- */
+      const rng = mulberry32(p.seed * 7919 + 13);
+      const ph1 = rng() * TWO, ph2 = rng() * TWO, ph3 = rng() * TWO;
+      const rr = p.rot * Math.PI / 180;
+      const cr = Math.cos(rr), sr = Math.sin(rr);
+      const xs = new Float64Array(n), ys = new Float64Array(n), zs = new Float64Array(n);
+      for (let i = 0; i < n; i++) {
+        const t = ((i + 0.5) / n) * TWO;
+        let x, y, z;
+        if (p.type === "Lissajous") {
+          x = Math.cos(fp * t + ph1);
+          y = Math.cos(fq * t + ph2);
+          z = Math.cos(fz * t + ph3);
+        } else {
+          const rad = 1 + tube * Math.cos(fq * t);
+          x = rad * Math.cos(fp * t);
+          y = rad * Math.sin(fp * t);
+          z = tube * Math.sin(fq * t);
+        }
+        xs[i] = x * cr - y * sr;
+        ys[i] = x * sr + y * cr;
+        zs[i] = z;
+      }
+
+      /* --- fit to canvas --- */
+      let bx0 = Infinity, bx1 = -Infinity, by0 = Infinity, by1 = -Infinity;
+      for (let i = 0; i < n; i++) {
+        if (xs[i] < bx0) bx0 = xs[i]; if (xs[i] > bx1) bx1 = xs[i];
+        if (ys[i] < by0) by0 = ys[i]; if (ys[i] > by1) by1 = ys[i];
+      }
+      const bw = (bx1 - bx0) || 1, bh = (by1 - by0) || 1;
+      const sc = Math.min(availW / bw, availH / bh);
+      const ox = m + (availW - bw * sc) / 2 - bx0 * sc;
+      const oy = m + (availH - bh * sc) / 2 - by0 * sc;
+      const pts = [];
+      for (let i = 0; i < n; i++) pts.push([xs[i] * sc + ox, ys[i] * sc + oy]);
+
+      /* --- arc-length table --- */
+      const segLen = new Float64Array(n);
+      const cum = new Float64Array(n);
+      let total = 0;
+      for (let i = 0; i < n; i++) {
+        cum[i] = total;
+        const j = (i + 1) % n;
+        segLen[i] = Math.hypot(pts[j][0] - pts[i][0], pts[j][1] - pts[i][1]);
+        total += segLen[i];
+      }
+      if (total < 2) return applyStyle({ paths: [] }, ins[0]);
+
+      /* --- find planar self-intersections, cut the strand that is UNDER --- */
+      const gapHalf = Math.max(0, p.gap) / 2;
+      const cuts = [];
+      if (gapHalf > 0.01) {
+        for (let i = 0; i < n; i++) {
+          const i2 = (i + 1) % n;
+          const ax = pts[i][0], ay = pts[i][1];
+          const bx = pts[i2][0], by = pts[i2][1];
+          const ix0 = Math.min(ax, bx), ix1 = Math.max(ax, bx);
+          const iy0 = Math.min(ay, by), iy1 = Math.max(ay, by);
+          for (let j = i + 2; j < n; j++) {
+            if (i === 0 && j === n - 1) continue; /* adjacent around the wrap */
+            const j2 = (j + 1) % n;
+            const cx = pts[j][0], cy = pts[j][1];
+            const dx = pts[j2][0], dy = pts[j2][1];
+            /* bbox reject */
+            if (Math.max(cx, dx) < ix0 || Math.min(cx, dx) > ix1) continue;
+            if (Math.max(cy, dy) < iy0 || Math.min(cy, dy) > iy1) continue;
+            const rX = bx - ax, rY = by - ay;
+            const sX = dx - cx, sY = dy - cy;
+            const den = rX * sY - rY * sX;
+            if (Math.abs(den) < 1e-12) continue;
+            const qpX = cx - ax, qpY = cy - ay;
+            const t = (qpX * sY - qpY * sX) / den;
+            const u = (qpX * rY - qpY * rX) / den;
+            if (t < -1e-6 || t > 1 + 1e-6 || u < -1e-6 || u > 1 + 1e-6) continue;
+            const za = zs[i] + (zs[i2] - zs[i]) * t;
+            const zb = zs[j] + (zs[j2] - zs[j]) * u;
+            if (Math.abs(za - zb) < 1e-9) continue; /* grazing: leave uncut */
+            const s = za < zb ? cum[i] + t * segLen[i] : cum[j] + u * segLen[j];
+            cuts.push(s);
+          }
+        }
+      }
+
+      if (!cuts.length) {
+        return applyStyle({ paths: [{ pts, closed: true, layer: L }] }, ins[0]);
+      }
+
+      /* --- drop vertices within gap/2 (arc distance) of each under-cut --- */
+      const kept = new Uint8Array(n).fill(1);
+      const circD = (a, b) => {
+        let d = Math.abs(a - b);
+        return Math.min(d, total - d);
+      };
+      for (const s of cuts) {
+        /* binary search: lo = last vertex with cum <= s */
+        let lo = 0, hi = n - 1;
+        if (cum[hi] <= s) { lo = hi; hi = 0; }
+        else {
+          while (lo < hi - 1) {
+            const mid = (lo + hi) >> 1;
+            if (cum[mid] <= s) lo = mid; else hi = mid;
+          }
+        }
+        /* walk forward from the vertex after s */
+        let j = (lo + 1) % n, guard = 0;
+        while (guard++ < n && circD(cum[j], s) < gapHalf) { kept[j] = 0; j = (j + 1) % n; }
+        /* walk backward from the vertex before/at s */
+        j = lo; guard = 0;
+        while (guard++ < n && circD(cum[j], s) < gapHalf) { kept[j] = 0; j = (j - 1 + n) % n; }
+      }
+
+      /* --- collect circular runs of kept vertices --- */
+      let allKept = true, noneKept = true;
+      for (let i = 0; i < n; i++) {
+        if (kept[i]) noneKept = false; else allKept = false;
+      }
+      if (noneKept) return applyStyle({ paths: [] }, ins[0]);
+      if (allKept) return applyStyle({ paths: [{ pts, closed: true, layer: L }] }, ins[0]);
+
+      const paths = [];
+      for (let i = 0; i < n; i++) {
+        const prev = (i - 1 + n) % n;
+        if (!kept[i] || kept[prev]) continue; /* run starts where prev was cut */
+        const run = [];
+        let j = i, guard = 0;
+        while (kept[j] && guard <= n) {
+          run.push(pts[j].slice());
+          j = (j + 1) % n; guard++;
+        }
+        if (run.length >= 2) paths.push({ pts: run, closed: false, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    },
+  },
+  murmuration: {
+    name: "Murmuration",
+    cat: "gen",
+    group: "creatures",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "birds", label: "Birds", type: "slider", min: 10, max: 600, step: 1, def: 220 },
+      { key: "time", label: "Time (wire Frame t)", type: "slider", min: 0, max: 1, step: 0.001, def: 0 },
+      { key: "travel", label: "Travel range", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5 },
+      { key: "path", label: "Flock path", type: "select", options: ["Wander", "Oval", "Figure-8", "Lissajous 2:3", "Trefoil"], def: "Wander" },
+      { key: "wander", label: "Wander mix (guide paths)", type: "slider", min: 0, max: 1, step: 0.05, def: 0.4 },
+      { key: "spread", label: "Flock radius mm", type: "slider", min: 10, max: 150, step: 1, def: 55 },
+      { key: "pulse", label: "Pulse (breathing)", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5 },
+      { key: "swirl", label: "Swirl turns / loop", type: "slider", min: -3, max: 3, step: 1, def: 1 },
+      { key: "scatter", label: "Scatter mm", type: "slider", min: 0, max: 30, step: 0.5, def: 8 },
+      { key: "stretch", label: "Stretch along travel", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+      { key: "shape", label: "Bird shape", type: "select", options: ["Dash", "Chevron", "Dot"], def: "Chevron" },
+      { key: "size", label: "Bird size mm", type: "slider", min: 0.5, max: 6, step: 0.1, def: 1.8 },
+      { key: "trail", label: "Trail mm", type: "slider", min: 0, max: 25, step: 0.5, def: 0 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
+      { key: "seed", label: "Seed", type: "seed", def: 3 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer);
+      const m = Math.max(0, p.margin);
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 10 || y1 - y0 < 10) return applyStyle({ paths: [] }, ins[0]);
+
+      const TWO = Math.PI * 2;
+      const seed = p.seed;
+      const N = Math.max(1, Math.min(800, Math.round(p.birds)));
+      const tt = ((p.time % 1) + 1) % 1; /* wrap so Frame frame# also animates */
+      const spread = Math.max(1, p.spread);
+      const scatter = Math.max(0, p.scatter);
+      const turns = Math.round(Math.max(-6, Math.min(6, p.swirl))); /* integer -> seamless loop */
+      const travel = Math.max(0, Math.min(1, p.travel));
+      const stretchAmt = Math.max(0, Math.min(1, p.stretch));
+
+      /* All time-varying terms sample noise on a circle: cos/sin(2πt).
+         Anything periodic in t by construction => t=0 and t=1 identical
+         => seamless animation loops. */
+      const cW = (W / 2), cH = (H / 2);
+      const travX = Math.max(0, (x1 - x0) / 2 - spread * 0.35) * travel;
+      const travY = Math.max(0, (y1 - y0) / 2 - spread * 0.35) * travel;
+
+      const flockCenter = (t) => {
+        const a = TWO * t, c = Math.cos(a), s = Math.sin(a);
+        /* loop-noise wander (periodic in t by circular sampling) */
+        const nx = (noise2(c * 1.7 + 3.1, s * 1.7 + 7.7, seed + 11) - 0.5) * 2;
+        const ny = (noise2(c * 1.7 + 13.9, s * 1.7 + 2.3, seed + 29) - 0.5) * 2;
+        if (p.path === "Oval" || p.path === "Figure-8" || p.path === "Lissajous 2:3" || p.path === "Trefoil") {
+          /* closed guide curves, all 2π-periodic => loop stays seamless */
+          let gx, gy;
+          if (p.path === "Oval") { gx = c; gy = s; }
+          else if (p.path === "Figure-8") { gx = c; gy = Math.sin(2 * a) * 0.9; }
+          else if (p.path === "Lissajous 2:3") { gx = Math.sin(2 * a); gy = Math.sin(3 * a); }
+          else { const r3 = (1 + 0.38 * Math.cos(3 * a)) / 1.38; gx = c * r3; gy = s * r3; }
+          const wmix = 0.35 * Math.max(0, Math.min(1, p.wander));
+          return [cW + (gx * (1 - wmix) + nx * wmix) * travX,
+                  cH + (gy * (1 - wmix) + ny * wmix) * travY];
+        }
+        /* Wander: original behavior, unchanged for existing patches */
+        return [cW + nx * travX, cH + ny * travY];
+      };
+
+      /* per-bird stable hashes */
+      const birdsArr = [];
+      for (let i = 0; i < N; i++) {
+        birdsArr.push({
+          a0: hash2(i, 3, seed) * TWO,
+          r0: Math.sqrt(hash2(i, 5, seed)),        /* sqrt -> uniform disc */
+          sz: Math.max(0.2, p.size) * (0.55 + 0.9 * hash2(i, 21, seed)), /* depth illusion */
+          o1: hash2(i, 11, seed) * 47, o2: hash2(i, 12, seed) * 47,
+          o3: hash2(i, 13, seed) * 47, o4: hash2(i, 14, seed) * 47,
+          o5: hash2(i, 15, seed) * 47, o6: hash2(i, 16, seed) * 47,
+        });
+      }
+
+      const posAt = (t, h) => {
+        const a = TWO * t, c = Math.cos(a), s = Math.sin(a);
+        const fc = flockCenter(t);
+        /* flock travel direction (for elongation) */
+        const pA = flockCenter(t - 0.012), pB = flockCenter(t + 0.012);
+        let vx = pB[0] - pA[0], vy = pB[1] - pA[1];
+        const vl = Math.hypot(vx, vy) || 1; vx /= vl; vy /= vl;
+        /* swirling polar offset + global breathing pulse */
+        const ang = h.a0 + turns * TWO * t
+          + (noise2(c * 1.1 + h.o1, s * 1.1 + h.o2, seed + 5) - 0.5) * 2.5;
+        const pul = 1 + p.pulse * 0.7 * ((noise2(c * 0.9 + 31, s * 0.9 + 17, seed + 41) - 0.5) * 2);
+        const rad = h.r0 * spread * pul;
+        let ox = Math.cos(ang) * rad, oy = Math.sin(ang) * rad;
+        /* elongate along travel, squash across it */
+        const along = ox * vx + oy * vy;
+        const perp = -ox * vy + oy * vx;
+        const stA = 1 + stretchAmt * 0.9, stP = 1 / (1 + stretchAmt * 0.45);
+        ox = vx * along * stA - vy * perp * stP;
+        oy = vy * along * stA + vx * perp * stP;
+        /* individual wander */
+        ox += (noise2(c * 2.3 + h.o3, s * 2.3 + h.o4, seed + 7) - 0.5) * 2 * scatter;
+        oy += (noise2(c * 2.3 + h.o5, s * 2.3 + h.o6, seed + 9) - 0.5) * 2 * scatter;
+        return [fc[0] + ox, fc[1] + oy];
+      };
+
+      const inside = (q) => q[0] >= x0 && q[0] <= x1 && q[1] >= y0 && q[1] <= y1;
+      /* glyph reach beyond the bird position, per shape */
+      const reachOf = (sz) => p.shape === "Chevron" ? sz * 1.4 : p.shape === "Dash" ? sz * 0.55 : Math.max(0.25, sz * 0.28) + 0.05;
+      const insideR = (q, r) => q[0] >= x0 + r && q[0] <= x1 - r && q[1] >= y0 + r && q[1] <= y1 - r;
+      const paths = [];
+      const trailMm = Math.max(0, p.trail);
+
+      for (const h of birdsArr) {
+        const pos = posAt(tt, h);
+        if (!insideR(pos, reachOf(h.sz))) continue;
+        /* heading from the closed-form derivative (periodic, so loop-safe) */
+        const e = 0.002;
+        const pA = posAt(tt - e, h), pB = posAt(tt + e, h);
+        let dx = pB[0] - pA[0], dy = pB[1] - pA[1];
+        const dl = Math.hypot(dx, dy);
+        if (dl > 1e-9) { dx /= dl; dy /= dl; } else { dx = 1; dy = 0; }
+
+        /* trail: flight history, oldest -> head so pen travels in flight direction */
+        if (trailMm > 0.5) {
+          const tp = [pos];
+          let tcur = tt, acc = 0, guard = 0;
+          const dt = 0.0035;
+          while (acc < trailMm && guard++ < 36) {
+            const prev = posAt(tcur - dt, h);
+            if (!inside(prev)) break;
+            acc += Math.hypot(prev[0] - tp[0][0], prev[1] - tp[0][1]);
+            tp.unshift(prev);
+            tcur -= dt;
+          }
+          if (tp.length >= 2) paths.push({ pts: tp, closed: false, layer: L });
+        }
+
+        const sz = h.sz;
+        if (p.shape === "Dash") {
+          paths.push({
+            pts: [[pos[0] - dx * sz / 2, pos[1] - dy * sz / 2], [pos[0] + dx * sz / 2, pos[1] + dy * sz / 2]],
+            closed: false, layer: L,
+          });
+        } else if (p.shape === "Dot") {
+          const r = Math.max(0.25, sz * 0.28);
+          const pts = [];
+          for (let q = 0; q < 6; q++) {
+            const a = (q / 6) * TWO;
+            pts.push([pos[0] + Math.cos(a) * r, pos[1] + Math.sin(a) * r]);
+          }
+          paths.push({ pts, closed: true, layer: L });
+        } else {
+          /* Chevron: tiny V opening backwards -- the classic distant-starling glyph.
+             One 3-point stroke: wingtip -> head -> wingtip (single pen-down). */
+          const hx = pos[0] + dx * sz * 0.35, hy = pos[1] + dy * sz * 0.35;
+          const wa = 2.65; /* ~152 deg back from heading */
+          const c1 = Math.cos(wa), s1 = Math.sin(wa);
+          const w1 = [hx + (dx * c1 - dy * s1) * sz, hy + (dx * s1 + dy * c1) * sz];
+          const w2 = [hx + (dx * c1 + dy * s1) * sz, hy + (-dx * s1 + dy * c1) * sz];
+          paths.push({ pts: [w1, [hx, hy], w2], closed: false, layer: L });
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    },
+  },
+  dazzle: {
+    name: "Dazzle Camouflage",
+    cat: "gen",
+    group: "geometric",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "patches", label: "Patches", type: "slider", min: 2, max: 60, step: 1, def: 14 },
+      { key: "spacing", label: "Stripe spacing mm", type: "slider", min: 1, max: 12, step: 0.25, def: 3 },
+      { key: "jitter", label: "Angle jitter", type: "slider", min: 0, max: 1, step: 0.05, def: 0.4 },
+      { key: "blank", label: "Blank patches", type: "slider", min: 0, max: 1, step: 0.05, def: 0.25 },
+      { key: "cross", label: "Cross-hatch patches", type: "slider", min: 0, max: 1, step: 0.05, def: 0.15 },
+      { key: "wavy", label: "Wavy patches", type: "slider", min: 0, max: 1, step: 0.05, def: 0.2 },
+      { key: "outline", label: "Patch outlines", type: "check", def: true },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 17 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer);
+      const m = Math.max(0, p.margin);
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 15 || y1 - y0 < 15) return applyStyle({ paths: [] }, ins[0]);
+
+      const rng = mulberry32((p.seed | 0) * 2654435761 + 7);
+      const target = Math.max(1, Math.min(80, Math.round(p.patches)));
+      const sp = Math.max(0.8, p.spacing);
+      const MINAREA = Math.max(60, sp * sp * 6);
+
+      /* --- recursive BSP: split the largest convex patch with a random chord --- */
+      const area = (poly) => Math.abs(signedArea(poly));
+      const centroid = (poly) => {
+        let cx = 0, cy = 0;
+        for (const q of poly) { cx += q[0]; cy += q[1]; }
+        return [cx / poly.length, cy / poly.length];
+      };
+      const splitConvex = (poly, px, py, ang) => {
+        const nx = -Math.sin(ang), ny = Math.cos(ang);
+        const d = nx * px + ny * py;
+        const A = [], B = [];
+        const n = poly.length;
+        for (let i = 0; i < n; i++) {
+          const a = poly[i], b = poly[(i + 1) % n];
+          const da = nx * a[0] + ny * a[1] - d;
+          const db = nx * b[0] + ny * b[1] - d;
+          if (da >= -1e-9) A.push(a);
+          if (da <= 1e-9) B.push(a);
+          if ((da > 1e-9 && db < -1e-9) || (da < -1e-9 && db > 1e-9)) {
+            const t = da / (da - db);
+            const ip = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+            A.push(ip); B.push(ip);
+          }
+        }
+        return [A, B];
+      };
+
+      let polys = [[[x0, y0], [x1, y0], [x1, y1], [x0, y1]]];
+      let guard = 0;
+      while (polys.length < target && guard++ < 400) {
+        /* pick largest patch */
+        let bi = 0, ba = -1;
+        for (let i = 0; i < polys.length; i++) {
+          const a = area(polys[i]);
+          if (a > ba) { ba = a; bi = i; }
+        }
+        if (ba < MINAREA * 2.2) break; /* nothing big enough left to split */
+        const poly = polys[bi];
+        const [ccx, ccy] = centroid(poly);
+        const px = ccx + (rng() - 0.5) * Math.sqrt(ba) * 0.4;
+        const py = ccy + (rng() - 0.5) * Math.sqrt(ba) * 0.4;
+        const ang = rng() * Math.PI;
+        const [A, B] = splitConvex(poly, px, py, ang);
+        if (A.length >= 3 && B.length >= 3 && area(A) > MINAREA && area(B) > MINAREA) {
+          polys.splice(bi, 1, A, B);
+        }
+        /* else: retry with new random point/angle next iteration */
+      }
+
+      /* --- per-patch styling: clashing quantized angles --- */
+      const paths = [];
+      const clampRect = (q) => [
+        Math.max(x0, Math.min(x1, q[0])),
+        Math.max(y0, Math.min(y1, q[1])),
+      ];
+      const angleSteps = [0, 30, 60, 90, 120, 150];
+      let prevIdx = -1;
+
+      const hatch = (poly, phi, spacing, wavyAmp, wavePhase) => {
+        const dx = Math.cos(phi), dy = Math.sin(phi);
+        const nx = -dy, ny = dx;
+        let cmin = Infinity, cmax = -Infinity;
+        for (const q of poly) {
+          const c = nx * q[0] + ny * q[1];
+          if (c < cmin) cmin = c;
+          if (c > cmax) cmax = c;
+        }
+        let rev = false;
+        for (let c = cmin + spacing / 2; c < cmax; c += spacing) {
+          /* intersect infinite line (n·q = c) with convex polygon edges */
+          const hits = [];
+          const n = poly.length;
+          for (let i = 0; i < n; i++) {
+            const a = poly[i], b = poly[(i + 1) % n];
+            const da = nx * a[0] + ny * a[1] - c;
+            const db = nx * b[0] + ny * b[1] - c;
+            if ((da > 0 && db <= 0) || (da <= 0 && db > 0)) {
+              const t = da / (da - db);
+              hits.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+            }
+          }
+          if (hits.length < 2) continue;
+          hits.sort((u, v) => (u[0] * dx + u[1] * dy) - (v[0] * dx + v[1] * dy));
+          let A = hits[0], B = hits[hits.length - 1];
+          const len = Math.hypot(B[0] - A[0], B[1] - A[1]);
+          if (len < 0.6) continue;
+          if (rev) { const t = A; A = B; B = t; } /* serpentine: pen-friendly */
+          rev = !rev;
+          if (wavyAmp > 0.05 && len > 4) {
+            const K = Math.max(3, Math.round(len / 2));
+            const pts = [];
+            for (let k = 0; k <= K; k++) {
+              const u = k / K;
+              const bx = A[0] + (B[0] - A[0]) * u;
+              const by = A[1] + (B[1] - A[1]) * u;
+              const off = Math.sin(u * len * 0.9 + wavePhase + c * 0.3) * wavyAmp;
+              pts.push(clampRect([bx + nx * off, by + ny * off]));
+            }
+            paths.push({ pts, closed: false, layer: L });
+          } else {
+            paths.push({ pts: [A, B], closed: false, layer: L });
+          }
+        }
+      };
+
+      for (let i = 0; i < polys.length; i++) {
+        const poly = polys[i];
+        if (poly.length < 3 || area(poly) < 1) continue;
+        if (p.outline) {
+          paths.push({ pts: poly.map((q) => q.slice()), closed: true, layer: L });
+        }
+        const h1 = hash2(i * 7 + 1, 3, p.seed);
+        if (h1 < Math.max(0, Math.min(1, p.blank))) { prevIdx = -1; continue; }
+        /* clashing angle: quantized palette, never repeat the previous patch */
+        let ai = Math.floor(hash2(i * 7 + 2, 9, p.seed) * angleSteps.length) % angleSteps.length;
+        if (ai === prevIdx) ai = (ai + 2) % angleSteps.length;
+        prevIdx = ai;
+        const jit = (hash2(i * 7 + 3, 11, p.seed) - 0.5) * 24 * Math.max(0, Math.min(1, p.jitter));
+        const phi = ((angleSteps[ai] + jit) * Math.PI) / 180;
+        const spLocal = sp * (0.75 + 0.5 * hash2(i * 7 + 4, 13, p.seed));
+        const isWavy = hash2(i * 7 + 5, 15, p.seed) < Math.max(0, Math.min(1, p.wavy));
+        const amp = isWavy ? Math.min(spLocal * 0.32, 1.6) : 0;
+        const phase = hash2(i * 7 + 6, 17, p.seed) * Math.PI * 2;
+        hatch(poly, phi, spLocal, amp, phase);
+        if (hash2(i * 7 + 8, 19, p.seed) < Math.max(0, Math.min(1, p.cross))) {
+          hatch(poly, phi + Math.PI / 2 + 0.12, spLocal * 1.4, 0, 0);
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    },
+  },
+  glitch_loom: {
+    name: "Glitch Loom",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "seed", label: "Seed", type: "seed", def: 42 },
+      { key: "pitch", label: "Loom Pitch (mm)", type: "slider", min: 1, max: 20, step: 0.5, def: 6 },
+      { key: "shift", label: "Max Warp Shift", type: "slider", min: 0, max: 60, step: 1, def: 20 },
+      { key: "fray", label: "Fray Probability", type: "slider", min: 0, max: 1, step: 0.05, def: 0.25 },
+      { key: "fray_len", label: "Fray Length", type: "slider", min: 2, max: 40, step: 1, def: 12 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const { W, H } = ctx;
+      const rng = mulberry32(p.seed * 48611 + 12345);
+      const paths = [];
+      const pitchVal = Math.max(0.5, p.pitch);
+      const stepSize = Math.max(0.2, pitchVal / 6);
+      /* the app does not clip out-of-canvas geometry, so the mod must:
+         shifted rows and frayed threads are clamped to the sheet */
+      const clampX = (x) => Math.max(0.5, Math.min(W - 0.5, x));
+      const clampY = (y) => Math.max(0.5, Math.min(H - 0.5, y));
+
+      src.paths.forEach((path) => {
+        const resampled = resample(path.pts, path.closed, stepSize);
+        if (resampled.length < 2) return;
+        let currentSegment = [];
+        let lastRow = Math.floor(resampled[0][1] / pitchVal);
+        const flush = (row) => {
+          if (currentSegment.length < 2) { currentSegment = []; return; }
+          const rowSeed = hash2(0, row, p.seed);
+          const dx = (rowSeed - 0.5) * 2 * p.shift;
+          const shiftedPts = currentSegment.map(([sx, sy]) => [clampX(sx + dx), sy]);
+          paths.push({ pts: shiftedPts, closed: false, layer: path.layer });
+          if (rng() < p.fray) {
+            const lastPt = shiftedPts[shiftedPts.length - 1];
+            const frayPts = [lastPt.slice()];
+            const steps = 6;
+            for (let k = 1; k <= steps; k++) {
+              const t = k / steps;
+              const fx = clampX(lastPt[0] + (noise2(lastPt[0] * 0.08, t * 3, p.seed + row) - 0.5) * 6);
+              const fy = clampY(lastPt[1] + t * p.fray_len);
+              frayPts.push([fx, fy]);
+            }
+            paths.push({ pts: frayPts, closed: false, layer: path.layer });
+          }
+          currentSegment = [];
+        };
+        for (let i = 0; i < resampled.length; i++) {
+          const [x, y] = resampled[i];
+          const currentRow = Math.floor(y / pitchVal);
+          if (currentRow !== lastRow && currentSegment.length > 0) flush(lastRow);
+          currentSegment.push([x, y]);
+          lastRow = currentRow;
+        }
+        flush(lastRow);
+      });
+      return { paths };
+    }
+  },
+  myco_net: {
+    name: "Mycelial Net",
+    cat: "gen",
+    group: "organic",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "seed", label: "Seed", type: "seed", def: 9999 },
+      { key: "hyphae", label: "Initial Spores", type: "slider", min: 1, max: 30, step: 1, def: 6 },
+      { key: "length", label: "Growth Cycles", type: "slider", min: 10, max: 400, step: 10, def: 120 },
+      { key: "branching", label: "Split Rate", type: "slider", min: 0.01, max: 0.25, step: 0.01, def: 0.06 },
+      { key: "wander", label: "Wander", type: "slider", min: 0, max: 1, step: 0.05, def: 0.55 },
+      { key: "step", label: "Internode (mm)", type: "slider", min: 0.5, max: 6, step: 0.1, def: 2.0 },
+      { key: "spawn", label: "Spawn Radius (mm)", type: "slider", min: 0, max: 80, step: 1, def: 8 },
+      { key: "margin", label: "Margin (mm)", type: "slider", min: 0, max: 60, step: 1, def: 6 },
+      { key: "layer", label: "Pen Index", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      if (W - 2 * m < 10 || H - 2 * m < 10) return applyStyle({ paths: [] }, ins[0]);
+      const rng = mulberry32(p.seed * 19 + 7);
+      const paths = [];
+      const queue = [];
+      const L = Math.round(p.layer);
+      const stepLen = Math.max(0.2, p.step);
+
+      const count = Math.max(1, Math.round(p.hyphae));
+      const spawnR = Math.min(Math.max(0, p.spawn), Math.min(W, H) / 2 - m - 1);
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const sx = W / 2 + Math.cos(angle) * spawnR;
+        const sy = H / 2 + Math.sin(angle) * spawnR;
+        queue.push({ x: sx, y: sy, angle, pts: [[sx, sy]] });
+      }
+      let steps = 0;
+      const maxSteps = Math.round(p.length);
+      const pointBudget = 60000;
+      let generatedPoints = 0;
+      /* incremental steering: turn by a noise-driven delta each step.
+         (Blending raw angle VALUES with a 0..4pi field is not angle math
+         and biases every tip toward the field's absolute magnitude.) */
+      const turnRate = 0.25 + 1.1 * Math.max(0, Math.min(1, p.wander));
+
+      while (queue.length > 0 && steps < maxSteps && generatedPoints < pointBudget) {
+        const levelSize = queue.length;
+        steps++;
+        for (let i = 0; i < levelSize; i++) {
+          const tip = queue.shift();
+          if (!tip) continue;
+          const drift = (noise2(tip.x * 0.012, tip.y * 0.012, p.seed) - 0.5) * 2;
+          const nextAngle = tip.angle + drift * turnRate;
+          const nx = tip.x + Math.cos(nextAngle) * stepLen;
+          const ny = tip.y + Math.sin(nextAngle) * stepLen;
+          if (nx < m || nx > W - m || ny < m || ny > H - m) {
+            if (tip.pts.length > 1) paths.push({ pts: tip.pts, closed: false, layer: L });
+            continue;
+          }
+          tip.pts.push([nx, ny]);
+          generatedPoints++;
+          if (rng() < p.branching && queue.length < 75) {
+            const splitLeft = nextAngle + (rng() * 0.4 + 0.15);
+            const splitRight = nextAngle - (rng() * 0.4 + 0.15);
+            queue.push({ x: nx, y: ny, angle: splitLeft, pts: [[nx, ny]] });
+            queue.push({ x: nx, y: ny, angle: splitRight, pts: [[nx, ny]] });
+            paths.push({ pts: tip.pts, closed: false, layer: L });
+          } else {
+            queue.push({ x: nx, y: ny, angle: nextAngle, pts: tip.pts });
+          }
+        }
+      }
+      queue.forEach(tip => {
+        if (tip.pts.length > 1) paths.push({ pts: tip.pts, closed: false, layer: L });
+      });
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  sand_line_hatch: {
+    name: "Sand Line Hatch",
+    cat: "gen",
+    group: "geometric",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "seed", label: "Seed", type: "seed", def: 1337 },
+      { key: "lines", label: "Line Count", type: "slider", min: 10, max: 200, step: 1, def: 80 },
+      { key: "density", label: "Max Density", type: "slider", min: 0.1, max: 1.0, step: 0.05, def: 0.7 },
+      { key: "freq", label: "Noise Frequency", type: "slider", min: 0.001, max: 0.05, step: 0.001, def: 0.015 },
+      { key: "grain_len", label: "Grain Length (mm)", type: "slider", min: 0.5, max: 5.0, step: 0.1, def: 1.5 },
+      { key: "margin", label: "Margin (mm)", type: "slider", min: 0, max: 60, step: 1, def: 10 },
+      { key: "layer", label: "Pen Index", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      if (W - 2 * m < 5 || H - 2 * m < 5) return applyStyle({ paths: [] }, ins[0]);
+      const rng = mulberry32(p.seed * 997 + 11);
+      const paths = [];
+      const L = Math.round(p.layer);
+      const count = Math.round(p.lines);
+      const grainSize = Math.max(0.2, p.grain_len);
+      const dens = Math.max(0, Math.min(1, p.density));
+
+      for (let i = 0; i < count; i++) {
+        const y = m + ((H - 2 * m) * (i / (count - 1 || 1)));
+        const lineSegs = [];
+        let x = m;
+        let runStart = null;
+        while (x < W - m) {
+          const noiseVal = noise2(x * p.freq, y * p.freq, p.seed);
+          /* darkness = noise * density: density now scales ink amount correctly
+             (the old rng()*density threshold was inverted: low density = MORE ink) */
+          if (rng() < noiseVal * dens) {
+            if (runStart === null) runStart = x;
+            x = Math.min(x + grainSize, W - m);
+          } else {
+            if (runStart !== null && x - runStart > 0.1) {
+              lineSegs.push([[runStart, y], [x, y]]); /* runs are collinear: 2 pts suffice */
+            }
+            runStart = null;
+            x += grainSize * (0.5 + rng() * 0.5);
+          }
+        }
+        if (runStart !== null && x - runStart > 0.1) {
+          lineSegs.push([[runStart, y], [Math.min(x, W - m), y]]);
+        }
+        /* serpentine: alternate line direction so the pen never shuttles back empty */
+        if (i % 2 === 1) {
+          lineSegs.reverse();
+          for (const seg of lineSegs) seg.reverse();
+        }
+        for (const seg of lineSegs) paths.push({ pts: seg, closed: false, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  gravity_cascade: {
+    name: "Gravity Cascade",
+    cat: "gen",
+    group: "scientific",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "seed", label: "Seed", type: "seed", def: 888 },
+      { key: "orbits", label: "Orbit Count", type: "slider", min: 5, max: 80, step: 1, def: 35 },
+      { key: "steps", label: "Steps per Orbit", type: "slider", min: 100, max: 2000, step: 50, def: 800 },
+      { key: "pull", label: "Gravity Strength", type: "slider", min: 0.1, max: 3.0, step: 0.1, def: 1.2 },
+      { key: "damping", label: "Friction Decay", type: "slider", min: 0.0, max: 0.02, step: 0.001, def: 0.003 },
+      { key: "margin", label: "Margin (mm)", type: "slider", min: 0, max: 60, step: 1, def: 8 },
+      { key: "layer", label: "Pen Index", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      if (W - 2 * m < 10 || H - 2 * m < 10) return applyStyle({ paths: [] }, ins[0]);
+      const rng = mulberry32(p.seed * 4321 + 93);
+      const paths = [];
+      const L = Math.round(p.layer);
+
+      /* three gravity wells in a triangle; seed jitters the layout
+         (previously rng was created but never used: seed had NO effect) */
+      const jit = () => (rng() - 0.5) * Math.min(W, H) * 0.08;
+      const centers = [
+        [W * 0.5 + jit(), H * 0.3 + jit()],
+        [W * 0.35 + jit(), H * 0.65 + jit()],
+        [W * 0.65 + jit(), H * 0.65 + jit()]
+      ];
+
+      const orbitCount = Math.round(p.orbits);
+      const maxSteps = Math.round(p.steps);
+      const dt = 0.4;
+      const BUDGET = 110000;
+      let totalPts = 0;
+      const inside = (x, y) => x >= m && x <= W - m && y >= m && y <= H - m;
+
+      for (let o = 0; o < orbitCount && totalPts < BUDGET; o++) {
+        const angle = (o / orbitCount) * Math.PI * 2;
+        const shell = Math.min(W, H) * 0.25 * (0.85 + rng() * 0.3); /* seeded shell jitter */
+        let px = W * 0.5 + Math.cos(angle) * shell;
+        let py = H * 0.5 + Math.sin(angle) * shell;
+        const speed = 1.8 * (0.85 + rng() * 0.3);
+        let vx = -Math.sin(angle) * speed;
+        let vy = Math.cos(angle) * speed;
+
+        const pts = [[px, py]];
+        let lastX = px, lastY = py;
+        for (let s = 0; s < maxSteps; s++) {
+          let ax = 0, ay = 0;
+          for (let c = 0; c < centers.length; c++) {
+            const dx = centers[c][0] - px;
+            const dy = centers[c][1] - py;
+            const distSq = dx * dx + dy * dy + 15.0;
+            const dist = Math.sqrt(distSq);
+            const force = p.pull / distSq;
+            ax += (dx / dist) * force;
+            ay += (dy / dist) * force;
+          }
+          vx += ax * dt; vy += ay * dt;
+          vx *= (1.0 - p.damping); vy *= (1.0 - p.damping);
+          px += vx * dt; py += vy * dt;
+          /* end the path AT the sheet: out-of-canvas points must not be emitted */
+          if (!inside(px, py)) break;
+          /* decimation: tight orbits crawl; only emit once the pen has moved */
+          if (Math.hypot(px - lastX, py - lastY) >= 0.35) {
+            pts.push([px, py]);
+            lastX = px; lastY = py;
+            totalPts++;
+            if (totalPts >= BUDGET) break;
+          }
+        }
+        if (pts.length > 2) paths.push({ pts, closed: false, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  origami_glitch_fold: {
+    name: "Origami Glitch Fold",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "angle", label: "Fold Angle (deg)", type: "slider", min: 0, max: 360, step: 1, def: 45 },
+      { key: "offset", label: "Axis Position", type: "slider", min: -100, max: 100, step: 1, def: 0 },
+      { key: "distortion", label: "Crease Warp", type: "slider", min: -0.5, max: 0.5, step: 0.01, def: 0.15 },
+      { key: "keep", label: "Keep Original", type: "check", def: false }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const { W, H } = ctx;
+      const rad = (p.angle * Math.PI) / 180;
+      const nx = Math.cos(rad);
+      const ny = Math.sin(rad);
+      const cx = W / 2 + nx * p.offset;
+      const cy = H / 2 + ny * p.offset;
+      /* mirroring can fling points far off the sheet and the app does not clip */
+      const clamp = ([x, y]) => [
+        Math.max(0.5, Math.min(W - 0.5, x)),
+        Math.max(0.5, Math.min(H - 0.5, y))
+      ];
+
+      const paths = [];
+      src.paths.forEach((path) => {
+        if (p.keep) {
+          paths.push({ ...path, pts: path.pts.map((q) => q.slice()) });
+        }
+        const densified = resample(path.pts, path.closed, 1.0);
+        const modifiedPts = densified.map(([x, y]) => {
+          const dx = x - cx;
+          const dy = y - cy;
+          const distance = dx * nx + dy * ny;
+          if (distance > 0) {
+            let rx = x - 2 * distance * nx;
+            let ry = y - 2 * distance * ny;
+            const warpFactor = Math.abs(distance) * p.distortion;
+            rx += -ny * warpFactor;
+            ry += nx * warpFactor;
+            return clamp([rx, ry]);
+          }
+          return [x, y];
+        });
+        paths.push({ ...path, pts: modifiedPts, closed: path.closed });
+      });
+      return { paths };
+    }
+  },
+  cellular_mosaic: {
+    name: "Cellular Mosaic Displace",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "seed", label: "Seed", type: "seed", def: 719 },
+      { key: "scale", label: "Cell Size (mm)", type: "slider", min: 3, max: 40, step: 0.5, def: 12 },
+      { key: "shatter", label: "Shatter Explode", type: "slider", min: 0, max: 25, step: 0.5, def: 8 },
+      { key: "quantize", label: "Snap to Grid", type: "check", def: false }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const paths = [];
+      const cellSize = Math.max(1, p.scale);
+      const q = cellSize / 4; /* sub-lattice pitch for quantize mode */
+
+      const flushSeg = (pts, layer) => {
+        /* drop consecutive duplicates; a path of identical points is a
+           zero-length pen mark */
+        const clean = [];
+        for (const pt of pts) {
+          const last = clean[clean.length - 1];
+          if (!last || Math.abs(last[0] - pt[0]) > 1e-6 || Math.abs(last[1] - pt[1]) > 1e-6) {
+            clean.push(pt);
+          }
+        }
+        if (clean.length > 1) paths.push({ pts: clean, closed: false, layer });
+      };
+
+      src.paths.forEach((path) => {
+        const densified = resample(path.pts, path.closed, 0.5);
+        if (densified.length < 2) return;
+        let currentPts = [];
+        let lastCellKey = "";
+        for (let i = 0; i < densified.length; i++) {
+          const [x, y] = densified[i];
+          const gx = Math.floor(x / cellSize);
+          const gy = Math.floor(y / cellSize);
+          const hx = hash2(gx, gy, p.seed);
+          const hy = hash2(gx, gy, p.seed + 555);
+          const cellKey = gx + "_" + gy;
+          if (cellKey !== lastCellKey && currentPts.length > 0) {
+            flushSeg(currentPts, path.layer);
+            currentPts = [];
+          }
+          const dx = (hx - 0.5) * p.shatter;
+          const dy = (hy - 0.5) * p.shatter;
+          let nx = x + dx;
+          let ny = y + dy;
+          if (p.quantize) {
+            /* snap the point to a sub-lattice INSIDE the cell.
+               (Snapping every point to one cell corner collapsed whole
+               segments into zero-length stacks of identical points.) */
+            nx = Math.round(x / q) * q + dx;
+            ny = Math.round(y / q) * q + dy;
+          }
+          currentPts.push([nx, ny]);
+          lastCellKey = cellKey;
+        }
+        flushSeg(currentPts, path.layer);
+      });
+      return { paths };
+    }
+  },
+  hyperbolic_truchet: {
+    name: "Hyperbolic Truchet Maze",
+    cat: "gen",
+    group: "geometric",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "seed", label: "Seed", type: "seed", def: 2026 },
+      { key: "rings", label: "Concentric Rings", type: "slider", min: 4, max: 40, step: 1, def: 18 },
+      { key: "segments", label: "Ray Segments", type: "slider", min: 8, max: 120, step: 2, def: 48 },
+      { key: "curvature", label: "Ring Crowding (- center / + edge)", type: "slider", min: -1, max: 1, step: 0.05, def: -0.5 },
+      { key: "style", label: "Tile Style", type: "select", options: ["Arcs (Truchet)", "Diagonals"], def: "Arcs (Truchet)" },
+      { key: "layer", label: "Pen Index", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const paths = [];
+      const cx = W / 2, cy = H / 2;
+      const maxRadius = Math.min(W, H) * 0.45;
+      const L = Math.round(p.layer);
+      const ringCount = Math.max(1, Math.round(p.rings));
+      const segCount = Math.max(4, Math.round(p.segments));
+      const TWO = Math.PI * 2;
+
+      /* ring distribution: exponential mapping, sign of curvature picks
+         whether rings crowd toward the center (event horizon) or the rim */
+      const k = Math.max(-1, Math.min(1, p.curvature)) * 3;
+      const remap = (t) => Math.abs(k) < 0.01 ? t : (Math.exp(k * t) - 1) / (Math.exp(k) - 1);
+      const radii = [];
+      for (let r = 0; r <= ringCount; r++) {
+        radii.push(maxRadius * remap(r / ringCount));
+      }
+
+      const P = (a, rr) => [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
+      /* quarter-ellipse in (angle, radius) space: enters/leaves cell edges
+         perpendicular-ish so strands connect seamlessly across cells */
+      const arcMid = (aFrom, rFrom, aTo, rTo) => {
+        const chord = Math.hypot(P(aTo, rTo)[0] - P(aFrom, rFrom)[0], P(aTo, rTo)[1] - P(aFrom, rFrom)[1]);
+        const K = Math.max(4, Math.min(24, Math.round(chord / 1.1) + 3));
+        const pts = [];
+        for (let j = 0; j <= K; j++) {
+          const u = j / K;
+          const a = aFrom + (aTo - aFrom) * Math.sin(u * Math.PI / 2);
+          const rr = rFrom + (rTo - rFrom) * (1 - Math.cos(u * Math.PI / 2));
+          pts.push(P(a, rr));
+        }
+        return pts;
+      };
+
+      for (let r = 0; r < ringCount; r++) {
+        const rIn = radii[r], rOut = radii[r + 1];
+        const rMid = (rIn + rOut) / 2;
+        if (rOut - rIn < 0.4) continue;
+        for (let s = 0; s < segCount; s++) {
+          const a1 = (s / segCount) * TWO;
+          const a2 = ((s + 1) / segCount) * TWO;
+          const aMid = (a1 + a2) / 2;
+          const cellHash = hash2(r, s, p.seed);
+          if (p.style === "Diagonals") {
+            /* original behavior: corner-to-corner spiral diagonals */
+            const from = cellHash > 0.5 ? a1 : a2;
+            const to = cellHash > 0.5 ? a2 : a1;
+            const arc = [];
+            for (let j = 0; j <= 8; j++) {
+              const u = j / 8;
+              arc.push(P(from + (to - from) * u, rIn + (rOut - rIn) * u));
+            }
+            paths.push({ pts: arc, closed: false, layer: L });
+          } else {
+            /* true Truchet: two arcs joining EDGE MIDPOINTS, flipped by hash.
+               Midpoints: left ray (a1,rMid), right ray (a2,rMid),
+               inner arc (aMid,rIn), outer arc (aMid,rOut).
+               Shared midpoints make strands continue across neighbors. */
+            if (cellHash > 0.5) {
+              paths.push({ pts: arcMid(a1, rMid, aMid, rIn), closed: false, layer: L });
+              paths.push({ pts: arcMid(aMid, rOut, a2, rMid), closed: false, layer: L });
+            } else {
+              paths.push({ pts: arcMid(a1, rMid, aMid, rOut), closed: false, layer: L });
+              paths.push({ pts: arcMid(aMid, rIn, a2, rMid), closed: false, layer: L });
+            }
+          }
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  tape_saturation: {
+    name: "Tape Saturation Harmonics",
+    cat: "gen",
+    group: "scientific",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "seed", label: "Seed", type: "seed", def: 444 },
+      { key: "tracks", label: "Signal Tracks", type: "slider", min: 10, max: 120, step: 1, def: 50 },
+      { key: "freq", label: "Signal Freq", type: "slider", min: 0.01, max: 0.2, step: 0.005, def: 0.06 },
+      { key: "amp", label: "Gain Amplitude", type: "slider", min: 2, max: 40, step: 0.5, def: 15 },
+      { key: "clip", label: "Saturation Clip (mm)", type: "slider", min: 1, max: 30, step: 0.5, def: 8 },
+      { key: "flutter", label: "Wow & Flutter", type: "slider", min: 0, max: 5, step: 0.1, def: 1.5 },
+      { key: "layer", label: "Pen Index", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const paths = [];
+      const L = Math.round(p.layer);
+      const trackCount = Math.round(p.tracks);
+
+      for (let t = 0; t < trackCount; t++) {
+        const baselineY = 15 + ((H - 30) * (t / (trackCount - 1 || 1)));
+        const pts = [];
+        const trackSeed = p.seed * 31 + t * 17;
+        for (let x = 10; x <= W - 10; x += 0.5) {
+          let signal = Math.sin(x * p.freq + (t * 0.15));
+          let rawY = signal * p.amp;
+          if (rawY > p.clip) rawY = p.clip;
+          if (rawY < -p.clip) rawY = -p.clip;
+          const wow = (noise2(x * 0.003, t * 0.05, trackSeed) - 0.5) * p.flutter * 4;
+          const flutter = (noise2(x * 0.1, t * 0.5, trackSeed + 99) - 0.5) * p.flutter * 0.5;
+          /* clamp to the sheet: clip + wow near the top/bottom tracks could
+             otherwise push the pen off the paper */
+          const finalY = Math.max(0.5, Math.min(H - 0.5, baselineY + rawY + wow + flutter));
+          pts.push([x, finalY]);
+        }
+        if (pts.length > 1) {
+          /* serpentine: each track is one continuous stroke, so alternate
+             direction -> no empty carriage return between tracks */
+          if (t % 2 === 1) pts.reverse();
+          paths.push({ pts, closed: false, layer: L });
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
   origami: {
     name: "Origami", cat: "gen", group: "structural", ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
@@ -7152,7 +8903,7 @@ function toGcode(ps, ctx, prof) {
   const fx = (x) => x + oX;
   const fy = (y) => (prof.flipY ? ctx.H - y : y) + oY;
   const lines = [];
-  lines.push("; Muusia v1.4 — raw G-code");
+  lines.push("; Muusia v1.5 — raw G-code");
   lines.push(`; Machine: ${prof.name || "unnamed"} — work area ${prof.workW} x ${prof.workH} mm`);
   lines.push(`; Canvas ${ctx.W} x ${ctx.H} mm at origin X${oX} Y${oY} — paths ${ps.paths.length}${prof.flipY ? " — Y flipped" : ""}`);
   if (oX < 0 || oY < 0 || oX + ctx.W > prof.workW || oY + ctx.H > prof.workH) lines.push("; WARNING: canvas (with origin) exceeds machine work area!");
