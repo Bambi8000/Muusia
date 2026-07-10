@@ -18,7 +18,7 @@ text are **English**.
 
 ## Files (all in outputs)
 
-- `muusia.jsx` — the whole app, one React file (~8750 lines, **91 nodes**, v1.2).
+- `muusia.jsx` — the whole app, one React file (~14700 lines, **156 nodes**, v1.8).
   Build target: `src/App.jsx` in a Vite project.
 - `MUUSIA-README.md` — project doc: install, concepts, UI, machines, animation, arch.
 - `MUUSIA-NODES.md` — every node explained.
@@ -30,6 +30,20 @@ text are **English**.
 Vite + `vite-plugin-singlefile` → `dist/index.html` (standalone, offline).
 Daniel's update loop: `cp ~/Downloads/muusia.jsx src/App.jsx && npm run build`.
 Project lives at `~/plotter-patcher`. zsh chokes on pasted `#` comments.
+
+## Palette grouping (generators)
+
+Both generators and modifiers carry a `group` field placing them in collapsible
+palette subfolders. `GEN_GROUPS`: geometric, organic, machines, nature, creatures,
+space, scientific, structural, textimg. `MOD_GROUPS`: transform, deform, pathops,
+cutsplit, fillstyle, penout. New gen/mod nodes MUST set `group`. Other categories
+(dec/duo/math/route) are flat. Collapse state is `openGroups`. An **"All nodes" toggle** (`flatAZ`) lists every node alphabetically within its category (gen first, then mod, ...), ignoring folders. NOTE: JSX text does NOT process \uXXXX escapes — use literal characters or {"\u2013"} expressions in JSX text/attributes.
+
+Travel Stop (mod/penout) tags paths with `__stop:{mode,msg}`; the G-code loop reads
+it to emit a lift + M0/pen-change. It's the in-graph counterpart to the machine
+profile's Maintenance pause. Route optimize reorders paths (preserving `__stop` via
+spread) but that shifts distance spacing, so Travel Stop should be last + route opt
+off.
 
 ## Architecture — do not break these
 
@@ -70,21 +84,29 @@ Project lives at `~/plotter-patcher`. zsh chokes on pasted `#` comments.
    "paren diff −1" is a **measurement artifact** (regex literals + the `"("`/`")"`
    glyph keys in SFONT), not a real error — esbuild compiles clean.
 
-## Current node inventory (91)
+## Current node inventory (156)
 
-- **Generators (46):** Grid, Tracks, Flow Field, Truchet, Lissajous, Phyllotaxis,
+- **Generators (82):** Grid, Tracks, Flow Field, Truchet, Lissajous, Phyllotaxis,
   L-System, Spirograph, Pendulum, Cycloid Machine, Contours, Circle Packing,
   Barcode, Solids, Mountains, Random Lines, Starfield, Ruler, Cables, Lathe, Fabric,
   Hairs, Potato, Trunks, Water, Skyline, Tiles, Reg Marks, Noise, Net, Building,
-  Follow Lines, Wood Rings, Worm, Image, Growth, Concrete Poetry, Scan, Creature,
-  Origami, Mesh, Ribbon, Halftone, Import SVG, Stroke, Text.
-- **Modifiers (29):** Apply Style, Wave, Jitter, Rotate, Glitch, Offset, Symmetry,
+  Follow Lines, Wood Rings, Worm, Image, Growth, Concrete Poetry, Scan, Clouds, Stone,
+  Asteroids, Planets, Solar System, Test Card, Origami, Mesh, Ribbon, Halftone, Import SVG, Stroke, Text,
+  Caustics, Text on Path, Lace, Macrame, Knot, Murmuration, Dazzle Camouflage,
+  Mycelial Net, Sand Line Hatch, Gravity Cascade, Tape Saturation Harmonics,
+  Hyperbolic Truchet Maze, Voronoi, Metaballs, Trace, Harmonograph, FM Rose, Conway, Superformula, String,
+  Delaunay, Attractor, Reaction-Diffusion, Julia, Differential Growth, Runes,
+  Network, Tubes, Girih, Aggregate, Turtle.
+- **Modifiers (50):** Apply Style, Wave, Jitter, Rotate, Glitch, Offset, Symmetry,
   Smooth, Magnet, Trim/Extend, Join Ends, Simplify, Lens, Warp, Mirror, Move/Scale,
   Fit to Canvas, Reverse, Skew, Align, Crop, Explosion, Stretch, Tangle Zone,
-  Scatter, Pen Cycle, Chop, Hatch Fill, Fresnel Lens.
+  Scatter, Pen Cycle, Chop, Hatch Fill, Fresnel Lens, Travel Stop, Glitch Loom,
+  Origami Glitch Fold, Cellular Mosaic Displace, Occlude, Cage Warp, Carve, Echo,
+  Displace by Image, Travel Sort, Cull, Granulate, Fold, Bitcrush, Tile Shuffle,
+  Kaleidoscope, To Polar, Filter, Fourier, SDF Contours, 3D View.
 - **Decorators (5):** Stamp, Outline, Coil, Fur, End Caps.
-- **Combiners (5):** Mask, Merge, Split, Array, Group.
-- **Math (5):** Frame, Value, Math, Random, Fan.
+- **Combiners (9):** Mask, Merge, Split, Array, Group, Copy to Points, Stencil, Switch, Ray.
+- **Math (9):** Frame, Value, Math, Random, Fan, LFO, Steps, Shaper, ADSR.
 - **Routing (1):** Route (hidden; routing lives in the export panel).
 
 ## Systems added over the project (beyond nodes)
@@ -117,7 +139,7 @@ Project lives at `~/plotter-patcher`. zsh chokes on pasted `#` comments.
 `{ app:"muusia-machine", v:1, prof:{ name, workW, workH, originX, originY, flipY,
 pauseCmd, startG, endG, penUp, penDown, zHop, zHopOn, zFeed, penDelayDown,
 penDelayUp, feedDraw, feedTravel, rotOn, rotStepper, rotThresh, dipOn, dipX, dipY,
-dipZ, dipEvery, dipDwell } }`. Import merges over `DEFAULT_MACHINE` so old profiles
+dipZ, dipEvery, dipDwell, maintOn, maintEvery, maintMsg, maintPark, maintX, maintY } }`. Import merges over `DEFAULT_MACHINE` so old profiles
 gain new fields.
 
 ## Roadmap / open ideas (priority order)
