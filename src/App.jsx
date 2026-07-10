@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 
 /* ============================================================
-   MUUSIA v1.4
+   MUUSIA v1.8
    - Nodejen minimointi (esikatselu/parametrit piiloon)
    - Param-portit samoilla riveillä kuin faderit (mitatut ankkurit)
    - Esc / nappi: tyhjennä monivalinta
@@ -12551,13 +12551,15 @@ const NODE_HELP = {
   worm: "worm or centipede: an inertia-walk spine dressed in flattened cross-hoops with a tapered width profile (round head, pointed tail). *Centipede* adds two-joint leg pairs with alternating gait; optional antennae.",
 };
 
+const APP_VERSION = "1.8"; /* single source: shown in the UI header and stamped into G-code */
+
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
   const oX = prof.originX || 0, oY = prof.originY || 0;
   const fx = (x) => x + oX;
   const fy = (y) => (prof.flipY ? ctx.H - y : y) + oY;
   const lines = [];
-  lines.push("; Muusia v1.8 — raw G-code");
+  lines.push(`; Muusia v${APP_VERSION} — raw G-code`);
   lines.push(`; Machine: ${prof.name || "unnamed"} — work area ${prof.workW} x ${prof.workH} mm`);
   lines.push(`; Canvas ${ctx.W} x ${ctx.H} mm at origin X${oX} Y${oY} — paths ${ps.paths.length}${prof.flipY ? " — Y flipped" : ""}`);
   if (oX < 0 || oY < 0 || oX + ctx.W > prof.workW || oY + ctx.H > prof.workH) lines.push("; WARNING: canvas (with origin) exceeds machine work area!");
@@ -13964,7 +13966,7 @@ export default function App() {
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: `1px solid ${T.line}`, background: T.panel, flexWrap: "wrap" }}>
         <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 15, letterSpacing: "0.02em", marginRight: 6, color: T.text }}>
           MUUSIA
-          <span style={{ color: T.dim, fontWeight: 500, fontSize: 11, marginLeft: 8 }}>v1.4</span>
+          <span style={{ color: T.dim, fontWeight: 500, fontSize: 11, marginLeft: 8 }}>{"v" + APP_VERSION}</span>
         </div>
         <button style={toolBtn(selIds.length > 0)} onClick={duplicateSelected} title="Cmd/Ctrl+D">Duplicate ({selIds.length})</button>
         <button style={toolBtn(selIds.length >= 2)} onClick={groupSelected} title="Cmd/Ctrl+G">Group</button>
