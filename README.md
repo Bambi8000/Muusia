@@ -1,11 +1,15 @@
-# MUUSIA v1.4
+# MUUSIA v1.7
 
 **A node-graph editor for generative pen-plotter art.**
 
 Muusia is a browser-based visual programming environment for creating plotter drawings.
-You build images by wiring nodes together: generators produce line work, modifiers
-transform it, and the export panel turns the result into G-code for a pen plotter or
-layered SVG for a laser cutter. Everything is deterministic (seeded), everything is
+You build images by wiring nodes together: **147 built-in nodes** — generators produce
+line work, modifiers transform it, and the export panel turns the result into G-code
+for a pen plotter or layered SVG for a laser cutter. The library spans classic plotter
+machines (Harmonograph, Spirograph, L-System), simulation (Conway, Reaction-Diffusion,
+Differential Growth, attractors), audio-DSP translated to geometry (LFO, ADSR, Filter,
+Fold, Granulate, Bitcrush, Fourier), image-fed nodes (Trace, Displace by Image), and
+plot-practical tools (Travel Sort, Occlude, Stencil, To Polar). Everything is deterministic (seeded), everything is
 live-previewed, and every numeric parameter can be driven by other nodes — including a
 frame clock for producing hand-plotted animations.
 
@@ -35,7 +39,7 @@ npm run dev          # -> live dev server for development
 ```
 
 `dist/index.html` is the whole application in one file. Archive versions as
-`Muusia-v1.4.html` etc. On macOS you can wrap
+`Muusia-v1.7.html` etc. On macOS you can wrap
 `open -na "Google Chrome" --args --app=file:///path/Muusia.html` in an Automator
 application for a dock icon, or use Safari's *File → Add to Dock*.
 
@@ -81,6 +85,9 @@ animation system possible.
   with a route simulator showing draw order and travel moves), parameters, ANIMATE,
   Machine Setup, and export buttons.
 - **? button** — in-app help and loadable beginner examples.
+- **Per-node help** — every node header has a small **?**: hover for a quick tooltip,
+  click to open a description of what the node does and how to wire it. Texts come
+  from `MUUSIA-NODES.md`; imported custom nodes can ship their own via a `desc` field.
 - Nodes with spatial parameters (Stretch, Crop, Magnet, Lens, Tangle Zone, Mirror,
   Explosion...) draw dashed **guide overlays** in the preview when selected.
 
@@ -93,12 +100,18 @@ routines). The active profile is used for G-code. Profiles import/export as
 (`muusia-machine-setup.html`) builds them with presets, a bed diagram and a
 lift-time estimate — no JSON editing.
 
-**Bed-plotter pen lift.** For machines whose Z axis is a heavy bed (e.g. the
-Ultimaker S5), two settings matter: **Z-hop** lifts only slightly between nearby
-paths (full Lift height is reserved for pen changes), and **settle delays**
-(down/up, in ms) pause after the bed moves so the pen doesn't drag before the bed
-stops. A servo lift wants near-zero delay and no z-hop; a bed wants 80–150 ms and
-z-hop on. **Z feed** sets lift speed.
+**Z modes — profile A (servo) and B (bed).** Machine Setup ships with two presets.
+**A — Servo lifts the pen** (default): pen up/down is a Klipper servo
+(`SET_SERVO SERVO=pen ANGLE=…`, name and angles configurable; define `[servo pen]`
+in printer.cfg). The bed-Z is untouched, which frees it — and the extra stepper —
+for tool duties like a multi-tip brush. **B — Bed Z lifts the pen** (the Ultimaker
+S5 conversion): the heavy bed is the Z axis, with the tangential brush-rotation
+stepper enabled. For bed mode two settings matter: **Z-hop** lifts only slightly
+between nearby paths (full Lift height is reserved for pen changes), and **settle
+delays** (down/up, in ms) pause after the bed moves so the pen doesn't drag before
+the bed stops. A servo lift wants near-zero delay; a bed wants 80–150 ms and z-hop
+on. **Z feed** sets bed lift speed. Old saved profiles without a Z mode behave
+exactly as before (bed).
 
 **Wearing media (chalk, charcoal, soft graphite).** These can't hold constant
 pressure as the tip wears — the real fix is a spring-loaded / gravity / magnet pen
@@ -139,7 +152,8 @@ last in your Merge for scan registration.
 
 - **Node ⇣** imports a node definition file. The full authoring spec is in
   `MUUSIA-NODE-API.md` — it is written to be handed to an AI assistant, which can
-  produce an importable node from it. Custom node sources are embedded in saved
+  produce an importable node from it. Include a `desc: "..."` field so the node gets
+  a help tooltip. Custom node sources are embedded in saved
   patches, so patches are self-contained. Re-importing a key updates the node;
   × in the palette removes it (blocked while instances exist).
 - **Mod ⇡ / Mod ⇣** exports/imports a *selection* as a reusable module (subgraph
@@ -161,5 +175,7 @@ direction is data here.
 
 ## 8. Roadmap / ideas
 
-Custom pen palettes · per-pen time estimates · value ports on promoted group params · Klipper/Marlin profile presets in the configurator · Klipper/Marlin profiles for the Ultimaker S5 conversion ·
-GitHub repository with a `nodes/` library folder.
+Custom pen palettes · per-pen time estimates · value ports on promoted group params ·
+multi-tip brush tip selection replacing pen-change pauses (servo profile) ·
+zMode support in the standalone machine configurator · a `nodes/` library folder for
+the unbaked extras (Boolean, Morph, ...).
