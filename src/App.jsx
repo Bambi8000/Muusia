@@ -6636,6 +6636,2435 @@ const DEFS = {
       return applyStyle({ paths }, ins[0]);
     }
   },
+  voronoi: {
+    name: "Voronoi",
+    cat: "gen",
+    group: "geometric",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "cells", label: "Cells", type: "slider", min: 3, max: 300, step: 1, def: 40 },
+      { key: "relax", label: "Relax (Lloyd)", type: "slider", min: 0, max: 3, step: 1, def: 1 },
+      { key: "sites", label: "Draw sites", type: "check", def: false },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 13 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 10 || y1 - y0 < 10) return applyStyle({ paths: [] }, ins[0]);
+      const N = Math.max(2, Math.min(400, Math.round(p.cells)));
+      const rng = mulberry32(p.seed * 6151 + 17);
+      let sites = [];
+      for (let i = 0; i < N; i++) {
+        sites.push([x0 + rng() * (x1 - x0), y0 + rng() * (y1 - y0)]);
+      }
+      /* cell of site i = margin rect clipped by bisector half-planes vs all others */
+      const cellOf = (i) => {
+        let poly = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+        const [sx, sy] = sites[i];
+        for (let j = 0; j < sites.length && poly.length >= 3; j++) {
+          if (j === i) continue;
+          const [ox, oy] = sites[j];
+          /* keep side of the bisector closer to site i */
+          const nx = ox - sx, ny = oy - sy;
+          const d = (nx * (sx + ox) + ny * (sy + oy)) / 2;
+          const out = [];
+          for (let k = 0; k < poly.length; k++) {
+            const A = poly[k], B = poly[(k + 1) % poly.length];
+            const da = nx * A[0] + ny * A[1] - d;
+            const db = nx * B[0] + ny * B[1] - d;
+            if (da <= 0) out.push(A);
+            if ((da < 0 && db > 0) || (da > 0 && db < 0)) {
+              const t = da / (da - db);
+              out.push([A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t]);
+            }
+          }
+          poly = out;
+        }
+        return poly;
+      };
+      const relaxN = Math.max(0, Math.min(3, Math.round(p.relax)));
+      for (let r = 0; r < relaxN; r++) {
+        sites = sites.map((_, i) => {
+          const poly = cellOf(i);
+          if (poly.length < 3) return sites[i];
+          let cx = 0, cy = 0;
+          for (const [x, y] of poly) { cx += x; cy += y; }
+          return [cx / poly.length, cy / poly.length];
+        });
+      }
+      /* emit shared edges once (each edge belongs to two cells) */
+      const L = Math.round(p.layer);
+      const paths = [];
+      const seen = new Set();
+      const q = (v) => Math.round(v * 20) / 20;
+      for (let i = 0; i < sites.length; i++) {
+        const poly = cellOf(i);
+        for (let k = 0; k < poly.length; k++) {
+          const A = poly[k], B = poly[(k + 1) % poly.length];
+          if (Math.hypot(B[0] - A[0], B[1] - A[1]) < 0.05) continue;
+          const ka = q(A[0]) + "," + q(A[1]), kb = q(B[0]) + "," + q(B[1]);
+          const key = ka < kb ? ka + "|" + kb : kb + "|" + ka;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          paths.push({ pts: [[A[0], A[1]], [B[0], B[1]]], closed: false, layer: L });
+        }
+        if (p.sites) {
+          const [sx, sy] = sites[i];
+          paths.push({ pts: [[sx - 1, sy], [sx + 1, sy]], closed: false, layer: L });
+          paths.push({ pts: [[sx, sy - 1], [sx, sy + 1]], closed: false, layer: L });
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  metaballs: {
+    name: "Metaballs",
+    cat: "gen",
+    group: "organic",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "blobs", label: "Blobs", type: "slider", min: 2, max: 30, step: 1, def: 6 },
+      { key: "size", label: "Blob size mm", type: "slider", min: 5, max: 60, step: 1, def: 22 },
+      { key: "spread", label: "Spread", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.55 },
+      { key: "bands", label: "Contour bands", type: "slider", min: 1, max: 5, step: 1, def: 2 },
+      { key: "cell", label: "Cell mm", type: "slider", min: 1, max: 6, step: 0.25, def: 2.5 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 29 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 10 || y1 - y0 < 10) return applyStyle({ paths: [] }, ins[0]);
+      const L = Math.round(p.layer);
+      const NB = Math.max(1, Math.min(40, Math.round(p.blobs)));
+      const rng = mulberry32(p.seed * 8837 + 5);
+      const cx = W / 2, cy = H / 2;
+      const rx = (x1 - x0) / 2 * p.spread, ry = (y1 - y0) / 2 * p.spread;
+      const blobs = [];
+      for (let i = 0; i < NB; i++) {
+        blobs.push({
+          x: cx + (rng() * 2 - 1) * rx,
+          y: cy + (rng() * 2 - 1) * ry,
+          r: Math.max(2, p.size) * (0.55 + rng() * 0.9)
+        });
+      }
+      const field = (x, y) => {
+        let v = 0;
+        for (const b of blobs) {
+          const dx = x - b.x, dy = y - b.y;
+          v += (b.r * b.r) / (dx * dx + dy * dy + 1);
+        }
+        return v;
+      };
+      const cell = Math.max(0.8, p.cell);
+      const cols = Math.max(2, Math.round((x1 - x0) / cell) + 1);
+      const rows = Math.max(2, Math.round((y1 - y0) / cell) + 1);
+      const gx = (c) => x0 + (c / (cols - 1)) * (x1 - x0);
+      const gy = (r) => y0 + (r / (rows - 1)) * (y1 - y0);
+      const F = new Float64Array(cols * rows);
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) F[r * cols + c] = field(gx(c), gy(r));
+      const segs = [];
+      const NBands = Math.max(1, Math.min(6, Math.round(p.bands)));
+      const interp = (a, b, lvl) => Math.abs(b - a) < 1e-12 ? 0.5 : (lvl - a) / (b - a);
+      for (let bi = 0; bi < NBands; bi++) {
+        const lvl = 1 * Math.pow(1.6, bi); /* nested iso levels */
+        for (let r = 0; r < rows - 1; r++) {
+          for (let c = 0; c < cols - 1; c++) {
+            const tl = F[r * cols + c], tr = F[r * cols + c + 1];
+            const bl = F[(r + 1) * cols + c], br = F[(r + 1) * cols + c + 1];
+            let idx = 0;
+            if (tl > lvl) idx |= 8; if (tr > lvl) idx |= 4;
+            if (br > lvl) idx |= 2; if (bl > lvl) idx |= 1;
+            if (idx === 0 || idx === 15) continue;
+            const xL = gx(c), xR = gx(c + 1), yT = gy(r), yB = gy(r + 1);
+            const eT = () => [xL + interp(tl, tr, lvl) * (xR - xL), yT];
+            const eB = () => [xL + interp(bl, br, lvl) * (xR - xL), yB];
+            const eL = () => [xL, yT + interp(tl, bl, lvl) * (yB - yT)];
+            const eR = () => [xR, yT + interp(tr, br, lvl) * (yB - yT)];
+            const S = (A, B) => segs.push([A, B]);
+            switch (idx) {
+              case 1: S(eL(), eB()); break; case 2: S(eB(), eR()); break;
+              case 3: S(eL(), eR()); break; case 4: S(eT(), eR()); break;
+              case 5: S(eL(), eT()); S(eB(), eR()); break;
+              case 6: S(eT(), eB()); break; case 7: S(eL(), eT()); break;
+              case 8: S(eL(), eT()); break; case 9: S(eT(), eB()); break;
+              case 10: S(eL(), eB()); S(eT(), eR()); break;
+              case 11: S(eT(), eR()); break; case 12: S(eL(), eR()); break;
+              case 13: S(eB(), eR()); break; case 14: S(eL(), eB()); break;
+            }
+          }
+        }
+      }
+      /* stitch segments into contour loops */
+      const q = (v) => Math.round(v * 100) / 100;
+      const kk = (pt) => q(pt[0]) + "," + q(pt[1]);
+      const map = new Map();
+      const items = segs.map((s, i) => ({ a: s[0], b: s[1], used: false }));
+      const push = (k, ref) => { let a = map.get(k); if (!a) { a = []; map.set(k, a); } a.push(ref); };
+      items.forEach((s, i) => { push(kk(s.a), { i, end: "a" }); push(kk(s.b), { i, end: "b" }); });
+      const paths = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].used) continue;
+        items[i].used = true;
+        const chain = [items[i].a, items[i].b];
+        let grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[chain.length - 1])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.push(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[0])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.unshift(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        if (chain.length < 3) continue;
+        const closed = Math.hypot(chain[0][0] - chain[chain.length - 1][0], chain[0][1] - chain[chain.length - 1][1]) < cell * 1.5;
+        if (closed) chain.pop();
+        if (chain.length > 2) paths.push({ pts: chain, closed, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  traceimg: {
+    name: "Trace",
+    cat: "gen",
+    group: "textimg",
+    fileImage: true,
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
+      { key: "levels", label: "Threshold levels", type: "slider", min: 1, max: 6, step: 1, def: 3 },
+      { key: "low", label: "Lowest threshold", type: "slider", min: 0.05, max: 0.9, step: 0.05, def: 0.25 },
+      { key: "high", label: "Highest threshold", type: "slider", min: 0.1, max: 0.95, step: 0.05, def: 0.75 },
+      { key: "cell", label: "Cell mm", type: "slider", min: 0.8, max: 6, step: 0.2, def: 1.6 },
+      { key: "invert", label: "Invert", type: "check", def: false },
+      { key: "minlen", label: "Min contour mm", type: "slider", min: 0, max: 30, step: 1, def: 5 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx, node) {
+      const img = node && node.data && node.data.img;
+      if (!img) return applyStyle({ paths: [] }, ins[0]);
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const boxW = W - 2 * m, boxH = H - 2 * m;
+      if (boxW < 10 || boxH < 10) return applyStyle({ paths: [] }, ins[0]);
+      const sc = Math.min(boxW / img.w, boxH / img.h);
+      const iw = img.w * sc, ih = img.h * sc;
+      const ox = (W - iw) / 2, oy = (H - ih) / 2;
+      const darkAt = (x, y) => {
+        const u = (x - ox) / sc - 0.5, v = (y - oy) / sc - 0.5;
+        const iu = Math.floor(u), iv = Math.floor(v);
+        const s = (a, b) => (a < 0 || b < 0 || a >= img.w || b >= img.h) ? 0 : img.g[b * img.w + a];
+        const fu = u - iu, fv = v - iv;
+        let d = s(iu, iv) * (1 - fu) * (1 - fv) + s(iu + 1, iv) * fu * (1 - fv) +
+                s(iu, iv + 1) * (1 - fu) * fv + s(iu + 1, iv + 1) * fu * fv;
+        return p.invert ? 1 - d : d;
+      };
+      const cell = Math.max(0.5, p.cell);
+      const cols = Math.max(2, Math.round(iw / cell) + 1);
+      const rows = Math.max(2, Math.round(ih / cell) + 1);
+      const gx = (c) => ox + (c / (cols - 1)) * iw;
+      const gy = (r) => oy + (r / (rows - 1)) * ih;
+      const F = new Float64Array(cols * rows);
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) F[r * cols + c] = darkAt(gx(c), gy(r));
+      const NL = Math.max(1, Math.min(8, Math.round(p.levels)));
+      const lo = Math.min(p.low, p.high), hi = Math.max(p.low, p.high);
+      const segs = [];
+      const interp = (a, b, lvl) => Math.abs(b - a) < 1e-12 ? 0.5 : (lvl - a) / (b - a);
+      for (let li = 0; li < NL; li++) {
+        const lvl = NL === 1 ? (lo + hi) / 2 : lo + (li / (NL - 1)) * (hi - lo);
+        for (let r = 0; r < rows - 1; r++) {
+          for (let c = 0; c < cols - 1; c++) {
+            const tl = F[r * cols + c], tr = F[r * cols + c + 1];
+            const bl = F[(r + 1) * cols + c], br = F[(r + 1) * cols + c + 1];
+            let idx = 0;
+            if (tl > lvl) idx |= 8; if (tr > lvl) idx |= 4;
+            if (br > lvl) idx |= 2; if (bl > lvl) idx |= 1;
+            if (idx === 0 || idx === 15) continue;
+            const xL = gx(c), xR = gx(c + 1), yT = gy(r), yB = gy(r + 1);
+            const eT = () => [xL + interp(tl, tr, lvl) * (xR - xL), yT];
+            const eB = () => [xL + interp(bl, br, lvl) * (xR - xL), yB];
+            const eL = () => [xL, yT + interp(tl, bl, lvl) * (yB - yT)];
+            const eR = () => [xR, yT + interp(tr, br, lvl) * (yB - yT)];
+            const S = (A, B) => segs.push([A, B]);
+            switch (idx) {
+              case 1: S(eL(), eB()); break; case 2: S(eB(), eR()); break;
+              case 3: S(eL(), eR()); break; case 4: S(eT(), eR()); break;
+              case 5: S(eL(), eT()); S(eB(), eR()); break;
+              case 6: S(eT(), eB()); break; case 7: S(eL(), eT()); break;
+              case 8: S(eL(), eT()); break; case 9: S(eT(), eB()); break;
+              case 10: S(eL(), eB()); S(eT(), eR()); break;
+              case 11: S(eT(), eR()); break; case 12: S(eL(), eR()); break;
+              case 13: S(eB(), eR()); break; case 14: S(eL(), eB()); break;
+            }
+          }
+        }
+      }
+      const q = (v) => Math.round(v * 100) / 100;
+      const kk = (pt) => q(pt[0]) + "," + q(pt[1]);
+      const map = new Map();
+      const items = segs.map((s) => ({ a: s[0], b: s[1], used: false }));
+      const push = (k, ref) => { let a = map.get(k); if (!a) { a = []; map.set(k, a); } a.push(ref); };
+      items.forEach((s, i) => { push(kk(s.a), { i, end: "a" }); push(kk(s.b), { i, end: "b" }); });
+      const paths = [];
+      const L = Math.round(p.layer);
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].used) continue;
+        items[i].used = true;
+        const chain = [items[i].a, items[i].b];
+        let grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[chain.length - 1])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.push(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[0])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.unshift(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        if (chain.length < 3) continue;
+        if (p.minlen > 0 && pathLength(chain, false) < p.minlen) continue;
+        const closed = Math.hypot(chain[0][0] - chain[chain.length - 1][0], chain[0][1] - chain[chain.length - 1][1]) < cell * 1.5;
+        if (closed) chain.pop();
+        if (chain.length > 2) paths.push({ pts: chain, closed, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  occlude: {
+    name: "Occlude",
+    cat: "mod",
+    group: "occlusion",
+    ins: [Pin("paths", "Lines"), Pin("paths", "Occluders (closed)")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "gap", label: "Gap mm (+grow / -shrink)", type: "slider", min: -5, max: 8, step: 0.25, def: 0.8 },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.3, max: 4, step: 0.1, def: 0.8 },
+      { key: "drawOcc", label: "Draw occluders", type: "check", def: true }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const twoInput = !!(ins[1] && ins[1].paths && ins[1].paths.length);
+      const step = Math.max(0.25, p.res);
+      const gap = p.gap;
+      const paths = [];
+
+      const pip = (x, y, poly) => {
+        let c = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const yi = poly[i][1], yj = poly[j][1];
+          if ((yi > y) !== (yj > y)) {
+            const xi = poly[i][0], xj = poly[j][0];
+            if (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+          }
+        }
+        return c;
+      };
+      const edgeDist = (x, y, poly) => {
+        let best = Infinity;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const ax = poly[j][0], ay = poly[j][1];
+          const bx = poly[i][0], by = poly[i][1];
+          const dx = bx - ax, dy = by - ay;
+          const L2 = dx * dx + dy * dy;
+          let t = L2 > 0 ? ((x - ax) * dx + (y - ay) * dy) / L2 : 0;
+          t = Math.max(0, Math.min(1, t));
+          const d = Math.hypot(x - (ax + dx * t), y - (ay + dy * t));
+          if (d < best) best = d;
+        }
+        return best;
+      };
+      const prepOcc = (path) => {
+        const poly = path.pts;
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const [x, y] of poly) {
+          if (x < x0) x0 = x; if (x > x1) x1 = x;
+          if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+        const pad = Math.max(0, gap);
+        return { poly, x0: x0 - pad, y0: y0 - pad, x1: x1 + pad, y1: y1 + pad };
+      };
+      const hidden = (x, y, occ) => {
+        if (x < occ.x0 || x > occ.x1 || y < occ.y0 || y > occ.y1) return false;
+        const inside = pip(x, y, occ.poly);
+        if (gap >= 0) {
+          return inside || (gap > 0 && edgeDist(x, y, occ.poly) < gap);
+        }
+        /* negative gap: occlusion shrinks inward */
+        return inside && edgeDist(x, y, occ.poly) > -gap;
+      };
+      const emitVisible = (path, occs) => {
+        if (!occs.length) {
+          paths.push({ ...path, pts: path.pts.map((q) => q.slice()) });
+          return;
+        }
+        const pts = resample(path.pts, path.closed, step);
+        const vis = pts.map(([x, y]) => !occs.some((o) => hidden(x, y, o)));
+        const runs = [];
+        let run = [];
+        for (let i = 0; i < pts.length; i++) {
+          if (vis[i]) run.push(pts[i]);
+          else { if (run.length > 1) runs.push(run); run = []; }
+        }
+        if (run.length > 1) runs.push(run);
+        /* closed source with visible wrap: merge last run into first */
+        if (path.closed && runs.length > 1 && vis[0] && vis[pts.length - 1]) {
+          const last = runs.pop();
+          runs[0] = last.concat(runs[0]);
+        }
+        if (path.closed && runs.length === 1 && vis.every(Boolean)) {
+          paths.push({ ...path, pts: path.pts.map((q) => q.slice()) });
+          return;
+        }
+        for (const r of runs) paths.push({ pts: r, closed: false, layer: path.layer });
+      };
+
+      if (twoInput) {
+        const occs = ins[1].paths.filter((pa) => pa.closed && pa.pts.length >= 3).map(prepOcc);
+        src.paths.forEach((path) => emitVisible(path, occs));
+        if (p.drawOcc) {
+          ins[1].paths.forEach((pa) => paths.push({ ...pa, pts: pa.pts.map((q) => q.slice()) }));
+        }
+      } else {
+        /* painter mode: within the set, LATER closed shapes occlude EARLIER paths */
+        const all = src.paths;
+        const occAfter = all.map((pa, i) =>
+          all.slice(i + 1).filter((o) => o.closed && o.pts.length >= 3).map(prepOcc));
+        all.forEach((path, i) => emitVisible(path, occAfter[i]));
+      }
+      return { paths };
+    }
+  },
+  cagewarp: {
+    name: "Cage Warp",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "grid", label: "Cage cells", type: "slider", min: 2, max: 6, step: 1, def: 3 },
+      { key: "amount", label: "Amount mm", type: "slider", min: 0, max: 40, step: 0.5, def: 12 },
+      { key: "pin", label: "Pin edges", type: "check", def: true },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.5, max: 4, step: 0.1, def: 1.5 },
+      { key: "seed", label: "Seed", type: "seed", def: 23 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const { W, H } = ctx;
+      const G = Math.max(1, Math.min(8, Math.round(p.grid)));
+      const amt = Math.max(0, p.amount);
+      /* seeded control-point displacements on a (G+1)x(G+1) lattice */
+      const dxs = [], dys = [];
+      for (let j = 0; j <= G; j++) {
+        for (let i = 0; i <= G; i++) {
+          const border = i === 0 || j === 0 || i === G || j === G;
+          const k = p.pin && border ? 0 : 1;
+          dxs.push((hash2(i * 7 + 1, j * 7 + 2, p.seed) - 0.5) * 2 * amt * k);
+          dys.push((hash2(i * 7 + 3, j * 7 + 4, p.seed + 99) - 0.5) * 2 * amt * k);
+        }
+      }
+      const at = (arr, i, j) => arr[j * (G + 1) + i];
+      const ss = (t) => t * t * (3 - 2 * t);
+      const disp = (x, y) => {
+        const u = Math.max(0, Math.min(0.9999, x / W)) * G;
+        const v = Math.max(0, Math.min(0.9999, y / H)) * G;
+        const i = Math.floor(u), j = Math.floor(v);
+        const fu = ss(u - i), fv = ss(v - j);
+        const bl = (arr) =>
+          at(arr, i, j) * (1 - fu) * (1 - fv) + at(arr, i + 1, j) * fu * (1 - fv) +
+          at(arr, i, j + 1) * (1 - fu) * fv + at(arr, i + 1, j + 1) * fu * fv;
+        return [bl(dxs), bl(dys)];
+      };
+      const clampX = (x) => Math.max(0.5, Math.min(W - 0.5, x));
+      const clampY = (y) => Math.max(0.5, Math.min(H - 0.5, y));
+      const paths = src.paths.map((path) => ({
+        ...path,
+        pts: resample(path.pts, path.closed, Math.max(0.3, p.res)).map(([x, y]) => {
+          const [dx, dy] = disp(x, y);
+          return [clampX(x + dx), clampY(y + dy)];
+        })
+      }));
+      return { paths };
+    }
+  },
+  carve: {
+    name: "Carve",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "t0", label: "Start t (0-1)", type: "slider", min: 0, max: 1, step: 0.001, def: 0 },
+      { key: "t1", label: "End t (0-1, wire Frame)", type: "slider", min: 0, max: 1, step: 0.001, def: 1 },
+      { key: "invert", label: "Keep outside", type: "check", def: false }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      let a = Math.max(0, Math.min(1, Math.min(p.t0, p.t1)));
+      let b = Math.max(0, Math.min(1, Math.max(p.t0, p.t1)));
+      const paths = [];
+      const extract = (pts, s0, s1, layer) => {
+        /* substring of a polyline by arc length, interpolated cut points */
+        if (s1 - s0 < 0.01) return;
+        const out = [];
+        let acc = 0, started = false;
+        for (let i = 1; i < pts.length; i++) {
+          const ax = pts[i - 1][0], ay = pts[i - 1][1];
+          const bx = pts[i][0], by = pts[i][1];
+          const seg = Math.hypot(bx - ax, by - ay);
+          if (seg < 1e-9) continue;
+          const e0 = acc, e1 = acc + seg;
+          if (e1 > s0 && e0 < s1) {
+            const f0 = Math.max(0, (s0 - e0) / seg);
+            const f1 = Math.min(1, (s1 - e0) / seg);
+            if (!started) {
+              out.push([ax + (bx - ax) * f0, ay + (by - ay) * f0]);
+              started = true;
+            }
+            out.push([ax + (bx - ax) * f1, ay + (by - ay) * f1]);
+          }
+          acc = e1;
+          if (e1 >= s1) break;
+        }
+        if (out.length > 1) paths.push({ pts: out, closed: false, layer });
+      };
+      src.paths.forEach((path) => {
+        const raw = path.closed ? [...path.pts, path.pts[0]] : path.pts;
+        const total = pathLength(raw, false);
+        if (total < 0.01 || raw.length < 2) return;
+        if (!p.invert && a <= 0.0005 && b >= 0.9995) {
+          paths.push({ ...path, pts: path.pts.map((q) => q.slice()) });
+          return;
+        }
+        if (!p.invert) {
+          extract(raw, a * total, b * total, path.layer);
+        } else if (path.closed) {
+          /* complement of the window wraps around a closed path */
+          const dbl = [...raw.slice(0, -1), ...raw];
+          extract(dbl, b * total, (a + 1) * total, path.layer);
+        } else {
+          extract(raw, 0, a * total, path.layer);
+          extract(raw, b * total, total, path.layer);
+        }
+      });
+      return { paths };
+    }
+  },
+  echo: {
+    name: "Echo",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "copies", label: "Echo copies", type: "slider", min: 1, max: 12, step: 1, def: 4 },
+      { key: "dx", label: "Move X mm / copy", type: "slider", min: -30, max: 30, step: 0.5, def: 4 },
+      { key: "dy", label: "Move Y mm / copy", type: "slider", min: -30, max: 30, step: 0.5, def: 4 },
+      { key: "rot", label: "Rotate deg / copy", type: "slider", min: -90, max: 90, step: 0.5, def: 0 },
+      { key: "scale", label: "Scale % / copy", type: "slider", min: 50, max: 150, step: 1, def: 100 },
+      { key: "pivot", label: "Pivot", type: "select", options: ["Canvas center", "Path centroid"], def: "Canvas center" },
+      { key: "orig", label: "Include original", type: "check", def: true },
+      { key: "cycle", label: "Cycle pens", type: "check", def: false }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const { W, H } = ctx;
+      const K = Math.max(1, Math.min(20, Math.round(p.copies)));
+      const paths = [];
+      const clamp = ([x, y]) => [Math.max(0.5, Math.min(W - 0.5, x)), Math.max(0.5, Math.min(H - 0.5, y))];
+      src.paths.forEach((path) => {
+        if (p.orig) paths.push({ ...path, pts: path.pts.map((q) => q.slice()) });
+        let pcx = W / 2, pcy = H / 2;
+        if (p.pivot === "Path centroid") {
+          pcx = 0; pcy = 0;
+          for (const [x, y] of path.pts) { pcx += x; pcy += y; }
+          pcx /= path.pts.length; pcy /= path.pts.length;
+        }
+        for (let k = 1; k <= K; k++) {
+          const ang = (p.rot * Math.PI / 180) * k;
+          const sc = Math.pow(p.scale / 100, k);
+          if (sc < 0.005) break;
+          const ca = Math.cos(ang), sa = Math.sin(ang);
+          const ox = p.dx * k, oy = p.dy * k;
+          const layer = p.cycle ? ((path.layer + k) % PENS.length) : path.layer;
+          paths.push({
+            pts: path.pts.map(([x, y]) => {
+              const lx = (x - pcx) * sc, ly = (y - pcy) * sc;
+              return clamp([pcx + lx * ca - ly * sa + ox, pcy + lx * sa + ly * ca + oy]);
+            }),
+            closed: path.closed, layer
+          });
+        }
+      });
+      return { paths };
+    }
+  },
+  displaceimg: {
+    name: "Displace by Image",
+    cat: "mod",
+    group: "deform",
+    fileImage: true,
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
+      { key: "amount", label: "Amount mm", type: "slider", min: 0, max: 40, step: 0.5, def: 10 },
+      { key: "mode", label: "Mode", type: "select", options: ["Darkness along angle", "Gradient (emboss)"], def: "Darkness along angle" },
+      { key: "angle", label: "Angle deg", type: "slider", min: 0, max: 360, step: 1, def: 90 },
+      { key: "invert", label: "Invert", type: "check", def: false },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.5, max: 4, step: 0.1, def: 1 },
+      { key: "margin", label: "Image fit margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 }
+    ],
+    compute(ins, p, ctx, node) {
+      const src = ins[0] || EMPTY;
+      const img = node && node.data && node.data.img;
+      if (!img) {
+        return { paths: src.paths.map((pa) => ({ ...pa, pts: pa.pts.map((q) => q.slice()) })) };
+      }
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const boxW = W - 2 * m, boxH = H - 2 * m;
+      const sc = Math.min(boxW / img.w, boxH / img.h);
+      const iw = img.w * sc, ih = img.h * sc;
+      const ox = (W - iw) / 2, oy = (H - ih) / 2;
+      const darkAt = (x, y) => {
+        const u = (x - ox) / sc - 0.5, v = (y - oy) / sc - 0.5;
+        const iu = Math.floor(u), iv = Math.floor(v);
+        const s = (a, b) => (a < 0 || b < 0 || a >= img.w || b >= img.h) ? 0 : img.g[b * img.w + a];
+        const fu = u - iu, fv = v - iv;
+        let d = s(iu, iv) * (1 - fu) * (1 - fv) + s(iu + 1, iv) * fu * (1 - fv) +
+                s(iu, iv + 1) * (1 - fu) * fv + s(iu + 1, iv + 1) * fu * fv;
+        return p.invert ? 1 - d : d;
+      };
+      const a = (p.angle * Math.PI) / 180;
+      const adx = Math.cos(a), ady = Math.sin(a);
+      const amt = Math.max(0, p.amount);
+      const eps = Math.max(0.8, sc);
+      const clampX = (x) => Math.max(0.5, Math.min(W - 0.5, x));
+      const clampY = (y) => Math.max(0.5, Math.min(H - 0.5, y));
+      const paths = src.paths.map((path) => ({
+        ...path,
+        pts: resample(path.pts, path.closed, Math.max(0.3, p.res)).map(([x, y]) => {
+          let dx, dy;
+          if (p.mode === "Gradient (emboss)") {
+            dx = (darkAt(x + eps, y) - darkAt(x - eps, y)) * amt * 2;
+            dy = (darkAt(x, y + eps) - darkAt(x, y - eps)) * amt * 2;
+          } else {
+            const d = darkAt(x, y) * amt;
+            dx = adx * d; dy = ady * d;
+          }
+          return [clampX(x + dx), clampY(y + dy)];
+        })
+      }));
+      return { paths };
+    }
+  },
+  travelsort: {
+    name: "Travel Sort",
+    cat: "mod",
+    group: "penout",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "reverse", label: "Allow reversing", type: "check", def: true },
+      { key: "rotate", label: "Rotate closed starts", type: "check", def: true },
+      { key: "bypen", label: "Group by pen", type: "check", def: true }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      if (src.paths.length < 3) {
+        return { paths: src.paths.map((pa) => ({ ...pa, pts: pa.pts.map((q) => q.slice()) })) };
+      }
+      /* group by pen (preserving order of first appearance), sort within groups */
+      const groups = [];
+      const byLayer = new Map();
+      src.paths.forEach((pa) => {
+        const key = p.bypen ? pa.layer : 0;
+        if (!byLayer.has(key)) { byLayer.set(key, []); groups.push(byLayer.get(key)); }
+        byLayer.get(key).push(pa);
+      });
+      const out = [];
+      let cur = [0, 0];
+      for (const group of groups) {
+        const items = group.map((pa) => ({
+          pa,
+          start: pa.pts[0],
+          end: pa.pts[pa.pts.length - 1],
+          used: false
+        }));
+        const HARD = 3000; /* O(n^2) guard: beyond this, pass through unsorted */
+        if (items.length > HARD) {
+          for (const it of items) out.push({ ...it.pa, pts: it.pa.pts.map((q) => q.slice()) });
+          continue;
+        }
+        for (let n = 0; n < items.length; n++) {
+          let best = -1, bestD = Infinity, bestRev = false;
+          for (let i = 0; i < items.length; i++) {
+            const it = items[i];
+            if (it.used) continue;
+            const d1 = Math.hypot(cur[0] - it.start[0], cur[1] - it.start[1]);
+            if (d1 < bestD) { bestD = d1; best = i; bestRev = false; }
+            if (p.reverse && !it.pa.closed) {
+              const d2 = Math.hypot(cur[0] - it.end[0], cur[1] - it.end[1]);
+              if (d2 < bestD) { bestD = d2; best = i; bestRev = true; }
+            }
+          }
+          const it = items[best];
+          it.used = true;
+          let pts = it.pa.pts.map((q) => q.slice());
+          if (it.pa.closed && p.rotate) {
+            /* enter a closed loop at its vertex nearest the pen */
+            let bi = 0, bd = Infinity;
+            for (let k = 0; k < pts.length; k++) {
+              const d = Math.hypot(cur[0] - pts[k][0], cur[1] - pts[k][1]);
+              if (d < bd) { bd = d; bi = k; }
+            }
+            if (bi > 0) pts = pts.slice(bi).concat(pts.slice(0, bi));
+          } else if (bestRev) {
+            pts.reverse();
+          }
+          out.push({ ...it.pa, pts });
+          cur = it.pa.closed ? pts[0] : pts[pts.length - 1];
+        }
+      }
+      return { paths: out };
+    }
+  },
+  cull: {
+    name: "Cull",
+    cat: "mod",
+    group: "penout",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "mode", label: "Criterion", type: "select", options: ["Random", "Every Nth", "Shorter than", "Longer than"], def: "Random" },
+      { key: "keep", label: "Keep probability", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+      { key: "nth", label: "N (Every Nth)", type: "slider", min: 2, max: 20, step: 1, def: 2 },
+      { key: "len", label: "Length mm", type: "slider", min: 0, max: 200, step: 1, def: 20 },
+      { key: "invert", label: "Invert selection", type: "check", def: false },
+      { key: "seed", label: "Seed", type: "seed", def: 61 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const paths = [];
+      src.paths.forEach((path, i) => {
+        let drop;
+        if (p.mode === "Every Nth") {
+          drop = (i % Math.max(2, Math.round(p.nth))) === 0;
+        } else if (p.mode === "Shorter than") {
+          drop = pathLength(path.pts, path.closed) < p.len;
+        } else if (p.mode === "Longer than") {
+          drop = pathLength(path.pts, path.closed) > p.len;
+        } else {
+          drop = hash2(i * 13 + 5, 3, p.seed) >= Math.max(0, Math.min(1, p.keep));
+        }
+        if (p.invert) drop = !drop;
+        if (!drop) paths.push({ ...path, pts: path.pts.map((q) => q.slice()) });
+      });
+      return { paths };
+    }
+  },
+  copypoints: {
+    name: "Copy to Points",
+    cat: "duo",
+    ins: [Pin("paths", "Points"), Pin("paths", "Motif")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "spacing", label: "Point spacing mm (0=vertices)", type: "slider", min: 0, max: 40, step: 0.5, def: 10 },
+      { key: "scale", label: "Scale %", type: "slider", min: 5, max: 300, step: 1, def: 100 },
+      { key: "sjit", label: "Scale jitter %", type: "slider", min: 0, max: 100, step: 1, def: 0 },
+      { key: "rmode", label: "Rotation", type: "select", options: ["None", "Along tangent", "Random"], def: "None" },
+      { key: "rjit", label: "Rotation jitter deg", type: "slider", min: 0, max: 180, step: 1, def: 0 },
+      { key: "prob", label: "Probability", type: "slider", min: 0, max: 1, step: 0.05, def: 1 },
+      { key: "seed", label: "Seed", type: "seed", def: 31 }
+    ],
+    compute(ins, p, ctx) {
+      const ptsIn = ins[0], motifIn = ins[1];
+      if (!ptsIn || !ptsIn.paths || !ptsIn.paths.length) return EMPTY;
+      if (!motifIn || !motifIn.paths || !motifIn.paths.length) return EMPTY;
+      /* motif centered on its bounding-box center */
+      let mx0 = Infinity, my0 = Infinity, mx1 = -Infinity, my1 = -Infinity;
+      for (const pa of motifIn.paths) for (const [x, y] of pa.pts) {
+        if (x < mx0) mx0 = x; if (x > mx1) mx1 = x;
+        if (y < my0) my0 = y; if (y > my1) my1 = y;
+      }
+      const mcx = (mx0 + mx1) / 2, mcy = (my0 + my1) / 2;
+      const paths = [];
+      const BUDGET = 100000;
+      let total = 0, idx = 0;
+      for (const host of ptsIn.paths) {
+        const pts = p.spacing > 0.01
+          ? resample(host.pts, host.closed, Math.max(0.5, p.spacing))
+          : host.pts;
+        for (let i = 0; i < pts.length; i++) {
+          idx++;
+          if (p.prob < 1 && hash2(idx * 3 + 1, 5, p.seed) >= p.prob) continue;
+          const sc = (p.scale / 100) *
+            (1 + (hash2(idx * 3 + 2, 7, p.seed) - 0.5) * 2 * (p.sjit / 100));
+          if (sc <= 0.001) continue;
+          let ang = 0;
+          if (p.rmode === "Along tangent") {
+            const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+            ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+          } else if (p.rmode === "Random") {
+            ang = hash2(idx * 3 + 3, 9, p.seed) * Math.PI * 2;
+          }
+          ang += (hash2(idx * 3 + 4, 11, p.seed) - 0.5) * 2 * (p.rjit * Math.PI / 180);
+          const ca = Math.cos(ang), sa = Math.sin(ang);
+          const [px, py] = pts[i];
+          for (const mp of motifIn.paths) {
+            if (total + mp.pts.length > BUDGET) return { paths };
+            total += mp.pts.length;
+            paths.push({
+              pts: mp.pts.map(([x, y]) => {
+                const lx = (x - mcx) * sc, ly = (y - mcy) * sc;
+                return [px + lx * ca - ly * sa, py + lx * sa + ly * ca];
+              }),
+              closed: mp.closed, layer: mp.layer
+            });
+          }
+        }
+      }
+      return { paths };
+    }
+  },
+  lfo: {
+    name: "LFO",
+    cat: "math",
+    ins: [Pin("value", "t (wire Frame)")],
+    outs: [Pin("value")],
+    params: [
+      { key: "t", label: "t (if unwired)", type: "slider", min: 0, max: 1, step: 0.001, def: 0 },
+      { key: "wave", label: "Waveform", type: "select", options: ["Sine", "Triangle", "Saw", "Square", "Noise loop"], def: "Sine" },
+      { key: "cycles", label: "Cycles / loop", type: "slider", min: 1, max: 16, step: 1, def: 1 },
+      { key: "phase", label: "Phase", type: "slider", min: 0, max: 1, step: 0.01, def: 0 },
+      { key: "min", label: "Out min", type: "slider", min: -100, max: 100, step: 0.5, def: 0 },
+      { key: "max", label: "Out max", type: "slider", min: -100, max: 100, step: 0.5, def: 10 },
+      { key: "seed", label: "Seed (noise)", type: "seed", def: 8 }
+    ],
+    compute(ins, p) {
+      const raw = typeof ins[0] === "number" ? ins[0] : p.t;
+      const cyc = Math.max(1, Math.round(p.cycles)); /* integer -> loop stays seamless */
+      const u = ((raw * cyc + p.phase) % 1 + 1) % 1;
+      let v;
+      if (p.wave === "Triangle") v = 1 - Math.abs(u * 2 - 1);
+      else if (p.wave === "Saw") v = u;
+      else if (p.wave === "Square") v = u < 0.5 ? 1 : 0;
+      else if (p.wave === "Noise loop") {
+        const a = u * Math.PI * 2;
+        v = noise2(Math.cos(a) * 1.5 + 7.3, Math.sin(a) * 1.5 + 2.9, p.seed);
+      } else v = 0.5 + 0.5 * Math.sin(u * Math.PI * 2);
+      return p.min + v * (p.max - p.min);
+    }
+  },
+  steps: {
+    name: "Steps",
+    cat: "math",
+    ins: [Pin("value", "t (wire Frame)")],
+    outs: [Pin("value")],
+    params: [
+      { key: "t", label: "t (if unwired)", type: "slider", min: 0, max: 1, step: 0.001, def: 0 },
+      { key: "steps", label: "Steps", type: "slider", min: 2, max: 16, step: 1, def: 4 },
+      { key: "mode", label: "Pattern", type: "select", options: ["Ramp up", "Ramp down", "Ping-pong", "Random"], def: "Ramp up" },
+      { key: "min", label: "Out min", type: "slider", min: -100, max: 100, step: 0.5, def: 0 },
+      { key: "max", label: "Out max", type: "slider", min: -100, max: 100, step: 0.5, def: 10 },
+      { key: "seed", label: "Seed (random)", type: "seed", def: 4 }
+    ],
+    compute(ins, p) {
+      const raw = typeof ins[0] === "number" ? ins[0] : p.t;
+      const N = Math.max(2, Math.min(64, Math.round(p.steps)));
+      const u = ((raw % 1) + 1) % 1;
+      const i = Math.min(N - 1, Math.floor(u * N));
+      let f;
+      if (p.mode === "Ramp down") f = 1 - i / (N - 1);
+      else if (p.mode === "Ping-pong") {
+        const half = Math.ceil((N - 1) / 2);
+        f = (i <= half ? i : (N - 1 - i)) / Math.max(1, half);
+      }
+      else if (p.mode === "Random") f = hash2(i * 17 + 3, 7, p.seed);
+      else f = i / (N - 1);
+      return p.min + f * (p.max - p.min);
+    }
+  },
+  shaper: {
+    name: "Shaper",
+    cat: "math",
+    ins: [Pin("value", "t (wire Frame)")],
+    outs: [Pin("value")],
+    params: [
+      { key: "t", label: "t (if unwired)", type: "slider", min: 0, max: 1, step: 0.001, def: 0 },
+      { key: "curve", label: "Curve", type: "select", options: ["Linear", "Smoothstep", "Ease in", "Ease out", "Ease in-out", "Bounce", "Reverse", "Triangle"], def: "Smoothstep" },
+      { key: "repeat", label: "Repeat / loop", type: "slider", min: 1, max: 8, step: 1, def: 1 }
+    ],
+    compute(ins, p) {
+      const raw = typeof ins[0] === "number" ? ins[0] : p.t;
+      const rep = Math.max(1, Math.round(p.repeat));
+      /* end-inclusive wrap: t=1 lands on the END of the last cycle, so a
+         write-on driven by Frame does not snap back on its final frame.
+         (For a seamless LOOP use Triangle, whose endpoints match anyway.) */
+      let u = ((raw * rep) % 1 + 1) % 1;
+      if (u === 0 && raw * rep > 0) u = 1;
+      switch (p.curve) {
+        case "Linear": return u;
+        case "Ease in": return u * u * u;
+        case "Ease out": { const w = 1 - u; return 1 - w * w * w; }
+        case "Ease in-out": return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+        case "Bounce": {
+          const n1 = 7.5625, d1 = 2.75;
+          let x = u;
+          if (x < 1 / d1) return n1 * x * x;
+          if (x < 2 / d1) { x -= 1.5 / d1; return n1 * x * x + 0.75; }
+          if (x < 2.5 / d1) { x -= 2.25 / d1; return n1 * x * x + 0.9375; }
+          x -= 2.625 / d1; return n1 * x * x + 0.984375;
+        }
+        case "Reverse": return 1 - u;
+        case "Triangle": return 1 - Math.abs(u * 2 - 1);
+        default: return u * u * (3 - 2 * u);
+      }
+    }
+  },
+  stencil: {
+    name: "Stencil",
+    cat: "duo",
+    ins: [Pin("paths", "Regions (closed)"), Pin("paths", "Content")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "region", label: "Region index (next/prev, wire Steps)", type: "slider", min: 0, max: 63, step: 1, def: 0 },
+      { key: "all", label: "All regions", type: "check", def: false },
+      { key: "inset", label: "Edge inset mm", type: "slider", min: -5, max: 8, step: 0.25, def: 1 },
+      { key: "outline", label: "Show region outline", type: "check", def: true },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.3, max: 4, step: 0.1, def: 0.8 }
+    ],
+    compute(ins, p, ctx) {
+      const regsIn = ins[0], contentIn = ins[1];
+      if (!regsIn || !regsIn.paths || !regsIn.paths.length) return EMPTY;
+
+      /* collect closed loops, ordered deterministically top-left -> bottom-right
+         so the index slider steps through them predictably */
+      const loops = regsIn.paths
+        .filter((pa) => pa.closed && pa.pts.length >= 3)
+        .map((pa) => {
+          let cx = 0, cy = 0;
+          let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+          for (const [x, y] of pa.pts) {
+            cx += x; cy += y;
+            if (x < x0) x0 = x; if (x > x1) x1 = x;
+            if (y < y0) y0 = y; if (y > y1) y1 = y;
+          }
+          cx /= pa.pts.length; cy /= pa.pts.length;
+          return { pa, cx, cy, x0, y0, x1, y1 };
+        })
+        .sort((a, b) => (a.cy - b.cy) || (a.cx - b.cx));
+      if (!loops.length) return EMPTY;
+
+      /* selection: index wraps modulo count -> any slider/wired value is valid */
+      const idx = ((Math.floor(p.region) % loops.length) + loops.length) % loops.length;
+      const active = p.all ? loops : [loops[idx]];
+
+      const inset = p.inset;
+      const pad = Math.max(0, -inset);
+      const pip = (x, y, poly) => {
+        let c = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const yi = poly[i][1], yj = poly[j][1];
+          if ((yi > y) !== (yj > y)) {
+            const xi = poly[i][0], xj = poly[j][0];
+            if (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+          }
+        }
+        return c;
+      };
+      const edgeDist = (x, y, poly) => {
+        let best = Infinity;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const ax = poly[j][0], ay = poly[j][1];
+          const bx = poly[i][0], by = poly[i][1];
+          const dx = bx - ax, dy = by - ay;
+          const L2 = dx * dx + dy * dy;
+          let t = L2 > 0 ? ((x - ax) * dx + (y - ay) * dy) / L2 : 0;
+          t = Math.max(0, Math.min(1, t));
+          const d = Math.hypot(x - (ax + dx * t), y - (ay + dy * t));
+          if (d < best) best = d;
+        }
+        return best;
+      };
+      /* point is kept if it lies in ANY active region, respecting the inset */
+      const keepPt = (x, y) => {
+        for (const lo of active) {
+          if (x < lo.x0 - pad || x > lo.x1 + pad || y < lo.y0 - pad || y > lo.y1 + pad) continue;
+          const inside = pip(x, y, lo.pa.pts);
+          if (inset > 0) {
+            if (inside && edgeDist(x, y, lo.pa.pts) >= inset) return true;
+          } else if (inset < 0) {
+            if (inside || edgeDist(x, y, lo.pa.pts) <= -inset) return true;
+          } else if (inside) return true;
+        }
+        return false;
+      };
+
+      const paths = [];
+      if (p.outline) {
+        for (const lo of active) {
+          paths.push({ ...lo.pa, pts: lo.pa.pts.map((q) => q.slice()) });
+        }
+      }
+      if (contentIn && contentIn.paths && contentIn.paths.length) {
+        const step = Math.max(0.25, p.res);
+        contentIn.paths.forEach((path) => {
+          if (path.pts.length < 2) return;
+          const pts = resample(path.pts, path.closed, step);
+          const vis = pts.map(([x, y]) => keepPt(x, y));
+          const runs = [];
+          let run = [];
+          for (let i = 0; i < pts.length; i++) {
+            if (vis[i]) run.push(pts[i]);
+            else { if (run.length > 1) runs.push(run); run = []; }
+          }
+          if (run.length > 1) runs.push(run);
+          if (path.closed && runs.length > 1 && vis[0] && vis[pts.length - 1]) {
+            const last = runs.pop();
+            runs[0] = last.concat(runs[0]);
+          }
+          if (path.closed && runs.length === 1 && vis.every(Boolean)) {
+            paths.push({ ...path, pts: path.pts.map((q) => q.slice()) });
+            return;
+          }
+          for (const r of runs) paths.push({ pts: r, closed: false, layer: path.layer });
+        });
+      }
+      return { paths };
+    }
+  },
+  harmonograph: {
+    name: "Harmonograph",
+    cat: "gen",
+    group: "scientific",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "fx", label: "Freq X", type: "slider", min: 1, max: 12, step: 1, def: 3 },
+      { key: "fy", label: "Freq Y", type: "slider", min: 1, max: 12, step: 1, def: 2 },
+      { key: "detune", label: "Detune", type: "slider", min: 0, max: 0.05, step: 0.001, def: 0.008 },
+      { key: "damp", label: "Damping", type: "slider", min: 0.001, max: 0.1, step: 0.001, def: 0.015 },
+      { key: "dur", label: "Duration (swings)", type: "slider", min: 5, max: 80, step: 1, def: 40 },
+      { key: "mix", label: "Pendulum 2 mix", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+      { key: "seed", label: "Seed (phases)", type: "seed", def: 12 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const ax = (W - 2 * m) / 2, ay = (H - 2 * m) / 2;
+      if (ax < 5 || ay < 5) return applyStyle({ paths: [] }, ins[0]);
+      const rng = mulberry32(p.seed * 2833 + 41);
+      const p1 = rng() * Math.PI * 2, p2 = rng() * Math.PI * 2;
+      const p3 = rng() * Math.PI * 2, p4 = rng() * Math.PI * 2;
+      const TWO = Math.PI * 2;
+      const fx = Math.max(1, Math.round(p.fx)), fy = Math.max(1, Math.round(p.fy));
+      const mix = Math.max(0, Math.min(1, p.mix));
+      const damp = Math.max(0.0005, p.damp);
+      const dur = Math.max(2, p.dur);
+      /* two damped pendulums per axis: the classic twin-pendulum machine */
+      const xAt = (t) => {
+        const e1 = Math.exp(-damp * t), e2 = Math.exp(-damp * 1.35 * t);
+        return (Math.sin(TWO * fx * t + p1) * e1 * (1 - mix * 0.5) +
+                Math.sin(TWO * (fx + p.detune * fx + 1) * t + p2) * e2 * mix * 0.5);
+      };
+      const yAt = (t) => {
+        const e1 = Math.exp(-damp * t), e2 = Math.exp(-damp * 1.35 * t);
+        return (Math.sin(TWO * fy * t + p3) * e1 * (1 - mix * 0.5) +
+                Math.sin(TWO * (fy + p.detune * fy + 1) * t + p4) * e2 * mix * 0.5);
+      };
+      const n = Math.min(30000, Math.max(2000, Math.round(dur * 400)));
+      const pts = [];
+      let lastX = 1e9, lastY = 1e9;
+      for (let i = 0; i <= n; i++) {
+        const t = (i / n) * dur;
+        const x = W / 2 + xAt(t) * ax;
+        const y = H / 2 + yAt(t) * ay;
+        /* decimate: only emit once the pen has moved */
+        if (Math.hypot(x - lastX, y - lastY) >= 0.15 || i === 0 || i === n) {
+          pts.push([x, y]);
+          lastX = x; lastY = y;
+        }
+      }
+      if (pts.length < 2) return applyStyle({ paths: [] }, ins[0]);
+      return applyStyle({ paths: [{ pts, closed: false, layer: Math.round(p.layer) }] }, ins[0]);
+    }
+  },
+  fmrose: {
+    name: "FM Rose",
+    cat: "gen",
+    group: "geometric",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "fc", label: "Carrier", type: "slider", min: 1, max: 16, step: 1, def: 5 },
+      { key: "fm", label: "Modulator", type: "slider", min: 1, max: 16, step: 1, def: 3 },
+      { key: "index", label: "FM index", type: "slider", min: 0, max: 10, step: 0.1, def: 2 },
+      { key: "depth", label: "Depth", type: "slider", min: 0, max: 1, step: 0.02, def: 0.5 },
+      { key: "rings", label: "Rings", type: "slider", min: 1, max: 16, step: 1, def: 1 },
+      { key: "rot", label: "Rotate deg / ring", type: "slider", min: 0, max: 90, step: 1, def: 0 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const R = Math.min(W, H) / 2 - m;
+      if (R < 5) return applyStyle({ paths: [] }, ins[0]);
+      const cx = W / 2, cy = H / 2;
+      const fc = Math.max(1, Math.round(p.fc)), fm = Math.max(1, Math.round(p.fm));
+      const depth = Math.max(0, Math.min(1, p.depth));
+      const K = Math.max(1, Math.min(24, Math.round(p.rings)));
+      const paths = [];
+      const NPTS = 720;
+      for (let k = 0; k < K; k++) {
+        const scale = (K - k) / K;
+        const off = (p.rot * Math.PI / 180) * k;
+        const pts = [];
+        for (let i = 0; i < NPTS; i++) {
+          const th = (i / NPTS) * Math.PI * 2;
+          /* FM synthesis as a polar curve: r follows the modulated carrier */
+          const r = (1 + depth * Math.sin(fc * th + p.index * Math.sin(fm * th))) / (1 + depth);
+          const rr = R * scale * Math.max(0.02, r);
+          pts.push([cx + Math.cos(th + off) * rr, cy + Math.sin(th + off) * rr]);
+        }
+        paths.push({ pts, closed: true, layer: Math.round(p.layer) });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  granulate: {
+    name: "Granulate",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "grain", label: "Grain length mm", type: "slider", min: 1, max: 25, step: 0.5, def: 6 },
+      { key: "density", label: "Density", type: "slider", min: 0, max: 1, step: 0.05, def: 0.9 },
+      { key: "jitter", label: "Jitter mm", type: "slider", min: 0, max: 15, step: 0.25, def: 2 },
+      { key: "rotate", label: "Rotate ± deg", type: "slider", min: 0, max: 90, step: 1, def: 12 },
+      { key: "sjit", label: "Scale jitter %", type: "slider", min: 0, max: 80, step: 1, def: 0 },
+      { key: "seed", label: "Seed", type: "seed", def: 37 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const { W, H } = ctx;
+      const gl = Math.max(0.8, p.grain);
+      const paths = [];
+      const clamp = ([x, y]) => [Math.max(0.5, Math.min(W - 0.5, x)), Math.max(0.5, Math.min(H - 0.5, y))];
+      let gid = 0;
+      src.paths.forEach((path) => {
+        const pts = resample(path.pts, path.closed, Math.min(0.6, gl / 4));
+        if (pts.length < 2) return;
+        let start = 0, acc = 0;
+        const flushGrain = (a, b) => {
+          gid++;
+          if (b - a < 1) return;
+          if (hash2(gid * 5 + 1, 3, p.seed) >= Math.max(0, Math.min(1, p.density))) return;
+          const grainPts = pts.slice(a, b + 1);
+          /* transform the grain around its own centroid */
+          let gx = 0, gy = 0;
+          for (const [x, y] of grainPts) { gx += x; gy += y; }
+          gx /= grainPts.length; gy /= grainPts.length;
+          const jx = (hash2(gid * 5 + 2, 7, p.seed) - 0.5) * 2 * p.jitter;
+          const jy = (hash2(gid * 5 + 3, 9, p.seed) - 0.5) * 2 * p.jitter;
+          const ang = (hash2(gid * 5 + 4, 11, p.seed) - 0.5) * 2 * (p.rotate * Math.PI / 180);
+          const sc = 1 + (hash2(gid * 5 + 5, 13, p.seed) - 0.5) * 2 * (p.sjit / 100);
+          const ca = Math.cos(ang), sa = Math.sin(ang);
+          paths.push({
+            pts: grainPts.map(([x, y]) => {
+              const lx = (x - gx) * sc, ly = (y - gy) * sc;
+              return clamp([gx + lx * ca - ly * sa + jx, gy + lx * sa + ly * ca + jy]);
+            }),
+            closed: false, layer: path.layer
+          });
+        };
+        for (let i = 1; i < pts.length; i++) {
+          acc += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+          if (acc >= gl) { flushGrain(start, i); start = i; acc = 0; }
+        }
+        flushGrain(start, pts.length - 1);
+      });
+      return { paths };
+    }
+  },
+  fold: {
+    name: "Fold",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "gain", label: "Gain (drive)", type: "slider", min: 1, max: 4, step: 0.05, def: 1.5 },
+      { key: "wx", label: "Window width mm", type: "slider", min: 20, max: 220, step: 1, def: 120 },
+      { key: "wy", label: "Window height mm", type: "slider", min: 20, max: 300, step: 1, def: 160 },
+      { key: "axis", label: "Fold axis", type: "select", options: ["Both", "X only", "Y only"], def: "Both" },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.3, max: 4, step: 0.1, def: 0.8 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const { W, H } = ctx;
+      const cx = W / 2, cy = H / 2;
+      const hx = Math.max(5, p.wx / 2), hy = Math.max(5, p.wy / 2);
+      const gain = Math.max(0.1, p.gain);
+      /* wavefolder: reflect back into the window, repeatedly (triangle fold) */
+      const fold1 = (v, half) => {
+        const period = 4 * half;
+        let u = ((v + half) % period + period) % period;
+        return (u < 2 * half ? u - half : 3 * half - u);
+      };
+      const doX = p.axis !== "Y only", doY = p.axis !== "X only";
+      const paths = src.paths.map((path) => ({
+        ...path,
+        pts: resample(path.pts, path.closed, Math.max(0.25, p.res)).map(([x, y]) => {
+          /* drive: scale outward from center before folding, like input gain */
+          let lx = (x - cx) * gain, ly = (y - cy) * gain;
+          if (doX) lx = fold1(lx, hx);
+          if (doY) ly = fold1(ly, hy);
+          return [cx + lx, cy + ly];
+        })
+      }));
+      return { paths };
+    }
+  },
+  adsr: {
+    name: "ADSR",
+    cat: "math",
+    ins: [Pin("value", "t (wire Frame)")],
+    outs: [Pin("value")],
+    params: [
+      { key: "t", label: "t (if unwired)", type: "slider", min: 0, max: 1, step: 0.001, def: 0 },
+      { key: "a", label: "Attack", type: "slider", min: 0, max: 1, step: 0.01, def: 0.1 },
+      { key: "d", label: "Decay", type: "slider", min: 0, max: 1, step: 0.01, def: 0.2 },
+      { key: "s", label: "Sustain level", type: "slider", min: 0, max: 1, step: 0.01, def: 0.6 },
+      { key: "r", label: "Release", type: "slider", min: 0, max: 1, step: 0.01, def: 0.3 },
+      { key: "min", label: "Out min", type: "slider", min: -100, max: 100, step: 0.5, def: 0 },
+      { key: "max", label: "Out max", type: "slider", min: -100, max: 100, step: 0.5, def: 10 }
+    ],
+    compute(ins, p) {
+      const raw = typeof ins[0] === "number" ? ins[0] : p.t;
+      const u = Math.max(0, Math.min(1, raw));
+      let a = Math.max(0, p.a), d = Math.max(0, p.d), r = Math.max(0, p.r);
+      const sum = a + d + r;
+      if (sum > 1) { a /= sum; d /= sum; r /= sum; } /* squeeze to fit; sustain -> 0 */
+      const sus = Math.max(0, Math.min(1, p.s));
+      const relStart = 1 - r;
+      let v;
+      if (u < a) v = a > 0 ? u / a : 1;
+      else if (u < a + d) v = d > 0 ? 1 - (1 - sus) * ((u - a) / d) : sus;
+      else if (u < relStart) v = sus;
+      else v = r > 0 ? sus * (1 - (u - relStart) / r) : 0;
+      return p.min + v * (p.max - p.min);
+    }
+  },
+  bitcrush: {
+    name: "Bitcrush",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "rate", label: "Sample rate mm", type: "slider", min: 0.5, max: 20, step: 0.25, def: 4 },
+      { key: "depth", label: "Bit depth grid mm (0=off)", type: "slider", min: 0, max: 12, step: 0.25, def: 2 },
+      { key: "axis", label: "Quantize axis", type: "select", options: ["Both", "X only", "Y only"], def: "Both" }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const rate = Math.max(0.3, p.rate);
+      const q = Math.max(0, p.depth);
+      const qx = p.axis !== "Y only", qy = p.axis !== "X only";
+      const snap = (v) => q > 0.01 ? Math.round(v / q) * q : v;
+      const paths = [];
+      src.paths.forEach((path) => {
+        const pts = resample(path.pts, path.closed, rate).map(([x, y]) => [
+          qx ? snap(x) : x, qy ? snap(y) : y
+        ]);
+        /* quantizing can stack identical points: dedupe (no zero-length marks) */
+        const clean = [];
+        for (const pt of pts) {
+          const last = clean[clean.length - 1];
+          if (!last || Math.abs(last[0] - pt[0]) > 1e-6 || Math.abs(last[1] - pt[1]) > 1e-6) clean.push(pt);
+        }
+        if (path.closed && clean.length > 2) {
+          const a = clean[0], b = clean[clean.length - 1];
+          if (Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6) clean.pop();
+        }
+        if (clean.length > 1) paths.push({ pts: clean, closed: path.closed && clean.length > 2, layer: path.layer });
+      });
+      return { paths };
+    }
+  },
+  switch: {
+    name: "Switch",
+    cat: "duo",
+    ins: [Pin("value", "Select"), Pin("paths", "A"), Pin("paths", "B"), Pin("paths", "C")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "sel", label: "Select (if unwired, wire Steps)", type: "slider", min: 0, max: 2, step: 1, def: 0 }
+    ],
+    compute(ins, p) {
+      const val = typeof ins[0] === "number" ? ins[0] : p.sel;
+      const wired = [];
+      for (let i = 1; i <= 3; i++) {
+        if (ins[i] && ins[i].paths && ins[i].paths.length) wired.push(ins[i]);
+      }
+      if (!wired.length) return EMPTY;
+      const idx = ((Math.floor(val) % wired.length) + wired.length) % wired.length;
+      const pick = wired[idx];
+      return { paths: pick.paths.map((pa) => ({ ...pa, pts: pa.pts.map((q) => q.slice()) })) };
+    }
+  },
+  conway: {
+    name: "Conway",
+    cat: "gen",
+    group: "scientific",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "cols", label: "Grid columns", type: "slider", min: 10, max: 80, step: 1, def: 40 },
+      { key: "fill", label: "Initial fill", type: "slider", min: 0.05, max: 0.8, step: 0.05, def: 0.35 },
+      { key: "gens", label: "Generations (wire LFO/Frame)", type: "slider", min: 0, max: 200, step: 1, def: 20 },
+      { key: "wrap", label: "Wrap edges", type: "check", def: true },
+      { key: "style", label: "Cell style", type: "select", options: ["Squares", "Dots", "Diamonds"], def: "Squares" },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 19 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const bw = W - 2 * m, bh = H - 2 * m;
+      if (bw < 10 || bh < 10) return applyStyle({ paths: [] }, ins[0]);
+      const cols = Math.max(4, Math.min(100, Math.round(p.cols)));
+      const cell = bw / cols;
+      const rows = Math.max(4, Math.floor(bh / cell));
+      /* deterministic replay: seed the board, run N generations from scratch.
+         Stateless per compute -> wire a value into Generations to animate growth */
+      const rng = mulberry32(p.seed * 7477 + 3);
+      let grid = new Uint8Array(cols * rows);
+      for (let i = 0; i < grid.length; i++) grid[i] = rng() < p.fill ? 1 : 0;
+      const gens = Math.max(0, Math.min(400, Math.floor(p.gens)));
+      const wrap = !!p.wrap;
+      let next = new Uint8Array(cols * rows);
+      for (let g = 0; g < gens; g++) {
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            let n = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                if (!dx && !dy) continue;
+                let xx = x + dx, yy = y + dy;
+                if (wrap) { xx = (xx + cols) % cols; yy = (yy + rows) % rows; }
+                else if (xx < 0 || yy < 0 || xx >= cols || yy >= rows) continue;
+                n += grid[yy * cols + xx];
+              }
+            }
+            const alive = grid[y * cols + x];
+            next[y * cols + x] = (alive && (n === 2 || n === 3)) || (!alive && n === 3) ? 1 : 0;
+          }
+        }
+        const t = grid; grid = next; next = t;
+      }
+      const paths = [];
+      const L = Math.round(p.layer);
+      const pad = cell * 0.12;
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          if (!grid[y * cols + x]) continue;
+          const x0 = m + x * cell + pad, y0 = m + y * cell + pad;
+          const x1 = m + (x + 1) * cell - pad, y1 = m + (y + 1) * cell - pad;
+          const cxx = (x0 + x1) / 2, cyy = (y0 + y1) / 2;
+          if (p.style === "Dots") {
+            const r = cell * 0.28;
+            const pts = [];
+            for (let k = 0; k < 8; k++) {
+              const a = (k / 8) * Math.PI * 2;
+              pts.push([cxx + Math.cos(a) * r, cyy + Math.sin(a) * r]);
+            }
+            paths.push({ pts, closed: true, layer: L });
+          } else if (p.style === "Diamonds") {
+            paths.push({ pts: [[cxx, y0], [x1, cyy], [cxx, y1], [x0, cyy]], closed: true, layer: L });
+          } else {
+            paths.push({ pts: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], closed: true, layer: L });
+          }
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  tileshuffle: {
+    name: "Tile Shuffle",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "cols", label: "Columns", type: "slider", min: 2, max: 12, step: 1, def: 4 },
+      { key: "rows", label: "Rows", type: "slider", min: 2, max: 12, step: 1, def: 5 },
+      { key: "amount", label: "Shuffle amount", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+      { key: "flips", label: "Random flips / 180", type: "check", def: true },
+      { key: "res", label: "Cut step mm", type: "slider", min: 0.3, max: 3, step: 0.1, def: 0.8 },
+      { key: "seed", label: "Seed", type: "seed", def: 47 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const { W, H } = ctx;
+      const C = Math.max(1, Math.min(16, Math.round(p.cols)));
+      const R = Math.max(1, Math.min(16, Math.round(p.rows)));
+      const tw = W / C, th = H / R;
+      const NT = C * R;
+      /* seeded permutation over a subset chosen by Amount */
+      const rng = mulberry32(p.seed * 5501 + 9);
+      const inShuffle = [];
+      for (let i = 0; i < NT; i++) if (rng() < p.amount) inShuffle.push(i);
+      const perm = new Array(NT);
+      for (let i = 0; i < NT; i++) perm[i] = i;
+      const pool = inShuffle.slice();
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+      }
+      inShuffle.forEach((tile, k) => { perm[tile] = pool[k]; });
+      /* per-tile flip/rotation (bounds-safe: flips + 180 only) */
+      const mode = new Array(NT).fill(0);
+      if (p.flips) {
+        for (let i = 0; i < NT; i++) {
+          if (perm[i] !== i || rng() < p.amount * 0.3) mode[i] = Math.floor(rng() * 4); /* 0=none 1=flipX 2=flipY 3=180 */
+        }
+      }
+      const paths = [];
+      src.paths.forEach((path) => {
+        const pts = resample(path.pts, path.closed, Math.max(0.25, p.res));
+        let run = [], lastTile = -1, prev = null;
+        const flushRun = () => {
+          if (run.length > 1) {
+            const tile = lastTile;
+            const dst = perm[tile];
+            const sx = (tile % C) * tw, sy = Math.floor(tile / C) * th;
+            const dx = (dst % C) * tw, dy = Math.floor(dst / C) * th;
+            const mo = mode[tile];
+            paths.push({
+              pts: run.map(([x, y]) => {
+                let lx = x - sx, ly = y - sy;
+                if (mo === 1 || mo === 3) lx = tw - lx;
+                if (mo === 2 || mo === 3) ly = th - ly;
+                return [dx + lx, dy + ly];
+              }),
+              closed: false, layer: path.layer
+            });
+          }
+          run = [];
+        };
+        for (const pt of pts) {
+          const tx = Math.min(C - 1, Math.max(0, Math.floor(pt[0] / tw)));
+          const ty = Math.min(R - 1, Math.max(0, Math.floor(pt[1] / th)));
+          const tile = ty * C + tx;
+          if (tile !== lastTile && run.length && prev) {
+            /* exact cut: intersect the crossing segment with the tile border
+               and give the boundary point to BOTH runs (no ink lost at seams) */
+            const px = prev[0], py = prev[1];
+            const dx = pt[0] - px, dy = pt[1] - py;
+            const ptx = Math.floor(px / tw), pty = Math.floor(py / th);
+            let t = 1;
+            if (tx !== ptx && Math.abs(dx) > 1e-12) {
+              const xb = tw * Math.max(ptx, tx);
+              t = Math.min(t, (xb - px) / dx);
+            }
+            if (ty !== pty && Math.abs(dy) > 1e-12) {
+              const yb = th * Math.max(pty, ty);
+              t = Math.min(t, (yb - py) / dy);
+            }
+            t = Math.max(0, Math.min(1, t));
+            const bp = [px + dx * t, py + dy * t];
+            run.push(bp);
+            flushRun();
+            run = [bp.slice()];
+          }
+          lastTile = tile;
+          run.push(pt);
+          prev = pt;
+        }
+        flushRun();
+      });
+      return { paths };
+    }
+  },
+  superformula: {
+    name: "Superformula",
+    cat: "gen",
+    group: "geometric",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "m", label: "Symmetry m", type: "slider", min: 0, max: 24, step: 1, def: 6 },
+      { key: "n1", label: "n1", type: "slider", min: 0.1, max: 40, step: 0.1, def: 3 },
+      { key: "n2", label: "n2", type: "slider", min: 0.1, max: 40, step: 0.1, def: 6 },
+      { key: "n3", label: "n3", type: "slider", min: 0.1, max: 40, step: 0.1, def: 6 },
+      { key: "asym", label: "a/b asymmetry", type: "slider", min: 0.2, max: 5, step: 0.05, def: 1 },
+      { key: "rings", label: "Rings", type: "slider", min: 1, max: 24, step: 1, def: 1 },
+      { key: "twist", label: "Twist deg / ring", type: "slider", min: 0, max: 45, step: 0.5, def: 0 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m2 = Math.max(0, p.margin);
+      const Rmax = Math.min(W, H) / 2 - m2;
+      if (Rmax < 5) return applyStyle({ paths: [] }, ins[0]);
+      const cx = W / 2, cy = H / 2;
+      const mm = Math.max(0, Math.round(p.m));
+      const n1 = Math.max(0.05, p.n1), n2 = Math.max(0.05, p.n2), n3 = Math.max(0.05, p.n3);
+      const a = 1, b = Math.max(0.05, p.asym);
+      const NPTS = 720;
+      /* Gielis superformula, guarded against zero base */
+      const rBase = new Float64Array(NPTS);
+      let rMax = 0;
+      for (let i = 0; i < NPTS; i++) {
+        const th = (i / NPTS) * Math.PI * 2;
+        const t1 = Math.pow(Math.abs(Math.cos((mm * th) / 4) / a), n2);
+        const t2 = Math.pow(Math.abs(Math.sin((mm * th) / 4) / b), n3);
+        const base = Math.max(1e-9, t1 + t2);
+        const r = Math.pow(base, -1 / n1);
+        rBase[i] = Number.isFinite(r) ? r : 0;
+        if (rBase[i] > rMax) rMax = rBase[i];
+      }
+      if (rMax < 1e-9) return applyStyle({ paths: [] }, ins[0]);
+      const K = Math.max(1, Math.min(32, Math.round(p.rings)));
+      const paths = [];
+      for (let k = 0; k < K; k++) {
+        const scale = (K - k) / K;
+        const off = (p.twist * Math.PI / 180) * k;
+        const pts = [];
+        for (let i = 0; i < NPTS; i++) {
+          const th = (i / NPTS) * Math.PI * 2;
+          const rr = (rBase[i] / rMax) * Rmax * scale;
+          pts.push([cx + Math.cos(th + off) * rr, cy + Math.sin(th + off) * rr]);
+        }
+        paths.push({ pts, closed: true, layer: Math.round(p.layer) });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  kaleidoscope: {
+    name: "Kaleidoscope",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "sectors", label: "Sectors", type: "slider", min: 2, max: 24, step: 1, def: 6 },
+      { key: "mirror", label: "Mirror alternate", type: "check", def: true },
+      { key: "rot", label: "Rotate offset deg", type: "slider", min: 0, max: 360, step: 1, def: 0 },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.3, max: 4, step: 0.1, def: 0.8 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const { W, H } = ctx;
+      const cx = W / 2, cy = H / 2;
+      const N = Math.max(2, Math.min(32, Math.round(p.sectors)));
+      const wedge = (Math.PI * 2) / N;
+      const base = (p.rot * Math.PI) / 180;
+      const paths = [];
+      const clamp = ([x, y]) => [Math.max(0.5, Math.min(W - 0.5, x)), Math.max(0.5, Math.min(H - 0.5, y))];
+      /* 1) clip the source to one wedge, 2) replicate the runs N times,
+         mirroring every other copy when Mirror is on */
+      src.paths.forEach((path) => {
+        const pts = resample(path.pts, path.closed, Math.max(0.25, p.res));
+        const inWedge = pts.map(([x, y]) => {
+          let a = Math.atan2(y - cy, x - cx) - base;
+          a = ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+          return a < wedge;
+        });
+        const runs = [];
+        let run = [];
+        for (let i = 0; i < pts.length; i++) {
+          if (inWedge[i]) run.push(pts[i]);
+          else { if (run.length > 1) runs.push(run); run = []; }
+        }
+        if (run.length > 1) runs.push(run);
+        for (const r of runs) {
+          /* run in wedge-local polar coordinates */
+          const local = r.map(([x, y]) => {
+            const dx = x - cx, dy = y - cy;
+            let a = Math.atan2(dy, dx) - base;
+            a = ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+            return [Math.hypot(dx, dy), a];
+          });
+          for (let k = 0; k < N; k++) {
+            const flip = p.mirror && (k % 2 === 1);
+            paths.push({
+              pts: local.map(([rad, a]) => {
+                const aa = base + k * wedge + (flip ? wedge - a : a);
+                return clamp([cx + Math.cos(aa) * rad, cy + Math.sin(aa) * rad]);
+              }),
+              closed: false, layer: path.layer
+            });
+          }
+        }
+      });
+      return { paths };
+    }
+  },
+  topolar: {
+    name: "To Polar",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "rin", label: "Inner radius mm", type: "slider", min: 0, max: 80, step: 1, def: 15 },
+      { key: "turns", label: "Turns", type: "slider", min: 0.25, max: 3, step: 0.05, def: 1 },
+      { key: "start", label: "Start angle deg", type: "slider", min: 0, max: 360, step: 1, def: 270 },
+      { key: "flip", label: "Top of canvas", type: "select", options: ["Outer edge", "Inner edge"], def: "Outer edge" },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.3, max: 4, step: 0.1, def: 1 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const rOut = Math.min(W, H) / 2 - m;
+      const rIn = Math.max(0, Math.min(p.rin, rOut - 2));
+      if (rOut - rIn < 2) return { paths: [] };
+      const cx = W / 2, cy = H / 2;
+      const a0 = (p.start * Math.PI) / 180;
+      const TWO = Math.PI * 2;
+      const outerTop = p.flip === "Outer edge";
+      const clamp = ([x, y]) => [Math.max(0.5, Math.min(W - 0.5, x)), Math.max(0.5, Math.min(H - 0.5, y))];
+      /* cartesian canvas wrapped onto a ring: x -> angle, y -> radius */
+      const paths = src.paths.map((path) => ({
+        ...path,
+        pts: resample(path.pts, path.closed, Math.max(0.25, p.res)).map(([x, y]) => {
+          const u = x / W;
+          const v = y / H;
+          const ang = a0 + u * p.turns * TWO;
+          const frac = outerTop ? 1 - v : v;
+          const rr = rIn + frac * (rOut - rIn);
+          return clamp([cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr]);
+        })
+      }));
+      return { paths };
+    }
+  },
+  filterpath: {
+    name: "Filter",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "mode", label: "Mode", type: "select", options: ["Lowpass", "Highpass"], def: "Lowpass" },
+      { key: "cutoff", label: "Cutoff mm", type: "slider", min: 1, max: 40, step: 0.5, def: 8 },
+      { key: "reso", label: "Resonance", type: "slider", min: 0, max: 0.95, step: 0.05, def: 0.3 },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.3, max: 2, step: 0.1, def: 0.5 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const step = Math.max(0.25, p.res);
+      /* Chamberlin state-variable filter run ALONG each path, x and y as two
+         signals. Causal, so resonance rings AFTER corners - that is the point. */
+      const f = 2 * Math.sin(Math.PI * Math.min(0.22, step / Math.max(1, p.cutoff)));
+      const q = Math.max(0.08, 1 - p.reso);
+      const paths = [];
+      src.paths.forEach((path) => {
+        const pts = resample(path.pts, path.closed, step);
+        if (pts.length < 3) {
+          paths.push({ ...path, pts: path.pts.map((v) => v.slice()) });
+          return;
+        }
+        const runFilter = () => {
+          let lx = pts[0][0], bx = 0, ly = pts[0][1], by = 0;
+          const stepOne = ([x, y]) => {
+            const hx = x - lx - q * bx; bx += f * hx; lx += f * bx;
+            const hy = y - ly - q * by; by += f * hy; ly += f * by;
+            return [hx, hy, lx, ly];
+          };
+          /* closed paths: one warm-up lap kills the start transient */
+          if (path.closed) for (const pt of pts) stepOne(pt);
+          return pts.map((pt) => stepOne(pt));
+        };
+        const st = runFilter();
+        if (p.mode === "Highpass") {
+          /* the high band wiggles around zero: re-center on the path centroid */
+          let gx = 0, gy = 0;
+          for (const [x, y] of pts) { gx += x; gy += y; }
+          gx /= pts.length; gy /= pts.length;
+          paths.push({
+            pts: st.map(([hx, hy]) => [gx + hx, gy + hy]),
+            closed: path.closed, layer: path.layer
+          });
+        } else {
+          paths.push({
+            pts: st.map(([, , lx2, ly2]) => [lx2, ly2]),
+            closed: path.closed, layer: path.layer
+          });
+        }
+      });
+      return { paths };
+    }
+  },
+  stringpluck: {
+    name: "String",
+    cat: "gen",
+    group: "scientific",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "rows", label: "Time frames", type: "slider", min: 5, max: 60, step: 1, def: 24 },
+      { key: "harm", label: "Harmonics", type: "slider", min: 3, max: 30, step: 1, def: 12 },
+      { key: "pluck", label: "Pluck position", type: "slider", min: 0.05, max: 0.95, step: 0.01, def: 0.3 },
+      { key: "amp", label: "Amplitude mm", type: "slider", min: 2, max: 40, step: 0.5, def: 16 },
+      { key: "decay", label: "Decay", type: "slider", min: 0.05, max: 2, step: 0.05, def: 0.5 },
+      { key: "span", label: "Time span (periods)", type: "slider", min: 0.5, max: 10, step: 0.25, def: 4 },
+      { key: "detune", label: "Detune (organic)", type: "slider", min: 0, max: 1, step: 0.05, def: 0.2 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+      { key: "seed", label: "Seed", type: "seed", def: 21 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const x0 = m, x1 = W - m;
+      if (x1 - x0 < 20) return applyStyle({ paths: [] }, ins[0]);
+      const R = Math.max(2, Math.min(80, Math.round(p.rows)));
+      const K = Math.max(1, Math.min(40, Math.round(p.harm)));
+      const pl = Math.max(0.02, Math.min(0.98, p.pluck));
+      /* triangular pluck: modal amplitudes of a string plucked at position pl */
+      const A = [];
+      let norm = 0;
+      for (let k = 1; k <= K; k++) {
+        const a = Math.sin(k * Math.PI * pl) / (k * k);
+        A.push(a);
+        norm += Math.abs(a);
+      }
+      for (let k = 0; k < K; k++) A[k] /= (norm || 1);
+      const eps = [];
+      for (let k = 0; k < K; k++) {
+        eps.push((hash2(k * 7 + 1, 5, p.seed) - 0.5) * 0.01 * p.detune);
+      }
+      const amp = Math.max(0.5, p.amp);
+      const yTop = m + amp + 2, yBot = H - m - amp - 2;
+      if (yBot - yTop < 5) return applyStyle({ paths: [] }, ins[0]);
+      const paths = [];
+      const L = Math.round(p.layer);
+      const NX = 160;
+      for (let r = 0; r < R; r++) {
+        const t = (r / Math.max(1, R - 1)) * p.span;
+        const yBase = yTop + (r / Math.max(1, R - 1)) * (yBot - yTop);
+        const pts = [];
+        for (let i = 0; i <= NX; i++) {
+          const u = i / NX;
+          let v = 0;
+          for (let k = 0; k < K; k++) {
+            const kk = k + 1;
+            /* higher modes die first: e^(-decay k^2 t) */
+            v += A[k] * Math.sin(kk * Math.PI * u) *
+                 Math.cos(2 * Math.PI * kk * t * (1 + eps[k])) *
+                 Math.exp(-p.decay * kk * kk * t * 0.1);
+          }
+          pts.push([x0 + u * (x1 - x0), yBase + v * amp]);
+        }
+        if (r % 2 === 1) pts.reverse(); /* serpentine */
+        paths.push({ pts, closed: false, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  fourier: {
+    name: "Fourier",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "harm", label: "Harmonics (wire Frame/LFO)", type: "slider", min: 1, max: 64, step: 1, def: 8 },
+      { key: "epi", label: "Draw epicycles", type: "check", def: false },
+      { key: "keepOpen", label: "Pass open paths through", type: "check", def: true }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const M = 256;
+      const H = Math.max(1, Math.min(Math.floor(M / 2) - 1, Math.floor(p.harm)));
+      const paths = [];
+      src.paths.forEach((path) => {
+        if (!path.closed || path.pts.length < 3) {
+          if (p.keepOpen) paths.push({ ...path, pts: path.pts.map((q) => q.slice()) });
+          return;
+        }
+        /* uniform M samples of the closed contour */
+        const total = pathLength([...path.pts, path.pts[0]], false);
+        if (total < 1) return;
+        const smp = resample(path.pts, true, total / M);
+        const zs = smp.slice(0, M);
+        while (zs.length < M) zs.push(zs[zs.length - 1]);
+        /* DFT coefficients for n in [-H..H] (elliptic Fourier reconstruction) */
+        const coef = [];
+        for (let n = -H; n <= H; n++) {
+          let re = 0, im = 0;
+          for (let k = 0; k < M; k++) {
+            const ang = (-2 * Math.PI * n * k) / M;
+            const c = Math.cos(ang), s = Math.sin(ang);
+            re += zs[k][0] * c - zs[k][1] * s;
+            im += zs[k][0] * s + zs[k][1] * c;
+          }
+          coef.push({ n, re: re / M, im: im / M });
+        }
+        /* rebuild with the kept harmonics: shape morphs circle -> original */
+        const out = [];
+        for (let k = 0; k < M; k++) {
+          let x = 0, y = 0;
+          for (const { n, re, im } of coef) {
+            const ang = (2 * Math.PI * n * k) / M;
+            const c = Math.cos(ang), s = Math.sin(ang);
+            x += re * c - im * s;
+            y += re * s + im * c;
+          }
+          out.push([x, y]);
+        }
+        paths.push({ pts: out, closed: true, layer: path.layer });
+        /* optional epicycle ghost circles: largest terms chained from the center */
+        if (p.epi) {
+          const terms = coef.filter((t) => t.n !== 0)
+            .sort((a, b) => (b.re * b.re + b.im * b.im) - (a.re * a.re + a.im * a.im))
+            .slice(0, Math.min(10, 2 * H));
+          const c0 = coef.find((t) => t.n === 0) || { re: 0, im: 0 };
+          let cxx = c0.re, cyy = c0.im;
+          for (const t of terms) {
+            const r = Math.hypot(t.re, t.im);
+            if (r < 0.5) break;
+            const ring = [];
+            for (let a = 0; a < 16; a++) {
+              const th = (a / 16) * Math.PI * 2;
+              ring.push([cxx + Math.cos(th) * r, cyy + Math.sin(th) * r]);
+            }
+            paths.push({ pts: ring, closed: true, layer: path.layer });
+            cxx += t.re; cyy += t.im;
+          }
+        }
+      });
+      return { paths };
+    }
+  },
+  delaunay: {
+    name: "Delaunay",
+    cat: "gen",
+    group: "geometric",
+    ins: [Pin("paths", "Points (optional)"), Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "points", label: "Points (if unwired)", type: "slider", min: 3, max: 400, step: 1, def: 60 },
+      { key: "spacing", label: "Input spacing mm (0=vertices)", type: "slider", min: 0, max: 40, step: 0.5, def: 12 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 43 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 10 || y1 - y0 < 10) return applyStyle({ paths: [] }, ins[1]);
+      /* points: from wired paths (resampled/vertices) or seeded random */
+      let pts = [];
+      if (ins[0] && ins[0].paths && ins[0].paths.length) {
+        for (const pa of ins[0].paths) {
+          const src = p.spacing > 0.01 ? resample(pa.pts, pa.closed, Math.max(1, p.spacing)) : pa.pts;
+          for (const q of src) pts.push([q[0], q[1]]);
+        }
+      } else {
+        const rng = mulberry32(p.seed * 3803 + 27);
+        const N = Math.max(3, Math.min(400, Math.round(p.points)));
+        for (let i = 0; i < N; i++) {
+          pts.push([x0 + rng() * (x1 - x0), y0 + rng() * (y1 - y0)]);
+        }
+      }
+      /* dedupe near-identical points (degenerate circumcircles) */
+      const seenP = new Set();
+      pts = pts.filter(([x, y]) => {
+        const k = Math.round(x * 10) + "," + Math.round(y * 10);
+        if (seenP.has(k)) return false;
+        seenP.add(k);
+        return true;
+      });
+      if (pts.length > 600) {
+        const stride = pts.length / 600;
+        const dec = [];
+        for (let i = 0; i < 600; i++) dec.push(pts[Math.floor(i * stride)]);
+        pts = dec;
+      }
+      if (pts.length < 3) return applyStyle({ paths: [] }, ins[1]);
+      /* Bowyer-Watson triangulation */
+      const n = pts.length;
+      const big = Math.max(W, H) * 10;
+      const P = pts.concat([[W / 2 - big, H / 2 - big], [W / 2 + big, H / 2 - big], [W / 2, H / 2 + big]]);
+      let tris = [[n, n + 1, n + 2]];
+      const circum = (i, j, k) => {
+        const [ax, ay] = P[i], [bx, by] = P[j], [cx2, cy2] = P[k];
+        const d = 2 * (ax * (by - cy2) + bx * (cy2 - ay) + cx2 * (ay - by));
+        if (Math.abs(d) < 1e-12) return null;
+        const a2 = ax * ax + ay * ay, b2 = bx * bx + by * by, c2 = cx2 * cx2 + cy2 * cy2;
+        const ux = (a2 * (by - cy2) + b2 * (cy2 - ay) + c2 * (ay - by)) / d;
+        const uy = (a2 * (cx2 - bx) + b2 * (ax - cx2) + c2 * (bx - ax)) / d;
+        return [ux, uy, (ux - ax) * (ux - ax) + (uy - ay) * (uy - ay)];
+      };
+      for (let pi = 0; pi < n; pi++) {
+        const [px, py] = P[pi];
+        const bad = [];
+        for (let t = 0; t < tris.length; t++) {
+          const cc = circum(tris[t][0], tris[t][1], tris[t][2]);
+          if (!cc) { continue; }
+          const dx = px - cc[0], dy = py - cc[1];
+          if (dx * dx + dy * dy < cc[2] - 1e-9) bad.push(t);
+        }
+        /* boundary polygon = edges of bad triangles not shared by two bad ones */
+        const edgeCount = new Map();
+        const ek = (a, b) => a < b ? a + "_" + b : b + "_" + a;
+        for (const t of bad) {
+          const [a, b, c] = tris[t];
+          for (const [u, v] of [[a, b], [b, c], [c, a]]) {
+            const k = ek(u, v);
+            edgeCount.set(k, (edgeCount.get(k) || 0) + 1);
+          }
+        }
+        const boundary = [];
+        for (const t of bad) {
+          const [a, b, c] = tris[t];
+          for (const [u, v] of [[a, b], [b, c], [c, a]]) {
+            if (edgeCount.get(ek(u, v)) === 1) boundary.push([u, v]);
+          }
+        }
+        for (let i = bad.length - 1; i >= 0; i--) tris.splice(bad[i], 1);
+        for (const [u, v] of boundary) tris.push([u, v, pi]);
+      }
+      /* unique edges, skipping the super-triangle */
+      const L = Math.round(p.layer);
+      const paths = [];
+      const seen = new Set();
+      for (const [a, b, c] of tris) {
+        if (a >= n || b >= n || c >= n) continue;
+        for (const [u, v] of [[a, b], [b, c], [c, a]]) {
+          const k = u < v ? u + "_" + v : v + "_" + u;
+          if (seen.has(k)) continue;
+          seen.add(k);
+          paths.push({ pts: [[P[u][0], P[u][1]], [P[v][0], P[v][1]]], closed: false, layer: L });
+        }
+      }
+      return applyStyle({ paths }, ins[1]);
+    }
+  },
+  attractor: {
+    name: "Attractor",
+    cat: "gen",
+    group: "scientific",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "type", label: "Type", type: "select", options: ["Clifford", "De Jong", "Lorenz (x-z)"], def: "Clifford" },
+      { key: "a", label: "a", type: "slider", min: -3, max: 3, step: 0.01, def: -1.4 },
+      { key: "b", label: "b", type: "slider", min: -3, max: 3, step: 0.01, def: 1.6 },
+      { key: "c", label: "c", type: "slider", min: -3, max: 3, step: 0.01, def: 1.0 },
+      { key: "d", label: "d", type: "slider", min: -3, max: 3, step: 0.01, def: 0.7 },
+      { key: "iters", label: "Iterations", type: "slider", min: 1000, max: 30000, step: 500, def: 8000 },
+      { key: "mode", label: "Draw as", type: "select", options: ["Polyline", "Dashes"], def: "Polyline" },
+      { key: "dash", label: "Dash mm", type: "slider", min: 0.4, max: 3, step: 0.1, def: 1 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+      { key: "seed", label: "Seed (start jitter)", type: "seed", def: 7 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const bw = W - 2 * m, bh = H - 2 * m;
+      if (bw < 10 || bh < 10) return applyStyle({ paths: [] }, ins[0]);
+      const rng = mulberry32(p.seed * 911 + 3);
+      const iters = Math.max(500, Math.min(40000, Math.round(p.iters)));
+      const raw = [];
+      if (p.type === "Lorenz (x-z)") {
+        let x = 1 + rng() * 0.1, y = 1 + rng() * 0.1, z = 20 + rng();
+        const rho = 28 + p.a * 5, sigma = 10, beta = 8 / 3, dt = 0.006;
+        for (let i = 0; i < iters + 200; i++) {
+          const dx = sigma * (y - x);
+          const dy = x * (rho - z) - y;
+          const dz = x * y - beta * z;
+          x += dx * dt; y += dy * dt; z += dz * dt;
+          if (i >= 200) raw.push([x, z]);
+          if (!Number.isFinite(x) || !Number.isFinite(z)) break;
+        }
+      } else {
+        let x = rng() * 0.2, y = rng() * 0.2;
+        for (let i = 0; i < iters + 100; i++) {
+          let nx, ny;
+          if (p.type === "De Jong") {
+            nx = Math.sin(p.a * y) - Math.cos(p.b * x);
+            ny = Math.sin(p.c * x) - Math.cos(p.d * y);
+          } else {
+            nx = Math.sin(p.a * y) + p.c * Math.cos(p.a * x);
+            ny = Math.sin(p.b * x) + p.d * Math.cos(p.b * y);
+          }
+          x = nx; y = ny;
+          if (i >= 100) raw.push([x, y]);
+        }
+      }
+      if (raw.length < 10) return applyStyle({ paths: [] }, ins[0]);
+      /* fit to the margin box */
+      let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+      for (const [x, y] of raw) {
+        if (x < bx0) bx0 = x; if (x > bx1) bx1 = x;
+        if (y < by0) by0 = y; if (y > by1) by1 = y;
+      }
+      const sc = Math.min(bw / ((bx1 - bx0) || 1), bh / ((by1 - by0) || 1));
+      const ox = m + (bw - (bx1 - bx0) * sc) / 2 - bx0 * sc;
+      const oy = m + (bh - (by1 - by0) * sc) / 2 - by0 * sc;
+      const map = ([x, y]) => [x * sc + ox, y * sc + oy];
+      const L = Math.round(p.layer);
+      const paths = [];
+      if (p.mode === "Dashes") {
+        /* the classic attractor-dust look; stride-capped for the pen's sake */
+        const MAXD = 6000;
+        const stride = Math.max(1, Math.floor(raw.length / MAXD));
+        for (let i = 0; i + stride < raw.length; i += stride) {
+          const A = map(raw[i]), B = map(raw[i + 1]);
+          const dx = B[0] - A[0], dy = B[1] - A[1];
+          const dl = Math.hypot(dx, dy) || 1;
+          const hx = (dx / dl) * p.dash / 2, hy = (dy / dl) * p.dash / 2;
+          paths.push({ pts: [[A[0] - hx, A[1] - hy], [A[0] + hx, A[1] + hy]], closed: false, layer: L });
+        }
+      } else {
+        /* one continuous chaotic thread, decimated */
+        const pts = [];
+        let lx = 1e9, ly = 1e9;
+        for (const q of raw) {
+          const [x, y] = map(q);
+          if (Math.hypot(x - lx, y - ly) >= 0.2) {
+            pts.push([x, y]);
+            lx = x; ly = y;
+          }
+          if (pts.length >= 100000) break;
+        }
+        if (pts.length > 1) paths.push({ pts, closed: false, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  reactdiff: {
+    name: "Reaction-Diffusion",
+    cat: "gen",
+    group: "organic",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "cell", label: "Cell mm", type: "slider", min: 1.5, max: 5, step: 0.25, def: 2.5 },
+      { key: "iters", label: "Iterations (wire LFO)", type: "slider", min: 0, max: 400, step: 10, def: 200 },
+      { key: "feed", label: "Feed F", type: "slider", min: 0.01, max: 0.09, step: 0.001, def: 0.037 },
+      { key: "kill", label: "Kill k", type: "slider", min: 0.045, max: 0.07, step: 0.001, def: 0.06 },
+      { key: "spots", label: "Seed spots", type: "slider", min: 1, max: 20, step: 1, def: 6 },
+      { key: "bands", label: "Contour bands", type: "slider", min: 1, max: 3, step: 1, def: 1 },
+      { key: "minlen", label: "Min contour mm", type: "slider", min: 0, max: 30, step: 1, def: 4 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 33 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const bw = W - 2 * m, bh = H - 2 * m;
+      if (bw < 15 || bh < 15) return applyStyle({ paths: [] }, ins[0]);
+      const cell = Math.max(1.2, p.cell);
+      const cols = Math.min(110, Math.max(10, Math.round(bw / cell)));
+      const rows = Math.min(150, Math.max(10, Math.round(bh / cell)));
+      /* Gray-Scott, deterministic replay from seeded spots (stateless per compute:
+         wire a value into Iterations to animate the pattern growing) */
+      const NC = cols * rows;
+      let U = new Float64Array(NC).fill(1);
+      let V = new Float64Array(NC).fill(0);
+      const rng = mulberry32(p.seed * 6733 + 11);
+      const nSpots = Math.max(1, Math.min(30, Math.round(p.spots)));
+      for (let s = 0; s < nSpots; s++) {
+        const sx = 3 + Math.floor(rng() * (cols - 6));
+        const sy = 3 + Math.floor(rng() * (rows - 6));
+        const r = 2 + Math.floor(rng() * 2);
+        for (let dy = -r; dy <= r; dy++) {
+          for (let dx = -r; dx <= r; dx++) {
+            const xx = sx + dx, yy = sy + dy;
+            if (xx < 0 || yy < 0 || xx >= cols || yy >= rows) continue;
+            V[yy * cols + xx] = 1;
+            U[yy * cols + xx] = 0.5;
+          }
+        }
+      }
+      const Du = 0.16, Dv = 0.08, F = p.feed, K = p.kill;
+      const gens = Math.max(0, Math.min(500, Math.floor(p.iters)));
+      let U2 = new Float64Array(NC), V2 = new Float64Array(NC);
+      for (let g = 0; g < gens; g++) {
+        for (let y = 0; y < rows; y++) {
+          const yu = y === 0 ? 0 : y - 1, yd = y === rows - 1 ? rows - 1 : y + 1;
+          for (let x = 0; x < cols; x++) {
+            const xl = x === 0 ? 0 : x - 1, xr = x === cols - 1 ? cols - 1 : x + 1;
+            const i = y * cols + x;
+            const lapU = 0.2 * (U[y * cols + xl] + U[y * cols + xr] + U[yu * cols + x] + U[yd * cols + x])
+              + 0.05 * (U[yu * cols + xl] + U[yu * cols + xr] + U[yd * cols + xl] + U[yd * cols + xr]) - U[i];
+            const lapV = 0.2 * (V[y * cols + xl] + V[y * cols + xr] + V[yu * cols + x] + V[yd * cols + x])
+              + 0.05 * (V[yu * cols + xl] + V[yu * cols + xr] + V[yd * cols + xl] + V[yd * cols + xr]) - V[i];
+            const uvv = U[i] * V[i] * V[i];
+            U2[i] = U[i] + (Du * lapU - uvv + F * (1 - U[i]));
+            V2[i] = V[i] + (Dv * lapV + uvv - (F + K) * V[i]);
+          }
+        }
+        let t = U; U = U2; U2 = t;
+        t = V; V = V2; V2 = t;
+      }
+      /* marching-squares contours of V */
+      const gx = (c) => m + (c / (cols - 1)) * bw;
+      const gy = (r) => m + (r / (rows - 1)) * bh;
+      const segs = [];
+      const NB = Math.max(1, Math.min(4, Math.round(p.bands)));
+      const interp = (a, b, lvl) => Math.abs(b - a) < 1e-12 ? 0.5 : (lvl - a) / (b - a);
+      for (let bi = 0; bi < NB; bi++) {
+        const lvl = 0.18 + bi * 0.08;
+        for (let r = 0; r < rows - 1; r++) {
+          for (let c = 0; c < cols - 1; c++) {
+            const tl = V[r * cols + c], tr = V[r * cols + c + 1];
+            const bl = V[(r + 1) * cols + c], br = V[(r + 1) * cols + c + 1];
+            let idx = 0;
+            if (tl > lvl) idx |= 8; if (tr > lvl) idx |= 4;
+            if (br > lvl) idx |= 2; if (bl > lvl) idx |= 1;
+            if (idx === 0 || idx === 15) continue;
+            const xL = gx(c), xR = gx(c + 1), yT = gy(r), yB = gy(r + 1);
+            const eT = () => [xL + interp(tl, tr, lvl) * (xR - xL), yT];
+            const eB = () => [xL + interp(bl, br, lvl) * (xR - xL), yB];
+            const eL = () => [xL, yT + interp(tl, bl, lvl) * (yB - yT)];
+            const eR = () => [xR, yT + interp(tr, br, lvl) * (yB - yT)];
+            const S = (A, B) => segs.push([A, B]);
+            switch (idx) {
+              case 1: S(eL(), eB()); break; case 2: S(eB(), eR()); break;
+              case 3: S(eL(), eR()); break; case 4: S(eT(), eR()); break;
+              case 5: S(eL(), eT()); S(eB(), eR()); break;
+              case 6: S(eT(), eB()); break; case 7: S(eL(), eT()); break;
+              case 8: S(eL(), eT()); break; case 9: S(eT(), eB()); break;
+              case 10: S(eL(), eB()); S(eT(), eR()); break;
+              case 11: S(eT(), eR()); break; case 12: S(eL(), eR()); break;
+              case 13: S(eB(), eR()); break; case 14: S(eL(), eB()); break;
+            }
+          }
+        }
+      }
+      const q = (v) => Math.round(v * 100) / 100;
+      const kk = (pt) => q(pt[0]) + "," + q(pt[1]);
+      const map = new Map();
+      const items = segs.map((s) => ({ a: s[0], b: s[1], used: false }));
+      const push = (k, ref) => { let a = map.get(k); if (!a) { a = []; map.set(k, a); } a.push(ref); };
+      items.forEach((s, i) => { push(kk(s.a), { i, end: "a" }); push(kk(s.b), { i, end: "b" }); });
+      const paths = [];
+      const L = Math.round(p.layer);
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].used) continue;
+        items[i].used = true;
+        const chain = [items[i].a, items[i].b];
+        let grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[chain.length - 1])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.push(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[0])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.unshift(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        if (chain.length < 3) continue;
+        if (p.minlen > 0 && pathLength(chain, false) < p.minlen) continue;
+        const closed = Math.hypot(chain[0][0] - chain[chain.length - 1][0], chain[0][1] - chain[chain.length - 1][1]) < cell * 1.6;
+        if (closed) chain.pop();
+        if (chain.length > 2) paths.push({ pts: chain, closed, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  julia: {
+    name: "Julia",
+    cat: "gen",
+    group: "geometric",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "mode", label: "Set", type: "select", options: ["Julia", "Mandelbrot"], def: "Julia" },
+      { key: "cre", label: "c real (wire LFO)", type: "slider", min: -1.5, max: 1.5, step: 0.005, def: -0.7 },
+      { key: "cim", label: "c imag", type: "slider", min: -1.5, max: 1.5, step: 0.005, def: 0.27 },
+      { key: "zoom", label: "Zoom", type: "slider", min: 0.5, max: 8, step: 0.1, def: 1 },
+      { key: "iters", label: "Max iterations", type: "slider", min: 20, max: 200, step: 5, def: 60 },
+      { key: "bands", label: "Contour bands", type: "slider", min: 1, max: 6, step: 1, def: 3 },
+      { key: "cell", label: "Cell mm", type: "slider", min: 0.8, max: 4, step: 0.2, def: 1.6 },
+      { key: "minlen", label: "Min contour mm", type: "slider", min: 0, max: 30, step: 1, def: 4 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const bw = W - 2 * m, bh = H - 2 * m;
+      if (bw < 10 || bh < 10) return applyStyle({ paths: [] }, ins[0]);
+      const cell = Math.max(0.6, p.cell);
+      const cols = Math.min(240, Math.max(10, Math.round(bw / cell)));
+      const rows = Math.min(320, Math.max(10, Math.round(bh / cell)));
+      const julia = p.mode === "Julia";
+      const zoom = Math.max(0.1, p.zoom);
+      const span = 3.2 / zoom;
+      const cx0 = julia ? 0 : -0.5;
+      const aspect = bh / bw;
+      const maxIt = Math.max(10, Math.min(400, Math.round(p.iters)));
+      /* smooth escape-time field, normalized 0..1 */
+      const field = (fx, fyv) => {
+        let zr, zi, cr, ci2;
+        if (julia) { zr = fx; zi = fyv; cr = p.cre; ci2 = p.cim; }
+        else { zr = 0; zi = 0; cr = fx; ci2 = fyv; }
+        let i = 0;
+        let r2 = zr * zr + zi * zi;
+        while (i < maxIt && r2 < 16) {
+          const nr = zr * zr - zi * zi + cr;
+          zi = 2 * zr * zi + ci2;
+          zr = nr;
+          r2 = zr * zr + zi * zi;
+          i++;
+        }
+        if (i >= maxIt) return 1;
+        const sm = i + 1 - Math.log2(Math.max(1.0001, Math.log(Math.sqrt(r2))));
+        return Math.max(0, Math.min(1, sm / maxIt));
+      };
+      const gx = (c) => m + (c / (cols - 1)) * bw;
+      const gy = (r) => m + (r / (rows - 1)) * bh;
+      const F = new Float64Array(cols * rows);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const fx = cx0 + (c / (cols - 1) - 0.5) * span;
+          const fyv = (r / (rows - 1) - 0.5) * span * aspect;
+          F[r * cols + c] = field(fx, fyv);
+        }
+      }
+      const segs = [];
+      const NB = Math.max(1, Math.min(8, Math.round(p.bands)));
+      const interp = (a, b, lvl) => Math.abs(b - a) < 1e-12 ? 0.5 : (lvl - a) / (b - a);
+      for (let bi = 0; bi < NB; bi++) {
+        const lvl = (bi + 1) / (NB + 1);
+        for (let r = 0; r < rows - 1; r++) {
+          for (let c = 0; c < cols - 1; c++) {
+            const tl = F[r * cols + c], tr = F[r * cols + c + 1];
+            const bl = F[(r + 1) * cols + c], br = F[(r + 1) * cols + c + 1];
+            let idx = 0;
+            if (tl > lvl) idx |= 8; if (tr > lvl) idx |= 4;
+            if (br > lvl) idx |= 2; if (bl > lvl) idx |= 1;
+            if (idx === 0 || idx === 15) continue;
+            const xL = gx(c), xR = gx(c + 1), yT = gy(r), yB = gy(r + 1);
+            const eT = () => [xL + interp(tl, tr, lvl) * (xR - xL), yT];
+            const eB = () => [xL + interp(bl, br, lvl) * (xR - xL), yB];
+            const eL = () => [xL, yT + interp(tl, bl, lvl) * (yB - yT)];
+            const eR = () => [xR, yT + interp(tr, br, lvl) * (yB - yT)];
+            const S = (A2, B2) => segs.push([A2, B2]);
+            switch (idx) {
+              case 1: S(eL(), eB()); break; case 2: S(eB(), eR()); break;
+              case 3: S(eL(), eR()); break; case 4: S(eT(), eR()); break;
+              case 5: S(eL(), eT()); S(eB(), eR()); break;
+              case 6: S(eT(), eB()); break; case 7: S(eL(), eT()); break;
+              case 8: S(eL(), eT()); break; case 9: S(eT(), eB()); break;
+              case 10: S(eL(), eB()); S(eT(), eR()); break;
+              case 11: S(eT(), eR()); break; case 12: S(eL(), eR()); break;
+              case 13: S(eB(), eR()); break; case 14: S(eL(), eB()); break;
+            }
+          }
+        }
+      }
+      const q = (v) => Math.round(v * 100) / 100;
+      const kk = (pt) => q(pt[0]) + "," + q(pt[1]);
+      const map = new Map();
+      const items = segs.map((s) => ({ a: s[0], b: s[1], used: false }));
+      const push = (k, ref) => { let a = map.get(k); if (!a) { a = []; map.set(k, a); } a.push(ref); };
+      items.forEach((s, i) => { push(kk(s.a), { i, end: "a" }); push(kk(s.b), { i, end: "b" }); });
+      const paths = [];
+      const L = Math.round(p.layer);
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].used) continue;
+        items[i].used = true;
+        const chain = [items[i].a, items[i].b];
+        let grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[chain.length - 1])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.push(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[0])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.unshift(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        if (chain.length < 3) continue;
+        if (p.minlen > 0 && pathLength(chain, false) < p.minlen) continue;
+        const closed = Math.hypot(chain[0][0] - chain[chain.length - 1][0], chain[0][1] - chain[chain.length - 1][1]) < cell * 1.6;
+        if (closed) chain.pop();
+        if (chain.length > 2) paths.push({ pts: chain, closed, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  diffgrowth: {
+    name: "Differential Growth",
+    cat: "gen",
+    group: "organic",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "iters", label: "Iterations (wire LFO)", type: "slider", min: 0, max: 400, step: 5, def: 150 },
+      { key: "repel", label: "Repulsion radius mm", type: "slider", min: 2, max: 15, step: 0.5, def: 6 },
+      { key: "edge", label: "Edge length mm", type: "slider", min: 1, max: 6, step: 0.25, def: 2.5 },
+      { key: "chaos", label: "Chaos", type: "slider", min: 0, max: 1, step: 0.05, def: 0.3 },
+      { key: "r0", label: "Seed circle mm", type: "slider", min: 5, max: 60, step: 1, def: 18 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 5, max: 60, step: 1, def: 15 },
+      { key: "seed", label: "Seed", type: "seed", def: 17 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(2, p.margin);
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 20 || y1 - y0 < 20) return applyStyle({ paths: [] }, ins[0]);
+      const R = Math.max(1.5, p.repel);
+      const edge = Math.max(0.8, p.edge);
+      const MAXP = 2600;
+      /* seed circle */
+      const rng = mulberry32(p.seed * 4241 + 13);
+      const cx = W / 2, cy = H / 2;
+      let pts = [];
+      const N0 = 40;
+      for (let i = 0; i < N0; i++) {
+        const a = (i / N0) * Math.PI * 2;
+        const rr = Math.max(3, p.r0) * (1 + (rng() - 0.5) * 0.1);
+        pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]);
+      }
+      const gens = Math.max(0, Math.min(500, Math.floor(p.iters)));
+      const STEP = 0.55;
+      for (let g = 0; g < gens; g++) {
+        const n = pts.length;
+        /* spatial buckets for repulsion */
+        const bs = R;
+        const grid = new Map();
+        const bk = (x, y) => Math.floor(x / bs) + "," + Math.floor(y / bs);
+        for (let i = 0; i < n; i++) {
+          const k = bk(pts[i][0], pts[i][1]);
+          let a = grid.get(k);
+          if (!a) { a = []; grid.set(k, a); }
+          a.push(i);
+        }
+        const nxt = new Array(n);
+        for (let i = 0; i < n; i++) {
+          const [x, y] = pts[i];
+          let fx = 0, fy = 0;
+          /* attraction: springs to ring neighbours */
+          const pa = pts[(i - 1 + n) % n], pb = pts[(i + 1) % n];
+          fx += (pa[0] + pb[0] - 2 * x) * 0.28;
+          fy += (pa[1] + pb[1] - 2 * y) * 0.28;
+          /* repulsion from everything nearby (bucket search) */
+          const bxc = Math.floor(x / bs), byc = Math.floor(y / bs);
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const cellA = grid.get((bxc + dx) + "," + (byc + dy));
+              if (!cellA) continue;
+              for (const j of cellA) {
+                if (j === i) continue;
+                const ox = x - pts[j][0], oy = y - pts[j][1];
+                const d = Math.hypot(ox, oy);
+                if (d > 1e-6 && d < R) {
+                  const f = ((R - d) / R) * 0.9;
+                  fx += (ox / d) * f;
+                  fy += (oy / d) * f;
+                }
+              }
+            }
+          }
+          /* position-hashed chaos: deterministic even as points split */
+          if (p.chaos > 0) {
+            const a = noise2(x * 0.11 + 31.7, y * 0.11 + 8.3, p.seed) * Math.PI * 4;
+            fx += Math.cos(a) * p.chaos * 0.4;
+            fy += Math.sin(a) * p.chaos * 0.4;
+          }
+          /* soft walls: repel from the margin box */
+          if (x - x0 < R) fx += ((R - (x - x0)) / R) * 1.2;
+          if (x1 - x < R) fx -= ((R - (x1 - x)) / R) * 1.2;
+          if (y - y0 < R) fy += ((R - (y - y0)) / R) * 1.2;
+          if (y1 - y < R) fy -= ((R - (y1 - y)) / R) * 1.2;
+          const fl = Math.hypot(fx, fy);
+          const s = fl > 1 ? STEP / fl : STEP;
+          nxt[i] = [
+            Math.max(x0, Math.min(x1, x + fx * s)),
+            Math.max(y0, Math.min(y1, y + fy * s))
+          ];
+        }
+        pts = nxt;
+        /* growth: split edges that stretched past the threshold */
+        if (pts.length < MAXP) {
+          const grown = [];
+          for (let i = 0; i < pts.length; i++) {
+            const a = pts[i], b = pts[(i + 1) % pts.length];
+            grown.push(a);
+            if (grown.length + (pts.length - i) < MAXP &&
+                Math.hypot(b[0] - a[0], b[1] - a[1]) > edge) {
+              grown.push([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
+            }
+          }
+          pts = grown;
+        }
+      }
+      if (pts.length < 3) return applyStyle({ paths: [] }, ins[0]);
+      return applyStyle({ paths: [{ pts, closed: true, layer: Math.round(p.layer) }] }, ins[0]);
+    }
+  },
   origami: {
     name: "Origami", cat: "gen", group: "structural", ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
@@ -8897,13 +11326,165 @@ function evalLevel(level, ctx, boundIns) {
 /* ============================================================
    G-CODE — raaka, suunta-tietoinen, pyöritys + kasto
    ============================================================ */
+/* Node help texts — generated from MUUSIA-NODES.md. Custom imported nodes
+   can override with a def-level desc field. */
+const NODE_HELP = {
+  aaltoilu: "sinusoidal displacement along/across paths.",
+  adsr: "a multi-segment envelope for t: attack, decay, sustain level and release as fractions of the loop. Starts and ends at zero, ideal for animations that appear, hold, and fade.",
+  align: "snaps the content bounding box left/centre/right and top/middle/bottom within margins.",
+  array: "grid/linear repetition of the input with per-copy deltas.",
+  arvo: "A constant number you can wire into any numeric parameter (green ports). Useful for driving several parameters from one place, or as a labelled control for a patch.",
+  asteroids: "vector-game asteroids: irregular polygons with in/out spikes (the classic silhouette), plus an optional player ship (triangle) and stray bullets. Jaggedness and vertex count shape the rocks.",
+  attractor: "Clifford / De Jong maps or a Lorenz x-z projection iterated thousands of times, fitted to the sheet. Polyline mode gives one chaotic thread, Dashes the classic attractor dust (capped for the pen).",
+  barcode: "vertical bars of varying width filled with boustrophedon strokes; a stark rhythm generator (feed it to Stretch).",
+  bitcrush: "sample-rate and bit-depth reduction: coarse resampling makes paths angular, grid quantization snaps coordinates. Consecutive duplicate points are removed.",
+  cables: "tangled wires: inertia-driven noise walks with soft edge steering. *Edges* layout (cables enter and leave) or *Pile*; optional pen per cable.",
+  cagewarp: "a seeded 2-6-cell FFD lattice bends everything smoothly; Pin edges keeps the canvas border still. Output clamped to the sheet.",
+  carve: "parametric window t0..t1 of every path by arc length, with interpolated cut points. Wire Frame t into End t for a write-on animation; Invert keeps the complement, wrapping correctly on closed paths.",
+  caustics: "top-down shallow-water light caustics: the surface is a sum of crossing noise wave trains, brightness is its curvature (Laplacian), and the bright focus ridges are traced as marching-squares iso-contours stitched into flowing threads. Focus gain, brightness threshold, contour bands, ripple scale, depth stretch, minimum line length.",
+  cellular_mosaic: "assigns points to lattice cells, splits paths at cell borders and displaces each fragment by its cell's seeded offset; optional sub-lattice quantize snap for a crystalline look. Duplicate points cleaned.",
+  chop: "cuts paths into arc-length pieces (length \u00b1 variation, optional physical gap) and deals the pieces across 1\u20136 pens, cycling or randomly. Multi-colour within a single stroke.",
+  circpack: "non-overlapping circles grown by rejection sampling; size range and optional noise-weighted density.",
+  clouds: "realistic clouds by type (not cartoon lobes): outlines are noise-modulated so edges are billowy but not jagged. *Cumulus* (puffy, flat-based), *Stratus* (low layered fog band with internal striations), *Cirrus* (thin feathery spine + fallstreak wisps, no solid outline), *Cumulonimbus* (towering storm body + spreading anvil + rain streaks), *Altocumulus* (\"sheep\" \u2014 a regular patch field). Shading a",
+  coil: "replaces the line with a trochoid: overlapping loops when pitch < 2\u03c0r (cursive eee / phone cord), stretched waves otherwise; constant loop density thanks to arc-length sampling.",
+  concrete: "text as image, using the built-in single-stroke font. Layouts: *Fill region* (repeating text rows clipped glyph-by-glyph to any closed shape wired into the Region input \u2014 a poem in the shape of anything), *Spiral* (text winds inward along an Archimedean spiral, letters rotated to the tangent), *Wave* (undulating baselines, letters lean with the slope), *Scatter words* (seeded dada scatter with siz",
+  conway: "Game of Life replayed deterministically from a seeded board for N generations per compute; wire a value into Generations to animate growth. Live cells drawn as squares, dots or diamonds, with optional edge wrap.",
+  copypoints: "instances the Motif input onto the Points input's path points (resampled at a spacing, or raw vertices): per-copy scale and rotation jitter, tangent-aligned or random rotation, keep probability, point budget.",
+  crop: "clips to a rectangle (keep inside or outside), with bisection-accurate boundary points; fully-inside closed paths stay closed. Guide overlay.",
+  cull: "drop paths by criterion: Random keep-probability (seeded), Every Nth, or Shorter/Longer than a length, with Invert.",
+  cycloidm: "simulation of the classic wooden drawing machine: two cranks, two linkage rods, the pen at the rods' circle-intersection, paper on a slowly rotating table. Continuity-safe branch selection; auto-fits to canvas.",
+  dazzle: "WWI razzle-dazzle: recursive straight-chord splits carve the sheet into convex patches; each patch gets hatching at a quantized clashing angle (never repeating its neighbor), with blank, cross-hatch and wavy patch styles, and optional bold outlines. Serpentine stripe order.",
+  delaunay: "triangulation of input path points (resampled or raw vertices) or seeded random sites; the dual of Voronoi. Shared edges emitted once. Feed any artwork in for a low-poly version.",
+  diffgrowth: "the classic organic-growth algorithm: a seed circle whose points repel neighbours and split stretched edges until the line fills space like coral. Deterministic (position-hashed chaos); wire Iterations to animate. Heavier at high iteration counts.",
+  displaceimg: "a loaded raster (fileImage) displaces paths: darkness pushes along a chosen angle, or the darkness gradient makes lines flow toward tonal edges (emboss). Untouched passthrough when no image is loaded.",
+  echo: "1-12 progressive copies where translate, rotate and scale compound per copy; pivot at canvas center or path centroid; optional pen cycling per echo.",
+  endcaps: "arrows, dots, circles or ticks at open-path ends (start/end/both), oriented by the path's final direction. Flow Field's missing arrowheads.",
+  explosion: "rigid per-shape translation (shapes keep their form). Blast from a point (*Outward/Inward* with distance falloffs) or *Directional* at a fixed angle; effect limited to a circle or rectangle zone, and in rectangle mode movement can be constrained to the horizontal or vertical axis only. Jitter + angular spread keep it organic. Guide overlay with arrows.",
+  fabric: "warp and weft lines deformed by one shared displacement field (so the weave stays coherent): *Curtain* folds deepening downward with sag, *Flag* traveling wave, *Silk* pure noise flow; plus fine rumple.",
+  fan: "duplicates one value to several outputs with per-output offsets \u2014 one knob driving many parameters.",
+  filterpath: "a state-variable audio filter run along each path, x and y as two signals. Lowpass smooths like an analog channel; highpass keeps only the detail re-centered; resonance makes the line ring with decaying oscillation after every feature, because the filter is causal.",
+  fit_canvas: "scales and centres content into the margins: contain, stretch, fit-width or fit-height. The \"fix my composition\" node.",
+  flow: "streamlines traced through a noise vector field. Scale sets feature size, steps set line length. The classic organic-flow workhorse.",
+  fmrose: "FM synthesis as a polar curve: a modulator warps the carrier that shapes the radius. Low index gives rosettes, high index chaotic flowers; rings and twist stack scaled copies.",
+  fold: "a wavefolder for geometry: points beyond the window reflect back inside, repeatedly. Gain drives the shape outward before folding, exactly like input gain on a synth wavefolder, multiplying the creases.",
+  followlines: "the \"follow the previous stroke\" marker technique: iterative offsets whose distance varies along the length (*Drift*), so bundles pinch into dense ridges and fan into light sheets; *Relax* straightens successive lines. One-sided or both; multiple generated wave bands, or wire any curve as the Spine.",
+  fourier: "elliptic Fourier reconstruction of closed shapes from the first K harmonics: K=1 is an ellipse, K=64 the original. Wire a value into Harmonics to morph detail in over an animation; optional epicycle ghost circles.",
+  frame: "the animation clock. Outputs: `t 0\u21921` linear ramp (last frame = 1), `frame #` integer, `wave loop` and `ping-pong` (seamless: frame N continues into frame 0). Reads the ANIMATE panel's frame state.",
+  fresnel: "lens refraction that resets per concentric zone, exactly like a real Fresnel lens: within each groove the radial mapping is monotonic (no folds), and the groove boundaries produce the characteristic concentric shear discontinuities. Circular or linear (sheet-lens) mode, groove pitch, smooth-lens or prism profile, edge falloff; overlay shows the lens and a few grooves.",
+  fur: "short hairs along the path edge: spacing, length \u00b1 jitter, angle jitter, side (left/right/both alternating or random).",
+  glitch: "segment displacement/slicing artifacts.",
+  glitch_loom: "slices paths at horizontal loom rows and shifts each row by a seeded warp offset (clamped to the sheet); torn ends may spawn frayed threads that drip downward. Pitch, max shift, fray probability and length.",
+  granulate: "granular synthesis for paths: the line is chopped into grains that each get jitter, rotation and scale, dissolving geometry into a cloud of its own fragments. Density thins the cloud.",
+  gravity_cascade: "a particle per orbit integrated through three seeded gravity wells with softened cores and friction decay: collapsing, wrapping, slingshotting arcs. Paths end at the sheet edge; points are decimated so tight orbits don't crawl.",
+  grid: "vertical/horizontal line grid. The plain sheet of paper of generative art; feed it to Warp, Stretch or Lens to bend space itself.",
+  group: "a subgraph in a box (created with Cmd+G); double-click to enter.",
+  growth: "differential growth: a loop that grows (random edge splits + long-edge splits) while short-range repulsion keeps it self-avoiding and cohesion keeps it smooth \u2014 the organic meander classic. Circle or canvas bounds (guide overlay), optional history rings every N iterations for the nested look. Point-capped.",
+  hairs: "area fill of short curved hairs. Direction: noise flow / fixed angle / radial; curl with random handedness; gravity droop. Optional **Region input**: wire closed shapes (Text outlines, silhouettes) and hairs grow only inside (even-odd).",
+  halftone: "dot/pattern shading driven by a noise field.",
+  harmonograph: "the classic twin-pendulum drawing machine: two damped oscillators per axis trace one continuous stroke that spirals inward as it dies. Near-integer frequency ratios plus a small detune give the iconic almost-closing loops.",
+  hatch: "fills closed shapes with hatching (angle, spacing, inset from both edges with parity checking); *Outside* region mode inverts via a synthetic frame ring.",
+  hersheytext: "single-stroke plotter typography: built-in geometric uppercase font (A\u2013Z 0\u20139 **\u00c4\u00d6\u00c5** punctuation), `|` for new lines, size = cap height, tracking, line height, alignment, canvas centring. Every letter is pen strokes, not outlines.",
+  hyperbolic_truchet: "Truchet tiles on concentric rings: arcs join edge midpoints so strands continue seamlessly across cells (the original corner-diagonal style remains as an option). Ring-crowding slider packs rings toward the center (event-horizon look) or the rim.",
+  image: "raster import (PNG/JPG, downsampled to grayscale). Render modes: *Scanline wave* (darkness raises amplitude and frequency of horizontal waves), *Halftone dots*, *Hatch levels* (four cross-hatch passes gated by darkness), and *Flow shade* (noise streamlines seeded and lengthened by darkness). Gamma, invert, white cutoff.",
+  interference: "marching-squares contour lines over fBm terrain or wave interference; segments are chained into long polylines.",
+  jitter: "per-point random displacement (densifies first).",
+  joinends: "connects nearby path endpoints into longer polylines (distance \u00d7 angle scoring, rounds of batch pairing, optional same-pen-only). Run before export to reduce pen lifts.",
+  julia: "escape-time fractal contours of the Julia or Mandelbrot set, banded by normalized iteration count. The c-parameters accept value wires, so an LFO turns the fractal into a living, loop-seamless organism.",
+  kaleidoscope: "clips the source to one wedge around the canvas center and replicates it N times, mirroring alternate copies. A mandala from anything.",
+  kierto: "rotates content around a point.",
+  lace: "classic lace in three patterns: *Doily* (center flower, ring bands with seed-picked motifs \u2014 plain/double rings, zigzag diamond mesh, sector fans, picot loops \u2014 and a scalloped picot edge), *Edging* (header lines, mesh strip, scallops with fans and picots), *Mesh ground* (torchon diamond net with hashed spiders). Sectors, rings, detail, picots on/off, edging depth.",
+  lathe: "revolved profile rendered as stacked ellipses (\"Rings\"), a mirrored silhouette (\"Profile\"), or both. Shed shapes: *Skirt* (the ceramic high-voltage insulator default), round wave, sharp zigzag; view tilt; ends taper automatically.",
+  lens: "bulge/pinch distortion inside a circle (guide overlay).",
+  lfo: "a value oscillator for animation: Sine / Triangle / Saw / Square / Noise loop, an integer number of cycles per loop (so wired Frame t stays loop-seamless), phase, and min/max output range.",
+  lissajous: "x/y sinusoids with frequency ratio and phase; the *damping* parameter turns it into a harmonograph decay spiral.",
+  lsystem: "turtle-graphics rewriting systems. Presets (plant, Koch, dragon, Sierpinski, Lightning with midpoint displacement) plus editable rules, angle jitter and stochastic rule choice.",
+  macrame: "knotted cordwork: top bar with lark's-head loops, vertical cords pinching into square knots (oval + wrap line), seeded wiggly fringe. Patterns: *Alternating net*, *Diamonds* (knots travel edge-to-center), *Sinnet columns*. Cords, rows, knot size, fringe length and wiggle.",
+  magnet: "attracts/repels points within a radius (guide overlay).",
+  mask: "clips paths by closed mask shapes (keep inside/outside).",
+  matem: "A op B: + \u2212 \u00d7 \u00f7 min max pow mod; inputs override the sliders.",
+  mathknot: "mathematical decorative knots: *Torus p\u00b7q* (2\u00b73 trefoil, 2\u00b75 cinquefoil\u2026) and *Lissajous* (three frequencies, seeded phases). Crossing gap cuts the under strand at every planar self-intersection using the 3-D z-order, producing a true over-under weave; gap 0 draws the unbroken curve. Tube ratio, rotation, sample step.",
+  merge: "combines up to several path inputs; later inputs plot later.",
+  mesh: "jittered structural grid with selectable diagonals (none, \\\\, /, alternating, random) \u2014 truss look (compare Fabric/Net for cloth).",
+  metaballs: "a blob field (sum of r\u00b2/d\u00b2) contoured with marching squares into 1-5 nested iso-bands; segments are stitched into closed organic loops that merge where blobs meet.",
+  mirror8: "reflection orbits around a movable centre: left-right, up-down, quad (4), or full 8-way D4 (cardinal + diagonal). Axes shown as guides. Mirrored copies honestly reverse stroke direction.",
+  mountains: "fBm heightfield rendered as ridge lines with true hidden-line removal (screen-space horizon buffer). Perspective (rows converge and compress with depth), oblique skew, island edge-fade, optional cross-line mesh.",
+  move_scale: "translate + scale (X/Y separable) around content centre, canvas centre, or a custom point.",
+  murmuration: "a closed-form starling flock: every bird is a deterministic function of (time, index) \u2014 flock center follows a guide path, the flock breathes (pulse), swirls and stretches along travel. All time terms are sampled on a circle, so t=0 \u2261 t=1: wire Frame's *t* into Time for a seamless loop. Flock paths: Wander / Oval / Figure-8 / Lissajous 2:3 / Trefoil, with a wander-mix for organic drift. Bird shape",
+  myco_net: "hyphal growth: queued tips step through noise-steered incremental turns and split into binary branches at a seeded rate; edge and point budgets end strands. Spore count, growth cycles, split rate, wander, internode, spawn radius.",
+  net: "netting with selectable mesh: Diamond (fishing net), Square, Triangle, Hexagon (chicken wire, drawn without doubled edges). Whole net sags like it hangs; irregularity jitters the knots; strands are subdivided so they bend smoothly.",
+  occlude: "hidden-line removal. Wire closed shapes into the Occluders input to hide the Lines input behind them, or leave it unwired for painter mode where later closed shapes in the set hide earlier paths. Gap grows (+) or shrinks (-) the occlusion region so lines die cleanly before an edge.",
+  offset: "parallel copies at a distance, with *Clean corners* cusp removal.",
+  origami: "crease-pattern style folded-paper facets.",
+  origami_glitch_fold: "mirrors everything on one side of an adjustable fold line back across it, with a distance-proportional crease warp; optional Keep Original for layered folds. Output clamped to the sheet.",
+  outline: "encloses each stroke in a closed capsule (offset both sides + semicircle caps); closed paths become two-ring bands. Turns strokes into fillable shapes: Outline \u2192 Hatch Fill = fat filled lines.",
+  panelka: "brutalist Soviet panel block: floors \u00d7 sections (stairwells), panel seams every floor/section, windows (some lit with diagonals), balconies (none / alternating columns / all) with railing lines, doors with canopies, roof machine room and antennas, and an optional oblique side face with its own seams and end windows.",
+  pencycle: "assigns pens to whole paths in rotation.",
+  pendulum: "chained damped oscillator arms (1\u20133). Each arm's pivot rides the previous tip; *Coupling* modulates an arm's frequency by the previous arm's angle (real interaction: 0 = pure epicycles, high = chaos); rotating table; exponential damping. One continuous stroke.",
+  phyllo: "sunflower-seed spiral (golden angle); dot size can grow with index.",
+  planets: "a chosen solar-system body drawn as line art: Sun (corona spikes + spots), Mercury/Moon (craters), Venus/Jupiter/Saturn/Uranus/Neptune (latitude bands, Jupiter's Great Red Spot, Neptune's dark spot), Earth (continent blobs + polar cap), Mars (craters, bands, ice cap). Rings for Saturn/Uranus, optional shadow terminator for a crescent.",
+  potato: "asymmetric blobs (low-frequency harmonics + random squash) with light overlap avoidance; optional \"eyes\" texture as dots or curved arcs.",
+  radat: "concentric rings (athletics-track offsets) around a centre. Ring count, spacing, start radius.",
+  randlines: "Moln\u00e1r-style random segments: free endpoints or fixed length with angle constraints (any / H+V / diagonals / 45\u00b0 quantized).",
+  reactdiff: "Gray-Scott Turing patterns (spots, stripes, mazes) replayed deterministically from seeded spots; contours traced with marching squares. Wire a value into Iterations to grow the pattern. Heavier compute.",
+  regmarks: "registration marks in selectable corners (+ optional centre): cross, printer's circle-and-cross, or inward corner-L; adjustable insets. For multi-pen registration and scan alignment.",
+  reititys: "legacy in-graph route optimizer (hidden from the palette; routing now lives in the export panel as *Optimize route* + *Preserve direction*).",
+  reverse: "flips path direction: all, every 2nd (manual boustrophedon), or random. Because direction is data.",
+  ribbon: "a wandering backbone with parallel companion lines (1\u201360). At lines = 1 it is a clean single guide curve \u2014 a good Spine for Ruler or Follow Lines.",
+  ruler: "tick scales with a minor/medium/major hierarchy. Linear or logarithmic (slide-rule) spacing; numbers (built-in single-stroke font) or cycling symbols at majors; ticks up/down/both. Optional **Spine input**: the ruler follows any path \u2014 feed a Ribbon or Tracks ring to get curved measuring tape.",
+  sand_line_hatch: "broken multi-segment scanlines whose ink probability is noise \u00d7 density, producing grain-gradient fields; runs collapse to 2-point segments and lines alternate direction (serpentine).",
+  satunnainen: "a seeded random number in a range; re-rolls per seed, not per frame.",
+  scan: "medical & scientific imaging aesthetics, drawn as procedural specimens: *X-ray* (ribcage: vertebra stack, double-line rib arcs, clavicles), *CT slice* (skin/fat rings, organ blobs \u2014 one hatch-filled, vertebra with beam star, R/L markers), *MRI head* (the iconic sagittal: face profile, skull, gyri meanders inside the brain ellipse, cerebellum folds, brainstem), *Ultrasound* (sector beam, noise-gate",
+  scatter: "breaks paths into displaced fragments.",
+  shaper: "easing curves for t: Linear, Smoothstep, Ease in/out/in-out, Bounce, Reverse, Triangle, with an integer repeat. End-inclusive: t=1 maps to the end of the curve, so a Frame-driven write-on never snaps back on its final frame; use Triangle for seamless loops.",
+  simplify: "removes points within a tolerance (Douglas-Peucker-style).",
+  skew: "X/Y shear in degrees (italicise Text, axonometry from Grid).",
+  skyline: "horizon silhouettes in 1\u20134 receding layers. *Forest*: fBm hills with conifer-spike tops and optional trunk texture; *City*: stepped building skyline with height distribution, antennas and window dashes (some dark). Shares its Horizon Y convention with Water.",
+  smooth: "corner-rounding relaxation.",
+  solar: "the whole system in one node: pick which planets to include (checkbox list), each on its orbit (tilted ellipse) at a phase angle, with major moons on their own sub-orbits \u2014 orbit paths, moons and moon-orbits each toggle independently. Even or log-ish spacing, view tilt, planet-size multiplier; Saturn/ Uranus get rings. Orbits and planets can go on separate pens.",
+  solids: "wireframe 3-D: Sphere (lat/lon rings; *Solid* hides the back hemisphere, *Transparent* shows all), Cube, Tetra/Octa/Icosa/Dodecahedron (edges derived from geometry). Rotate X/Y/Z, perspective 0\u20131, position. Rotations are value-drivable \u2014 the animation star.",
+  spiro: "hypo/epitrochoid gear curves: ring/wheel teeth ratio and pen offset.",
+  split: "separates paths into multiple outputs by rule (e.g. layer, index).",
+  stamp: "repeats a motif (or built-in marks; Line + Perpendicular = railway sleepers) along paths, with per-path variation. Takes a Motif input.",
+  starfield: "stars (uniform or noise-clustered, size variation) plus connection modes: none, all pairs within a distance, k-nearest, or *Constellations* (chained 3\u20139-star figures). Separate star and line pens.",
+  stencil: "pick ONE closed region from the Regions input (index wraps, so the slider steps next/previous \u2014 or wire Steps to animate the selection) and clip the Content input inside it, with an edge inset. All-regions mode, outline preview, and browse mode when Content is unwired.",
+  steps: "quantized step sequencer: t is split into N steps patterned as Ramp up/down, Ping-pong or seeded Random, scaled to min/max.",
+  stone: "faceted rocks/boulders: irregular polygon outline with interior facet lines from a highlight point (3-D chunk look) and optional hatch shadow (own pen). Layouts: Scatter, Pile (gravity-stacked), Wall (grid \u2014 dry-stone look). Angularity from smooth pebble to sharp shard.",
+  stretch: "monotonic band remap: geometry entering the band stretches uniformly along it and everything beyond shifts by the amount \u2014 no folds, straight smears. Directional or vanishing-point perspective mode; edge falloff shapes; per-path jitter. The pixel-smear effect, done right. Guide overlay.",
+  stringpluck: "a plucked string rendered as stacked time frames: modal sum with e^(-d k^2 t) damping, so high harmonics die first and the stack smooths downward, exactly like a real string. Serpentine rows for plotting.",
+  superformula: "the Gielis superformula: one equation spanning stars, flowers, polygons and diatoms via m/n1/n2/n3. Rings with twist fill the shape concentrically.",
+  svgimport: "load an SVG file's paths onto the canvas (no text/CSS support).",
+  switch: "a selector gate: the Select value picks which of the wired path inputs passes through; unwired inputs are skipped and the index wraps. Wire Steps into Select for per-frame scene switching.",
+  symmetry: "mirror/radial kaleidoscope repetition.",
+  tangle: "melts geometry into wandering tangle inside a zone, anchored at the zone edge (guide overlay).",
+  tape_saturation: "parallel sinusoidal signal tracks hard-clipped at a saturation threshold, with low-frequency wow drift and fine flutter noise; clamped to the sheet, serpentine track order. Moir\u00e9-ribbon fields.",
+  testcard: "a pen-characterization sheet. Select any of eight tiles (checkbox list) laid out in a grid: *Line weight sweep* (1\\u00D7\\u20136\\u00D7 overdraw to see darkening and registration), *Line spacing* (converging lines to find where they merge / effective pen width), *Hatch density* (four fill densities + crosshatch), *Arcs & circles* (roundness and stepping), *Pen-lift dots* (an 8\\u00D78 grid of tiny cr",
+  textpath: "single-stroke text laid along a wired spine (same font as Text): each glyph sits at its arc-length position rotated to the local tangent. Align Start/Center/End, start offset %, baseline offset along the normal, Flip side, Repeat-to-fill with gap, curve sampling. Open and closed spines; falls back to a horizontal line when unwired.",
+  tiles: "grid of tiles, each a separate closed path. Shapes: parametric",
+  tileshuffle: "the canvas is cut into a grid and tiles are permuted with optional flips/180s (bounds-safe). Cuts at tile borders are exact, so no ink is lost at the seams. Amount selects how many tiles join the shuffle.",
+  topolar: "cartesian-to-polar remap: x becomes angle, y becomes radius, bending any horizontal composition into rings, discs or fans. Turns, start angle and inner radius shape the wrap.",
+  traceimg: "threshold contours of a loaded raster image (fileImage): 1-6 tonal levels traced as vector contours fitted to the margin box, with invert and a minimum-contour filter for specks.",
+  travelsort: "greedy nearest-neighbour reordering of the plot: open paths may be reversed, closed loops are entered at the vertex nearest the pen, and pen groups stay intact. Same geometry, drastically less pen-up travel; place last before export.",
+  travelstop: "inserts a pause or pen-change after a set distance of drawing, for wearing/refilling media (chalk, charcoal, dip/fountain pens). Every N mm of drawn length it tags the next path so the G-code lifts and pauses (M0) with your message (\"Advance chalk / refill\"), or treats it as a pen change. Unlike the machine profile's Maintenance pause (which is fixed per machine), this lives in the graph and trave",
+  trimext: "shortens or lengthens path ends.",
+  truchet: "tiled quarter-circle patterns. *Tiles* mode draws arc tiles (lines/spread/gap per tile); *Loop* mode grows a spanning tree and emits **one single closed line** that fills the canvas \u2014 a maze you can plot without lifting the pen.",
+  trunks: "birch trunks only, no branches: two wandering edge lines per trunk. Smoothness (edge waver), lean, upward taper, and *Artifacts*: horizontal bark dashes (some doubled), on their own pen if desired.",
+  tvnoise: "analog-TV static: cells randomly filled with square/circle pixels or horizontal *scanline dashes*; size/position jitter and rolling *interference bands* that modulate density row-wise. Budget-capped.",
+  tyylita: "applies a Stroke style to existing paths.",
+  viiva: "not geometry: produces a *style* (dash patterns etc.) for generators' Style inputs.",
+  voronoi: "seeded sites carved into cells by half-plane clipping, with optional Lloyd relaxation (0-3) for even cell sizes. Shared edges are emitted exactly once, so no line is drawn twice. Optional site crosses.",
+  warp: "4-corner perspective or full lattice grid deformation.",
+  water: "lake/sea surface: ripple rows compressed toward a horizon (perspective), wave + slower swell + noise, and *Choppiness* that breaks lines into glinting dashes via a noise gate.",
+  wood: "tree cross-section: growth rings with year-width variation grouped by slow noise, shared angular wobble (rings never cross), eccentric reaction-wood stretch, radial drying cracks, rough bark, pith. *Grain* mode instead renders the split-face cathedral flame arches with vertical checks.",
+  worm: "worm or centipede: an inertia-walk spine dressed in flattened cross-hoops with a tapered width profile (round head, pointed tail). *Centipede* adds two-joint leg pairs with alternating gait; optional antennae.",
+};
+
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
   const oX = prof.originX || 0, oY = prof.originY || 0;
   const fx = (x) => x + oX;
   const fy = (y) => (prof.flipY ? ctx.H - y : y) + oY;
   const lines = [];
-  lines.push("; Muusia v1.5 — raw G-code");
+  lines.push("; Muusia v1.7 — raw G-code");
   lines.push(`; Machine: ${prof.name || "unnamed"} — work area ${prof.workW} x ${prof.workH} mm`);
   lines.push(`; Canvas ${ctx.W} x ${ctx.H} mm at origin X${oX} Y${oY} — paths ${ps.paths.length}${prof.flipY ? " — Y flipped" : ""}`);
   if (oX < 0 || oY < 0 || oX + ctx.W > prof.workW || oY + ctx.H > prof.workH) lines.push("; WARNING: canvas (with origin) exceeds machine work area!");
@@ -8922,27 +11503,37 @@ function toGcode(ps, ctx, prof) {
   }
   if (prof.rotOn) lines.push(`; Brush rotation: ${prof.rotStepper}, threshold ${prof.rotThresh}°`);
   if (prof.dipOn) lines.push(`; Dip: X${prof.dipX} Y${prof.dipY}, every ${prof.dipEvery} mm`);
-  if (prof.zHopOn) lines.push(`; Z-hop travel lift: ${f2(prof.penDown + prof.zHop)} mm (saves bed-Z time)`);
+  if ((prof.zMode || "bed") === "servo") lines.push(`; Z mode: SERVO "${prof.servoName || "pen"}" — up ${prof.servoUp}° / down ${prof.servoDown}° (bed-Z untouched)`);
+  else if (prof.zHopOn) lines.push(`; Z-hop travel lift: ${f2(prof.penDown + prof.zHop)} mm (saves bed-Z time)`);
   if (prof.maintOn) lines.push(`; Maintenance pause every ${prof.maintEvery} mm: "${prof.maintMsg}"`);
   if (ps.paths.some((p) => p.__stop)) lines.push(`; Travel Stop markers present \u2014 place Travel Stop LAST and keep route optimize off for accurate spacing`);
   lines.push(`; Pen settle: down ${prof.penDelayDown}ms / up ${prof.penDelayUp}ms`);
   for (const l of String(prof.startG || "").split("\n")) if (l.trim()) lines.push(l);
   /* nostotaso siirroille: matala z-hop jos paalla, muuten taysi penUp.
      petiplotterille z-hop saastaa valtavasti aikaa kun ei nosteta koko matkaa. */
+  const zServo = (prof.zMode || "bed") === "servo";
   const travelZ = () => (prof.zHopOn ? f2(Math.min(prof.penUp, prof.penDown + prof.zHop)) : f2(prof.penUp));
+  /* servomoodi (profiili A): kynan nosto servolla, peti-Z jaa rauhaan */
+  const servoTo = (ang, note) => {
+    lines.push(`SET_SERVO SERVO=${prof.servoName || "pen"} ANGLE=${f2(ang)}${note ? ` ; ${note}` : ""}`);
+  };
   const penUpFull = () => {
-    lines.push(`G1 Z${f2(prof.penUp)} F${prof.zFeed}`);
+    if (zServo) servoTo(prof.servoUp, "pen up");
+    else lines.push(`G1 Z${f2(prof.penUp)} F${prof.zFeed}`);
     if (prof.penDelayUp > 0) lines.push(`G4 P${Math.round(prof.penDelayUp)} ; settle after lift`);
   };
   const penUpTravel = () => {
-    lines.push(`G1 Z${travelZ()} F${prof.zFeed}`);
+    if (zServo) servoTo(prof.servoUp);
+    else lines.push(`G1 Z${travelZ()} F${prof.zFeed}`);
     if (prof.penDelayUp > 0) lines.push(`G4 P${Math.round(prof.penDelayUp)} ; settle`);
   };
   const penDownContact = () => {
-    lines.push(`G1 Z${f2(prof.penDown)} F${prof.zFeed}`);
+    if (zServo) servoTo(prof.servoDown, "pen down");
+    else lines.push(`G1 Z${f2(prof.penDown)} F${prof.zFeed}`);
     if (prof.penDelayDown > 0) lines.push(`G4 P${Math.round(prof.penDelayDown)} ; settle before draw`);
   };
-  lines.push(`G1 Z${f2(prof.penUp)} F${prof.zFeed} ; pen up (bed-Z)`);
+  if (zServo) servoTo(prof.servoUp, "pen up (servo)");
+  else lines.push(`G1 Z${f2(prof.penUp)} F${prof.zFeed} ; pen up (bed-Z)`);
 
   let rotCur = null;
   const rot = (angDeg, note) => {
@@ -8957,11 +11548,14 @@ function toGcode(ps, ctx, prof) {
   };
   const dip = () => {
     lines.push("; --- dip ---");
-    lines.push(`G1 Z${prof.penUp} F${prof.zFeed}`);
+    if (zServo) servoTo(prof.servoUp);
+    else lines.push(`G1 Z${prof.penUp} F${prof.zFeed}`);
     lines.push(`G0 X${f2(prof.dipX)} Y${f2(prof.dipY)} F${prof.feedTravel}`);
-    lines.push(`G1 Z${f2(prof.dipZ)} F${prof.zFeed} ; plunge`);
+    if (zServo) servoTo(prof.servoDown, "plunge");
+    else lines.push(`G1 Z${f2(prof.dipZ)} F${prof.zFeed} ; plunge`);
     lines.push(`G4 P${Math.round(prof.dipDwell)} ; dwell ms`);
-    lines.push(`G1 Z${prof.penUp} F${prof.zFeed}`);
+    if (zServo) servoTo(prof.servoUp);
+    else lines.push(`G1 Z${prof.penUp} F${prof.zFeed}`);
     lines.push("; --- dip done ---");
   };
   /* maintenance pause: kuluvalle medialle (liitu/hiili). nostaa kynan, valinnaisesti
@@ -9493,17 +12087,24 @@ export default function App() {
   const [canvasW, setCanvasW] = useState(300);
   const [canvasH, setCanvasH] = useState(200);
   const DEFAULT_MACHINE = {
-    name: "Ultimaker S5 plotter",
+    name: "A — Servo Z (multi-tip brush)",
     workW: 330, workH: 240, originX: 0, originY: 0, flipY: false, pauseCmd: "M0",
     startG: "G21 ; mm\nG90 ; absolute\nG28 ; home",
     endG: "G0 X0 Y0",
+    zMode: "servo", servoName: "pen", servoUp: 90, servoDown: 35,
     penUp: 3, penDown: 0, feedDraw: 1800, feedTravel: 6000, zFeed: 600,
     zHop: 1.5, zHopOn: true, penDelayDown: 120, penDelayUp: 80,
     rotOn: false, rotStepper: "pen_rotate", rotThresh: 20,
     dipOn: false, dipX: 320, dipY: 20, dipZ: -2, dipEvery: 800, dipDwell: 600,
     maintOn: false, maintEvery: 4000, maintMsg: "Advance chalk / re-sharpen", maintPark: false, maintX: 20, maintY: 20,
   };
-  const [machines, setMachines] = useState([DEFAULT_MACHINE]);
+  const DEFAULT_MACHINE_B = {
+    ...DEFAULT_MACHINE,
+    name: "B — Bed Z + rotation",
+    zMode: "bed", rotOn: true,
+  };
+  const [machines, setMachines] = useState([DEFAULT_MACHINE, DEFAULT_MACHINE_B]);
+  const [helpFor, setHelpFor] = useState(null); /* node id whose help tooltip is open */
   const [machineIdx, setMachineIdx] = useState(0);
   const prof = machines[Math.min(machineIdx, machines.length - 1)];
   const setProf = (fn) => setMachines((ms) => ms.map((m, i) =>
@@ -10549,6 +13150,12 @@ export default function App() {
                         {isGroup ? `Group ${node.id} (${node.data.nodes.length})` : def.name}
                         {isOut && <span style={{ color: T.group, marginLeft: 5 }}>OUT</span>}
                       </div>
+                      {!isGroup && (
+                        <div onClick={(ev) => { ev.stopPropagation(); setHelpFor((h) => h === node.id ? null : node.id); }}
+                          onMouseDown={(ev) => ev.stopPropagation()}
+                          title={def.desc || NODE_HELP[node.type] || def.name}
+                          style={{ cursor: "help", color: helpFor === node.id ? T.accent : T.dim, fontSize: 10, lineHeight: 1, padding: "0 2px", fontWeight: 700, border: `1px solid ${helpFor === node.id ? T.accent : T.line}`, borderRadius: "50%", width: 13, height: 13, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>?</div>
+                      )}
                       <div onClick={(ev) => { ev.stopPropagation(); toggleCollapse(node.id); }}
                         title={collapsed ? "Expand" : "Minimize"}
                         style={{ cursor: "pointer", color: T.dim, fontSize: 11, lineHeight: 1, padding: "0 2px" }}>
@@ -10565,6 +13172,12 @@ export default function App() {
                       )}
                       <div onClick={(ev) => { ev.stopPropagation(); setSelIds([node.id]); setTimeout(removeSelected, 0); }}
                         style={{ cursor: "pointer", color: T.dim, fontSize: 12, padding: "0 2px", lineHeight: 1 }}>×</div>
+                    {helpFor === node.id && !isGroup && (
+                      <div onMouseDown={(ev) => ev.stopPropagation()}
+                        style={{ padding: "7px 9px", fontSize: 10, lineHeight: 1.55, color: T.text, background: "#12151B", borderBottom: `1px solid ${T.line}`, whiteSpace: "normal" }}>
+                        {def.desc || NODE_HELP[node.type] || "No description yet."}
+                      </div>
+                    )}
                     </div>
 
                     {/* Data-sisääntuloportit (pino ylhäällä) */}
@@ -10872,12 +13485,34 @@ export default function App() {
                   <input type="text" value={prof.pauseCmd} onChange={(e) => setProf((pr) => ({ ...pr, pauseCmd: e.target.value }))}
                     style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
                 </div>
-                <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.05em", margin: "10px 0 4px" }}>Z &amp; SPEEDS</div>
-                {[["penDown", "Contact Z mm"], ["penUp", "Lift Z mm"], ["zHop", "Z-hop travel mm"], ["feedDraw", "Draw F"], ["feedTravel", "Travel F"], ["zFeed", "Z feed F"], ["penDelayDown", "Settle down ms"], ["penDelayUp", "Settle up ms"]].map(([k, l]) => profNum(k, l))}
+                <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.05em", margin: "10px 0 4px" }}>Z MODE</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                  <div style={{ fontSize: 10, color: T.dim, flex: 1 }}>Z-hop travel lift (bed plotters)</div>
-                  <input type="checkbox" checked={prof.zHopOn} onChange={(e) => setProf((pr) => ({ ...pr, zHopOn: e.target.checked }))} style={{ accentColor: T.accent }} />
+                  <select value={prof.zMode || "bed"} onChange={(e) => setProf((pr) => ({ ...pr, zMode: e.target.value }))}
+                    style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11 }}>
+                    <option value="servo">A — Servo lifts the pen</option>
+                    <option value="bed">B — Bed Z lifts the pen</option>
+                  </select>
                 </div>
+                <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.05em", margin: "10px 0 4px" }}>Z &amp; SPEEDS</div>
+                {(prof.zMode || "bed") === "servo" ? (
+                  <>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                      <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Servo name</div>
+                      <input type="text" value={prof.servoName || "pen"} onChange={(e) => setProf((pr) => ({ ...pr, servoName: e.target.value }))}
+                        style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
+                    </div>
+                    {[["servoUp", "Up angle °"], ["servoDown", "Down angle °"], ["feedDraw", "Draw F"], ["feedTravel", "Travel F"], ["penDelayDown", "Settle down ms"], ["penDelayUp", "Settle up ms"]].map(([k, l]) => profNum(k, l))}
+                    <div style={{ fontSize: 9, color: T.dim, marginBottom: 5 }}>Klipper: SET_SERVO SERVO={prof.servoName || "pen"} ANGLE=… — define [servo {prof.servoName || "pen"}] in printer.cfg. Dip uses the servo too.</div>
+                  </>
+                ) : (
+                  <>
+                    {[["penDown", "Contact Z mm"], ["penUp", "Lift Z mm"], ["zHop", "Z-hop travel mm"], ["feedDraw", "Draw F"], ["feedTravel", "Travel F"], ["zFeed", "Z feed F"], ["penDelayDown", "Settle down ms"], ["penDelayUp", "Settle up ms"]].map(([k, l]) => profNum(k, l))}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                      <div style={{ fontSize: 10, color: T.dim, flex: 1 }}>Z-hop travel lift (bed plotters)</div>
+                      <input type="checkbox" checked={prof.zHopOn} onChange={(e) => setProf((pr) => ({ ...pr, zHopOn: e.target.checked }))} style={{ accentColor: T.accent }} />
+                    </div>
+                  </>
+                )}
                 <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.05em", margin: "10px 0 4px" }}>START G-CODE</div>
                 <textarea value={prof.startG} spellCheck={false}
                   onChange={(e) => setProf((pr) => ({ ...pr, startG: e.target.value }))}

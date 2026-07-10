@@ -81,7 +81,6 @@ that. Prefer resolution parameters so the user can trade detail for speed.
 | `key` | string | Unique id, `^[a-z][a-z0-9_]*$`. Must not collide with built-ins. |
 | `name` | string | Palette / node title. |
 | `cat` | string | Palette section: `"gen"` (Generators), `"mod"` (Modifiers), `"dec"` (Decorators), `"duo"` (Combiners), `"math"` (Math). |
-| `group` | string, required for gen/mod | Palette folder. Generators: `geometric`, `organic`, `machines`, `nature`, `creatures`, `space`, `scientific`, `structural`, `textimg`. Modifiers: `transform`, `deform`, `pathops`, `cutsplit`, `fillstyle`, `penout`. Nodes without a group do not appear in folder view. |
 | `ins` | array *or* `(node) => array` | Input pins, see below. |
 | `outs` | array *or* `(node) => array` | Output pins. A function enables a dynamic count (read `node.params`). |
 | `params` | array | Parameter descriptors, section 4. |
@@ -155,14 +154,7 @@ compute(ins, p, ctx, node) → pathSet | number | style | array-of-pathSets
 | `applyStyle` | `(pathSet, styleOrUndefined) → pathSet` | Applies a Stroke style (dashes etc.); pass-through if style is `undefined`. |
 | `signedArea` | `(pts) → number` | Shoelace. In this y-down system, **positive = clockwise on screen**; use to normalize winding or find inward normals. |
 
-Standard `Math` is available. **Nothing else is — no imports, and no module-level
-app variables.** In particular `SFONT` and `fontStrokes` (used freely by baked-in
-text nodes) are *invisible* to imported custom nodes: the definition is evaluated in
-a `new Function` + `"use strict"` sandbox that receives exactly the ten helpers
-above. A custom node that renders text must embed its own glyph table inside
-`compute`. Reading built-in node source as a reference is fine, but any free
-variable a built-in uses that is not in the table above will throw a
-`ReferenceError` the moment your imported node computes.
+Standard `Math` is available. Nothing else is — no imports.
 
 ## 7. Recipes
 
@@ -205,35 +197,6 @@ stable when others change.
 - Emitting millions of points (deep recursion, tiny steps) — respect the budget.
 - Coordinates outside `0..W / 0..H` are allowed (modifiers may pull them back) but
   anything still outside at export prints off-canvas; prefer a `margin` param.
-
-The following were all found in real submitted nodes; each one passed a casual
-read and failed in use:
-
-- **The app never clips.** Warp shifts, mirrors, fray tails and wave peaks must be
-  clamped or ended at the sheet by the node itself — "the renderer will handle it"
-  is false. Generators should end simulated paths *at* the margin, not ±50 mm past
-  it.
-- **Consume the seed.** `const rng = mulberry32(...)` that is never *called* means
-  the Seed param silently does nothing. If output should vary with seed, something
-  must actually read `rng()` / `hash2` / `noise2` with it.
-- **Probability direction.** With `threshold = rng() * density`, *lowering* density
-  draws *more* (threshold shrinks). Write ink probability positively:
-  `if (rng() < value * density)`.
-- **Angles are not scalars.** Blending angle *values* linearly with a 0..4π field
-  biases every walker toward the field's magnitude. Steer incrementally:
-  `angle += (noise - 0.5) * turnRate`.
-- **No zero-length pen marks.** Snapping or quantizing can map a whole run of points
-  onto one coordinate — a path of N identical points still passes `length > 1`
-  checks but plots a dot-stab. Deduplicate consecutive points and require real
-  extent.
-- **Wires bypass slider ranges.** A value wire can push any numeric param far past
-  its `min`/`max`; clamp inside `compute` (counts, spacings, iteration budgets).
-- **Decimate simulations.** Tight orbits and slow walkers emit points that crawl;
-  only push a point after the pen has moved ≥ ~0.3 mm, and keep a hard total budget.
-- **Validate in a faithful harness.** Test with
-  `new Function(...tenHelperNames, '"use strict"; return (' + code + ');')` and
-  *only* the ten helpers — stubbing extra globals (e.g. `SFONT`) hides sandbox
-  crashes that will happen in the app.
 
 ## 9. Importing
 

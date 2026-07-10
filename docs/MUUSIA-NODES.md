@@ -1,13 +1,13 @@
-# MUUSIA v1.5 — Node Reference
+# MUUSIA v1.2 — Node Reference
 
-All 112 built-in nodes. Conventions used below: most generators accept a **Style**
+All 89 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (63)
+## Generators (44)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -19,56 +19,6 @@ white cutoff.
 splits) while short-range repulsion keeps it self-avoiding and cohesion keeps it
 smooth — the organic meander classic. Circle or canvas bounds (guide overlay),
 optional history rings every N iterations for the nested look. Point-capped.
-
-**Test Card** — a pen-characterization sheet. Select any of eight tiles (checkbox
-list) laid out in a grid: *Line weight sweep* (1\u00D7\u20136\u00D7 overdraw to see
-darkening and registration), *Line spacing* (converging lines to find where they
-merge / effective pen width), *Hatch density* (four fill densities + crosshatch),
-*Arcs & circles* (roundness and stepping), *Pen-lift dots* (an 8\u00D78 grid of tiny
-crosses \u2014 each is a lift+drop+minimal stroke, so tails reveal settle-delay too
-short), *Fill swatches* (flat / grid / spiral coverage), *Registration* (cross +
-nested squares for multi-pen alignment), *Speed ramp* (zigzags of increasing
-frequency to find the acceleration limit where corners round off). Labels on their
-own pen. Plot this first with any new pen or new machine settings.
-
-**Clouds** — realistic clouds by type (not cartoon lobes): outlines are
-noise-modulated so edges are billowy but not jagged. *Cumulus* (puffy, flat-based),
-*Stratus* (low layered fog band with internal striations), *Cirrus* (thin feathery
-spine + fallstreak wisps, no solid outline), *Cumulonimbus* (towering storm body +
-spreading anvil + rain streaks), *Altocumulus* ("sheep" — a regular patch field).
-Shading and detail sliders, Horizon Y, shade on its own pen.
-
-**Stone** — faceted rocks/boulders: irregular polygon outline with interior facet
-lines from a highlight point (3-D chunk look) and optional hatch shadow (own pen).
-Layouts: Scatter, Pile (gravity-stacked), Wall (grid — dry-stone look). Angularity
-from smooth pebble to sharp shard.
-
-**Asteroids** — vector-game asteroids: irregular polygons with in/out spikes (the
-classic silhouette), plus an optional player ship (triangle) and stray bullets.
-Jaggedness and vertex count shape the rocks.
-
-**Planets** — a chosen solar-system body drawn as line art: Sun (corona spikes +
-spots), Mercury/Moon (craters), Venus/Jupiter/Saturn/Uranus/Neptune (latitude bands,
-Jupiter's Great Red Spot, Neptune's dark spot), Earth (continent blobs + polar cap),
-Mars (craters, bands, ice cap). Rings for Saturn/Uranus, optional shadow terminator
-for a crescent.
-
-**Solar System** — the whole system in one node: pick which planets to include
-(checkbox list), each on its orbit (tilted ellipse) at a phase angle, with major
-moons on their own sub-orbits — orbit paths, moons and moon-orbits each toggle
-independently. Even or log-ish spacing, view tilt, planet-size multiplier; Saturn/
-Uranus get rings. Orbits and planets can go on separate pens.
-
-**Scan** — medical & scientific imaging aesthetics, drawn as procedural specimens:
-*X-ray* (ribcage: vertebra stack, double-line rib arcs, clavicles), *CT slice*
-(skin/fat rings, organ blobs — one hatch-filled, vertebra with beam star, R/L
-markers), *MRI head* (the iconic sagittal: face profile, skull, gyri meanders
-inside the brain ellipse, cerebellum folds, brainstem), *Ultrasound* (sector beam,
-noise-gated echo arcs = speckle, echogenic mass, depth ticks), *Microscope cells*
-(field-of-view circle, cell blobs with nuclei and organelles, some in mitosis,
-scale bar), *SEM diatom* (double frustule, radial ribs, pore rings), *EEG/Seismic*
-(channel rows with burst envelopes). Annotations (crosshairs, ticks, "50 UM",
-"SAG T1"...) on their own pen — they make the drawing a document.
 
 **Concrete Poetry** — text as image, using the built-in single-stroke font.
 Layouts: *Fill region* (repeating text rows clipped glyph-by-glyph to any closed
@@ -226,70 +176,7 @@ Style inputs.
 (A–Z 0–9 **ÄÖÅ** punctuation), `|` for new lines, size = cap height, tracking, line
 height, alignment, canvas centring. Every letter is pen strokes, not outlines.
 
-**Caustics** — top-down shallow-water light caustics: the surface is a sum of
-crossing noise wave trains, brightness is its curvature (Laplacian), and the bright
-focus ridges are traced as marching-squares iso-contours stitched into flowing
-threads. Focus gain, brightness threshold, contour bands, ripple scale, depth
-stretch, minimum line length.
-
-**Text on Path** — single-stroke text laid along a wired spine (same font as Text):
-each glyph sits at its arc-length position rotated to the local tangent. Align
-Start/Center/End, start offset %, baseline offset along the normal, Flip side,
-Repeat-to-fill with gap, curve sampling. Open and closed spines; falls back to a
-horizontal line when unwired.
-
-**Lace** — classic lace in three patterns: *Doily* (center flower, ring bands with
-seed-picked motifs — plain/double rings, zigzag diamond mesh, sector fans, picot
-loops — and a scalloped picot edge), *Edging* (header lines, mesh strip, scallops
-with fans and picots), *Mesh ground* (torchon diamond net with hashed spiders).
-Sectors, rings, detail, picots on/off, edging depth.
-
-**Macrame** — knotted cordwork: top bar with lark's-head loops, vertical cords
-pinching into square knots (oval + wrap line), seeded wiggly fringe. Patterns:
-*Alternating net*, *Diamonds* (knots travel edge-to-center), *Sinnet columns*.
-Cords, rows, knot size, fringe length and wiggle.
-
-**Knot** — mathematical decorative knots: *Torus p·q* (2·3 trefoil, 2·5 cinquefoil…)
-and *Lissajous* (three frequencies, seeded phases). Crossing gap cuts the under
-strand at every planar self-intersection using the 3-D z-order, producing a true
-over-under weave; gap 0 draws the unbroken curve. Tube ratio, rotation, sample step.
-
-**Murmuration** — a closed-form starling flock: every bird is a deterministic
-function of (time, index) — flock center follows a guide path, the flock breathes
-(pulse), swirls and stretches along travel. All time terms are sampled on a circle,
-so t=0 ≡ t=1: wire Frame's *t* into Time for a seamless loop. Flock paths: Wander /
-Oval / Figure-8 / Lissajous 2:3 / Trefoil, with a wander-mix for organic drift.
-Bird shapes Dash/Chevron/Dot with size variation for depth; optional flight-history
-trails whose point order equals flight direction.
-
-**Dazzle Camouflage** — WWI razzle-dazzle: recursive straight-chord splits carve the
-sheet into convex patches; each patch gets hatching at a quantized clashing angle
-(never repeating its neighbor), with blank, cross-hatch and wavy patch styles, and
-optional bold outlines. Serpentine stripe order.
-
-**Mycelial Net** — hyphal growth: queued tips step through noise-steered incremental
-turns and split into binary branches at a seeded rate; edge and point budgets end
-strands. Spore count, growth cycles, split rate, wander, internode, spawn radius.
-
-**Sand Line Hatch** — broken multi-segment scanlines whose ink probability is
-noise × density, producing grain-gradient fields; runs collapse to 2-point
-segments and lines alternate direction (serpentine).
-
-**Gravity Cascade** — a particle per orbit integrated through three seeded gravity
-wells with softened cores and friction decay: collapsing, wrapping, slingshotting
-arcs. Paths end at the sheet edge; points are decimated so tight orbits don't
-crawl.
-
-**Tape Saturation Harmonics** — parallel sinusoidal signal tracks hard-clipped at a
-saturation threshold, with low-frequency wow drift and fine flutter noise; clamped
-to the sheet, serpentine track order. Moiré-ribbon fields.
-
-**Hyperbolic Truchet Maze** — Truchet tiles on concentric rings: arcs join edge
-midpoints so strands continue seamlessly across cells (the original corner-diagonal
-style remains as an option). Ring-crowding slider packs rings toward the center
-(event-horizon look) or the rim.
-
-## Modifiers (33)
+## Modifiers (29)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -366,14 +253,6 @@ the zone edge (guide overlay).
 
 **Pen Cycle** — assigns pens to whole paths in rotation.
 
-**Travel Stop** — inserts a pause or pen-change after a set distance of drawing, for
-wearing/refilling media (chalk, charcoal, dip/fountain pens). Every N mm of drawn
-length it tags the next path so the G-code lifts and pauses (M0) with your message
-("Advance chalk / refill"), or treats it as a pen change. Unlike the machine
-profile's Maintenance pause (which is fixed per machine), this lives in the graph and
-travels with the patch. Place it LAST and keep route optimize off so the distance
-spacing stays accurate.
-
 **Chop** — cuts paths into arc-length pieces (length ± variation, optional physical
 gap) and deals the pieces across 1–6 pens, cycling or randomly. Multi-colour within
 a single stroke.
@@ -381,18 +260,6 @@ a single stroke.
 **Hatch Fill** — fills closed shapes with hatching (angle, spacing, inset from both
 edges with parity checking); *Outside* region mode inverts via a synthetic frame
 ring.
-
-**Glitch Loom** — slices paths at horizontal loom rows and shifts each row by a
-seeded warp offset (clamped to the sheet); torn ends may spawn frayed threads that
-drip downward. Pitch, max shift, fray probability and length.
-
-**Origami Glitch Fold** — mirrors everything on one side of an adjustable fold line
-back across it, with a distance-proportional crease warp; optional Keep Original
-for layered folds. Output clamped to the sheet.
-
-**Cellular Mosaic Displace** — assigns points to lattice cells, splits paths at
-cell borders and displaces each fragment by its cell's seeded offset; optional
-sub-lattice quantize snap for a crystalline look. Duplicate points cleaned.
 
 ## Decorators (5)
 
