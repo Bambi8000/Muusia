@@ -1,13 +1,13 @@
 # MUUSIA v1.2 — Node Reference
 
-All 89 built-in nodes. Conventions used below: most generators accept a **Style**
+All 91 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (44)
+## Generators (46)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -19,6 +19,25 @@ white cutoff.
 splits) while short-range repulsion keeps it self-avoiding and cohesion keeps it
 smooth — the organic meander classic. Circle or canvas bounds (guide overlay),
 optional history rings every N iterations for the nested look. Point-capped.
+
+**Creature** — bilaterally symmetric arthropods along a curving spine.
+*Trilobite*: three-lobed carapace (cephalon/thorax/pygidium), axial furrows and
+ring, glabella with eyes, backswept pleural ribs per segment, fused pygidial arcs.
+*Shrimp*: arching body with overlapping abdominal armor plates that bulge rearward,
+rostrum spike with serrations, five pereiopod pairs (front two with tiny claws),
+pleopods, telson-and-uropod tail fan, and a pair of very long whip antennae.
+Curl arches the body, Legs/Antennae toggle, Orientation rotates the whole animal.
+
+**Scan** — medical & scientific imaging aesthetics, drawn as procedural specimens:
+*X-ray* (ribcage: vertebra stack, double-line rib arcs, clavicles), *CT slice*
+(skin/fat rings, organ blobs — one hatch-filled, vertebra with beam star, R/L
+markers), *MRI head* (the iconic sagittal: face profile, skull, gyri meanders
+inside the brain ellipse, cerebellum folds, brainstem), *Ultrasound* (sector beam,
+noise-gated echo arcs = speckle, echogenic mass, depth ticks), *Microscope cells*
+(field-of-view circle, cell blobs with nuclei and organelles, some in mitosis,
+scale bar), *SEM diatom* (double frustule, radial ribs, pore rings), *EEG/Seismic*
+(channel rows with burst envelopes). Annotations (crosshairs, ticks, "50 UM",
+"SAG T1"...) on their own pen — they make the drawing a document.
 
 **Concrete Poetry** — text as image, using the built-in single-stroke font.
 Layouts: *Fill region* (repeating text rows clipped glyph-by-glyph to any closed
