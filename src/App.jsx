@@ -9065,6 +9065,1079 @@ const DEFS = {
       return applyStyle({ paths: [{ pts, closed: true, layer: Math.round(p.layer) }] }, ins[0]);
     }
   },
+  sdfcontours: {
+    name: "SDF Contours",
+    cat: "mod",
+    group: "deform",
+    desc: "Distance-field isolines around ALL input geometry: unlike per-path Offset, nearby shapes merge into one smooth halo, like metaballs. Start/step/count set the contour distances; Inside adds negative offsets within closed shapes. Cell controls field resolution.",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "start", label: "First contour mm", type: "slider", min: 0.5, max: 20, step: 0.5, def: 3 },
+      { key: "step", label: "Contour step mm", type: "slider", min: 0.5, max: 15, step: 0.5, def: 3 },
+      { key: "count", label: "Contours", type: "slider", min: 1, max: 8, step: 1, def: 3 },
+      { key: "inside", label: "Inside contours too", type: "check", def: false },
+      { key: "cell", label: "Field cell mm", type: "slider", min: 1, max: 4, step: 0.25, def: 1.8 },
+      { key: "keep", label: "Keep source", type: "check", def: true },
+      { key: "minlen", label: "Min contour mm", type: "slider", min: 0, max: 30, step: 1, def: 5 },
+      { key: "layer", label: "Contour pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      if (!src.paths.length) return EMPTY;
+      const { W, H } = ctx;
+      const maxD = p.start + p.step * Math.max(0, p.count - 1) + p.cell * 2;
+      /* segments of all paths, bucketed for nearest-distance queries */
+      const segs = [];
+      for (const pa of src.paths) {
+        const pts = pa.closed ? [...pa.pts, pa.pts[0]] : pa.pts;
+        for (let i = 1; i < pts.length; i++) {
+          segs.push([pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]]);
+        }
+      }
+      if (!segs.length) return EMPTY;
+      const bs = Math.max(4, p.cell * 3);
+      const bkey = (x, y) => Math.floor(x / bs) + "," + Math.floor(y / bs);
+      const buckets = new Map();
+      segs.forEach((s, i) => {
+        const x0 = Math.min(s[0], s[2]), x1 = Math.max(s[0], s[2]);
+        const y0 = Math.min(s[1], s[3]), y1 = Math.max(s[1], s[3]);
+        for (let by = Math.floor(y0 / bs); by <= Math.floor(y1 / bs); by++) {
+          for (let bx = Math.floor(x0 / bs); bx <= Math.floor(x1 / bs); bx++) {
+            const k = bx + "," + by;
+            let a = buckets.get(k);
+            if (!a) { a = []; buckets.set(k, a); }
+            a.push(i);
+          }
+        }
+      });
+      const segDist = (x, y, s) => {
+        const dx = s[2] - s[0], dy = s[3] - s[1];
+        const L2 = dx * dx + dy * dy;
+        let t = L2 > 0 ? ((x - s[0]) * dx + (y - s[1]) * dy) / L2 : 0;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(x - (s[0] + dx * t), y - (s[1] + dy * t));
+      };
+      const distAt = (x, y) => {
+        /* expanding ring search over buckets, bounded by maxD */
+        const bx = Math.floor(x / bs), by = Math.floor(y / bs);
+        let best = maxD + 1;
+        const maxR = Math.ceil(maxD / bs) + 1;
+        for (let r = 0; r <= maxR; r++) {
+          if ((r - 1) * bs > best) break;
+          for (let dy = -r; dy <= r; dy++) {
+            for (let dx = -r; dx <= r; dx++) {
+              if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+              const a = buckets.get((bx + dx) + "," + (by + dy));
+              if (!a) continue;
+              for (const i of a) {
+                const d = segDist(x, y, segs[i]);
+                if (d < best) best = d;
+              }
+            }
+          }
+        }
+        return best;
+      };
+      /* sign: inside any closed path -> negative, ALWAYS (so default contours
+         are outside-only; the Inside option merely adds negative levels) */
+      const closedPolys = src.paths.filter((pa) => pa.closed && pa.pts.length >= 3).map((pa) => {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const [x, y] of pa.pts) {
+          if (x < x0) x0 = x; if (x > x1) x1 = x;
+          if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+        return { poly: pa.pts, x0, y0, x1, y1 };
+      });
+      const pip = (x, y, poly) => {
+        let c = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const yi = poly[i][1], yj = poly[j][1];
+          if ((yi > y) !== (yj > y)) {
+            const xi = poly[i][0], xj = poly[j][0];
+            if (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+          }
+        }
+        return c;
+      };
+      const signAt = (x, y) => {
+        for (const cp of closedPolys) {
+          if (x < cp.x0 || x > cp.x1 || y < cp.y0 || y > cp.y1) continue;
+          if (pip(x, y, cp.poly)) return -1;
+        }
+        return 1;
+      };
+      const cell = Math.max(0.8, p.cell);
+      const cols = Math.min(260, Math.max(4, Math.round(W / cell) + 1));
+      const rows = Math.min(380, Math.max(4, Math.round(H / cell) + 1));
+      const gx = (c) => (c / (cols - 1)) * W;
+      const gy = (r) => (r / (rows - 1)) * H;
+      const F = new Float64Array(cols * rows);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = gx(c), y = gy(r);
+          F[r * cols + c] = distAt(x, y) * (closedPolys.length ? signAt(x, y) : 1);
+        }
+      }
+      const paths = [];
+      const L = Math.round(p.layer);
+      if (p.keep) src.paths.forEach((pa) => paths.push({ ...pa, pts: pa.pts.map((q) => q.slice()) }));
+      const segsOut = [];
+      const interp = (a, b, lvl) => Math.abs(b - a) < 1e-12 ? 0.5 : (lvl - a) / (b - a);
+      const levels = [];
+      for (let k = 0; k < Math.max(1, Math.round(p.count)); k++) {
+        const d = p.start + p.step * k;
+        levels.push(d);
+        if (p.inside) levels.push(-d);
+      }
+      for (const lvl of levels) {
+        for (let r = 0; r < rows - 1; r++) {
+          for (let c = 0; c < cols - 1; c++) {
+            const tl = F[r * cols + c], tr = F[r * cols + c + 1];
+            const bl = F[(r + 1) * cols + c], br = F[(r + 1) * cols + c + 1];
+            let idx = 0;
+            if (tl > lvl) idx |= 8; if (tr > lvl) idx |= 4;
+            if (br > lvl) idx |= 2; if (bl > lvl) idx |= 1;
+            if (idx === 0 || idx === 15) continue;
+            const xL = gx(c), xR = gx(c + 1), yT = gy(r), yB = gy(r + 1);
+            const eT = () => [xL + interp(tl, tr, lvl) * (xR - xL), yT];
+            const eB = () => [xL + interp(bl, br, lvl) * (xR - xL), yB];
+            const eL = () => [xL, yT + interp(tl, bl, lvl) * (yB - yT)];
+            const eR = () => [xR, yT + interp(tr, br, lvl) * (yB - yT)];
+            const S = (A, B) => segsOut.push([A, B]);
+            switch (idx) {
+              case 1: S(eL(), eB()); break; case 2: S(eB(), eR()); break;
+              case 3: S(eL(), eR()); break; case 4: S(eT(), eR()); break;
+              case 5: S(eL(), eT()); S(eB(), eR()); break;
+              case 6: S(eT(), eB()); break; case 7: S(eL(), eT()); break;
+              case 8: S(eL(), eT()); break; case 9: S(eT(), eB()); break;
+              case 10: S(eL(), eB()); S(eT(), eR()); break;
+              case 11: S(eT(), eR()); break; case 12: S(eL(), eR()); break;
+              case 13: S(eB(), eR()); break; case 14: S(eL(), eB()); break;
+            }
+          }
+        }
+      }
+      const q = (v) => Math.round(v * 100) / 100;
+      const kk = (pt) => q(pt[0]) + "," + q(pt[1]);
+      const map = new Map();
+      const items = segsOut.map((s) => ({ a: s[0], b: s[1], used: false }));
+      const push = (k, ref) => { let a = map.get(k); if (!a) { a = []; map.set(k, a); } a.push(ref); };
+      items.forEach((s, i) => { push(kk(s.a), { i, end: "a" }); push(kk(s.b), { i, end: "b" }); });
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].used) continue;
+        items[i].used = true;
+        const chain = [items[i].a, items[i].b];
+        let grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[chain.length - 1])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.push(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[0])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.unshift(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        if (chain.length < 3) continue;
+        if (p.minlen > 0 && pathLength(chain, false) < p.minlen) continue;
+        const closed = Math.hypot(chain[0][0] - chain[chain.length - 1][0], chain[0][1] - chain[chain.length - 1][1]) < cell * 1.6;
+        if (closed) chain.pop();
+        if (chain.length > 2) paths.push({ pts: chain, closed, layer: L });
+      }
+      return { paths };
+    }
+  },
+  raydrape: {
+    name: "Ray",
+    cat: "duo",
+    desc: "Houdini-style Ray: every point of A is cast along a direction until it hits B's lines, so A drapes over B like fabric or rain. Points that miss keep their place (or drop). Offset lands the line slightly before the surface.",
+    ins: [Pin("paths", "A (to project)"), Pin("paths", "B (targets)")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "angle", label: "Direction deg (90=down)", type: "slider", min: 0, max: 360, step: 1, def: 90 },
+      { key: "maxd", label: "Max distance mm (0=inf)", type: "slider", min: 0, max: 300, step: 5, def: 0 },
+      { key: "offset", label: "Offset from surface mm", type: "slider", min: 0, max: 10, step: 0.25, def: 0.5 },
+      { key: "misses", label: "Keep misses in place", type: "check", def: true },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.3, max: 4, step: 0.1, def: 1 }
+    ],
+    compute(ins, p, ctx) {
+      const A = ins[0] || EMPTY, B = ins[1] || EMPTY;
+      if (!B.paths || !B.paths.length) {
+        return { paths: A.paths.map((pa) => ({ ...pa, pts: pa.pts.map((q) => q.slice()) })) };
+      }
+      const segs = [];
+      for (const pa of B.paths) {
+        const pts = pa.closed ? [...pa.pts, pa.pts[0]] : pa.pts;
+        for (let i = 1; i < pts.length; i++) {
+          segs.push([pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]]);
+        }
+      }
+      const a = (p.angle * Math.PI) / 180;
+      const dx = Math.cos(a), dy = Math.sin(a);
+      const maxd = p.maxd > 0 ? p.maxd : 1e9;
+      /* ray (px,py)+t(dx,dy) vs segment: standard 2x2 solve */
+      const cast = (px, py) => {
+        let best = Infinity;
+        for (const s of segs) {
+          const ex = s[2] - s[0], ey = s[3] - s[1];
+          const den = dx * ey - dy * ex;
+          if (Math.abs(den) < 1e-12) continue;
+          const qx = s[0] - px, qy = s[1] - py;
+          const t = (qx * ey - qy * ex) / den;
+          const u = (qx * dy - qy * dx) / den;
+          if (t >= 0 && t <= maxd && u >= 0 && u <= 1 && t < best) best = t;
+        }
+        return best;
+      };
+      const paths = [];
+      A.paths.forEach((path) => {
+        const pts = resample(path.pts, path.closed, Math.max(0.25, p.res));
+        const out = [];
+        for (const [px, py] of pts) {
+          const t = cast(px, py);
+          if (t === Infinity) {
+            if (p.misses) out.push([px, py]);
+            else { if (out.length > 1) paths.push({ pts: out.slice(), closed: false, layer: path.layer }); out.length = 0; }
+          } else {
+            const tt = Math.max(0, t - p.offset);
+            out.push([px + dx * tt, py + dy * tt]);
+          }
+        }
+        if (out.length > 1) paths.push({ pts: out, closed: path.closed && p.misses, layer: path.layer });
+      });
+      return { paths };
+    }
+  },
+  runes: {
+    name: "Runes",
+    cat: "gen",
+    group: "textimg",
+    desc: "Asemic writing: a seeded alphabet of invented angular glyphs, laid out in words and lines like real text. Because letters repeat from a finite alphabet, it reads as language. Complexity sets strokes per glyph; every seed is a new script.",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "size", label: "Glyph height mm", type: "slider", min: 3, max: 20, step: 0.5, def: 7 },
+      { key: "alphabet", label: "Alphabet size", type: "slider", min: 6, max: 30, step: 1, def: 16 },
+      { key: "complexity", label: "Strokes per glyph", type: "slider", min: 2, max: 6, step: 1, def: 3 },
+      { key: "linesp", label: "Line spacing", type: "slider", min: 1.2, max: 3, step: 0.1, def: 1.8 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 5, max: 60, step: 1, def: 18 },
+      { key: "seed", label: "Seed", type: "seed", def: 77 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(2, p.margin);
+      const x0 = m, x1 = W - m, y0 = m, y1 = H - m;
+      if (x1 - x0 < 20 || y1 - y0 < 20) return applyStyle({ paths: [] }, ins[0]);
+      const gh = Math.max(2, p.size);
+      const gw = gh * 0.62;
+      /* build a seeded alphabet: glyphs = strokes on a 3x4 lattice */
+      const K = Math.max(4, Math.min(40, Math.round(p.alphabet)));
+      const CPX = Math.max(1, Math.min(8, Math.round(p.complexity)));
+      const rng = mulberry32(p.seed * 3323 + 7);
+      const LX = 3, LY = 4;
+      const alphabet = [];
+      for (let g = 0; g < K; g++) {
+        const strokes = [];
+        const nStrokes = 1 + Math.floor(rng() * CPX);
+        for (let s = 0; s < nStrokes; s++) {
+          /* each stroke: 2-3 lattice points, no zero-length hops */
+          const nPts = 2 + (rng() < 0.4 ? 1 : 0);
+          const pts = [];
+          let last = -1;
+          for (let i = 0; i < nPts; i++) {
+            let pt;
+            do { pt = Math.floor(rng() * LX * LY); } while (pt === last);
+            last = pt;
+            pts.push([(pt % LX) / (LX - 1), Math.floor(pt / LX) / (LY - 1)]);
+          }
+          strokes.push(pts);
+        }
+        /* every glyph gets a baseline anchor stroke sometimes (stability) */
+        if (rng() < 0.35) strokes.push([[0, 1], [1, 1]]);
+        alphabet.push(strokes);
+      }
+      /* text stream: seeded glyph sequence with Zipf-ish letter frequency + words */
+      const paths = [];
+      const L = Math.round(p.layer);
+      const lineH = gh * Math.max(1.1, p.linesp);
+      const step = gw * 1.28;
+      const space = gw * 0.9;
+      const zipf = () => {
+        /* low indices much more common, like real letters */
+        const r = rng();
+        return Math.min(K - 1, Math.floor(K * r * r));
+      };
+      let y = y0;
+      while (y + gh <= y1) {
+        let x = x0;
+        let word = 2 + Math.floor(rng() * 7);
+        while (x + gw <= x1) {
+          if (word <= 0) {
+            x += space;
+            word = 2 + Math.floor(rng() * 7);
+            continue;
+          }
+          const strokes = alphabet[zipf()];
+          for (const st of strokes) {
+            const pts = st.map(([u, v]) => [x + u * gw, y + v * gh]);
+            paths.push({ pts, closed: false, layer: L });
+          }
+          x += step;
+          word--;
+        }
+        y += lineH;
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  network: {
+    name: "Network",
+    cat: "gen",
+    group: "structural",
+    desc: "A seeded graph laid out by force simulation (nodes repel, edges pull), replayed deterministically for N iterations - wire a value into Iterations to watch it untangle. Nearest-neighbour links plus a few long-range ones give constellation diagrams; node circles can scale by connection count.",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "nodes", label: "Nodes", type: "slider", min: 5, max: 120, step: 1, def: 40 },
+      { key: "links", label: "Links per node", type: "slider", min: 1, max: 4, step: 1, def: 2 },
+      { key: "longp", label: "Long links", type: "slider", min: 0, max: 0.3, step: 0.01, def: 0.06 },
+      { key: "iters", label: "Iterations (wire LFO)", type: "slider", min: 0, max: 300, step: 5, def: 120 },
+      { key: "dots", label: "Draw nodes", type: "check", def: true },
+      { key: "degsize", label: "Size by connections", type: "check", def: true },
+      { key: "margin", label: "Margin mm", type: "slider", min: 5, max: 60, step: 1, def: 18 },
+      { key: "seed", label: "Seed", type: "seed", def: 5 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(2, p.margin);
+      const x0 = m, x1 = W - m, y0 = m, y1 = H - m;
+      if (x1 - x0 < 20 || y1 - y0 < 20) return applyStyle({ paths: [] }, ins[0]);
+      const N2 = Math.max(3, Math.min(150, Math.round(p.nodes)));
+      const rng = mulberry32(p.seed * 9013 + 3);
+      const pos = [];
+      for (let i = 0; i < N2; i++) {
+        pos.push([x0 + rng() * (x1 - x0), y0 + rng() * (y1 - y0)]);
+      }
+      /* edges: k nearest at start + seeded long-range links */
+      const edges = new Set();
+      const ek = (a, b) => a < b ? a + "_" + b : b + "_" + a;
+      const kNear = Math.max(1, Math.min(6, Math.round(p.links)));
+      for (let i = 0; i < N2; i++) {
+        const d = pos.map((q, j) => [Math.hypot(q[0] - pos[i][0], q[1] - pos[i][1]), j])
+          .sort((a, b) => a[0] - b[0]);
+        for (let k = 1; k <= kNear && k < d.length; k++) edges.add(ek(i, d[k][1]));
+        if (rng() < p.longp * 3) {
+          const j = Math.floor(rng() * N2);
+          if (j !== i) edges.add(ek(i, j));
+        }
+      }
+      const E = [...edges].map((k) => k.split("_").map(Number));
+      const deg = new Array(N2).fill(0);
+      for (const [a, b] of E) { deg[a]++; deg[b]++; }
+      /* force layout: repulsion all pairs, springs on edges, deterministic */
+      const gens = Math.max(0, Math.min(400, Math.floor(p.iters)));
+      const ideal = Math.sqrt(((x1 - x0) * (y1 - y0)) / N2) * 0.9;
+      for (let g = 0; g < gens; g++) {
+        const fx = new Float64Array(N2), fy = new Float64Array(N2);
+        for (let i = 0; i < N2; i++) {
+          for (let j = i + 1; j < N2; j++) {
+            let ox = pos[i][0] - pos[j][0], oy = pos[i][1] - pos[j][1];
+            let d = Math.hypot(ox, oy);
+            if (d < 0.01) { ox = 0.01 * ((i % 3) - 1); oy = 0.01; d = 0.014; }
+            const f = (ideal * ideal) / (d * d) * 0.5;
+            fx[i] += (ox / d) * f; fy[i] += (oy / d) * f;
+            fx[j] -= (ox / d) * f; fy[j] -= (oy / d) * f;
+          }
+        }
+        for (const [a, b] of E) {
+          const ox = pos[b][0] - pos[a][0], oy = pos[b][1] - pos[a][1];
+          const d = Math.hypot(ox, oy) || 0.01;
+          const f = (d - ideal) * 0.05;
+          fx[a] += (ox / d) * f; fy[a] += (oy / d) * f;
+          fx[b] -= (ox / d) * f; fy[b] -= (oy / d) * f;
+        }
+        const cool = 1 - g / (gens + 1);
+        for (let i = 0; i < N2; i++) {
+          const fl = Math.hypot(fx[i], fy[i]) || 1;
+          const s = Math.min(3 * cool + 0.2, fl) / fl;
+          pos[i][0] = Math.max(x0, Math.min(x1, pos[i][0] + fx[i] * s));
+          pos[i][1] = Math.max(y0, Math.min(y1, pos[i][1] + fy[i] * s));
+        }
+      }
+      const paths = [];
+      const L = Math.round(p.layer);
+      const rOf = (i) => p.degsize ? 1 + Math.min(4, deg[i] * 0.5) : 1.6;
+      for (const [a, b] of E) {
+        /* trim edge lines so they stop at the node circles */
+        const ox = pos[b][0] - pos[a][0], oy = pos[b][1] - pos[a][1];
+        const d = Math.hypot(ox, oy);
+        if (d < 0.5) continue;
+        const ra = p.dots ? rOf(a) + 0.4 : 0, rb = p.dots ? rOf(b) + 0.4 : 0;
+        if (ra + rb >= d) continue;
+        paths.push({
+          pts: [
+            [pos[a][0] + (ox / d) * ra, pos[a][1] + (oy / d) * ra],
+            [pos[b][0] - (ox / d) * rb, pos[b][1] - (oy / d) * rb]
+          ],
+          closed: false, layer: L
+        });
+      }
+      if (p.dots) {
+        for (let i = 0; i < N2; i++) {
+          const r = rOf(i);
+          const c = [];
+          for (let k = 0; k < 14; k++) {
+            const a = (k / 14) * Math.PI * 2;
+            c.push([pos[i][0] + Math.cos(a) * r, pos[i][1] + Math.sin(a) * r]);
+          }
+          paths.push({ pts: c, closed: true, layer: L });
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  tubes: {
+    name: "Tubes",
+    cat: "gen",
+    group: "structural",
+    desc: "Tubes wandering and crossing in 3D, projected with perspective and drawn with real hidden lines: tubes break cleanly where they pass behind each other, and their own back side is hidden. Surface is one continuous spiral per tube (single pen-down) or a ring+line wireframe mesh. Radius is noise-modulated; wire Drift to make the tubes move over an animation.",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "tubes", label: "Tubes", type: "slider", min: 1, max: 6, step: 1, def: 3 },
+      { key: "radius", label: "Radius mm", type: "slider", min: 2, max: 20, step: 0.5, def: 8 },
+      { key: "rmod", label: "Radius modulation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.3 },
+      { key: "wander", label: "Wander", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.5 },
+      { key: "length", label: "Tube length mm", type: "slider", min: 80, max: 400, step: 10, def: 220 },
+      { key: "surface", label: "Surface", type: "select", options: ["Spiral", "Mesh"], def: "Spiral" },
+      { key: "density", label: "Spiral turns / ring gap", type: "slider", min: 1, max: 10, step: 0.5, def: 4 },
+      { key: "longs", label: "Mesh longitudinals", type: "slider", min: 3, max: 10, step: 1, def: 6 },
+      { key: "hidden", label: "Hidden lines", type: "check", def: true },
+      { key: "drift", label: "Drift (wire Frame)", type: "slider", min: 0, max: 10, step: 0.05, def: 0 },
+      { key: "yaw", label: "View yaw deg", type: "slider", min: 0, max: 360, step: 1, def: 25 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 5, max: 60, step: 1, def: 15 },
+      { key: "seed", label: "Seed", type: "seed", def: 9 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(2, p.margin);
+      const bw = W - 2 * m, bh = H - 2 * m;
+      if (bw < 20 || bh < 20) return applyStyle({ paths: [] }, ins[0]);
+      const NT = Math.max(1, Math.min(8, Math.round(p.tubes)));
+      const R0 = Math.max(1, p.radius);
+      const DEPTH = Math.min(bw, bh) * 1.2;
+      const box = { x: bw / 2, y: bh / 2, z: DEPTH / 2 };
+      /* --- 1) center curves: smooth bouncing walks in a 3D box --- */
+      const STEP = 1.4;
+      const tubesC = [];
+      for (let tI = 0; tI < NT; tI++) {
+        const s = p.seed * 131 + tI * 977;
+        let x = (hash2(tI * 3 + 1, 1, p.seed) - 0.5) * box.x * 1.4;
+        let y = (hash2(tI * 3 + 2, 2, p.seed) - 0.5) * box.y * 1.4;
+        let z = (hash2(tI * 3 + 3, 3, p.seed) - 0.5) * box.z * 1.4;
+        let th = hash2(tI * 3 + 4, 4, p.seed) * Math.PI * 2;
+        let ph = (hash2(tI * 3 + 5, 5, p.seed) - 0.5) * Math.PI * 0.8;
+        const pts = [];
+        const nSteps = Math.round(Math.max(40, p.length) / STEP);
+        for (let i = 0; i <= nSteps; i++) {
+          pts.push([x, y, z]);
+          const u = i * STEP * 0.02;
+          th += (noise2(u + tI * 7.3, p.drift + 11.1, s) - 0.5) * p.wander * 0.9;
+          ph += (noise2(u + tI * 7.3, p.drift + 53.7, s + 1) - 0.5) * p.wander * 0.7;
+          ph = Math.max(-1.1, Math.min(1.1, ph));
+          x += Math.cos(th) * Math.cos(ph) * STEP;
+          y += Math.sin(th) * Math.cos(ph) * STEP;
+          z += Math.sin(ph) * STEP;
+          /* bounce off the box walls to stay composed */
+          if (x > box.x || x < -box.x) { th = Math.PI - th; x = Math.max(-box.x, Math.min(box.x, x)); }
+          if (y > box.y || y < -box.y) { th = -th; y = Math.max(-box.y, Math.min(box.y, y)); }
+          if (z > box.z || z < -box.z) { ph = -ph; z = Math.max(-box.z, Math.min(box.z, z)); }
+        }
+        tubesC.push(pts);
+      }
+      /* radius along each tube: noise-modulated */
+      const rAt = (tI, i, n) => {
+        const u = (i / n) * 6;
+        const taper = Math.min(1, Math.min(i, n - i) / (n * 0.12));
+        return R0 * (1 + (noise2(u + tI * 3.1, p.drift + 29.5, p.seed + 7 + tI) - 0.5) * 2 * p.rmod * 0.6) * (0.35 + 0.65 * taper);
+      };
+      /* --- 2) rotation-minimizing frames --- */
+      const frames = tubesC.map((pts) => {
+        const T = [], Nn = [], B = [];
+        for (let i = 0; i < pts.length; i++) {
+          const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+          let tx = b[0] - a[0], ty = b[1] - a[1], tz = b[2] - a[2];
+          const tl = Math.hypot(tx, ty, tz) || 1;
+          tx /= tl; ty /= tl; tz /= tl;
+          T.push([tx, ty, tz]);
+          if (i === 0) {
+            let nx = -ty, ny = tx, nz = 0;
+            const nl = Math.hypot(nx, ny, nz) || 1;
+            if (nl < 0.1) { nx = 1; ny = 0; nz = 0; }
+            Nn.push([nx / nl, ny / nl, nz / nl]);
+          } else {
+            /* project previous normal off the new tangent */
+            const pn = Nn[i - 1];
+            const d = pn[0] * tx + pn[1] * ty + pn[2] * tz;
+            let nx = pn[0] - d * tx, ny = pn[1] - d * ty, nz = pn[2] - d * tz;
+            const nl = Math.hypot(nx, ny, nz) || 1;
+            Nn.push([nx / nl, ny / nl, nz / nl]);
+          }
+          const t2 = T[i], n2 = Nn[i];
+          B.push([
+            t2[1] * n2[2] - t2[2] * n2[1],
+            t2[2] * n2[0] - t2[0] * n2[2],
+            t2[0] * n2[1] - t2[1] * n2[0]
+          ]);
+        }
+        return { T, N: Nn, B };
+      });
+      /* --- 3) view: yaw around Y + slight pitch, perspective --- */
+      const ya = (p.yaw * Math.PI) / 180, pa2 = 0.25;
+      const cy2 = Math.cos(ya), sy2 = Math.sin(ya);
+      const cp2 = Math.cos(pa2), sp2 = Math.sin(pa2);
+      const FOC = DEPTH * 2.2;
+      const proj = (x, y, z) => {
+        let X = x * cy2 + z * sy2;
+        let Z = -x * sy2 + z * cy2;
+        let Y = y * cp2 - Z * sp2;
+        Z = y * sp2 + Z * cp2;
+        const s = FOC / (FOC + Z);
+        return [X * s, Y * s, Z, s];
+      };
+      /* projected center samples per tube (occlusion buffer) */
+      const centers = tubesC.map((pts, tI) => pts.map((q, i) => {
+        const [X, Y, Z, s] = proj(q[0], q[1], q[2]);
+        return { X, Y, Z, rp: rAt(tI, i, pts.length - 1) * s };
+      }));
+      /* --- 4) surface geometry (projected, with depth + occlusion info) --- */
+      const rawPaths = []; /* { pts: [[X,Y,Z,tI]], layer } split later */
+      const TWO = Math.PI * 2;
+      for (let tI = 0; tI < NT; tI++) {
+        const C = tubesC[tI], Fp = frames[tI];
+        const n = C.length - 1;
+        const surfPt = (i, ang) => {
+          const r = rAt(tI, i, n);
+          const Nv = Fp.N[i], Bv = Fp.B[i];
+          const ca = Math.cos(ang), sa = Math.sin(ang);
+          const x = C[i][0] + (Nv[0] * ca + Bv[0] * sa) * r;
+          const y = C[i][1] + (Nv[1] * ca + Bv[1] * sa) * r;
+          const z = C[i][2] + (Nv[2] * ca + Bv[2] * sa) * r;
+          const [X, Y, Z] = proj(x, y, z);
+          return [X, Y, Z];
+        };
+        if (p.surface === "Spiral") {
+          const turnsPer = Math.max(0.5, p.density);
+          const pts = [];
+          /* substep so the helix stays smooth */
+          const SUB = 6;
+          for (let i = 0; i < n; i++) {
+            for (let ss = 0; ss < SUB; ss++) {
+              const fi = i + ss / SUB;
+              const i0 = Math.floor(fi);
+              const ang = (fi * STEP / 10) * turnsPer * TWO;
+              pts.push([...surfPt(i0, ang), tI, i0]);
+            }
+          }
+          rawPaths.push({ pts, tI });
+        } else {
+          /* rings */
+          const gap = Math.max(1.5, 12 / Math.max(0.5, p.density));
+          const every = Math.max(1, Math.round(gap / STEP));
+          for (let i = 0; i <= n; i += every) {
+            const ring = [];
+            for (let k = 0; k <= 24; k++) {
+              ring.push([...surfPt(i, (k / 24) * TWO), tI, i]);
+            }
+            rawPaths.push({ pts: ring, tI });
+          }
+          /* longitudinals */
+          const NL = Math.max(2, Math.min(12, Math.round(p.longs)));
+          for (let l = 0; l < NL; l++) {
+            const ang = (l / NL) * TWO;
+            const line = [];
+            for (let i = 0; i <= n; i++) line.push([...surfPt(i, ang), tI, i]);
+            rawPaths.push({ pts: line, tI });
+          }
+        }
+      }
+      /* --- 5) fit to sheet --- */
+      let fx0 = Infinity, fy0 = Infinity, fx1 = -Infinity, fy1 = -Infinity;
+      for (const rp of rawPaths) for (const q of rp.pts) {
+        if (q[0] < fx0) fx0 = q[0]; if (q[0] > fx1) fx1 = q[0];
+        if (q[1] < fy0) fy0 = q[1]; if (q[1] > fy1) fy1 = q[1];
+      }
+      const sc = Math.min(bw / ((fx1 - fx0) || 1), bh / ((fy1 - fy0) || 1));
+      const ox = m + (bw - (fx1 - fx0) * sc) / 2 - fx0 * sc;
+      const oy = m + (bh - (fy1 - fy0) * sc) / 2 - fy0 * sc;
+      /* occlusion buffer in sheet coords, bucketed */
+      const occ = [];
+      centers.forEach((cs, tI) => cs.forEach((c, i) => occ.push({
+        x: c.X * sc + ox, y: c.Y * sc + oy, z: c.Z, r: c.rp * sc, tI, i
+      })));
+      const bs = Math.max(4, R0 * sc * 1.5);
+      const grid = new Map();
+      occ.forEach((o, k) => {
+        const key = Math.floor(o.x / bs) + "," + Math.floor(o.y / bs);
+        let a = grid.get(key);
+        if (!a) { a = []; grid.set(key, a); }
+        a.push(k);
+      });
+      const isHidden = (x, y, z, tI, ci) => {
+        const bx = Math.floor(x / bs), by = Math.floor(y / bs);
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const a = grid.get((bx + dx) + "," + (by + dy));
+            if (!a) continue;
+            for (const k of a) {
+              const o = occ[k];
+              if (o.tI === tI && Math.abs(o.i - ci) < 14) continue; /* not our own neighbourhood */
+              if (o.z < z - o.r * 0.4 && Math.hypot(x - o.x, y - o.y) < o.r * 0.96) return true;
+            }
+          }
+        }
+        return false;
+      };
+      /* back side of the own tube: sample z behind own center z */
+      const centerZ = (tI, i) => centers[tI][Math.min(centers[tI].length - 1, i)].Z;
+      const paths = [];
+      const L = Math.round(p.layer);
+      for (const rp of rawPaths) {
+        let run = [];
+        const flush = () => { if (run.length > 1) paths.push({ pts: run, closed: false, layer: L }); run = []; };
+        for (const q of rp.pts) {
+          const x = q[0] * sc + ox, y = q[1] * sc + oy, z = q[2];
+          const tI = q[3], ci = q[4];
+          let vis = true;
+          if (p.hidden) {
+            if (z > centerZ(tI, ci) + 0.6) vis = false; /* own back side */
+            else if (isHidden(x, y, z, tI, ci)) vis = false;
+          }
+          if (vis) run.push([Math.max(0.5, Math.min(W - 0.5, x)), Math.max(0.5, Math.min(H - 0.5, y))]);
+          else flush();
+        }
+        flush();
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  view3d: {
+    name: "3D View",
+    cat: "mod",
+    group: "deform",
+    desc: "Puts the drawing into 3D space and views it from any angle: yaw/pitch/roll with adjustable perspective (0 = isometric, 1 = dramatic). Z source: Flat tilts the sheet like paper; Pens stacked gives each pen layer its own depth (parallax when rotated); Noise relief bends the drawing over a heightfield. Wire Frame into Yaw for a spinning-drawing animation.",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "yaw", label: "Yaw deg (wire Frame x360)", type: "slider", min: 0, max: 360, step: 1, def: 30 },
+      { key: "pitch", label: "Pitch deg", type: "slider", min: -90, max: 90, step: 1, def: 30 },
+      { key: "roll", label: "Roll deg", type: "slider", min: -180, max: 180, step: 1, def: 0 },
+      { key: "persp", label: "Perspective", type: "slider", min: 0, max: 1, step: 0.02, def: 0.5 },
+      { key: "zsource", label: "Z source", type: "select", options: ["Flat", "Pens stacked", "Noise relief"], def: "Flat" },
+      { key: "gap", label: "Pen layer gap mm", type: "slider", min: 1, max: 40, step: 0.5, def: 10 },
+      { key: "relief", label: "Relief height mm", type: "slider", min: 0, max: 60, step: 1, def: 25 },
+      { key: "rscale", label: "Relief scale", type: "slider", min: 0.5, max: 4, step: 0.1, def: 1.5 },
+      { key: "fit", label: "Fit to sheet", type: "check", def: true },
+      { key: "res", label: "Relief sample mm", type: "slider", min: 0.5, max: 4, step: 0.1, def: 1.2 },
+      { key: "seed", label: "Seed (relief)", type: "seed", def: 3 },
+      { key: "margin", label: "Fit margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      if (!src.paths.length) return EMPTY;
+      const { W, H } = ctx;
+      const cx = W / 2, cy = H / 2;
+      const D2R = Math.PI / 180;
+      const ya = p.yaw * D2R, pi2 = p.pitch * D2R, ro = p.roll * D2R;
+      const cyaw = Math.cos(ya), syaw = Math.sin(ya);
+      const cpit = Math.cos(pi2), spit = Math.sin(pi2);
+      const crol = Math.cos(ro), srol = Math.sin(ro);
+      /* perspective: exponential focal curve — 0 is genuinely isometric
+         (focal ~60x canvas), 0.5 pleasant, 1 dramatic */
+      const span = Math.max(W, H);
+      const FOC = span * 0.7 * Math.pow(85, 1 - Math.max(0, Math.min(1, p.persp)));
+      const zOf = (x, y, layer) => {
+        if (p.zsource === "Pens stacked") return -(layer || 0) * Math.max(0, p.gap);
+        if (p.zsource === "Noise relief") {
+          return (noise2(x * 0.012 * p.rscale + 5.7, y * 0.012 * p.rscale + 2.3, p.seed) - 0.5) * 2 * Math.max(0, p.relief);
+        }
+        return 0;
+      };
+      const proj = (x, y, layer) => {
+        let X = x - cx, Y = y - cy, Z = zOf(x, y, layer);
+        /* roll (Z axis) */
+        let X1 = X * crol - Y * srol, Y1 = X * srol + Y * crol;
+        /* yaw (Y axis) */
+        let X2 = X1 * cyaw + Z * syaw;
+        let Z2 = -X1 * syaw + Z * cyaw;
+        /* pitch (X axis) */
+        const Y3 = Y1 * cpit - Z2 * spit;
+        const Z3 = Y1 * spit + Z2 * cpit;
+        const s = FOC / Math.max(FOC * 0.1, FOC + Z3);
+        return [X2 * s, Y3 * s];
+      };
+      /* straight lines stay straight under perspective, so resampling is only
+         needed when the relief bends the plane itself */
+      const needResample = p.zsource === "Noise relief";
+      const projected = src.paths.map((path) => ({
+        layer: path.layer, closed: path.closed,
+        pts: (needResample ? resample(path.pts, path.closed, Math.max(0.4, p.res)) : path.pts)
+          .map(([x, y]) => proj(x, y, path.layer))
+      }));
+      /* fit or clamp */
+      const m = Math.max(0, p.margin);
+      let paths;
+      if (p.fit) {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const pa of projected) for (const [x, y] of pa.pts) {
+          if (x < x0) x0 = x; if (x > x1) x1 = x;
+          if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+        const bw = W - 2 * m, bh = H - 2 * m;
+        const sc = Math.min(bw / ((x1 - x0) || 1), bh / ((y1 - y0) || 1));
+        const ox = m + (bw - (x1 - x0) * sc) / 2 - x0 * sc;
+        const oy = m + (bh - (y1 - y0) * sc) / 2 - y0 * sc;
+        paths = projected.map((pa) => ({
+          ...pa, pts: pa.pts.map(([x, y]) => [x * sc + ox, y * sc + oy])
+        }));
+      } else {
+        paths = projected.map((pa) => ({
+          ...pa,
+          pts: pa.pts.map(([x, y]) => [
+            Math.max(0.5, Math.min(W - 0.5, x + cx)),
+            Math.max(0.5, Math.min(H - 0.5, y + cy))
+          ])
+        }));
+      }
+      return { paths };
+    }
+  },
+  girih: {
+    name: "Girih",
+    cat: "gen",
+    group: "geometric",
+    desc: "Islamic star patterns by Hankin's method: a polygon tiling where two rays leave every edge midpoint at a contact angle and meet inside the tile, weaving a continuous star-and-polygon lattice. One angle slider morphs through the whole pattern family (54 deg is the classic); hexagon and square tilings.",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "tiling", label: "Tiling", type: "select", options: ["Hexagons", "Squares"], def: "Hexagons" },
+      { key: "cell", label: "Tile size mm", type: "slider", min: 8, max: 60, step: 1, def: 24 },
+      { key: "angle", label: "Contact angle deg (wire LFO)", type: "slider", min: 15, max: 85, step: 0.5, def: 54 },
+      { key: "tileLines", label: "Draw tile edges", type: "check", def: false },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 15 || y1 - y0 < 15) return applyStyle({ paths: [] }, ins[0]);
+      const s = Math.max(4, p.cell);
+      const tiles = [];
+      if (p.tiling === "Squares") {
+        for (let y = y0; y + s <= y1 + 0.01; y += s) {
+          for (let x = x0; x + s <= x1 + 0.01; x += s) {
+            tiles.push([[x, y], [x + s, y], [x + s, y + s], [x, y + s]]);
+          }
+        }
+      } else {
+        /* pointy-top hexagons in axial rows */
+        const r = s / 2;
+        const w = Math.sqrt(3) * r, h = 1.5 * r;
+        for (let row = 0; ; row++) {
+          const cy = y0 + r + row * h;
+          if (cy + r > y1) break;
+          const off = (row % 2) * (w / 2);
+          for (let col = 0; ; col++) {
+            const cx = x0 + w / 2 + off + col * w;
+            if (cx + w / 2 > x1) break;
+            const hex = [];
+            for (let k = 0; k < 6; k++) {
+              const a = (Math.PI / 3) * k + Math.PI / 6;
+              hex.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+            }
+            tiles.push(hex);
+          }
+        }
+      }
+      const th = (p.angle * Math.PI) / 180;
+      const paths = [];
+      const L = Math.round(p.layer);
+      for (const poly of tiles) {
+        const n = poly.length;
+        /* per edge: midpoint + the two Hankin ray directions into the tile */
+        const mids = [], d1 = [], d2 = [];
+        let cx2 = 0, cy2 = 0;
+        for (const [x, y] of poly) { cx2 += x; cy2 += y; }
+        cx2 /= n; cy2 /= n;
+        for (let i = 0; i < n; i++) {
+          const A = poly[i], B = poly[(i + 1) % n];
+          const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2;
+          let ex = B[0] - A[0], ey = B[1] - A[1];
+          const el = Math.hypot(ex, ey) || 1;
+          ex /= el; ey /= el;
+          /* inward normal */
+          let nx = -ey, ny = ex;
+          if ((cx2 - mx) * nx + (cy2 - my) * ny < 0) { nx = -nx; ny = -ny; }
+          mids.push([mx, my]);
+          d1.push([Math.cos(th) * ex + Math.sin(th) * nx, Math.cos(th) * ey + Math.sin(th) * ny]);
+          d2.push([-Math.cos(th) * ex + Math.sin(th) * nx, -Math.cos(th) * ey + Math.sin(th) * ny]);
+        }
+        /* ray from edge i (dir d1) meets ray from edge i+1 (dir d2) */
+        const ring = [];
+        let ok = true;
+        for (let i = 0; i < n; i++) {
+          const j = (i + 1) % n;
+          const P = mids[i], D = d1[i], Q = mids[j], E = d2[j];
+          const den = D[0] * E[1] - D[1] * E[0];
+          let X;
+          if (Math.abs(den) < 1e-9) {
+            X = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2];
+          } else {
+            const t = ((Q[0] - P[0]) * E[1] - (Q[1] - P[1]) * E[0]) / den;
+            if (t < 0 || t > s * 2) { ok = false; break; }
+            X = [P[0] + D[0] * t, P[1] + D[1] * t];
+          }
+          ring.push(mids[i].slice(), X);
+        }
+        if (!ok || ring.length < 4) continue;
+        paths.push({ pts: ring, closed: true, layer: L });
+        if (p.tileLines) paths.push({ pts: poly.map((q) => q.slice()), closed: true, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  aggregate: {
+    name: "Aggregate",
+    cat: "gen",
+    group: "structural",
+    desc: "WASP-style discrete aggregation: copies of a module snap together at connector points (bounding-box edge midpoints), growing a crystal-like assembly one part at a time with collision checks. Wire your own Module in, or use the built-in part. Wire a value into Iterations to animate the growth.",
+    ins: [Pin("paths", "Module (optional)"), Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "iters", label: "Iterations (wire LFO)", type: "slider", min: 1, max: 400, step: 1, def: 60 },
+      { key: "scale", label: "Module scale %", type: "slider", min: 20, max: 300, step: 5, def: 100 },
+      { key: "rot", label: "Random 90deg rotations", type: "check", def: true },
+      { key: "gap", label: "Gap mm", type: "slider", min: -1, max: 6, step: 0.25, def: 0.5 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 5, max: 60, step: 1, def: 15 },
+      { key: "seed", label: "Seed", type: "seed", def: 41 },
+      { key: "layer", label: "Pen (built-in part)", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(2, p.margin);
+      const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+      if (x1 - x0 < 20 || y1 - y0 < 20) return applyStyle({ paths: [] }, ins[1]);
+      /* module: wired paths, or a built-in open U part */
+      let mod;
+      if (ins[0] && ins[0].paths && ins[0].paths.length) {
+        mod = ins[0].paths.map((pa) => ({ pts: pa.pts.map((q) => q.slice()), closed: pa.closed, layer: pa.layer }));
+      } else {
+        const L = Math.round(p.layer);
+        mod = [
+          { pts: [[-5, 5], [-5, -5], [5, -5], [5, 5]], closed: false, layer: L },
+          { pts: [[-2.5, 0], [2.5, 0]], closed: false, layer: L }
+        ];
+      }
+      /* center + measure the module */
+      let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+      for (const pa of mod) for (const [x, y] of pa.pts) {
+        if (x < bx0) bx0 = x; if (x > bx1) bx1 = x;
+        if (y < by0) by0 = y; if (y > by1) by1 = y;
+      }
+      const sc = Math.max(0.05, p.scale / 100);
+      const mcx = (bx0 + bx1) / 2, mcy = (by0 + by1) / 2;
+      const mw = Math.max(1, (bx1 - bx0)) * sc, mh = Math.max(1, (by1 - by0)) * sc;
+      const gap = p.gap;
+      /* placements: {x, y, rot(0-3), w, h} — 90deg rotations swap w/h */
+      const placed = [];
+      const rng = mulberry32(p.seed * 5741 + 19);
+      const dims = (rot) => (rot % 2 === 0 ? [mw, mh] : [mh, mw]);
+      const collides = (x, y, w, h) => {
+        const tol = -0.2; /* slight touch allowed */
+        if (x - w / 2 < x0 || x + w / 2 > x1 || y - h / 2 < y0 || y + h / 2 > y1) return true;
+        for (const pl of placed) {
+          const [pw, ph] = dims(pl.rot);
+          if (Math.abs(x - pl.x) < (w + pw) / 2 + tol && Math.abs(y - pl.y) < (h + ph) / 2 + tol) return true;
+        }
+        return false;
+      };
+      const open = []; /* connectors: {x, y, dir 0=N 1=E 2=S 3=W} on placed parts */
+      const addConnectors = (pl) => {
+        const [w, h] = dims(pl.rot);
+        open.push({ x: pl.x, y: pl.y - h / 2, dir: 0 });
+        open.push({ x: pl.x + w / 2, y: pl.y, dir: 1 });
+        open.push({ x: pl.x, y: pl.y + h / 2, dir: 2 });
+        open.push({ x: pl.x - w / 2, y: pl.y, dir: 3 });
+      };
+      const first = { x: (x0 + x1) / 2, y: (y0 + y1) / 2, rot: 0 };
+      placed.push(first);
+      addConnectors(first);
+      const target = Math.max(1, Math.min(500, Math.round(p.iters)));
+      let guard = target * 30;
+      while (placed.length < target && open.length && guard-- > 0) {
+        const ci = Math.floor(rng() * open.length);
+        const c = open[ci];
+        const rot = p.rot ? Math.floor(rng() * 4) : 0;
+        const [w, h] = dims(rot);
+        /* new part sits beyond the connector, opposite side facing it */
+        let nx = c.x, ny = c.y;
+        if (c.dir === 0) ny -= h / 2 + gap;
+        else if (c.dir === 1) nx += w / 2 + gap;
+        else if (c.dir === 2) ny += h / 2 + gap;
+        else nx -= w / 2 + gap;
+        if (collides(nx, ny, w, h)) {
+          open.splice(ci, 1);
+          continue;
+        }
+        const pl = { x: nx, y: ny, rot };
+        placed.push(pl);
+        addConnectors(pl);
+        open.splice(ci, 1);
+      }
+      /* render: module transformed to each placement */
+      const paths = [];
+      const BUDGET = 120000;
+      let total = 0;
+      for (const pl of placed) {
+        const a = (pl.rot * Math.PI) / 2;
+        const ca = Math.cos(a), sa = Math.sin(a);
+        for (const pa of mod) {
+          if (total + pa.pts.length > BUDGET) return applyStyle({ paths }, ins[1]);
+          total += pa.pts.length;
+          paths.push({
+            pts: pa.pts.map(([x, y]) => {
+              const lx = (x - mcx) * sc, ly = (y - mcy) * sc;
+              return [pl.x + lx * ca - ly * sa, pl.y + lx * sa + ly * ca];
+            }),
+            closed: pa.closed, layer: pa.layer
+          });
+        }
+      }
+      return applyStyle({ paths }, ins[1]);
+    }
+  },
+  turtle: {
+    name: "Turtle",
+    cat: "gen",
+    group: "geometric",
+    desc: "Classic turtle graphics from a command string: F/B move drawing, M moves pen-up, R/L turn in degrees, U/D pen up/down, [ ] branch (push/pop), and N[...] repeats a block N times. Example: 36[F8 R10] draws a circle, 5[F40 R144] a star. Auto-fits to the sheet. Deterministic - no seed needed.",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "prog", label: "Program", type: "text", def: "12[6[F14 R60] R30]" },
+      { key: "startAng", label: "Start angle deg", type: "slider", min: 0, max: 360, step: 1, def: 0 },
+      { key: "fit", label: "Fit to sheet", type: "check", def: true },
+      { key: "margin", label: "Margin mm", type: "slider", min: 5, max: 60, step: 1, def: 15 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer);
+      /* parse into an op tree: {op, val} or {rep, body} or {branch, body} */
+      const src = String(p.prog || "");
+      let pos = 0;
+      const parseBlock = (depth) => {
+        const ops = [];
+        while (pos < src.length) {
+          const ch = src[pos];
+          if (ch === "]") { pos++; return ops; }
+          if (/\s|,/.test(ch)) { pos++; continue; }
+          if (ch === "[") { pos++; ops.push({ branch: parseBlock(depth + 1) }); continue; }
+          if (/[0-9]/.test(ch)) {
+            let num = "";
+            while (pos < src.length && /[0-9.]/.test(src[pos])) num += src[pos++];
+            while (pos < src.length && /\s/.test(src[pos])) pos++;
+            if (src[pos] === "[") { pos++; ops.push({ rep: Math.min(200, Math.max(0, Math.round(+num))), body: parseBlock(depth + 1) }); }
+            continue; /* bare numbers are ignored */
+          }
+          const op = ch.toUpperCase();
+          pos++;
+          if ("FBMRL".includes(op)) {
+            let num = "";
+            while (pos < src.length && /\s/.test(src[pos])) pos++;
+            while (pos < src.length && /[0-9.\-]/.test(src[pos])) num += src[pos++];
+            ops.push({ op, val: num === "" ? (op === "R" || op === "L" ? 90 : 10) : +num });
+          } else if (op === "U" || op === "D") {
+            ops.push({ op });
+          } /* unknown chars ignored */
+          if (depth > 24) return ops;
+        }
+        return ops;
+      };
+      const tree = parseBlock(0);
+      /* execute */
+      const paths = [];
+      let cur = null;
+      const st = { x: 0, y: 0, ang: (p.startAng - 90) * Math.PI / 180, pen: true };
+      const stack = [];
+      let steps = 0;
+      const endPath = () => { if (cur && cur.length > 1) paths.push({ pts: cur, closed: false, layer: L }); cur = null; };
+      const moveTo = (nx, ny, draw) => {
+        if (draw && st.pen) {
+          if (!cur) cur = [[st.x, st.y]];
+          cur.push([nx, ny]);
+        } else endPath();
+        st.x = nx; st.y = ny;
+      };
+      const run = (ops) => {
+        for (const o of ops) {
+          if (steps++ > 40000) return;
+          if (o.rep !== undefined) { for (let i = 0; i < o.rep; i++) { run(o.body); if (steps > 40000) return; } }
+          else if (o.branch) {
+            stack.push({ ...st });
+            endPath();
+            run(o.branch);
+            endPath();
+            const back = stack.pop();
+            st.x = back.x; st.y = back.y; st.ang = back.ang; st.pen = back.pen;
+          }
+          else if (o.op === "F") moveTo(st.x + Math.cos(st.ang) * o.val, st.y + Math.sin(st.ang) * o.val, true);
+          else if (o.op === "B") moveTo(st.x - Math.cos(st.ang) * o.val, st.y - Math.sin(st.ang) * o.val, true);
+          else if (o.op === "M") moveTo(st.x + Math.cos(st.ang) * o.val, st.y + Math.sin(st.ang) * o.val, false);
+          else if (o.op === "R") st.ang += (o.val * Math.PI) / 180;
+          else if (o.op === "L") st.ang -= (o.val * Math.PI) / 180;
+          else if (o.op === "U") { st.pen = false; endPath(); }
+          else if (o.op === "D") st.pen = true;
+        }
+      };
+      run(tree);
+      endPath();
+      if (!paths.length) return applyStyle({ paths: [] }, ins[0]);
+      /* place: fit to margin box or center as-is */
+      const m = Math.max(0, p.margin);
+      let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+      for (const pa of paths) for (const [x, y] of pa.pts) {
+        if (x < bx0) bx0 = x; if (x > bx1) bx1 = x;
+        if (y < by0) by0 = y; if (y > by1) by1 = y;
+      }
+      const bw = W - 2 * m, bh = H - 2 * m;
+      const sc = p.fit ? Math.min(bw / ((bx1 - bx0) || 1), bh / ((by1 - by0) || 1)) : 1;
+      const ox = m + (bw - (bx1 - bx0) * sc) / 2 - bx0 * sc;
+      const oy = m + (bh - (by1 - by0) * sc) / 2 - by0 * sc;
+      const out = paths.map((pa) => ({
+        ...pa,
+        pts: pa.pts.map(([x, y]) => [
+          Math.max(0.5, Math.min(W - 0.5, x * sc + ox)),
+          Math.max(0.5, Math.min(H - 0.5, y * sc + oy))
+        ])
+      }));
+      return applyStyle({ paths: out }, ins[0]);
+    }
+  },
   origami: {
     name: "Origami", cat: "gen", group: "structural", ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
@@ -11484,7 +12557,7 @@ function toGcode(ps, ctx, prof) {
   const fx = (x) => x + oX;
   const fy = (y) => (prof.flipY ? ctx.H - y : y) + oY;
   const lines = [];
-  lines.push("; Muusia v1.7 — raw G-code");
+  lines.push("; Muusia v1.8 — raw G-code");
   lines.push(`; Machine: ${prof.name || "unnamed"} — work area ${prof.workW} x ${prof.workH} mm`);
   lines.push(`; Canvas ${ctx.W} x ${ctx.H} mm at origin X${oX} Y${oY} — paths ${ps.paths.length}${prof.flipY ? " — Y flipped" : ""}`);
   if (oX < 0 || oY < 0 || oX + ctx.W > prof.workW || oY + ctx.H > prof.workH) lines.push("; WARNING: canvas (with origin) exceeds machine work area!");
