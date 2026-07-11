@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 
 /* ============================================================
-   MUUSIA v1.8
+   MUUSIA v2.0
    - Nodejen minimointi (esikatselu/parametrit piiloon)
    - Param-portit samoilla riveillä kuin faderit (mitatut ankkurit)
    - Esc / nappi: tyhjennä monivalinta
@@ -12551,7 +12551,135 @@ const NODE_HELP = {
   worm: "worm or centipede: an inertia-walk spine dressed in flattened cross-hoops with a tapered width profile (round head, pointed tail). *Centipede* adds two-joint leg pairs with alternating gait; optional antennae.",
 };
 
-const APP_VERSION = "1.8"; /* single source: shown in the UI header and stamped into G-code */
+/* --- Minimal ZIP builder (STORE, no compression) so multi-tile export is ONE
+   download — browsers block sequential programmatic downloads. --- */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function buildZip(files) { /* files: [{name, text}] -> Uint8Array */
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  const u16 = (v) => [v & 255, (v >> 8) & 255];
+  const u32 = (v) => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255];
+  for (const f of files) {
+    const name = enc.encode(f.name);
+    const data = enc.encode(f.text);
+    const crc = crc32(data);
+    const local = new Uint8Array([
+      0x50, 0x4B, 0x03, 0x04, ...u16(20), ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+      ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0)
+    ]);
+    parts.push(local, name, data);
+    central.push({ name, data, crc, offset });
+    offset += local.length + name.length + data.length;
+  }
+  const cdStart = offset;
+  for (const e of central) {
+    const hdr = new Uint8Array([
+      0x50, 0x4B, 0x01, 0x02, ...u16(20), ...u16(20), ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+      ...u32(e.crc), ...u32(e.data.length), ...u32(e.data.length), ...u16(e.name.length),
+      ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(e.offset)
+    ]);
+    parts.push(hdr, e.name);
+    offset += hdr.length + e.name.length;
+  }
+  const end = new Uint8Array([
+    0x50, 0x4B, 0x05, 0x06, ...u16(0), ...u16(0), ...u16(central.length), ...u16(central.length),
+    ...u32(offset - cdStart), ...u32(cdStart), ...u16(0)
+  ]);
+  parts.push(end);
+  let total = 0;
+  for (const p of parts) total += p.length;
+  const out = new Uint8Array(total);
+  let pos = 0;
+  for (const p of parts) { out.set(p, pos); pos += p.length; }
+  return out;
+}
+
+/* --- Mega canvas slicer: clips mega-space paths into per-sheet tiles.
+   mode Overlap: tile regions share a seam-wide strip (cut through it, butt-join).
+   mode Gap: a seam-wide strip between regions is skipped (mount with spacing).
+   marks: L-shaped crop marks at the corners of each tile's cut rectangle. --- */
+function sliceMega(ps, sw, sh, C, R, seam, mode, marks) {
+  const gap = mode === "Gap";
+  const strideX = gap ? sw + seam : sw - seam;
+  const strideY = gap ? sh + seam : sh - seam;
+  const tiles = [];
+  for (let r = 0; r < R; r++) {
+    for (let c = 0; c < C; c++) {
+      const x0 = c * strideX, y0 = r * strideY;
+      const clipSeg = (ax, ay, bx, by) => {
+        let t0 = 0, t1 = 1;
+        const dx = bx - ax, dy = by - ay;
+        const P = [-dx, dx, -dy, dy];
+        const Q = [ax - x0, x0 + sw - ax, ay - y0, y0 + sh - ay];
+        for (let i = 0; i < 4; i++) {
+          if (Math.abs(P[i]) < 1e-12) { if (Q[i] < 0) return null; }
+          else {
+            const rr = Q[i] / P[i];
+            if (P[i] < 0) { if (rr > t1) return null; if (rr > t0) t0 = rr; }
+            else { if (rr < t0) return null; if (rr < t1) t1 = rr; }
+          }
+        }
+        return [ax + dx * t0, ay + dy * t0, ax + dx * t1, ay + dy * t1, t1];
+      };
+      const paths = [];
+      for (const pa of ps.paths) {
+        const allIn = pa.pts.every(([x, y]) => x >= x0 && x <= x0 + sw && y >= y0 && y <= y0 + sh);
+        if (allIn) {
+          paths.push({ pts: pa.pts.map(([x, y]) => [x - x0, y - y0]), closed: pa.closed, layer: pa.layer });
+          continue;
+        }
+        const src = pa.closed ? [...pa.pts, pa.pts[0]] : pa.pts;
+        let run = [];
+        const flush = () => { if (run.length > 1) paths.push({ pts: run, closed: false, layer: pa.layer }); run = []; };
+        for (let i = 1; i < src.length; i++) {
+          const cseg = clipSeg(src[i - 1][0], src[i - 1][1], src[i][0], src[i][1]);
+          if (!cseg) { flush(); continue; }
+          const A = [cseg[0] - x0, cseg[1] - y0], B = [cseg[2] - x0, cseg[3] - y0];
+          if (run.length && Math.hypot(run[run.length - 1][0] - A[0], run[run.length - 1][1] - A[1]) < 1e-6) {
+            run.push(B);
+          } else {
+            flush();
+            run = [A, B];
+          }
+          if (cseg[4] < 1) flush(); /* exited the tile mid-segment */
+        }
+        flush();
+      }
+      if (marks) {
+        const iL = (!gap && c > 0) ? seam / 2 : 0;
+        const iR = (!gap && c < C - 1) ? seam / 2 : 0;
+        const iT = (!gap && r > 0) ? seam / 2 : 0;
+        const iB = (!gap && r < R - 1) ? seam / 2 : 0;
+        const cx0 = iL, cx1 = sw - iR, cy0 = iT, cy1 = sh - iB;
+        const MK = 4;
+        const corner = (x, y, dxs, dys) => {
+          paths.push({ pts: [[x, y], [x + MK * dxs, y]], closed: false, layer: 0 });
+          paths.push({ pts: [[x, y], [x, y + MK * dys]], closed: false, layer: 0 });
+        };
+        corner(cx0, cy0, 1, 1); corner(cx1, cy0, -1, 1);
+        corner(cx1, cy1, -1, -1); corner(cx0, cy1, 1, -1);
+      }
+      tiles.push({ paths });
+    }
+  }
+  return tiles;
+}
+
+const APP_VERSION = "2.0"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -13161,6 +13289,15 @@ function updateAt(level, stack, fn) {
 export default function App() {
   const [canvasW, setCanvasW] = useState(300);
   const [canvasH, setCanvasH] = useState(200);
+  /* --- Mega canvas: compose works larger than one sheet; export slices into numbered tiles --- */
+  const [megaOn, setMegaOn] = useState(false);
+  const [megaC, setMegaC] = useState(2);   /* columns of sheets */
+  const [megaR, setMegaR] = useState(2);   /* rows of sheets */
+  const [megaSeam, setMegaSeam] = useState(5);
+  const [megaMode, setMegaMode] = useState("Overlap"); /* Overlap: sheets repeat the seam strip (cut & butt-join). Gap: seam strip is skipped (mount with spacing). */
+  const [megaMarks, setMegaMarks] = useState(true);
+  const megaW = megaOn ? (megaMode === "Gap" ? megaC * canvasW + (megaC - 1) * megaSeam : megaC * canvasW - (megaC - 1) * megaSeam) : canvasW;
+  const megaH = megaOn ? (megaMode === "Gap" ? megaR * canvasH + (megaR - 1) * megaSeam : megaR * canvasH - (megaR - 1) * megaSeam) : canvasH;
   const DEFAULT_MACHINE = {
     name: "A — Servo Z (multi-tip brush)",
     workW: 330, workH: 240, originX: 0, originY: 0, flipY: false, pauseCmd: "M0",
@@ -13254,7 +13391,7 @@ export default function App() {
     const iv = setInterval(() => setFrameIdx((i) => (i + 1) % Math.max(1, frameCount)), 170);
     return () => clearInterval(iv);
   }, [animPlay, frameCount]);
-  const ctx = useMemo(() => ({ W: canvasW, H: canvasH, frameIdx, frameCount }), [canvasW, canvasH, frameIdx, frameCount]);
+  const ctx = useMemo(() => ({ W: megaW, H: megaH, frameIdx, frameCount }), [megaW, megaH, frameIdx, frameCount]);
   const evalResult = useMemo(() => {
     let level = root, res = evalLevel(root, ctx, null);
     for (const gid of stack) {
@@ -13685,6 +13822,26 @@ export default function App() {
   const primaryNode = lvl.nodes.find((n) => n.id === primary);
   const primaryOut = primary != null ? results[primary] : null;
   const primaryPS = primaryOut && primaryOut[0] && primaryOut[0].paths ? primaryOut[0] : EMPTY;
+  /* --- Pop-out preview window (two-monitor workflow). No portal dependency:
+     the drawing is written into the popup as an SVG string (toSVG), which keeps
+     the file free of extra dependencies. CSS scales it to the window. --- */
+  const [popout, setPopout] = useState(null);      /* Window object or null */
+  const openPopout = () => {
+    if (popout && !popout.closed) { popout.focus(); return; }
+    const w = window.open("", "MuusiaPreview", "width=880,height=1140");
+    if (!w) return;
+    w.document.title = "Muusia — Preview";
+    w.document.head.innerHTML = "<style>body{margin:0;background:#0D1117;display:flex;align-items:flex-start;justify-content:center;overflow:auto;}#muusia-pop{padding:10px;width:100%;}#muusia-pop svg{width:100%;height:auto;display:block;background:#FCFAF4;border-radius:4px;}</style>";
+    w.document.body.innerHTML = '<div id="muusia-pop"></div>';
+    const poll = setInterval(() => { if (w.closed) { clearInterval(poll); setPopout(null); } }, 800);
+    setPopout(w);
+  };
+  useEffect(() => {
+    if (!popout || popout.closed) return;
+    const el = popout.document.getElementById("muusia-pop");
+    if (el) el.innerHTML = toSVG(primaryPS, { W: megaW, H: megaH });
+  }, [popout, primaryPS, megaW, megaH]);
+  useEffect(() => () => { if (popout && !popout.closed) popout.close(); }, [popout]);
   const stats = totalStats(primaryPS);
   const primaryIsGroup = primaryNode && primaryNode.type === "group";
   const primaryGuides = (() => {
@@ -13707,15 +13864,44 @@ export default function App() {
   const [routeOpt, setRouteOpt] = useState(true);
   const [preserveDir, setPreserveDir] = useState(true);
   const exportPS = () => (routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS);
-  const doExport = () => { setGcode(toGcode(exportPS(), ctx, prof)); setExportKind("gcode"); setCopied(false); };
-  const doExportSVG = () => { setGcode(toSVG(exportPS(), ctx)); setExportKind("svg"); setCopied(false); };
+  const megaTiles = () => sliceMega(exportPS(), canvasW, canvasH, megaC, megaR, megaSeam, megaMode, megaMarks);
+  const megaPreview = (kind) => {
+    const tiles = megaTiles();
+    const sheetCtx = { W: canvasW, H: canvasH, frameIdx, frameCount };
+    const note = `MEGA CANVAS \u2014 previewing tile 1/${tiles.length}. Download saves all ${tiles.length} numbered tiles.`;
+    return kind === "svg"
+      ? `<!-- ${note} -->\n` + toSVG(tiles[0], sheetCtx)
+      : `; ${note}\n` + toGcode(tiles[0], sheetCtx, prof);
+  };
+  const doExport = () => { setGcode(megaOn ? megaPreview("gcode") : toGcode(exportPS(), ctx, prof)); setExportKind("gcode"); setCopied(false); };
+  const doExportSVG = () => { setGcode(megaOn ? megaPreview("svg") : toSVG(exportPS(), ctx)); setExportKind("svg"); setCopied(false); };
+  const downloadMega = (kind) => {
+    /* browsers block sequential programmatic downloads -> bundle everything in one zip */
+    const tiles = megaTiles();
+    const sheetCtx = { W: canvasW, H: canvasH, frameIdx, frameCount };
+    const files = tiles.map((t, i) => {
+      const rr = Math.floor(i / megaC) + 1, cc = (i % megaC) + 1;
+      return {
+        name: `${projName || "patch"}-tile-${String(i + 1).padStart(2, "0")}-r${rr}c${cc}${kind === "svg" ? ".svg" : ".gcode"}`,
+        text: kind === "svg" ? toSVG(t, sheetCtx) : toGcode(t, sheetCtx, prof)
+      };
+    });
+    const blob = new Blob([buildZip(files)], { type: "application/zip" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${projName || "patch"}-tiles-${kind}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
   /* --- kaikkien freimien vienti: uudelleenevaluointi per freimi --- */
   const exportAllFrames = (kind) => {
     if (!primaryNode) return;
     const n = Math.max(1, frameCount);
     let f = 0;
     const doOne = () => {
-      const ctxF = { W: canvasW, H: canvasH, frameIdx: f, frameCount: n };
+      const ctxF = { W: megaW, H: megaH, frameIdx: f, frameCount: n };
       let level = root, res = evalLevel(root, ctxF, null);
       for (const gid of stack) {
         const g = level.nodes.find((nd) => nd.id === gid);
@@ -13747,6 +13933,7 @@ export default function App() {
     doOne();
   };
   const download = () => {
+    if (megaOn) { downloadMega(exportKind); return; }
     try {
       const blob = new Blob([gcode], { type: exportKind === "svg" ? "image/svg+xml" : "text/plain" });
       const a = document.createElement("a");
@@ -13762,7 +13949,7 @@ export default function App() {
   };
   /* --- patchin tallennus / lataus --- */
   const buildPatchJSON = () =>
-    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, prof, machines, machineIdx, customNodes, root }, null, 1);
+    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks } : null, prof, machines, machineIdx, customNodes, root }, null, 1);
   const savePatch = () => {
     const data = buildPatchJSON();
     try {
@@ -13804,6 +13991,7 @@ export default function App() {
       setSelIds([]);
       setRoot(data.root);
       if (data.canvas) { setCanvasW(data.canvas.W || 300); setCanvasH(data.canvas.H || 200); }
+      if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); } else { setMegaOn(false); }
       if (Array.isArray(data.machines) && data.machines.length) {
         setMachines(data.machines.map((m) => ({ ...DEFAULT_MACHINE, ...m })));
         setMachineIdx(Math.min(data.machineIdx || 0, data.machines.length - 1));
@@ -14311,7 +14499,7 @@ export default function App() {
                     {!collapsed && (
                       <>
                         <div style={{ padding: `${Math.max(8, Math.max(dataIns.length, outSpec.length) * PORT_DY - 24)}px 8px 4px` }}>
-                          <OutPreview out={outArr} W={canvasW} H={canvasH} width={NODE_W - 16} />
+                          <OutPreview out={outArr} W={megaW} H={megaH} width={NODE_W - 16} />
                         </div>
                         <div style={{ padding: "4px 12px 10px" }}>
                           {isGroup ? (
@@ -14434,6 +14622,11 @@ export default function App() {
                 PREVIEW {primaryNode ? `— ${primaryIsGroup ? "Group " + primaryNode.id : DEFS[primaryNode.type].name}` : ""}
                 {selIds.length > 1 ? ` · ${selIds.length} selected` : ""}
               </div>
+              <div onClick={openPopout}
+                title="Pop preview out to its own window (second display)"
+                style={{ cursor: "pointer", color: popout ? T.accent : T.dim, fontSize: 12, lineHeight: 1, padding: "0 4px" }}>
+                ⧉
+              </div>
               <div onClick={() => primaryPS.paths.length && setBigPreview(true)}
                 title="Enlarge preview"
                 style={{ cursor: primaryPS.paths.length ? "pointer" : "default", color: primaryPS.paths.length ? T.accent : T.dim, fontSize: 13, lineHeight: 1, padding: "0 2px" }}>
@@ -14441,9 +14634,9 @@ export default function App() {
               </div>
             </div>
             {primaryOut && !primaryPS.paths.length && (isStyle(primaryOut[0]) || typeof primaryOut[0] === "number") ? (
-              <OutPreview out={primaryOut} W={canvasW} H={canvasH} width={316} />
+              <OutPreview out={primaryOut} W={megaW} H={megaH} width={316} />
             ) : (
-              <PathsSVG ps={primaryPS} W={canvasW} H={canvasH} width={316} guides={primaryGuides} height={316 * (canvasH / canvasW)} arrows={showArrows} pad={8} />
+              <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} guides={primaryGuides} height={316 * (megaH / megaW)} arrows={showArrows} pad={8} />
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
               <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: T.dim, cursor: "pointer" }}>
@@ -14689,6 +14882,48 @@ export default function App() {
             </button>
           </div>
 
+          {/* ---------- Mega canvas ---------- */}
+          <div style={{ padding: "10px 12px", borderTop: `1px solid ${T.line}` }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: megaOn ? T.text : T.dim, letterSpacing: "0.08em", cursor: "pointer", fontFamily: disp, fontWeight: 700 }}>
+              <input type="checkbox" checked={megaOn} onChange={(e) => setMegaOn(e.target.checked)} />
+              MEGA CANVAS
+              <span style={{ fontWeight: 500, color: T.dim, letterSpacing: 0 }}>multi-sheet work</span>
+            </label>
+            {megaOn && (
+              <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 7, fontSize: 11, color: T.text }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: T.dim }}>Sheets</span>
+                  <input type="number" value={megaC} min={1} max={6} onChange={(e) => setMegaC(Math.max(1, Math.min(6, Math.round(+e.target.value || 1))))}
+                    style={{ width: 40, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
+                  ×
+                  <input type="number" value={megaR} min={1} max={8} onChange={(e) => setMegaR(Math.max(1, Math.min(8, Math.round(+e.target.value || 1))))}
+                    style={{ width: 40, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
+                  <span style={{ color: T.dim }}>cols × rows</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: T.dim }}>Seam</span>
+                  <input type="number" value={megaSeam} min={0} max={40} step={0.5} onChange={(e) => setMegaSeam(Math.max(0, Math.min(40, +e.target.value || 0)))}
+                    style={{ width: 46, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
+                  mm
+                  <select value={megaMode} onChange={(e) => setMegaMode(e.target.value)}
+                    style={{ background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }}>
+                    <option>Overlap</option>
+                    <option>Gap</option>
+                  </select>
+                </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: T.dim }}>
+                  <input type="checkbox" checked={megaMarks} onChange={(e) => setMegaMarks(e.target.checked)} />
+                  Crop marks at cut corners
+                </label>
+                <div style={{ fontSize: 10, color: T.dim, lineHeight: 1.5 }}>
+                  Total {megaW} × {megaH} mm · {megaC * megaR} sheets of {canvasW} × {canvasH} mm.
+                  {megaMode === "Overlap" ? " Sheets repeat the seam strip — cut through it and butt-join." : " A seam-wide strip is skipped between sheets — mount with spacing."}
+                  {" Export previews tile 1; Download saves all numbered tiles."}
+                </div>
+              </div>
+            )}
+          </div>
+
           {gcode && (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 12, minHeight: 200 }}>
               <div style={{ display: "flex", alignItems: "center", marginBottom: 6 }}>
@@ -14701,7 +14936,7 @@ export default function App() {
                 </button>
                 <button onClick={download}
                   style={{ background: T.panel2, border: `1px solid ${T.line}`, color: T.text, borderRadius: 4, fontSize: 10, padding: "3px 10px", cursor: "pointer", fontFamily: mono }}>
-                  Download {exportKind === "svg" ? ".svg" : ".gcode"}
+                  {megaOn ? `Download ${megaC * megaR} tiles (.zip)` : `Download ${exportKind === "svg" ? ".svg" : ".gcode"}`}
                 </button>
                 <button onClick={() => setGcode(null)}
                   style={{ background: "none", border: "none", color: T.dim, fontSize: 12, cursor: "pointer", marginLeft: 6 }}>×</button>
@@ -14850,11 +15085,11 @@ export default function App() {
           }}>
           <div onClick={(e) => e.stopPropagation()} style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.6)", borderRadius: 6 }}>
             {simOn ? (
-              <SimView ps={routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS} W={canvasW} H={canvasH}
+              <SimView ps={routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS} W={megaW} H={megaH}
                 width={Math.min(window.innerWidth - 100, (window.innerHeight - 190) * (canvasW / canvasH))}
                 height={Math.min(window.innerHeight - 190, (window.innerWidth - 100) * (canvasH / canvasW))} />
             ) : (
-              <PathsSVG ps={primaryPS} W={canvasW} H={canvasH}
+              <PathsSVG ps={primaryPS} W={megaW} H={megaH}
                 width={Math.min(window.innerWidth - 100, (window.innerHeight - 140) * (canvasW / canvasH))}
                 height={Math.min(window.innerHeight - 140, (window.innerWidth - 100) * (canvasH / canvasW))}
                 arrows={showArrows} pad={16} guides={primaryGuides} />
