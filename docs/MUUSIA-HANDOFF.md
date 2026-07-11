@@ -18,7 +18,7 @@ text are **English**.
 
 ## Files (all in outputs)
 
-- `muusia.jsx` — the whole app, one React file (~14700 lines, **156 nodes**, v1.8).
+- `muusia.jsx` — the whole app, one React file (~15000 lines, **156 nodes**, v2.0).
   Build target: `src/App.jsx` in a Vite project.
 - `MUUSIA-README.md` — project doc: install, concepts, UI, machines, animation, arch.
 - `MUUSIA-NODES.md` — every node explained.
@@ -83,6 +83,43 @@ off.
 5. Re-check global bracket/brace balance (string-strip then count). A persistent
    "paren diff −1" is a **measurement artifact** (regex literals + the `"("`/`")"`
    glyph keys in SFONT), not a real error — esbuild compiles clean.
+
+## Mega canvas (v1.9)
+
+Works larger than one sheet: the MEGA CANVAS panel (right sidebar, above export)
+multiplies the canvas into cols × rows sheets. Nodes need no changes — ctx.W/H
+simply become the mega dimensions, so every node composes at full size. Preview
+shows the whole work; per-sheet bed-fit check still uses single-sheet size.
+Export previews tile 1 and Download saves ALL tiles as numbered files inside a
+single ZIP (`name-tiles-gcode.zip`) — browsers block sequential programmatic
+downloads, so the app has a minimal STORE-mode zip builder (`buildZip`/`crc32`,
+verified against real unzip). Seam modes: **Overlap** (adjacent sheets repeat the
+seam strip — cut through it and butt-join) and **Gap** (a seam-wide strip is
+skipped — mount with spacing). Optional L-shaped crop marks at each tile's cut
+rectangle corners. Settings persist in the project file. The slicer
+(`sliceMega`, Liang-Barsky clipping) keeps fully-inside closed paths closed and
+splits spanning paths into open runs. `APP_VERSION` is the single version
+constant used by both the UI header and the G-code stamp.
+
+## Pop-out preview (v2.0)
+
+The ⧉ button in the preview header opens the live preview in its own window
+(React portal into `window.open`; inline styles mean no stylesheet copying).
+It tracks the popup's resize, follows all graph edits and animation live, and
+detects closing by polling. Made for two-display work: nodes on one screen,
+drawing on the other.
+
+## Release routine pitfalls (hard-won)
+
+- Browsers do NOT overwrite existing files in ~/Downloads — they save
+  `name (1).ext`, so `cp ~/Downloads/name` silently picks the OLD file. Run
+  `rm ~/Downloads/muusia.jsx MUUSIA-*.md` before downloading, and always verify
+  with `grep -c 'cat: "' src/App.jsx` (node count) and `head -1 docs/*.md`
+  (version headers) before committing.
+- zsh does not accept `#` comments in interactive commands — never paste
+  commands with trailing comments.
+- Live-page debugging: `curl -s <url> | wc -c` + version grep distinguishes
+  "deploy broken" from "browser/CDN cache" (Pages CDN lags ~10 min).
 
 ## Current node inventory (156)
 
