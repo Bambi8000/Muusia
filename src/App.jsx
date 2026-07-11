@@ -12612,7 +12612,7 @@ function buildZip(files) { /* files: [{name, text}] -> Uint8Array */
    mode Overlap: tile regions share a seam-wide strip (cut through it, butt-join).
    mode Gap: a seam-wide strip between regions is skipped (mount with spacing).
    marks: L-shaped crop marks at the corners of each tile's cut rectangle. --- */
-function sliceMega(ps, sw, sh, C, R, seam, mode, marks) {
+function sliceMega(ps, sw, sh, C, R, seam, mode, marks, markPen = 0) {
   const gap = mode === "Gap";
   const strideX = gap ? sw + seam : sw - seam;
   const strideY = gap ? sh + seam : sh - seam;
@@ -12666,9 +12666,10 @@ function sliceMega(ps, sw, sh, C, R, seam, mode, marks) {
         const iB = (!gap && r < R - 1) ? seam / 2 : 0;
         const cx0 = iL, cx1 = sw - iR, cy0 = iT, cy1 = sh - iB;
         const MK = 4;
+        const LP = Math.max(0, Math.round(markPen));
         const corner = (x, y, dxs, dys) => {
-          paths.push({ pts: [[x, y], [x + MK * dxs, y]], closed: false, layer: 0 });
-          paths.push({ pts: [[x, y], [x, y + MK * dys]], closed: false, layer: 0 });
+          paths.push({ pts: [[x, y], [x + MK * dxs, y]], closed: false, layer: LP });
+          paths.push({ pts: [[x, y], [x, y + MK * dys]], closed: false, layer: LP });
         };
         corner(cx0, cy0, 1, 1); corner(cx1, cy0, -1, 1);
         corner(cx1, cy1, -1, -1); corner(cx0, cy1, 1, -1);
@@ -13296,6 +13297,7 @@ export default function App() {
   const [megaSeam, setMegaSeam] = useState(5);
   const [megaMode, setMegaMode] = useState("Overlap"); /* Overlap: sheets repeat the seam strip (cut & butt-join). Gap: seam strip is skipped (mount with spacing). */
   const [megaMarks, setMegaMarks] = useState(true);
+  const [megaMarkPen, setMegaMarkPen] = useState(0); /* own pen for marks: pencil / fine liner */
   const megaW = megaOn ? (megaMode === "Gap" ? megaC * canvasW + (megaC - 1) * megaSeam : megaC * canvasW - (megaC - 1) * megaSeam) : canvasW;
   const megaH = megaOn ? (megaMode === "Gap" ? megaR * canvasH + (megaR - 1) * megaSeam : megaR * canvasH - (megaR - 1) * megaSeam) : canvasH;
   const DEFAULT_MACHINE = {
@@ -13864,7 +13866,7 @@ export default function App() {
   const [routeOpt, setRouteOpt] = useState(true);
   const [preserveDir, setPreserveDir] = useState(true);
   const exportPS = () => (routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS);
-  const megaTiles = () => sliceMega(exportPS(), canvasW, canvasH, megaC, megaR, megaSeam, megaMode, megaMarks);
+  const megaTiles = () => sliceMega(exportPS(), canvasW, canvasH, megaC, megaR, megaSeam, megaMode, megaMarks, megaMarkPen);
   const megaPreview = (kind) => {
     const tiles = megaTiles();
     const sheetCtx = { W: canvasW, H: canvasH, frameIdx, frameCount };
@@ -13949,7 +13951,7 @@ export default function App() {
   };
   /* --- patchin tallennus / lataus --- */
   const buildPatchJSON = () =>
-    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks } : null, prof, machines, machineIdx, customNodes, root }, null, 1);
+    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen } : null, prof, machines, machineIdx, customNodes, root }, null, 1);
   const savePatch = () => {
     const data = buildPatchJSON();
     try {
@@ -13991,7 +13993,7 @@ export default function App() {
       setSelIds([]);
       setRoot(data.root);
       if (data.canvas) { setCanvasW(data.canvas.W || 300); setCanvasH(data.canvas.H || 200); }
-      if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); } else { setMegaOn(false); }
+      if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); setMegaMarkPen(data.mega.markPen || 0); } else { setMegaOn(false); }
       if (Array.isArray(data.machines) && data.machines.length) {
         setMachines(data.machines.map((m) => ({ ...DEFAULT_MACHINE, ...m })));
         setMachineIdx(Math.min(data.machineIdx || 0, data.machines.length - 1));
@@ -14911,10 +14913,19 @@ export default function App() {
                     <option>Gap</option>
                   </select>
                 </div>
-                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: T.dim }}>
-                  <input type="checkbox" checked={megaMarks} onChange={(e) => setMegaMarks(e.target.checked)} />
-                  Crop marks at cut corners
-                </label>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: T.dim, flex: 1 }}>
+                    <input type="checkbox" checked={megaMarks} onChange={(e) => setMegaMarks(e.target.checked)} />
+                    Crop marks
+                  </label>
+                  {megaMarks && (
+                    <select value={megaMarkPen} onChange={(e) => setMegaMarkPen(+e.target.value)}
+                      title="Pen for crop marks — e.g. a pencil or fine liner, so marks stay faint or erasable"
+                      style={{ background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }}>
+                      {PENS.map((pn, i) => <option key={i} value={i}>{i}: {pn.name}</option>)}
+                    </select>
+                  )}
+                </div>
                 <div style={{ fontSize: 10, color: T.dim, lineHeight: 1.5 }}>
                   Total {megaW} × {megaH} mm · {megaC * megaR} sheets of {canvasW} × {canvasH} mm.
                   {megaMode === "Overlap" ? " Sheets repeat the seam strip — cut through it and butt-join." : " A seam-wide strip is skipped between sheets — mount with spacing."}
