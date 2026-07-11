@@ -1,15 +1,19 @@
-# MUUSIA v1.7
+# MUUSIA v2.0
 
 **A node-graph editor for generative pen-plotter art.**
 
 Muusia is a browser-based visual programming environment for creating plotter drawings.
-You build images by wiring nodes together: **147 built-in nodes** — generators produce
+You build images by wiring nodes together: **156 built-in nodes** — generators produce
 line work, modifiers transform it, and the export panel turns the result into G-code
 for a pen plotter or layered SVG for a laser cutter. The library spans classic plotter
-machines (Harmonograph, Spirograph, L-System), simulation (Conway, Reaction-Diffusion,
-Differential Growth, attractors), audio-DSP translated to geometry (LFO, ADSR, Filter,
-Fold, Granulate, Bitcrush, Fourier), image-fed nodes (Trace, Displace by Image), and
-plot-practical tools (Travel Sort, Occlude, Stencil, To Polar). Everything is deterministic (seeded), everything is
+machines (Harmonograph, Spirograph, L-System, Turtle), simulation (Conway,
+Reaction-Diffusion, Differential Growth, attractors), audio-DSP translated to geometry
+(LFO, ADSR, Filter, Fold, Granulate, Bitcrush, Fourier), ornament and structure
+(Girih star patterns, Truchet, Runes, Network, WASP-style Aggregate), 3D projection
+(Tubes with real hidden lines, 3D View), distance fields (SDF Contours), image-fed
+nodes (Trace, Displace by Image), and plot-practical tools (Travel Sort, Occlude,
+Stencil, Ray, To Polar). Works larger than one sheet are composed with **Mega Canvas**
+and exported as numbered tiles. Everything is deterministic (seeded), everything is
 live-previewed, and every numeric parameter can be driven by other nodes — including a
 frame clock for producing hand-plotted animations.
 
@@ -39,7 +43,7 @@ npm run dev          # -> live dev server for development
 ```
 
 `dist/index.html` is the whole application in one file. Archive versions as
-`Muusia-v1.7.html` etc. On macOS you can wrap
+`Muusia-v2.0.html` etc. On macOS you can wrap
 `open -na "Google Chrome" --args --app=file:///path/Muusia.html` in an Automator
 application for a dock icon, or use Safari's *File → Add to Dock*.
 
@@ -88,6 +92,17 @@ animation system possible.
 - **Per-node help** — every node header has a small **?**: hover for a quick tooltip,
   click to open a description of what the node does and how to wire it. Texts come
   from `MUUSIA-NODES.md`; imported custom nodes can ship their own via a `desc` field.
+- **Pop-out preview (⧉)** — opens the live preview in its own window for two-display
+  work: nodes on one screen, the drawing on the other. Follows every edit and
+  animation frame.
+- **Mega Canvas** — the panel above the export buttons multiplies the canvas into
+  cols × rows sheets for works larger than the plotter. Nodes need no changes; the
+  whole composition previews as one. Export slices the work into per-sheet tiles and
+  Download saves them all as numbered files inside a single ZIP
+  (`name-tile-03-r1c3.gcode`). **Seam** modes: *Overlap* repeats a seam-wide strip on
+  adjacent sheets (cut through it and butt-join) and *Gap* skips a strip between
+  sheets (mount with visible spacing). Optional crop marks at each tile's cut
+  corners.
 - Nodes with spatial parameters (Stretch, Crop, Magnet, Lens, Tangle Zone, Mirror,
   Explosion...) draw dashed **guide overlays** in the preview when selected.
 
@@ -178,4 +193,5 @@ direction is data here.
 Custom pen palettes · per-pen time estimates · value ports on promoted group params ·
 multi-tip brush tip selection replacing pen-change pauses (servo profile) ·
 zMode support in the standalone machine configurator · a `nodes/` library folder for
-the unbaked extras (Boolean, Morph, ...).
+the unbaked extras (Boolean, Morph, ...) · registration marks for aligning mega-canvas
+sheets on the bed.
