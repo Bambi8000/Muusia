@@ -1,13 +1,13 @@
-# MUUSIA v1.8 — Node Reference
+# MUUSIA v2.20 — Node Reference
 
-All 156 built-in nodes. Conventions used below: most generators accept a **Style**
+All 172 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (82)
+## Generators (92)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -369,7 +369,65 @@ growing a crystal-like assembly part by part. Wire Iterations to animate growth.
 pen-up, R/L turn, U/D pen state, [ ] branches, N[...] repeats. 36[F8 R10] is a
 circle; auto-fits to the sheet. Fully deterministic.
 
-## Modifiers (50)
+**Lichen** — map-lichen and crustose growth after the real thing: Map builds
+polygon patches split by continuous wandering cracks, each patch grain clipped to
+its own cell; Rosettes grows ringed thalli with dark textured centers and pale
+rims (target-lichen); Colony scatters mixed-age patches across bare rock. Pens
+splits species across the palette; Crack width tunes the gaps (0 = seamless);
+fill style (mosaic / rings / stipple) is seed-mixed; sizes follow a natural
+small-to-large distribution.
+
+**Smoke** — incense smoke in 3D: a laminar stream rises smoothly, then breaks
+into turbulent curls past the break height. The line is a ribbon of parallel
+filaments twisting around the stream and folding like real smoke sheets. Wind
+bends the column, View yaw orbits it, and Drift wired to Frame makes the smoke
+flow through an animation. Each filament is one continuous pen stroke.
+
+**Himmeli** — the traditional Finnish straw mobile in 3D: octahedral straw units
+built into classic forms — Single crystal (nested at higher complexity), Column
+(units tip to tip on threads), Chandelier (center with hanging side units), or
+Cluster (a two-layer cloud with pendants swinging on seeded thread lengths and
+angles). Rotate with View yaw and pitch; wire Frame into Yaw and the mobile
+spins through the animation. Shared straws are deduplicated.
+
+**Polka Dots** — plain dots or circles on a grid: Square rows, Hex (net-like
+offset rows), or Random with even spacing. Dot size 0 plots a bare pen touch;
+larger sizes draw circles; Size variation makes the field breathe.
+
+**Subway Map** — a transit map in classic Massimo Vignelli style: octilinear
+routes (0/45/90 only), lines bundling into shared corridors with even spacing
+and splitting off at 45 degrees, station dots on each line's own pen, larger
+interchange rings where lines meet, and terminal bars at route ends. Lines
+cycle through the pens — one color per route.
+
+**PCB Tracks** — printed circuit board copper: octilinear tracks (45-degree
+bends only) routed between round pads, IC footprints as twin rows of pads
+feeding tracks outward, and via dots along the runs.
+
+**Moon Craters** — cratered lunar terrain from a heightfield of bowl-and-rim
+craters. Top view draws rim/floor outlines or a relief-displaced mesh; 3D view
+looks across the plain to a horizon (not a sphere) — rotate with Yaw, raise the
+camera with Pitch. 3D Mesh uses classic silhouette occlusion; 3D Outlines
+drapes the crater rings over the terrain.
+
+**Comets** — nucleus and sweeping tail. Detailed draws the ball with coma arcs
+and a fan of curved tail streamlines; Minimal is just a dot and a single line.
+Body and tail on separate pens; tails point away from the sun direction.
+
+**Blueberry Sprig** — hand-drawn blueberry sprigs after an embroidered original:
+a wandering main stem with sharp little kinks, sparse side branches, berries as
+small circles on stalk tips (sometimes clustered), and loose open cup flowers.
+Tip mix balances berries against cups; Leaves adds pointed ovals; a light ink
+wobble is baked in — chain into Hand Drawn for more.
+
+**Power Pole** — wireframe 3D utility poles, one per national tradition:
+Finnish Wood, US Utility, Japanese Concrete, Lattice Pylon (Donaumast), Wide-Base
+Lattice (anchor tower with dramatically splayed legs, waist, three lattice arm
+levels), Lattice Portal (two truss masts with a lattice crossbeam, Nordic
+400 kV), and H-Frame Portal. Wires hangs catenary cables from the insulators;
+rotate with Yaw/Pitch, wire Frame to orbit.
+
+## Modifiers (53)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -565,7 +623,25 @@ side (left/right/both alternating or random).
 **End Caps** — arrows, dots, circles or ticks at open-path ends (start/end/both),
 oriented by the path's final direction. Flow Field's missing arrowheads.
 
-## Combiners (9)
+**Hand Drawn** — makes any line look drawn by hand: smooth low-frequency wobble
+along the stroke's arc length, fine tremor on top, optional ink breaks (the pen
+skips), and end overshoot / fall-short so strokes don't stop exactly where they
+should. Every path wobbles differently, so parallel lines live like a real
+sketch. Unlike Jitter (raw point noise), the wobble follows the stroke itself.
+
+**Rect Collage** — cuts random rectangles of different sizes out of the input
+and rearranges the pieces at random positions, optionally rotated in 90-degree
+steps. Unlike Tile Shuffle's regular grid, pieces vary in size and land
+anywhere; Keep rest passes the uncut remainder through underneath.
+
+**3D Glitch** — throws the drawing into 3D space and corrupts it: the sheet
+undulates with noise relief, tilts with yaw and pitch under perspective, then
+glitches in screen space — horizontal bands tear loose and shift sideways, some
+quantizing into blocky steps. Color split adds a displaced duplicate on another
+pen (plotter chromatic aberration). Wire Drift to Frame and the corruption
+crawls through an animation.
+
+## Combiners (12)
 
 **Mask** — clips paths by closed mask shapes (keep inside/outside).
 
@@ -594,6 +670,27 @@ Steps into Select for per-frame scene switching.
 until it hits B's lines, so A drapes over B like fabric or rain. Misses keep
 their place for a continuous drape; Offset lands the line just before the
 surface.
+
+**Mini Canvas** — lays out miniatures of full-canvas compositions on one
+sheet. Auto grid packs each wired input (A–F) into its own cell — a contact
+sheet. Fixed size makes production runs: set one mini size (postcard 148x105)
+and a count, and copies fill the sheet cycling through the wired inputs. L cut
+marks at every mini's corners and T fold marks (position in mm from the
+card's left/top edge, vertical/horizontal/both) go on their own Mark pen — plot in pencil, erase
+after cutting.
+
+**Negative Space** — clips Fill into the space a Shape does NOT use: the shape's
+lines plus a clearance band, and the inside of its closed paths, count as
+occupied, and the fill flows around them — a background behind Tubes without
+touching it. Inverse mode keeps the fill only INSIDE the used space. Works with
+any geometry, open or closed, unlike Mask.
+
+**Diff Pens** — compares Modified against Original and recolors only what
+changed: paths present in both keep their pen, anything NEW in Modified moves
+to the Diff pen. Feed a sprig to Original and the same sprig through Fur to
+Modified — the sprig stays one color, the fur gets another. Exact match is fast
+for add-only modifiers; Distance match tolerates wobble and splits (Hand Drawn)
+within the tolerance.
 
 ## Math (9)
 

@@ -1,24 +1,18 @@
-# MUUSIA v2.0
+# MUUSIA v2.20
 
 **A node-graph editor for generative pen-plotter art.**
 
 Muusia is a browser-based visual programming environment for creating plotter drawings.
-You build images by wiring nodes together: **156 built-in nodes** — generators produce
-line work, modifiers transform it, and the export panel turns the result into G-code
-for a pen plotter or layered SVG for a laser cutter. The library spans classic plotter
-machines (Harmonograph, Spirograph, L-System, Turtle), simulation (Conway,
-Reaction-Diffusion, Differential Growth, attractors), audio-DSP translated to geometry
-(LFO, ADSR, Filter, Fold, Granulate, Bitcrush, Fourier), ornament and structure
-(Girih star patterns, Truchet, Runes, Network, WASP-style Aggregate), 3D projection
-(Tubes with real hidden lines, 3D View), distance fields (SDF Contours), image-fed
-nodes (Trace, Displace by Image), and plot-practical tools (Travel Sort, Occlude,
-Stencil, Ray, To Polar). Works larger than one sheet are composed with **Mega Canvas**
-and exported as numbered tiles. Everything is deterministic (seeded), everything is
+You build images by wiring nodes together: generators produce line work, modifiers
+transform it, and the export panel turns the result into G-code for a pen plotter or
+layered SVG for a laser cutter. Everything is deterministic (seeded), everything is
 live-previewed, and every numeric parameter can be driven by other nodes — including a
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click.
+HTML file you can double-click. It ships with **172 built-in nodes** across Generators,
+Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
+production layout (Mini Canvas), and a laser-guided magnet jig for paper hold-down.
 
 ---
 
@@ -43,7 +37,7 @@ npm run dev          # -> live dev server for development
 ```
 
 `dist/index.html` is the whole application in one file. Archive versions as
-`Muusia-v2.0.html` etc. On macOS you can wrap
+`Muusia-v2.20.html` etc. On macOS you can wrap
 `open -na "Google Chrome" --args --app=file:///path/Muusia.html` in an Automator
 application for a dock icon, or use Safari's *File → Add to Dock*.
 
@@ -87,22 +81,13 @@ animation system possible.
   filter, arrows + Enter to place.
 - **Right panel** — live preview of the selected node (Space = large overlay preview,
   with a route simulator showing draw order and travel moves), parameters, ANIMATE,
-  Machine Setup, and export buttons.
+  Machine Setup, and export buttons. Canvas size accepts free-typed values (min 10 mm,
+  no upper limit — metre-class beds are fine); values commit on blur/Enter.
+- **⚙ node setup** — every node header has a gear that opens NODE SETUP: give the
+  node type a personal **nickname** (yours, saved in this browser; shows in headers,
+  the palette and quick-add search — search matches nicknames too), and set a
+  per-node **max** for any slider (saved with the project, ↺ resets).
 - **? button** — in-app help and loadable beginner examples.
-- **Per-node help** — every node header has a small **?**: hover for a quick tooltip,
-  click to open a description of what the node does and how to wire it. Texts come
-  from `MUUSIA-NODES.md`; imported custom nodes can ship their own via a `desc` field.
-- **Pop-out preview (⧉)** — opens the live preview in its own window for two-display
-  work: nodes on one screen, the drawing on the other. Follows every edit and
-  animation frame.
-- **Mega Canvas** — the panel above the export buttons multiplies the canvas into
-  cols × rows sheets for works larger than the plotter. Nodes need no changes; the
-  whole composition previews as one. Export slices the work into per-sheet tiles and
-  Download saves them all as numbered files inside a single ZIP
-  (`name-tile-03-r1c3.gcode`). **Seam** modes: *Overlap* repeats a seam-wide strip on
-  adjacent sheets (cut through it and butt-join) and *Gap* skips a strip between
-  sheets (mount with visible spacing). Optional crop marks at each tile's cut
-  corners.
 - Nodes with spatial parameters (Stretch, Crop, Magnet, Lens, Tangle Zone, Mirror,
   Explosion...) draw dashed **guide overlays** in the preview when selected.
 
@@ -115,18 +100,12 @@ routines). The active profile is used for G-code. Profiles import/export as
 (`muusia-machine-setup.html`) builds them with presets, a bed diagram and a
 lift-time estimate — no JSON editing.
 
-**Z modes — profile A (servo) and B (bed).** Machine Setup ships with two presets.
-**A — Servo lifts the pen** (default): pen up/down is a Klipper servo
-(`SET_SERVO SERVO=pen ANGLE=…`, name and angles configurable; define `[servo pen]`
-in printer.cfg). The bed-Z is untouched, which frees it — and the extra stepper —
-for tool duties like a multi-tip brush. **B — Bed Z lifts the pen** (the Ultimaker
-S5 conversion): the heavy bed is the Z axis, with the tangential brush-rotation
-stepper enabled. For bed mode two settings matter: **Z-hop** lifts only slightly
-between nearby paths (full Lift height is reserved for pen changes), and **settle
-delays** (down/up, in ms) pause after the bed moves so the pen doesn't drag before
-the bed stops. A servo lift wants near-zero delay; a bed wants 80–150 ms and z-hop
-on. **Z feed** sets bed lift speed. Old saved profiles without a Z mode behave
-exactly as before (bed).
+**Bed-plotter pen lift.** For machines whose Z axis is a heavy bed (e.g. the
+Ultimaker S5), two settings matter: **Z-hop** lifts only slightly between nearby
+paths (full Lift height is reserved for pen changes), and **settle delays**
+(down/up, in ms) pause after the bed moves so the pen doesn't drag before the bed
+stops. A servo lift wants near-zero delay and no z-hop; a bed wants 80–150 ms and
+z-hop on. **Z feed** sets lift speed.
 
 **Wearing media (chalk, charcoal, soft graphite).** These can't hold constant
 pressure as the tip wears — the real fix is a spring-loaded / gravity / magnet pen
@@ -146,6 +125,31 @@ to return exactly.
   minutes).
 - **EXPORT SVG** — millimetre-true SVG with one group per pen layer.
 
+**Mega Canvas (multi-sheet).** Compose on a virtual canvas of C x R sheets with
+**Overlap** or **Gap** seams; export slices the work into per-sheet tiles with
+optional crop marks on a chosen pen and downloads everything as **one ZIP**
+(`name-tile-01-r1c1.gcode`, ...). The bed diagram and previews show the full mega
+canvas.
+
+**Mini Canvas (production runs).** The inverse, as a node: *Auto grid* packs up to six
+wired compositions into a contact sheet; *Fixed size* replicates one mini size
+(postcard 148 x 105 etc.) N times across the sheet, cycling wired inputs, with
+**L cut marks** at the corners and **T fold marks** at an exact mm position from the
+card's left/top edge — both on their own Mark pen, so plot them in pencil and erase.
+
+**Magnet jig (laser-guided paper hold-down).** The machine profile stores a laser
+pointer offset (LASER JIG: offset X/Y, on/off commands). The export panel's MAGNET JIG
+section then produces a g-code that drives the pen-up laser to each magnet spot and
+pauses (M0) — drop a magnet, press continue.
+- **Auto** mode proposes the safest spots (farthest from pen lines, Clear mm minimum,
+  Edge margin, Spread spacing) — never an unsafe placement; a dense drawing with a
+  large Clear may yield fewer spots than asked, with a warning in the file.
+- **Manual** mode: **+ Place magnets**, then click the preview to add, drag to move,
+  double-click to remove. Coordinates are exact mm and save with the project.
+- Both modes show numbered markers in the preview; with Mega Canvas the jig is
+  computed/split **per sheet** in sheet-local coordinates, and multiple jigs download
+  as one ZIP whose files sort next to their tiles.
+
 ## 5. Animation
 
 Physical animation: plot N papers as frames, scan, assemble.
@@ -157,8 +161,10 @@ Physical animation: plot N papers as frames, scan, assemble.
 3. Wire outputs into any parameter. `frame #` into a Seed gives per-paper randomness
    (the hand-drawn "line boil"); `wave`/`ping-pong` into sizes/amounts gives smooth
    loops; for a full rotation use `frame # → Math (× 360/frameCount) → Rotate`.
-4. **▶** previews the animation live. **G-code × N / SVG × N** re-evaluates the graph
-   per frame and downloads one file per frame (`name-f000.gcode`, ...).
+4. **▶** previews the animation live. **All frames → gcode/svg** re-evaluates the
+   graph per frame and downloads one file per frame (`name-f000.gcode`, ...) at
+   450 ms intervals — allow multiple downloads in the browser when asked.
+   Mega Canvas and animation don't combine: keep animations single-sheet.
 
 Anything *not* wired to Frame is identical on every paper. Add a **Reg Marks** node
 last in your Merge for scan registration.
@@ -167,8 +173,7 @@ last in your Merge for scan registration.
 
 - **Node ⇣** imports a node definition file. The full authoring spec is in
   `MUUSIA-NODE-API.md` — it is written to be handed to an AI assistant, which can
-  produce an importable node from it. Include a `desc: "..."` field so the node gets
-  a help tooltip. Custom node sources are embedded in saved
+  produce an importable node from it. Custom node sources are embedded in saved
   patches, so patches are self-contained. Re-importing a key updates the node;
   × in the palette removes it (blocked while instances exist).
 - **Mod ⇡ / Mod ⇣** exports/imports a *selection* as a reusable module (subgraph
@@ -188,10 +193,15 @@ serves the live preview, the route simulator, and per-frame animation export. G-
 is generated by Muusia's own direction-aware exporter (not vpype), because stroke
 direction is data here.
 
+Features that need the *final* geometry, the machine profile and Mega Canvas tiling
+at once (crop marks, the magnet jig, tile slicing) live at the **export level**, not
+as nodes — a node can't see routing or sheet splits. The single-file ZIP writer is a
+hand-built STORE-mode implementation (with real CRC32) because browsers block long
+sequential download bursts.
+
 ## 8. Roadmap / ideas
 
-Custom pen palettes · per-pen time estimates · value ports on promoted group params ·
-multi-tip brush tip selection replacing pen-change pauses (servo profile) ·
-zMode support in the standalone machine configurator · a `nodes/` library folder for
-the unbaked extras (Boolean, Morph, ...) · registration marks for aligning mega-canvas
-sheets on the bed.
+Frame-sequence export as a single ZIP · custom pen palettes · per-pen time estimates ·
+value ports on promoted group params · multi-tip brush tool change (servo) ·
+zoned vacuum table workflow for wet media · registration marks for mega sheets ·
+GitHub `nodes/` library folder.

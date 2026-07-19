@@ -18,7 +18,7 @@ text are **English**.
 
 ## Files (all in outputs)
 
-- `muusia.jsx` — the whole app, one React file (~15000 lines, **156 nodes**, v2.0).
+- `muusia.jsx` — the whole app, one React file (~15280 lines, **172 nodes**, v2.20).
   Build target: `src/App.jsx` in a Vite project.
 - `MUUSIA-README.md` — project doc: install, concepts, UI, machines, animation, arch.
 - `MUUSIA-NODES.md` — every node explained.
@@ -84,6 +84,27 @@ off.
    "paren diff −1" is a **measurement artifact** (regex literals + the `"("`/`")"`
    glyph keys in SFONT), not a real error — esbuild compiles clean.
 
+## Magnet jig (v2.8)
+
+Steel bed + magnets hold the paper; magnets may sit anywhere, including inside
+the drawing, as long as the pen never hits one. The export panel's MAGNET JIG
+section proposes the N safest spots (10 mm grid; exact segment-distance
+clearance check + chamfer distance transform for ranking; greedy farthest-first
+with min spacing; stable tie-break by cell index; partial results warn, empty
+results error — never unsafe placements). `magnetPlacement(ps, sw, sh, opts)`
+and `jigGcode(positions, prof, sheetW, sheetH, label)` are top-level, tested
+functions right above APP_VERSION. Jig g-code: startG → pen up (servo or bed) →
+laserOnCmd → per magnet a travel move (position MINUS laser offset, same
+fx/fy origin+flipY mapping as toGcode) + pauseCmd stop → laserOffCmd → endG.
+Off-work-area targets emit WARNING comments + UI notes. Machine profile gained
+laserOn/laserOffX/laserOffY/laserOnCmd/laserOffCmd (merge-safe defaults;
+LASER JIG section in machine settings). Mega: one jig per sheet in sheet-local
+coords computed from that sheet's clipped tile (boundary-crossing art blocks
+both tiles); files named `-tile-NN-rRcC-jig.gcode` sort next to their tiles;
+multiple jigs bundle into `-jigs.zip`, single sheet downloads plain .gcode.
+can't see node inputs, so it draws rings via compute on its own pen; export
+remains the source of truth.
+
 ## Mega canvas (v1.9)
 
 Works larger than one sheet: the MEGA CANVAS panel (right sidebar, above export)
@@ -121,7 +142,7 @@ drawing on the other.
 - Live-page debugging: `curl -s <url> | wc -c` + version grep distinguishes
   "deploy broken" from "browser/CDN cache" (Pages CDN lags ~10 min).
 
-## Current node inventory (156)
+## Current node inventory (172)
 
 - **Generators (82):** Grid, Tracks, Flow Field, Truchet, Lissajous, Phyllotaxis,
   L-System, Spirograph, Pendulum, Cycloid Machine, Contours, Circle Packing,
@@ -133,7 +154,7 @@ drawing on the other.
   Mycelial Net, Sand Line Hatch, Gravity Cascade, Tape Saturation Harmonics,
   Hyperbolic Truchet Maze, Voronoi, Metaballs, Trace, Harmonograph, FM Rose, Conway, Superformula, String,
   Delaunay, Attractor, Reaction-Diffusion, Julia, Differential Growth, Runes,
-  Network, Tubes, Girih, Aggregate, Turtle.
+  Network, Tubes, Girih, Aggregate, Turtle, Lichen, Smoke, Himmeli, Polka Dots.
 - **Modifiers (50):** Apply Style, Wave, Jitter, Rotate, Glitch, Offset, Symmetry,
   Smooth, Magnet, Trim/Extend, Join Ends, Simplify, Lens, Warp, Mirror, Move/Scale,
   Fit to Canvas, Reverse, Skew, Align, Crop, Explosion, Stretch, Tangle Zone,
@@ -142,7 +163,7 @@ drawing on the other.
   Displace by Image, Travel Sort, Cull, Granulate, Fold, Bitcrush, Tile Shuffle,
   Kaleidoscope, To Polar, Filter, Fourier, SDF Contours, 3D View.
 - **Decorators (5):** Stamp, Outline, Coil, Fur, End Caps.
-- **Combiners (9):** Mask, Merge, Split, Array, Group, Copy to Points, Stencil, Switch, Ray.
+- **Combiners (10):** Mask, Merge, Split, Array, Group, Copy to Points, Stencil, Switch, Ray, Mini Canvas, Negative Space, Diff Pens, Hand Drawn, Subway Map, PCB Tracks, Moon Craters, Comets, Rect Collage, Blueberry Sprig, 3D Glitch, Power Pole.
 - **Math (9):** Frame, Value, Math, Random, Fan, LFO, Steps, Shaper, ADSR.
 - **Routing (1):** Route (hidden; routing lives in the export panel).
 
@@ -196,3 +217,31 @@ Ultimaker S5, pen-converted. The Z axis is the heavy heated bed → every lift i
 slow big-mass move, and the pen can drag if it moves before the bed settles. That's
 why z-hop (don't lift full height between nearby paths) and settle delays (pause
 after bed moves) exist. Firmware is picky about print-job-shaped g-code.
+
+
+## v2.18 UI features
+- Canvas W/H inputs use NumBox (type freely, clamps to >=10 on blur, no upper cap — 1 m bed sizes work).
+- Node slider setup mode: gear icon in the node header opens SLIDER SETUP, a per-node
+  max override for every slider/number param, stored in node.pmax (saved with the project,
+  reset arrow restores the default). ParamRow applies the override via def substitution.
+- Magnet jig preview: "Show magnets in preview" checkbox in the export panel's MAGNET JIG
+  section overlays dashed rings + crosshairs (guides channel, never plots) at the proposed
+  positions — per tile with correct offsets in Mega mode (Gap: c*(W+seam), Overlap: c*(W-seam)).
+- Safe Areas node removed: the jig preview toggle covers it at export level (the source of truth).
+
+## v2.19: manual magnet placement
+- MAGNET JIG has Mode: Auto | Manual. Manual: "+ Place magnets" arms click-to-place in
+  BOTH previews (small + big overlay); drag moves a magnet, double-click removes, Clear wipes.
+- Magnets render as a direct interactive SVG layer in PathsSVG (props magnets/onMagnets/placing)
+  - NOT the guides channel. This also fixed invisible auto-markers (root cause: magnetPlacement
+  returns [x,y] arrays, first preview code read q.x/q.y).
+- Coordinates: exact mm, 0.1 precision; single sheet = canvas mm, mega = mega mm, and export
+  splits per tile (cc=floor(x/dx), local=x-cc*dx, clamped into sheet).
+- Persisted in project JSON as jig:{mode, magnets}; loading old projects resets to Auto/[].
+- Auto mode unchanged (jigShow checkbox previews computed positions through the same layer).
+
+## v2.20: node nicknames
+User-level nicknames per node TYPE (localStorage muusia-nicks, not in project files).
+Edited in the gear panel (now NODE SETUP: Nickname field + slider maxes). Shown in node
+headers (replaces name), palette rows and quick-add results (accent, after name); quick-add
+search matches name OR nickname.

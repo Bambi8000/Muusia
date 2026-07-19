@@ -1,4 +1,4 @@
-# Muusia — Custom Node API (v1.0)
+# Muusia — Custom Node API (v1.1, app v2.20)
 
 This document is a **complete, self-contained specification** for writing a custom node
 for Muusia, a node-graph editor for generative pen-plotter art. You can hand this
@@ -80,7 +80,9 @@ that. Prefer resolution parameters so the user can trade detail for speed.
 |---|---|---|
 | `key` | string | Unique id, `^[a-z][a-z0-9_]*$`. Must not collide with built-ins. |
 | `name` | string | Palette / node title. |
+| `desc` | string, recommended | One-paragraph help shown by the node's **?** button and as tooltip. Write it for a user: what it draws, what the key params do, a chaining tip. |
 | `cat` | string | Palette section: `"gen"` (Generators), `"mod"` (Modifiers), `"dec"` (Decorators), `"duo"` (Combiners), `"math"` (Math). |
+| `group` | string, required for gen/mod | Palette folder. Generators: `geometric`, `organic`, `machines`, `nature`, `creatures`, `space`, `scientific`, `structural`, `textimg`. Modifiers: `transform`, `deform`, `pathops`, `cutsplit`, `fillstyle`, `penout`. Nodes without a group do not appear in folder view. |
 | `ins` | array *or* `(node) => array` | Input pins, see below. |
 | `outs` | array *or* `(node) => array` | Output pins. A function enables a dynamic count (read `node.params`). |
 | `params` | array | Parameter descriptors, section 4. |
@@ -109,8 +111,11 @@ wires — you get modulation for free.
 | `text` | — | Single-line text field. |
 | `file` | — | File picker; pair with `onFile`. |
 
-Compute must tolerate any numeric value (wires can push values outside min/max):
-clamp inside `compute` where it matters, and `Math.round()` values used as counts.
+Compute must tolerate any numeric value: wires can push values outside min/max, and
+since v2.18 the user can raise any slider's max per node (**⚙ slider setup**), so your
+declared `max` is a default, not a guarantee. Clamp inside `compute` where physics
+demands it, `Math.round()` values used as counts, and let a `margin`/fit keep output
+on-sheet at extreme values.
 
 ## 5. The compute contract
 
@@ -198,7 +203,35 @@ stable when others change.
 - Coordinates outside `0..W / 0..H` are allowed (modifiers may pull them back) but
   anything still outside at export prints off-canvas; prefer a `margin` param.
 
-## 9. Importing
+## 9. Testing your node before importing
+
+The definition file is plain JavaScript, so you can validate it in Node.js with a
+ten-line harness — the same practice used for every built-in node:
+
+```js
+const fs = require("fs");
+const Pin = (t, l) => ({ type: t, label: l });
+const EMPTY = { paths: [] };
+const PENS = Array.from({ length: 6 }, (_, i) => ({ name: "P" + i, c: "#000" }));
+function mulberry32(a){return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+function hash2(x,y,s){let h=Math.imul(Math.floor(x)^0x9e3779b9,2654435761);h^=Math.imul(Math.floor(y)^0x85ebca6b,2246822519);h^=Math.imul((s|0)^0xc2b2ae35,3266489917);h=(h^(h>>>15))>>>0;return h/4294967296;}
+function noise2(x,y,s){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const a=hash2(xi,yi,s),b=hash2(xi+1,yi,s),c=hash2(xi,yi+1,s),d=hash2(xi+1,yi+1,s);const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);return a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v;}
+function resample(pts,closed,step){/* even resampling; see spec section 6 */ if(pts.length<2)return pts.map(p=>p.slice());const src=closed?[...pts,pts[0]]:pts;const out=[src[0].slice()];let acc=0;for(let i=1;i<src.length;i++){let[x0,y0]=src[i-1],[x1,y1]=src[i];let seg=Math.hypot(x1-x0,y1-y0);while(acc+seg>=step){const t=(step-acc)/seg;const nx=x0+(x1-x0)*t,ny=y0+(y1-y0)*t;out.push([nx,ny]);x0=nx;y0=ny;seg=Math.hypot(x1-x0,y1-y0);acc=0;}acc+=seg;}if(!closed)out.push(src[src.length-1].slice());return out;}
+const pathLength=(pts)=>{let l=0;for(let i=1;i<pts.length;i++)l+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return l;};
+const applyStyle=(ps)=>ps, signedArea=()=>0;
+const H = { Pin, EMPTY, PENS, mulberry32, hash2, noise2, resample, pathLength, applyStyle, signedArea };
+const N = new Function(...Object.keys(H), '"use strict"; return (' + fs.readFileSync("my.plotternode.js","utf8") + ");")(...Object.values(H));
+const p = {}; for (const pr of N.params) p[pr.key] = pr.def;
+const r = N.compute([undefined], p, { W: 210, H: 297 }, {});
+console.log(r.paths.length, "paths");
+```
+
+Checks worth automating: every point finite and on-sheet across several seeds and
+extreme parameter values; determinism (same inputs → identical JSON); the seed
+actually changes the output; total points under the 120 000 budget; parameter
+behaviors verified with numbers rather than by eye.
+
+## 10. Importing
 
 Save the file as e.g. `myname.plotternode.js` → **Node ⇣** in the toolbar → the node
 appears in its palette category immediately. The definition source travels inside saved
