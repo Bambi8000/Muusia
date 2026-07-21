@@ -2779,6 +2779,142 @@ const DEFS = {
     }
   },
 
+  panelka: {
+      name: "Building",
+    cat: "gen", group: "structural",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "floors", label: "Floors", type: "slider", min: 2, max: 24, step: 1, def: 9 },
+      { key: "sections", label: "Sections (stairwells)", type: "slider", min: 1, max: 8, step: 1, def: 4 },
+      { key: "floorH", label: "Floor height mm", type: "slider", min: 3, max: 20, step: 0.5, def: 8 },
+      { key: "secW", label: "Section width mm", type: "slider", min: 10, max: 80, step: 1, def: 34 },
+      { key: "winPerSec", label: "Windows / section", type: "slider", min: 1, max: 4, step: 1, def: 2 },
+      { key: "balcony", label: "Balconies", type: "select", options: ["None", "Alternating columns", "All"], def: "Alternating columns" },
+      { key: "seams", label: "Panel seams", type: "check", def: true },
+      { key: "litRatio", label: "Lit windows", type: "slider", min: 0, max: 1, step: 0.05, def: 0.3 },
+      { key: "depth", label: "Side depth mm (0 = off)", type: "slider", min: 0, max: 60, step: 1, def: 18 },
+      { key: "roofBits", label: "Roof machinery + antennas", type: "check", def: true },
+      { key: "groundY", label: "Ground Y mm", type: "slider", min: 20, max: 400, step: 1, def: 185 },
+      { key: "seed", label: "Seed", type: "seed", def: 113 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W } = ctx;
+      const L = Math.round(p.layer);
+      const rng = mulberry32(p.seed * 3491 + 71);
+      const floors = Math.round(p.floors);
+      const secs = Math.round(p.sections);
+      const bw = secs * p.secW;                 /* rungon leveys */
+      const bh = floors * p.floorH;             /* rungon korkeus */
+      const x0 = (W - bw) / 2 - (p.depth > 0 ? p.depth * 0.35 : 0);
+      const y1 = p.groundY;                     /* maanpinta */
+      const y0 = y1 - bh;                       /* katto */
+      const paths = [];
+      const rect = (x, y, w, h, closed) => {
+        paths.push({ pts: [[x, y], [x + w, y], [x + w, y + h], [x, y + h]], closed: closed !== false, layer: L });
+      };
+      const line = (a, b) => paths.push({ pts: [a, b], closed: false, layer: L });
+      /* --- runko --- */
+      rect(x0, y0, bw, bh);
+      /* --- elementtisaumat: vaaka joka kerros, pysty joka sektio --- */
+      if (p.seams) {
+        for (let f = 1; f < floors; f++) line([x0, y0 + f * p.floorH], [x0 + bw, y0 + f * p.floorH]);
+        for (let s = 1; s < secs; s++) line([x0 + s * p.secW, y0], [x0 + s * p.secW, y1]);
+      }
+      /* --- ikkunat + parvekkeet --- */
+      const nW = Math.round(p.winPerSec);
+      const cellW = p.secW / nW;
+      const ww = cellW * 0.44, wh = p.floorH * 0.5;
+      for (let f = 0; f < floors; f++) {
+        const wy = y0 + f * p.floorH + p.floorH * 0.25;
+        for (let s = 0; s < secs; s++) {
+          for (let k = 0; k < nW; k++) {
+            const colIdx = s * nW + k;
+            const wx = x0 + s * p.secW + (k + 0.5) * cellW - ww / 2;
+            const isBalc = p.balcony === "All"
+              || (p.balcony === "Alternating columns" && colIdx % 2 === 1);
+            const ground = f === floors - 1;
+            if (isBalc && !ground) {
+              /* parveke: leveämpi kehys + kaiteen vaakaviivat */
+              const bx = wx - ww * 0.28, bwd = ww * 1.56;
+              rect(bx, wy, bwd, wh);
+              for (let q = 1; q <= 2; q++) {
+                line([bx, wy + wh * (0.5 + q * 0.16)], [bx + bwd, wy + wh * (0.5 + q * 0.16)]);
+              }
+            } else {
+              rect(wx, wy, ww, wh);
+              /* valo ikkunassa: diagonaaliviivat */
+              if (rng() < p.litRatio) {
+                line([wx + ww * 0.15, wy + wh * 0.85], [wx + ww * 0.85, wy + wh * 0.15]);
+                line([wx + ww * 0.15, wy + wh * 0.45], [wx + ww * 0.55, wy + wh * 0.15]);
+              }
+            }
+          }
+          /* ovi + katos joka sektion alakertaan */
+          if (f === floors - 1) {
+            const dx = x0 + s * p.secW + p.secW / 2;
+            const dw = Math.min(6, p.secW * 0.22), dh = Math.min(p.floorH * 0.7, 7);
+            rect(dx - dw / 2, y1 - dh, dw, dh, false);
+            line([dx - dw, y1 - dh - 1.2], [dx + dw, y1 - dh - 1.2]); /* katos */
+          }
+        }
+      }
+      /* --- katto: konehuone + antennit --- */
+      if (p.roofBits) {
+        line([x0 - 1.5, y0], [x0 + bw + 1.5, y0]); /* rajakorniisi */
+        const mw = p.secW * 0.7, mh = Math.min(6, p.floorH * 0.8);
+        const mx = x0 + bw * (0.15 + rng() * 0.5);
+        rect(mx, y0 - mh, mw, mh, false);
+        const nAnt = 1 + Math.floor(rng() * 3);
+        for (let a = 0; a < nAnt; a++) {
+          const ax = x0 + bw * (0.1 + rng() * 0.8);
+          const ah = 4 + rng() * 9;
+          line([ax, y0], [ax, y0 - ah]);
+          if (rng() < 0.5) line([ax - 1.5, y0 - ah + 1.5], [ax + 1.5, y0 - ah + 1.5]);
+        }
+      }
+      /* --- viisto sivupinta (oblique) --- */
+      if (p.depth > 0) {
+        const ddx = p.depth * 0.7, ddy = -p.depth * 0.5;
+        const xr = x0 + bw;
+        /* sivun aariviiva */
+        paths.push({
+          pts: [[xr, y0], [xr + ddx, y0 + ddy], [xr + ddx, y1 + ddy], [xr, y1]],
+          closed: true, layer: L,
+        });
+        /* katon taso */
+        paths.push({
+          pts: [[x0, y0], [x0 + ddx, y0 + ddy], [xr + ddx, y0 + ddy], [xr, y0]],
+          closed: true, layer: L,
+        });
+        /* kerrossaumat sivupinnalla */
+        if (p.seams) {
+          for (let f = 1; f < floors; f++) {
+            const yy = y0 + f * p.floorH;
+            line([xr, yy], [xr + ddx, yy + ddy]);
+          }
+          /* paatyikkunarivi (kapea) */
+          for (let f = 0; f < floors - 1; f++) {
+            const wy = y0 + f * p.floorH + p.floorH * 0.3;
+            const t = 0.5;
+            paths.push({
+              pts: [
+                [xr + ddx * (t - 0.12), wy + ddy * (t - 0.12)],
+                [xr + ddx * (t + 0.12), wy + ddy * (t + 0.12)],
+                [xr + ddx * (t + 0.12), wy + ddy * (t + 0.12) + p.floorH * 0.4],
+                [xr + ddx * (t - 0.12), wy + ddy * (t - 0.12) + p.floorH * 0.4],
+              ],
+              closed: true, layer: L,
+            });
+          }
+        }
+      }
+      /* maaviiva */
+      line([Math.max(2, x0 - bw * 0.15), y1], [Math.min(W - 2, x0 + bw + (p.depth > 0 ? p.depth : 0) + bw * 0.15), y1]);
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
 
   followlines: {
       name: "Follow Lines",
@@ -3635,9 +3771,10 @@ const DEFS = {
   },
 
   scan: {
-    name: "Seismic", cat: "gen", group: "scientific",
+    name: "Scan", cat: "gen", group: "scientific",
     ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
+      { key: "mode", label: "Modality", type: "select", options: ["X-ray (ribcage)", "CT slice", "MRI (head)", "Ultrasound", "Microscope (cells)", "SEM (diatom)", "EEG / Seismic"], def: "MRI (head)" },
       { key: "size", label: "Size mm", type: "slider", min: 30, max: 300, step: 1, def: 150 },
       { key: "detail", label: "Detail / density", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
       { key: "annotate", label: "Annotations (ticks, scale)", type: "check", def: true },
@@ -3683,7 +3820,270 @@ const DEFS = {
         }
         return fs.width;
       };
-              /* EEG / Seismic: kanavarivit, rauhallista pohjaa + purskeet */
+      const M = p.mode;
+      if (M === "X-ray (ribcage)") {
+        const h = S, w = S * 0.72;
+        const top = p.cy - h / 2;
+        /* selkaranka: nikamapino */
+        const nV = 10;
+        const vh = h / nV;
+        for (let v = 0; v < nV; v++) {
+          const vy = top + v * vh;
+          const vw = w * 0.075 * (1 + 0.1 * Math.sin(v));
+          poly([[p.cx - vw, vy + vh * 0.12], [p.cx + vw, vy + vh * 0.12], [p.cx + vw, vy + vh * 0.82], [p.cx - vw, vy + vh * 0.82]], true);
+        }
+        /* kylkiluut: kaarevat parit molemmin puolin, kaksoisviivoina */
+        const nR = 8;
+        for (let r = 0; r < nR; r++) {
+          const t = r / (nR - 1);
+          const ry = top + h * (0.12 + t * 0.72);
+          const reach = w * (0.5 + 0.5 * Math.sin(Math.PI * Math.min(1, 0.25 + t)));
+          for (const s of [1, -1]) {
+            for (const off of [0, 1.4]) {
+              const pts = [];
+              for (let k = 0; k <= 16; k++) {
+                const u = k / 16;
+                const x = p.cx + s * (w * 0.08 + reach * Math.sin(u * Math.PI * 0.62));
+                const y = ry + off + u * u * h * 0.16 + Math.sin(u * 6 + r) * 0.4 * (1 - p.detail * 0.5);
+                pts.push([x, y]);
+              }
+              poly(pts, false);
+            }
+          }
+        }
+        /* solisluut */
+        for (const s of [1, -1]) {
+          poly([[p.cx + s * w * 0.06, top + h * 0.05], [p.cx + s * w * 0.3, top + h * 0.02], [p.cx + s * w * 0.48, top + h * 0.06]], false);
+        }
+        if (p.annotate) {
+          label("AP VIEW", p.cx - w / 2, top - 6, 4, AP);
+          label("R", p.cx - w / 2 - 10, p.cy, 6, AP);
+        }
+      } else if (M === "CT slice") {
+        const rx = S / 2, ry = S * 0.38;
+        /* iho + rasvakerros: sisakkaiset ellipsit kohinalla */
+        for (const f of [1, 0.94, 0.88]) {
+          const pts = [];
+          for (let k = 0; k < 64; k++) {
+            const a = (k / 64) * Math.PI * 2;
+            const n = 1 + (noise2(Math.cos(a) * 2 + 30, Math.sin(a) * 2, p.seed) - 0.5) * 0.05;
+            pts.push([p.cx + Math.cos(a) * rx * f * n, p.cy + Math.sin(a) * ry * f * n]);
+          }
+          poly(pts, true);
+        }
+        /* nikama alareunassa + sadetahti */
+        const sy = p.cy + ry * 0.55;
+        circle(p.cx, sy, S * 0.07, 20);
+        for (let k = 0; k < 8; k++) {
+          const a = (k / 8) * Math.PI * 2;
+          line([p.cx + Math.cos(a) * S * 0.03, sy + Math.sin(a) * S * 0.03], [p.cx + Math.cos(a) * S * 0.07, sy + Math.sin(a) * S * 0.07]);
+        }
+        /* elimet: blobit, yksi viivoitettu */
+        const organs = [[-0.32, -0.12, 0.2], [0.28, -0.08, 0.24], [0.02, 0.14, 0.13]];
+        organs.forEach(([ox, oy, or_], i) => {
+          const b = blob(p.cx + ox * rx * 1.4, p.cy + oy * ry * 1.6, or_ * S * 0.5, 0.25, p.seed + i * 7);
+          poly(b, true);
+          if (i === 1 && p.detail > 0.3) {
+            /* tihea elin: sisainen viivoitus vaakaan */
+            let y0 = Infinity, y1 = -Infinity;
+            for (const [, yy] of b) { if (yy < y0) y0 = yy; if (yy > y1) y1 = yy; }
+            for (let y = y0 + 2; y < y1; y += 2.2 - p.detail) {
+              const xs = [];
+              for (let j = 0, jj = b.length - 1; j < b.length; jj = j++) {
+                if ((b[j][1] > y) !== (b[jj][1] > y)) {
+                  xs.push(b[jj][0] + (b[j][0] - b[jj][0]) * (y - b[jj][1]) / (b[j][1] - b[jj][1]));
+                }
+              }
+              xs.sort((a2, b2) => a2 - b2);
+              for (let q = 0; q + 1 < xs.length; q += 2) line([xs[q], y], [xs[q + 1], y]);
+            }
+          }
+        });
+        if (p.annotate) {
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            line([p.cx + dx * (rx + 4), p.cy + dy * (ry + 4)], [p.cx + dx * (rx + 9), p.cy + dy * (ry + 9)], AP);
+          }
+          label("R", p.cx - rx - 14, p.cy, 5, AP);
+          label("L", p.cx + rx + 8, p.cy, 5, AP);
+        }
+      } else if (M === "MRI (head)") {
+        const h = S, w = S * 0.82;
+        const x0 = p.cx - w / 2, y0 = p.cy - h / 2;
+        /* profiili vasemmalle: otsa-nena-huulet-leuka parametrisena */
+        const P = [
+          [0.52, 0.02], [0.3, 0.06], [0.14, 0.2], [0.06, 0.38],
+          [0.02, 0.5], [0.1, 0.55], [0.03, 0.62], [0.1, 0.66],
+          [0.06, 0.72], [0.14, 0.78], [0.2, 0.86], [0.3, 0.95], [0.42, 1.0],
+        ].map(([u, v]) => [x0 + u * w + (rng() - 0.5) * 1.2, y0 + v * h]);
+        /* takaraivo + kallo */
+        const back = [];
+        for (let k = 0; k <= 20; k++) {
+          const a = -Math.PI / 2 + (k / 20) * Math.PI;
+          back.push([p.cx + Math.cos(a) * w * 0.46, y0 + h * 0.34 + Math.sin(a) * h * 0.36]);
+        }
+        poly([...P, ...back.reverse()], false);
+        /* kallon sisareuna ylhaalla */
+        const inner = [];
+        for (let k = 0; k <= 24; k++) {
+          const a = Math.PI * 1.05 + (k / 24) * Math.PI * 0.95;
+          inner.push([p.cx + Math.cos(a) * w * 0.4, y0 + h * 0.33 + Math.sin(a) * h * 0.3]);
+        }
+        poly(inner, false);
+        /* aivot: gyrus-mutkittelu ellipsin sisalla */
+        const bcx = p.cx + w * 0.02, bcy = y0 + h * 0.3;
+        const brx = w * 0.36, bry = h * 0.26;
+        const inBrain = (x, y) => ((x - bcx) / brx) ** 2 + ((y - bcy) / bry) ** 2 <= 1;
+        const nG = Math.round(30 + p.detail * 90);
+        for (let g = 0; g < nG; g++) {
+          let x = bcx + (rng() * 2 - 1) * brx * 0.9;
+          let y = bcy + (rng() * 2 - 1) * bry * 0.9;
+          if (!inBrain(x, y)) continue;
+          const pts = [[x, y]];
+          let a = rng() * Math.PI * 2;
+          const steps = 6 + Math.floor(rng() * 12);
+          for (let s2 = 0; s2 < steps; s2++) {
+            a += (noise2(x * 0.06, y * 0.06, p.seed + 3) - 0.5) * 2.4;
+            x += Math.cos(a) * 1.6;
+            y += Math.sin(a) * 1.6;
+            if (!inBrain(x, y)) break;
+            pts.push([x, y]);
+          }
+          if (pts.length > 2) poly(pts, false);
+        }
+        /* pikkuaivot: hienot rinnakkaiskaaret */
+        const ccx = p.cx + w * 0.24, ccy = y0 + h * 0.52;
+        for (let r = 3; r < w * 0.15; r += 2) {
+          const pts = [];
+          for (let k = 0; k <= 12; k++) {
+            const a = Math.PI * 0.15 + (k / 12) * Math.PI * 0.9;
+            pts.push([ccx + Math.cos(a) * r, ccy + Math.sin(a) * r * 0.8]);
+          }
+          poly(pts, false);
+        }
+        /* aivorunko */
+        poly([[p.cx + w * 0.1, y0 + h * 0.5], [p.cx + w * 0.08, y0 + h * 0.68]], false);
+        poly([[p.cx + w * 0.16, y0 + h * 0.52], [p.cx + w * 0.14, y0 + h * 0.68]], false);
+        if (p.annotate) {
+          label("SAG T1", x0, y0 - 5, 4, AP);
+          for (let k = 0; k < 5; k++) line([x0 - 6, y0 + (k / 4) * h], [x0 - 3, y0 + (k / 4) * h], AP);
+        }
+      } else if (M === "Ultrasound") {
+        const apex = [p.cx, p.cy - S * 0.45];
+        const ang0 = Math.PI / 2 - 0.6, ang1 = Math.PI / 2 + 0.6;
+        const R = S * 0.9;
+        /* sektorin reunat + kaari */
+        line(apex, [apex[0] + Math.cos(ang0) * R, apex[1] + Math.sin(ang0) * R]);
+        line(apex, [apex[0] + Math.cos(ang1) * R, apex[1] + Math.sin(ang1) * R]);
+        const arcPts = (r) => {
+          const pts = [];
+          for (let k = 0; k <= 40; k++) {
+            const a = ang0 + (k / 40) * (ang1 - ang0);
+            pts.push([apex[0] + Math.cos(a) * r, apex[1] + Math.sin(a) * r]);
+          }
+          return pts;
+        };
+        poly(arcPts(R), false);
+        /* kaikukerrokset: kohinaportitetut katkokaaret (speckle) */
+        const nB = Math.round(10 + p.detail * 26);
+        for (let b = 1; b <= nB; b++) {
+          const r = (b / nB) * R * 0.97 + 3;
+          let run = [];
+          const flush = () => { if (run.length > 1) poly(run, false); run = []; };
+          for (let k = 0; k <= 90; k++) {
+            const a = ang0 + (k / 90) * (ang1 - ang0);
+            const g = noise2(a * 9, r * 0.25, p.seed + 11);
+            if (g > 0.62 - p.detail * 0.22) run.push([apex[0] + Math.cos(a) * r, apex[1] + Math.sin(a) * r]);
+            else flush();
+          }
+          flush();
+        }
+        /* kaikutiivis massa */
+        const ma = (ang0 + ang1) / 2 + (rng() - 0.5) * 0.5;
+        const mr = R * (0.45 + rng() * 0.3);
+        const mx = apex[0] + Math.cos(ma) * mr, my = apex[1] + Math.sin(ma) * mr;
+        for (let r = 2; r < S * 0.1; r += 1.6) circle(mx, my, r, 18);
+        if (p.annotate) {
+          for (let d = 1; d <= 4; d++) {
+            const r = (d / 4) * R;
+            const a = ang1 + 0.05;
+            line([apex[0] + Math.cos(a) * r, apex[1] + Math.sin(a) * r], [apex[0] + Math.cos(a) * (r + 4), apex[1] + Math.sin(a) * (r + 4)], AP);
+          }
+          label("5 MHZ", p.cx - S * 0.45, apex[1] - 4, 4, AP);
+        }
+      } else if (M === "Microscope (cells)") {
+        const R = S / 2;
+        /* nakokentta */
+        circle(p.cx, p.cy, R, 72);
+        circle(p.cx, p.cy, R - 1.6, 72);
+        /* solut */
+        const nC = Math.round(5 + p.detail * 18);
+        const placed = [];
+        let guard = 0;
+        while (placed.length < nC && guard++ < nC * 30) {
+          const a = rng() * Math.PI * 2;
+          const d = Math.sqrt(rng()) * R * 0.82;
+          const x = p.cx + Math.cos(a) * d, y = p.cy + Math.sin(a) * d;
+          const r = S * (0.05 + rng() * 0.06);
+          if (d + r > R * 0.95) continue;
+          let ok = true;
+          for (const q of placed) if (Math.hypot(x - q[0], y - q[1]) < (r + q[2]) * 0.9) { ok = false; break; }
+          if (!ok) continue;
+          placed.push([x, y, r]);
+          const mitosis = rng() < 0.18;
+          if (mitosis) {
+            const oa = rng() * Math.PI * 2;
+            poly(blob(x - Math.cos(oa) * r * 0.5, y - Math.sin(oa) * r * 0.5, r * 0.68, 0.2, p.seed + placed.length * 13), true);
+            poly(blob(x + Math.cos(oa) * r * 0.5, y + Math.sin(oa) * r * 0.5, r * 0.68, 0.2, p.seed + placed.length * 17), true);
+          } else {
+            poly(blob(x, y, r, 0.22, p.seed + placed.length * 11), true);
+            /* tuma + organellit */
+            const nx = x + (rng() - 0.5) * r * 0.5, ny = y + (rng() - 0.5) * r * 0.5;
+            poly(blob(nx, ny, r * 0.36, 0.25, p.seed + placed.length * 19), true);
+            const nOrg = 2 + Math.floor(rng() * 4);
+            for (let o = 0; o < nOrg; o++) {
+              const oa = rng() * Math.PI * 2, od = rng() * r * 0.7;
+              const oxp = x + Math.cos(oa) * od, oyp = y + Math.sin(oa) * od;
+              if (Math.hypot(oxp - nx, oyp - ny) < r * 0.45) continue;
+              circle(oxp, oyp, 0.7 + rng() * 0.8, 7);
+            }
+          }
+        }
+        if (p.annotate) {
+          const bx = p.cx + R * 0.35, by = p.cy + R + 8;
+          line([bx, by], [bx + S * 0.2, by], AP);
+          line([bx, by - 2], [bx, by + 2], AP);
+          line([bx + S * 0.2, by - 2], [bx + S * 0.2, by + 2], AP);
+          label("50 UM", bx + S * 0.045, by + 8, 4, AP);
+        }
+      } else if (M === "SEM (diatom)") {
+        const R = S / 2;
+        /* piileva: kaksoiskuori + sateittaiset ripsut + huokosrenkaat */
+        circle(p.cx, p.cy, R, 72);
+        circle(p.cx, p.cy, R * 0.96, 72);
+        circle(p.cx, p.cy, R * 0.16, 24);
+        const nRib = Math.round(18 + p.detail * 40);
+        for (let k = 0; k < nRib; k++) {
+          const a = (k / nRib) * Math.PI * 2;
+          line([p.cx + Math.cos(a) * R * 0.2, p.cy + Math.sin(a) * R * 0.2],
+               [p.cx + Math.cos(a) * R * 0.94, p.cy + Math.sin(a) * R * 0.94]);
+        }
+        /* huokoset: pisteita ripsien valissa renkaittain */
+        const nRing = Math.round(3 + p.detail * 5);
+        for (let ring = 1; ring <= nRing; ring++) {
+          const r = R * (0.2 + (ring / (nRing + 1)) * 0.72);
+          for (let k = 0; k < nRib; k++) {
+            const a = ((k + 0.5) / nRib) * Math.PI * 2;
+            circle(p.cx + Math.cos(a) * r, p.cy + Math.sin(a) * r, 0.7 + ring * 0.12, 6);
+          }
+        }
+        if (p.annotate) {
+          label("SEM 2.0KV X850", p.cx - R, p.cy + R + 8, 4, AP);
+          const bx = p.cx + R * 0.4;
+          line([bx, p.cy + R + 14], [bx + S * 0.15, p.cy + R + 14], AP);
+          label("10 UM", bx, p.cy + R + 21, 3.5, AP);
+        }
+      } else {
+        /* EEG / Seismic: kanavarivit, rauhallista pohjaa + purskeet */
         const nCh = Math.round(5 + p.detail * 9);
         const w = S * 1.4, h = S;
         const x0 = p.cx - w / 2, y0 = p.cy - h / 2;
@@ -3724,7 +4124,7 @@ const DEFS = {
           }
           label("1 S/DIV", x0, y0 + h + 13, 3.5, AP);
         }
-
+      }
       return applyStyle({ paths }, ins[0]);
     },
   },
@@ -4217,7 +4617,238 @@ const DEFS = {
     },
   },
 
+  planets: {
+    name: "Planets", cat: "gen", group: "space",
+    ins: [Pin("style", "Style")], outs: [Pin("paths")],
+    params: [
+      { key: "body", label: "Body", type: "select", options: ["Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Moon"], def: "Saturn" },
+      { key: "size", label: "Radius mm", type: "slider", min: 10, max: 180, step: 1, def: 70 },
+      { key: "detail", label: "Surface detail", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+      { key: "rings", label: "Rings (if any)", type: "check", def: true },
+      { key: "terminator", label: "Shadow terminator", type: "slider", min: 0, max: 1, step: 0.05, def: 0 },
+      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
+      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "seed", label: "Seed", type: "seed", def: 177 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const L = Math.round(p.layer);
+      const rng = mulberry32(p.seed * 9011 + 47);
+      const R = p.size;
+      const cx = p.cx, cy = p.cy;
+      const paths = [];
+      const circle = (x, y, r, n) => {
+        const pts = [];
+        const N = n || Math.max(40, Math.round(r * 2.2));
+        for (let k = 0; k < N; k++) { const a = (k / N) * Math.PI * 2; pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r]); }
+        return pts;
+      };
+      /* kiekko */
+      paths.push({ pts: circle(cx, cy, R), closed: true, layer: L });
+      const body = p.body;
+      const bandLine = (yFrac, amp, wob) => {
+        /* vaakavyo pallon poikki (leveys pienenee reunoilla) */
+        const y = cy + yFrac * R;
+        const halfX = Math.sqrt(Math.max(0, R * R - (y - cy) * (y - cy)));
+        if (halfX < 1) return;
+        const pts = [];
+        const steps = Math.max(6, Math.round(halfX / 2));
+        for (let k = 0; k <= steps; k++) {
+          const x = cx - halfX + (2 * halfX) * (k / steps);
+          const yy = y + Math.sin(k * 0.6 + yFrac * 9) * amp * wob;
+          pts.push([x, yy]);
+        }
+        paths.push({ pts, closed: false, layer: L });
+      };
+      const spot = (xf, yf, rf) => {
+        const x = cx + xf * R, y = cy + yf * R;
+        const rr = rf * R;
+        if (Math.hypot(x - cx, y - cy) + rr > R) return;
+        paths.push({ pts: circle(x, y, rr, 20), closed: true, layer: L });
+      };
+      const craters = (n) => {
+        for (let i = 0; i < n; i++) {
+          const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * R * 0.82;
+          const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d;
+          const cr = R * (0.03 + rng() * 0.09);
+          if (Math.hypot(x - cx, y - cy) + cr > R * 0.97) continue;
+          paths.push({ pts: circle(x, y, cr, 14), closed: true, layer: L });
+        }
+      };
+      const nD = p.detail;
+      if (body === "Sun") {
+        /* koronapiikit ulos + granulaatiokaaria */
+        const spikes = Math.round(16 + nD * 28);
+        for (let k = 0; k < spikes; k++) {
+          const a = (k / spikes) * Math.PI * 2;
+          const l = R * (0.08 + rng() * 0.14);
+          paths.push({ pts: [[cx + Math.cos(a) * R, cy + Math.sin(a) * R], [cx + Math.cos(a) * (R + l), cy + Math.sin(a) * (R + l)]], closed: false, layer: L });
+        }
+        for (let i = 0; i < Math.round(nD * 8); i++) spot((rng() - 0.5) * 1.2, (rng() - 0.5) * 1.2, 0.03 + rng() * 0.04);
+      } else if (body === "Mercury" || body === "Moon") {
+        craters(Math.round(6 + nD * 30));
+      } else if (body === "Venus") {
+        for (let b = -3; b <= 3; b++) bandLine(b / 4.2, R * 0.03, nD);
+      } else if (body === "Earth") {
+        /* mannermaiset blobit + navat */
+        for (let i = 0; i < Math.round(2 + nD * 4); i++) {
+          const a = rng() * Math.PI * 2, d = rng() * R * 0.6;
+          const bx = cx + Math.cos(a) * d, by = cy + Math.sin(a) * d;
+          const cont = [];
+          const cn = 8 + Math.floor(rng() * 6);
+          const cr = R * (0.18 + rng() * 0.22);
+          for (let k = 0; k < cn; k++) {
+            const aa = (k / cn) * Math.PI * 2;
+            const r = cr * (0.6 + rng() * 0.6);
+            let x = bx + Math.cos(aa) * r, y = by + Math.sin(aa) * r;
+            const dd = Math.hypot(x - cx, y - cy);
+            if (dd > R * 0.96) { x = cx + (x - cx) / dd * R * 0.96; y = cy + (y - cy) / dd * R * 0.96; }
+            cont.push([x, y]);
+          }
+          paths.push({ pts: cont, closed: true, layer: L });
+        }
+      } else if (body === "Mars") {
+        craters(Math.round(3 + nD * 10));
+        for (let b = -2; b <= 2; b += 2) bandLine(b / 3.5, R * 0.02, nD * 0.5);
+        /* napalakki */
+        paths.push({ pts: circle(cx, cy - R * 0.75, R * 0.18, 18), closed: true, layer: L });
+      } else if (body === "Jupiter") {
+        for (let b = -5; b <= 5; b++) bandLine(b / 6.5, R * 0.035, nD);
+        /* suuri punainen pilkku */
+        spot(0.35, 0.2, 0.12);
+      } else if (body === "Saturn") {
+        for (let b = -4; b <= 4; b++) bandLine(b / 5.5, R * 0.025, nD * 0.7);
+      } else if (body === "Uranus" || body === "Neptune") {
+        for (let b = -3; b <= 3; b += 1) bandLine(b / 4.5, R * 0.02, nD * 0.5);
+        if (body === "Neptune") spot(-0.3, -0.15, 0.1);
+      }
+      /* renkaat: Saturnus aina, Uranus valinnaisesti; ellipsi eteen+taakse */
+      if (p.rings && (body === "Saturn" || body === "Uranus")) {
+        const tilt = body === "Saturn" ? 0.32 : 0.72;
+        const ringR = [R * 1.35, R * 1.7, R * 1.9];
+        for (const rR of ringR) {
+          const ell = [];
+          for (let k = 0; k <= 60; k++) {
+            const a = (k / 60) * Math.PI * 2;
+            ell.push([cx + Math.cos(a) * rR, cy + Math.sin(a) * rR * tilt]);
+          }
+          paths.push({ pts: ell, closed: true, layer: L });
+        }
+      }
+      /* varjoterminaattori: sirpin kaari */
+      if (p.terminator > 0.02) {
+        const off = (p.terminator * 2 - 1) * R;
+        const term = [];
+        for (let k = 0; k <= 40; k++) {
+          const t = k / 40;
+          const y = cy - R + t * 2 * R;
+          const halfX = Math.sqrt(Math.max(0, R * R - (y - cy) * (y - cy)));
+          term.push([cx + off * (halfX / R), y]);
+        }
+        paths.push({ pts: term, closed: false, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    },
+  },
 
+  solar: {
+    name: "Solar System", cat: "gen", group: "space",
+    ins: [Pin("style", "Style")], outs: [Pin("paths")],
+    params: [
+      { key: "planets", label: "Planets", type: "multi", options: ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"], def: ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn"] },
+      { key: "orbits", label: "Orbit paths", type: "check", def: true },
+      { key: "moons", label: "Major moons", type: "check", def: true },
+      { key: "moonOrbits", label: "Moon orbits", type: "check", def: true },
+      { key: "sun", label: "Draw sun", type: "check", def: true },
+      { key: "spacing", label: "Orbit spacing", type: "select", options: ["Even", "Log (realistic-ish)"], def: "Even" },
+      { key: "phase", label: "Orbit phase", type: "slider", min: 0, max: 360, step: 1, def: 40 },
+      { key: "tilt", label: "View tilt", type: "slider", min: 0.15, max: 1, step: 0.05, def: 0.5 },
+      { key: "planetScale", label: "Planet size ×", type: "slider", min: 0.3, max: 3, step: 0.1, def: 1 },
+      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
+      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "orbitPen", label: "Orbit pen", type: "pen", def: 0 },
+      { key: "seed", label: "Seed", type: "seed", def: 179 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer), OP = Math.round(p.orbitPen);
+      const cx = p.cx, cy = p.cy;
+      const tilt = p.tilt;
+      const paths = [];
+      /* planeettadata: suhteellinen sade (nakyva), variarvo, kuut [nimi, kiertosade x planeetan sade] */
+      const DATA = {
+        Mercury: { r: 1.2, moons: [] },
+        Venus: { r: 1.6, moons: [] },
+        Earth: { r: 1.7, moons: [["Moon", 2.4]] },
+        Mars: { r: 1.4, moons: [["Phobos", 1.8], ["Deimos", 2.6]] },
+        Jupiter: { r: 4.2, moons: [["Io", 1.7], ["Europa", 2.2], ["Ganymede", 2.9], ["Callisto", 3.7]] },
+        Saturn: { r: 3.6, moons: [["Titan", 3.2], ["Rhea", 2.2]], ring: true },
+        Uranus: { r: 2.6, moons: [["Titania", 2.4], ["Oberon", 3.1]], ring: true },
+        Neptune: { r: 2.5, moons: [["Triton", 2.6]] },
+      };
+      const ORDER = ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"];
+      const sel = (p.planets && p.planets.length ? p.planets : ["Earth"]).filter((n) => DATA[n]);
+      sel.sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+      const circle = (x, y, r, ty, n) => {
+        const pts = []; const N = n || Math.max(20, Math.round(r * 2.5));
+        for (let k = 0; k < N; k++) { const a = (k / N) * Math.PI * 2; pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r]); }
+        paths.push({ pts, closed: true, layer: ty });
+      };
+      const ellipse = (x, y, r, ty) => {
+        const pts = []; const N = Math.max(40, Math.round(r * 2));
+        for (let k = 0; k < N; k++) { const a = (k / N) * Math.PI * 2; pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r * tilt]); }
+        paths.push({ pts, closed: true, layer: ty });
+      };
+      /* aurinko */
+      const sunR = 8 * p.planetScale;
+      if (p.sun) circle(cx, cy, sunR, L, 40);
+      /* kiertoradat: mahdu W/2:een marginaalilla */
+      const maxOrbit = Math.min(W, H) / 2 - 20;
+      const n = sel.length;
+      const phase = (p.phase * Math.PI) / 180;
+      sel.forEach((name, i) => {
+        const d = DATA[name];
+        let orbitR;
+        if (p.spacing.startsWith("Log")) {
+          orbitR = sunR + 14 + (maxOrbit - sunR - 14) * (Math.log(2 + i) / Math.log(2 + n - 1));
+        } else {
+          orbitR = sunR + 14 + (maxOrbit - sunR - 14) * ((i + 1) / n);
+        }
+        /* kiertorata */
+        if (p.orbits) ellipse(cx, cy, orbitR, OP);
+        /* planeetan sijainti radalla */
+        const ang = phase + i * 1.05;
+        const px = cx + Math.cos(ang) * orbitR;
+        const py = cy + Math.sin(ang) * orbitR * tilt;
+        const pr = Math.max(1.5, d.r * 2.2 * p.planetScale);
+        circle(px, py, pr, L, Math.max(16, Math.round(pr * 3)));
+        /* renkaat */
+        if (d.ring) {
+          for (const rr of [pr * 1.5, pr * 1.9]) {
+            const ell = [];
+            for (let k = 0; k <= 40; k++) { const a = (k / 40) * Math.PI * 2; ell.push([px + Math.cos(a) * rr, py + Math.sin(a) * rr * 0.4]); }
+            paths.push({ pts: ell, closed: true, layer: L });
+          }
+        }
+        /* kuut */
+        if (p.moons && d.moons.length) {
+          d.moons.forEach(([mn, mOrb], mi) => {
+            const mR = pr * mOrb;
+            if (p.moonOrbits) {
+              const ell = [];
+              for (let k = 0; k <= 30; k++) { const a = (k / 30) * Math.PI * 2; ell.push([px + Math.cos(a) * mR, py + Math.sin(a) * mR * tilt]); }
+              paths.push({ pts: ell, closed: true, layer: OP });
+            }
+            const ma = phase * 1.7 + mi * 1.3 + i;
+            const mx = px + Math.cos(ma) * mR, my = py + Math.sin(ma) * mR * tilt;
+            circle(mx, my, Math.max(0.8, pr * 0.28), L, 12);
+          });
+        }
+      });
+      return applyStyle({ paths }, ins[0]);
+    },
+  },
 
   travelstop: {
     name: "Travel Stop", cat: "mod", group: "penout",
@@ -4861,6 +5492,127 @@ const DEFS = {
       return applyStyle({ paths }, ins[0]);
     },
   },
+  macrame: {
+    name: "Macrame",
+    cat: "gen",
+    group: "organic",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "pattern", label: "Pattern", type: "select", options: ["Alternating net", "Diamonds", "Sinnet columns"], def: "Alternating net" },
+      { key: "cords", label: "Cords", type: "slider", min: 4, max: 40, step: 2, def: 12 },
+      { key: "rows", label: "Knot rows", type: "slider", min: 1, max: 40, step: 1, def: 9 },
+      { key: "knot", label: "Knot size mm", type: "slider", min: 1, max: 10, step: 0.25, def: 3 },
+      { key: "fringe", label: "Fringe mm", type: "slider", min: 0, max: 80, step: 1, def: 25 },
+      { key: "wiggle", label: "Fringe wiggle", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5 },
+      { key: "bar", label: "Top bar + loops", type: "check", def: true },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 11 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 },
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const L = Math.round(p.layer);
+      const m = Math.max(0, p.margin);
+      let N = Math.max(4, Math.min(40, Math.round(p.cords)));
+      N -= N % 2;
+      const kd = Math.max(0.5, Math.min(12, p.knot));
+      const x0 = m, x1 = W - m;
+      if (x1 - x0 < N * 2) return applyStyle({ paths: [] }, ins[0]);
+      const xi = (i) => x0 + ((i + 0.5) / N) * (x1 - x0);
+
+      const ybar = m + 2;
+      const yTop = ybar + (p.bar ? 4 : 1);
+      const fringe = Math.max(0, p.fringe);
+      const avail = H - m - yTop - fringe - 2;
+      let R = Math.max(1, Math.min(40, Math.round(p.rows)));
+      if (avail < R * Math.max(2, kd)) {
+        R = Math.max(1, Math.floor(avail / Math.max(2, kd)));
+      }
+      if (avail < 4) return applyStyle({ paths: [] }, ins[0]);
+      const rowH = avail / R;
+      const yRow = (r) => yTop + (r + 0.5) * rowH;
+
+      /* which adjacent-cord pairs get a knot on row r (pair = left cord index) */
+      const pairsAt = (r) => {
+        const out = [];
+        if (p.pattern === "Sinnet columns") {
+          for (let i = 0; i + 1 < N; i += 2) out.push(i);
+        } else if (p.pattern === "Diamonds") {
+          const T = Math.max(2, N - 2);
+          const rr = r % T;
+          const cand = [rr, N - 2 - rr].filter((v) => v >= 0 && v + 1 < N);
+          cand.sort((a, b) => a - b);
+          let last = -9;
+          for (const c of cand) {
+            if (c - last >= 2) { out.push(c); last = c; }
+          }
+        } else {
+          /* alternating net */
+          for (let i = r % 2; i + 1 < N; i += 2) out.push(i);
+        }
+        return out;
+      };
+
+      const paths = [];
+      /* per-cord routing through its knots */
+      const cordPts = Array.from({ length: N }, (_, c) => [[xi(c), p.bar ? ybar + 1.2 : ybar]]);
+      const knots = []; /* [kx, ky] */
+      for (let r = 0; r < R; r++) {
+        const y = yRow(r);
+        for (const i of pairsAt(r)) {
+          const kx = (xi(i) + xi(i + 1)) / 2;
+          knots.push([kx, y]);
+          /* cords pinch into the knot and out below it */
+          const off = kd * 0.2;
+          cordPts[i].push([kx - off, y - kd * 0.5], [kx - off, y + kd * 0.5]);
+          cordPts[i + 1].push([kx + off, y - kd * 0.5], [kx + off, y + kd * 0.5]);
+        }
+      }
+      /* finish cords + fringe */
+      const yF0 = yTop + R * rowH + 1;
+      for (let c = 0; c < N; c++) {
+        const pts = cordPts[c];
+        const lastX = pts[pts.length - 1][0];
+        pts.push([lastX, yF0]);
+        if (fringe > 1) {
+          const fl = Math.min(fringe, H - m - yF0);
+          const steps = Math.max(2, Math.round(fl / 2));
+          for (let s = 1; s <= steps; s++) {
+            const yy = yF0 + (s / steps) * fl;
+            const wx = (noise2(yy * 0.25, c * 7.13, p.seed) - 0.5) * 2 * p.wiggle * 2.5;
+            pts.push([lastX + wx, yy]);
+          }
+        }
+        if (pts.length >= 2) paths.push({ pts, closed: false, layer: L });
+      }
+      /* knot ovals + wrap line */
+      for (const [kx, ky] of knots) {
+        const rx = kd * 0.55, ry = kd * 0.42;
+        const pts = [];
+        for (let q = 0; q < 12; q++) {
+          const a = (q / 12) * Math.PI * 2;
+          pts.push([kx + Math.cos(a) * rx, ky + Math.sin(a) * ry]);
+        }
+        paths.push({ pts, closed: true, layer: L });
+        paths.push({ pts: [[kx - rx * 0.55, ky], [kx + rx * 0.55, ky]], closed: false, layer: L });
+      }
+      /* top bar with lark's head loops */
+      if (p.bar) {
+        paths.push({ pts: [[x0, ybar], [x1, ybar]], closed: false, layer: L });
+        for (let c = 0; c < N; c++) {
+          const cxx = xi(c);
+          const pts = [];
+          for (let q = 0; q < 10; q++) {
+            const a = (q / 10) * Math.PI * 2;
+            pts.push([cxx + Math.cos(a) * 1.1, ybar + Math.sin(a) * 1.1]);
+          }
+          paths.push({ pts, closed: true, layer: L });
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    },
+  },
   mathknot: {
     name: "Knot",
     cat: "gen",
@@ -5420,7 +6172,7 @@ const DEFS = {
     }
   },
   myco_net: {
-    name: "Root Web",
+    name: "Mycelial Net",
     cat: "gen",
     group: "organic",
     ins: [Pin("style", "Style")],
@@ -5837,6 +6589,53 @@ const DEFS = {
       return applyStyle({ paths }, ins[0]);
     }
   },
+  tape_saturation: {
+    name: "Tape Saturation Harmonics",
+    cat: "gen",
+    group: "scientific",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "seed", label: "Seed", type: "seed", def: 444 },
+      { key: "tracks", label: "Signal Tracks", type: "slider", min: 10, max: 120, step: 1, def: 50 },
+      { key: "freq", label: "Signal Freq", type: "slider", min: 0.01, max: 0.2, step: 0.005, def: 0.06 },
+      { key: "amp", label: "Gain Amplitude", type: "slider", min: 2, max: 40, step: 0.5, def: 15 },
+      { key: "clip", label: "Saturation Clip (mm)", type: "slider", min: 1, max: 30, step: 0.5, def: 8 },
+      { key: "flutter", label: "Wow & Flutter", type: "slider", min: 0, max: 5, step: 0.1, def: 1.5 },
+      { key: "layer", label: "Pen Index", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const paths = [];
+      const L = Math.round(p.layer);
+      const trackCount = Math.round(p.tracks);
+
+      for (let t = 0; t < trackCount; t++) {
+        const baselineY = 15 + ((H - 30) * (t / (trackCount - 1 || 1)));
+        const pts = [];
+        const trackSeed = p.seed * 31 + t * 17;
+        for (let x = 10; x <= W - 10; x += 0.5) {
+          let signal = Math.sin(x * p.freq + (t * 0.15));
+          let rawY = signal * p.amp;
+          if (rawY > p.clip) rawY = p.clip;
+          if (rawY < -p.clip) rawY = -p.clip;
+          const wow = (noise2(x * 0.003, t * 0.05, trackSeed) - 0.5) * p.flutter * 4;
+          const flutter = (noise2(x * 0.1, t * 0.5, trackSeed + 99) - 0.5) * p.flutter * 0.5;
+          /* clamp to the sheet: clip + wow near the top/bottom tracks could
+             otherwise push the pen off the paper */
+          const finalY = Math.max(0.5, Math.min(H - 0.5, baselineY + rawY + wow + flutter));
+          pts.push([x, finalY]);
+        }
+        if (pts.length > 1) {
+          /* serpentine: each track is one continuous stroke, so alternate
+             direction -> no empty carriage return between tracks */
+          if (t % 2 === 1) pts.reverse();
+          paths.push({ pts, closed: false, layer: L });
+        }
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
   voronoi: {
     name: "Voronoi",
     cat: "gen",
@@ -6044,7 +6843,7 @@ const DEFS = {
     }
   },
   traceimg: {
-    name: "Trace Image",
+    name: "Trace",
     cat: "gen",
     group: "textimg",
     fileImage: true,
@@ -7480,6 +8279,130 @@ const DEFS = {
       return { paths };
     }
   },
+  filterpath: {
+    name: "Filter",
+    cat: "mod",
+    group: "deform",
+    ins: [Pin("paths", "Source")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "mode", label: "Mode", type: "select", options: ["Lowpass", "Highpass"], def: "Lowpass" },
+      { key: "cutoff", label: "Cutoff mm", type: "slider", min: 1, max: 40, step: 0.5, def: 8 },
+      { key: "reso", label: "Resonance", type: "slider", min: 0, max: 0.95, step: 0.05, def: 0.3 },
+      { key: "res", label: "Sample step mm", type: "slider", min: 0.3, max: 2, step: 0.1, def: 0.5 }
+    ],
+    compute(ins, p, ctx) {
+      const src = ins[0] || EMPTY;
+      const step = Math.max(0.25, p.res);
+      /* Chamberlin state-variable filter run ALONG each path, x and y as two
+         signals. Causal, so resonance rings AFTER corners - that is the point. */
+      const f = 2 * Math.sin(Math.PI * Math.min(0.22, step / Math.max(1, p.cutoff)));
+      const q = Math.max(0.08, 1 - p.reso);
+      const paths = [];
+      src.paths.forEach((path) => {
+        const pts = resample(path.pts, path.closed, step);
+        if (pts.length < 3) {
+          paths.push({ ...path, pts: path.pts.map((v) => v.slice()) });
+          return;
+        }
+        const runFilter = () => {
+          let lx = pts[0][0], bx = 0, ly = pts[0][1], by = 0;
+          const stepOne = ([x, y]) => {
+            const hx = x - lx - q * bx; bx += f * hx; lx += f * bx;
+            const hy = y - ly - q * by; by += f * hy; ly += f * by;
+            return [hx, hy, lx, ly];
+          };
+          /* closed paths: one warm-up lap kills the start transient */
+          if (path.closed) for (const pt of pts) stepOne(pt);
+          return pts.map((pt) => stepOne(pt));
+        };
+        const st = runFilter();
+        if (p.mode === "Highpass") {
+          /* the high band wiggles around zero: re-center on the path centroid */
+          let gx = 0, gy = 0;
+          for (const [x, y] of pts) { gx += x; gy += y; }
+          gx /= pts.length; gy /= pts.length;
+          paths.push({
+            pts: st.map(([hx, hy]) => [gx + hx, gy + hy]),
+            closed: path.closed, layer: path.layer
+          });
+        } else {
+          paths.push({
+            pts: st.map(([, , lx2, ly2]) => [lx2, ly2]),
+            closed: path.closed, layer: path.layer
+          });
+        }
+      });
+      return { paths };
+    }
+  },
+  stringpluck: {
+    name: "String",
+    cat: "gen",
+    group: "scientific",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "rows", label: "Time frames", type: "slider", min: 5, max: 60, step: 1, def: 24 },
+      { key: "harm", label: "Harmonics", type: "slider", min: 3, max: 30, step: 1, def: 12 },
+      { key: "pluck", label: "Pluck position", type: "slider", min: 0.05, max: 0.95, step: 0.01, def: 0.3 },
+      { key: "amp", label: "Amplitude mm", type: "slider", min: 2, max: 40, step: 0.5, def: 16 },
+      { key: "decay", label: "Decay", type: "slider", min: 0.05, max: 2, step: 0.05, def: 0.5 },
+      { key: "span", label: "Time span (periods)", type: "slider", min: 0.5, max: 10, step: 0.25, def: 4 },
+      { key: "detune", label: "Detune (organic)", type: "slider", min: 0, max: 1, step: 0.05, def: 0.2 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+      { key: "seed", label: "Seed", type: "seed", def: 21 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const x0 = m, x1 = W - m;
+      if (x1 - x0 < 20) return applyStyle({ paths: [] }, ins[0]);
+      const R = Math.max(2, Math.min(80, Math.round(p.rows)));
+      const K = Math.max(1, Math.min(40, Math.round(p.harm)));
+      const pl = Math.max(0.02, Math.min(0.98, p.pluck));
+      /* triangular pluck: modal amplitudes of a string plucked at position pl */
+      const A = [];
+      let norm = 0;
+      for (let k = 1; k <= K; k++) {
+        const a = Math.sin(k * Math.PI * pl) / (k * k);
+        A.push(a);
+        norm += Math.abs(a);
+      }
+      for (let k = 0; k < K; k++) A[k] /= (norm || 1);
+      const eps = [];
+      for (let k = 0; k < K; k++) {
+        eps.push((hash2(k * 7 + 1, 5, p.seed) - 0.5) * 0.01 * p.detune);
+      }
+      const amp = Math.max(0.5, p.amp);
+      const yTop = m + amp + 2, yBot = H - m - amp - 2;
+      if (yBot - yTop < 5) return applyStyle({ paths: [] }, ins[0]);
+      const paths = [];
+      const L = Math.round(p.layer);
+      const NX = 160;
+      for (let r = 0; r < R; r++) {
+        const t = (r / Math.max(1, R - 1)) * p.span;
+        const yBase = yTop + (r / Math.max(1, R - 1)) * (yBot - yTop);
+        const pts = [];
+        for (let i = 0; i <= NX; i++) {
+          const u = i / NX;
+          let v = 0;
+          for (let k = 0; k < K; k++) {
+            const kk = k + 1;
+            /* higher modes die first: e^(-decay k^2 t) */
+            v += A[k] * Math.sin(kk * Math.PI * u) *
+                 Math.cos(2 * Math.PI * kk * t * (1 + eps[k])) *
+                 Math.exp(-p.decay * kk * kk * t * 0.1);
+          }
+          pts.push([x0 + u * (x1 - x0), yBase + v * amp]);
+        }
+        if (r % 2 === 1) pts.reverse(); /* serpentine */
+        paths.push({ pts, closed: false, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
   fourier: {
     name: "Fourier",
     cat: "mod",
@@ -7751,6 +8674,149 @@ const DEFS = {
           if (pts.length >= 100000) break;
         }
         if (pts.length > 1) paths.push({ pts, closed: false, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+    }
+  },
+  reactdiff: {
+    name: "Reaction-Diffusion",
+    cat: "gen",
+    group: "organic",
+    ins: [Pin("style", "Style")],
+    outs: [Pin("paths")],
+    params: [
+      { key: "cell", label: "Cell mm", type: "slider", min: 1.5, max: 5, step: 0.25, def: 2.5 },
+      { key: "iters", label: "Iterations (wire LFO)", type: "slider", min: 0, max: 400, step: 10, def: 200 },
+      { key: "feed", label: "Feed F", type: "slider", min: 0.01, max: 0.09, step: 0.001, def: 0.037 },
+      { key: "kill", label: "Kill k", type: "slider", min: 0.045, max: 0.07, step: 0.001, def: 0.06 },
+      { key: "spots", label: "Seed spots", type: "slider", min: 1, max: 20, step: 1, def: 6 },
+      { key: "bands", label: "Contour bands", type: "slider", min: 1, max: 3, step: 1, def: 1 },
+      { key: "minlen", label: "Min contour mm", type: "slider", min: 0, max: 30, step: 1, def: 4 },
+      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+      { key: "seed", label: "Seed", type: "seed", def: 33 },
+      { key: "layer", label: "Pen", type: "pen", def: 0 }
+    ],
+    compute(ins, p, ctx) {
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const bw = W - 2 * m, bh = H - 2 * m;
+      if (bw < 15 || bh < 15) return applyStyle({ paths: [] }, ins[0]);
+      const cell = Math.max(1.2, p.cell);
+      const cols = Math.min(110, Math.max(10, Math.round(bw / cell)));
+      const rows = Math.min(150, Math.max(10, Math.round(bh / cell)));
+      /* Gray-Scott, deterministic replay from seeded spots (stateless per compute:
+         wire a value into Iterations to animate the pattern growing) */
+      const NC = cols * rows;
+      let U = new Float64Array(NC).fill(1);
+      let V = new Float64Array(NC).fill(0);
+      const rng = mulberry32(p.seed * 6733 + 11);
+      const nSpots = Math.max(1, Math.min(30, Math.round(p.spots)));
+      for (let s = 0; s < nSpots; s++) {
+        const sx = 3 + Math.floor(rng() * (cols - 6));
+        const sy = 3 + Math.floor(rng() * (rows - 6));
+        const r = 2 + Math.floor(rng() * 2);
+        for (let dy = -r; dy <= r; dy++) {
+          for (let dx = -r; dx <= r; dx++) {
+            const xx = sx + dx, yy = sy + dy;
+            if (xx < 0 || yy < 0 || xx >= cols || yy >= rows) continue;
+            V[yy * cols + xx] = 1;
+            U[yy * cols + xx] = 0.5;
+          }
+        }
+      }
+      const Du = 0.16, Dv = 0.08, F = p.feed, K = p.kill;
+      const gens = Math.max(0, Math.min(500, Math.floor(p.iters)));
+      let U2 = new Float64Array(NC), V2 = new Float64Array(NC);
+      for (let g = 0; g < gens; g++) {
+        for (let y = 0; y < rows; y++) {
+          const yu = y === 0 ? 0 : y - 1, yd = y === rows - 1 ? rows - 1 : y + 1;
+          for (let x = 0; x < cols; x++) {
+            const xl = x === 0 ? 0 : x - 1, xr = x === cols - 1 ? cols - 1 : x + 1;
+            const i = y * cols + x;
+            const lapU = 0.2 * (U[y * cols + xl] + U[y * cols + xr] + U[yu * cols + x] + U[yd * cols + x])
+              + 0.05 * (U[yu * cols + xl] + U[yu * cols + xr] + U[yd * cols + xl] + U[yd * cols + xr]) - U[i];
+            const lapV = 0.2 * (V[y * cols + xl] + V[y * cols + xr] + V[yu * cols + x] + V[yd * cols + x])
+              + 0.05 * (V[yu * cols + xl] + V[yu * cols + xr] + V[yd * cols + xl] + V[yd * cols + xr]) - V[i];
+            const uvv = U[i] * V[i] * V[i];
+            U2[i] = U[i] + (Du * lapU - uvv + F * (1 - U[i]));
+            V2[i] = V[i] + (Dv * lapV + uvv - (F + K) * V[i]);
+          }
+        }
+        let t = U; U = U2; U2 = t;
+        t = V; V = V2; V2 = t;
+      }
+      /* marching-squares contours of V */
+      const gx = (c) => m + (c / (cols - 1)) * bw;
+      const gy = (r) => m + (r / (rows - 1)) * bh;
+      const segs = [];
+      const NB = Math.max(1, Math.min(4, Math.round(p.bands)));
+      const interp = (a, b, lvl) => Math.abs(b - a) < 1e-12 ? 0.5 : (lvl - a) / (b - a);
+      for (let bi = 0; bi < NB; bi++) {
+        const lvl = 0.18 + bi * 0.08;
+        for (let r = 0; r < rows - 1; r++) {
+          for (let c = 0; c < cols - 1; c++) {
+            const tl = V[r * cols + c], tr = V[r * cols + c + 1];
+            const bl = V[(r + 1) * cols + c], br = V[(r + 1) * cols + c + 1];
+            let idx = 0;
+            if (tl > lvl) idx |= 8; if (tr > lvl) idx |= 4;
+            if (br > lvl) idx |= 2; if (bl > lvl) idx |= 1;
+            if (idx === 0 || idx === 15) continue;
+            const xL = gx(c), xR = gx(c + 1), yT = gy(r), yB = gy(r + 1);
+            const eT = () => [xL + interp(tl, tr, lvl) * (xR - xL), yT];
+            const eB = () => [xL + interp(bl, br, lvl) * (xR - xL), yB];
+            const eL = () => [xL, yT + interp(tl, bl, lvl) * (yB - yT)];
+            const eR = () => [xR, yT + interp(tr, br, lvl) * (yB - yT)];
+            const S = (A, B) => segs.push([A, B]);
+            switch (idx) {
+              case 1: S(eL(), eB()); break; case 2: S(eB(), eR()); break;
+              case 3: S(eL(), eR()); break; case 4: S(eT(), eR()); break;
+              case 5: S(eL(), eT()); S(eB(), eR()); break;
+              case 6: S(eT(), eB()); break; case 7: S(eL(), eT()); break;
+              case 8: S(eL(), eT()); break; case 9: S(eT(), eB()); break;
+              case 10: S(eL(), eB()); S(eT(), eR()); break;
+              case 11: S(eT(), eR()); break; case 12: S(eL(), eR()); break;
+              case 13: S(eB(), eR()); break; case 14: S(eL(), eB()); break;
+            }
+          }
+        }
+      }
+      const q = (v) => Math.round(v * 100) / 100;
+      const kk = (pt) => q(pt[0]) + "," + q(pt[1]);
+      const map = new Map();
+      const items = segs.map((s) => ({ a: s[0], b: s[1], used: false }));
+      const push = (k, ref) => { let a = map.get(k); if (!a) { a = []; map.set(k, a); } a.push(ref); };
+      items.forEach((s, i) => { push(kk(s.a), { i, end: "a" }); push(kk(s.b), { i, end: "b" }); });
+      const paths = [];
+      const L = Math.round(p.layer);
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].used) continue;
+        items[i].used = true;
+        const chain = [items[i].a, items[i].b];
+        let grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[chain.length - 1])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.push(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[0])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.unshift(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        if (chain.length < 3) continue;
+        if (p.minlen > 0 && pathLength(chain, false) < p.minlen) continue;
+        const closed = Math.hypot(chain[0][0] - chain[chain.length - 1][0], chain[0][1] - chain[chain.length - 1][1]) < cell * 1.6;
+        if (closed) chain.pop();
+        if (chain.length > 2) paths.push({ pts: chain, closed, layer: L });
       }
       return applyStyle({ paths }, ins[0]);
     }
@@ -11185,11 +12251,11 @@ const DEFS = {
     name: "Power Pole",
     cat: "gen",
     group: "structural",
-    desc: "Wireframe 3D utility poles: Finnish Wood (single pole, crossarm, pin insulators, guy wire), US Utility (double crossarm, cylinder transformer), Japanese Concrete (stacked arms, transformer drums). The Wires toggle hangs catenary cables from the insulators. Rotate with Yaw and Pitch - wire Frame into Yaw to orbit.",
+    desc: "Wireframe 3D utility poles, one per national tradition: Finnish Wood (single pole, crossarm, pin insulators, guy wire), US Utility (double crossarm, cylinder transformer), Japanese Concrete (stacked arms, transformer drums), Lattice Pylon (tapering Donaumast truss), Wide-Base Lattice (anchor tower with dramatically splayed legs, waist, three lattice arm levels), Lattice Portal (two truss masts with a lattice crossbeam, Nordic 400 kV), H-Frame Portal (two wood poles, top beam, X-brace). Wires hangs catenary cables from the insulators. Rotate with Yaw and Pitch - wire Frame into Yaw to orbit.",
     ins: [Pin("style", "Style")],
     outs: [Pin("paths")],
     params: [
-      { key: "model", label: "Model", type: "select", options: ["Finnish Wood", "US Utility", "Japanese Concrete"], def: "Finnish Wood" },
+      { key: "model", label: "Model", type: "select", options: ["Finnish Wood", "US Utility", "Japanese Concrete", "Lattice Pylon", "Wide-Base Lattice", "Lattice Portal", "H-Frame Portal"], def: "Finnish Wood" },
       { key: "height", label: "Height mm", type: "slider", min: 60, max: 260, step: 5, def: 180 },
       { key: "wires", label: "Wires", type: "check", def: true },
       { key: "sag", label: "Wire sag", type: "slider", min: 0.02, max: 0.3, step: 0.01, def: 0.1 },
@@ -11283,6 +12349,131 @@ const DEFS = {
         }
         transformer(HT * 0.07, HT * 0.55, 0, HT * 0.05, HT * 0.11);
         transformer(-HT * 0.07, HT * 0.42, HT * 0.03, HT * 0.045, HT * 0.1);
+      } else if (M === "Lattice Pylon") {
+        const w0 = HT * 0.14, w1 = HT * 0.035;
+        const panels = 7;
+        /* 4 tapering corner chords + X-bracing + rings */
+        const wAt = (t) => w0 + (w1 - w0) * t;
+        for (let k = 0; k < 4; k++) {
+          const sx = k === 0 || k === 3 ? -1 : 1, sz = k < 2 ? -1 : 1;
+          for (let i2 = 0; i2 < panels; i2++) {
+            const t0 = i2 / panels, t1 = (i2 + 1) / panels;
+            line([sx * wAt(t0), t0 * HT * 0.8, sz * wAt(t0)], [sx * wAt(t1), t1 * HT * 0.8, sz * wAt(t1)]);
+          }
+        }
+        for (let i2 = 0; i2 <= panels; i2++) {
+          const t = i2 / panels, w = wAt(t), y = t * HT * 0.8;
+          line([-w, y, -w], [w, y, -w]); line([w, y, -w], [w, y, w]);
+          line([w, y, w], [-w, y, w]); line([-w, y, w], [-w, y, -w]);
+          if (i2 < panels) { /* X-brace on front+back faces */
+            const t1 = (i2 + 1) / panels, w2 = wAt(t1), y1 = t1 * HT * 0.8;
+            for (const sz of [-1, 1]) {
+              line([-w, y, sz * w], [w2, y1, sz * w2]);
+              line([w, y, sz * w], [-w2, y1, sz * w2]);
+            }
+          }
+        }
+        /* Donaumast: lower wide arms (2 circuits) + upper narrow arms + peak */
+        const armY1 = HT * 0.8, armY2 = HT * 0.92;
+        for (const [ay, aw] of [[armY1, HT * 0.26], [armY2, HT * 0.15]]) {
+          line([-aw, ay, 0], [aw, ay, 0]);
+          line([-aw, ay + HT * 0.02, 0], [aw, ay + HT * 0.02, 0]);
+          line([-aw, ay, 0], [-wAt((ay) / (HT * 0.8) > 1 ? 1 : ay / (HT * 0.8)) * 0.9, ay + HT * 0.05, 0]);
+          line([aw, ay, 0], [wAt(ay / (HT * 0.8) > 1 ? 1 : ay / (HT * 0.8)) * 0.9, ay + HT * 0.05, 0]);
+          attach.push(stringIns(-aw * 0.92, ay, 0), stringIns(aw * 0.92, ay, 0));
+        }
+        line([-w1, HT * 0.8, -w1], [0, HT, 0]); line([w1, HT * 0.8, -w1], [0, HT, 0]);
+        line([w1, HT * 0.8, w1], [0, HT, 0]); line([-w1, HT * 0.8, w1], [0, HT, 0]);
+        attach.push([0, HT, 0]); /* earth wire at peak */
+      } else if (M === "Wide-Base Lattice") {
+        /* anchor tower: legs splay wide at base, converge to a waist, straight mast above */
+        const wBase = HT * 0.3, wWaist = HT * 0.055, yWaist = HT * 0.5;
+        const wAt = (y) => (y <= yWaist ? wBase + (wWaist - wBase) * (y / yWaist) : wWaist);
+        const panelsLo = 5, panelsHi = 4;
+        const lat = (y0, y1, panels) => {
+          for (let i2 = 0; i2 < panels; i2++) {
+            const t0 = y0 + ((y1 - y0) * i2) / panels, t1 = y0 + ((y1 - y0) * (i2 + 1)) / panels;
+            const a0 = wAt(t0), a1 = wAt(t1);
+            for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]])
+              line([sx * a0, t0, sz * a0], [sx * a1, t1, sz * a1]);
+            /* ring at t1 */
+            line([-a1, t1, -a1], [a1, t1, -a1]); line([a1, t1, -a1], [a1, t1, a1]);
+            line([a1, t1, a1], [-a1, t1, a1]); line([-a1, t1, a1], [-a1, t1, -a1]);
+            /* X on front and back faces */
+            for (const sz of [-1, 1]) {
+              line([-a0, t0, sz * a0], [a1, t1, sz * a1]);
+              line([a0, t0, sz * a0], [-a1, t1, sz * a1]);
+            }
+          }
+        };
+        lat(0, yWaist, panelsLo);
+        lat(yWaist, HT * 0.86, panelsHi);
+        /* three lattice arm levels like the photo: wide, mid, narrow at top */
+        const arm = (ay, aw) => {
+          const t = HT * 0.02;
+          line([-aw, ay, 0], [aw, ay, 0]);
+          line([-aw, ay + t * 2, 0], [aw, ay + t * 2, 0]);
+          const nz = 6;
+          for (let k = 0; k < nz; k++) { /* zigzag web */
+            const xa = -aw + (2 * aw * k) / nz, xb = -aw + (2 * aw * (k + 1)) / nz;
+            line([xa, ay, 0], [(xa + xb) / 2, ay + t * 2, 0]);
+            line([(xa + xb) / 2, ay + t * 2, 0], [xb, ay, 0]);
+          }
+          attach.push(stringIns(-aw * 0.95, ay, 0), stringIns(aw * 0.95, ay, 0));
+        };
+        arm(HT * 0.6, HT * 0.28);
+        arm(HT * 0.74, HT * 0.21);
+        arm(HT * 0.86, HT * 0.13);
+        /* peak */
+        const wp = wAt(HT * 0.86);
+        line([-wp, HT * 0.86, -wp], [0, HT, 0]); line([wp, HT * 0.86, -wp], [0, HT, 0]);
+        line([wp, HT * 0.86, wp], [0, HT, 0]); line([-wp, HT * 0.86, wp], [0, HT, 0]);
+        attach.push([0, HT, 0]);
+      } else if (M === "Lattice Portal") {
+        /* two lattice masts + lattice crossbeam (Nordic 400 kV portal) */
+        const mx = HT * 0.28, wM = HT * 0.045, yTop = HT * 0.85;
+        const mast = (cx) => {
+          const panels = 6;
+          for (let i2 = 0; i2 < panels; i2++) {
+            const t0 = (yTop * i2) / panels, t1 = (yTop * (i2 + 1)) / panels;
+            for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]])
+              line([cx + sx * wM, t0, sz * wM], [cx + sx * wM, t1, sz * wM]);
+            line([cx - wM, t1, -wM], [cx + wM, t1, -wM]); line([cx + wM, t1, -wM], [cx + wM, t1, wM]);
+            line([cx + wM, t1, wM], [cx - wM, t1, wM]); line([cx - wM, t1, wM], [cx - wM, t1, -wM]);
+            for (const sz of [-1, 1]) {
+              line([cx - wM, t0, sz * wM], [cx + wM, t1, sz * wM]);
+              line([cx + wM, t0, sz * wM], [cx - wM, t1, sz * wM]);
+            }
+          }
+          /* earth peak above mast */
+          line([cx - wM, yTop, -wM], [cx, yTop + HT * 0.1, 0]);
+          line([cx + wM, yTop, -wM], [cx, yTop + HT * 0.1, 0]);
+          line([cx + wM, yTop, wM], [cx, yTop + HT * 0.1, 0]);
+          line([cx - wM, yTop, wM], [cx, yTop + HT * 0.1, 0]);
+          attach.push([cx, yTop + HT * 0.1, 0]);
+        };
+        mast(-mx); mast(mx);
+        /* lattice crossbeam between mast tops */
+        const bt = HT * 0.035;
+        line([-mx, yTop, -wM], [mx, yTop, -wM]);
+        line([-mx, yTop - bt, -wM], [mx, yTop - bt, -wM]);
+        const nz = 8;
+        for (let k = 0; k < nz; k++) {
+          const xa = -mx + (2 * mx * k) / nz, xb = -mx + (2 * mx * (k + 1)) / nz;
+          line([xa, yTop - bt, -wM], [(xa + xb) / 2, yTop, -wM]);
+          line([(xa + xb) / 2, yTop, -wM], [xb, yTop - bt, -wM]);
+        }
+        for (const fx of [-0.6, 0, 0.6]) attach.push(stringIns(mx * fx, yTop - bt, -wM));
+      } else { /* H-Frame Portal */
+        wood(-HT * 0.16, 0, 0, HT, HT * 0.016, HT * 0.011);
+        wood(HT * 0.16, 0, 0, HT, HT * 0.016, HT * 0.011);
+        const by2 = HT * 0.9;
+        line([-HT * 0.24, by2, 0], [HT * 0.24, by2, 0]);
+        line([-HT * 0.24, by2 - HT * 0.008, 0], [HT * 0.24, by2 - HT * 0.008, 0]);
+        /* X-brace between poles */
+        line([-HT * 0.16, HT * 0.55, 0], [HT * 0.16, by2 - HT * 0.02, 0]);
+        line([HT * 0.16, HT * 0.55, 0], [-HT * 0.16, by2 - HT * 0.02, 0]);
+        attach.push(pin(-HT * 0.21, by2, 0), pin(0, by2, 0), pin(HT * 0.21, by2, 0));
       }
 
       /* wires: catenary along +-Z from each attach point */
@@ -11344,33 +12535,6 @@ const DEFS = {
         closed: pl.closed, layer: L
       }));
       return applyStyle({ paths }, ins[0]);
-    }
-  },
-  setpen: {
-    name: "Set Pen",
-    cat: "mod",
-    group: "penout",
-    desc: "Recolors the input onto another pen. All moves everything to the target pen; Single remaps only one source pen and leaves the rest untouched - handy for swapping a single color in a multi-pen patch, or forcing any generator onto the pen you are about to load.",
-    ins: [Pin("paths", "Paths")],
-    outs: [Pin("paths")],
-    params: [
-      { key: "mode", label: "Recolor", type: "select", options: ["All", "Single"], def: "All" },
-      { key: "from", label: "From pen (Single)", type: "pen", def: 0 },
-      { key: "layer", label: "To pen", type: "pen", def: 1 }
-    ],
-    compute(ins, p, ctx) {
-      const src = ins[0] || EMPTY;
-      if (!src.paths.length) return EMPTY;
-      const to = Math.round(p.layer);
-      const from = Math.round(p.from);
-      const all = p.mode === "All";
-      return {
-        paths: src.paths.map((pa) => ({
-          ...pa,
-          pts: pa.pts.map((q) => q.slice()),
-          layer: all || pa.layer === from ? to : pa.layer
-        }))
-      };
     }
   },
   origami: {
@@ -14041,7 +15205,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.21"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.20"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
