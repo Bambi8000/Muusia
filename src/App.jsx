@@ -1533,7 +1533,6 @@ const DEFS = {
         rowPts.push(rowRec);
       }
       if (p.cross) {
-        const step = Math.max(1, Math.round((rowStep / Math.max(0.4, p.res)) * 0.9));
         for (let i = 0; i <= nx; i += Math.max(2, Math.round(nx / 60))) {
           let run = [];
           const flush = () => { if (run.length > 1) paths.push({ pts: run, closed: false, layer: L }); run = []; };
@@ -2106,6 +2105,7 @@ const DEFS = {
   potato: {
       name: "Potato",
     cat: "gen", group: "nature",
+    desc: "Asymmetric blobs (low-frequency harmonics + random squash) with optional eye texture as dots or curved arcs. Placement: No overlap keeps every potato fully separated using its true extent (fewer may fit on a tight sheet); Loose allows touching and light overlap.",
     ins: [Pin("style", "Style")],
     outs: [Pin("paths")],
     params: [
@@ -2113,6 +2113,7 @@ const DEFS = {
       { key: "size", label: "Size mm", type: "slider", min: 5, max: 120, step: 1, def: 38 },
       { key: "sizeVar", label: "Size variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.45 },
       { key: "irr", label: "Irregularity", type: "slider", min: 0, max: 0.6, step: 0.02, def: 0.22 },
+      { key: "place", label: "Placement", type: "select", options: ["No overlap", "Loose (may overlap)"], def: "No overlap" },
       { key: "eyes", label: "Eyes (texture)", type: "select", options: ["None", "Dots", "Arcs (eyes)"], def: "Arcs (eyes)" },
       { key: "eyeCount", label: "Eyes per potato", type: "slider", min: 1, max: 30, step: 1, def: 7 },
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
@@ -2124,28 +2125,19 @@ const DEFS = {
       const rng = mulberry32(p.seed * 2311 + 41);
       const L = Math.round(p.layer);
       const paths = [];
-      const placed = [];
+      const placed = []; /* [cx, cy, rMax, R] */
+      const noOv = p.place !== "Loose (may overlap)";
+      const target = Math.round(p.count);
       let guard = 0;
-      while (placed.length < Math.round(p.count) && guard++ < p.count * 60) {
+      while (placed.length < target && guard++ < target * 80) {
         const R = (p.size / 2) * (1 - p.sizeVar * rng());
-        const cx = p.margin + R + rng() * (W - 2 * p.margin - 2 * R);
-        const cy = p.margin + R + rng() * (H - 2 * p.margin - 2 * R);
-        if (W - 2 * p.margin < 2 * R || H - 2 * p.margin < 2 * R) continue;
-        /* kevyt paallekkaisyyden esto (perunat kasassa saavat koskettaa) */
-        let ok = true;
-        for (const q of placed) {
-          if (Math.hypot(cx - q[0], cy - q[1]) < (R + q[2]) * 0.75) { ok = false; break; }
-        }
-        if (!ok && guard < p.count * 40) continue;
-        placed.push([cx, cy, R]);
-        /* epasymmetrinen muoto: matalataajuiset harmoniset satunnaisin vaihein */
+        /* shape FIRST so the true extent is known before placement */
         const nH = 3;
         const amps = [], phs = [];
         for (let h = 0; h < nH; h++) {
           amps.push((p.irr * R * (0.4 + 0.6 * rng())) / (h + 1));
           phs.push(rng() * Math.PI * 2);
         }
-        /* kevyt litistys satunnaiseen suuntaan (peruna, ei pallo) */
         const squash = 0.75 + 0.2 * rng();
         const sqA = rng() * Math.PI;
         const rAt = (th) => {
@@ -2153,19 +2145,32 @@ const DEFS = {
           for (let h = 0; h < nH; h++) r += amps[h] * Math.sin((h + 2) * th + phs[h]);
           return Math.max(R * 0.3, r);
         };
-        const pts = [];
+        const ca = Math.cos(sqA), sa = Math.sin(sqA);
+        const shape = [];
+        let rMax = 0;
         for (let k = 0; k < 72; k++) {
           const th = (k / 72) * Math.PI * 2;
           const r = rAt(th);
           let x = Math.cos(th) * r, y = Math.sin(th) * r;
-          /* litistys akselia pitkin */
-          const ca = Math.cos(sqA), sa = Math.sin(sqA);
           const u = x * ca + y * sa, v = -x * sa + y * ca;
           x = u * ca - v * squash * sa;
           y = u * sa + v * squash * ca;
-          pts.push([cx + x, cy + y]);
+          shape.push([x, y]);
+          const d = Math.hypot(x, y);
+          if (d > rMax) rMax = d;
         }
-        paths.push({ pts, closed: true, layer: L });
+        const pad = noOv ? rMax : R;
+        if (W - 2 * p.margin < 2 * pad || H - 2 * p.margin < 2 * pad) continue;
+        const cx = p.margin + pad + rng() * (W - 2 * p.margin - 2 * pad);
+        const cy = p.margin + pad + rng() * (H - 2 * p.margin - 2 * pad);
+        let ok = true;
+        for (const q of placed) {
+          const d = Math.hypot(cx - q[0], cy - q[1]);
+          if (noOv ? d < rMax + q[2] + 0.8 : d < (R + q[3]) * 0.75) { ok = false; break; }
+        }
+        if (!ok && (noOv || guard < target * 40)) continue;
+        placed.push([cx, cy, rMax, R]);
+        paths.push({ pts: shape.map(([x, y]) => [cx + x, cy + y]), closed: true, layer: L });
         /* silmat */
         if (p.eyes !== "None") {
           for (let e = 0; e < Math.round(p.eyeCount); e++) {
@@ -2182,13 +2187,12 @@ const DEFS = {
               }
               paths.push({ pts: dot, closed: true, layer: L });
             } else {
-              /* pieni kaareva "silma": 4 pisteen hymy satunnaisessa kulmassa */
               const ea = rng() * Math.PI * 2;
               const el = 1 + rng() * 2.2;
-              const ca = Math.cos(ea), sa = Math.sin(ea);
+              const eca = Math.cos(ea), esa = Math.sin(ea);
               const arc = [[-el, -el * 0.25], [-el * 0.35, el * 0.28], [el * 0.35, el * 0.28], [el, -el * 0.25]];
               paths.push({
-                pts: arc.map(([ax, ay]) => [ex + ax * ca - ay * sa, ey + ax * sa + ay * ca]),
+                pts: arc.map(([ax, ay]) => [ex + ax * eca - ay * esa, ey + ax * esa + ay * eca]),
                 closed: false, layer: L,
               });
             }
@@ -7576,9 +7580,20 @@ const DEFS = {
       /* points: from wired paths (resampled/vertices) or seeded random */
       let pts = [];
       if (ins[0] && ins[0].paths && ins[0].paths.length) {
-        for (const pa of ins[0].paths) {
-          const src = p.spacing > 0.01 ? resample(pa.pts, pa.closed, Math.max(1, p.spacing)) : pa.pts;
-          for (const q of src) pts.push([q[0], q[1]]);
+        if (p.spacing > 0.01) {
+          /* escalate spacing until under the triangulation budget so the
+             slider has a visible effect at every value */
+          let sp = Math.max(1, p.spacing);
+          const gather = (s) => {
+            const out = [];
+            for (const pa of ins[0].paths) for (const q of resample(pa.pts, pa.closed, s)) out.push([q[0], q[1]]);
+            return out;
+          };
+          pts = gather(sp);
+          let g2 = 0;
+          while (pts.length > 600 && g2++ < 14) { sp *= 1.3; pts = gather(sp); }
+        } else {
+          for (const pa of ins[0].paths) for (const q of pa.pts) pts.push([q[0], q[1]]);
         }
       } else {
         const rng = mulberry32(p.seed * 3803 + 27);
@@ -10435,7 +10450,7 @@ const DEFS = {
     ins: [Pin("style", "Style")],
     outs: [Pin("paths")],
     params: [
-      { key: "view", label: "View", type: "select", options: ["Top", "3D"], def: "3D" },
+      { key: "view", label: "View", type: "select", options: ["Top", "3D"], def: "Top" },
       { key: "style", label: "Style", type: "select", options: ["Outlines", "Mesh"], def: "Mesh" },
       { key: "craters", label: "Craters", type: "slider", min: 3, max: 60, step: 1, def: 18 },
       { key: "size", label: "Max crater mm", type: "slider", min: 8, max: 70, step: 1, def: 34 },
@@ -11816,27 +11831,63 @@ const DEFS = {
   },
 
   smooth: {
-    name: "Smooth", cat: "mod", group: "pathops", ins: [Pin("paths")], outs: [Pin("paths")],
-    params: [{ key: "iter", label: "Iterations", type: "slider", min: 1, max: 5, step: 1, def: 2 }],
+    name: "Smooth", cat: "mod", group: "pathops",
+    desc: "Smooths paths. Relax runs an arc-length moving average (Radius mm) over the line - visible on typical densely sampled Muusia geometry; endpoints stay pinned and closed paths wrap. Round corners is classic Chaikin corner-cutting, useful on sparse polylines like Random Lines or Delaunay edges.",
+    ins: [Pin("paths")], outs: [Pin("paths")],
+    params: [
+      { key: "mode", label: "Mode", type: "select", options: ["Relax", "Round corners"], def: "Relax" },
+      { key: "radius", label: "Radius mm (Relax)", type: "slider", min: 0.5, max: 20, step: 0.5, def: 3 },
+      { key: "iter", label: "Iterations", type: "slider", min: 1, max: 5, step: 1, def: 2 },
+    ],
     compute(ins, p) {
       const src = ins[0] || EMPTY;
-      const chaikin = (pts, closed) => {
-        if (pts.length < 3) return pts;
-        const out = [];
-        const N = pts.length;
-        const last = closed ? N : N - 1;
-        if (!closed) out.push(pts[0].slice());
-        for (let i = 0; i < last; i++) {
-          const a = pts[i], b = pts[(i + 1) % N];
-          out.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
-          out.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
-        }
-        if (!closed) out.push(pts[N - 1].slice());
-        return out;
-      };
+      const it = Math.max(1, Math.min(8, Math.round(p.iter)));
+      if (p.mode === "Round corners") {
+        const chaikin = (pts, closed) => {
+          if (pts.length < 3) return pts;
+          const out = [];
+          const N = pts.length;
+          const last = closed ? N : N - 1;
+          if (!closed) out.push(pts[0].slice());
+          for (let i = 0; i < last; i++) {
+            const a = pts[i], b = pts[(i + 1) % N];
+            out.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
+            out.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+          }
+          if (!closed) out.push(pts[N - 1].slice());
+          return out;
+        };
+        const paths = src.paths.map((path) => {
+          let pts = path.pts;
+          for (let i = 0; i < it; i++) pts = chaikin(pts, path.closed);
+          return { ...path, pts };
+        });
+        return { paths };
+      }
+      /* Relax: moving average over a Radius-mm arc-length window */
+      const R = Math.max(0.2, p.radius);
+      const step = Math.max(0.4, Math.min(1.5, R / 4));
+      const w = Math.max(1, Math.round(R / step));
       const paths = src.paths.map((path) => {
-        let pts = path.pts;
-        for (let i = 0; i < Math.round(p.iter); i++) pts = chaikin(pts, path.closed);
+        if (path.pts.length < 3) return path;
+        let pts = resample(path.pts, path.closed, step);
+        const N = pts.length;
+        if (N < 5) return path;
+        for (let n = 0; n < it; n++) {
+          const out = new Array(N);
+          for (let i = 0; i < N; i++) {
+            if (!path.closed && (i === 0 || i === N - 1)) { out[i] = pts[i]; continue; }
+            let sx = 0, sy = 0, cnt = 0;
+            for (let k = -w; k <= w; k++) {
+              let j = i + k;
+              if (path.closed) j = ((j % N) + N) % N;
+              else { if (j < 0) j = 0; else if (j > N - 1) j = N - 1; }
+              sx += pts[j][0]; sy += pts[j][1]; cnt++;
+            }
+            out[i] = [sx / cnt, sy / cnt];
+          }
+          pts = out;
+        }
         return { ...path, pts };
       });
       return { paths };
@@ -13730,7 +13781,7 @@ const NODE_HELP = {
   pendulum: "chained damped oscillator arms (1\u20133). Each arm's pivot rides the previous tip; *Coupling* modulates an arm's frequency by the previous arm's angle (real interaction: 0 = pure epicycles, high = chaos); rotating table; exponential damping. One continuous stroke.",
   phyllo: "sunflower-seed spiral (golden angle); dot size can grow with index.",
   planets: "a chosen solar-system body drawn as line art: Sun (corona spikes + spots), Mercury/Moon (craters), Venus/Jupiter/Saturn/Uranus/Neptune (latitude bands, Jupiter's Great Red Spot, Neptune's dark spot), Earth (continent blobs + polar cap), Mars (craters, bands, ice cap). Rings for Saturn/Uranus, optional shadow terminator for a crescent.",
-  potato: "asymmetric blobs (low-frequency harmonics + random squash) with light overlap avoidance; optional \"eyes\" texture as dots or curved arcs.",
+  potato: "asymmetric blobs (low-frequency harmonics + random squash); No overlap placement keeps potatoes fully separated (default), Loose allows touching; optional eyes as dots or arcs.",
   radat: "concentric rings (athletics-track offsets) around a centre. Ring count, spacing, start radius.",
   randlines: "Moln\u00e1r-style random segments: free endpoints or fixed length with angle constraints (any / H+V / diagonals / 45\u00b0 quantized).",
   reactdiff: "Gray-Scott Turing patterns (spots, stripes, mazes) replayed deterministically from seeded spots; contours traced with marching squares. Wire a value into Iterations to grow the pattern. Heavier compute.",
@@ -13747,7 +13798,7 @@ const NODE_HELP = {
   simplify: "removes points within a tolerance (Douglas-Peucker-style).",
   skew: "X/Y shear in degrees (italicise Text, axonometry from Grid).",
   skyline: "horizon silhouettes in 1\u20134 receding layers. *Forest*: fBm hills with conifer-spike tops and optional trunk texture; *City*: stepped building skyline with height distribution, antennas and window dashes (some dark). Shares its Horizon Y convention with Water.",
-  smooth: "corner-rounding relaxation.",
+  smooth: "Relax: arc-length moving average (Radius mm) that visibly smooths dense paths, endpoints pinned. Round corners: Chaikin corner-cutting for sparse polylines.",
   solar: "the whole system in one node: pick which planets to include (checkbox list), each on its orbit (tilted ellipse) at a phase angle, with major moons on their own sub-orbits \u2014 orbit paths, moons and moon-orbits each toggle independently. Even or log-ish spacing, view tilt, planet-size multiplier; Saturn/ Uranus get rings. Orbits and planets can go on separate pens.",
   solids: "wireframe 3-D: Sphere (lat/lon rings; *Solid* hides the back hemisphere, *Transparent* shows all), Cube, Tetra/Octa/Icosa/Dodecahedron (edges derived from geometry). Rotate X/Y/Z, perspective 0\u20131, position. Rotations are value-drivable \u2014 the animation star.",
   spiro: "hypo/epitrochoid gear curves: ring/wheel teeth ratio and pen offset.",
@@ -14041,7 +14092,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.21"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.22"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
