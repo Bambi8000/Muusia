@@ -18,11 +18,26 @@ const T = {
   paper: "#F6F2E7", paperLine: "#E4DECE", group: "#E0B341",
   value: "#45C4A0", style: "#B07CE8",
 };
-const PENS = [
+const PENS_DEFAULT = [
   { name: "Black", c: "#23242A" }, { name: "Blue", c: "#2A56A8" },
   { name: "Red", c: "#C23A30" }, { name: "Green", c: "#1F7A48" },
   { name: "Orange", c: "#D2761E" }, { name: "Purple", c: "#6C42A6" },
+  { name: "Teal", c: "#1F8A80" }, { name: "Magenta", c: "#C2408F" },
+  { name: "Brown", c: "#7A4A2B" }, { name: "Gray", c: "#7D828C" },
+  { name: "Ochre", c: "#B8952E" }, { name: "Sky", c: "#3E9BD6" },
 ];
+const PENS = PENS_DEFAULT.map((p) => ({ ...p }));
+try {
+  const saved = JSON.parse(localStorage.getItem("muusia-pens") || "null");
+  if (Array.isArray(saved)) saved.forEach((q, i) => {
+    if (i < PENS.length && q && typeof q.c === "string" && /^#[0-9a-fA-F]{6}$/.test(q.c)) {
+      PENS[i].c = q.c;
+      if (typeof q.name === "string" && q.name.trim()) PENS[i].name = String(q.name).slice(0, 16);
+    }
+  });
+} catch (e) { /* private mode / file:// quirks: fall back to defaults */ }
+function savePens() { try { localStorage.setItem("muusia-pens", JSON.stringify(PENS)); } catch (e) {} }
+function resetPens() { PENS.forEach((p, i) => { p.c = PENS_DEFAULT[i].c; p.name = PENS_DEFAULT[i].name; }); savePens(); }
 
 const mono = "'IBM Plex Mono','SFMono-Regular',Consolas,monospace";
 const disp = "'Space Grotesk','Segoe UI',sans-serif";
@@ -14092,7 +14107,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.22"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.23"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -14198,9 +14213,9 @@ function toGcode(ps, ctx, prof) {
   for (const L of layers) {
     if (!first) {
       penUpFull();
-      lines.push(`${prof.pauseCmd || "M0"} ; CHANGE PEN -> ${PENS[L % PENS.length].name}`);
+      lines.push(`${prof.pauseCmd || "M0"} ; CHANGE PEN -> ${L % PENS.length}: ${PENS[L % PENS.length].name}`);
       if (prof.dipOn) { dip(); drawn = 0; }
-    } else lines.push(`; Pen: ${PENS[L % PENS.length].name}`);
+    } else lines.push(`; Pen ${L % PENS.length}: ${PENS[L % PENS.length].name}`);
     first = false;
 
     for (const path of ps.paths.filter((p) => p.layer === L)) {
@@ -14409,6 +14424,48 @@ function SimView({ ps, W, H, width, height }) {
   );
 }
 
+function ZoomBox({ children, width, height }) {
+  const [z, setZ] = useState(1);
+  const [tx, setTx] = useState(0);
+  const [ty, setTy] = useState(0);
+  const drag = useRef(null);
+  const onWheel = (e) => {
+    e.preventDefault();
+    const r = e.currentTarget.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const nz = Math.max(1, Math.min(16, z * Math.exp(-e.deltaY * 0.0015)));
+    const k = nz / z;
+    setZ(nz);
+    setTx(nz === 1 ? 0 : mx - (mx - tx) * k);
+    setTy(nz === 1 ? 0 : my - (my - ty) * k);
+  };
+  const onMouseDown = (e) => {
+    if (z <= 1) return;
+    const t = (e.target.tagName || "").toLowerCase();
+    if (t === "circle" || t === "text") return; /* magnet handles keep their own drag */
+    drag.current = { x: e.clientX, y: e.clientY, tx, ty };
+  };
+  const onMouseMove = (e) => {
+    if (!drag.current) return;
+    setTx(drag.current.tx + (e.clientX - drag.current.x));
+    setTy(drag.current.ty + (e.clientY - drag.current.y));
+  };
+  const end = () => { drag.current = null; };
+  return (
+    <div onWheel={onWheel} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={end} onMouseLeave={end}
+      onDoubleClick={() => { setZ(1); setTx(0); setTy(0); }}
+      style={{ overflow: "hidden", width, height, cursor: z > 1 ? "grab" : "default", position: "relative" }}>
+      <div style={{ transform: "translate(" + tx + "px, " + ty + "px) scale(" + z + ")", transformOrigin: "0 0", width, height }}>
+        {children}
+      </div>
+      {z > 1 && (
+        <div style={{ position: "absolute", right: 4, bottom: 4, fontSize: 9, color: T.dim, background: T.panel2 + "cc", padding: "1px 5px", borderRadius: 3, pointerEvents: "none" }}>
+          {z.toFixed(1)}x · dblclick reset
+        </div>
+      )}
+    </div>
+  );
+}
 function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = null, magnets = null, onMagnets = null, placing = false }) {
   const sx = (width - pad * 2) / W, sy = (height - pad * 2) / H;
   const s = Math.min(sx, sy);
@@ -14416,7 +14473,8 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
   const dragRef = useRef(-1);
   const toMM = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
-    return [(e.clientX - r.left - ox) / s, (e.clientY - r.top - oy) / s];
+    const k = r.width / width; /* CSS transform aware (ZoomBox) */
+    return [((e.clientX - r.left) / k - ox) / s, ((e.clientY - r.top) / k - oy) / s];
   };
   const q1 = (v) => Math.round(v * 10) / 10;
   const els = [];
@@ -14697,12 +14755,12 @@ function ParamRow({ def, value, onChange, wired, liveVal, portRef, portProps, on
     return (
       <div style={rowS}>
         <div style={{ ...lbl, width: 100, flexShrink: 0 }}>{def.label}</div>
-        <div style={{ display: "flex", gap: 4, flex: 1 }}>
+        <div style={{ display: "flex", gap: 3, flex: 1, flexWrap: "wrap" }}>
           {PENS.map((pen, i) => (
-            <div key={i} onClick={() => onChange(i)} title={pen.name}
+            <div key={i} onClick={() => onChange(i)} title={i + ": " + pen.name}
               style={{
-                width: 16, height: 16, borderRadius: "50%", background: pen.c, cursor: "pointer",
-                border: value === i ? `2px solid ${T.accent}` : "2px solid transparent",
+                width: 13, height: 13, borderRadius: "50%", background: pen.c, cursor: "pointer",
+                border: value === i ? "2px solid " + T.accent : "2px solid transparent",
                 boxShadow: value === i ? "0 0 0 1px " + T.accent : "none",
               }} />
           ))}
@@ -14851,6 +14909,8 @@ export default function App() {
   const [selIds, setSelIds] = useState([5]);
   const [showArrows, setShowArrows] = useState(false);
   const [bigPreview, setBigPreview] = useState(false);
+  const [pensOpen, setPensOpen] = useState(false);
+  const [, setPensVer] = useState(0);
   const [gcode, setGcode] = useState(null);
 
   const lvl = levelOf(root, stack);
@@ -15131,9 +15191,9 @@ export default function App() {
     }));
     setSelIds([]);
   };
-  const duplicateSelected = () => {
-    if (!selIds.length) return;
-    const sel = new Set(selIds);
+  const duplicateIds = (ids) => {
+    if (!ids.length) return;
+    const sel = new Set(ids);
     const idMap = {};
     const copies = lvl.nodes.filter((n) => sel.has(n.id)).map((n) => {
       const nid = NEXT_ID++;
@@ -15146,6 +15206,8 @@ export default function App() {
     setLevel((l) => ({ nodes: [...l.nodes, ...copies], edges: [...l.edges, ...copyEdges] }));
     setSelIds(copies.map((c) => c.id));
   };
+  const duplicateSelected = () => duplicateIds(selIds);
+  const duplicateNode = (id) => duplicateIds([id]);
   const groupSelected = () => {
     if (selIds.length < 2) return;
     const sel = new Set(selIds);
@@ -15308,8 +15370,42 @@ export default function App() {
     const w = window.open("", "MuusiaPreview", "width=880,height=1140");
     if (!w) return;
     w.document.title = "Muusia — Preview";
-    w.document.head.innerHTML = "<style>body{margin:0;background:#0D1117;display:flex;align-items:flex-start;justify-content:center;overflow:auto;}#muusia-pop{padding:10px;width:100%;}#muusia-pop svg{width:100%;height:auto;display:block;background:#FCFAF4;border-radius:4px;}</style>";
+    w.document.head.innerHTML = "<style>body{margin:0;background:#0D1117;display:flex;align-items:flex-start;justify-content:center;overflow:auto;}#muusia-pop{padding:10px;width:100%;flex:0 0 auto;}#muusia-pop svg{width:100%;height:auto;display:block;background:#FCFAF4;border-radius:4px;}</style>";
     w.document.body.innerHTML = '<div id="muusia-pop"></div>';
+    let zw = 100;
+    let pd = null;
+    const sc = () => w.document.scrollingElement || w.document.documentElement;
+    w.document.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const el2 = w.document.getElementById("muusia-pop");
+      if (!el2) return;
+      const oldW = el2.offsetWidth;
+      zw = Math.max(100, Math.min(1600, zw * Math.exp(-e.deltaY * 0.0015)));
+      el2.style.width = zw + "%";
+      w.document.body.style.justifyContent = zw > 100.5 ? "flex-start" : "center";
+      const k = el2.offsetWidth / oldW; /* layout is sync after the width write */
+      sc().scrollLeft = (sc().scrollLeft + e.clientX) * k - e.clientX;
+      sc().scrollTop = (sc().scrollTop + e.clientY) * k - e.clientY;
+    }, { passive: false });
+    w.document.addEventListener("mousedown", (e) => {
+      if (zw <= 100.5) return;
+      pd = { x: e.clientX, y: e.clientY, sl: sc().scrollLeft, st: sc().scrollTop };
+      w.document.body.style.cursor = "grabbing";
+      e.preventDefault();
+    });
+    w.document.addEventListener("mousemove", (e) => {
+      if (!pd) return;
+      sc().scrollLeft = pd.sl - (e.clientX - pd.x);
+      sc().scrollTop = pd.st - (e.clientY - pd.y);
+    });
+    w.document.addEventListener("mouseup", () => { pd = null; w.document.body.style.cursor = ""; });
+    w.document.addEventListener("dblclick", () => {
+      zw = 100;
+      const el2 = w.document.getElementById("muusia-pop");
+      if (el2) el2.style.width = "100%";
+      w.document.body.style.justifyContent = "center";
+      sc().scrollLeft = 0; sc().scrollTop = 0;
+    });
     const poll = setInterval(() => { if (w.closed) { clearInterval(poll); setPopout(null); } }, 800);
     setPopout(w);
   };
@@ -15816,12 +15912,46 @@ export default function App() {
           <button style={toolBtn(true)} onClick={() => zoomBtn(1)}>+</button>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, color: T.dim, fontSize: 11 }}>
+          <select defaultValue="" onChange={(e) => { const v = e.target.value; if (!v) return; const wh = v.split("x"); setCanvasW(Number(wh[0])); setCanvasH(Number(wh[1])); e.target.value = ""; }}
+            title="Paper size presets"
+            style={{ background: T.panel2, color: T.text, border: "1px solid " + T.line, borderRadius: 3, padding: "2px 4px", fontSize: 10 }}>
+            <option value="">Size preset</option>
+            <option value="210x148">A5 wide</option>
+            <option value="148x210">A5 tall</option>
+            <option value="297x210">A4 wide</option>
+            <option value="210x297">A4 tall</option>
+            <option value="420x297">A3 wide</option>
+            <option value="297x420">A3 tall</option>
+            <option value="594x420">A2 wide</option>
+            <option value="420x594">A2 tall</option>
+          </select>
           Canvas
           <NumBox value={canvasW} onChange={(v) => setCanvasW(Math.max(10, v))} min={10} width={56} />
           ×
           <NumBox value={canvasH} onChange={(v) => setCanvasH(Math.max(10, v))} min={10} width={56} />
           mm
         </div>
+        <button style={toolBtn(true)} onClick={() => setPensOpen((v) => !v)} title="Edit pen colors (preview / SVG)">Pens</button>
+        {pensOpen && (
+          <div onClick={() => setPensOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 400 }}>
+            <div onClick={(e) => e.stopPropagation()}
+              style={{ position: "absolute", top: 44, right: 352, width: 236, background: T.panel, border: "1px solid " + T.line, borderRadius: 7, padding: 10, boxShadow: "0 8px 30px rgba(0,0,0,0.5)" }}>
+              <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.08em", marginBottom: 6 }}>PENS — preview / SVG colors</div>
+              {PENS.map((pen, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <div style={{ fontSize: 9, color: T.dim, width: 14, textAlign: "right", fontFamily: mono }}>{i}</div>
+                  <input type="color" value={pen.c}
+                    onChange={(e) => { pen.c = e.target.value; savePens(); setPensVer((v) => v + 1); }}
+                    style={{ width: 26, height: 20, padding: 0, border: "none", background: "none", cursor: "pointer" }} />
+                  <input type="text" value={pen.name}
+                    onChange={(e) => { pen.name = e.target.value.slice(0, 16); savePens(); setPensVer((v) => v + 1); }}
+                    style={{ flex: 1, background: T.panel2, color: T.text, border: "1px solid " + T.line, borderRadius: 3, padding: "2px 5px", fontSize: 10, fontFamily: mono }} />
+                </div>
+              ))}
+              <button style={toolBtn(true)} onClick={() => { resetPens(); setPensVer((v) => v + 1); }}>Reset defaults</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ---------- Murupolku ---------- */}
@@ -16014,6 +16144,10 @@ export default function App() {
                           title="Slider setup: set per-node fader ranges"
                           style={{ cursor: "pointer", color: setupFor === node.id ? T.accent : T.dim, fontSize: 11, lineHeight: 1, padding: "0 2px", flexShrink: 0 }}>⚙</div>
                       )}
+                      <div onClick={(ev) => { ev.stopPropagation(); duplicateNode(node.id); }}
+                        onMouseDown={(ev) => ev.stopPropagation()}
+                        title="Duplicate this node"
+                        style={{ cursor: "pointer", color: T.dim, fontSize: 10, lineHeight: 1, padding: "0 2px", fontWeight: 700, flexShrink: 0 }}>D</div>
                       <div onClick={(ev) => { ev.stopPropagation(); toggleCollapse(node.id); }}
                         title={collapsed ? "Expand" : "Minimize"}
                         style={{ cursor: "pointer", color: T.dim, fontSize: 11, lineHeight: 1, padding: "0 2px" }}>
@@ -16269,7 +16403,9 @@ export default function App() {
             {primaryOut && !primaryPS.paths.length && (isStyle(primaryOut[0]) || typeof primaryOut[0] === "number") ? (
               <OutPreview out={primaryOut} W={megaW} H={megaH} width={316} />
             ) : (
-              <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} arrows={showArrows} pad={8} />
+              <ZoomBox width={316} height={316 * (megaH / megaW)}>
+                <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} arrows={showArrows} pad={8} />
+              </ZoomBox>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
               <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: T.dim, cursor: "pointer" }}>
@@ -16828,10 +16964,16 @@ export default function App() {
                 width={Math.min(window.innerWidth - 100, (window.innerHeight - 190) * (canvasW / canvasH))}
                 height={Math.min(window.innerHeight - 190, (window.innerWidth - 100) * (canvasH / canvasW))} />
             ) : (
-              <PathsSVG ps={primaryPS} W={megaW} H={megaH}
-                width={Math.min(window.innerWidth - 100, (window.innerHeight - 140) * (canvasW / canvasH))}
-                height={Math.min(window.innerHeight - 140, (window.innerWidth - 100) * (canvasH / canvasW))}
-                arrows={showArrows} pad={16} guides={primaryGuides} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} />
+              (() => {
+                const bw2 = Math.min(window.innerWidth - 100, (window.innerHeight - 140) * (canvasW / canvasH));
+                const bh2 = Math.min(window.innerHeight - 140, (window.innerWidth - 100) * (canvasH / canvasW));
+                return (
+                  <ZoomBox width={bw2} height={bh2}>
+                    <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={bw2} height={bh2}
+                      arrows={showArrows} pad={16} guides={primaryGuides} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} />
+                  </ZoomBox>
+                );
+              })()
             )}
           </div>
           <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 11, color: T.dim }}>
