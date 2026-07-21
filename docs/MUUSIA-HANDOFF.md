@@ -1,247 +1,164 @@
 # MUUSIA — Project Handoff / Continuation Notes
 
 Read this first when resuming Muusia development in a new chat. It captures the
-current state, the conventions that must not be broken, and what's next. Pair it
-with the four source/doc files, which are the source of truth.
+current state, the conventions that must not be broken, and how work is done.
+The repo itself is the source of truth; this file is the map.
 
 ## What Muusia is
 
 A browser-based React node-graph editor for generative pen-plotter art, targeting a
-pen-converted Ultimaker S5. Build images by wiring nodes (generators → modifiers →
-export), get G-code or layered SVG. Everything deterministic (seeded), everything
-live-previewed, every numeric parameter drivable by other nodes including an
-animation frame clock. Formerly "Plotter Patcher"; renamed to Muusia.
+pen-converted Ultimaker S5 and a salvaged X-Carve build (BTT Kraken + Klipper).
+Build images by wiring nodes (generators → modifiers → export), get G-code or
+layered SVG. Everything deterministic (seeded), everything live-previewed, every
+numeric parameter drivable by other nodes including an animation frame clock.
+Formerly "Plotter Patcher"; renamed to Muusia.
 
 Daniel (Helsinki, AV/video systems + hardware maker) is the developer. Working
-language of these sessions is **Finnish**; code identifiers and all user-facing GUI
+language of dev sessions is **Finnish**; code identifiers and all user-facing GUI
 text are **English**.
 
-## Files (all in outputs)
+## Repo layout (post-C0 split, v2.29)
 
-- `muusia.jsx` — the whole app, one React file (~15280 lines, **172 nodes**, v2.20).
-  Build target: `src/App.jsx` in a Vite project.
-- `MUUSIA-README.md` — project doc: install, concepts, UI, machines, animation, arch.
-- `MUUSIA-NODES.md` — every node explained.
-- `MUUSIA-NODE-API.md` — custom-node authoring spec (written to hand to an AI).
-- `muusia-machine-setup.html` — standalone machine-profile configurator (own file).
+- `src/App.jsx` — engine + UI only (~3.8k lines): graph evaluation, canvas, palette,
+  inspector, preview (ZoomBox), export panel, machine setup, Mega Canvas, magnet jig,
+  animation, help. Also hosts the two engine-bound DEFS entries: `group`, `reititys`.
+- `src/defs/helpers.js` — shared node helpers: `Pin, EMPTY, PENS (+PENS_DEFAULT,
+  savePens, resetPens), mulberry32, hash2, noise2, resample, pathLength, applyStyle,
+  isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
+  localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
+  harmlessly about localstorage).
+- `src/defs/nodes/*.js` — one file per node, **166 files** (168 nodes total with
+  group + reititys; Generators 86, Modifiers 55). ESM format:
+  `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
+  group, desc, ins, outs, params, overlay?, compute };`
+- `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
+  alphabetical by filename. **Adding a built-in node = dropping a file here.**
+- `docs/` — MUUSIA-HANDOFF.md (this), MUUSIA-NODES.md (every node),
+  MUUSIA-NODE-API.md (custom-node authoring spec, plotternode format).
+- `tools/` — era scripts (historical surgery + validators), `extract.mjs`,
+  `patch-docs.mjs`, `make-src-bundle.mjs`. Every new node gets a
+  `tools/validate-<name>.mjs` before it ships.
+- `nodes-lab/` — experimental `.plotternode.js` files for the in-app **Node ⇣**
+  import; not part of the build. Approved experiments graduate to `src/defs/nodes/`
+  (wrapper conversion: `({ ... })` → import line + `export default { ... };`).
 
-## Build / update routine
+## Build / release routine
 
-Vite + `vite-plugin-singlefile` → `dist/index.html` (standalone, offline).
-Daniel's update loop: `cp ~/Downloads/muusia.jsx src/App.jsx && npm run build`.
-Project lives at `~/plotter-patcher`. zsh chokes on pasted `#` comments.
+- `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
+  offline). `npm run dev` for live work.
+- Node count check: `ls src/defs/nodes | wc -l` (166) — the old
+  `grep -c 'cat: "'` on App.jsx is dead.
+- Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
+  Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
+  verify with `grep -o 'APP_VERSION = "[^"]*"' src/App.jsx`.
+- Deploy: git push → GitHub Pages. CDN lags ~10 min; `curl -s <url> | wc -c` +
+  version grep distinguishes broken deploy from cache.
+- zsh does not accept `#` comments in pasted commands.
+- `.gitignore` covers `src/App.jsx.bak-*` (surgery-era backups).
+- Hard-removal policy: nodes/params may be removed or change defaults between
+  versions; old patches referencing removed keys are accepted casualties (Daniel
+  keeps no critical legacy patches).
 
-## Palette grouping (generators)
+## Node authoring recipe (current)
 
-Both generators and modifiers carry a `group` field placing them in collapsible
-palette subfolders. `GEN_GROUPS`: geometric, organic, machines, nature, creatures,
-space, scientific, structural, textimg. `MOD_GROUPS`: transform, deform, pathops,
-cutsplit, fillstyle, penout. New gen/mod nodes MUST set `group`. Other categories
-(dec/duo/math/route) are flat. Collapse state is `openGroups`. An **"All nodes" toggle** (`flatAZ`) lists every node alphabetically within its category (gen first, then mod, ...), ignoring folders. NOTE: JSX text does NOT process \uXXXX escapes — use literal characters or {"\u2013"} expressions in JSX text/attributes.
-
-Travel Stop (mod/penout) tags paths with `__stop:{mode,msg}`; the G-code loop reads
-it to emit a lift + M0/pen-change. It's the in-graph counterpart to the machine
-profile's Maintenance pause. Route optimize reorders paths (preserving `__stop` via
-spread) but that shifts distance spacing, so Travel Stop should be last + route opt
-off.
+1. Experiment as `nodes-lab/x.plotternode.js` (spec: MUUSIA-NODE-API.md), import
+   via **Node ⇣**, iterate on look with Daniel.
+2. Write/convert to `src/defs/nodes/x.js` (ESM format above). Import only the
+   helpers actually used.
+3. Write `tools/validate-x.mjs`: plain ESM imports of the node (no stubs needed),
+   assert determinism (double run equal), finite coords, ≥2-pt paths, in-bounds,
+   and every parameter's *liveness* plus any invariant that matters (symmetry,
+   no-overlap gap, monotonic width, graph connectivity...). Run before build.
+4. `npm run build` is the syntax gate — errors point at the exact node file.
+5. Update `docs/MUUSIA-NODES.md` (paragraph + counts) — or leave for a doc batch.
 
 ## Architecture — do not break these
 
-- **One registry `DEFS`.** Each node is a self-contained entry: `name, cat, ins,
-  outs, params, optional overlay(p,ctx), compute(ins, p, ctx, node)`. The engine
-  knows nothing about specific nodes. Adding a node never touches existing code.
+- **One registry `DEFS`** = `{ ...DEFS_NODES, group, reititys }` in App.jsx. The
+  engine knows nothing about specific nodes.
 - **path-set datatype:** `{ paths: [{ pts:[[x,y]...], closed, layer }] }` in mm.
-  **Point order = pen direction** (first-class; routing, brush rotation, Reverse all
-  respect it).
+  **Point order = pen direction** (routing, brush rotation, Reverse respect it).
+- **Pens:** 12 (indices 0–11), colors user-editable via the toolbar **Pens**
+  popover (persisted in localStorage, preview/SVG only — G-code just names them:
+  `; Pen 7: Magenta`). Nodes cycle with `% PENS.length`.
 - **Typed wires:** paths (blue) / value (green) / style (yellow). Every numeric
-  param auto-exposes a green input port; value wires encode as `toPort: "p:paramKey"`.
-- **Determinism:** no `Math.random()` anywhere — all randomness from seed params via
-  `mulberry32`/`hash2`/`noise2`. This is what makes animation reproducible.
-- **Node helpers** available inside `compute`: `Pin, EMPTY, PENS, mulberry32, hash2,
-  noise2, resample, pathLength, applyStyle, signedArea`, plus module-level `SFONT`
-  and `fontStrokes()` (single-stroke font) for text-drawing nodes.
+  param auto-exposes a green input port (`toPort: "p:paramKey"`).
+- **Determinism:** no `Math.random()` — all randomness from seed params via
+  `mulberry32`/`hash2`/`noise2`.
 - **Legacy Finnish internal keys** (do NOT rename — patches depend on them):
-  `viiva`=Tracks-ish, `radat`=Tracks, `arvo`=Value, `matem`=Math,
-  `satunnainen`=Random, `tyylita`=Apply Style. Their display names are English.
+  `viiva`=Stroke, `radat`=Tracks, `arvo`=Value, `matem`=Math,
+  `satunnainen`=Random, `tyylita`=Apply Style, `aaltoilu`=Wave. Display names
+  are English; more Finnish keys exist in `src/defs/nodes/` filenames — never
+  rename a node's `key`, only its `name`.
 - Custom-node sources embed in saved patches. Patch id `"muusia"` (old
-  `"plotter-patcher"` still loads), extension `.muusia.json`; modules
-  `"muusia-module"`. `localStorage` key is still `"plotterpatcher-default"`.
+  `"plotter-patcher"` still loads), extension `.muusia.json`; `localStorage`
+  default-patch key is still `"plotterpatcher-default"`.
+- Custom import keys must not collide with built-ins (`evaluateNodeDef` rejects).
 
-## Node authoring recipe (how new nodes were added this project)
+## UI systems (beyond nodes)
 
-1. Write the node as a standalone `({ key:"x", name, cat, ins, outs, params,
-   overlay?, compute })` file, e.g. `x.plotternode.js`.
-2. Validate in Node.js by extracting the def between its `key: {` and the next
-   `\n  },\n`, stubbing the helpers, and running `compute` for every mode/toggle:
-   check all coords finite, no <2-point paths, determinism (two identical runs
-   equal), and any invariant that matters (rings don't cross, curve monotonic,
-   bilateral symmetry, bounded in zone, etc.). **Verify inside the node's block, not
-   the whole file** (a past Explosion bug came from matching the wrong indentation).
-3. Bake into `muusia.jsx`: strip the `key:` line, indent +2, insert before the
-   `  origami: {` anchor in DEFS.
-4. Update `MUUSIA-NODES.md` and the node counts in both docs.
-5. Re-check global bracket/brace balance (string-strip then count). A persistent
-   "paren diff −1" is a **measurement artifact** (regex literals + the `"("`/`")"`
-   glyph keys in SFONT), not a real error — esbuild compiles clean.
+- **Preview zoom:** ZoomBox wraps the sidebar preview and the big preview — wheel
+  zooms to cursor (1–16×), drag pans (magnet handles keep their own drag: pan
+  ignores mousedown on circle/text), dblclick resets. The pop-out window zooms by
+  width % with cursor-anchored scroll compensation + grab-drag pan.
+- **Paper presets:** toolbar select (A5/A4/A3/A2 × wide/tall) sets canvas W×H;
+  NumBoxes remain for custom sizes.
+- **Node card header:** ? help · ⚙ slider setup · **D duplicate (that node)** ·
+  minimize. `duplicateIds(ids)` is the core; Cmd/Ctrl+D duplicates the selection.
+- **Animation, Mega Canvas, Mini Canvas, magnet jig, machine profiles,
+  Travel Stop, custom modules:** unchanged since v2.0–2.1 era; see MUUSIA-NODES.md
+  and README for user-facing docs. Magnet jig functions (`magnetPlacement`,
+  `jigGcode`, `buildZip`/`crc32`) live above APP_VERSION in App.jsx.
 
-## Magnet jig (v2.8)
+## Version history (condensed)
 
-Steel bed + magnets hold the paper; magnets may sit anywhere, including inside
-the drawing, as long as the pen never hits one. The export panel's MAGNET JIG
-section proposes the N safest spots (10 mm grid; exact segment-distance
-clearance check + chamfer distance transform for ranking; greedy farthest-first
-with min spacing; stable tie-break by cell index; partial results warn, empty
-results error — never unsafe placements). `magnetPlacement(ps, sw, sh, opts)`
-and `jigGcode(positions, prof, sheetW, sheetH, label)` are top-level, tested
-functions right above APP_VERSION. Jig g-code: startG → pen up (servo or bed) →
-laserOnCmd → per magnet a travel move (position MINUS laser offset, same
-fx/fy origin+flipY mapping as toGcode) + pauseCmd stop → laserOffCmd → endG.
-Off-work-area targets emit WARNING comments + UI notes. Machine profile gained
-laserOn/laserOffX/laserOffY/laserOnCmd/laserOffCmd (merge-safe defaults;
-LASER JIG section in machine settings). Mega: one jig per sheet in sheet-local
-coords computed from that sheet's clipped tile (boundary-crossing art blocks
-both tiles); files named `-tile-NN-rRcC-jig.gcode` sort next to their tiles;
-multiple jigs bundle into `-jigs.zip`, single sheet downloads plain .gcode.
-can't see node inputs, so it draws rings via compute on its own pen; export
-remains the source of truth.
+- **2.21** removed 8 nodes (Macrame, Reaction-Diffusion, String, Tape Saturation
+  Harmonics, Planets, Solar System, Building, Filter); Scan→**Seismic** (seismic
+  branch only); Power Pole trimmed to 3 models; Mycelial Net→**Root Web**;
+  Trace→**Trace Image**; baked **Set Pen** (mod/penout).
+- **2.22** fixes: Mountains cross-mesh (dead `rowStep` ReferenceError), Delaunay
+  spacing (600-pt cap masked the slider → spacing escalation), **Smooth rewrite**
+  (Relax mm-radius moving average + Round corners/Chaikin), Potato **No overlap**
+  default (true-extent check), Moon Craters default Top view.
+- **2.23** **12 editable pens** + Pens popover (localStorage), paper size presets,
+  node **D** button, preview zoom everywhere, pen index in G-code comments.
+- **C0** (no version bump): split 163 nodes into `src/defs/nodes/`, helpers module,
+  tools/ + nodes-lab/. Engine/UI now ~3.8k lines.
+- **2.24** Clouds rebaked as the **engraved** version (lobe circles, scalloped
+  visible arcs, inner creases, upward-thinning hatch, dashed drop shadow); new
+  **Zigzag** generator (Zigzag/Sine/Square, skew, noise envelope, row phase,
+  Spine input).
+- **2.25** new **Bridges** modifier (points from path centers/vertices/endpoints;
+  k-nearest / within-distance / chain / Delaunay; trim ends; per-point cap).
+- **2.26** new **Mycelium Fill** modifier (junction-swelling strands along a line
+  network; junction detection = endpoint clusters deg≥3 + cross-path
+  intersections; territory cut with junction-merge exception).
+- **2.27** Knot torus-only (Lissajous removed), FM Rose ring pen cycling,
+  Attractor Lorenz full params (a→ρ, b→σ, c→β, d→speed; legacy "Lorenz (x-z)"
+  string still matches via startsWith) + projection plane.
+- **2.28** Truchet **Tile fill %** + **Separate (never meet)** (radius clamp
+  ≤0.7·tile + forced ≥1 mm edge gap = provably crossing-free), Tiles
+  **Brick/Hex-pack** layouts + **Alternate flip**, Hyperbolic Maze **Solve**
+  strand (edge-midpoint graph trace, center→rim, arcs style only).
+- **2.29** Turtle **presets** (8 programs, Custom default), Gravity Cascade
+  **wells layouts** (Triangle/Line/Ring/Center+ring/Random) + **launch modes**
+  (Ring/Top rain/Spiral; Triangle+Ring preserves classic rng order), Test Card
+  **Pen palette (12)** + grid auto-fit to canvas.
 
-## Mega canvas (v1.9)
+## Hard-won pitfalls (keep)
 
-Works larger than one sheet: the MEGA CANVAS panel (right sidebar, above export)
-multiplies the canvas into cols × rows sheets. Nodes need no changes — ctx.W/H
-simply become the mega dimensions, so every node composes at full size. Preview
-shows the whole work; per-sheet bed-fit check still uses single-sheet size.
-Export previews tile 1 and Download saves ALL tiles as numbered files inside a
-single ZIP (`name-tiles-gcode.zip`) — browsers block sequential programmatic
-downloads, so the app has a minimal STORE-mode zip builder (`buildZip`/`crc32`,
-verified against real unzip). Seam modes: **Overlap** (adjacent sheets repeat the
-seam strip — cut through it and butt-join) and **Gap** (a seam-wide strip is
-skipped — mount with spacing). Optional L-shaped crop marks at each tile's cut
-rectangle corners. Settings persist in the project file. The slicer
-(`sliceMega`, Liang-Barsky clipping) keeps fully-inside closed paths closed and
-splits spanning paths into open runs. `APP_VERSION` is the single version
-constant used by both the UI header and the G-code stamp.
+- Browsers do NOT overwrite downloads (`name (1).ext`) — irrelevant post-C0 for
+  code, still true for any downloaded file.
+- NODE_HELP-style strings may contain escaped quotes: regex-replacing doc strings
+  needs `(?:[^"\\]|\\.)*`, plain `[^"]*` breaks on `\"`.
+- Chain-walking regexes over `else if (M === "...")` must anchor on the quoted
+  string, not `\([^)]*\)` — option labels contain parentheses.
+- Test assertions must not measure pinned endpoints when checking smoothing.
+- `import.meta.glob` order = filename order; palette groups sort alphabetically.
 
-## Pop-out preview (v2.0)
+## Roadmap / ideas
 
-The ⧉ button in the preview header opens the live preview in its own window
-(React portal into `window.open`; inline styles mean no stylesheet copying).
-It tracks the popup's resize, follows all graph edits and animation live, and
-detects closing by polling. Made for two-display work: nodes on one screen,
-drawing on the other.
-
-## Release routine pitfalls (hard-won)
-
-- Browsers do NOT overwrite existing files in ~/Downloads — they save
-  `name (1).ext`, so `cp ~/Downloads/name` silently picks the OLD file. Run
-  `rm ~/Downloads/muusia.jsx MUUSIA-*.md` before downloading, and always verify
-  with `grep -c 'cat: "' src/App.jsx` (node count) and `head -1 docs/*.md`
-  (version headers) before committing.
-- zsh does not accept `#` comments in interactive commands — never paste
-  commands with trailing comments.
-- Live-page debugging: `curl -s <url> | wc -c` + version grep distinguishes
-  "deploy broken" from "browser/CDN cache" (Pages CDN lags ~10 min).
-
-## Current node inventory (172)
-
-- **Generators (82):** Grid, Tracks, Flow Field, Truchet, Lissajous, Phyllotaxis,
-  L-System, Spirograph, Pendulum, Cycloid Machine, Contours, Circle Packing,
-  Barcode, Solids, Mountains, Random Lines, Starfield, Ruler, Cables, Lathe, Fabric,
-  Hairs, Potato, Trunks, Water, Skyline, Tiles, Reg Marks, Noise, Net, Building,
-  Follow Lines, Wood Rings, Worm, Image, Growth, Concrete Poetry, Scan, Clouds, Stone,
-  Asteroids, Planets, Solar System, Test Card, Origami, Mesh, Ribbon, Halftone, Import SVG, Stroke, Text,
-  Caustics, Text on Path, Lace, Macrame, Knot, Murmuration, Dazzle Camouflage,
-  Mycelial Net, Sand Line Hatch, Gravity Cascade, Tape Saturation Harmonics,
-  Hyperbolic Truchet Maze, Voronoi, Metaballs, Trace, Harmonograph, FM Rose, Conway, Superformula, String,
-  Delaunay, Attractor, Reaction-Diffusion, Julia, Differential Growth, Runes,
-  Network, Tubes, Girih, Aggregate, Turtle, Lichen, Smoke, Himmeli, Polka Dots.
-- **Modifiers (50):** Apply Style, Wave, Jitter, Rotate, Glitch, Offset, Symmetry,
-  Smooth, Magnet, Trim/Extend, Join Ends, Simplify, Lens, Warp, Mirror, Move/Scale,
-  Fit to Canvas, Reverse, Skew, Align, Crop, Explosion, Stretch, Tangle Zone,
-  Scatter, Pen Cycle, Chop, Hatch Fill, Fresnel Lens, Travel Stop, Glitch Loom,
-  Origami Glitch Fold, Cellular Mosaic Displace, Occlude, Cage Warp, Carve, Echo,
-  Displace by Image, Travel Sort, Cull, Granulate, Fold, Bitcrush, Tile Shuffle,
-  Kaleidoscope, To Polar, Filter, Fourier, SDF Contours, 3D View.
-- **Decorators (5):** Stamp, Outline, Coil, Fur, End Caps.
-- **Combiners (10):** Mask, Merge, Split, Array, Group, Copy to Points, Stencil, Switch, Ray, Mini Canvas, Negative Space, Diff Pens, Hand Drawn, Subway Map, PCB Tracks, Moon Craters, Comets, Rect Collage, Blueberry Sprig, 3D Glitch, Power Pole.
-- **Math (9):** Frame, Value, Math, Random, Fan, LFO, Steps, Shaper, ADSR.
-- **Routing (1):** Route (hidden; routing lives in the export panel).
-
-## Systems added over the project (beyond nodes)
-
-- **Animation:** Frame node (t / frame# / wave / ping-pong, seamless loops),
-  ANIMATE panel with live ▶ preview, per-frame G-code/SVG export (one file per
-  frame). Full rotation = `frame# × (360/frameCount)`, not `t × 360` (avoids a
-  duplicate loop frame). Anything not wired to Frame is identical every frame.
-- **Help & Examples:** "? Help" button (accent-outlined) → overlay with 5 loadable
-  beginner patches (built programmatically) + sections KEYBOARD SHORTCUTS / BASICS /
-  EXPORT & MACHINE / ANIMATION / CUSTOM NODES.
-- **Custom nodes / modules:** Node ⇣ import (embeds source), Mod ⇡/⇣ subgraph
-  export/import.
-- **Group parameter promotion:** ☆ next to a param inside a group exposes it on the
-  group's face (`node.promoted[{nodeId,key}]`); × removes. No value ports yet
-  (roadmap).
-- **Image node:** raster → grayscale (async decode in inspector), 4 render modes
-  (Scanline wave / Halftone dots / Hatch levels / Flow shade).
-- **Growth node:** differential growth (spatial hash, neighbor-excluded repulsion,
-  growth-pressure + long-edge splits, MAXP 2400, history rings).
-- **Machine Setup:** multiple profiles, bed diagram (canvas on bed + fit warning),
-  profile import/export (⇣/⇡, `.muusia-machine.json`). **Bed-plotter Z handling:**
-  `zHop`+`zHopOn` (small travel lift; full `penUp` reserved for pen changes),
-  `penDelayDown`/`penDelayUp` (ms settle dwells via `G4 P`), `zFeed` lift speed.
-  Standalone `muusia-machine-setup.html` builds profiles with presets (S5 bed /
-  servo / brush), bed diagram, and a lift-time estimate.
-
-## Machine profile schema (for the configurator ↔ app contract)
-
-`{ app:"muusia-machine", v:1, prof:{ name, workW, workH, originX, originY, flipY,
-pauseCmd, startG, endG, penUp, penDown, zHop, zHopOn, zFeed, penDelayDown,
-penDelayUp, feedDraw, feedTravel, rotOn, rotStepper, rotThresh, dipOn, dipX, dipY,
-dipZ, dipEvery, dipDwell, maintOn, maintEvery, maintMsg, maintPark, maintX, maintY } }`. Import merges over `DEFAULT_MACHINE` so old profiles
-gain new fields.
-
-## Roadmap / open ideas (priority order)
-
-1. **GitHub repo** — Daniel said "later"; v1.x + docs are ready to be the README.
-2. **Value ports on promoted group params** (currently manual-edit only).
-3. **Custom pen palettes** + **per-pen time estimates**.
-4. **Klipper/Marlin profile presets** in the configurator once the S5 conversion is
-   confirmed on hardware.
-5. First real plot pending: S5 pen conversion (clogged-nozzle repurpose; Cura route
-   with extruder/heater disabled is the preferred g-code shape). Bed-Z lift is slow —
-   z-hop + settle delays were added for exactly this. Start Draw F low (~800).
-
-## Hardware reality (context for machine advice)
-
-Ultimaker S5, pen-converted. The Z axis is the heavy heated bed → every lift is a
-slow big-mass move, and the pen can drag if it moves before the bed settles. That's
-why z-hop (don't lift full height between nearby paths) and settle delays (pause
-after bed moves) exist. Firmware is picky about print-job-shaped g-code.
-
-
-## v2.18 UI features
-- Canvas W/H inputs use NumBox (type freely, clamps to >=10 on blur, no upper cap — 1 m bed sizes work).
-- Node slider setup mode: gear icon in the node header opens SLIDER SETUP, a per-node
-  max override for every slider/number param, stored in node.pmax (saved with the project,
-  reset arrow restores the default). ParamRow applies the override via def substitution.
-- Magnet jig preview: "Show magnets in preview" checkbox in the export panel's MAGNET JIG
-  section overlays dashed rings + crosshairs (guides channel, never plots) at the proposed
-  positions — per tile with correct offsets in Mega mode (Gap: c*(W+seam), Overlap: c*(W-seam)).
-- Safe Areas node removed: the jig preview toggle covers it at export level (the source of truth).
-
-## v2.19: manual magnet placement
-- MAGNET JIG has Mode: Auto | Manual. Manual: "+ Place magnets" arms click-to-place in
-  BOTH previews (small + big overlay); drag moves a magnet, double-click removes, Clear wipes.
-- Magnets render as a direct interactive SVG layer in PathsSVG (props magnets/onMagnets/placing)
-  - NOT the guides channel. This also fixed invisible auto-markers (root cause: magnetPlacement
-  returns [x,y] arrays, first preview code read q.x/q.y).
-- Coordinates: exact mm, 0.1 precision; single sheet = canvas mm, mega = mega mm, and export
-  splits per tile (cc=floor(x/dx), local=x-cc*dx, clamped into sheet).
-- Persisted in project JSON as jig:{mode, magnets}; loading old projects resets to Auto/[].
-- Auto mode unchanged (jigShow checkbox previews computed positions through the same layer).
-
-## v2.20: node nicknames
-User-level nicknames per node TYPE (localStorage muusia-nicks, not in project files).
-Edited in the gear panel (now NODE SETUP: Nickname field + slider maxes). Shown in node
-headers (replaces name), palette rows and quick-add results (accent, after name); quick-add
-search matches name OR nickname.
+Frame-sequence export as single ZIP · per-pen time estimates · value ports on
+promoted group params · multi-tip brush tool change (servo) · zoned vacuum table
+workflow for wet media · registration marks for mega sheets · SimView zoom ·
+GitHub nodes library curation.

@@ -1,4 +1,4 @@
-# MUUSIA v2.20
+# MUUSIA v2.29
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -10,7 +10,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. It ships with **172 built-in nodes** across Generators,
+HTML file you can double-click. It ships with **168 built-in nodes** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), and a laser-guided magnet jig for paper hold-down.
 
@@ -21,17 +21,9 @@ production layout (Mini Canvas), and a laser-guided magnet jig for paper hold-do
 Requirements: Node.js (18+).
 
 ```bash
-npm create vite@latest muusia -- --template react
-cd muusia
+git clone https://github.com/Bambi8000/Muusia.git
+cd Muusia
 npm install
-npm install -D vite-plugin-singlefile
-cp ~/Downloads/muusia.jsx src/App.jsx
-# replace vite.config.js with the provided single-file config
-cat > src/index.css << 'EOF'
-* { box-sizing: border-box; }
-html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; background: #0D1117; }
-EOF
-rm -f src/App.css
 npm run build        # -> dist/index.html  (standalone, works offline)
 npm run dev          # -> live dev server for development
 ```
@@ -41,7 +33,7 @@ npm run dev          # -> live dev server for development
 `open -na "Google Chrome" --args --app=file:///path/Muusia.html` in an Automator
 application for a dock icon, or use Safari's *File → Add to Dock*.
 
-**Update routine:** `cp ~/Downloads/muusia.jsx src/App.jsx && npm run build`.
+**Update routine:** edit in the repo (`src/App.jsx` for engine/UI, `src/defs/nodes/*.js` for nodes) and `npm run build`.
 
 Known `file://` caveats: the *Set default* startup patch depends on browser storage
 (reliable in Chrome, moody in Safari); the Copy button uses a fallback path. Everything
@@ -54,7 +46,7 @@ else — file save/load, exports, custom nodes — is identical to the dev serve
 **Point order is pen direction** — a first-class property used by routing
 ("preserve direction"), brush rotation, and the Reverse node.
 
-**Layers = pens.** Each path carries a pen index 0–5. Layers become pen-change stops
+**Layers = pens.** Each path carries a pen index 0–11; pen colors and names are editable via the toolbar **Pens** popover (persisted locally; preview/SVG colors only — G-code names the pen in comments). Layers become pen-change stops
 in G-code and `<g>` groups in SVG.
 
 **Typed wires.** Blue = paths, green = numbers, yellow = stroke style. Only equal
@@ -185,7 +177,7 @@ last in your Merge for scan registration.
 
 ## 7. Architecture notes
 
-One registry (`DEFS`) holds every node as a self-contained definition — type,
+One registry (`DEFS`) holds every node as a self-contained definition. Since the C0 split each built-in node lives in its own file under `src/defs/nodes/` (assembled by `src/defs/index.js`); the engine in `App.jsx` knows nothing about specific nodes — type,
 category, pins, typed parameter descriptors, an optional `overlay()` for preview
 guides, and a pure `compute(ins, params, ctx, node)`. The engine knows nothing about
 individual nodes; adding one never touches existing code. The same evaluation path
@@ -199,6 +191,12 @@ as nodes — a node can't see routing or sheet splits. The single-file ZIP write
 hand-built STORE-mode implementation (with real CRC32) because browsers block long
 sequential download bursts.
 
+## UI conveniences (v2.23+)
+
+- **Paper presets** — toolbar select (A5–A2, wide/tall) sets the canvas size; the mm boxes stay for custom sizes.
+- **Preview zoom** — wheel zooms to cursor, drag pans, double-click resets; works in the sidebar preview, the enlarged preview and the pop-out window.
+- **Pens popover** — edit all 12 pen colors and names; saved locally.
+- **D button** — duplicates a single node from its title bar (Cmd/Ctrl+D still duplicates the selection).
 ## 8. Roadmap / ideas
 
 Frame-sequence export as a single ZIP · custom pen palettes · per-pen time estimates ·

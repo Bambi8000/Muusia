@@ -1,13 +1,13 @@
-# MUUSIA v2.20 — Node Reference
+# MUUSIA v2.29 — Node Reference
 
-All 172 built-in nodes. Conventions used below: most generators accept a **Style**
+All 168 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (92)
+## Generators (86)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -20,23 +20,9 @@ splits) while short-range repulsion keeps it self-avoiding and cohesion keeps it
 smooth — the organic meander classic. Circle or canvas bounds (guide overlay),
 optional history rings every N iterations for the nested look. Point-capped.
 
-**Test Card** — a pen-characterization sheet. Select any of eight tiles (checkbox
-list) laid out in a grid: *Line weight sweep* (1\u00D7\u20136\u00D7 overdraw to see
-darkening and registration), *Line spacing* (converging lines to find where they
-merge / effective pen width), *Hatch density* (four fill densities + crosshatch),
-*Arcs & circles* (roundness and stepping), *Pen-lift dots* (an 8\u00D78 grid of tiny
-crosses \u2014 each is a lift+drop+minimal stroke, so tails reveal settle-delay too
-short), *Fill swatches* (flat / grid / spiral coverage), *Registration* (cross +
-nested squares for multi-pen alignment), *Speed ramp* (zigzags of increasing
-frequency to find the acceleration limit where corners round off). Labels on their
-own pen. Plot this first with any new pen or new machine settings.
+**Test Card** — calibration sheets: line weight sweep, converging line spacing, hatch density, arcs & tight circles, pen-lift dot grid, fill swatches, registration marks, speed-ramp zigzag, and a *Pen palette* drawing one labelled swatch per pen (all 12). The grid auto-shrinks its cells to fit the current canvas.
 
-**Clouds** — realistic clouds by type (not cartoon lobes): outlines are
-noise-modulated so edges are billowy but not jagged. *Cumulus* (puffy, flat-based),
-*Stratus* (low layered fog band with internal striations), *Cirrus* (thin feathery
-spine + fallstreak wisps, no solid outline), *Cumulonimbus* (towering storm body +
-spreading anvil + rain streaks), *Altocumulus* ("sheep" — a regular patch field).
-Shading and detail sliders, Horizon Y, shade on its own pen.
+**Clouds** — old-etching cumulus: each cloud is a row of overlapping lobe circles plus a few stacked on top, drawn as scalloped visible arcs. *Inner creases* lets each arc continue a little way behind its neighbour, like an engraver's line; *Hatch shading* adds horizontal rows that thin upward plus a dashed drop shadow under the flat base.
 
 **Stone** — faceted rocks/boulders: irregular polygon outline with interior facet
 lines from a highlight point (3-D chunk look) and optional hatch shadow (own pen).
@@ -47,28 +33,7 @@ from smooth pebble to sharp shard.
 classic silhouette), plus an optional player ship (triangle) and stray bullets.
 Jaggedness and vertex count shape the rocks.
 
-**Planets** — a chosen solar-system body drawn as line art: Sun (corona spikes +
-spots), Mercury/Moon (craters), Venus/Jupiter/Saturn/Uranus/Neptune (latitude bands,
-Jupiter's Great Red Spot, Neptune's dark spot), Earth (continent blobs + polar cap),
-Mars (craters, bands, ice cap). Rings for Saturn/Uranus, optional shadow terminator
-for a crescent.
-
-**Solar System** — the whole system in one node: pick which planets to include
-(checkbox list), each on its orbit (tilted ellipse) at a phase angle, with major
-moons on their own sub-orbits — orbit paths, moons and moon-orbits each toggle
-independently. Even or log-ish spacing, view tilt, planet-size multiplier; Saturn/
-Uranus get rings. Orbits and planets can go on separate pens.
-
-**Scan** — medical & scientific imaging aesthetics, drawn as procedural specimens:
-*X-ray* (ribcage: vertebra stack, double-line rib arcs, clavicles), *CT slice*
-(skin/fat rings, organ blobs — one hatch-filled, vertebra with beam star, R/L
-markers), *MRI head* (the iconic sagittal: face profile, skull, gyri meanders
-inside the brain ellipse, cerebellum folds, brainstem), *Ultrasound* (sector beam,
-noise-gated echo arcs = speckle, echogenic mass, depth ticks), *Microscope cells*
-(field-of-view circle, cell blobs with nuclei and organelles, some in mitosis,
-scale bar), *SEM diatom* (double frustule, radial ribs, pore rings), *EEG/Seismic*
-(channel rows with burst envelopes). Annotations (crosshairs, ticks, "50 UM",
-"SAG T1"...) on their own pen — they make the drawing a document.
+**Seismic** — seismograph / EEG channel rows: a calm baseline per channel with 1–3 seeded burst events per row. Detail sets the channel count; annotations (ticks) go on their own pen.
 
 **Concrete Poetry** — text as image, using the built-in single-stroke font.
 Layouts: *Fill region* (repeating text rows clipped glyph-by-glyph to any closed
@@ -86,9 +51,9 @@ spacing, start radius.
 **Flow Field** — streamlines traced through a noise vector field. Scale sets feature
 size, steps set line length. The classic organic-flow workhorse.
 
-**Truchet** — tiled quarter-circle patterns. *Tiles* mode draws arc tiles
-(lines/spread/gap per tile); *Loop* mode grows a spanning tree and emits **one single
-closed line** that fills the canvas — a maze you can plot without lifting the pen.
+**Truchet** — tiled quarter-circle patterns. *Tiles* mode draws arc or diagonal tiles; *Tile fill* leaves a seeded share of tiles empty; *Separate* clamps arc radii and forces an edge gap so strands never meet or cross. *Loop* mode grows a spanning tree and emits **one single closed line** that fills the canvas — a maze you can plot without lifting the pen.
+
+**Zigzag** — rows of zigzag, sine or square waves. *Skew* tilts the zigzag toward a sawtooth; *Envelope* modulates amplitude with a seeded noise envelope (bursts and quiet passages); *Row phase* offsets rows for interference. Wire any path into **Spine** and the waves follow it as parallel offset rows.
 
 **Lissajous** — x/y sinusoids with frequency ratio and phase; the *damping* parameter
 turns it into a harmonograph decay spiral.
@@ -155,8 +120,7 @@ wave, *Silk* pure noise flow; plus fine rumple.
 radial; curl with random handedness; gravity droop. Optional **Region input**: wire
 closed shapes (Text outlines, silhouettes) and hairs grow only inside (even-odd).
 
-**Potato** — asymmetric blobs (low-frequency harmonics + random squash) with light
-overlap avoidance; optional "eyes" texture as dots or curved arcs.
+**Potato** — asymmetric blobs (low-frequency harmonics + random squash) with optional "eyes" texture as dots or curved arcs. Placement: *No overlap* keeps every potato fully separated using its true extent (fewer may fit on a tight sheet); *Loose* allows touching and light overlap.
 
 **Trunks** — birch trunks only, no branches: two wandering edge lines per trunk.
 Smoothness (edge waver), lean, upward taper, and *Artifacts*: horizontal bark
@@ -171,10 +135,7 @@ conifer-spike tops and optional trunk texture; *City*: stepped building skyline 
 height distribution, antennas and window dashes (some dark). Shares its Horizon Y
 convention with Water.
 
-**Tiles** — grid of tiles, each a separate closed path. Shapes: parametric
-**Superellipse** (N slides astroid → diamond → circle → squircle → rectangle),
-Circle, Triangle, Hexagon, Star (points + inner radius), Reuleaux, Cross. Per-tile
-rotation + jitter. The natural Explosion input.
+**Tiles** — grid of tiles, each a separate closed path: parametric **Superellipse**, Circle, Triangle, Hexagon, Star, Reuleaux, Cross, with per-tile rotation and jitter. Layout: *Grid*, *Brick* (offset rows) or *Hex pack* (0.866 pitch — circles and hexagons at Size 100 touch their neighbours); *Alternate flip* rotates every other tile 180° so triangles tessellate. The natural Explosion input.
 
 **Reg Marks** — registration marks in selectable corners (+ optional centre):
 cross, printer's circle-and-cross, or inward corner-L; adjustable insets. For
@@ -187,11 +148,6 @@ that modulate density row-wise. Budget-capped.
 **Net** — netting with selectable mesh: Diamond (fishing net), Square, Triangle,
 Hexagon (chicken wire, drawn without doubled edges). Whole net sags like it hangs;
 irregularity jitters the knots; strands are subdivided so they bend smoothly.
-
-**Building** — brutalist Soviet panel block: floors × sections (stairwells), panel seams every
-floor/section, windows (some lit with diagonals), balconies (none / alternating
-columns / all) with railing lines, doors with canopies, roof machine room and
-antennas, and an optional oblique side face with its own seams and end windows.
 
 **Follow Lines** — the "follow the previous stroke" marker technique: iterative
 offsets whose distance varies along the length (*Drift*), so bundles pinch into
@@ -244,15 +200,7 @@ loops — and a scalloped picot edge), *Edging* (header lines, mesh strip, scall
 with fans and picots), *Mesh ground* (torchon diamond net with hashed spiders).
 Sectors, rings, detail, picots on/off, edging depth.
 
-**Macrame** — knotted cordwork: top bar with lark's-head loops, vertical cords
-pinching into square knots (oval + wrap line), seeded wiggly fringe. Patterns:
-*Alternating net*, *Diamonds* (knots travel edge-to-center), *Sinnet columns*.
-Cords, rows, knot size, fringe length and wiggle.
-
-**Knot** — mathematical decorative knots: *Torus p·q* (2·3 trefoil, 2·5 cinquefoil…)
-and *Lissajous* (three frequencies, seeded phases). Crossing gap cuts the under
-strand at every planar self-intersection using the 3-D z-order, producing a true
-over-under weave; gap 0 draws the unbroken curve. Tube ratio, rotation, sample step.
+**Knot** — a torus knot p·q drawn flat with real over/under crossings: at every planar self-intersection the strand passing underneath is cut with a gap, so the knot reads as woven. Coprime p/q give true knots; Tube sets the torus thickness.
 
 **Murmuration** — a closed-form starling flock: every bird is a deterministic
 function of (time, index) — flock center follows a guide path, the flock breathes
@@ -267,7 +215,7 @@ sheet into convex patches; each patch gets hatching at a quantized clashing angl
 (never repeating its neighbor), with blank, cross-hatch and wavy patch styles, and
 optional bold outlines. Serpentine stripe order.
 
-**Mycelial Net** — hyphal growth: queued tips step through noise-steered incremental
+**Root Web** — hyphal growth: queued tips step through noise-steered incremental
 turns and split into binary branches at a seeded rate; edge and point budgets end
 strands. Spore count, growth cycles, split rate, wander, internode, spawn radius.
 
@@ -275,19 +223,9 @@ strands. Spore count, growth cycles, split rate, wander, internode, spawn radius
 noise × density, producing grain-gradient fields; runs collapse to 2-point
 segments and lines alternate direction (serpentine).
 
-**Gravity Cascade** — a particle per orbit integrated through three seeded gravity
-wells with softened cores and friction decay: collapsing, wrapping, slingshotting
-arcs. Paths end at the sheet edge; points are decimated so tight orbits don't
-crawl.
+**Gravity Cascade** — particles launched into a field of gravity wells trace decaying orbits. *Wells layout* places the attractors (Triangle, Line, Ring, Center + ring, Random with a Wells count); *Launch* picks the start (Ring around the center, Top rain from the upper edge, Spiral). Paths end at the sheet edge.
 
-**Tape Saturation Harmonics** — parallel sinusoidal signal tracks hard-clipped at a
-saturation threshold, with low-frequency wow drift and fine flutter noise; clamped
-to the sheet, serpentine track order. Moiré-ribbon fields.
-
-**Hyperbolic Truchet Maze** — Truchet tiles on concentric rings: arcs join edge
-midpoints so strands continue seamlessly across cells (the original corner-diagonal
-style remains as an option). Ring-crowding slider packs rings toward the center
-(event-horizon look) or the rim.
+**Hyperbolic Truchet Maze** — Truchet arcs on a polar grid whose rings crowd toward the center or the rim (Ring Crowding), so the maze reads as a hyperbolic disc. Arc strands connect seamlessly across cells; *Solve* traces the strand network and recolors one strand running from the center to the outer rim onto the Solve pen (arcs style only).
 
 **Voronoi** — seeded sites carved into cells by half-plane clipping, with optional
 Lloyd relaxation (0-3) for even cell sizes. Shared edges are emitted exactly once,
@@ -297,7 +235,7 @@ so no line is drawn twice. Optional site crosses.
 1-5 nested iso-bands; segments are stitched into closed organic loops that merge
 where blobs meet.
 
-**Trace** — threshold contours of a loaded raster image (fileImage): 1-6 tonal
+**Trace Image** — threshold contours of a loaded raster image (fileImage): 1-6 tonal
 levels traced as vector contours fitted to the margin box, with invert and a
 minimum-contour filter for specks.
 
@@ -306,9 +244,7 @@ oscillators per axis trace one continuous stroke that spirals inward as it dies.
 Near-integer frequency ratios plus a small detune give the iconic almost-closing
 loops.
 
-**FM Rose** — FM synthesis as a polar curve: a modulator warps the carrier that
-shapes the radius. Low index gives rosettes, high index chaotic flowers; rings
-and twist stack scaled copies.
+**FM Rose** — FM synthesis as a polar curve: a modulator warps the carrier that shapes the radius. Low index gives rosettes, high index chaotic flowers; Rings stacks scaled copies with per-ring rotation, and *Ring pens* cycles successive rings through that many pens.
 
 **Conway** — Game of Life replayed deterministically from a seeded board for N
 generations per compute; wire a value into Generations to animate growth. Live
@@ -318,21 +254,11 @@ cells drawn as squares, dots or diamonds, with optional edge wrap.
 flowers, polygons and diatoms via m/n1/n2/n3. Rings with twist fill the shape
 concentrically.
 
-**String** — a plucked string rendered as stacked time frames: modal sum with
-e^(-d k^2 t) damping, so high harmonics die first and the stack smooths downward,
-exactly like a real string. Serpentine rows for plotting.
-
 **Delaunay** — triangulation of input path points (resampled or raw vertices)
 or seeded random sites; the dual of Voronoi. Shared edges emitted once. Feed any
 artwork in for a low-poly version.
 
-**Attractor** — Clifford / De Jong maps or a Lorenz x-z projection iterated
-thousands of times, fitted to the sheet. Polyline mode gives one chaotic thread,
-Dashes the classic attractor dust (capped for the pen).
-
-**Reaction-Diffusion** — Gray-Scott Turing patterns (spots, stripes, mazes)
-replayed deterministically from seeded spots; contours traced with marching
-squares. Wire a value into Iterations to grow the pattern. Heavier compute.
+**Attractor** — Clifford / De Jong maps or the Lorenz system iterated thousands of times, fitted to the sheet. In Lorenz mode the four sliders map to the system (a→rho, b→sigma, c→beta, d→speed) and *Plane* picks the projection (x-z / x-y / y-z). Polyline is one chaotic thread, Dashes the classic attractor dust.
 
 **Julia** — escape-time fractal contours of the Julia or Mandelbrot set, banded
 by normalized iteration count. The c-parameters accept value wires, so an LFO
@@ -365,9 +291,7 @@ a hexagon or square tiling. One angle slider (54 deg classic) morphs the family.
 or built-in) snap together at bounding-box connectors with collision checks,
 growing a crystal-like assembly part by part. Wire Iterations to animate growth.
 
-**Turtle** — classic turtle graphics from a command string: F/B draw, M moves
-pen-up, R/L turn, U/D pen state, [ ] branches, N[...] repeats. 36[F8 R10] is a
-circle; auto-fits to the sheet. Fully deterministic.
+**Turtle** — classic turtle graphics from a command string: F/B move drawing, M moves pen-up, R/L turn, U/D pen up/down, [ ] branch, N[...] repeats. *Preset* picks a ready-made program (Hex flower, Pentagram, Spun squares, Rose window, Radial burst, Turning square, Branch tree, Zigzag ribbon); Custom uses the Program field. Auto-fits to the sheet; deterministic.
 
 **Lichen** — map-lichen and crustose growth after the real thing: Map builds
 polygon patches split by continuous wandering cracks, each patch grain clipped to
@@ -404,11 +328,7 @@ cycle through the pens — one color per route.
 bends only) routed between round pads, IC footprints as twin rows of pads
 feeding tracks outward, and via dots along the runs.
 
-**Moon Craters** — cratered lunar terrain from a heightfield of bowl-and-rim
-craters. Top view draws rim/floor outlines or a relief-displaced mesh; 3D view
-looks across the plain to a horizon (not a sphere) — rotate with Yaw, raise the
-camera with Pitch. 3D Mesh uses classic silhouette occlusion; 3D Outlines
-drapes the crater rings over the terrain.
+**Moon Craters** — cratered lunar terrain from a heightfield of bowl-and-rim craters. Top view (default) draws rim/floor outlines or a relief-displaced mesh; 3D view looks across the plain to a horizon — rotate with Yaw, raise the camera with Pitch. 3D Mesh uses classic silhouette occlusion; 3D Outlines drapes the crater rings over the terrain.
 
 **Comets** — nucleus and sweeping tail. Detailed draws the ball with coma arcs
 and a fan of curved tail streamlines; Minimal is just a dot and a single line.
@@ -420,14 +340,9 @@ small circles on stalk tips (sometimes clustered), and loose open cup flowers.
 Tip mix balances berries against cups; Leaves adds pointed ovals; a light ink
 wobble is baked in — chain into Hand Drawn for more.
 
-**Power Pole** — wireframe 3D utility poles, one per national tradition:
-Finnish Wood, US Utility, Japanese Concrete, Lattice Pylon (Donaumast), Wide-Base
-Lattice (anchor tower with dramatically splayed legs, waist, three lattice arm
-levels), Lattice Portal (two truss masts with a lattice crossbeam, Nordic
-400 kV), and H-Frame Portal. Wires hangs catenary cables from the insulators;
-rotate with Yaw/Pitch, wire Frame to orbit.
+**Power Pole** — wireframe 3D utility poles: Finnish Wood (single pole, crossarm, pin insulators, guy wire), US Utility (double crossarm, cylinder transformer), Japanese Concrete (stacked arms, transformer drums). Wires hangs catenary cables from the insulators; rotate with Yaw/Pitch, wire Frame to orbit.
 
-## Modifiers (53)
+## Modifiers (55)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -443,11 +358,13 @@ rotate with Yaw/Pitch, wire Frame to orbit.
 
 **Symmetry** — mirror/radial kaleidoscope repetition.
 
-**Smooth** — corner-rounding relaxation.
+**Smooth** — smooths paths in two modes. *Relax* runs an arc-length moving average (Radius mm) over the line — visible on typical densely sampled geometry; endpoints stay pinned and closed paths wrap. *Round corners* is classic Chaikin corner-cutting for sparse polylines like Random Lines or Delaunay edges.
 
 **Magnet** — attracts/repels points within a radius (guide overlay).
 
 **Trim/Extend** — shortens or lengthens path ends.
+
+**Bridges** — connects points of the input with bridge lines. Points from *Path centers* (Polka Dots / Phyllotaxis circles become nodes), *Vertices* (resampled at a spacing) or *Endpoints*; rules *k-nearest*, *Within distance*, *Chain* (one continuous nearest-neighbour stroke, split at long jumps) or *Delaunay* edges. *Trim ends* stops each bridge short of its points so lines never pierce the dots.
 
 **Join Ends** — connects nearby path endpoints into longer polylines
 (distance × angle scoring, rounds of batch pairing, optional same-pen-only).
@@ -504,6 +421,8 @@ the zone edge (guide overlay).
 
 **Pen Cycle** — assigns pens to whole paths in rotation.
 
+**Set Pen** — recolors the input onto another pen. *All* moves everything to the target pen; *Single* remaps only one source pen and leaves the rest untouched — handy for swapping a single color in a multi-pen patch.
+
 **Travel Stop** — inserts a pause or pen-change after a set distance of drawing, for
 wearing/refilling media (chalk, charcoal, dip/fountain pens). Every N mm of drawn
 length it tags the next path so the G-code lifts and pauses (M0) with your message
@@ -515,6 +434,8 @@ spacing stays accurate.
 **Chop** — cuts paths into arc-length pieces (length ± variation, optional physical
 gap) and deals the pieces across 1–6 pens, cycling or randomly. Multi-colour within
 a single stroke.
+
+**Mycelium Fill** — grows organic flesh along a line network: parallel strands follow each input line and the width swells near junctions (3+ path ends meeting, or crossings between paths), so joints read thicker — a slime-mould look on a Voronoi or Network input. Strands invading a neighbouring strut's territory are cut, except near junctions where they merge; *Waviness* adds hyphal wobble, *Taper* thins open ends.
 
 **Hatch Fill** — fills closed shapes with hatching (angle, spacing, inset from both
 edges with parity checking); *Outside* region mode inverts via a synthetic frame
@@ -583,11 +504,6 @@ anything.
 **To Polar** (deform) — cartesian-to-polar remap: x becomes angle, y becomes
 radius, bending any horizontal composition into rings, discs or fans. Turns,
 start angle and inner radius shape the wrap.
-
-**Filter** (deform) — a state-variable audio filter run along each path, x and y
-as two signals. Lowpass smooths like an analog channel; highpass keeps only the
-detail re-centered; resonance makes the line ring with decaying oscillation
-after every feature, because the filter is causal.
 
 **Fourier** (deform) — elliptic Fourier reconstruction of closed shapes from the
 first K harmonics: K=1 is an ellipse, K=64 the original. Wire a value into

@@ -1,9 +1,9 @@
-# Muusia — Custom Node API (v1.1, app v2.20)
+# Muusia — Custom Node API (v1.2, app v2.29)
 
 This document is a **complete, self-contained specification** for writing a custom node
 for Muusia, a node-graph editor for generative pen-plotter art. You can hand this
 document to a developer or an AI assistant and ask for a node; the resulting file is
-imported in the app via the **Node ⇣** button (top toolbar).
+imported in the app via the **Node ⇣** button (top toolbar). (Built-in nodes use the same definition object in ESM form under `src/defs/nodes/` — an import line plus `export default { ... };` — but this plotternode format is the one for user imports.)
 
 ---
 
@@ -63,7 +63,7 @@ Everything flowing through blue wires is a **path set**:
   casually; if you generate closed shapes, generate them with a consistent winding.
 - `closed` — `true` means the pen returns to `pts[0]` at the end (do **not** repeat the
   first point at the end yourself).
-- `layer` — integer pen index `0..5` (Black, Blue, Red, Green, Orange, Purple). Layers
+- `layer` — integer pen index `0..11` (12 pens; colors/names user-editable in the app). Layers
   become pen-change stops in G-code and `<g>` groups in SVG export.
 
 Curves do not exist: everything is a polyline. Sample curves densely enough
@@ -107,7 +107,7 @@ wires — you get modulation for free.
 | `seed` | — | Number box + dice button (numeric port). |
 | `select` | `options: ["A", "B"]` | Dropdown. `p.key` is the **string**. |
 | `check` | — | Checkbox → boolean. |
-| `pen` | — | 6 color dots → integer 0–5. |
+| `pen` | — | 12 color dots → integer 0–11. |
 | `text` | — | Single-line text field. |
 | `file` | — | File picker; pair with `onFile`. |
 
@@ -150,7 +150,7 @@ compute(ins, p, ctx, node) → pathSet | number | style | array-of-pathSets
 |---|---|---|
 | `Pin` | `(type, label?) → pin` | Pin descriptor. |
 | `EMPTY` | constant | `{ paths: [] }`. |
-| `PENS` | constant | Array of 6 `{ name, c }` pen colors; use `PENS.length` for cycling. |
+| `PENS` | constant | Array of 12 `{ name, c }` pen colors; use `PENS.length` for cycling. |
 | `mulberry32` | `(seed) → () => float` | Deterministic PRNG in `[0,1)`. |
 | `hash2` | `(x, y, seed) → float` | Deterministic hash of a lattice cell, `[0,1)`. |
 | `noise2` | `(x, y, seed) → float` | Smooth 2-D value noise, `[0,1)`. Feature size ≈ `1/scale` when you sample `noise2(x*scale, y*scale, seed)`; typical scale 0.005–0.1. For fBm, sum octaves at doubling frequency, halving amplitude. |
@@ -212,7 +212,7 @@ ten-line harness — the same practice used for every built-in node:
 const fs = require("fs");
 const Pin = (t, l) => ({ type: t, label: l });
 const EMPTY = { paths: [] };
-const PENS = Array.from({ length: 6 }, (_, i) => ({ name: "P" + i, c: "#000" }));
+const PENS = Array.from({ length: 12 }, (_, i) => ({ name: "P" + i, c: "#000" }));
 function mulberry32(a){return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
 function hash2(x,y,s){let h=Math.imul(Math.floor(x)^0x9e3779b9,2654435761);h^=Math.imul(Math.floor(y)^0x85ebca6b,2246822519);h^=Math.imul((s|0)^0xc2b2ae35,3266489917);h=(h^(h>>>15))>>>0;return h/4294967296;}
 function noise2(x,y,s){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const a=hash2(xi,yi,s),b=hash2(xi+1,yi,s),c=hash2(xi,yi+1,s),d=hash2(xi+1,yi+1,s);const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);return a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v;}
