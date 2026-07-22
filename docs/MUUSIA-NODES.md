@@ -1,6 +1,6 @@
-# MUUSIA v2.29 — Node Reference
+# MUUSIA v2.31 — Node Reference
 
-All 168 built-in nodes. Conventions used below: most generators accept a **Style**
+All 169 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
@@ -342,7 +342,7 @@ wobble is baked in — chain into Hand Drawn for more.
 
 **Power Pole** — wireframe 3D utility poles: Finnish Wood (single pole, crossarm, pin insulators, guy wire), US Utility (double crossarm, cylinder transformer), Japanese Concrete (stacked arms, transformer drums). Wires hangs catenary cables from the insulators; rotate with Yaw/Pitch, wire Frame to orbit.
 
-## Modifiers (55)
+## Modifiers (56)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -408,6 +408,8 @@ real Fresnel lens: within each groove the radial mapping is monotonic (no folds)
 and the groove boundaries produce the characteristic concentric shear
 discontinuities. Circular or linear (sheet-lens) mode, groove pitch, smooth-lens or
 prism profile, edge falloff; overlay shows the lens and a few grooves.
+
+**Smear** — pixel-stretch for lines inside a rectangular zone (guide overlay). *Vertical* / *Horizontal* replace zone content with straight axis-aligned streaks at the boundary crossings (sign follows travel direction; Streak length 0 runs to the far edge). *Free (bridge)* instead joins each path's entry and exit with one straight chord, so the line continues unbroken through the zone. *From edge* picks which zone edge feeds the effect — e.g. Right continues only right-edge crossings seamlessly along their own tangents while other edges are simply cut. Compare Stretch: that remaps geometry, this replaces it.
 
 **Stretch** — monotonic band remap: geometry entering the band stretches uniformly
 along it and everything beyond shifts by the amount — no folds, straight smears.

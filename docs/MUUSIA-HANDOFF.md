@@ -17,7 +17,7 @@ Daniel (Helsinki, AV/video systems + hardware maker) is the developer. Working
 language of dev sessions is **Finnish**; code identifiers and all user-facing GUI
 text are **English**.
 
-## Repo layout (post-C0 split, v2.29)
+## Repo layout (post-C0 split, v2.31)
 
 - `src/App.jsx` — engine + UI only (~3.8k lines): graph evaluation, canvas, palette,
   inspector, preview (ZoomBox), export panel, machine setup, Mega Canvas, magnet jig,
@@ -27,8 +27,8 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **166 files** (168 nodes total with
-  group + reititys; Generators 86, Modifiers 55). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **167 files** (169 nodes total with
+  group + reititys; Generators 86, Modifiers 56). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -46,7 +46,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (166) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (167) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -144,6 +144,14 @@ text are **English**.
   **wells layouts** (Triangle/Line/Ring/Center+ring/Random) + **launch modes**
   (Ring/Top rain/Spiral; Triangle+Ring preserves classic rng order), Test Card
   **Pen palette (12)** + grid auto-fit to canvas.
+- **2.30** Mega Canvas: **composed full-SVG proof export** (one SVG at mega size,
+  proofing reference vs preview) + **tile labels** (running number + R/C at each
+  sheet's bottom-left, mark pen, persisted in project files); fixed XML comment
+  placement in mega SVG exports (comments must follow the declaration — Chrome
+  rejects, Quick Look silently accepts); sliceMega portrait regression validator.
+- **2.31** new **Smear** modifier (pixel-stretch for lines: V/H streaks or Free
+  bridge chords at zone boundary crossings, From-edge filter for seamless
+  one-sided continuation).
 
 ## Hard-won pitfalls (keep)
 
@@ -155,6 +163,9 @@ text are **English**.
   string, not `\([^)]*\)` — option labels contain parentheses.
 - Test assertions must not measure pinned endpoints when checking smoothing.
 - `import.meta.glob` order = filename order; palette groups sort alphabetically.
+- macOS Quick Look scales tall SVGs to window width and shows only the top —
+  judge exported tiles in a browser tab or by validator, never by space-bar
+  preview (a "slicing bug" in 2.30 investigation was exactly this illusion).
 
 ## Roadmap / ideas
 

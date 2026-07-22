@@ -1,4 +1,4 @@
-# MUUSIA v2.29
+# MUUSIA v2.31
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -10,7 +10,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. It ships with **168 built-in nodes** across Generators,
+HTML file you can double-click. It ships with **169 built-in nodes** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), and a laser-guided magnet jig for paper hold-down.
 
@@ -121,7 +121,11 @@ to return exactly.
 **Overlap** or **Gap** seams; export slices the work into per-sheet tiles with
 optional crop marks on a chosen pen and downloads everything as **one ZIP**
 (`name-tile-01-r1c1.gcode`, ...). The bed diagram and previews show the full mega
-canvas.
+canvas. Optional tile labels draw a running number + row/col small in each sheet's
+bottom-left corner on the mark pen, for sorting the physical sheets. *Download
+full SVG (composed proof)* saves the whole composed work as one SVG at full mega
+size — a proofing reference to compare against the preview; the numbered tiles
+remain the plottable output.
 
 **Mini Canvas (production runs).** The inverse, as a node: *Auto grid* packs up to six
 wired compositions into a contact sheet; *Fixed size* replicates one mini size
