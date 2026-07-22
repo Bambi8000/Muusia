@@ -700,7 +700,7 @@ function buildZip(files) { /* files: [{name, text}] -> Uint8Array */
    mode Overlap: tile regions share a seam-wide strip (cut through it, butt-join).
    mode Gap: a seam-wide strip between regions is skipped (mount with spacing).
    marks: L-shaped crop marks at the corners of each tile's cut rectangle. --- */
-function sliceMega(ps, sw, sh, C, R, seam, mode, marks, markPen = 0) {
+function sliceMega(ps, sw, sh, C, R, seam, mode, marks, markPen = 0, labels = false) {
   const gap = mode === "Gap";
   const strideX = gap ? sw + seam : sw - seam;
   const strideY = gap ? sh + seam : sh - seam;
@@ -761,6 +761,14 @@ function sliceMega(ps, sw, sh, C, R, seam, mode, marks, markPen = 0) {
         };
         corner(cx0, cy0, 1, 1); corner(cx1, cy0, -1, 1);
         corner(cx1, cy1, -1, -1); corner(cx0, cy1, 1, -1);
+      }
+      if (labels) {
+        const LP = Math.max(0, Math.round(markPen));
+        const txt = (r * C + c + 1) + " R" + (r + 1) + "C" + (c + 1);
+        const fsx = fontStrokes(txt, 4, 1);
+        for (const st of fsx.strokes) {
+          paths.push({ pts: st.map(([gx, gy]) => [6 + gx, sh - 11 + gy]), closed: false, layer: LP });
+        }
       }
       tiles.push({ paths });
     }
@@ -894,7 +902,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.29"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.30"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1595,6 +1603,7 @@ export default function App() {
   const [megaC, setMegaC] = useState(2);   /* columns of sheets */
   const [megaR, setMegaR] = useState(2);   /* rows of sheets */
   const [megaSeam, setMegaSeam] = useState(5);
+  const [megaLabels, setMegaLabels] = useState(false);
   const [megaMode, setMegaMode] = useState("Overlap"); /* Overlap: sheets repeat the seam strip (cut & butt-join). Gap: seam strip is skipped (mount with spacing). */
   const [megaMarks, setMegaMarks] = useState(true);
   const [megaMarkPen, setMegaMarkPen] = useState(0); /* own pen for marks: pencil / fine liner */
@@ -2224,7 +2233,7 @@ export default function App() {
   const [routeOpt, setRouteOpt] = useState(true);
   const [preserveDir, setPreserveDir] = useState(true);
   const exportPS = () => (routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS);
-  const megaTiles = () => sliceMega(exportPS(), canvasW, canvasH, megaC, megaR, megaSeam, megaMode, megaMarks, megaMarkPen);
+  const megaTiles = () => sliceMega(exportPS(), canvasW, canvasH, megaC, megaR, megaSeam, megaMode, megaMarks, megaMarkPen, megaLabels);
   const autoJigPositions = (() => {
     if (jigMode !== "Auto" || !jigShow || !primaryPS.paths.length) return null;
     const opts = { magnets: jigN, grid: jigGrid, clearance: jigClear, magnetMargin: jigMargin, minSpacing: jigSpacing };
@@ -2251,7 +2260,7 @@ export default function App() {
     const sheetCtx = { W: canvasW, H: canvasH, frameIdx, frameCount };
     const note = `MEGA CANVAS \u2014 previewing tile 1/${tiles.length}. Download saves all ${tiles.length} numbered tiles.`;
     return kind === "svg"
-      ? `<!-- ${note} -->\n` + toSVG(tiles[0], sheetCtx)
+      ? toSVG(tiles[0], sheetCtx).replace("?>\n", `?>\n<!-- ${note} -->\n`)
       : `; ${note}\n` + toGcode(tiles[0], sheetCtx, prof);
   };
   const doExport = () => { setGcode(megaOn ? megaPreview("gcode") : toGcode(exportPS(), ctx, prof)); setExportKind("gcode"); setCopied(false); };
@@ -2271,6 +2280,18 @@ export default function App() {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `${projName || "patch"}-tiles-${kind}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+  const downloadMegaFull = () => {
+    const svg = toSVG(exportPS(), { W: megaW, H: megaH, frameIdx, frameCount })
+      .replace("?>\n", "?>\n<!-- MEGA CANVAS - composed full work " + Math.round(megaW) + "x" + Math.round(megaH) + " mm. Proofing reference; the numbered tiles are the plottable output. -->\n");
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (projName || "patch") + "-mega-full.svg";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -2420,7 +2441,7 @@ export default function App() {
   };
   /* --- patchin tallennus / lataus --- */
   const buildPatchJSON = () =>
-    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen } : null, prof, machines, machineIdx, customNodes, root }, null, 1);
+    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels } : null, prof, machines, machineIdx, customNodes, root }, null, 1);
   const savePatch = () => {
     const data = buildPatchJSON();
     try {
@@ -2462,7 +2483,7 @@ export default function App() {
       setSelIds([]);
       setRoot(data.root);
       if (data.canvas) { setCanvasW(data.canvas.W || 300); setCanvasH(data.canvas.H || 200); }
-      if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); setMegaMarkPen(data.mega.markPen || 0); } else { setMegaOn(false); }
+      if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); setMegaMarkPen(data.mega.markPen || 0); setMegaLabels(!!data.mega.labels); } else { setMegaOn(false); }
       if (Array.isArray(data.machines) && data.machines.length) {
         setMachines(data.machines.map((m) => ({ ...DEFAULT_MACHINE, ...m })));
         setMachineIdx(Math.min(data.machineIdx || 0, data.machines.length - 1));
@@ -3487,6 +3508,15 @@ export default function App() {
                     <option>Gap</option>
                   </select>
                 </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: T.dim }}>
+                  <input type="checkbox" checked={megaLabels} onChange={(e) => setMegaLabels(e.target.checked)} />
+                  Tile labels (number + row/col, mark pen)
+                </label>
+                <button onClick={downloadMegaFull}
+                  title="One SVG of the whole composed work at full mega size - proofing reference, not a plottable tile"
+                  style={{ padding: "5px 8px", borderRadius: 4, border: "1px solid " + T.line, background: "transparent", color: T.accent, fontFamily: disp, fontWeight: 700, fontSize: 10, cursor: "pointer", letterSpacing: "0.03em", alignSelf: "flex-start" }}>
+                  Download full SVG (composed proof)
+                </button>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: T.dim, flex: 1 }}>
                     <input type="checkbox" checked={megaMarks} onChange={(e) => setMegaMarks(e.target.checked)} />
