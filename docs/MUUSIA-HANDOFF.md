@@ -36,11 +36,14 @@ text are **English**.
 - `docs/` — MUUSIA-HANDOFF.md (this), MUUSIA-NODES.md (every node),
   MUUSIA-NODE-API.md (custom-node authoring spec, plotternode format).
 - `tools/` — era scripts (historical surgery + validators), `extract.mjs`,
-  `patch-docs.mjs`, `make-src-bundle.mjs`. Every new node gets a
+  `patch-docs.mjs`, `make-src-bundle.mjs`, **`bake.mjs`** (lab → built-in
+  converter). Every new node gets a
   `tools/validate-<name>.mjs` before it ships.
 - `nodes-lab/` — experimental `.plotternode.js` files for the in-app **Node ⇣**
   import; not part of the build. Approved experiments graduate to `src/defs/nodes/`
-  (wrapper conversion: `({ ... })` → import line + `export default { ... };`).
+  via `node tools/bake.mjs <name...>` (or `--all`): detects used helpers,
+  writes the import line + `export default`, smoke-imports the result and
+  deletes it on failure — no manual wrapper conversion.
 
 ## Build / release routine
 
@@ -63,8 +66,8 @@ text are **English**.
 
 1. Experiment as `nodes-lab/x.plotternode.js` (spec: MUUSIA-NODE-API.md), import
    via **Node ⇣**, iterate on look with Daniel.
-2. Write/convert to `src/defs/nodes/x.js` (ESM format above). Import only the
-   helpers actually used.
+2. Bake: `node tools/bake.mjs x` → `src/defs/nodes/x.js` (auto helper-import
+   detection + ESM wrapper + import smoke-test; failed bakes are removed).
 3. Write `tools/validate-x.mjs`: plain ESM imports of the node (no stubs needed),
    assert determinism (double run equal), finite coords, ≥2-pt paths, in-bounds,
    and every parameter's *liveness* plus any invariant that matters (symmetry,
