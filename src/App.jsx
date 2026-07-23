@@ -370,7 +370,7 @@ const DEFS = {
    CUSTOM NODE PLUGINS — maaritelmat ladataan ajonaikaisesti
    Katso MUUSIA-NODE-API.md
    ============================================================ */
-const NODE_HELPERS = { noise2, mulberry32, hash2, resample, pathLength, applyStyle, signedArea, EMPTY, PENS, Pin };
+const NODE_HELPERS = { noise2, mulberry32, hash2, resample, pathLength, applyStyle, isStyle, signedArea, EMPTY, PENS, Pin, SFONT, fontStrokes, parseSVG };
 let BUILTIN_KEYS = null;
 function evaluateNodeDef(code) {
   if (!BUILTIN_KEYS) BUILTIN_KEYS = new Set(Object.keys(DEFS).filter((k) => !DEFS[k].custom));
@@ -902,7 +902,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.31"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.32"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1420,7 +1420,7 @@ function NumBox({ value, onChange, width = 52, disabled, min, max }) {
   );
 }
 
-function ParamRow({ def, value, onChange, wired, liveVal, portRef, portProps, onFileText, fileMode, fileLabel, onPromote }) {
+function ParamRow({ def, value, onChange, wired, liveVal, portRef, portProps, onFileText, fileMode, fileLabel, fileAccept, onPromote }) {
   const lbl = { fontSize: 10, color: T.dim, letterSpacing: "0.02em" };
   const dot = portRef ? (
     <div ref={portRef} {...portProps}
@@ -1528,7 +1528,7 @@ function ParamRow({ def, value, onChange, wired, liveVal, portRef, portProps, on
           fontSize: 10, padding: "4px 9px", cursor: "pointer", flexShrink: 0,
         }}>
           {fileLabel || "Choose SVG…"}
-          <input type="file" accept={fileMode === "dataurl" ? "image/*" : ".svg,image/svg+xml"} style={{ display: "none" }}
+          <input type="file" accept={fileMode === "dataurl" ? "image/*" : (fileAccept || ".svg,image/svg+xml")} style={{ display: "none" }}
             onChange={(e) => {
               const f = e.target.files && e.target.files[0];
               if (f && onFileText) {
@@ -3121,7 +3121,8 @@ export default function App() {
                                     onMouseUp: (e) => finishWire(e, node.id, "p:" + pd.key, "value"),
                                   } : null}
                                   fileMode={def.fileImage ? "dataurl" : "text"}
-                                  fileLabel={def.fileImage ? "Choose image…" : null}
+                                  fileLabel={def.fileImage ? "Choose image…" : (def.fileLabel || null)}
+                                  fileAccept={def.fileAccept || null}
                                   onPromote={stack.length > 0 ? () => {
                                     const gid = stack[stack.length - 1];
                                     setRoot((r) => updateAt(r, stack.slice(0, -1), (lvl) => ({

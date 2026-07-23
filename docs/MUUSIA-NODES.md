@@ -1,13 +1,13 @@
-# MUUSIA v2.31 — Node Reference
+# MUUSIA v2.32 — Node Reference
 
-All 169 built-in nodes. Conventions used below: most generators accept a **Style**
+All 173 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (86)
+## Generators (88)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -41,6 +41,25 @@ shape wired into the Region input — a poem in the shape of anything), *Spiral*
 (text winds inward along an Archimedean spiral, letters rotated to the tangent),
 *Wave* (undulating baselines, letters lean with the slope), *Scatter words* (seeded
 dada scatter with size/rotation variation).
+
+**Point Cloud** — 3D point clouds projected to the sheet. Source: a file
+(.xyz/.csv/.txt with x y z per line, or ascii PLY) or a built-in parametric
+cloud (Torus, Sphere, Cube, Octahedron, Pyramid, Spring, Mobius, Trefoil,
+Klein bottle, Roman surface, Helicoid, Wave sheet, Galaxy). *Keep size* scales
+by the rotation-invariant 3D bounding sphere so the object stays the same size
+while Yaw/Pitch turn; off = always fit to sheet. Bitcrush: *Crush %* randomly
+drops points (seeded), *Quantize %* snaps to a 3D grid — both act before
+meshing. Output: dots, wire (3D k-nearest mesh) or both; *Max edge %* trims
+long jumps, *Depth pens* splits near-to-far across pens.
+
+**ASCII Art** — renders line work or an image as plottable ASCII characters in
+the single-stroke font. *Source Lines* rasterizes the wired paths into a density
+grid — the more line length in a cell, the darker its character; *Source Image*
+samples a loaded picture's darkness. *Ramp* orders characters light-to-dark
+(Custom takes your own string); characters missing from the stroke font fall
+back to uppercase or are skipped. Gamma bends the mapping, Invert flips it,
+Threshold leaves the lightest cells empty. Columns sets resolution; characters
+are real pen strokes, so the result plots like any other geometry.
 
 **Grid** — vertical/horizontal line grid. The plain sheet of paper of generative art;
 feed it to Warp, Stretch or Lens to bend space itself.
@@ -342,11 +361,19 @@ wobble is baked in — chain into Hand Drawn for more.
 
 **Power Pole** — wireframe 3D utility poles: Finnish Wood (single pole, crossarm, pin insulators, guy wire), US Utility (double crossarm, cylinder transformer), Japanese Concrete (stacked arms, transformer drums). Wires hangs catenary cables from the insulators; rotate with Yaw/Pitch, wire Frame to orbit.
 
-## Modifiers (56)
+## Modifiers (58)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
 **Wave** — sinusoidal displacement along/across paths.
+
+**Squiggle** — replaces each line with a waveform travelling along it in the
+path's own frame. *Loops* draws overlapping pen coils (trochoid — loops appear
+when Amplitude × 2π exceeds Period); *Sine*, *Triangle* and *Square* are classic
+waves; *Seismic* is seeded noise bursts between calm stretches; *Glitch* holds
+quantized offset steps that jump every period. On closed paths the period snaps
+so whole cycles fit and the seam stays continuous. Compare Zigzag's Spine input:
+that draws wave rows around a path — this rewrites the line itself.
 
 **Jitter** — per-point random displacement (densifies first).
 
@@ -396,6 +423,13 @@ within margins.
 
 **Crop** — clips to a rectangle (keep inside or outside), with bisection-accurate
 boundary points; fully-inside closed paths stay closed. Guide overlay.
+
+**Eraser** — erases a region: everything inside the zone (rectangle or circle,
+dashed guide when selected) is removed and crossing paths are cut cleanly at
+the border. *Invert* keeps only the inside instead — a circular or rectangular
+crop for any geometry. *Gap* grows (+) or shrinks (−) the erased area from its
+edge, so a positive gap leaves breathing room at the cut. Closed paths that get
+cut reopen as arcs.
 
 **Explosion** — rigid per-shape translation (shapes keep their form). Blast from a
 point (*Outward/Inward* with distance falloffs) or *Directional* at a fixed angle;

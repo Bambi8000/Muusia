@@ -27,8 +27,8 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **167 files** (169 nodes total with
-  group + reititys; Generators 86, Modifiers 56). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **171 files** (173 nodes total with
+  group + reititys; Generators 88, Modifiers 58). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -46,7 +46,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (167) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (171) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -152,6 +152,12 @@ text are **English**.
 - **2.31** new **Smear** modifier (pixel-stretch for lines: V/H streaks or Free
   bridge chords at zone boundary crossings, From-edge filter for seamless
   one-sided continuation).
+- **2.32** four new nodes: **Point Cloud** (13 parametric shapes + xyz/ply
+  import, 3D k-nearest wire mesh, bitcrush, keep-size), **ASCII Art**
+  (lines/image → stroke-font characters), **Eraser** (zone erase/crop, gap,
+  invert), **Squiggle** (per-line waveform rewrite, closed-path period snap);
+  custom-node sandbox completed (SFONT/fontStrokes/isStyle/parseSVG);
+  `fileAccept` for file params.
 
 ## Hard-won pitfalls (keep)
 
@@ -166,10 +172,13 @@ text are **English**.
 - macOS Quick Look scales tall SVGs to window width and shows only the top —
   judge exported tiles in a browser tab or by validator, never by space-bar
   preview (a "slicing bug" in 2.30 investigation was exactly this illusion).
+- Custom-node sandbox (NODE_HELPERS) must list every helper the NODE-API
+  documents — a missing one fails silently as an empty node.
 
 ## Roadmap / ideas
 
 Frame-sequence export as single ZIP · per-pen time estimates · value ports on
 promoted group params · multi-tip brush tool change (servo) · zoned vacuum table
 workflow for wet media · registration marks for mega sheets · SimView zoom ·
-GitHub nodes library curation.
+GitHub nodes library curation · surface compute errors on the node card
+(engine currently swallows compute exceptions silently).
