@@ -87,7 +87,7 @@ that. Prefer resolution parameters so the user can trade detail for speed.
 | `outs` | array *or* `(node) => array` | Output pins. A function enables a dynamic count (read `node.params`). |
 | `params` | array | Parameter descriptors, section 4. |
 | `compute` | function | `(ins, p, ctx, node) => result`, section 5. |
-| `overlay` | function, optional | `(params, ctx) => guides[]` — dashed preview guides shown when the node is selected. Guide kinds: `{kind:"rect",x,y,w,h}`, `{kind:"circle",cx,cy,r}`, `{kind:"point",x,y}`, `{kind:"arrow",x1,y1,x2,y2}`, `{kind:"poly",pts}`. Never plotted. |
+| `overlay` | function, expected for spatial params | `(params, ctx) => guides[]` — dashed preview guides shown when the node is selected. Guide kinds: `{kind:"rect",x,y,w,h}`, `{kind:"circle",cx,cy,r}`, `{kind:"point",x,y}`, `{kind:"arrow",x1,y1,x2,y2}`, `{kind:"poly",pts}`. Never plotted. **Required convention:** any node whose parameters place, size or bound a spatial region — zones, masks, pools, margins, placement offsets, effect areas — must provide an overlay showing that region (see Smear, Ripple, Eraser). Compute the guide with the same math as `compute` so the guide matches the output exactly. |
 | `onFile` | function, optional | `(text) => data` — parse a file for a `type:"file"` param; result is stored at `node.data` (see Import SVG pattern). |
 
 **Pins:** create with `Pin(type, label?)` where type is `"paths"`, `"value"`, or
@@ -202,6 +202,10 @@ stable when others change.
 - Emitting millions of points (deep recursion, tiny steps) — respect the budget.
 - Coordinates outside `0..W / 0..H` are allowed (modifiers may pull them back) but
   anything still outside at export prints off-canvas; prefer a `margin` param.
+- Spatial-region params without an `overlay` — if the node has a zone, area, mask,
+  margin box or placement the user tunes blind, add `overlay()` guides for it.
+  Reuse the exact region math from `compute` (share the formula, don't approximate),
+  so the dashed guide and the plotted result never disagree.
 
 ## 9. Testing your node before importing
 
