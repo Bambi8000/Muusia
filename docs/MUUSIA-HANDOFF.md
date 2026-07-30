@@ -27,7 +27,7 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **171 files** (173 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **180 files** (182 nodes total with
   group + reititys; Generators 88, Modifiers 58). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
@@ -49,7 +49,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (171) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (180) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -161,6 +161,17 @@ text are **English**.
   invert), **Squiggle** (per-line waveform rewrite, closed-path period snap);
   custom-node sandbox completed (SFONT/fontStrokes/isStyle/parseSVG);
   `fileAccept` for file params.
+- **2.33** nine new nodes: **Parallel Lines** (terraced line field, Grass/
+  Shoulder/Cascade tops), **Perforated Mesh** (cube-sphere/cube/pyramid quad
+  mesh, funnel craters, mesh flow, Solid/Transparent), **Glyph Halftone**
+  (noise/image → dot/ring/cluster/stripe/chevron grid, 2×2 big cells),
+  **Pattern Fill** (nine-texture shape shading + Mix, gradient light, ± edge
+  offset), **Pebble** (spiral-shell moiré stone + 3D mesh, Round–Angular
+  fader), **Organic Rings** (agate strands, knot bulges, dot halo),
+  **Round Canvas** (distorted circular crop), **Retro Mesh** (perspective
+  hourglass/funnel/horn + laser floor), **Ripple** (water reflection,
+  Full/Pool/Box areas, guide overlays); overlay guideline added to NODE-API
+  (spatial params must ship overlay guides).
 
 ## Hard-won pitfalls (keep)
 

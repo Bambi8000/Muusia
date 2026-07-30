@@ -1,13 +1,13 @@
-# MUUSIA v2.32 — Node Reference
+# MUUSIA v2.33 — Node Reference
 
-All 173 built-in nodes. Conventions used below: most generators accept a **Style**
+All 182 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (88)
+## Generators (94)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -361,7 +361,56 @@ wobble is baked in — chain into Hand Drawn for more.
 
 **Power Pole** — wireframe 3D utility poles: Finnish Wood (single pole, crossarm, pin insulators, guy wire), US Utility (double crossarm, cylinder transformer), Japanese Concrete (stacked arms, transformer drums). Wires hangs catenary cables from the insulators; rotate with Yaw/Pitch, wire Frame to orbit.
 
-## Modifiers (58)
+**Parallel Lines** — a dense field of vertical lines rising from the bottom
+margin to a terraced height field, with expressive tops. *Grass* flops every tip
+in its own random curl; *Shoulder* combs the lines near each terrace edge over a
+shared pivot in concentric arcs and hangs them down the face; *Cascade* sweeps
+them over the edge into parallel diagonal falls that steepen back to vertical.
+Levels quantizes terrace heights (1 = one flat field), Plateau width and Relief
+shape the steps, Tail length scales curls/hangs/falls, Messiness and Wobble
+loosen it. Pen travel is uniformly bottom → top → over the tail (brush-friendly).
+
+**Perforated Mesh** — a 3D wireframe solid (pole-free cube-sphere, cube or
+pyramid) as an organic quad mesh with hidden faces removed. *Mesh flow* warps the
+grid with noise so the quads swim; *Mountains* raises 4-octave terrain radially
+(continuous across edges); *Holes* punches funnel craters with raised rim lips,
+concentric collar rings and converging radials, the center opening cut through.
+*Surface* picks Solid (hide back) or Transparent. Adaptive refinement keeps
+funnel walls curved. Rot X/Y to spin — wire Frame for a rotating meteor.
+
+**Glyph Halftone** — a designer's halftone: each grid cell renders its darkness
+as a glyph — filled dot, donut ring, mini-dot cluster, stripe stack or stacked
+chevron (checkboxes). Source is a seeded noise field or an imported image
+(PNG/JPG, fitted to the margin box). *Type by Value* assigns glyphs by darkness
+band, *Random* picks freely; *Big cells* merges 2×2 giants for scale contrast;
+*Pens used* sprays glyphs across pens. Fill pitch is the concentric-fill spacing
+— match it to the pen width for solid blacks.
+
+**Pebble** — a rock two ways. *Spiral shells* fills a pebble outline with
+continuous spirals winding from the edge into 1–3 eye points — Edge packing
+crowds the shells at the boundary, Weave rotates each turn so they cross into a
+moiré net; Rot Y spins the drawing, Rot X tilts it flat. *Mesh* renders the same
+rock as a 3D wireframe (Surface: Solid or Transparent). Round–Angular morphs
+from smooth pebble to faceted chunk in both modes; Facets, Irregular and Detail
+shape it. Distinct from Stone (flat facet illustration).
+
+**Organic Rings** — concentric organic rings from mixed strands — solid wavy
+lines, beaded dot rings, dashes, doubled lines — around a clean hollow center,
+like an agate slice or dot-art mandala. All rings deform in one shared noise
+field; *Bundling* clumps them into tight groups, *Merges* peels strands across
+to the next ring, *Bulges* plants knot-like eyes that part a band of rings in
+both directions (lens pockets), *Halo* scatters a clumpy dot mist dissolving
+outward. Pens used cycles ring colors — four metallics on black is the classic.
+
+**Retro Mesh** — 80s diagram wireframes in true perspective. *Hourglass* is the
+wormhole double funnel (rings + meridian spokes from a shared throat; Flare,
+Throat, Height shape the profile), *Funnel* and *Horn* its single-ended
+siblings, *Laser floor* the synthwave grid receding to a vanishing point with
+noise Terrain that leaves a flat center corridor and an optional Horizon line.
+Perspective runs from near-orthographic to wide-angle; drawn transparent (no
+hidden-line removal) like the retro prints. Pair with Solids for a planet disc.
+
+## Modifiers (61)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -555,6 +604,31 @@ yaw/pitch/roll with adjustable perspective (0 = isometric, 1 = dramatic).
 Z source Flat tilts the sheet like paper, Pens stacked gives each pen layer its
 own depth (parallax when rotated), Noise relief bends the drawing over a
 heightfield. Wire Frame into Yaw for a spinning-drawing animation.
+
+**Pattern Fill** — shades every closed shape with a drawn texture from a pattern
+library: Hatch, Cross-hatch, sketchy Scribble, Stipple, small Circles, Chevron
+rows, broken Dashes, Crosses, random Sprinkles — or *Mix*, giving each shape its
+own pattern like a swatch sheet. Offset from edge is distance-based (negative
+bleeds past the outline and into holes); nested shapes act as holes; *Gradient*
+fades ink toward the Light angle per shape; *Vary per shape* rotates and loosens
+the pattern; Wobble adds hand tremor; pens spread or inherit. Compare Hatch
+Fill: that is the fast plain hatcher, this is the texture library.
+
+**Round Canvas** — crops everything to a round canvas whose rim can be
+distorted: *Distort* pushes seeded noise into the outline, *Lobes* sets the
+bulge count — clean circle to wobbly blob. Content is clipped at the rim
+(*Edge gap* keeps a quiet margin), *Invert* keeps the outside, *Draw edge*
+plots the rim on its own pen, offsets move the canvas. Same seed in two
+instances = registration across layers.
+
+**Ripple** — water reflection with surface disturbance. Everything above the
+Waterline is mirrored below and disturbed by horizontal ripple bands whose
+displacement grows with depth — reed stalks wiggle, a boulder's underside gets
+the jagged rim. *Breakup* fragments the reflection into dashes with depth,
+*Stretch* scales it, *Pen shift* moves reflections to another pen (originals
+pass through untouched). *Area* confines the effect to an adjustable Pool
+(half-ellipse pond, wobbly rim) or crisp Box under the waterline; region and
+waterline show as guide overlays. Pairs with Water for the surface itself.
 
 ## Decorators (5)
 
