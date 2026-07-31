@@ -902,7 +902,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.33"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.36"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -939,6 +939,11 @@ function toGcode(ps, ctx, prof) {
      petiplotterille z-hop saastaa valtavasti aikaa kun ei nosteta koko matkaa. */
   const zServo = (prof.zMode || "bed") === "servo";
   const travelZ = () => (prof.zHopOn ? f2(Math.min(prof.penUp, prof.penDown + prof.zHop)) : f2(prof.penUp));
+  /* Brush Z: pisteen 3. komponentti = upotus mm pen-downin alle (Brush Z -node).
+     Vain bed-Z-tilassa; klampattu 6 mm turvarajaan. */
+  const brushZ = (q) => (!zServo && typeof q[2] === "number" && isFinite(q[2]))
+    ? ` Z${f2(prof.penDown - Math.max(0, Math.min(6, q[2])))}`
+    : "";
   /* servomoodi (profiili A): kynan nosto servolla, peti-Z jaa rauhaan */
   const servoTo = (ang, note) => {
     lines.push(`SET_SERVO SERVO=${prof.servoName || "pen"} ANGLE=${f2(ang)}${note ? ` ; ${note}` : ""}`);
@@ -1016,7 +1021,7 @@ function toGcode(ps, ctx, prof) {
     for (const path of ps.paths.filter((p) => p.layer === L)) {
       let pts = path.closed ? [...path.pts, path.pts[0]] : path.pts;
       if (pts.length < 2) continue;
-      pts = pts.map(([x, y]) => [x, fy(y)]);
+      pts = pts.map((q) => [q[0], fy(q[1]), q[2]]);
 
       if (prof.dipOn && drawn >= prof.dipEvery) { dip(); drawn = 0; }
       if (prof.maintOn && maintDrawn >= prof.maintEvery) { maint(); maintDrawn = 0; }
@@ -1034,6 +1039,7 @@ function toGcode(ps, ctx, prof) {
       lines.push(`G0 X${f2(fx(pts[0][0]))} Y${f2(pts[0][1])} F${prof.feedTravel}`);
       rot(ang0, "align to path start");
       penDownContact();
+      if (brushZ(pts[0])) lines.push(`G1${brushZ(pts[0])} F${prof.zFeed} ; brush pressure`);
       let lastAng = ang0;
       for (let i = 1; i < pts.length; i++) {
         if (prof.rotOn && i < pts.length - 1) {
@@ -1042,7 +1048,7 @@ function toGcode(ps, ctx, prof) {
           while (dA > 180) dA -= 360;
           while (dA < -180) dA += 360;
           if (Math.abs(dA) >= prof.rotThresh) {
-            lines.push(`G1 X${f2(fx(pts[i][0]))} Y${f2(pts[i][1])} F${prof.feedDraw}`);
+            lines.push(`G1 X${f2(fx(pts[i][0]))} Y${f2(pts[i][1])}${brushZ(pts[i])} F${prof.feedDraw}`);
             const _seg = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
             drawn += _seg; maintDrawn += _seg;
             rot(a, "direction change");
@@ -1050,7 +1056,7 @@ function toGcode(ps, ctx, prof) {
             continue;
           }
         }
-        lines.push(`G1 X${f2(fx(pts[i][0]))} Y${f2(pts[i][1])} F${prof.feedDraw}`);
+        lines.push(`G1 X${f2(fx(pts[i][0]))} Y${f2(pts[i][1])}${brushZ(pts[i])} F${prof.feedDraw}`);
         drawn += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
       }
       penUpTravel();

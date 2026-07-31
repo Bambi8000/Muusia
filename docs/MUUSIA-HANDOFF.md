@@ -27,14 +27,15 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **180 files** (182 nodes total with
-  group + reititys; Generators 88, Modifiers 58). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **193 files** (195 nodes total with
+  group + reititys; Generators 105, Modifiers 63). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
   alphabetical by filename. **Adding a built-in node = dropping a file here.**
 - `docs/` — MUUSIA-HANDOFF.md (this), MUUSIA-NODES.md (every node),
-  MUUSIA-NODE-API.md (custom-node authoring spec, plotternode format).
+  MUUSIA-NODE-API.md (custom-node authoring spec, plotternode format),
+  MUUSIA-MAP.md (OSM map import guide: overpass-turbo workflow, sizing, queries).
 - `tools/` — era scripts (historical surgery + validators), `extract.mjs`,
   `patch-docs.mjs`, `make-src-bundle.mjs`, **`bake.mjs`** (lab → built-in
   converter). Every new node gets a
@@ -49,7 +50,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (180) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (193) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -172,6 +173,40 @@ text are **English**.
   hourglass/funnel/horn + laser floor), **Ripple** (water reflection,
   Full/Pool/Box areas, guide overlays); overlay guideline added to NODE-API
   (spatial params must ship overlay guides).
+- **2.34** six new nodes: **Diagram** (flow diagrams: orthogonal arrow routing,
+  Under-crossings, filled heads), **Empty Fill** (mod: pattern-fills the empty
+  space around shapes via chamfer distance field — Coils/Contours/Scales/Hatch/
+  Waves), **Volcano** (3-D crater mountain, float-horizon hidden lines, five
+  render styles incl. altitude-sized Dots, Yaw/Tilt fly-over), **Nested Circles**
+  (woven over/under ring discs, Weave/Weave fill/Stack + Opaque/Transparent
+  background), **Road Map** (Voronoi districts, recursive block-subdivision
+  streets, 3-weight road hierarchy, motorways + ramps, river/lakes, fields,
+  landmarks), **Map Import** (OSM GeoJSON → weighted plottable city; guide in
+  docs/MUUSIA-MAP.md). Engine conventions documented in NODE-API: onFile results
+  land at node.data.svg; fileLabel/fileAccept are definition-level fields.
+  Shared-geometry hardening: collinear-corner rounding no longer bulges a
+  half-circle (cornerize/cornerRound in Diagram + Road Map).
+- **2.35** two nodes + AN ARCHITECTURE CHANGE. Nodes: **Spore Print** (mushroom
+  gill anatomy: binary lamellula hierarchy, fade, dust, rim band, multi-cap
+  sheets), **Brush Z** (mod/penout: brush pressure as the optional THIRD point
+  component = mm plunge below pen-down; 8 waves along arc length, end taper,
+  ghost width preview; must be last in chain). Architecture: **G-code export
+  now reads the z component** (tools/patch-brushz-gcode.mjs, 5 anchored edits
+  to toGcode) — draw moves become G1 X Y Z F so Klipper interpolates pressure
+  continuously; activates purely by z presence, servo mode skips Z, 6 mm safety
+  clamp, plain paths byte-identical. Physical brush test pending hardware.
+- **2.36** five nodes: **Double Pendulum** (RK4 chaos traces, perturbation
+  bundles, damping settles to rest — validated against physics invariants),
+  **Gyroid** (TPMS slice contours + Retro Mesh camera; Surface Solid =
+  ray-marched exact hidden lines against the implicit field, Solid output is a
+  strict subset of Transparent with shared framing), **Cracked Paint**
+  (hierarchical craquelure via BSP flakes, generation-width cracks, chips,
+  edge curl), **Wave Hatch** (non-crossing noise seams + vertical stroke
+  bands, negative-space waves), **Burr Cluster** (chained noise lobes, layered
+  hatch, visible-edge bristle spikes, ink blots). Validator lessons this
+  cycle: test against baked versions (caught a stale-lab-file bake once),
+  independent oracles over screen-space proxies, and calibrate thresholds by
+  measuring the node before asserting (gyroid iso sweep).
 
 ## Hard-won pitfalls (keep)
 

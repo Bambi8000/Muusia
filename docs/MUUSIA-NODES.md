@@ -1,13 +1,13 @@
-# MUUSIA v2.33 — Node Reference
+# MUUSIA v2.36 — Node Reference
 
-All 182 built-in nodes. Conventions used below: most generators accept a **Style**
+All 195 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (94)
+## Generators (105)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -410,7 +410,93 @@ noise Terrain that leaves a flat center corridor and an optional Horizon line.
 Perspective runs from near-orthographic to wide-angle; drawn transparent (no
 hidden-line removal) like the retro prints. Pair with Solids for a planet disc.
 
-## Modifiers (61)
+**Diagram** — flow-diagram generator: numbered circle or square nodes joined by
+directed orthogonal arrow lines (L/Z routing with node avoidance). Line styles:
+thick filled arrows (outline + parallel fill + solid head), thick outline, or a
+single line with a V head. Crossings *Under* cuts a clean gap into the lower line
+where another passes over; corners Rounded / 45° / 90°. Node and line pens separate.
+
+**Volcano** — a 3-D volcano with hidden-line removal: the flank climbs to a crater
+rim, then dips into a bowl. Render as Rows (terrain scanlines), Rings, Spokes, Mesh
+or Dots (polar grid of small circles sized by altitude, with grow direction and
+seeded size jitter). Tilt is the viewing elevation — low angles hide the crater
+floor behind the near rim; Yaw spins the volcano (flutes, rock noise, spokes and
+dots turn with it). Steepness, Dip, fBm Roughness and radial Flutes shape the rock.
+Animate Tilt or Yaw with the frame clock for a fly-over.
+
+**Nested Circles** — overlapping ring- or ray-filled discs woven into an over/under
+illusion. Order: *Weave* interlocks two discs along their center line (the classic
+yin-yang poster) and cycles three-plus into a pinwheel; *Weave fill* uses angular
+sectors so the central multi-overlap stays filled; *Stack* is painter order.
+Background Opaque gives every disc a solid backing (hides what lies beneath even
+between its own rings); Transparent overprints complete discs like stacked pen
+layers. Gap cuts a white halo around the covering disc. Discs alternate Pen A/B.
+
+**Road Map** — procedural city map. Seeded Voronoi districts each get a street
+pattern — grid, organic, radial rings-and-spokes, sparse blocks — built by
+recursive block subdivision, so streets meet in T-junctions, kink at discrete
+points and trail off into dead ends (Irregularity drives all of it; Raggedness
+breaks strokes into the worn dashed look). Three road weights: single-stroke
+streets, double-stroke arterials between district centers, triple-stroke motorways
+in long straights with wide rounded bends (Motorway bend 0 = dead straight) plus
+slip-road Ramps at crossings. River and lakes carve water with shorelines —
+streets keep off the banks, motorways bridge over. Fields hatches farm patches
+into empty districts, Landmarks stamps filled squares. Pens: roads, water, fields.
+
+**Map Import** — plots a real city from an OpenStreetMap GeoJSON extract
+(overpass-turbo.eu → Export → GeoJSON). Roads weight by OSM class (motorway 3
+strokes, primary/secondary 2, residential 1), Minor paths gates footways, Water
+draws rivers and lake outlines, Buildings their footprints — each family on its
+own pen. Fit Contain/Cover (Cover crops exactly at the frame), Rotate, and
+Simplify decimates dense OSM vertices in mm. Full guide: docs/MUUSIA-MAP.md.
+
+**Spore Print** — mushroom spore prints with real gill anatomy: primaries run
+from the blank stem disc to the rim and shorter lamellula tiers spawn in the
+widening gaps (closed-form binary hierarchy), keeping line spacing even across
+the whole cap. Wobble bends the gills at constant mm amplitude, Swirl twists the
+print, Edge roughens the cap rim, Fade breaks lines into a dusty falloff that
+strengthens toward the rim, Dust scatters spore specks (own pen), Rim band adds
+a dense edge ring. Count drops up to six varied caps on one sheet.
+
+**Double Pendulum** — a real double pendulum drawing its chaotic trace (RK4,
+fixed step, fully deterministic — no seed). Trace Bob 2 / Bob 1 / Both /
+Midpoint; Traces runs up to eight pendulums with a tiny Perturb offset so chaos
+tears the bundle apart, optionally one pen per trace. Damping spirals the line
+into rest for a finite drawing; the trace provably stays inside Arm 1 + Arm 2
+around the Pivot. Chain into Brush Z (Ramp down) for a chaotic brush stroke
+fading with the energy.
+
+**Gyroid** — the triply periodic minimal surface sliced into stacked contour
+rings with the Retro Mesh camera (Perspective, Rot X/Y, fit). Cells sets the
+period count, Iso slides through the level-set family, Warp bends the field
+with seeded noise, Shape clips to Cube / Sphere / Cylinder. Surface Transparent
+overprints retro-style; Solid ray-marches the implicit field for exact hidden
+lines — front shells occlude the back while the holes still see through —
+with framing shared between the two so toggling never rescales.
+
+**Cracked Paint** — peeling paint craquelure: a hierarchical crack network
+splits the sheet into flakes, early cracks wide dark gaps and later ones
+hairlines (Hierarchy), every crack noise-curved (Wobble), breathing in width
+and pinching to hairline tips. Horizontal bias steers the primaries. Wide
+cracks draw as varying-width outlines with lengthwise fill; Chips bulges dark
+blobs along the cracks and knocks small flakes out as hatched voids (own pen);
+Edge curl adds the lifted-flake inner line.
+
+**Wave Hatch** — wave bands of dense vertical strokes: blank noise-wave seams
+(structurally non-crossing) divide the sheet and every band fills with tight
+upright lines seam to seam. Seam gap is the negative space that draws the
+waves; Lean fans the strokes with the local slope, Hand wobble bends them and
+jitters the pitch for the hand-hatched textile read. Serpentine ordering for
+plotting economy.
+
+**Burr Cluster** — a clustered mass of overlapping seed pods grown by chaining
+noise-edged lobes. Each lobe fills with near-horizontal hatch (Angle jitter per
+pod, Speckle gaps, Wobble), lobes layer so internal seams read like pressed
+pods, and short bristle spikes radiate from every visible edge — silhouette
+and seams — with jittered angles and crossing X pairs. Blots splatters small
+filled ink dots.
+
+## Modifiers (63)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -629,6 +715,24 @@ the jagged rim. *Breakup* fragments the reflection into dashes with depth,
 pass through untouched). *Area* confines the effect to an adjustable Pool
 (half-ellipse pond, wobbly rim) or crisp Box under the waterline; region and
 waterline show as guide overlays. Pairs with Water for the surface itself.
+
+**Empty Fill** — fills the EMPTY space around the input shapes with a repeating
+texture: the doodle trick where stones stay blank and everything between them gets
+dense pattern. Closed paths block by area, open paths by proximity (chamfer
+distance field). Patterns: Coils (overlapping occluded circles — the slinky look),
+Contours (distance ripples hugging every shape, marching-squares chained), Scales,
+Hatch, Crosshatch, Waves. Gap keeps a clean clearance ring, Wobble adds hand-drawn
+waviness, Angle rotates the texture. Feed it Potato or Pebble blobs for the
+classic stone-doodle page.
+
+**Brush Z** — brush pressure for a real Z axis: encodes millimetres of plunge
+below pen-down contact into every point (third component) that the G-code
+export turns into simultaneous Z moves — the brush breathes while it draws.
+Eight waves oscillate along arc length (Sine / Triangle / Square / Pulse+Duty /
+Noise / Ramps / Constant) with Wavelength, Phase and per-stroke jitters; End
+taper eases pressure to zero at stroke ends; Ghost width previews the stroke
+envelope on its own pen. MUST be last in the chain — downstream modifiers
+strip the Z data. Bed-Z profiles only; servo mode ignores pressure.
 
 ## Decorators (5)
 

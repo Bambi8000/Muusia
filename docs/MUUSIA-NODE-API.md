@@ -58,6 +58,12 @@ Everything flowing through blue wires is a **path set**:
 
 - `pts` — array of `[x, y]` points in **millimetres**, canvas coordinates
   (origin top-left, x → right, y → down). Canvas size comes from `ctx.W` / `ctx.H`.
+- Points MAY carry an optional third component `[x, y, z]`: millimetres of
+  Z plunge below the machine profile's pen-down contact (written by Brush Z,
+  read by the G-code export as simultaneous Z moves, clamped to 6 mm). The
+  component is silently dropped by any modifier that maps `([x, y]) => ...`,
+  so pressure nodes must sit LAST in the chain. SVG export and preview
+  ignore it.
 - **Point order = pen travel direction.** This is a first-class property: the machine
   export uses it to rotate a brush along the stroke. Never randomize point order
   casually; if you generate closed shapes, generate them with a consistent winding.
@@ -88,7 +94,9 @@ that. Prefer resolution parameters so the user can trade detail for speed.
 | `params` | array | Parameter descriptors, section 4. |
 | `compute` | function | `(ins, p, ctx, node) => result`, section 5. |
 | `overlay` | function, expected for spatial params | `(params, ctx) => guides[]` — dashed preview guides shown when the node is selected. Guide kinds: `{kind:"rect",x,y,w,h}`, `{kind:"circle",cx,cy,r}`, `{kind:"point",x,y}`, `{kind:"arrow",x1,y1,x2,y2}`, `{kind:"poly",pts}`. Never plotted. **Required convention:** any node whose parameters place, size or bound a spatial region — zones, masks, pools, margins, placement offsets, effect areas — must provide an overlay showing that region (see Smear, Ripple, Eraser). Compute the guide with the same math as `compute` so the guide matches the output exactly. |
-| `onFile` | function, optional | `(text) => data` — parse a file for a `type:"file"` param; result is stored at `node.data` (see Import SVG pattern). |
+| `onFile` | function, optional | `(text) => data` — parse a file for a `type:"file"` param. **The result is stored at `node.data.svg`** (the `.svg` key is a historical artifact of Import SVG and applies to every file node — Point Cloud reads its point data from there too); `compute` must read `node && node.data && node.data.svg`. |
+| `fileLabel` | string, optional | Label for the file picker button (default "Choose SVG…"). **Definition-level field** — set it next to `key`/`name`, not inside the param descriptor. |
+| `fileAccept` | string, optional | `accept` attribute for the file input, e.g. `".geojson,.json"` (default `.svg`). **Definition-level field**; a `fileAccept` placed inside the param descriptor is silently ignored. |
 
 **Pins:** create with `Pin(type, label?)` where type is `"paths"`, `"value"`, or
 `"style"`. Only equal types connect. Examples:
