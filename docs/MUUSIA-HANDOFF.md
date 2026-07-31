@@ -27,8 +27,8 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **193 files** (195 nodes total with
-  group + reititys; Generators 105, Modifiers 63). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **194 files** (196 nodes total with
+  group + reititys; Generators 106, Modifiers 63). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -50,7 +50,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (193) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (194) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -207,6 +207,16 @@ text are **English**.
   cycle: test against baked versions (caught a stale-lab-file bake once),
   independent oracles over screen-space proxies, and calibrate thresholds by
   measuring the node before asserting (gyroid iso sweep).
+- **2.37** new **Single Marker** generator (one movable point marker at exact
+  X/Y mm — Dot spiral / Circle / crosses / registration styles; every style
+  collapses to exactly one Bridges "Path centers" point at its center) +
+  **Bridges** grew two Connect rules: **Source order** (connects points in
+  Merge input order — the connect-the-dots workflow with Single Marker; Trim
+  ends gives separated segments, new **Close loop** check returns to the
+  first point, Max bridge splits and suppresses the loop) and **Hull
+  (outline)** (monotone-chain convex outline only, no interior lines;
+  interior points excluded, collinear degenerates to one segment). Old
+  Bridges params/rules untouched — old patches load unchanged.
 
 ## Hard-won pitfalls (keep)
 

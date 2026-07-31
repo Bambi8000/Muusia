@@ -1,13 +1,13 @@
-# MUUSIA v2.36 — Node Reference
+# MUUSIA v2.37 — Node Reference
 
-All 195 built-in nodes. Conventions used below: most generators accept a **Style**
+All 196 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (105)
+## Generators (106)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -159,6 +159,15 @@ convention with Water.
 **Reg Marks** — registration marks in selectable corners (+ optional centre):
 cross, printer's circle-and-cross, or inward corner-L; adjustable insets. For
 multi-pen registration and scan alignment.
+
+**Single Marker** — one movable marker at an exact X/Y mm position — at its
+simplest a solid ink dot (a single spiral stroke). Styles: Dot, Circle,
+Cross +, Cross ×, Circle + cross (registration style), Circle + dot; a dashed
+guide shows the spot while the node is selected, and X/Y are value ports so
+the marker can be animated. Made for marking points: drop several, Merge, then
+Bridges (*Path centers* + *Source order*) joins them in the exact order they
+are wired into Merge. Every style collapses to exactly one Bridges point at
+the marker's center.
 
 **Noise** — analog-TV static: cells randomly filled with square/circle pixels or
 horizontal *scanline dashes*; size/position jitter and rolling *interference bands*
@@ -526,7 +535,7 @@ that draws wave rows around a path — this rewrites the line itself.
 
 **Trim/Extend** — shortens or lengthens path ends.
 
-**Bridges** — connects points of the input with bridge lines. Points from *Path centers* (Polka Dots / Phyllotaxis circles become nodes), *Vertices* (resampled at a spacing) or *Endpoints*; rules *k-nearest*, *Within distance*, *Chain* (one continuous nearest-neighbour stroke, split at long jumps) or *Delaunay* edges. *Trim ends* stops each bridge short of its points so lines never pierce the dots.
+**Bridges** — connects points of the input with bridge lines. Points from *Path centers* (Polka Dots / Phyllotaxis circles become nodes), *Vertices* (resampled at a spacing) or *Endpoints*; rules *k-nearest*, *Within distance*, *Chain* (one continuous nearest-neighbour stroke, split at long jumps), *Source order* (connects points in the order their paths arrive — Merge input order, so Single Markers join exactly as wired; *Trim ends* gives separated segments and *Close loop* returns to the first point, unless *Max bridge* has split the run), *Hull (outline)* (a closed convex outline around all the points — no interior lines, interior points excluded) or *Delaunay* edges. *Trim ends* stops each bridge short of its points so lines never pierce the dots.
 
 **Join Ends** — connects nearby path endpoints into longer polylines
 (distance × angle scoring, rounds of batch pairing, optional same-pen-only).
