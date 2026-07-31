@@ -18,6 +18,7 @@ Working language: Finnish in chat, English in all code/GUI/docs.
   frame, 51 mm length, 1.8°, **2.8 A/phase**, 4-wire bipolar, 1/4" shaft, ~0.99 Nm.
   4 on the frame (X, Y1, Y2, Z) + 1 planned for brush rotation.
 - **Control board:** BTT Kraken v1.1 (8× onboard TMC2160, SPI, up to 60 V) — ordered.
+  Port budget: X, Y1, Y2, Z, brush rotation, ink pump, nozzle sweep = 7 of 8.
 - **Host:** Raspberry Pi 4.
 - **PSU:** Meishile S-500-24 (24 V, 21 A, 500 W) enclosed switching supply from
   parts bin — correct type for motors. Run steppers at moderate current
@@ -81,10 +82,75 @@ so short horn radius + small swing is plenty and maximizes force/precision.
   the pen tip; that offset (`laserOffX/Y`) lives in the Muusia machine profile, not
   the mechanics — but the holder must rigidly mount the laser so the offset stays
   constant. (See MUUSIA-MAGNET-JIG-SPEC.md for the software side.)
+- **Ink nozzle on sweep stepper (planned):** the tube end / dispensing needle of
+  the ink blot tool (section 4) rides near the carriage on a small rotating
+  stepper. Heavy parts (pump, valve, reservoir) stay on the gantry frame; only
+  the light nozzle + a small stepper come near the carriage. Mount TBD in the
+  carriage design.
 
 ---
 
-## 4. Work surface (context)
+## 4. Ink Blot / Air Blow tool — decided components (ordering phase)
+
+Drops a metered ink dose on the sheet, then blows it into dendrites with a
+timed compressed-air pulse from a rotatable nozzle. All parameters
+deterministic and G-code-drivable: dose (µl), blow direction (°), sweep (°),
+pulse duration (s). Air pressure is a **per-session constant** set on the
+regulator, not a per-blot parameter.
+
+### Ink dosing
+
+| Item | Spec | Notes |
+|---|---|---|
+| Peristaltic pump | PENGPU **P40SMDBPT1** (NEMA17, 24 V, 1.7 A/phase, 1.8°) | Drives directly from a spare Kraken TMC2160 port. `run_current: 1.2`. Configure as Klipper extruder; calibrate `rotation_distance` so 1 E-unit = 1 µl (weigh a 10-rev water dose). Retract a few E-units after each dose to pull the meniscus back — no after-drip. |
+| Pump tube | PharMed BPT 3.2×1 mm (BPT1) | Chosen over BPT2/3: ~0.19 µl/full-step resolution, smallest dead volume (~0.24 ml per 30 cm), 1000 h tube life vs. 200 h silicone, better ink solvent resistance. Tube is the only wear part — order spares. |
+| Ink reservoir | 5–10 ml bottle, **vented cap** | Mounts near the pump. Vent hole is mandatory: a sealed bottle builds vacuum and doses shrink over a session. Self-priming pump → reservoir height irrelevant. |
+| Mounting | Gantry frame (Z-axis backbone), **not** the pen carriage | ~310 g + reservoir is nothing to the X-Carve gantry but too much for the light pen carriage (S0017M rule). Tube run to nozzle stays ~15–30 cm. |
+
+### Air pulse
+
+| Item | Spec | Notes |
+|---|---|---|
+| Compressor | Airbrush compressor with **3–3.5 l tank**, regulator + gauge, **water trap** (AS-186/196 class) | Tank guarantees every pulse starts from identical pressure → hardware-side determinism. Water trap mandatory (condensation drop on wet media = ruined sheet). Working range est. 0.2–1.5 bar. |
+| Solenoid valve | 1/8" **NPT**, 2/2-way, **NC**, direct-acting, DC 24 V 4.8 W, IP65, 100 % ED | 200 mA — any Kraken fan/heater output, Klipper `[output_pin air_valve]`. NC = fails closed. Direct-acting = works at low pressure (pilot valves need ~0.5 bar minimum). Add **1N4007 flyback diode** across the coil (bare leads, no internal diode). Buy 2 (spare / future second nozzle). |
+| Fittings | 1/8" **NPT** → 6 mm push-in, ×2 + PTFE tape | NPT, not G/BSP — mixing threads leaks. Order with the valve. |
+| Nozzle | Blunt dispensing needles, Luer hub, 0.5–1.5 mm ID assortment | Needle ID is a swappable physical parameter: smaller bore = harder, narrower jet at same pressure. Luer hub adapts to tube on the sweep stepper shaft. |
+| Placement | Valve on gantry next to pump; valve→nozzle tube **< 30 cm** | Unpressurized volume after the valve softens pulse edges and adds tail-hiss. Compressor→valve line can be long (3 m fine), compressor sits on the floor. |
+
+### Nozzle rotation (sweep)
+
+A small dedicated stepper (Kraken port 7) carries the tube end / needle;
+azimuth = blow direction, and rotating **during** the pulse = sweep — a
+fan-spread parameter a human mouth-blower cannot reproduce repeatably.
+Keep it light (small-frame stepper); mount placement is an open question in
+the carriage design (section 6).
+
+### Rejected alternatives (keep for the record)
+
+- **8 mm micro peristaltic (€5)**: dosing resolution fine, but needs a separate
+  low-current driver (TMC2160 min current too high), and ~0.5 ml/min flow means
+  ~10 s per 50 µl blot. Viable as lightweight per-color satellite pumps later.
+- **Fans / blowers as air source**: axial fans reach ~0.1–0.3 kPa static, ~100×
+  short of the ~5–15+ kPa needed for viscous fingering; throttling a fan into a
+  nozzle collapses flow instead of building pressure.
+- **Electric air dusters / 100k-rpm mini turbines (~3–6 kPa)**: would produce
+  soft dendrites on thin inks only; 100–300 ms spin-up/down ramps kill pulse
+  repeatability, 75–85 dB, vibration. Not a valve replacement.
+
+### Idea parked: drying fan
+
+A separate wide, low-pressure fan (or the turbine above) as a **drying tool**,
+not a blowing tool: cure fresh blots/washes between passes so the pen or the
+next color doesn't smear through wet ink, and possibly soft "wind wash" moves
+on watercolor. Would be a plain Klipper PWM fan output + a `DRY_WAIT`-style
+macro (fan on, dwell, fan off) between plot phases. Mount so it can't blast a
+still-liquid blot hard enough to move it — distance/diffuser, aim shallow.
+Not ordered yet; revisit after the first wet-media sessions show real drying
+times.
+
+---
+
+## 5. Work surface (context)
 
 - **Phase 1 (now):** steel bed + magnets. Magnet positions are computed by a
   Muusia "Safe Areas / Magnet Jig" tool and marked physically by driving the
@@ -93,7 +159,7 @@ so short horn radius + small swing is plenty and maximizes force/precision.
 
 ---
 
-## 5. What to design next (this is the task for the new chat)
+## 6. What to design next (this is the task for the new chat)
 
 Design the **pen holder / carriage assembly** that ties the above together:
 
@@ -113,6 +179,9 @@ Open design questions to work through:
    parallel mounts.
 7. **Camera + laser mounts:** rigid, offset-stable positions; cable routing into a
    drag chain.
+8. **Ink nozzle sweep mount:** where the small nozzle-rotation stepper lives
+   (carriage vs Z backbone with the nozzle reaching down), keeping the carriage
+   light and the nozzle→blot geometry repeatable.
 
 Constraints to respect:
 - Keep carriage **light** (small servo, less inertia on the moving gantry).
@@ -123,7 +192,6 @@ Constraints to respect:
 
 ---
 
-## 6. Related project docs (software side — not needed for mechanics)
-- MUUSIA-PLOTTER-BOM.md — full bill of materials + workflow.
+## 7. Related project docs (software side — not needed for mechanics)
 - MUUSIA-MAGNET-JIG-SPEC.md — the Safe Areas / laser magnet-jig software feature.
 - MUUSIA-HANDOFF.md — the Muusia app (node-graph editor) architecture.
