@@ -8,5 +8,5 @@ out.push("");
 for (const f of files) {
   out.push("## " + f, "", "```js", fs.readFileSync("src/defs/nodes/" + f, "utf8").trimEnd(), "```", "");
 }
-fs.writeFileSync("MUUSIA-NODES-SRC.md", out.join("\n"));
-console.log("wrote MUUSIA-NODES-SRC.md (" + files.length + " nodes)");
+fs.writeFileSync("docs/MUUSIA-NODES-SRC.md", out.join("\n"));
+console.log("wrote docs/MUUSIA-NODES-SRC.md (" + files.length + " nodes)");
