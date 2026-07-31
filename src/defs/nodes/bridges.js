@@ -5,18 +5,19 @@ export default {
   name: "Bridges",
   cat: "mod",
   group: "pathops",
-  desc: "Connects points of the input with bridge lines. Source picks the points: Vertices (resampled at a spacing), Path centers (one point per path - Polka Dots or Phyllotaxis circles become nodes), or Endpoints of open paths. Rules: k-nearest, Within distance, Chain (one continuous nearest-neighbour stroke; Max bridge splits it at long jumps) or Delaunay edges. Trim ends stops each bridge short of its points so lines never pierce the dots.",
+  desc: "Connects points of the input with bridge lines. Source picks the points: Vertices (resampled at a spacing), Path centers (one point per path - Polka Dots or Phyllotaxis circles become nodes), or Endpoints of open paths. Rules: k-nearest, Within distance, Chain (one continuous nearest-neighbour stroke; Max bridge splits it at long jumps), Source order (connects points in the order their paths arrive - Merge input order - so markers join exactly as wired; Trim ends works here, and Close loop returns to the first point), Hull (outline) (a closed convex outline around all the points - no interior lines; Trim ends gives separated edge segments) or Delaunay edges. Trim ends stops each bridge short of its points so lines never pierce the dots.",
   ins: [Pin("paths", "Source")],
   outs: [Pin("paths")],
   params: [
     { key: "source", label: "Points from", type: "select", options: ["Path centers", "Vertices", "Endpoints"], def: "Path centers" },
     { key: "spacing", label: "Vertex spacing mm (0=raw)", type: "slider", min: 0, max: 40, step: 0.5, def: 8 },
-    { key: "rule", label: "Connect", type: "select", options: ["k-nearest", "Within distance", "Chain", "Delaunay"], def: "k-nearest" },
+    { key: "rule", label: "Connect", type: "select", options: ["k-nearest", "Within distance", "Chain", "Source order", "Hull (outline)", "Delaunay"], def: "k-nearest" },
     { key: "k", label: "k (nearest)", type: "slider", min: 1, max: 8, step: 1, def: 3 },
     { key: "dist", label: "Within mm", type: "slider", min: 2, max: 120, step: 1, def: 30 },
     { key: "maxPer", label: "Max per point", type: "slider", min: 1, max: 12, step: 1, def: 6 },
     { key: "minLen", label: "Min bridge mm", type: "slider", min: 0, max: 60, step: 1, def: 0 },
     { key: "maxLen", label: "Max bridge mm (0=off)", type: "slider", min: 0, max: 250, step: 1, def: 0 },
+    { key: "closeLoop", label: "Close loop (Source order)", type: "check", def: false },
     { key: "trim", label: "Trim ends mm", type: "slider", min: 0, max: 12, step: 0.25, def: 0 },
     { key: "keep", label: "Keep source", type: "check", def: true },
     { key: "layer", label: "Bridge pen", type: "pen", def: 0 },
@@ -47,7 +48,7 @@ export default {
         for (const q of list) pts.push([q[0], q[1]]);
       }
     }
-    /* dedupe near-identical */
+    /* dedupe near-identical (keeps first occurrence, so gather order survives) */
     const seen = new Set();
     pts = pts.filter(([x, y]) => {
       const k2 = Math.round(x * 10) + "," + Math.round(y * 10);
@@ -90,6 +91,93 @@ export default {
         cur = best;
       }
       flush();
+      return { paths: out };
+    }
+    if (p.rule === "Source order") {
+      /* connect points in gather order: path order for centers/endpoints
+         (= Merge input order), vertex order for vertices. */
+      const tr = Math.max(0, p.trim);
+      const pairs = [];
+      for (let i = 1; i < n; i++) pairs.push([i - 1, i]);
+      const closing = !!p.closeLoop && n > 2;
+      if (tr > 0.01) {
+        /* trimmed: individual segments that stop short of the points */
+        if (closing) pairs.push([n - 1, 0]);
+        for (const [a, b] of pairs) {
+          const d = dOf(a, b);
+          if (d > maxL || d <= tr * 2 + 0.4) continue;
+          const ux = (pts[b][0] - pts[a][0]) / d, uy = (pts[b][1] - pts[a][1]) / d;
+          out.push({
+            pts: [[pts[a][0] + ux * tr, pts[a][1] + uy * tr], [pts[b][0] - ux * tr, pts[b][1] - uy * tr]],
+            closed: false, layer: L,
+          });
+        }
+        return { paths: out };
+      }
+      /* continuous: one stroke, Max bridge splits at long jumps */
+      let run = [pts[0].slice()];
+      let split = false;
+      const runs = [];
+      for (const [a, b] of pairs) {
+        if (dOf(a, b) > maxL) {
+          if (run.length > 1) runs.push(run);
+          run = [pts[b].slice()];
+          split = true;
+        } else run.push(pts[b].slice());
+      }
+      if (run.length > 1) runs.push(run);
+      if (closing && !split && runs.length === 1 && dOf(n - 1, 0) <= maxL) {
+        out.push({ pts: runs[0], closed: true, layer: L });
+      } else {
+        for (const r of runs) out.push({ pts: r, closed: false, layer: L });
+      }
+      return { paths: out };
+    }
+    if (p.rule === "Hull (outline)") {
+      /* convex hull (monotone chain): only the outer boundary, no interior lines */
+      const tr = Math.max(0, p.trim);
+      const idxs = pts.map((_, i) => i).sort((a, b) => pts[a][0] - pts[b][0] || pts[a][1] - pts[b][1]);
+      const cross = (o, a, b) =>
+        (pts[a][0] - pts[o][0]) * (pts[b][1] - pts[o][1]) - (pts[a][1] - pts[o][1]) * (pts[b][0] - pts[o][0]);
+      const lower = [];
+      for (const i of idxs) {
+        while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], i) <= 1e-9) lower.pop();
+        lower.push(i);
+      }
+      const upper = [];
+      for (let q = idxs.length - 1; q >= 0; q--) {
+        const i = idxs[q];
+        while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], i) <= 1e-9) upper.pop();
+        upper.push(i);
+      }
+      const hull = lower.slice(0, -1).concat(upper.slice(0, -1));
+      if (hull.length < 2) return { paths: out };
+      if (hull.length === 2) {
+        /* degenerate (all points collinear): one segment */
+        let [ax, ay] = pts[hull[0]], [bx, by] = pts[hull[1]];
+        const d = Math.hypot(bx - ax, by - ay);
+        if (tr > 0.01) {
+          if (d <= tr * 2 + 0.4) return { paths: out };
+          const ux = (bx - ax) / d, uy = (by - ay) / d;
+          ax += ux * tr; ay += uy * tr; bx -= ux * tr; by -= uy * tr;
+        }
+        out.push({ pts: [[ax, ay], [bx, by]], closed: false, layer: L });
+        return { paths: out };
+      }
+      if (tr > 0.01) {
+        for (let i = 0; i < hull.length; i++) {
+          const a = hull[i], b = hull[(i + 1) % hull.length];
+          const d = dOf(a, b);
+          if (d <= tr * 2 + 0.4) continue;
+          const ux = (pts[b][0] - pts[a][0]) / d, uy = (pts[b][1] - pts[a][1]) / d;
+          out.push({
+            pts: [[pts[a][0] + ux * tr, pts[a][1] + uy * tr], [pts[b][0] - ux * tr, pts[b][1] - uy * tr]],
+            closed: false, layer: L,
+          });
+        }
+      } else {
+        out.push({ pts: hull.map((i) => pts[i].slice()), closed: true, layer: L });
+      }
       return { paths: out };
     }
     if (p.rule === "Delaunay") {
