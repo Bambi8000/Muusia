@@ -59,8 +59,10 @@ Everything flowing through blue wires is a **path set**:
 - `pts` — array of `[x, y]` points in **millimetres**, canvas coordinates
   (origin top-left, x → right, y → down). Canvas size comes from `ctx.W` / `ctx.H`.
 - Points MAY carry an optional third component `[x, y, z]`: millimetres of
-  Z plunge below the machine profile's pen-down contact (written by Brush Z,
-  read by the G-code export as simultaneous Z moves, clamped to 6 mm). The
+  Z plunge below the machine profile's pen-down contact (written by Brush Z;
+  negative values lift ABOVE contact - written by Fade Out for slow-lift
+  tails). The G-code export turns it into simultaneous Z moves, clamped to
+  ±6 mm and capped at the profile's pen-up height. The
   component is silently dropped by any modifier that maps `([x, y]) => ...`,
   so pressure nodes must sit LAST in the chain. SVG export and preview
   ignore it.

@@ -903,7 +903,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.41"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.42"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -940,10 +940,11 @@ function toGcode(ps, ctx, prof) {
      petiplotterille z-hop saastaa valtavasti aikaa kun ei nosteta koko matkaa. */
   const zServo = (prof.zMode || "bed") === "servo";
   const travelZ = () => (prof.zHopOn ? f2(Math.min(prof.penUp, prof.penDown + prof.zHop)) : f2(prof.penUp));
-  /* Brush Z: pisteen 3. komponentti = upotus mm pen-downin alle (Brush Z -node).
-     Vain bed-Z-tilassa; klampattu 6 mm turvarajaan. */
+  /* Pisteen 3. komponentti = upotus mm pen-downin alle (Brush Z; negatiivinen
+     = nosto pen-downin ylle, Fade Out -hannat). Vain bed-Z-tilassa; klampattu
+     ±6 mm, tulos katkaistaan penUp-tasoon. */
   const brushZ = (q) => (!zServo && typeof q[2] === "number" && isFinite(q[2]))
-    ? ` Z${f2(prof.penDown - Math.max(0, Math.min(6, q[2])))}`
+    ? ` Z${f2(Math.min(prof.penUp, prof.penDown - Math.max(-6, Math.min(6, q[2]))))}`
     : "";
   /* servomoodi (profiili A): kynan nosto servolla, peti-Z jaa rauhaan */
   const servoTo = (ang, note) => {

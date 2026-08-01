@@ -1,13 +1,13 @@
-# MUUSIA v2.41 — Node Reference
+# MUUSIA v2.42 — Node Reference
 
-All 199 built-in nodes. Conventions used below: most generators accept a **Style**
+All 202 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (107)
+## Generators (109)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -62,6 +62,25 @@ Threshold leaves the lightest cells empty. Columns sets resolution; characters
 are real pen strokes, so the result plots like any other geometry — and loop
 letters (O 0 D Q 8 Ö, dots) come out as real closed shapes, so Pattern Fill,
 Container and the other region nodes see them.
+
+**Slide Rule** — slide rule scales with the real mathematics: C/D (log), A/B
+(two decades), K (cubes), CI (inverted C on its own pen — the classic red),
+L (linear mantissa), S (sines at 1+log10 sin) and T (tangents), each a
+checkbox. Tick subdivision adapts so gaps never drop below *Min tick gap*;
+three graded tick heights, stroke-font numerals and scale letters. *Straight*
+stacks a Mannheim rule with body frame and slide separators around B/CI/C;
+*Circular* wraps every decade around a full 360° ring — multiplication is
+angle addition, like a real circular rule. The *Cursor position* hairline is
+value-drivable: wire Frame into it and the cursor sweeps the scales.
+
+**Nanotubes** — 3D carbon wireframes: Fullerene C60 (exact truncated-
+icosahedron coordinates — 60 atoms, 90 bonds, 3-regular), armchair (n,n) and
+zigzag (n,0) nanotubes built by rolling a real honeycomb lattice into a
+cylinder (n sets the diameter), Graphene sheet, Nanotorus (the lattice closed
+seamlessly in both directions) and Onion (nested C60 shells). Yaw / Pitch /
+Perspective are value-drivable — wire Frame into Yaw for a spinning molecule;
+*Front half* culls bonds facing away by surface normal for a solid look;
+*Atom dots* marks the carbons.
 
 **Grid** — vertical/horizontal line grid. The plain sheet of paper of generative art;
 feed it to Warp, Stretch or Lens to bend space itself.
@@ -521,7 +540,7 @@ pods, and short bristle spikes radiate from every visible edge — silhouette
 and seams — with jittered angles and crossing X pairs. Blots splatters small
 filled ink dots.
 
-## Modifiers (63)
+## Modifiers (64)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -758,6 +777,18 @@ Noise / Ramps / Constant) with Wavelength, Phase and per-stroke jitters; End
 taper eases pressure to zero at stroke ends; Ghost width previews the stroke
 envelope on its own pen. MUST be last in the chain — downstream modifiers
 strip the Z data. Bed-Z profiles only; servo mode ignores pressure.
+
+**Fade Out** — comet tails by lifting the pen SLOWLY while it still moves:
+the ink starves and the stroke fades out. Encodes a negative Z (lift above
+pen-down) into the point third component; the export turns it into
+simultaneous Z moves (bed-Z only, ±6 mm clamp, capped at pen-up — needs the
+2.42 export patch). *Fade length* ramps the lift inside the stroke's last
+millimetres, *Tail extension* continues past the end along the exit tangent;
+ramps Linear / Soft / Long (the pen hugs the paper and lets go late — longest
+visible tail) / Quick. End / Start / Both, seeded per-stroke Variation; short
+strokes and closed paths pass through. MUST be last in the chain, like
+Brush Z. Note: Travel Sort may reverse strokes, turning a fade-out into a
+soft landing.
 
 ## Decorators (5)
 

@@ -290,6 +290,26 @@ text are **English**.
   identical, B redraws the shared mid bar once. 6/9/4/A counters left as-is
   (single spiral strokes, no clean split). Applied via
   tools/patch-glyph-loops.mjs + tools/patch-glyph-brp.mjs.
+- **2.42** three nodes + an export extension. **Slide Rule** (gen/scientific:
+  nine real scales as checkboxes, adaptive tick subdivision against a
+  physical min-gap, Mannheim frame + slide separators or Circular
+  decade-per-360° rings, value-drivable cursor; validated to machine
+  precision against the scale mathematics — CI proven the exact mirror of
+  C). **Nanotubes** (gen/scientific: C60 from exact truncated-icosahedron
+  coordinates — 60V/90E 3-regular — armchair/zigzag tubes from a rolled
+  honeycomb with wraparound bond metric + whisker pruning, graphene,
+  seamless nanotorus with E = 1.5V exactly, C60 onion; Front-half culling
+  proven a strict subset of Transparent). **Fade Out** (mod/penout:
+  slow-lift comet tails as NEGATIVE point z — export patch
+  tools/patch-fadeout-gcode.mjs widens the z clamp to ±6 mm capped at
+  pen-up, plunge behaviour byte-identical, NODE-API z spec updated).
+  **Molecule** (24 hydrocarbons + caffeine / glucose / fructose / sucrose /
+  betulin / gasoline blend, Kekulé by perfect matching, 20/20 checks) was
+  built and validated but CUT by decision before bake — second cut after
+  the Opus-era version. Validator lessons: negative zero breaks toFixed
+  dedupe keys ((-1e-17).toFixed(4) !== "0.0000" — caused degree-4 atoms in
+  the armchair lattice), and patch guard strings must not straddle line
+  breaks (bit twice this session).
 
 ## Hard-won pitfalls (keep)
 
