@@ -44,8 +44,13 @@ text are **English**.
   to entries (param-diff + id renumbering).
 - `docs/` — MUUSIA-HANDOFF.md (this), MUUSIA-NODES.md (every node),
   MUUSIA-NODE-API.md (custom-node authoring spec, plotternode format),
-  MUUSIA-MAP.md (OSM map import guide: overpass-turbo workflow, sizing, queries).
-- `tools/` — era scripts (historical surgery + validators), `extract.mjs`,
+  MUUSIA-MAP.md (OSM map import guide: overpass-turbo workflow, sizing, queries),
+  MUUSIA-PLOTTER-MECH-HANDOFF.md (X-Carve build: mechanics + ink blot tool),
+  MUUSIA-MAGNET-JIG-SPEC.md (safe-areas / laser jig feature, design complete),
+  MUUSIA-NODES-SRC.md (generated here by `tools/make-src-bundle.mjs`).
+- `tools/` — living tools only; applied one-shots (surgery, versioned doc
+  patches, era validators) live in `tools/era/` — do **not** re-run, anchored
+  patches are not idempotent. Living: `extract.mjs`,
   `patch-docs.mjs`, `make-src-bundle.mjs`, **`bake.mjs`** (lab → built-in
   converter), `validate-examples.mjs` (structural check for src/examples.js). Every new node gets a
   `tools/validate-<name>.mjs` before it ships.
@@ -53,7 +58,10 @@ text are **English**.
   import; not part of the build. Approved experiments graduate to `src/defs/nodes/`
   via `node tools/bake.mjs <name...>` (or `--all`): detects used helpers,
   writes the import line + `export default`, smoke-imports the result and
-  deletes it on failure — no manual wrapper conversion.
+  deletes it on failure — no manual wrapper conversion. **Delete the lab file
+  after a successful bake**: baked `src/defs/nodes/` is the source of truth,
+  and a stale lab file can overwrite newer fixes on a re-bake (see
+  nodes-lab/README.md).
 
 ## Build / release routine
 
@@ -64,7 +72,10 @@ text are **English**.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
   verify with `grep -o 'APP_VERSION = "[^"]*"' src/App.jsx`.
-- Deploy: git push → GitHub Pages. CDN lags ~10 min; `curl -s <url> | wc -c` +
+- Deploy: git push → GitHub Pages via CI (`.github/workflows/deploy.yml`),
+  which serves **only the built `dist/`** — repo `docs/` is never online.
+  Anything that must be reachable on Pages goes in `public/` (Vite copies it
+  verbatim into dist, e.g. `public/sim/` → /Muusia/sim/). CDN lags ~10 min; `curl -s <url> | wc -c` +
   version grep distinguishes broken deploy from cache.
 - zsh does not accept `#` comments in pasted commands.
 - `.gitignore` covers `src/App.jsx.bak-*` (surgery-era backups).
@@ -77,7 +88,8 @@ text are **English**.
 1. Experiment as `nodes-lab/x.plotternode.js` (spec: MUUSIA-NODE-API.md), import
    via **Node ⇣**, iterate on look with Daniel.
 2. Bake: `node tools/bake.mjs x` → `src/defs/nodes/x.js` (auto helper-import
-   detection + ESM wrapper + import smoke-test; failed bakes are removed).
+   detection + ESM wrapper + import smoke-test; failed bakes are removed),
+   then delete the lab file.
 3. Write `tools/validate-x.mjs`: plain ESM imports of the node (no stubs needed),
    assert determinism (double run equal), finite coords, ≥2-pt paths, in-bounds,
    and every parameter's *liveness* plus any invariant that matters (symmetry,

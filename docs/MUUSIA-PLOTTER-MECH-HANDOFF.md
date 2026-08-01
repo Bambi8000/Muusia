@@ -98,6 +98,13 @@ deterministic and G-code-drivable: dose (µl), blow direction (°), sweep (°),
 pulse duration (s). Air pressure is a **per-session constant** set on the
 regulator, not a per-blot parameter.
 
+Design tool: `public/sim/ink-blow-sim.html` (served at /Muusia/sim/ on
+Pages) — interactive drop + blow simulator; parameters map 1:1 to this
+hardware. Physics coefficients are uncalibrated first guesses until the
+first real blot tests (50 µl per ink per paper, measure Ø + branch lengths).
+
+Design tool: docs/sim/ink-blow-sim.html (parameters map 1:1 to the planned hardware; coefficients uncalibrated until first real blot tests).
+
 ### Ink dosing
 
 | Item | Spec | Notes |
