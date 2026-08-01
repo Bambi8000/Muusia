@@ -21,7 +21,9 @@ text are **English**.
 
 - `src/App.jsx` — engine + UI only (~3.8k lines): graph evaluation, canvas, palette,
   inspector, preview (ZoomBox), export panel, machine setup, Mega Canvas, magnet jig,
-  animation, help. Also hosts the two engine-bound DEFS entries: `group`, `reititys`.
+  animation, help. Beginner examples moved to `src/examples.js` (loadExample
+  injects `defaults` and honors an optional per-example `canvas:{W,H}`).
+  Also hosts the two engine-bound DEFS entries: `group`, `reititys`.
 - `src/defs/helpers.js` — shared node helpers: `Pin, EMPTY, PENS (+PENS_DEFAULT,
   savePens, resetPens), mulberry32, hash2, noise2, resample, pathLength, applyStyle,
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
@@ -33,12 +35,19 @@ text are **English**.
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
   alphabetical by filename. **Adding a built-in node = dropping a file here.**
+- `src/examples.js` — Help beginner examples: `{ name, desc, make(defaults) }`
+  factories, node ids 9001+ / edge ids e9101+ (loadExample resets NEXT_ID to
+  9500), params as diffs over `defaults(type)`, built-in nodes only, fixed
+  seeds, optional `canvas:{W,H}`. Zero imports — runs in plain Node; check
+  with `node tools/validate-examples.mjs` before build. New examples arrive
+  as module exports (`*-module.json`, whole graph selected) and are converted
+  to entries (param-diff + id renumbering).
 - `docs/` — MUUSIA-HANDOFF.md (this), MUUSIA-NODES.md (every node),
   MUUSIA-NODE-API.md (custom-node authoring spec, plotternode format),
   MUUSIA-MAP.md (OSM map import guide: overpass-turbo workflow, sizing, queries).
 - `tools/` — era scripts (historical surgery + validators), `extract.mjs`,
   `patch-docs.mjs`, `make-src-bundle.mjs`, **`bake.mjs`** (lab → built-in
-  converter). Every new node gets a
+  converter), `validate-examples.mjs` (structural check for src/examples.js). Every new node gets a
   `tools/validate-<name>.mjs` before it ships.
 - `nodes-lab/` — experimental `.plotternode.js` files for the in-app **Node ⇣**
   import; not part of the build. Approved experiments graduate to `src/defs/nodes/`
