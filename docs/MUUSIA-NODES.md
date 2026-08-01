@@ -1,4 +1,4 @@
-# MUUSIA v2.38 — Node Reference
+# MUUSIA v2.39 — Node Reference
 
 All 199 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and

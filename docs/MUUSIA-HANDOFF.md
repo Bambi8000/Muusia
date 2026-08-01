@@ -132,6 +132,9 @@ text are **English**.
   NumBoxes remain for custom sizes.
 - **Node card header:** ? help · ⚙ slider setup · **D duplicate (that node)** ·
   minimize. `duplicateIds(ids)` is the core; Cmd/Ctrl+D duplicates the selection.
+- **Add & Tidy:** `addNode` grid-scans the visible viewport for empty space
+  (measured card boxes via `cardEls`); toolbar **Tidy** = `tidyNodes()`
+  dependency-column layout (both live next to `addNodeAt` in App.jsx).
 - **Animation, Mega Canvas, Mini Canvas, magnet jig, machine profiles,
   Travel Stop, custom modules:** unchanged since v2.0–2.1 era; see MUUSIA-NODES.md
   and README for user-facing docs. Magnet jig functions (`magnetPlacement`,
@@ -258,6 +261,13 @@ text are **English**.
   show WIRED regions as dashed guides. Validator lessons: name harnesses
   validate-<key>; a process.exit() before appended checks silently skips
   them — prefer process.exitCode.
+- **2.39** editor QoL, no node/export changes: **empty-space add** (palette
+  click / quick-add scans the visible viewport in a coarse grid against
+  MEASURED card boxes — cardEls offsetHeight, +14 air — and falls back to the
+  old stagger when the view is full) and a toolbar **Tidy** button (hotkey **T**; left→right
+  dependency columns by longest-path depth with cycle guard, barycenter row
+  order within a column, measured heights + 26 gap; with 2+ nodes selected it
+  arranges only the selection). Applied via tools/patch-tidy.mjs.
 
 ## Hard-won pitfalls (keep)
 

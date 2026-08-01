@@ -903,7 +903,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.38"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.39"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1887,10 +1887,72 @@ export default function App() {
   };
 
   /* --- toiminnot --- */
+  const cardBoxH = (id) => (cardEls.current[id] && cardEls.current[id].offsetHeight) || 300;
   const addNode = (type) => {
     const sl = areaRef.current ? areaRef.current.scrollLeft / zoom : 0;
     const st = areaRef.current ? areaRef.current.scrollTop / zoom : 0;
-    addNodeAt(type, sl + 80 + (lvl.nodes.length % 4) * 40, st + 80 + (lvl.nodes.length % 5) * 40);
+    const vw = areaRef.current ? areaRef.current.clientWidth / zoom : 900;
+    const vh = areaRef.current ? areaRef.current.clientHeight / zoom : 600;
+    /* find empty space in the visible viewport: coarse grid scan against
+       measured card boxes (+14 air); fall back to the old stagger when full */
+    const boxes = lvl.nodes.map((n) => ({ x: n.x, y: n.y, w: NODE_W, h: cardBoxH(n.id) }));
+    const free = (x, y) =>
+      boxes.every((b) => x + NODE_W + 14 <= b.x || b.x + b.w + 14 <= x || y + 314 <= b.y || b.y + b.h + 14 <= y);
+    let px = sl + 80 + (lvl.nodes.length % 4) * 40;
+    let py = st + 80 + (lvl.nodes.length % 5) * 40;
+    outer:
+    for (let ry = st + 24; ry < st + vh - 120; ry += 40) {
+      for (let rx = sl + 24; rx < sl + vw - NODE_W - 8; rx += 46) {
+        if (free(rx, ry)) { px = rx; py = ry; break outer; }
+      }
+    }
+    addNodeAt(type, Math.max(0, Math.min(AREA_W - NODE_W - 10, px)), Math.max(0, Math.min(AREA_H - 60, py)));
+  };
+  /* Tidy: left-to-right dependency columns (longest-path depth), barycenter
+     row order within a column, measured card heights. 2+ selected = selection only. */
+  const tidyNodes = () => {
+    const sel = selIds.length >= 2 ? new Set(selIds) : null;
+    const pick = lvl.nodes.filter((n) => !sel || sel.has(n.id));
+    if (pick.length < 2) return;
+    const ids = new Set(pick.map((n) => n.id));
+    const preds = {};
+    for (const n of pick) preds[n.id] = [];
+    for (const e of lvl.edges) if (ids.has(e.from) && ids.has(e.to)) preds[e.to].push(e.from);
+    const depth = {};
+    const dep = (id, guard) => {
+      if (depth[id] !== undefined) return depth[id];
+      if (guard.has(id)) return 0; /* cycle safety */
+      guard.add(id);
+      const d = preds[id].length ? 1 + Math.max(...preds[id].map((q) => dep(q, guard))) : 0;
+      guard.delete(id);
+      depth[id] = d;
+      return d;
+    };
+    for (const n of pick) dep(n.id, new Set());
+    const cols = {};
+    for (const n of pick) (cols[depth[n.id]] = cols[depth[n.id]] || []).push(n);
+    const oldY = {};
+    for (const n of pick) oldY[n.id] = n.y;
+    const GAPX = 56, GAPY = 26, X0 = 60, Y0 = 60;
+    const pos = {};
+    for (const d of Object.keys(cols).map(Number).sort((a, b) => a - b)) {
+      const col = cols[d];
+      col.sort((a, b) => {
+        const key = (n) => preds[n.id].length
+          ? preds[n.id].reduce((s, q) => s + (pos[q] ? pos[q].y : oldY[q]), 0) / preds[n.id].length
+          : oldY[n.id];
+        return key(a) - key(b);
+      });
+      let y = Y0;
+      for (const n of col) {
+        pos[n.id] = {
+          x: Math.min(AREA_W - NODE_W - 10, X0 + d * (NODE_W + GAPX)),
+          y: Math.min(AREA_H - 60, y),
+        };
+        y += cardBoxH(n.id) + GAPY;
+      }
+    }
+    setNodesL((ns) => ns.map((n) => (pos[n.id] ? { ...n, x: pos[n.id].x, y: pos[n.id].y } : n)));
   };
   /* --- aloittelijaesimerkit: src/examples.js; make(defaults) saa defaults-funktion tästä --- */
   const loadExample = (ex) => {
@@ -2072,6 +2134,7 @@ export default function App() {
         e.preventDefault();
         setBigPreview((v) => (v ? false : primaryPS.paths.length > 0));
       }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "t") { e.preventDefault(); tidyNodes(); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
         const map = { g: "gen", m: "mod", d: "dec", c: "duo", x: "math", n: null };
         const k = e.key.toLowerCase();
@@ -2596,6 +2659,7 @@ export default function App() {
         <div style={{ width: 1, height: 18, background: T.line }} />
         <button style={toolBtn(histLens[0] > 0)} onClick={undo} title="Undo (Cmd/Ctrl+Z)">↶</button>
         <button style={toolBtn(histLens[1] > 0)} onClick={redo} title="Redo (Cmd/Ctrl+Shift+Z)">↷</button>
+        <button style={toolBtn(lvl.nodes.length > 1)} onClick={tidyNodes} title="T — arrange nodes left→right by dataflow · 2+ selected: tidy only the selection">Tidy</button>
         <div style={{ width: 1, height: 18, background: T.line }} />
         <input type="text" value={projName} onChange={(e) => setProjName(e.target.value)}
           title="Project name (used for filenames)"
@@ -3604,6 +3668,7 @@ export default function App() {
               ["KEYBOARD SHORTCUTS", [
                 "G / M / D / C / X \u2014 quick-add search: Generators / Modifiers / Decorators / Combiners / Math \u00B7 N \u2014 all nodes. Type to filter, \u2191\u2193 + Enter places the node.",
                 "Space \u2014 toggle large preview (with route simulator).",
+                "T \u2014 tidy: arrange nodes left\u2192right by dataflow (2+ selected: only the selection).",
                 "Cmd/Ctrl+Z \u2014 undo \u00B7 Shift+Cmd/Ctrl+Z \u2014 redo.",
                 "Cmd/Ctrl+D \u2014 duplicate selection \u00B7 Cmd/Ctrl+G \u2014 group selection into a subgraph.",
                 "Delete / Backspace \u2014 remove selection \u00B7 Esc \u2014 close overlays / clear selection.",
@@ -3660,9 +3725,7 @@ export default function App() {
           (d.name.toLowerCase().includes(qq) || (nodeNicks[t] || "").toLowerCase().includes(qq)));
         const sel = Math.min(quickAdd.sel, Math.max(0, list.length - 1));
         const addSelected = (type) => {
-          const cx = areaRef.current ? (areaRef.current.scrollLeft + areaRef.current.clientWidth / 2) / zoom - NODE_W / 2 : 120;
-          const cy = areaRef.current ? (areaRef.current.scrollTop + areaRef.current.clientHeight / 2) / zoom - 100 : 120;
-          addNodeAt(type, Math.max(0, cx), Math.max(0, cy));
+          addNode(type); /* empty-space placement, same as palette click */
           setQuickAdd(null);
         };
         const catLabel = quickAdd.cat === null ? "All nodes" : (CATS[quickAdd.cat] ? CATS[quickAdd.cat].label : quickAdd.cat);
