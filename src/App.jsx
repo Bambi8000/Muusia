@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { DEFS_NODES } from "./defs/index.js";
+import { EXAMPLES } from "./examples.js";
 import { PENS_DEFAULT, PENS, savePens, resetPens, mulberry32, hash2, noise2, EMPTY, pathLength, resample, applyStyle, Pin, parseSVG, signedArea, SFONT, fontStrokes, isStyle } from "./defs/helpers.js";
-import DroPanel from "./dro.jsx";
 
 /* ============================================================
    MUUSIA v2.20
@@ -903,7 +903,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.38"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.37"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1637,7 +1637,6 @@ export default function App() {
     dipOn: false, dipX: 320, dipY: 20, dipZ: -2, dipEvery: 800, dipDwell: 600,
     maintOn: false, maintEvery: 4000, maintMsg: "Advance chalk / re-sharpen", maintPark: false, maintX: 20, maintY: 20,
     laserOn: false, laserOffX: 0, laserOffY: 0, laserOnCmd: "SET_PIN PIN=laser VALUE=1", laserOffCmd: "SET_PIN PIN=laser VALUE=0",
-    moonrakerUrl: "ws://192.168.0.57:7125/websocket",
   };
   const DEFAULT_MACHINE_B = {
     ...DEFAULT_MACHINE,
@@ -1893,90 +1892,14 @@ export default function App() {
     const st = areaRef.current ? areaRef.current.scrollTop / zoom : 0;
     addNodeAt(type, sl + 80 + (lvl.nodes.length % 4) * 40, st + 80 + (lvl.nodes.length % 5) * 40);
   };
-  /* --- aloittelijaesimerkit: rakennetaan ohjelmallisesti defaults()-pohjalta --- */
-  const EXAMPLES = [
-    {
-      name: "1 · Hello Tracks", desc: "Generator \u2192 export. One node is already art.",
-      make: () => ({
-        nodes: [{ id: 9001, type: "radat", x: 60, y: 60, params: defaults("radat") }],
-        edges: [],
-      }),
-    },
-    {
-      name: "2 · Modifier chain", desc: "Tracks \u2192 Jitter \u2192 Symmetry: chain modifiers left to right.",
-      make: () => ({
-        nodes: [
-          { id: 9001, type: "radat", x: 40, y: 60, params: defaults("radat") },
-          { id: 9002, type: "jitter", x: 320, y: 60, params: defaults("jitter") },
-          { id: 9003, type: "symmetry", x: 600, y: 60, params: defaults("symmetry") },
-        ],
-        edges: [
-          { id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 },
-          { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: 0 },
-        ],
-      }),
-    },
-    {
-      name: "3 · Value wires", desc: "Random drives Grid line count: green ports modulate anything.",
-      make: () => {
-        const g = defaults("grid");
-        return {
-          nodes: [
-            { id: 9001, type: "satunnainen", x: 40, y: 40, params: defaults("satunnainen") },
-            { id: 9002, type: "grid", x: 320, y: 80, params: g },
-          ],
-          edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: "p:vlines" }],
-        };
-      },
-    },
-    {
-      name: "4 · Landscape", desc: "Skyline + Water share Horizon Y; Merge combines layers.",
-      make: () => {
-        const sk = defaults("skyline"), wa = defaults("water");
-        sk.horizon = 85; wa.horizon = 85;
-        return {
-          nodes: [
-            { id: 9001, type: "skyline", x: 40, y: 30, params: sk },
-            { id: 9002, type: "water", x: 40, y: 320, params: wa },
-            { id: 9003, type: "merge", x: 360, y: 160, params: defaults("merge") },
-          ],
-          edges: [
-            { id: "e9101", from: 9001, fromPort: 0, to: 9003, toPort: 0 },
-            { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: 1 },
-          ],
-        };
-      },
-    },
-    {
-      name: "5 · Animation", desc: "Frame spins a solid over a static background. Press \u25B6 in ANIMATE.",
-      make: () => {
-        const so = defaults("solids"), ma = defaults("matem");
-        so.shape = "Icosahedron"; so.size = 90;
-        ma.op = "A \u00D7 B"; ma.b = 15;
-        return {
-          nodes: [
-            { id: 9001, type: "frame", x: 30, y: 40, params: defaults("frame") },
-            { id: 9002, type: "matem", x: 250, y: 40, params: ma },
-            { id: 9003, type: "solids", x: 470, y: 120, params: so },
-            { id: 9004, type: "mountains", x: 30, y: 330, params: defaults("mountains") },
-            { id: 9005, type: "merge", x: 760, y: 200, params: defaults("merge") },
-          ],
-          edges: [
-            { id: "e9101", from: 9001, fromPort: 1, to: 9002, toPort: 0 },
-            { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: "p:ry" },
-            { id: "e9103", from: 9004, fromPort: 0, to: 9005, toPort: 0 },
-            { id: "e9104", from: 9003, fromPort: 0, to: 9005, toPort: 1 },
-          ],
-        };
-      },
-    },
-  ];
+  /* --- aloittelijaesimerkit: src/examples.js; make(defaults) saa defaults-funktion tästä --- */
   const loadExample = (ex) => {
-    const data = ex.make();
+    const data = ex.make(defaults);
     NEXT_ID = 9500;
     setStack([]);
     setSelIds([]);
     setRoot({ nodes: data.nodes, edges: data.edges });
+    if (ex.canvas) { setCanvasW(ex.canvas.W || 300); setCanvasH(ex.canvas.H || 200); }
     setGcode(null);
     setHelpOpen(false);
   };
@@ -2659,7 +2582,6 @@ export default function App() {
           MUUSIA
           <span style={{ color: T.dim, fontWeight: 500, fontSize: 11, marginLeft: 8 }}>{"v" + APP_VERSION}</span>
         </div>
-        <DroPanel url={prof.moonrakerUrl} />
         <button style={toolBtn(selIds.length > 0)} onClick={duplicateSelected} title="Cmd/Ctrl+D">Duplicate ({selIds.length})</button>
         <button style={toolBtn(selIds.length >= 2)} onClick={groupSelected} title="Cmd/Ctrl+G">Group</button>
         <button style={toolBtn(!!primaryIsGroup)} onClick={ungroupSelected}>Ungroup</button>
@@ -3338,12 +3260,6 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Pause command</div>
                   <input type="text" value={prof.pauseCmd} onChange={(e) => setProf((pr) => ({ ...pr, pauseCmd: e.target.value }))}
-                    style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                  <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Moonraker WS URL</div>
-                  <input type="text" value={prof.moonrakerUrl || ""} onChange={(e) => setProf((pr) => ({ ...pr, moonrakerUrl: e.target.value }))}
-                    placeholder="ws://192.168.0.57:7125/websocket"
                     style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
                 </div>
                 <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.05em", margin: "10px 0 4px" }}>Z MODE</div>
