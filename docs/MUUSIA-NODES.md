@@ -1,4 +1,4 @@
-# MUUSIA v2.40 — Node Reference
+# MUUSIA v2.41 — Node Reference
 
 All 199 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
@@ -59,7 +59,9 @@ samples a loaded picture's darkness. *Ramp* orders characters light-to-dark
 (Custom takes your own string); characters missing from the stroke font fall
 back to uppercase or are skipped. Gamma bends the mapping, Invert flips it,
 Threshold leaves the lightest cells empty. Columns sets resolution; characters
-are real pen strokes, so the result plots like any other geometry.
+are real pen strokes, so the result plots like any other geometry — and loop
+letters (O 0 D Q 8 Ö, dots) come out as real closed shapes, so Pattern Fill,
+Container and the other region nodes see them.
 
 **Grid** — vertical/horizontal line grid. The plain sheet of paper of generative art;
 feed it to Warp, Stretch or Lens to bend space itself.

@@ -396,8 +396,14 @@ export default {
         const gy0 = oy0 + r * chh + (chh - size) / 2;
         for (const st of fs.strokes) {
           if (st.length < 2 || total + st.length > BUDGET) continue;
-          paths.push({ pts: st.map(([gx, gy]) => [gx0 + gx, gy0 + gy]), closed: false, layer: L });
-          total += st.length;
+          const pts = st.map(([gx, gy]) => [gx0 + gx, gy0 + gy]);
+          /* loop glyph strokes are authored with the first point repeated at the end: emit as real closed shapes so fills and region nodes see them */
+          const loop = pts.length > 3 &&
+            Math.abs(pts[0][0] - pts[pts.length - 1][0]) < 1e-6 &&
+            Math.abs(pts[0][1] - pts[pts.length - 1][1]) < 1e-6;
+          if (loop) pts.pop();
+          paths.push({ pts, closed: loop, layer: L });
+          total += pts.length;
         }
       }
     }
@@ -7545,9 +7551,14 @@ export default {
           const g = F[ch] || F[" "];
           for (const stroke of g.s) {
             if (stroke.length < 2) continue;
+            const pts = stroke.map(([gx, gy]) => [x + gx * sc, y + gy * sc]);
+            /* loop glyph strokes are authored with the first point repeated at the end: emit as real closed shapes so fills and region nodes see them */
+            const loop = pts.length > 3 &&
+              Math.abs(pts[0][0] - pts[pts.length - 1][0]) < 1e-6 &&
+              Math.abs(pts[0][1] - pts[pts.length - 1][1]) < 1e-6;
+            if (loop) pts.pop();
             paths.push({
-              pts: stroke.map(([gx, gy]) => [x + gx * sc, y + gy * sc]),
-              closed: false, layer: Math.round(p.layer),
+              pts, closed: loop, layer: Math.round(p.layer),
             });
           }
           x += (g.w + 2) * sc * tr;

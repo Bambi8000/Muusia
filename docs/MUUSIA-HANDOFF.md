@@ -276,6 +276,20 @@ text are **English**.
   rotation, ±Gap, bisection-accurate cuts). Node counts unchanged: Mask
   remains a built-in, just unlisted. Applied via
   tools/patch-mask-deprecation.mjs.
+- **2.41** glyph-loop fix: SFONT authors loop glyphs (O 0 D Q 8 B Ö, dot
+  punctuation) with the first point repeated at the end, but **ASCII Art**
+  and **Text** emitted every stroke closed: false — a geometric loop the
+  region nodes could not see, so Pattern Fill on letters did nothing. Both
+  now detect first==last strokes (>3 pts, 1e-6), drop the duplicate point
+  and emit closed: true; plotted ink identical, Travel Sort may pick a
+  different loop entry vertex. Known follow-up if ever needed: Text on Path
+  and Concrete Poetry still emit open glyph strokes (clipped/rotated glyphs
+  — left untouched deliberately). B/P/R refonted in SFONT (their bowls closed
+  against the stem, not their own start, so loop detection could not see
+  them): bowls are now authored closed loops + separate stems — P/R ink
+  identical, B redraws the shared mid bar once. 6/9/4/A counters left as-is
+  (single spiral strokes, no clean split). Applied via
+  tools/patch-glyph-loops.mjs + tools/patch-glyph-brp.mjs.
 
 ## Hard-won pitfalls (keep)
 
