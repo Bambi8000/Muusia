@@ -95,7 +95,9 @@ text are **English**.
    and every parameter's *liveness* plus any invariant that matters (symmetry,
    no-overlap gap, monotonic width, graph connectivity...). Run before build.
 4. `npm run build` is the syntax gate — errors point at the exact node file.
-5. Update `docs/MUUSIA-NODES.md` (paragraph + counts) — or leave for a doc batch.
+5. Update `docs/MUUSIA-NODES.md` (paragraph + counts) + the HANDOFF version
+   history **immediately after every push** — the standing doc-batch rule
+   (agreed v2.38): docs never lag a release.
 
 ## Architecture — do not break these
 
@@ -238,6 +240,24 @@ text are **English**.
   (outline)** (monotone-chain convex outline only, no interior lines;
   interior points excluded, collinear degenerates to one segment). Old
   Bridges params/rules untouched — old patches load unchanged.
+- **2.38** three nodes + an engine extension. Nodes: **Wind Tunnel** (duo:
+  streamlines steered around wired obstacles — tangential steering + a hard
+  per-step clearance projection so lines never enter the shape; wake
+  turbulence behind each obstacle), **Pins** (gen: order↔chaos needle field,
+  ball heads with rings/spiral fills, multi-pen head assortment, shaft stops
+  at the ball edge), **Container** (duo: clip content to a wired region or a
+  parametric rect/circle/triangle with rotation, ±Gap, bisection-accurate
+  cuts — unifies Mask/Crop/Eraser; **Mask is now a deprecation candidate**).
+  **Ribbon** gained Shape Line/Ring — Ring is a seamless periodic-noise loop
+  of closed filaments; Line mode validated byte-identical to 2.37 against a
+  transcription of the old compute, and a missing shape param falls into the
+  Line branch so old patches load unchanged. Engine: **overlay(params, ctx,
+  ins)** — primaryGuides resolves the selected node's data inputs and passes
+  them as an optional third overlay argument (backward compatible; applied
+  via tools/patch-overlay-ins.mjs, documented in NODE-API), so zone nodes can
+  show WIRED regions as dashed guides. Validator lessons: name harnesses
+  validate-<key>; a process.exit() before appended checks silently skips
+  them — prefer process.exitCode.
 
 ## Hard-won pitfalls (keep)
 

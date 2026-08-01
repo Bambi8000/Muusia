@@ -1,13 +1,13 @@
-# MUUSIA v2.37 — Node Reference
+# MUUSIA v2.38 — Node Reference
 
-All 196 built-in nodes. Conventions used below: most generators accept a **Style**
+All 199 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (106)
+## Generators (107)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -196,8 +196,12 @@ leg pairs with alternating gait; optional antennae.
 **Mesh** — jittered structural grid with selectable diagonals (none, \\, /,
 alternating, random) — truss look (compare Fabric/Net for cloth).
 
-**Ribbon** — a wandering backbone with parallel companion lines (1–60). At lines = 1
-it is a clean single guide curve — a good Spine for Ruler or Follow Lines.
+**Ribbon** — a wandering backbone with parallel companion lines (1–60). Shape *Line*
+runs the spine left to right across the sheet; *Ring* closes it into a seamless loop
+around the canvas center (Ring radius sets the base size, Wander makes the loop
+breathe; the noise is sampled periodically so there is no seam) with every filament a
+closed stroke. At lines = 1 it is a clean single guide curve — a good Spine for
+Ruler or Follow Lines.
 
 **Halftone** — dot/pattern shading driven by a noise field.
 
@@ -360,7 +364,17 @@ feeding tracks outward, and via dots along the runs.
 
 **Comets** — nucleus and sweeping tail. Detailed draws the ball with coma arcs
 and a fan of curved tail streamlines; Minimal is just a dot and a single line.
-Body and tail on separate pens; tails point away from the sun direction.
+Body and tail on separate pens; tails point away from the sun direction. Unlike
+Pins' order-to-chaos needle field, Comets is a few scene comets sharing one sun.
+
+**Pins** — sewing pins: straight shafts with a ball head at the tip. Chaos runs
+from a neat grid where every pin points at Angle (0) to a fully scattered jumble
+of random positions and directions (1); the shaft stops exactly at the ball's
+edge, pen travelling tail → head. Head fill draws the ball as an outline,
+concentric rings or one continuous inward spiral; Head pens cycles the balls
+across several pens like a real pin assortment while shafts keep Shaft pen; Bend
+curves the needles. Every pin fits the margin whole. Unlike Comets, whose few
+tails share a sun direction, Pins is an order-to-chaos field of up to 200 needles.
 
 **Blueberry Sprig** — hand-drawn blueberry sprigs after an embroidered original:
 a wandering main stem with sharp little kinks, sparse side branches, berries as
@@ -780,7 +794,7 @@ quantizing into blocky steps. Color split adds a displaced duplicate on another
 pen (plotter chromatic aberration). Wire Drift to Frame and the corruption
 crawls through an animation.
 
-## Combiners (12)
+## Combiners (14)
 
 **Mask** — clips paths by closed mask shapes (keep inside/outside).
 
@@ -800,6 +814,27 @@ jitter, tangent-aligned or random rotation, keep probability, point budget.
 slider steps next/previous — or wire Steps to animate the selection) and clip
 the Content input inside it, with an edge inset. All-regions mode, outline
 preview, and browse mode when Content is unwired.
+
+**Wind Tunnel** — streamlines flowing around the closed shapes wired into
+Obstacle, like smoke lines in a wind tunnel: a uniform flow (Angle) is steered
+tangentially inside the Influence band, so lines hug and part around the object
+at Clearance distance — never inside it (a hard projection guarantees the gap).
+Hug shapes how abruptly they wrap; Waviness meanders the whole field; Wake
+turbulence churns the flow behind each shape and dies out over Wake length.
+Keep shape passes the obstacle through on its own pens; unwired Obstacle gives
+plain flow lines. All closed input shapes act as obstacles — wire one via
+Stencil to aim the tunnel at a single potato.
+
+**Container** — limits content to a region: wire any closed shapes into Region
+(the whole set acts as a union), or pick a built-in Rectangle, Circle or
+Triangle placed with Center/Size/Rotate — both parametric and wired regions
+show as dashed guides when the node is selected. Keep Inside boxes an effect
+into the area, Outside punches a hole; Gap grows (+) or shrinks (−) the region
+from its edge, cuts are bisection-accurate at the border and fully-inside
+closed paths stay closed. Draw region plots the container outline on its own
+pen; unwired Region passes content through. Content → Squiggle → Container
+confines every mark of an effect inside a Potato; Container first lets the
+wave overshoot the edge.
 
 **Switch** — a selector gate: the Select value picks which of the wired path
 inputs passes through; unwired inputs are skipped and the index wraps. Wire
