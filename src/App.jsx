@@ -903,7 +903,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.37"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.38"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -2149,7 +2149,12 @@ export default function App() {
     const def = DEFS[primaryNode.type];
     if (!def || !def.overlay) return null;
     const merged = { ...primaryNode.params, ...((pvals && pvals[primaryNode.id]) || {}) };
-    try { return def.overlay(merged, ctx); } catch (e) { return null; }
+    /* overlay-ins: resolve data inputs so zone nodes can guide wired regions */
+    const oins = defIns(primaryNode).map((pin, port) => {
+      const e = lvl.edges.find((ed) => ed.to === primaryNode.id && ed.toPort === port);
+      return e ? (results[e.from] || [])[e.fromPort || 0] : undefined;
+    });
+    try { return def.overlay(merged, ctx, oins); } catch (e) { return null; }
   })();
 
   const [copied, setCopied] = useState(false);

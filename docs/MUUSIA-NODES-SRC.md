@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (194 files, generated)
+# MUUSIA v2.29 — Node Sources (197 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -2629,6 +2629,179 @@ export default {
       return applyStyle({ paths }, ins[1]);
     },
   
+};
+```
+
+## container.js
+
+```js
+import { Pin, EMPTY, resample } from "../helpers.js";
+
+export default {
+  key: "container",
+  name: "Container",
+  cat: "duo",
+  desc: "Limits content to a region: wire any closed shapes into Region (a Potato, a Pebble, text outlines), or pick a built-in Rectangle, Circle or Triangle placed with Center/Size/Rotate (dashed guide). Keep Inside boxes an effect into the area, Outside punches a hole. Gap grows (+) or shrinks (-) the region from its edge; cuts are bisection-accurate at the border and fully-inside closed paths stay closed. Draw region plots the container outline itself on its own pen. Unwired Region in Wired mode passes content through untouched. Tip: content -> Container(Potato) -> Squiggle confines the whole chain's effect to the potato.",
+  ins: [Pin("paths", "Content"), Pin("paths", "Region (closed)")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "shape", label: "Shape", type: "select", options: ["Wired region", "Rectangle", "Circle", "Triangle"], def: "Wired region" },
+    { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 105 },
+    { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 148 },
+    { key: "rw", label: "Rect W mm", type: "slider", min: 5, max: 400, step: 1, def: 120 },
+    { key: "rh", label: "Rect H mm", type: "slider", min: 5, max: 400, step: 1, def: 90 },
+    { key: "cr", label: "Circle / Triangle R mm", type: "slider", min: 2, max: 250, step: 1, def: 55 },
+    { key: "rot", label: "Rotate \u00b0", type: "slider", min: 0, max: 360, step: 1, def: 0 },
+    { key: "keep", label: "Keep", type: "select", options: ["Inside", "Outside"], def: "Inside" },
+    { key: "gap", label: "Gap mm (+grow / -shrink)", type: "slider", min: -20, max: 20, step: 0.5, def: 0 },
+    { key: "draw", label: "Draw region", type: "check", def: false },
+    { key: "regionPen", label: "Region pen", type: "pen", def: 1 },
+  ],
+  overlay(p, ctx, ins) {
+    /* wired regions arrive via the optional ins argument (engine overlay-ins patch);
+       on an engine without the patch ins is undefined and wired mode shows no guide */
+    if (p.shape === "Wired region") {
+      const wired = (ins && ins[1]) || EMPTY;
+      const guides = [];
+      for (const pa of wired.paths) {
+        if (pa.closed && pa.pts.length >= 3) guides.push({ kind: "poly", pts: pa.pts });
+        if (guides.length >= 64) break;
+      }
+      return guides;
+    }
+    if (p.shape === "Rectangle") {
+      const a = (p.rot * Math.PI) / 180, ca = Math.cos(a), sa = Math.sin(a);
+      const pts = [[-p.rw / 2, -p.rh / 2], [p.rw / 2, -p.rh / 2], [p.rw / 2, p.rh / 2], [-p.rw / 2, p.rh / 2]]
+        .map(([x, y]) => [p.cx + x * ca - y * sa, p.cy + x * sa + y * ca]);
+      return [{ kind: "poly", pts }];
+    }
+    if (p.shape === "Circle") return [{ kind: "circle", cx: p.cx, cy: p.cy, r: p.cr }];
+    if (p.shape === "Triangle") {
+      const pts = [];
+      for (let k = 0; k < 3; k++) {
+        const a = ((p.rot - 90 + k * 120) * Math.PI) / 180;
+        pts.push([p.cx + Math.cos(a) * p.cr, p.cy + Math.sin(a) * p.cr]);
+      }
+      return [{ kind: "poly", pts }];
+    }
+    return [];
+  },
+  compute(ins, p, ctx) {
+    const src = ins[0] || EMPTY;
+    const wired = ins[1] || EMPTY;
+
+    /* ---- region polygons ---- */
+    const polys = [];
+    if (p.shape === "Wired region") {
+      for (const pa of wired.paths) {
+        if (pa.closed && pa.pts.length >= 3) polys.push(pa.pts);
+      }
+      if (!polys.length) return src; /* nothing to contain: pass through */
+    } else if (p.shape === "Rectangle") {
+      const a = (p.rot * Math.PI) / 180, ca = Math.cos(a), sa = Math.sin(a);
+      polys.push([[-p.rw / 2, -p.rh / 2], [p.rw / 2, -p.rh / 2], [p.rw / 2, p.rh / 2], [-p.rw / 2, p.rh / 2]]
+        .map(([x, y]) => [p.cx + x * ca - y * sa, p.cy + x * sa + y * ca]));
+    } else if (p.shape === "Circle") {
+      const n = Math.max(24, Math.ceil((Math.PI * 2 * Math.max(2, p.cr)) / 0.7));
+      const pts = [];
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2;
+        pts.push([p.cx + Math.cos(a) * p.cr, p.cy + Math.sin(a) * p.cr]);
+      }
+      polys.push(pts);
+    } else { /* Triangle */
+      const pts = [];
+      for (let k = 0; k < 3; k++) {
+        const a = ((p.rot - 90 + k * 120) * Math.PI) / 180;
+        pts.push([p.cx + Math.cos(a) * Math.max(2, p.cr), p.cy + Math.sin(a) * Math.max(2, p.cr)]);
+      }
+      polys.push(pts);
+    }
+
+    /* ---- region test with gap: inside-any XOR grown/shrunk by boundary distance ---- */
+    const segs = [];
+    for (const poly of polys) {
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        segs.push([poly[j][0], poly[j][1], poly[i][0], poly[i][1]]);
+      }
+    }
+    const distToBoundary = (x, y) => {
+      let bd = Infinity;
+      for (const s of segs) {
+        const dx = s[2] - s[0], dy = s[3] - s[1];
+        const L2 = dx * dx + dy * dy;
+        let t = L2 > 0 ? ((x - s[0]) * dx + (y - s[1]) * dy) / L2 : 0;
+        t = Math.max(0, Math.min(1, t));
+        const px = s[0] + dx * t, py = s[1] + dy * t;
+        const dd = (x - px) * (x - px) + (y - py) * (y - py);
+        if (dd < bd) bd = dd;
+      }
+      return Math.sqrt(bd);
+    };
+    const insideAny = (x, y) => {
+      for (const poly of polys) {
+        let inn = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+          if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inn = !inn;
+        }
+        if (inn) return true;
+      }
+      return false;
+    };
+    const g = p.gap;
+    const inRegion = (x, y) => {
+      const inn = insideAny(x, y);
+      if (g === 0) return inn;
+      if (g > 0) return inn || distToBoundary(x, y) <= g;   /* grow */
+      return inn && distToBoundary(x, y) >= -g;             /* shrink */
+    };
+    const wantInside = p.keep === "Inside";
+    const want = ([x, y]) => inRegion(x, y) === wantInside;
+
+    /* ---- clip with bisection-accurate boundary points (crop.js convention) ---- */
+    const cross = (a, b) => { /* a wanted, b not */
+      let lo = a, hi = b;
+      for (let i = 0; i < 10; i++) {
+        const mid = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2];
+        if (want(mid)) lo = mid; else hi = mid;
+      }
+      return [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2];
+    };
+    const paths = [];
+    for (const path of src.paths) {
+      const pts = resample(path.pts, path.closed, 0.8);
+      const seq = path.closed && pts.length > 1 ? [...pts, pts[0]] : pts;
+      let run = [];
+      const flush = () => {
+        if (run.length > 1) paths.push({ pts: run, closed: false, layer: path.layer });
+        run = [];
+      };
+      for (let i = 0; i < seq.length; i++) {
+        const cur = seq[i];
+        if (want(cur)) {
+          if (run.length === 0 && i > 0 && !want(seq[i - 1])) run.push(cross(cur, seq[i - 1]));
+          run.push(cur);
+        } else if (run.length > 0) {
+          run.push(cross(seq[i - 1], cur));
+          flush();
+        }
+      }
+      /* a closed path that never crossed the border stays closed */
+      if (path.closed && run.length === seq.length) {
+        run.pop();
+        paths.push({ pts: run, closed: true, layer: path.layer });
+      } else flush();
+    }
+
+    if (p.draw) {
+      const RP = Math.round(p.regionPen);
+      for (const poly of polys) {
+        paths.push({ pts: poly.map((q) => q.slice()), closed: true, layer: RP });
+      }
+    }
+    return { paths };
+  },
 };
 ```
 
@@ -13311,6 +13484,146 @@ export default {
 };
 ```
 
+## pins.js
+
+```js
+import { Pin, PENS, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+  key: "pins",
+  name: "Pins",
+  cat: "gen",
+  group: "geometric",
+  desc: "Sewing pins: straight shafts with a ball head at the tip. Chaos runs from a neat grid where every pin points at Angle (0) to a fully scattered jumble of random positions and directions (1). The shaft stops at the ball's edge; Head fill draws the ball as an outline, concentric rings, or one continuous spiral. Head pens cycles the balls across several pens from Head pen onward, like a real pin assortment, while shafts stay on Shaft pen. Bend curves the needles slightly. Every pin is shifted whole to fit inside the margin. Unlike Comets, whose few tails all point away from a shared sun direction, Pins is an order-to-chaos field of up to 200 needles with filled multi-pen heads.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "pins", label: "Pins", type: "slider", min: 1, max: 200, step: 1, def: 40 },
+    { key: "length", label: "Length mm", type: "slider", min: 5, max: 100, step: 0.5, def: 30 },
+    { key: "lenVar", label: "Length variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.2 },
+    { key: "headSize", label: "Head size mm", type: "slider", min: 0.5, max: 10, step: 0.1, def: 3 },
+    { key: "headVar", label: "Head variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.15 },
+    { key: "chaos", label: "Chaos (order \u2192 mess)", type: "slider", min: 0, max: 1, step: 0.01, def: 0.7 },
+    { key: "angle", label: "Angle \u00b0 (at order)", type: "slider", min: 0, max: 360, step: 1, def: 90 },
+    { key: "bend", label: "Bend", type: "slider", min: 0, max: 1, step: 0.05, def: 0 },
+    { key: "headFill", label: "Head fill", type: "select", options: ["Outline", "Rings", "Spiral"], def: "Spiral" },
+    { key: "headPens", label: "Head pens", type: "slider", min: 1, max: 6, step: 1, def: 1 },
+    { key: "headPen", label: "Head pen", type: "pen", def: 1 },
+    { key: "shaftPen", label: "Shaft pen", type: "pen", def: 0 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 42 },
+  ],
+  overlay(p, ctx) {
+    const m = Math.max(0, p.margin);
+    return [{ kind: "rect", x: m, y: m, w: ctx.W - 2 * m, h: ctx.H - 2 * m }];
+  },
+  compute(ins, p, ctx) {
+    const { W, H } = ctx;
+    const m = Math.max(0, p.margin);
+    const x0 = m, y0 = m, x1 = W - m, y1 = H - m;
+    const bw = x1 - x0, bh = y1 - y0;
+    if (bw < 4 || bh < 4) return applyStyle({ paths: [] }, ins[0]);
+    const NPINS = Math.max(1, Math.round(p.pins));
+    const chaos = Math.max(0, Math.min(1, p.chaos));
+    const baseA = (p.angle * Math.PI) / 180;
+    const SP = Math.round(p.shaftPen);
+    const HP0 = Math.round(p.headPen);
+    const NHP = Math.max(1, Math.round(p.headPens));
+    const nPens = PENS.length;
+
+    /* grid: as square cells as possible for the pin count */
+    const cols = Math.max(1, Math.round(Math.sqrt((NPINS * bw) / bh)));
+    const rows = Math.max(1, Math.ceil(NPINS / cols));
+
+    const paths = [];
+    for (let i = 0; i < NPINS; i++) {
+      const rng = mulberry32(p.seed * 7919 + i * 613 + 11);
+      /* --- pose: lerp grid -> random by chaos --- */
+      const gx = x0 + ((i % cols) + 0.5) * (bw / cols);
+      const gy = y0 + (Math.floor(i / cols) + 0.5) * (bh / rows);
+      const rx = x0 + rng() * bw;
+      const ry = y0 + rng() * bh;
+      const cx = gx + (rx - gx) * chaos;
+      const cy = gy + (ry - gy) * chaos;
+      const ang = baseA + (rng() - 0.5) * 2 * Math.PI * chaos;
+      let len = Math.max(2, p.length * (1 - p.lenVar * rng()));
+      let hr = Math.max(0.15, (p.headSize / 2) * (1 - p.headVar * rng()));
+      /* the whole pin must be able to fit the margin box */
+      const boxMin = Math.min(bw, bh);
+      hr = Math.min(hr, boxMin / 2 - 0.1);
+      const bendMax = p.bend * len * 0.12;
+      len = Math.min(len, Math.max(1, boxMin - 2 * hr - 2 * bendMax - 0.2));
+      const dx = Math.cos(ang), dy = Math.sin(ang);
+
+      /* pin from tail (cx,cy) to head center; shift whole pin into the margin rect */
+      let tx = cx - dx * len / 2, ty = cy - dy * len / 2;      /* tail */
+      let hx = cx + dx * len / 2, hy = cy + dy * len / 2;      /* head center */
+      const bendAmp = p.bend * len * 0.12;
+      /* bounding extremes incl. head radius and bend bulge */
+      const minX = Math.min(tx, hx - hr) - bendAmp, maxX = Math.max(tx, hx + hr) + bendAmp;
+      const minY = Math.min(ty, hy - hr) - bendAmp, maxY = Math.max(ty, hy + hr) + bendAmp;
+      let sx = 0, sy = 0;
+      if (minX < x0) sx = x0 - minX; else if (maxX > x1) sx = x1 - maxX;
+      if (minY < y0) sy = y0 - minY; else if (maxY > y1) sy = y1 - maxY;
+      tx += sx; ty += sy; hx += sx; hy += sy;
+
+      /* --- shaft: tail -> ball edge, optional quadratic bend --- */
+      const ex = hx - dx * hr, ey = hy - dy * hr; /* stop at ball edge */
+      const nx = -dy, ny = dx;
+      const bendSign = rng() > 0.5 ? 1 : -1;
+      const nSeg = p.bend > 0 ? 12 : 1;
+      const shaft = [];
+      for (let s = 0; s <= nSeg; s++) {
+        const t = s / nSeg;
+        const bx = tx + (ex - tx) * t;
+        const by = ty + (ey - ty) * t;
+        const bulge = p.bend > 0 ? Math.sin(Math.PI * t) * bendAmp * bendSign : 0;
+        shaft.push([bx + nx * bulge, by + ny * bulge]);
+      }
+      paths.push({ pts: shaft, closed: false, layer: SP });
+
+      /* --- head --- */
+      const HL = (HP0 + (NHP > 1 ? Math.floor(rng() * NHP) : 0)) % nPens;
+      const circle = (r) => {
+        const n = Math.max(8, Math.ceil((Math.PI * 2 * r) / 0.6));
+        const pts = [];
+        for (let k = 0; k < n; k++) {
+          const a = (k / n) * Math.PI * 2;
+          pts.push([hx + Math.cos(a) * r, hy + Math.sin(a) * r]);
+        }
+        return { pts, closed: true, layer: HL };
+      };
+      if (p.headFill === "Outline") {
+        paths.push(circle(hr));
+      } else if (p.headFill === "Rings") {
+        for (let r = hr; r > 0.15; r -= 0.45) paths.push(circle(r));
+      } else { /* Spiral: outline + one continuous archimedean stroke inward */
+        paths.push(circle(hr));
+        const pitch = 0.45;
+        const turns = hr / pitch;
+        const nPts = Math.max(12, Math.ceil(turns * 26));
+        const pts = [];
+        for (let k = 0; k <= nPts; k++) {
+          const t = k / nPts;
+          const a = t * turns * Math.PI * 2;
+          const r = hr * (1 - t);
+          pts.push([hx + Math.cos(a) * r, hy + Math.sin(a) * r]);
+        }
+        paths.push({ pts, closed: false, layer: HL });
+      }
+    }
+    /* safety clamp: a no-op at sane parameters, guarantees the margin at extremes */
+    for (const pa of paths) {
+      for (const q of pa.pts) {
+        q[0] = Math.max(x0, Math.min(x1, q[0]));
+        q[1] = Math.max(y0, Math.min(y1, q[1]));
+      }
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
 ## pointcloud.js
 
 ```js
@@ -14544,53 +14857,101 @@ import { Pin, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "ribbon",
-    name: "Ribbon", cat: "gen", group: "geometric", ins: [Pin("style", "Style")], outs: [Pin("paths")],
-    params: [
-      { key: "wander", label: "Wander mm", type: "slider", min: 0, max: 120, step: 1, def: 45 },
-      { key: "wscale", label: "Wander scale", type: "slider", min: 0.2, max: 4, step: 0.1, def: 1 },
-      { key: "width", label: "Width mm", type: "slider", min: 2, max: 80, step: 0.5, def: 28 },
-      { key: "widthVar", label: "Width variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8 },
-      { key: "lines", label: "Lines", type: "slider", min: 1, max: 60, step: 1, def: 24 },
-      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
-      { key: "seed", label: "Seed", type: "seed", def: 27 },
-      { key: "layer", label: "Pen", type: "pen", def: 0 },
-    ],
-    compute(ins, p, ctx) {
-      const { W, H } = ctx;
-      /* selkäranka: vasemmalta oikealle, pystysuuntainen kohinavaellus */
-      const N = 160;
-      const bb = [];
-      for (let i = 0; i <= N; i++) {
-        const t = i / N;
-        const x = p.margin + (W - 2 * p.margin) * t;
-        const y = H / 2 + (noise2(t * 4 * p.wscale, 3.3, p.seed) - 0.5) * 2 * p.wander;
-        bb.push([x, Math.max(p.margin, Math.min(H - p.margin, y))]);
-      }
-      /* leveys(t): kohina, pinch lähelle nollaa */
-      const widthAt = (t) => {
-        const v = noise2(t * 5 * p.wscale + 40, 8.8, p.seed + 9);
+  name: "Ribbon",
+  cat: "gen",
+  group: "geometric",
+  desc: "A band of parallel filament lines following a noise-wandering spine, pinching and swelling with Width variation. Shape Line runs the spine left to right across the sheet; Shape Ring closes it into a loop around the canvas center (Ring radius sets the base size, Wander makes the loop breathe) with seamless periodic noise, every filament a closed pen stroke. Tip: Ring + high Width variation gives a hand-drawn wreath.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "shape", label: "Shape", type: "select", options: ["Line", "Ring"], def: "Line" },
+    { key: "ringR", label: "Ring radius %", type: "slider", min: 20, max: 100, step: 1, def: 70 },
+    { key: "wander", label: "Wander mm", type: "slider", min: 0, max: 120, step: 1, def: 45 },
+    { key: "wscale", label: "Wander scale", type: "slider", min: 0.2, max: 4, step: 0.1, def: 1 },
+    { key: "width", label: "Width mm", type: "slider", min: 2, max: 80, step: 0.5, def: 28 },
+    { key: "widthVar", label: "Width variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8 },
+    { key: "lines", label: "Lines", type: "slider", min: 1, max: 60, step: 1, def: 24 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 27 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+  compute(ins, p, ctx) {
+    const { W, H } = ctx;
+    const K = Math.round(p.lines);
+    const L = Math.round(p.layer);
+    const paths = [];
+
+    if (p.shape === "Ring") {
+      /* ---- suljettu lenkki: periodinen kohina, ei saumaa ---- */
+      const cx = W / 2, cy = H / 2;
+      const Rmax = Math.min(W, H) / 2 - p.margin;
+      const R = Math.max(2, Rmax * (Math.max(1, p.ringR) / 100));
+      const N = 240;
+      const TAU = Math.PI * 2;
+      const radiusAt = (a) => {
+        const v = noise2(Math.cos(a) * 2 * p.wscale + 7.7, Math.sin(a) * 2 * p.wscale + 3.3, p.seed);
+        let r = R + (v - 0.5) * 2 * p.wander;
+        return Math.max(1, Math.min(Math.min(W, H) / 2 - p.margin, r));
+      };
+      const widthAt = (a) => {
+        const v = noise2(Math.cos(a) * 2.5 * p.wscale + 40, Math.sin(a) * 2.5 * p.wscale + 8.8, p.seed + 9);
         const w = p.width * (1 - p.widthVar + p.widthVar * Math.max(0, v * 1.5 - 0.25));
         return Math.max(0.3, w);
       };
+      const bb = [];
+      for (let i = 0; i < N; i++) {
+        const a = (i / N) * TAU;
+        const r = radiusAt(a);
+        bb.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+      }
+      /* normaalit: sykliset keskeisdifferenssit */
       const normals = bb.map((pt, i) => {
-        const nI = Math.min(i + 1, bb.length - 1), pI = Math.max(i - 1, 0);
+        const nI = (i + 1) % N, pI = (i - 1 + N) % N;
         const tx = bb[nI][0] - bb[pI][0], ty = bb[nI][1] - bb[pI][1];
         const tl = Math.hypot(tx, ty) || 1;
         return [-ty / tl, tx / tl];
       });
-      const K = Math.round(p.lines);
-      const paths = [];
       for (let k = 0; k < K; k++) {
         const f = K === 1 ? 0 : k / (K - 1) - 0.5;
         const pts = bb.map((pt, i) => {
-          const w = widthAt(i / N);
+          const w = widthAt((i / N) * TAU);
           return [pt[0] + normals[i][0] * f * w, pt[1] + normals[i][1] * f * w];
         });
-        paths.push({ pts, closed: false, layer: Math.round(p.layer) });
+        paths.push({ pts, closed: true, layer: L });
       }
       return applyStyle({ paths }, ins[0]);
-    },
-  
+    }
+
+    /* ---- Line: byte-identical to the baked ribbon ---- */
+    const N = 160;
+    const bb = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const x = p.margin + (W - 2 * p.margin) * t;
+      const y = H / 2 + (noise2(t * 4 * p.wscale, 3.3, p.seed) - 0.5) * 2 * p.wander;
+      bb.push([x, Math.max(p.margin, Math.min(H - p.margin, y))]);
+    }
+    const widthAt = (t) => {
+      const v = noise2(t * 5 * p.wscale + 40, 8.8, p.seed + 9);
+      const w = p.width * (1 - p.widthVar + p.widthVar * Math.max(0, v * 1.5 - 0.25));
+      return Math.max(0.3, w);
+    };
+    const normals = bb.map((pt, i) => {
+      const nI = Math.min(i + 1, bb.length - 1), pI = Math.max(i - 1, 0);
+      const tx = bb[nI][0] - bb[pI][0], ty = bb[nI][1] - bb[pI][1];
+      const tl = Math.hypot(tx, ty) || 1;
+      return [-ty / tl, tx / tl];
+    });
+    for (let k = 0; k < K; k++) {
+      const f = K === 1 ? 0 : k / (K - 1) - 0.5;
+      const pts = bb.map((pt, i) => {
+        const w = widthAt(i / N);
+        return [pt[0] + normals[i][0] * f * w, pt[1] + normals[i][1] * f * w];
+      });
+      paths.push({ pts, closed: false, layer: L });
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
 };
 ```
 
@@ -20705,6 +21066,232 @@ export default {
       }
     }
     return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
+## windtunnel.js
+
+```js
+import { Pin, EMPTY, noise2, resample, applyStyle } from "../helpers.js";
+
+export default {
+  key: "windtunnel",
+  name: "Wind Tunnel",
+  cat: "duo",
+  desc: "Streamlines flowing around the closed shapes wired into Obstacle, like smoke lines in a wind tunnel. A uniform flow (Angle) is steered tangentially when it enters the Influence band around a shape, so lines hug and part around the object at Clearance distance; Hug shapes how abruptly they wrap. Waviness adds gentle large-scale meander to the whole field, Wake turbulence churns the flow behind each shape and dies out over Wake length. Keep shape passes the obstacle through on its own pens. Unwired Obstacle gives plain flow lines. Tip: wire one region via Stencil to aim the tunnel at a single potato.",
+  ins: [Pin("paths", "Obstacle"), Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "lines", label: "Lines", type: "slider", min: 3, max: 100, step: 1, def: 32 },
+    { key: "angle", label: "Flow angle \u00b0", type: "slider", min: 0, max: 360, step: 1, def: 0 },
+    { key: "influence", label: "Influence mm", type: "slider", min: 2, max: 60, step: 0.5, def: 18 },
+    { key: "clearance", label: "Clearance mm", type: "slider", min: 0, max: 6, step: 0.1, def: 1 },
+    { key: "hug", label: "Hug", type: "slider", min: 0.5, max: 4, step: 0.05, def: 1.5 },
+    { key: "waviness", label: "Waviness", type: "slider", min: 0, max: 1, step: 0.01, def: 0.12 },
+    { key: "wake", label: "Wake turbulence", type: "slider", min: 0, max: 1, step: 0.01, def: 0.4 },
+    { key: "wakeLen", label: "Wake length mm", type: "slider", min: 10, max: 250, step: 1, def: 90 },
+    { key: "step", label: "Flow step mm", type: "slider", min: 0.5, max: 3, step: 0.1, def: 1 },
+    { key: "keep", label: "Keep shape", type: "check", def: true },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 19 },
+    { key: "layer", label: "Flow pen", type: "pen", def: 0 },
+  ],
+  overlay(p, ctx) {
+    const m = Math.max(0, p.margin);
+    return [{ kind: "rect", x: m, y: m, w: ctx.W - 2 * m, h: ctx.H - 2 * m }];
+  },
+  compute(ins, p, ctx) {
+    const { W, H } = ctx;
+    const src = ins[0] || EMPTY;
+    const L = Math.round(p.layer);
+    const margin = Math.max(0, p.margin);
+    const x0 = margin, y0 = margin, x1 = W - margin, y1 = H - margin;
+    const nLines = Math.max(2, Math.round(p.lines));
+    const R = Math.max(0.5, p.influence);
+    const clr = Math.max(0, p.clearance);
+    const hug = Math.max(0.1, p.hug);
+    const seed = Math.round(p.seed);
+
+    /* ---- obstacle geometry: segments + closed polys + per-shape wake anchors ---- */
+    const segs = [];       /* [ax, ay, bx, by] */
+    const polys = [];      /* closed original point lists for inside test */
+    const wakes = [];      /* { cx, cy, r } per closed shape */
+    for (const path of src.paths) {
+      if (path.pts.length < 2) continue;
+      const pts = resample(path.pts, path.closed, 1.5);
+      const seq = path.closed ? [...pts, pts[0]] : pts;
+      for (let i = 1; i < seq.length; i++) {
+        segs.push([seq[i - 1][0], seq[i - 1][1], seq[i][0], seq[i][1]]);
+      }
+      if (path.closed && path.pts.length >= 3) {
+        polys.push(path.pts);
+        let cx = 0, cy = 0;
+        for (const q of path.pts) { cx += q[0]; cy += q[1]; }
+        cx /= path.pts.length; cy /= path.pts.length;
+        let r = 0;
+        for (const q of path.pts) r = Math.max(r, Math.hypot(q[0] - cx, q[1] - cy));
+        wakes.push({ cx, cy, r });
+      }
+    }
+
+    /* spatial hash of segments for fast nearest queries */
+    const CELL = Math.max(6, R * 0.75);
+    const buckets = new Map();
+    segs.forEach((s, i) => {
+      const sx0 = Math.min(s[0], s[2]) - R, sx1 = Math.max(s[0], s[2]) + R;
+      const sy0 = Math.min(s[1], s[3]) - R, sy1 = Math.max(s[1], s[3]) + R;
+      for (let by = Math.floor(sy0 / CELL); by <= Math.floor(sy1 / CELL); by++)
+        for (let bx = Math.floor(sx0 / CELL); bx <= Math.floor(sx1 / CELL); bx++) {
+          const k = bx + "," + by;
+          let a = buckets.get(k);
+          if (!a) { a = []; buckets.set(k, a); }
+          a.push(i);
+        }
+    });
+    /* nearest surface point within R; returns null when nothing near */
+    const nearest = (x, y) => {
+      const a = buckets.get(Math.floor(x / CELL) + "," + Math.floor(y / CELL));
+      if (!a) return null;
+      let bd = Infinity, bx = 0, by = 0;
+      for (const i of a) {
+        const s = segs[i];
+        const dx = s[2] - s[0], dy = s[3] - s[1];
+        const L2 = dx * dx + dy * dy;
+        let t = L2 > 0 ? ((x - s[0]) * dx + (y - s[1]) * dy) / L2 : 0;
+        t = Math.max(0, Math.min(1, t));
+        const px = s[0] + dx * t, py = s[1] + dy * t;
+        const dd = (x - px) * (x - px) + (y - py) * (y - py);
+        if (dd < bd) { bd = dd; bx = px; by = py; }
+      }
+      if (bd === Infinity) return null;
+      return { d: Math.sqrt(bd), px: bx, py: by };
+    };
+    const inside = (x, y) => {
+      for (const poly of polys) {
+        let inn = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+          if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inn = !inn;
+        }
+        if (inn) return true;
+      }
+      return false;
+    };
+
+    /* ---- velocity field ---- */
+    const baseA = (p.angle * Math.PI) / 180;
+    const u0x = Math.cos(baseA), u0y = Math.sin(baseA);
+    const p0x = -u0y, p0y = u0x; /* perpendicular */
+    const vel = (x, y) => {
+      /* large-scale meander */
+      let ang = baseA;
+      if (p.waviness > 0) {
+        ang += (noise2(x * 0.02, y * 0.02, seed) - 0.5) * 2 * p.waviness * 0.7;
+      }
+      /* wake turbulence behind each closed shape */
+      if (p.wake > 0 && wakes.length) {
+        let amp = 0;
+        for (const wk of wakes) {
+          const rx = x - wk.cx, ry = y - wk.cy;
+          const s = rx * u0x + ry * u0y;           /* downstream distance */
+          if (s <= 0) continue;
+          const l = rx * p0x + ry * p0y;           /* lateral offset */
+          const lat = Math.exp(-(l * l) / ((wk.r + 6) * (wk.r + 6)));
+          const rise = Math.min(1, s / Math.max(1, wk.r));
+          const fall = Math.exp(-s / Math.max(5, p.wakeLen));
+          amp = Math.max(amp, lat * rise * fall);
+        }
+        if (amp > 0) {
+          ang += (noise2(x * 0.06, y * 0.06, seed + 77) - 0.5) * 2 * p.wake * 1.5 * amp;
+        }
+      }
+      let vx = Math.cos(ang), vy = Math.sin(ang);
+      /* steer tangentially inside the influence band */
+      const nr = nearest(x, y);
+      if (nr && nr.d < R + clr) {
+        const d = Math.max(0, nr.d - clr);
+        const w = Math.pow(Math.max(0, 1 - d / R), hug);
+        let nx = (x - nr.px), ny = (y - nr.py);
+        const nl = Math.hypot(nx, ny) || 1;
+        nx /= nl; ny /= nl;
+        if (inside(x, y)) { nx = -nx; ny = -ny; } /* degenerate: normal flips if we slipped in */
+        const dot = vx * nx + vy * ny;
+        if (dot < 0) {
+          vx -= nx * dot * w;
+          vy -= ny * dot * w;
+        }
+        /* hard shell: push out when at/inside clearance */
+        if (nr.d < clr) {
+          vx += nx * (1 - nr.d / Math.max(0.01, clr));
+          vy += ny * (1 - nr.d / Math.max(0.01, clr));
+        }
+        const vl = Math.hypot(vx, vy) || 1;
+        vx /= vl; vy /= vl;
+      }
+      return [vx, vy];
+    };
+
+    /* ---- integrate streamlines ---- */
+    const diag = Math.hypot(W, H);
+    let step = Math.max(0.3, p.step);
+    let maxSteps = Math.ceil((diag * 1.6) / step);
+    /* point budget guard */
+    while (nLines * maxSteps > 100000) {
+      step *= 1.5;
+      maxSteps = Math.ceil((diag * 1.6) / step);
+    }
+    const cx = W / 2, cy = H / 2;
+    const span = diag; /* seed line covers the sheet at any angle */
+    const paths = [];
+    const inRect = (x, y) => x >= x0 && x <= x1 && y >= y0 && y <= y1;
+    for (let li = 0; li < nLines; li++) {
+      const f = nLines === 1 ? 0.5 : li / (nLines - 1);
+      const off = (f - 0.5) * span;
+      /* start upstream, outside the sheet */
+      let x = cx - u0x * (diag * 0.55) + p0x * off;
+      let y = cy - u0y * (diag * 0.55) + p0y * off;
+      let run = [];
+      const flush = () => {
+        if (run.length > 1) paths.push({ pts: run, closed: false, layer: L });
+        run = [];
+      };
+      for (let s = 0; s < maxSteps; s++) {
+        const [vx, vy] = vel(x, y);
+        const nx2 = x + vx * step, ny2 = y + vy * step;
+        /* midpoint correction (RK2) for smoother hugging */
+        const [mvx, mvy] = vel((x + nx2) / 2, (y + ny2) / 2);
+        x = x + mvx * step;
+        y = y + mvy * step;
+        /* hard projection: never inside, never closer than clearance */
+        const nr2 = nearest(x, y);
+        let dropped = false;
+        if (nr2) {
+          const isIn = inside(x, y);
+          if (isIn || nr2.d < clr) {
+            let nx = x - nr2.px, ny = y - nr2.py;
+            const nl = Math.hypot(nx, ny) || 1;
+            nx /= nl; ny /= nl;
+            if (isIn) { nx = -nx; ny = -ny; }
+            const target = Math.max(clr, 0.15);
+            x = nr2.px + nx * target;
+            y = nr2.py + ny * target;
+            if (inside(x, y)) dropped = true; /* concave pocket backstop */
+          }
+        }
+        if (!dropped && inRect(x, y)) run.push([x, y]);
+        else flush();
+      }
+      flush();
+    }
+
+    const out = applyStyle({ paths }, ins[1]);
+    if (p.keep && src.paths.length) {
+      for (const path of src.paths) {
+        out.paths.push({ ...path, pts: path.pts.map((q) => q.slice()) });
+      }
+    }
+    return out;
   },
 };
 ```

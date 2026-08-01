@@ -1,8 +1,6 @@
-import { Pin, noise2, applyStyle } from "../helpers.js";
-
-export default {
-  key: "ribbon",
-  name: "Ribbon",
+({
+  key: "ribbon_lab",
+  name: "Ribbon (lab)",
   cat: "gen",
   group: "geometric",
   desc: "A band of parallel filament lines following a noise-wandering spine, pinching and swelling with Width variation. Shape Line runs the spine left to right across the sheet; Shape Ring closes it into a loop around the canvas center (Ring radius sets the base size, Wander makes the loop breathe) with seamless periodic noise, every filament a closed pen stroke. Tip: Ring + high Width variation gives a hand-drawn wreath.",
@@ -97,4 +95,4 @@ export default {
     }
     return applyStyle({ paths }, ins[0]);
   },
-};
+})
