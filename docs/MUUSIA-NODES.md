@@ -1,4 +1,4 @@
-# MUUSIA v2.39 — Node Reference
+# MUUSIA v2.40 — Node Reference
 
 All 199 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
@@ -796,7 +796,10 @@ crawls through an animation.
 
 ## Combiners (14)
 
-**Mask** — clips paths by closed mask shapes (keep inside/outside).
+**Mask** *(deprecated — hidden from the palette since 2.40; old patches keep
+working)* — clips paths by closed mask shapes (keep inside/outside). Use
+**Container**, which does the same for wired shapes and adds parametric
+regions, rotation, ±Gap and bisection-accurate cuts.
 
 **Merge** — combines up to several path inputs; later inputs plot later.
 
@@ -834,7 +837,7 @@ from its edge, cuts are bisection-accurate at the border and fully-inside
 closed paths stay closed. Draw region plots the container outline on its own
 pen; unwired Region passes content through. Content → Squiggle → Container
 confines every mark of an effect inside a Potato; Container first lets the
-wave overshoot the edge.
+wave overshoot the edge. Supersedes the deprecated Mask.
 
 **Switch** — a selector gate: the Select value picks which of the wired path
 inputs passes through; unwired inputs are skipped and the index wraps. Wire

@@ -268,6 +268,14 @@ text are **English**.
   dependency columns by longest-path depth with cycle guard, barycenter row
   order within a column, measured heights + 26 gap; with 2+ nodes selected it
   arranges only the selection). Applied via tools/patch-tidy.mjs.
+- **2.40** **Mask deprecated** (soft): `hidden: true` removes it from the
+  palette and quick-add, but the def stays in DEFS so every old patch loads
+  and runs unchanged — the v2.21 hard-removal precedent was rejected here
+  because Mask is old and common in saved patches. Desc + NODES.md point to
+  **Container**, which supersedes it (wired regions + parametric shapes,
+  rotation, ±Gap, bisection-accurate cuts). Node counts unchanged: Mask
+  remains a built-in, just unlisted. Applied via
+  tools/patch-mask-deprecation.mjs.
 
 ## Hard-won pitfalls (keep)
 
