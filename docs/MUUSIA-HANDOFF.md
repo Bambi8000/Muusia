@@ -29,8 +29,8 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **194 files** (196 nodes total with
-  group + reititys; Generators 106, Modifiers 63). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **206 files** (208 nodes total with
+  group + reititys; Generators 114, Modifiers 65). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -67,7 +67,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (194) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (206) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -310,6 +310,31 @@ text are **English**.
   dedupe keys ((-1e-17).toFixed(4) !== "0.0000" — caused degree-4 atoms in
   the armchair lattice), and patch guard strings must not straddle line
   breaks (bit twice this session).
+- **2.43** six nodes, all grown from reference images in one lab session.
+  **Stipple** (gen: darkness-adaptive dart-throwing stipple — dot size from
+  image darkness, radius-aware packing, Kusama honeycomb in the blacks),
+  **Shade** (mod/fillstyle: movable-light tonal shading — chamfer feature
+  transform for edge distance + facing, corner kernels with concave bias,
+  level-gated cross-hatch; scanline mask + per-ring normal voting took A3
+  worst case 1412→392 ms), **Blob Rings** (gen/organic: stadium-erosion
+  nested rings, coherent per-blob wobble field so rings stay quasi-parallel),
+  **Line Zones** (gen/geometric: BSP zones of strict V/H gratings, solid and
+  dither-checker zones, 45° corner cuts proven as exact staircases),
+  **Type Grating** (gen/textimg: text concealed in a grating via a glyph
+  mask shaped Plain/Modular/Fragments/Outline/Stencil, encoded Break/Phase
+  shift/Density/Dashes/Weight; RENAMED from atypegrating while still in the
+  lab — key renames are free pre-bake, frozen after), **Scribble Type**
+  (gen/textimg: skeleton-tracing pen with five displacement modes
+  None/Coil/Sine/Seismic/Glitch-orbit and six alphabets incl. a truthful
+  Elder Futhark transliteration and a seed-generated Asemic script).
+  Validator lessons: stencil cuts must clear the thickened MASK, not the
+  skeleton (a +0.1% ink delta exposed cuts being swallowed by the radius);
+  scribble displacement must scale to TEXT size, not glyph size, or every
+  alphabet converges to the same tangle (a skeleton-coverage invariant now
+  guards the regression); position-invariance (same char at two tx values
+  must be a pure translation) tests glyph consistency without duplicating
+  glyph tables in the harness; sample hand-tremor noise in the arc-length
+  domain, not canvas position, or that invariance breaks.
 
 ## Hard-won pitfalls (keep)
 

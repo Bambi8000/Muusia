@@ -1,13 +1,13 @@
-# MUUSIA v2.42 — Node Reference
+# MUUSIA v2.43 — Node Reference
 
-All 202 built-in nodes. Conventions used below: most generators accept a **Style**
+All 208 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (109)
+## Generators (114)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -540,7 +540,53 @@ pods, and short bristle spikes radiate from every visible edge — silhouette
 and seams — with jittered angles and crossing X pairs. Blots splatters small
 filled ink dots.
 
-## Modifiers (64)
+**Stipple** — organic adaptive stippling (the Kusama look): image darkness sets each
+dot's SIZE and seeded dart-throwing packs dots until they almost touch, so dark areas
+become a honeycomb of large concentric-filled cells while light areas thin to sparse
+specks. Gap is the constant white web between neighbours, Light spread adds extra
+spacing toward white, Wobble deforms circles into organic blobs (inner rings inherit
+the shape so fills never cross), Fill pitch matches your pen width for solid blacks.
+
+**Blob Rings** — bold ink blobs with nested rings: each blob is a stadium (spine
+segment swept by a radius) so nesting is a true EROSION — rings keep the spine and
+shrink the radius, leaving slot-like centers in elongated blobs. All rings of a blob
+sample one coherent wobble field (quasi-parallel, hand-sloppy from per-ring center
+jitter); Weight vary doubles rings into thick strokes, Solid cores fill blobs black
+from halfway in, thin curved Connectors string nearest neighbours, Satellites scatter
+small ringed dots in the gaps, Cluster pulls placement toward the canvas center.
+
+**Line Zones** — op-art line compositions in the Vera Molnár tradition: a seeded BSP
+splits the canvas into rectangular zones (always the largest, along its long axis),
+each filled with a strict vertical or horizontal grating at shared pitch. A share of
+zones go Solid (0.45 mm pen-width black) or Dither (checkerboard dashes with seeded
+dropouts — the noisy data-column look); Diagonal cuts truncate a corner at 45° so the
+line ends form the classic staircase; Frame draws a solid border band, Zone gap a
+white gutter, Phase jitter de-syncs neighbouring gratings. Every line is strictly
+axis-aligned.
+
+**Type Grating** — typography concealed inside a strict line grating, readable up
+close, op-art from a distance. The single-stroke font is thickened into a mask and
+shaped by a Glyph style first: Plain, Modular (letterforms quantized onto a module
+grid — blocky Atype abstraction), Fragments (a seeded window of each stroke), Outline
+(only the edge band disturbs the grating) or Stencil (periodic cuts cleared ACROSS
+the thick stroke). The grating reacts with Break / Phase shift (half-pitch square
+jogs, one continuous stroke per column) / Density / Dashes / Weight; Invert swaps
+figure and ground, Slant shears an italic, text auto-fits the margin box.
+
+**Scribble Type** — the medical alphabet as real pen strokes: the pen traces each
+character's skeleton as one continuous stroke while a Scribble mode displaces it —
+None (clean trace + hand tremor), Coil (small dense loops advancing ALONG the strokes
+like a coiled spring, form readable at any messiness), Sine (perpendicular wave, Loops
+= cycles), Seismic (calm baseline + seeded quake bursts), or Glitch orbit
+(character-sized loops that swallow the form). The Alphabet select swaps the skeleton:
+Latin, Runes (the real 24-rune Elder Futhark with standard Latin transliteration),
+Hieroglyphs (invented Egyptian-flavored pictograms), Cuneiform (cuneiform-STYLE
+invented wedge signs — real cuneiform is syllabic, no faithful letter map exists),
+Alchemy symbols, or Asemic — the Seed generates a whole coherent invented script where
+the same letter always maps to the same glyph. Tracking goes negative for piled
+scrawl.
+
+## Modifiers (65)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -789,6 +835,13 @@ visible tail) / Quick. End / Start / Both, seeded per-stroke Variation; short
 strokes and closed paths pass through. MUST be last in the chain, like
 Brush Z. Note: Travel Sort may reverse strokes, turning a fade-out into a
 soft landing.
+
+**Shade** — charcoal-style tonal shading for closed shapes driven by a MOVABLE light
+(value-drivable X/Y % with an overlay guide): a darkness field is built inside each
+shape — edge band × light facing + corner kernels (Concave bias pools ink into
+notches) + ambient + body gradient — and rendered as stacked rotated hatch levels, so
+tone builds like layered pencil. Directionality 0 is pure ambient occlusion; shapes
+nested inside another act as holes; open paths pass through untouched.
 
 ## Decorators (5)
 
