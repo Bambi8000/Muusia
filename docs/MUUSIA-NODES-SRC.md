@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (200 files, generated)
+# MUUSIA v2.29 — Node Sources (206 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -697,6 +697,219 @@ export default {
       return { paths };
     }
   
+};
+```
+
+## blobrings.js
+
+```js
+import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
+
+export default {
+  key: "blobrings",
+  name: "Blob Rings",
+  cat: "gen",
+  group: "organic",
+  desc: "Bold ink blobs with nested rings — deformed circles and elongated capsules that ring inward like tree rings, in the spirit of brush-and-ink abstractions. Each blob is a stadium (a spine segment swept by a radius) so nesting is a true erosion: rings keep the spine and shrink the radius, leaving slot-like centers in elongated blobs and dot centers in round ones. Every ring gets its own jitter and wobble phase for the sloppy hand-drawn look; Weight vary doubles some rings into thick strokes and Solid cores fills a share of the blobs black from halfway in. Blobs cluster toward the canvas center (Cluster), overlap by default (negative Spacing), and thin curved Connectors string nearest neighbours together like beads, with small ringed Satellites scattered in the gaps. Elongation and Angle spread control the capsule stretch; everything is seeded.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "count", label: "Blobs", type: "slider", min: 3, max: 60, step: 1, def: 18 },
+    { key: "size", label: "Size mm", type: "slider", min: 4, max: 40, step: 0.5, def: 13 },
+    { key: "variety", label: "Size variety", type: "slider", min: 0, max: 1, step: 0.01, def: 0.6 },
+    { key: "elong", label: "Elongation", type: "slider", min: 0, max: 1, step: 0.01, def: 0.6 },
+    { key: "angle", label: "Angle °", type: "slider", min: 0, max: 180, step: 1, def: 0 },
+    { key: "spread", label: "Angle spread °", type: "slider", min: 0, max: 90, step: 1, def: 12 },
+    { key: "cluster", label: "Cluster", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5 },
+    { key: "spacing", label: "Spacing mm", type: "slider", min: -20, max: 10, step: 0.5, def: -4 },
+    { key: "pitch", label: "Ring pitch mm", type: "slider", min: 0.5, max: 5, step: 0.05, def: 1.7 },
+    { key: "weight", label: "Weight vary", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5 },
+    { key: "solid", label: "Solid cores", type: "slider", min: 0, max: 1, step: 0.01, def: 0.35 },
+    { key: "wobble", label: "Wobble", type: "slider", min: 0, max: 1, step: 0.01, def: 0.45 },
+    { key: "connectors", label: "Connectors", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5 },
+    { key: "satellites", label: "Satellites", type: "slider", min: 0, max: 1, step: 0.01, def: 0.4 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 58 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+  compute(ins, p, ctx) {
+    const { W, H } = ctx;
+    const m = Math.max(0, p.margin);
+    if (W - 2 * m < 20 || H - 2 * m < 20) return EMPTY;
+    const L = Math.round(p.layer);
+    const rng = mulberry32((Math.round(p.seed) || 1) * 1237 + 7);
+    const paths = [];
+    let budget = 120000;
+    const push = (pts, closed) => {
+      if (pts.length < 2 || budget <= 0) return;
+      budget -= pts.length;
+      paths.push({ pts, closed, layer: L });
+    };
+
+    /* ---- stadium-rengas: selkaranka A-B, sade rr, per-rengas wobble ---- */
+    const wobAmp = (rr) => p.wobble * Math.min(2.5, 0.3 + rr * 0.22);
+    const ringPts = (ax, ay, bx, by, rr, sd) => {
+      const ux0 = bx - ax, uy0 = by - ay;
+      const sl = Math.hypot(ux0, uy0);
+      const ux = sl > 1e-9 ? ux0 / sl : 1, uy = sl > 1e-9 ? uy0 / sl : 0;
+      const vx = -uy, vy = ux;
+      const amp = wobAmp(rr);
+      const pts = [];
+      const emit = (px, py, nx, ny) => {
+        const d = (noise2(px * 0.22 + sd * 0.61, py * 0.22 - sd * 0.37, sd) - 0.5) * 2 * amp;
+        pts.push([px + nx * d, py + ny * d]);
+      };
+      const arcN = Math.max(6, Math.ceil((Math.PI * rr) / 0.8));
+      /* kaari B:n ympari -90..+90 akselista */
+      for (let k = 0; k <= arcN; k++) {
+        const t = -Math.PI / 2 + (k / arcN) * Math.PI;
+        const nx = ux * Math.cos(t) + vx * Math.sin(t), ny = uy * Math.cos(t) + vy * Math.sin(t);
+        emit(bx + nx * rr, by + ny * rr, nx, ny);
+      }
+      /* sivu B->A (+v puoli) */
+      const sideN = Math.max(1, Math.ceil(sl / 0.8));
+      if (sl > 0.2) for (let k = 1; k < sideN; k++) {
+        const t = k / sideN;
+        emit(bx + vx * rr - ux0 * t, by + vy * rr - uy0 * t, vx, vy);
+      }
+      /* kaari A:n ympari +90..+270 */
+      for (let k = 0; k <= arcN; k++) {
+        const t = Math.PI / 2 + (k / arcN) * Math.PI;
+        const nx = ux * Math.cos(t) + vx * Math.sin(t), ny = uy * Math.cos(t) + vy * Math.sin(t);
+        emit(ax + nx * rr, ay + ny * rr, nx, ny);
+      }
+      /* sivu A->B (-v puoli) */
+      if (sl > 0.2) for (let k = 1; k < sideN; k++) {
+        const t = k / sideN;
+        emit(ax - vx * rr + ux0 * t, ay - vy * rr + uy0 * t, -vx, -vy);
+      }
+      return pts;
+    };
+
+    /* ---- blobien sijoittelu: dart-throwing keskiklusterilla ---- */
+    const rmax = p.size, rmin = Math.max(1.5, rmax * (1 - 0.8 * p.variety));
+    const blobs = []; /* {cx, cy, ax, ay, bx, by, r, R, solid} */
+    const target = Math.round(p.count);
+    const spacing = p.spacing;
+    let guard = 0;
+    while (blobs.length < target && guard++ < target * 60) {
+      const r = rmin + (rmax - rmin) * Math.pow(rng(), 1.3);
+      const segL = r * p.elong * 4.5 * Math.pow(rng(), 1.1);
+      const ext = segL / 2 + r + 2.5;
+      const lo = m + ext;
+      if (W - 2 * lo < 2 || H - 2 * lo < 2) continue;
+      const gs = () => (rng() + rng() + rng()) / 3;
+      const ux2 = m + ext + rng() * (W - 2 * m - 2 * ext);
+      const uy2 = m + ext + rng() * (H - 2 * m - 2 * ext);
+      const gx2 = W / 2 + (gs() - 0.5) * (W - 2 * m - 2 * ext) * 0.85;
+      const gy2 = H / 2 + (gs() - 0.5) * (H - 2 * m - 2 * ext) * 0.85;
+      const cx = ux2 + (gx2 - ux2) * p.cluster;
+      const cy = uy2 + (gy2 - uy2) * p.cluster;
+      const a = ((p.angle + (rng() - 0.5) * 2 * p.spread) * Math.PI) / 180;
+      const R = segL / 2 + r;
+      let ok = true;
+      for (const q of blobs) {
+        const need = Math.max(3, R + q.R + spacing);
+        if (Math.hypot(cx - q.cx, cy - q.cy) < need) { ok = false; break; }
+      }
+      if (!ok) continue;
+      blobs.push({
+        cx, cy, r, R,
+        ax: cx - Math.cos(a) * segL / 2, ay: cy - Math.sin(a) * segL / 2,
+        bx: cx + Math.cos(a) * segL / 2, by: cy + Math.sin(a) * segL / 2,
+        solid: rng() < p.solid,
+      });
+    }
+
+    /* ---- renkaat sisaanpain: eroosio = sama selkaranka, pienempi sade ---- */
+    const seed = Math.round(p.seed) || 1;
+    const drawBlob = (b, bi, pitchMul) => {
+      let rr = b.r;
+      let ri = 0;
+      /* koherentti muodonvaaristys: koko blobi nayteistaa SAMAA kohinakenttaa,
+         jolloin renkaat pysyvat kvasi-yhdensuuntaisina; sotkuisuus tulee
+         per-rengas keskipistejitterista */
+      const fieldSd = seed * 31 + bi * 101;
+      while (rr > 0.28 && budget > 0) {
+        const sd = fieldSd + ri * 7;
+        const jr = mulberry32(sd + 3);
+        const jx = (jr() - 0.5) * 2 * p.wobble * p.pitch * 0.55;
+        const jy = (jr() - 0.5) * 2 * p.wobble * p.pitch * 0.55;
+        push(ringPts(b.ax + jx, b.ay + jy, b.bx + jx, b.by + jy, rr, fieldSd), true);
+        /* painovaihtelu: osa renkaista tuplataan paksuksi vedoksi */
+        if (jr() < p.weight * 0.45 && rr > 0.9) {
+          push(ringPts(b.ax + jx, b.ay + jy, b.bx + jx, b.by + jy, rr - 0.32, fieldSd), true);
+          if (jr() < 0.4 && rr > 1.3) push(ringPts(b.ax + jx, b.ay + jy, b.bx + jx, b.by + jy, rr - 0.64, fieldSd), true);
+        }
+        const solidNow = b.solid && rr <= b.r * 0.55;
+        const step = solidNow ? 0.38 : Math.max(0.4, p.pitch * pitchMul * (1 + (jr() - 0.5) * 0.6 * p.wobble));
+        rr -= step;
+        ri++;
+      }
+    };
+    blobs.forEach((b, bi) => drawBlob(b, bi, 1));
+
+    /* ---- yhdyslangat: kaareva viiva lahimpaan naapuriin, leikattu blobien reunoihin ---- */
+    const distToSeg = (x, y, b) => {
+      const dx = b.bx - b.ax, dy = b.by - b.ay;
+      const L2 = dx * dx + dy * dy;
+      let t = L2 > 1e-12 ? ((x - b.ax) * dx + (y - b.ay) * dy) / L2 : 0;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(x - (b.ax + dx * t), y - (b.ay + dy * t));
+    };
+    if (p.connectors > 0 && blobs.length > 1) {
+      const done = new Set();
+      for (let i = 0; i < blobs.length; i++) {
+        let bj = -1, bd = 1e18;
+        for (let j = 0; j < blobs.length; j++) {
+          if (j === i) continue;
+          const d = Math.hypot(blobs[i].cx - blobs[j].cx, blobs[i].cy - blobs[j].cy);
+          if (d < bd) { bd = d; bj = j; }
+        }
+        const key = Math.min(i, bj) + ":" + Math.max(i, bj);
+        if (bj < 0 || done.has(key)) continue;
+        done.add(key);
+        if (rng() >= p.connectors) continue;
+        const A = blobs[i], B = blobs[bj];
+        const mx2 = (A.cx + B.cx) / 2, my2 = (A.cy + B.cy) / 2;
+        const px2 = -(B.cy - A.cy), py2 = B.cx - A.cx;
+        const pl = Math.hypot(px2, py2) || 1;
+        const bow = (rng() - 0.5) * 2 * bd * 0.35;
+        const c1x = mx2 + (px2 / pl) * bow, c1y = my2 + (py2 / pl) * bow;
+        let run = [];
+        for (let k = 0; k <= 28; k++) {
+          const t = k / 28;
+          const x = (1 - t) * (1 - t) * A.cx + 2 * (1 - t) * t * c1x + t * t * B.cx;
+          const y = (1 - t) * (1 - t) * A.cy + 2 * (1 - t) * t * c1y + t * t * B.cy;
+          const out2 = distToSeg(x, y, A) > A.r + 0.3 && distToSeg(x, y, B) > B.r + 0.3 &&
+            x > m && x < W - m && y > m && y < H - m;
+          if (out2) run.push([x, y]);
+          else if (run.length) { if (run.length >= 3) push(run, false); run = []; }
+        }
+        if (run.length >= 3) push(run, false);
+      }
+    }
+
+    /* ---- satelliitit: pienet rengastetut taplat valeihin ---- */
+    const nSat = Math.round(p.satellites * target * 1.3);
+    let sguard = 0, placedSat = 0;
+    const sats = [];
+    while (placedSat < nSat && sguard++ < nSat * 50) {
+      const r = 1 + rng() * 2.2;
+      const cx = m + r + 2 + rng() * (W - 2 * m - 2 * r - 4);
+      const cy = m + r + 2 + rng() * (H - 2 * m - 2 * r - 4);
+      let ok = true;
+      for (const q of blobs) if (distToSeg(cx, cy, q) < q.r + r + 1.5) { ok = false; break; }
+      for (const q of sats) if (Math.hypot(cx - q.cx, cy - q.cy) < r + q.r + 2) { ok = false; break; }
+      if (!ok) continue;
+      const b = { cx, cy, ax: cx, ay: cy, bx: cx, by: cy, r, solid: rng() < p.solid * 0.8 + 0.15 };
+      sats.push(b);
+      drawBlob(b, 4000 + placedSat, 0.55);
+      placedSat++;
+    }
+
+    return applyStyle({ paths }, ins[0]);
+  },
 };
 ```
 
@@ -9380,6 +9593,163 @@ export default {
 };
 ```
 
+## linezones.js
+
+```js
+import { Pin, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+  key: "linezones",
+  name: "Line Zones",
+  cat: "gen",
+  group: "geometric",
+  desc: "Op-art line compositions in the Vera Molnár tradition: the canvas is split into rectangular zones (seeded BSP — always splitting the largest zone along its long axis), and every zone is filled with a strict vertical or horizontal grating at a shared pitch. Balance sets the vertical/horizontal mix; a share of zones go Solid (lines at 0.45 mm — pen-width black) and a share go Dither (dashed lines with half-cell offsets forming a checkerboard, plus seeded dropouts for the noisy data-column look). Diagonal cuts truncate a random corner of some zones at 45°, so the line ends form the classic staircase edge. Phase jitter de-syncs the grating between neighbouring zones for the subtle seam, Zone gap leaves a white gutter, and Frame draws a solid border band. Every line stays strictly axis-aligned.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "zones", label: "Zones", type: "slider", min: 2, max: 30, step: 1, def: 9 },
+    { key: "pitch", label: "Line pitch mm", type: "slider", min: 0.6, max: 6, step: 0.05, def: 1.3 },
+    { key: "balance", label: "Balance V↔H", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5 },
+    { key: "solidP", label: "Solid zones", type: "slider", min: 0, max: 1, step: 0.01, def: 0.15 },
+    { key: "ditherP", label: "Dither zones", type: "slider", min: 0, max: 1, step: 0.01, def: 0.25 },
+    { key: "cell", label: "Dither cell mm", type: "slider", min: 0.6, max: 4, step: 0.05, def: 1.3 },
+    { key: "diag", label: "Diagonal cuts", type: "slider", min: 0, max: 1, step: 0.01, def: 0.35 },
+    { key: "gap", label: "Zone gap mm", type: "slider", min: 0, max: 4, step: 0.1, def: 0.8 },
+    { key: "phase", label: "Phase jitter", type: "slider", min: 0, max: 1, step: 0.01, def: 1 },
+    { key: "frame", label: "Frame mm", type: "slider", min: 0, max: 15, step: 0.5, def: 5 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 314 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+  compute(ins, p, ctx) {
+    const { W, H } = ctx;
+    const m = Math.max(0, p.margin);
+    const fr = Math.max(0, p.frame);
+    const SOLID_PITCH = 0.45;
+    const rng = mulberry32((Math.round(p.seed) || 1) * 631 + 17);
+    const L = Math.round(p.layer);
+    const paths = [];
+    let budget = 130000;
+    const push = (pts) => {
+      if (pts.length < 2 || budget <= 0) return;
+      budget -= pts.length;
+      paths.push({ pts, closed: false, layer: L });
+    };
+
+    /* ---- kehys: umpinauha sisakkaisina suorakaiteina ---- */
+    if (fr > 0.3) {
+      for (let t = 0.2; t <= fr - 0.2; t += SOLID_PITCH) {
+        const x0 = m + t, y0 = m + t, x1 = W - m - t, y1 = H - m - t;
+        if (x1 - x0 < 2 || y1 - y0 < 2) break;
+        if (budget <= 0) break;
+        budget -= 5;
+        paths.push({ pts: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], closed: true, layer: L });
+      }
+    }
+
+    /* ---- BSP: halkaise aina suurin vyohyke pitkan akselin suuntaan ---- */
+    const inset = m + (fr > 0.3 ? fr + Math.max(0.6, p.gap) : 0);
+    let bx0 = inset, by0 = inset, bx1 = W - inset, by1 = H - inset;
+    if (bx1 - bx0 < 15 || by1 - by0 < 15) return applyStyle({ paths }, ins[0]);
+    const MINZ = 12;
+    const rects = [[bx0, by0, bx1, by1]];
+    const target = Math.round(p.zones);
+    let guard = 0;
+    while (rects.length < target && guard++ < target * 8) {
+      let bi = 0, bs = -1;
+      for (let i = 0; i < rects.length; i++) {
+        const s = Math.max(rects[i][2] - rects[i][0], rects[i][3] - rects[i][1]);
+        if (s > bs) { bs = s; bi = i; }
+      }
+      const [x0, y0, x1, y1] = rects[bi];
+      const w = x1 - x0, h = y1 - y0;
+      const ratio = 0.32 + rng() * 0.36;
+      if (Math.max(w, h) < MINZ * 2.1) break;
+      if (w >= h) {
+        const cut = x0 + Math.max(MINZ, Math.min(w - MINZ, w * ratio));
+        rects.splice(bi, 1, [x0, y0, cut, y1], [cut, y0, x1, y1]);
+      } else {
+        const cut = y0 + Math.max(MINZ, Math.min(h - MINZ, h * ratio));
+        rects.splice(bi, 1, [x0, y0, x1, cut], [x0, cut, x1, y1]);
+      }
+    }
+
+    /* ---- viivat per vyohyke ---- */
+    const g2 = Math.max(0, p.gap) / 2;
+    for (const [rx0, ry0, rx1, ry1] of rects) {
+      const x0 = rx0 + g2, y0 = ry0 + g2, x1 = rx1 - g2, y1 = ry1 - g2;
+      if (x1 - x0 < 2 || y1 - y0 < 2) continue;
+      const zr = mulberry32(Math.floor(rx0 * 7 + ry0 * 131 + (Math.round(p.seed) || 1) * 977));
+      const isSolid = zr() < p.solidP;
+      const isDither = !isSolid && zr() < p.ditherP;
+      const vert = zr() < p.balance;
+      const pitch = isSolid ? SOLID_PITCH : Math.max(0.4, p.pitch);
+      const ph = zr() * pitch * p.phase;
+
+      /* viistoleikkaus: poista kolmio satunnaisesta nurkasta 45-asteessa */
+      let cutFn = null;
+      if (!isSolid && zr() < p.diag) {
+        const corner = Math.floor(zr() * 4); /* 0=TL 1=TR 2=BR 3=BL */
+        const s = Math.min(x1 - x0, y1 - y0) * (0.35 + zr() * 0.55);
+        /* palauttaa sallitun [lo, hi] valin poikittaisakselilla; null = viiva pois */
+        cutFn = (c, isV) => {
+          /* c = viivan vakiokoordinaatti (x jos pysty, y jos vaaka) */
+          if (isV) {
+            let lo = y0, hi = y1;
+            if (corner === 0) lo = Math.max(lo, y0 + s - (c - x0));
+            if (corner === 1) lo = Math.max(lo, y0 + s - (x1 - c));
+            if (corner === 2) hi = Math.min(hi, y1 - s + (x1 - c));
+            if (corner === 3) hi = Math.min(hi, y1 - s + (c - x0));
+            return hi - lo > 0.3 ? [lo, hi] : null;
+          } else {
+            let lo = x0, hi = x1;
+            if (corner === 0) lo = Math.max(lo, x0 + s - (c - y0));
+            if (corner === 3) lo = Math.max(lo, x0 + s - (y1 - c));
+            if (corner === 1) hi = Math.min(hi, x1 - s + (c - y0));
+            if (corner === 2) hi = Math.min(hi, x1 - s + (y1 - c));
+            return hi - lo > 0.3 ? [lo, hi] : null;
+          }
+        };
+      }
+
+      const cell = Math.max(0.4, p.cell);
+      const emitLine = (c, i, isV) => {
+        let lo = isV ? y0 : x0, hi = isV ? y1 : x1;
+        if (cutFn) {
+          const span = cutFn(c, isV);
+          if (!span) return;
+          lo = span[0]; hi = span[1];
+        }
+        const mk = (a, b) => (isV ? [[c, a], [c, b]] : [[a, c], [b, c]]);
+        if (!isDither) {
+          push(i % 2 ? mk(hi, lo) : mk(lo, hi));
+          return;
+        }
+        /* dither: shakkiruutu puolisolun offsetilla + kylvetyt pudotukset */
+        const dr = mulberry32(Math.floor(c * 53) + i * 7 + (Math.round(p.seed) || 1));
+        let t = lo - (i % 2) * cell;
+        let on = true;
+        while (t < hi) {
+          const a = Math.max(lo, t), b = Math.min(hi, t + cell);
+          if (on && b - a > 0.15 && dr() > 0.25) push(mk(a, b));
+          t += cell;
+          on = !on;
+        }
+      };
+
+      if (vert) {
+        let i = 0;
+        for (let x = x0 + ph; x <= x1 + 1e-9; x += pitch) emitLine(Math.min(x, x1), i++, true);
+      } else {
+        let i = 0;
+        for (let y = y0 + ph; y <= y1 + 1e-9; y += pitch) emitLine(Math.min(y, y1), i++, false);
+      }
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
 ## lissajous.js
 
 ```js
@@ -16676,6 +17046,345 @@ export default {
 };
 ```
 
+## scribbletype.js
+
+```js
+import { Pin, EMPTY, mulberry32, noise2, resample, applyStyle, SFONT } from "../helpers.js";
+
+export default {
+  key: "scribbletype",
+  name: "Scribble Type",
+  cat: "gen",
+  group: "textimg",
+  desc: "The medical alphabet as real pen strokes: every character collapses into its own seeded scribble tangle — elliptical loops with drifting centers and noisy radii, one continuous pen stroke per character, optional stray tail flicks. Scribble mode None traces the glyph clean (hand tremor only), Sine runs a perpendicular wave along the strokes (Loops = cycles), Seismic lays a calm baseline with seeded quake bursts, Coil advances small dense loops ALONG the strokes like a coiled spring, so the glyph stays readable however messy the ink; Glitch orbit swings character-sized loops that swallow the form into the classic illegible scrawl. Legibility sets the loop radius (1 = near-clean tracing with hand tremor, 0 = full scribble). The Alphabet select swaps the skeleton itself: Latin, Runes (the real 24-rune Elder Futhark with standard Latin transliteration), Hieroglyphs (invented Egyptian-flavored pictograms), Cuneiform (cuneiform-STYLE invented wedge signs - authentic mechanics, not real Sumerian/Akkadian, which is syllabic and has no faithful letter mapping), Alchemy (circles-and-crosses symbols), or Asemic — a procedurally invented script where the Seed generates a whole new coherent alphabet and the same letter always maps to the same glyph, so the text is a substitution cipher you could learn to read. At Legibility 1 and low Messiness the node doubles as a clean ancient-script renderer. Tracking goes negative for piled, overlapping scrawl. Multi-line text with |, auto-fit to the margin box.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "text", label: "Text (| = new line)", type: "text", def: "A B C|D E F" },
+    { key: "alphabet", label: "Alphabet", type: "select", options: ["Latin", "Runes", "Hieroglyphs", "Cuneiform", "Alchemy", "Asemic"], def: "Latin" },
+    { key: "smode", label: "Scribble mode", type: "select", options: ["None", "Coil", "Sine", "Seismic", "Glitch orbit"], def: "Coil" },
+    { key: "size", label: "Text size mm", type: "slider", min: 8, max: 120, step: 1, def: 32 },
+    { key: "loops", label: "Loops", type: "slider", min: 2, max: 8, step: 1, def: 4 },
+    { key: "mess", label: "Messiness", type: "slider", min: 0, max: 1, step: 0.01, def: 0.6 },
+    { key: "legibility", label: "Legibility", type: "slider", min: 0, max: 1, step: 0.01, def: 0.35 },
+    { key: "tails", label: "Tails", type: "slider", min: 0, max: 1, step: 0.01, def: 0.4 },
+    { key: "track", label: "Tracking", type: "slider", min: -0.4, max: 2.5, step: 0.05, def: 1.2 },
+    { key: "tx", label: "Text X %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
+    { key: "ty", label: "Text Y %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 84 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+  overlay(p, ctx) {
+    /* likimaarainen lohko-guide: leveys arvioidaan Latin-metriikalla (glyyfileveydet 5-9 kaikissa seteissa) */
+    const lines = String(p.text || "").split("|");
+    const sc0 = p.size / 10, tr = p.track;
+    let bw = 0;
+    for (const ln of lines) {
+      let x = 0;
+      for (const ch of String(ln).toUpperCase()) x += ((SFONT[ch] || SFONT[" "]).w + 2) * sc0 * tr;
+      bw = Math.max(bw, Math.max(p.size * 0.6, x));
+    }
+    let bh = lines.length * p.size + (lines.length - 1) * p.size * 0.5;
+    const m = Math.max(0, p.margin);
+    const f = Math.min(1,
+      (ctx.W - 2 * m - p.size * 0.4) / bw,
+      (ctx.H - 2 * m - p.size * 0.4) / bh);
+    bw *= f; bh *= f;
+    const cx = (ctx.W * p.tx) / 100, cy = (ctx.H * p.ty) / 100;
+    return [{ kind: "rect", x: cx - bw / 2, y: cy - bh / 2, w: bw, h: bh }];
+  },
+  compute(ins, p, ctx) {
+    const { W, H } = ctx;
+    const m = Math.max(0, p.margin);
+    if (W - 2 * m < 10 || H - 2 * m < 10) return EMPTY;
+    const L = Math.round(p.layer);
+    const seed = Math.round(p.seed) || 1;
+    const paths = [];
+    let budget = 120000;
+
+    /* ---- glyyfisetit: SFONT-muoto {w, s} ruudukolla 0..10 ---- */
+    const C = (cx2, cy2, r, n) => {
+      const pts = [];
+      const N = n || 12;
+      for (let i = 0; i <= N; i++) {
+        const a = (i / N) * Math.PI * 2;
+        pts.push([cx2 + Math.cos(a) * r, cy2 + Math.sin(a) * r]);
+      }
+      return pts;
+    };
+    /* vanhempi futhark, 24 riimua, y0=ylareuna: muodot aidon kirjaimiston mukaan */
+    const RUNES = [
+      { w: 6, s: [[[0,0],[0,10]], [[0,2.5],[5,0]], [[0,5.5],[5,3]]] },                   /* 0 fehu */
+      { w: 6, s: [[[0,10],[0,0],[5,3],[5,10]]] },                                        /* 1 uruz */
+      { w: 6, s: [[[0,0],[0,10]], [[0,2.5],[4.5,5],[0,7.5]]] },                          /* 2 thurisaz */
+      { w: 6, s: [[[0,0],[0,10]], [[0,1],[5,3.5]], [[0,4],[5,6.5]]] },                   /* 3 ansuz */
+      { w: 6, s: [[[0,0],[0,10]], [[0,0],[5,2.2],[0,4.5]], [[0,4.5],[5,10]]] },          /* 4 raido */
+      { w: 6, s: [[[5,1],[0,5],[5,9]]] },                                                /* 5 kenaz */
+      { w: 8, s: [[[0,1.5],[7,8.5]], [[0,8.5],[7,1.5]]] },                               /* 6 gebo */
+      { w: 6, s: [[[0,0],[0,10]], [[0,0],[4.5,2.2],[0,4.5]]] },                          /* 7 wunjo */
+      { w: 8, s: [[[0,0],[0,10]], [[7,0],[7,10]], [[0,3.5],[7,6.5]]] },                  /* 8 hagalaz */
+      { w: 7, s: [[[3,0],[3,10]], [[0,6.5],[6,3.5]]] },                                  /* 9 nauthiz */
+      { w: 3, s: [[[1,0],[1,10]]] },                                                     /* 10 isa */
+      { w: 7, s: [[[1.5,1],[5,3],[1.5,5]], [[5,5],[1.5,7],[5,9]]] },                     /* 11 jera */
+      { w: 7, s: [[[3,0],[3,10]], [[3,1.2],[6,0]], [[3,8.8],[0,10]]] },                  /* 12 eihwaz */
+      { w: 6, s: [[[1,0],[1,10]], [[1,0],[5,2],[1,4.2]], [[1,5.8],[5,8],[1,10]]] },      /* 13 perthro */
+      { w: 8, s: [[[3.5,3],[3.5,10]], [[0,0],[3.5,3],[7,0]]] },                          /* 14 algiz */
+      { w: 6, s: [[[5,0],[1,3.8],[5,6.2],[1,10]]] },                                     /* 15 sowilo */
+      { w: 8, s: [[[3.5,0],[3.5,10]], [[0,3],[3.5,0],[7,3]]] },                          /* 16 tiwaz */
+      { w: 6, s: [[[0,0],[0,10]], [[0,0],[4,2.5],[0,5]], [[0,5],[4,7.5],[0,10]]] },      /* 17 berkano */
+      { w: 8, s: [[[0,10],[0,0],[3.5,4],[7,0],[7,10]]] },                                /* 18 ehwaz */
+      { w: 8, s: [[[0,0],[0,10]], [[7,0],[7,10]], [[0,0],[7,5]], [[7,0],[0,5]]] },       /* 19 mannaz */
+      { w: 6, s: [[[0,0],[0,10]], [[0,0],[5,3.2]]] },                                    /* 20 laguz */
+      { w: 8, s: [[[3.5,2],[6.5,5],[3.5,8],[0.5,5],[3.5,2]]] },                          /* 21 ingwaz */
+      { w: 8, s: [[[3.5,0],[6.5,3.5],[3.5,7],[0.5,3.5],[3.5,0]], [[1.8,5.2],[0,10]], [[5.2,5.2],[7,10]]] }, /* 22 othala */
+      { w: 8, s: [[[0,0],[0,10]], [[7,0],[7,10]], [[0,0],[7,10]], [[0,10],[7,0]]] },     /* 23 dagaz */
+    ];
+    /* standardi translitteraatio A-Z -> futhark (C/K/Q->kenaz, V/W->wunjo, X->gebo, Y->eihwaz, Z->algiz) */
+    const RUNEMAP = [3,17,5,23,18,0,6,8,10,11,5,20,19,9,22,13,5,4,15,16,1,7,7,6,12,14];
+    const HIERO = [
+      { w: 9, s: [[[0,5],[2,3],[6,3],[8,5],[6,7],[2,7],[0,5]], C(4,5,1.2,10)] },         /* silma */
+      { w: 9, s: [[[0,10],[2,6],[1,4],[3,2],[6,2],[8,4],[6,5],[3,5]], [[3,5],[4,10]], [[6,10],[5,5]]] }, /* lintu */
+      { w: 9, s: [[[0,8],[2,6],[4,8],[6,6],[8,8]], [[8,8],[8,5],[7,4]]] },               /* kaarme */
+      { w: 8, s: [C(4,5,3.4,16), C(4,5,0.7,8)] },                                        /* aurinko */
+      { w: 9, s: [[[0,4],[2,2],[4,4],[6,2],[8,4]], [[0,7],[2,5],[4,7],[6,5],[8,7]]] },   /* vesi */
+      { w: 7, s: [C(3.5,2.6,2.2,12), [[3.5,4.8],[3.5,10]], [[1,6.6],[6,6.6]]] },         /* ankh */
+      { w: 6, s: [[[1,10],[1,1],[3,0],[5,2],[5,6]], [[1,3],[4,2]], [[1,6],[4.6,4.6]]] }, /* sulka */
+      { w: 8, s: [[[0,6],[4,4],[8,6],[4,8],[0,6]]] },                                    /* suu */
+      { w: 9, s: [[[0,10],[0,3],[4,0],[8,3],[8,10],[0,10]], [[3,10],[3,6],[5,6],[5,10]]] }, /* talo */
+      { w: 6, s: [[[2,10],[2,0]], C(2,1.4,1.4,10)] },                                    /* sauva */
+      { w: 9, s: [[[4,0],[4,10]], [[0,4],[8,4]], [[1,8],[4,4],[7,8]]] },                 /* nefer~ */
+      { w: 8, s: [C(4,4,2.6,14), [[1,7],[0,9]], [[3,7.5],[2.5,10]], [[5,7.5],[5.5,10]], [[7,7],[8,9]]] }, /* skarabee */
+      { w: 7, s: [[[5.5,1],[3,0],[1,2],[1,6],[3,8],[5.5,7],[4,6],[3.5,4],[4.5,2],[5.5,1]]] }, /* kuu */
+      { w: 9, s: [[[0,7],[1,9],[7,9],[8,7]], [[1,9],[1,7]], [[7,9],[7,7]], [[4,9],[4,5],[2,4]]] }, /* vene */
+    ];
+    const WEDGE = (x, y, a, len2) => {
+      const dx = Math.cos(a), dy = Math.sin(a);
+      const px = -dy, py = dx;
+      const w2 = len2 * 0.32;
+      return [[x + px * w2, y + py * w2], [x + dx * len2, y + dy * len2], [x - px * w2, y - py * w2], [x + px * w2, y + py * w2]];
+    };
+    const CUNE = [
+      { w: 7, s: [WEDGE(1,2,1.57,6), WEDGE(4,2,1.57,6)] },
+      { w: 8, s: [WEDGE(0,5,0,6), WEDGE(0,8,0,6), WEDGE(5,1,1.57,4)] },
+      { w: 7, s: [WEDGE(1,1,1.57,8), WEDGE(4,4,0.78,4), WEDGE(4,7,0.78,4)] },
+      { w: 8, s: [WEDGE(0,3,0,7), WEDGE(2,6,1.57,4), WEDGE(5,6,1.57,4)] },
+      { w: 6, s: [WEDGE(2,1,1.57,8)] },
+      { w: 9, s: [WEDGE(0,2,0,5), WEDGE(0,5,0,5), WEDGE(0,8,0,5), WEDGE(7,1,1.57,8)] },
+      { w: 7, s: [WEDGE(1,2,0.78,6), WEDGE(1,8,-0.78,6)] },
+      { w: 8, s: [WEDGE(1,1,1.57,4), WEDGE(4,1,1.57,4), WEDGE(0,7,0,7)] },
+      { w: 7, s: [WEDGE(3,1,1.57,8), WEDGE(0,4,0,3), WEDGE(4.5,4,0,3)] },
+      { w: 8, s: [WEDGE(0,2,0.4,7), WEDGE(0,6,0,6), WEDGE(3,9,1.57,-4)] },
+    ];
+    const ALCH = [
+      { w: 8, s: [C(4,3,2.6,14), [[4,5.6],[4,10]], [[2,7.8],[6,7.8]]] },                 /* venus */
+      { w: 8, s: [C(3,6,2.6,14), [[4.9,4.2],[7,1]], [[7,1],[7,3.4]], [[7,1],[4.8,1]]] }, /* mars */
+      { w: 7, s: [[[2,0],[2,7],[3,9],[5,9],[6,7.6]], [[0.5,2.5],[3.5,2.5]]] },           /* saturnus */
+      { w: 8, s: [C(4,4.5,2.2,12), [[4,6.7],[4,10]], [[2.4,8.4],[5.6,8.4]], [[1.6,0.6],[2.6,2.2]], [[6.4,0.6],[5.4,2.2]]] }, /* merkurius */
+      { w: 8, s: [[[4,1],[7.5,9],[0.5,9],[4,1]]] },                                      /* tuli */
+      { w: 8, s: [[[4,9],[7.5,1],[0.5,1],[4,9]]] },                                      /* vesi */
+      { w: 8, s: [[[4,1],[7.5,9],[0.5,9],[4,1]], [[1.6,6.2],[6.4,6.2]]] },               /* ilma */
+      { w: 8, s: [C(4,5,3.4,16), C(4,5,0.6,8)] },                                        /* aurinko */
+      { w: 7, s: [[[5.5,1],[3,0.5],[1.2,2.5],[1.2,7],[3,9.5],[5.5,9],[4,7.4],[3.6,5],[4.2,2.6],[5.5,1]]] }, /* kuu */
+      { w: 9, s: [[[1,2],[1,8]], [[1,5],[6,5]], [[6,1],[6,10]], [[1,2],[4,0]]] },        /* jupiter~ */
+      { w: 8, s: [C(4,5,3.2,14), [[0.8,5],[7.2,5]]] },                                   /* suola */
+      { w: 8, s: [[[4,0],[6.5,4.5],[1.5,4.5],[4,0]], [[4,4.5],[4,9]], [[2.2,7],[5.8,7]]] }, /* rikki */
+    ];
+    /* asemic: seed generoi koko aakkoston; sama kirjain -> sama glyyfi */
+    const asemicGlyph = (idx) => {
+      const ar = mulberry32(seed * 997 + idx * 131 + 7);
+      const w = 5 + Math.floor(ar() * 4);
+      const s = [];
+      /* selkaranka: vaeltava pystyveto baselinesta ylos */
+      const spine = [[1 + ar() * 2, 10]];
+      let sx2 = spine[0][0];
+      const segsN = 2 + Math.floor(ar() * 2);
+      for (let i = 1; i <= segsN; i++) {
+        sx2 += (ar() - 0.5) * 3;
+        sx2 = Math.max(0, Math.min(w, sx2));
+        spine.push([sx2, 10 - (10 * i) / segsN]);
+      }
+      s.push(spine);
+      /* 1-2 haaraa selkarangan pisteista */
+      const nBr = 1 + (ar() < 0.6 ? 1 : 0);
+      for (let b = 0; b < nBr; b++) {
+        const from = spine[1 + Math.floor(ar() * (spine.length - 1))];
+        const dir = ar() < 0.5 ? 1 : -1;
+        const br = [[from[0], from[1]], [Math.max(0, Math.min(w, from[0] + dir * (2 + ar() * 3))), from[1] + (ar() - 0.5) * 3]];
+        if (ar() < 0.5) br.push([br[1][0] + (ar() - 0.5) * 2, br[1][1] + 2 + ar() * 2]); /* koukku */
+        s.push(br);
+      }
+      /* silmukka tai piste */
+      if (ar() < 0.45) {
+        const top = spine[spine.length - 1];
+        s.push(C(Math.max(1, Math.min(w - 1, top[0])), Math.max(1.2, top[1]), 0.9 + ar() * 0.6, 10));
+      } else if (ar() < 0.5) {
+        s.push(C(w - 1, 9, 0.4, 8));
+      }
+      return { w, s };
+    };
+    const charIndex = (ch) => {
+      const c = ch.charCodeAt(0);
+      if (c >= 65 && c <= 90) return c - 65;
+      if (c >= 48 && c <= 57) return 26 + (c - 48);
+      return (c * 7) % 36;
+    };
+    const glyphOf = (ch) => {
+      if (ch === " ") return SFONT[" "] || { w: 6, s: [] };
+      if (p.alphabet === "Latin") return SFONT[ch] || SFONT[" "];
+      const idx = charIndex(ch);
+      if (p.alphabet === "Runes") return RUNES[idx < 26 ? RUNEMAP[idx] : idx % RUNES.length];
+      if (p.alphabet === "Hieroglyphs") return HIERO[idx % HIERO.length];
+      if (p.alphabet === "Cuneiform") return CUNE[idx % CUNE.length];
+      if (p.alphabet === "Alchemy") return ALCH[idx % ALCH.length];
+      return asemicGlyph(idx);
+    };
+
+    /* ---- ladonta auto-fitilla; leveydet valitun setin metriikalla ---- */
+    const lines = String(p.text || "").split("|");
+    const tr = p.track;
+    const lineW = (ln, sc) => {
+      let x = 0;
+      for (const ch of String(ln).toUpperCase()) x += (glyphOf(ch).w + 2) * sc * tr;
+      return Math.max(sc * 6, x);
+    };
+    let bw0 = 0;
+    for (const ln of lines) bw0 = Math.max(bw0, lineW(ln, p.size / 10));
+    const bh0 = lines.length * p.size + (lines.length - 1) * p.size * 0.5;
+    const pad = p.size * 0.4;
+    const f = Math.min(1,
+      (W - 2 * m - pad) / bw0,
+      (H - 2 * m - pad) / bh0);
+    const size = p.size * Math.max(0.05, f);
+    const cx = (W * p.tx) / 100, cy = (H * p.ty) / 100;
+    const lineH = size * 1.5;
+    const bh = lines.length * size + (lines.length - 1) * size * 0.5;
+    const sc0 = size / 10;
+    const mess = Math.max(0, Math.min(1, p.mess));
+    const leg = Math.max(0, Math.min(1, p.legibility));
+
+    let charIdx = 0;
+    lines.forEach((ln, k) => {
+      const fsw = lineW(ln, sc0);
+      const ox = cx - fsw / 2;
+      const oy = cy - bh / 2 + k * lineH;
+      const yMid = oy + size / 2;
+      let xcur = 0;
+      for (const ch of String(ln).toUpperCase()) {
+        const g = glyphOf(ch);
+        if (g.s.length) {
+          const cw = g.w * sc0;
+          const ccx = ox + xcur + cw / 2;
+          const sd = seed * 101 + charIdx * 37 + ch.charCodeAt(0);
+          const sr = mulberry32(sd);
+          const R = Math.max(cw, size * 0.55) * 0.45;
+
+          /* 1) jaljita glyyfin vedot YHDEKSI jatkuvaksi radaksi (kursiiviliitokset
+             vetojen valilla) - aakkoston identiteetti sailyy kaikilla asetuksilla */
+          const trace = [];
+          for (const st of g.s) {
+            for (const [gx2, gy2] of st) trace.push([ox + xcur + gx2 * sc0, oy + gy2 * sc0]);
+          }
+          if (trace.length < 2) { xcur += (g.w + 2) * sc0 * tr; charIdx++; continue; }
+
+          /* 2) silmukointi: Coil = pienet tiheat silmukat ETENEVAT vetoa pitkin
+             (kierrejousi radan ymparilla - muoto lukee vaikka jalki on toherrysta);
+             Glitch orbit = merkin kokoinen orbitti joka nielaisee muodon (vanha kaytos) */
+          let TL = 0;
+          for (let i = 1; i < trace.length; i++)
+            TL += Math.hypot(trace[i][0] - trace[i - 1][0], trace[i][1] - trace[i - 1][1]);
+          let orbitR = 0, windings = 0;
+          if (p.smode === "Glitch orbit") {
+            orbitR = R * (1 - leg) * (0.55 + 0.45 * mess);
+            windings = Math.max(1, Math.round(p.loops));
+          } else if (p.smode === "Coil" || p.smode === "Sine") {
+            orbitR = size * (0.007 + 0.135 * (1 - leg));
+            const adv = Math.max(orbitR * 2.2, size * 0.06);
+            windings = Math.min(320, Math.max(2, (TL / adv) * (p.loops / 4)));
+          } else if (p.smode === "Seismic") {
+            orbitR = size * (0.02 + 0.16 * (1 - leg)) * (0.5 + 0.5 * mess);
+            windings = Math.min(320, TL / (size * 0.05));
+          }
+          /* Seismic: 1-3 seedattua pursketta kaarenpituudella, rauhallinen pohja */
+          const bursts = [];
+          if (p.smode === "Seismic") {
+            const nB = 1 + Math.floor(sr() * 3);
+            for (let b = 0; b < nB; b++)
+              bursts.push([sr() * TL, TL * (0.05 + sr() * 0.1)]);
+          }
+          const N = Math.min(3600, Math.max(48, Math.ceil(windings * 12), Math.ceil(TL / 0.55)));
+          const rp = resample(trace, false, Math.max(0.05, TL / N));
+          const e = 1 - (0.2 + sr() * 0.35) * (0.4 + 0.6 * mess);
+          const rot = sr() * Math.PI;
+          const phase = sr() * Math.PI * 2;
+          const pts = [];
+          let d = 0;
+          for (let i = 0; i < rp.length; i++) {
+            if (i > 0) d += Math.hypot(rp[i][0] - rp[i - 1][0], rp[i][1] - rp[i - 1][1]);
+            const ang = (d / Math.max(1e-9, TL)) * windings * Math.PI * 2 + phase;
+            /* radan lokaali normaali Sine/Seismic-siirtymalle */
+            const iN2 = Math.min(rp.length - 1, i + 1), iP2 = Math.max(0, i - 1);
+            const tx3 = rp[iN2][0] - rp[iP2][0], ty3 = rp[iN2][1] - rp[iP2][1];
+            const tl3 = Math.hypot(tx3, ty3) || 1;
+            const nx3 = -ty3 / tl3, ny3 = tx3 / tl3;
+            let exo = 0, eyo = 0;
+            if (p.smode === "Coil" || p.smode === "Glitch orbit") {
+              const rr = orbitR * (0.6 + 0.4 * noise2(Math.cos(ang) * 1.3 + sd * 0.13, Math.sin(ang) * 1.3 + i * 0.02, sd));
+              exo = Math.cos(ang) * rr;
+              eyo = Math.sin(ang) * rr * e;
+            } else if (p.smode === "Sine") {
+              const sv = Math.sin(ang) * orbitR;
+              exo = nx3 * sv; eyo = ny3 * sv;
+            } else if (p.smode === "Seismic") {
+              let env = 0.12;
+              for (const [bc, bw2] of bursts) {
+                const u = (d - bc) / bw2;
+                env += Math.exp(-u * u);
+              }
+              const w2 = (noise2(d / (size * 0.04), sd * 0.9, sd + 5) - 0.5) * 2;
+              const sv = orbitR * Math.min(1.4, env) * w2;
+              exo = nx3 * sv; eyo = ny3 * sv;
+            }
+            const driftOn = p.smode === "Coil" || p.smode === "Glitch orbit" ? 1 : 0;
+            const dx0 = driftOn * (noise2(i * 0.045, sd * 0.7, sd + 1) - 0.5) * R * mess * (1 - leg) * 0.8;
+            const dy0 = driftOn * (noise2(i * 0.045, sd * 0.3, sd + 2) - 0.5) * R * mess * (1 - leg) * 0.8;
+            /* kasivapina pitaa puhtaankin jaljen elavana (kaarenpituus-domain -> paikkainvariantti) */
+            const hx = (noise2(d * 0.7, sd * 0.9, sd + 3) - 0.5) * mess * 0.5;
+            const hy = (noise2(d * 0.7 + 37, sd * 0.4, sd + 4) - 0.5) * mess * 0.5;
+            const rotate = p.smode === "Coil" || p.smode === "Glitch orbit";
+            pts.push([
+              rp[i][0] + dx0 + hx + (rotate ? exo * Math.cos(rot) - eyo * Math.sin(rot) : exo),
+              rp[i][1] + dy0 + hy + (rotate ? exo * Math.sin(rot) + eyo * Math.cos(rot) : eyo),
+            ]);
+          }
+          if (sr() < p.tails) {
+            const last = pts[pts.length - 1];
+            let ang = Math.atan2(last[1] - (oy + size / 2), last[0] - ccx) + (sr() - 0.5) * 0.8;
+            const tl = R * (0.7 + sr() * 0.7);
+            const curl = (sr() - 0.5) * 0.5;
+            let x = last[0], y = last[1];
+            for (let i = 1; i <= 7; i++) {
+              ang += curl;
+              x += Math.cos(ang) * (tl / 7);
+              y += Math.sin(ang) * (tl / 7);
+              pts.push([x, y]);
+            }
+          }
+          const clip = pts.map(([x, y]) => [Math.max(m, Math.min(W - m, x)), Math.max(m, Math.min(H - m, y))]);
+          if (clip.length >= 2 && budget > 0) {
+            budget -= clip.length;
+            paths.push({ pts: clip, closed: false, layer: L });
+          }
+        }
+        xcur += (g.w + 2) * sc0 * tr;
+        charIdx++;
+      }
+    });
+    return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
 ## sdfcontours.js
 
 ```js
@@ -16910,6 +17619,303 @@ export default {
       };
     }
   
+};
+```
+
+## shade.js
+
+```js
+import { Pin, EMPTY, noise2, resample } from "../helpers.js";
+
+export default {
+  key: "shade",
+  name: "Shade",
+  cat: "mod",
+  group: "fillstyle",
+  desc: "Charcoal-style tonal shading for closed shapes, driven by a MOVABLE light: ink gathers along edges that face away from the light and pools into corners — concave notches strongest — like graphite rubbed into a stealth-bomber silhouette. A darkness field is built inside each shape (edge band × light facing + corner kernels + ambient + body gradient away from the light), then rendered as stacked hatch levels: each level adds a rotated hatch pass only where the field is dark enough, so tone builds up like layered pencil. Light X/Y are % of canvas (beyond 0–100 puts the light off-canvas) and value-drivable — wire an LFO to orbit the sun. Directionality 0 shades all edges equally (pure ambient occlusion); Concave bias 1 pools ink only into notches. Shapes nested inside another act as holes; open paths pass through untouched.",
+  ins: [Pin("paths", "Shapes")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "lx", label: "Light X %", type: "slider", min: -50, max: 150, step: 1, def: 20 },
+    { key: "ly", label: "Light Y %", type: "slider", min: -50, max: 150, step: 1, def: 5 },
+    { key: "lightAmt", label: "Directionality", type: "slider", min: 0, max: 1, step: 0.01, def: 0.7 },
+    { key: "band", label: "Edge band mm", type: "slider", min: 1, max: 40, step: 0.5, def: 10 },
+    { key: "edgeAmt", label: "Edge shade", type: "slider", min: 0, max: 1, step: 0.01, def: 0.8 },
+    { key: "cornerAmt", label: "Corner shade", type: "slider", min: 0, max: 1.5, step: 0.01, def: 0.9 },
+    { key: "cornerRad", label: "Corner radius mm", type: "slider", min: 1, max: 30, step: 0.5, def: 8 },
+    { key: "concave", label: "Concave bias", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5 },
+    { key: "bodyGrad", label: "Body gradient", type: "slider", min: 0, max: 1, step: 0.01, def: 0.35 },
+    { key: "ambient", label: "Ambient", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.08 },
+    { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
+    { key: "levels", label: "Hatch levels", type: "slider", min: 1, max: 6, step: 1, def: 4 },
+    { key: "pitch", label: "Hatch pitch mm", type: "slider", min: 0.4, max: 5, step: 0.05, def: 1.1 },
+    { key: "angle", label: "Angle °", type: "slider", min: 0, max: 180, step: 1, def: 30 },
+    { key: "crossAng", label: "Cross angle °", type: "slider", min: 0, max: 90, step: 1, def: 60 },
+    { key: "hand", label: "Wobble", type: "slider", min: 0, max: 1, step: 0.01, def: 0.3 },
+    { key: "outlines", label: "Keep outlines", type: "check", def: true },
+    { key: "seed", label: "Seed", type: "seed", def: 77 },
+    { key: "layer", label: "Shade pen", type: "pen", def: 0 },
+  ],
+  overlay(p, ctx) {
+    const lx = (ctx.W * p.lx) / 100, ly = (ctx.H * p.ly) / 100;
+    return [
+      { kind: "point", x: lx, y: ly },
+      { kind: "circle", cx: lx, cy: ly, r: 5 },
+    ];
+  },
+  compute(ins, p, ctx) {
+    const src = ins[0] || EMPTY;
+    const closed = src.paths.filter((pa) => pa.closed && pa.pts.length > 2);
+    const open = src.paths.filter((pa) => !pa.closed || pa.pts.length <= 2);
+    const out = [];
+    if (p.outlines) for (const pa of closed) out.push(pa);
+    for (const pa of open) out.push(pa);
+    if (!closed.length) return { paths: out };
+
+    const Lx = (ctx.W * p.lx) / 100, Ly = (ctx.H * p.ly) / 100;
+    const L = Math.round(p.layer);
+    const NL = Math.max(1, Math.min(6, Math.round(p.levels)));
+    const pitch = Math.max(0.3, p.pitch);
+    const hand = Math.max(0, Math.min(1, p.hand));
+    const seed = Math.round(p.seed) || 1;
+    let budget = 140000;
+
+    const ringContains = (ring, x, y) => {
+      let insd = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i], [xj, yj] = ring[j];
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) insd = !insd;
+      }
+      return insd;
+    };
+
+    /* ---- ryhmittely: paataso omistaa sisallaan olevat renkaat (reiat) ---- */
+    const tops = [];
+    for (let i = 0; i < closed.length; i++) {
+      const [x0g, y0g] = closed[i].pts[0];
+      let insideAny = false;
+      for (let k = 0; k < closed.length && !insideAny; k++)
+        if (k !== i && ringContains(closed[k].pts, x0g, y0g)) insideAny = true;
+      if (!insideAny) tops.push(i);
+    }
+
+    for (const ti of tops) {
+      const rings = [closed[ti].pts];
+      for (let k = 0; k < closed.length; k++)
+        if (k !== ti && ringContains(closed[ti].pts, closed[k].pts[0][0], closed[k].pts[0][1]))
+          rings.push(closed[k].pts);
+      const inside = (x, y) => {
+        let c = 0;
+        for (const r of rings) if (ringContains(r, x, y)) c++;
+        return c % 2 === 1;
+      };
+      let bx0 = 1e9, bx1 = -1e9, by0 = 1e9, by1 = -1e9;
+      for (const [x, y] of rings[0]) {
+        bx0 = Math.min(bx0, x); bx1 = Math.max(bx1, x);
+        by0 = Math.min(by0, y); by1 = Math.max(by1, y);
+      }
+      if (bx1 - bx0 < 2 || by1 - by0 < 2) continue;
+      bx0 -= 1; by0 -= 1; bx1 += 1; by1 += 1;
+
+      /* ---- tummuuskentan hila; solukoko sopeutuu ettei paisu ---- */
+      let cs = Math.max(0.5, Math.min(1.3, pitch * 0.6));
+      let cols = Math.ceil((bx1 - bx0) / cs) + 1;
+      let rows = Math.ceil((by1 - by0) / cs) + 1;
+      while (cols * rows > 90000) { cs *= 1.35; cols = Math.ceil((bx1 - bx0) / cs) + 1; rows = Math.ceil((by1 - by0) / cs) + 1; }
+      const CX = (c) => bx0 + c * cs, CY = (r) => by0 + r * cs;
+      const N = cols * rows;
+      const mask = new Uint8Array(N);
+      /* scanline-taytto: rivikohtaiset leikkauspisteet, even-odd-valit */
+      for (let r = 0; r < rows; r++) {
+        const y = CY(r);
+        const xs = [];
+        for (const ring of rings) {
+          for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+            const [xi, yi] = ring[i], [xj, yj] = ring[j];
+            if ((yi > y) !== (yj > y)) xs.push(xi + ((xj - xi) * (y - yi)) / (yj - yi));
+          }
+        }
+        xs.sort((a, b) => a - b);
+        for (let k = 0; k + 1 < xs.length; k += 2) {
+          const c0 = Math.max(0, Math.ceil((xs[k] - bx0) / cs));
+          const c1 = Math.min(cols - 1, Math.floor((xs[k + 1] - bx0) / cs));
+          for (let c = c0; c <= c1; c++) mask[r * cols + c] = 1;
+        }
+      }
+
+      /* ---- reunanaytteet normaalilla + valokertoimella ---- */
+      const bs = Math.max(0.7, cs * 0.9);
+      const sx = [], sy = [], slit = [];
+      for (const ring of rings) {
+        const rp = resample(ring, true, bs);
+        const n = rp.length;
+        /* kiintean puolen saanto: ulospain-normaali on samalla puolella kulkusuuntaa
+           koko renkaan matkan -> yksi kaanto per rengas, aanestys 3 nayteella */
+        const nxs = new Float64Array(n), nys = new Float64Array(n);
+        for (let i = 0; i < n; i++) {
+          const a = rp[(i - 1 + n) % n], b = rp[(i + 1) % n];
+          const tx = b[0] - a[0], ty = b[1] - a[1];
+          const tl = Math.hypot(tx, ty) || 1;
+          nxs[i] = ty / tl; nys[i] = -tx / tl;
+        }
+        let votes = 0;
+        for (const i of [0, Math.floor(n / 3), Math.floor((2 * n) / 3)])
+          if (inside(rp[i][0] + nxs[i] * 0.4, rp[i][1] + nys[i] * 0.4)) votes++;
+        const flip = votes >= 2 ? -1 : 1;
+        for (let i = 0; i < n; i++) {
+          const nx = nxs[i] * flip, ny = nys[i] * flip;
+          let ldx = Lx - rp[i][0], ldy = Ly - rp[i][1];
+          const ll = Math.hypot(ldx, ldy) || 1;
+          const lit = 0.5 - 0.5 * ((nx * ldx + ny * ldy) / ll); /* 0=valaistu, 1=varjo */
+          sx.push(rp[i][0]); sy.push(rp[i][1]); slit.push(lit);
+        }
+      }
+
+      /* ---- feature transform: lahin reunanayte per solu (chamfer, 2 pyyhkaisya) ---- */
+      const fi = new Int32Array(N).fill(-1);
+      const fd = new Float64Array(N).fill(1e18);
+      for (let s = 0; s < sx.length; s++) {
+        const c = Math.max(0, Math.min(cols - 1, Math.round((sx[s] - bx0) / cs)));
+        const r = Math.max(0, Math.min(rows - 1, Math.round((sy[s] - by0) / cs)));
+        const dx = CX(c) - sx[s], dy = CY(r) - sy[s];
+        const d2 = dx * dx + dy * dy;
+        if (d2 < fd[r * cols + c]) { fd[r * cols + c] = d2; fi[r * cols + c] = s; }
+      }
+      const relaxFrom = (i, j) => {
+        const s = fi[j];
+        if (s < 0) return;
+        const r = Math.floor(i / cols), c = i - r * cols;
+        const dx = CX(c) - sx[s], dy = CY(r) - sy[s];
+        const d2 = dx * dx + dy * dy;
+        if (d2 < fd[i]) { fd[i] = d2; fi[i] = s; }
+      };
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        if (c > 0) relaxFrom(i, i - 1);
+        if (r > 0) { relaxFrom(i, i - cols); if (c > 0) relaxFrom(i, i - cols - 1); if (c < cols - 1) relaxFrom(i, i - cols + 1); }
+      }
+      for (let r = rows - 1; r >= 0; r--) for (let c = cols - 1; c >= 0; c--) {
+        const i = r * cols + c;
+        if (c < cols - 1) relaxFrom(i, i + 1);
+        if (r < rows - 1) { relaxFrom(i, i + cols); if (c < cols - 1) relaxFrom(i, i + cols + 1); if (c > 0) relaxFrom(i, i + cols - 1); }
+      }
+
+      /* ---- nurkat alkuperaisista karjista: terävyys + kovera/kupera ---- */
+      const corners = [];
+      const MINA = (30 * Math.PI) / 180;
+      for (const ring of rings) {
+        const n = ring.length;
+        for (let i = 0; i < n; i++) {
+          const P0 = ring[(i - 1 + n) % n], P1 = ring[i], P2 = ring[(i + 1) % n];
+          let ax = P1[0] - P0[0], ay = P1[1] - P0[1];
+          let bx = P2[0] - P1[0], by = P2[1] - P1[1];
+          const al = Math.hypot(ax, ay), bl = Math.hypot(bx, by);
+          if (al < 1e-6 || bl < 1e-6) continue;
+          ax /= al; ay /= al; bx /= bl; by /= bl;
+          const dot = Math.max(-1, Math.min(1, ax * bx + ay * by));
+          const turn = Math.acos(dot);
+          if (turn < MINA) continue;
+          const sharp = (turn - MINA) / (Math.PI - MINA);
+          let ux = bx - ax, uy = by - ay;
+          const ul = Math.hypot(ux, uy) || 1;
+          const convex = inside(P1[0] + (ux / ul) * 0.4, P1[1] + (uy / ul) * 0.4);
+          const w = sharp * (convex ? 1 - 0.8 * p.concave : 1);
+          if (w > 0.01) corners.push([P1[0], P1[1], w]);
+        }
+      }
+
+      /* ---- tummuuskentta D ---- */
+      const band = Math.max(0.5, p.band);
+      const crad = Math.max(0.5, p.cornerRad);
+      let dmin = 1e18, dmax = -1e18;
+      for (const [cxk, cyk] of [[bx0, by0], [bx1, by0], [bx0, by1], [bx1, by1]]) {
+        const d = Math.hypot(cxk - Lx, cyk - Ly);
+        dmin = Math.min(dmin, d); dmax = Math.max(dmax, d);
+      }
+      const D = new Float64Array(N);
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        if (!mask[i]) continue;
+        const x = CX(c), y = CY(r);
+        let v = p.ambient;
+        const s = fi[i];
+        if (s >= 0) {
+          const db = Math.sqrt(fd[i]);
+          const facing = 1 - p.lightAmt + p.lightAmt * slit[s];
+          v += p.edgeAmt * facing * Math.exp(-db / band);
+        }
+        let ck = 0;
+        for (const [qx, qy, w] of corners) {
+          const dq = Math.hypot(x - qx, y - qy);
+          if (dq < crad * 3.5) ck += w * Math.exp(-dq / crad);
+        }
+        v += p.cornerAmt * Math.min(1.6, ck);
+        const dl = Math.hypot(x - Lx, y - Ly);
+        v += p.bodyGrad * 0.6 * Math.max(0, Math.min(1, (dl - dmin) / Math.max(1, dmax - dmin)));
+        D[i] = Math.pow(Math.max(0, Math.min(1, v)), p.gamma);
+      }
+      /* laajenna kentta yhdella solulla ulospain, jotta bilineaari ei vuoda nollaan reunalla */
+      const Dx = Float64Array.from(D);
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        if (mask[i]) continue;
+        let best = 0, hit = false;
+        for (let jr = Math.max(0, r - 1); jr <= Math.min(rows - 1, r + 1); jr++)
+          for (let jc = Math.max(0, c - 1); jc <= Math.min(cols - 1, c + 1); jc++)
+            if (mask[jr * cols + jc]) { best = Math.max(best, D[jr * cols + jc]); hit = true; }
+        if (hit) Dx[i] = best;
+      }
+      const sampleD = (x, y) => {
+        const u = (x - bx0) / cs, v = (y - by0) / cs;
+        const c0 = Math.max(0, Math.min(cols - 2, Math.floor(u)));
+        const r0 = Math.max(0, Math.min(rows - 2, Math.floor(v)));
+        const fu = Math.max(0, Math.min(1, u - c0)), fv = Math.max(0, Math.min(1, v - r0));
+        const a = Dx[r0 * cols + c0], b = Dx[r0 * cols + c0 + 1];
+        const cc = Dx[(r0 + 1) * cols + c0], d = Dx[(r0 + 1) * cols + c0 + 1];
+        return a + (b - a) * fu + (cc - a) * fv + (a - b - cc + d) * fu * fv;
+      };
+      const sampleIn = (x, y) => {
+        const c = Math.round((x - bx0) / cs), r = Math.round((y - by0) / cs);
+        if (c < 0 || r < 0 || c >= cols || r >= rows) return false;
+        return mask[r * cols + c] === 1;
+      };
+
+      /* ---- tasoportainen viivoitus ---- */
+      const diag = Math.hypot(bx1 - bx0, by1 - by0);
+      const mx = (bx0 + bx1) / 2, my = (by0 + by1) / 2;
+      const st = Math.min(0.7, pitch * 0.6);
+      for (let lev = 0; lev < NL; lev++) {
+        const T = (lev + 1) / (NL + 1);
+        const A = ((p.angle + lev * p.crossAng) * Math.PI) / 180;
+        const dx = Math.cos(A), dy = Math.sin(A);
+        const qx = -dy, qy = dx;
+        const off = p.crossAng < 0.5 ? (pitch * lev) / NL : 0;
+        const nLines = Math.ceil(diag / pitch) + 1;
+        for (let li = -nLines; li <= nLines; li++) {
+          if (budget <= 0) break;
+          const s0 = li * pitch + off;
+          const ox = mx + qx * s0, oy = my + qy * s0;
+          let run = [];
+          const flush = () => {
+            if (run.length >= 2 && budget > 0) {
+              budget -= run.length;
+              out.push({ pts: li % 2 ? run.reverse() : run, closed: false, layer: L });
+            }
+            run = [];
+          };
+          for (let t = -diag / 2; t <= diag / 2; t += st) {
+            const wob = hand ? (noise2(t * 0.13, s0 * 0.13, seed + lev * 31) - 0.5) * 2 * hand * pitch * 0.7 : 0;
+            const x = ox + dx * t + qx * wob, y = oy + dy * t + qy * wob;
+            if (x < bx0 || x > bx1 || y < by0 || y > by1) { flush(); continue; }
+            if (sampleIn(x, y) && sampleD(x, y) >= T) run.push([x, y]);
+            else flush();
+          }
+          flush();
+        }
+      }
+    }
+    return { paths: out };
+  },
 };
 ```
 
@@ -18732,6 +19738,138 @@ export default {
       return p.min + f * (p.max - p.min);
     }
   
+};
+```
+
+## stipple.js
+
+```js
+import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
+
+export default {
+  key: "stipple",
+  name: "Stipple",
+  cat: "gen",
+  group: "textimg",
+  fileImage: true,
+  desc: "Organic adaptive stippling (the Kusama look): darkness sets each dot's SIZE, and dots pack until they almost touch, so dark areas become a honeycomb of large filled cells while light areas thin out to sparse specks. Dots are placed by seeded dart-throwing with a radius-aware spacing rule — never a grid. Dot min/max set the size range, Gap is the constant white web between neighbours, Light spread adds extra spacing as the image fades to white (sparse fringes), Wobble deforms circles into organic blobs, Fill pitch is the concentric-fill spacing (match your pen width for solid blacks). Quality raises the packing attempt budget: higher = tighter, slower.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
+    { key: "dotMin", label: "Dot min mm", type: "slider", min: 0.15, max: 3, step: 0.05, def: 0.35 },
+    { key: "dotMax", label: "Dot max mm", type: "slider", min: 0.5, max: 8, step: 0.1, def: 2.8 },
+    { key: "gap", label: "Gap mm", type: "slider", min: 0, max: 3, step: 0.05, def: 0.4 },
+    { key: "spread", label: "Light spread mm", type: "slider", min: 0, max: 12, step: 0.25, def: 3 },
+    { key: "wobble", label: "Wobble", type: "slider", min: 0, max: 1, step: 0.01, def: 0.35 },
+    { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
+    { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.9, step: 0.01, def: 0.08 },
+    { key: "invert", label: "Invert", type: "check", def: false },
+    { key: "pitch", label: "Fill pitch mm", type: "slider", min: 0.2, max: 2, step: 0.05, def: 0.5 },
+    { key: "quality", label: "Quality", type: "slider", min: 1, max: 8, step: 1, def: 3 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 421 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+  compute(ins, p, ctx, node) {
+    const img = node && node.data && node.data.img;
+    if (!img) return EMPTY;
+    const { W, H } = ctx;
+    const m = Math.max(0, p.margin);
+    const boxW = W - 2 * m, boxH = H - 2 * m;
+    if (boxW < 5 || boxH < 5) return EMPTY;
+    /* sovita kuva marginaalilaatikkoon mittasuhteet sailyttaen (kuten image.js) */
+    const sc = Math.min(boxW / img.w, boxH / img.h);
+    const iw = img.w * sc, ih = img.h * sc;
+    const x0 = (W - iw) / 2, y0 = (H - ih) / 2;
+    const darkAt = (x, y) => {
+      /* bilineaarinen naytteistys; kuvan ulkopuolella valkoista */
+      const u = (x - x0) / sc, v = (y - y0) / sc;
+      if (u < 0 || v < 0 || u >= img.w - 1 || v >= img.h - 1) return 0;
+      const ui = Math.floor(u), vi = Math.floor(v);
+      const fu = u - ui, fv = v - vi;
+      const g = img.g;
+      const a = g[vi * img.w + ui], b = g[vi * img.w + ui + 1];
+      const c = g[(vi + 1) * img.w + ui], d0 = g[(vi + 1) * img.w + ui + 1];
+      let d = a + (b - a) * fu + (c - a) * fv + (a - b - c + d0) * fu * fv;
+      if (p.invert) d = 1 - d;
+      return Math.pow(Math.max(0, Math.min(1, d)), p.gamma);
+    };
+
+    const rmin = Math.min(p.dotMin, p.dotMax);
+    const rmax = Math.max(p.dotMin, p.dotMax);
+    const gap = Math.max(0, p.gap);
+    const spread = Math.max(0, p.spread);
+    const cut = Math.min(0.98, p.cutoff);
+    const wobAmp = p.wobble * 0.35; /* max sadepoikkeama osuutena sateesta */
+
+    /* --- dart-throwing pakkaus: hilakiihdytys naapurihaulle --- */
+    const cellSz = 2 * rmax + gap + spread; /* >= suurin mahdollinen vaadittu keskietaisyys */
+    const grid = new Map();
+    const gKey = (gx, gy) => gx + "," + gy;
+    const dots = []; /* {x, y, r, ex} — ex = tama pisteen puolikas lisavali */
+    const MAXD = 12000;
+    const attempts = Math.round(p.quality) * 30000;
+    const rng = mulberry32(p.seed * 977 + 13);
+
+    for (let a = 0; a < attempts && dots.length < MAXD; a++) {
+      const x = x0 + rng() * iw;
+      const y = y0 + rng() * ih;
+      const d = darkAt(x, y);
+      if (d <= cut) continue;
+      const t = (d - cut) / (1 - cut);
+      const r = rmin + (rmax - rmin) * t;
+      const ex = spread * (1 - t) * 0.5;
+      /* pyoryla wobblen kanssa pysyttava kankaalla */
+      const rw = r * (1 + wobAmp) + 0.2;
+      if (x - rw < 0 || x + rw > W || y - rw < 0 || y + rw > H) continue;
+      const gx = Math.floor(x / cellSz), gy = Math.floor(y / cellSz);
+      let ok = true;
+      for (let jy = gy - 1; jy <= gy + 1 && ok; jy++) {
+        for (let jx = gx - 1; jx <= gx + 1 && ok; jx++) {
+          const bucket = grid.get(gKey(jx, jy));
+          if (!bucket) continue;
+          for (const i of bucket) {
+            const q = dots[i];
+            const need = r + q.r + gap + ex + q.ex;
+            const dx = x - q.x, dy = y - q.y;
+            if (dx * dx + dy * dy < need * need) { ok = false; break; }
+          }
+        }
+      }
+      if (!ok) continue;
+      const k = gKey(gx, gy);
+      if (!grid.has(k)) grid.set(k, []);
+      grid.get(k).push(dots.length);
+      dots.push({ x, y, r, ex });
+    }
+
+    /* --- piirto: jokainen pyoryla = sisakkaiset wobbleoidut renkaat (kiintea taytto) --- */
+    const L = Math.round(p.layer);
+    const pitch = Math.max(0.15, p.pitch);
+    const paths = [];
+    for (const dot of dots) {
+      /* wobble naytteistetaan suljetulta silmukalta kohinakentassa -> sauma jatkuva */
+      const wob = (ang) =>
+        (noise2(dot.x * 0.37 + Math.cos(ang) * 1.7, dot.y * 0.37 + Math.sin(ang) * 1.7, p.seed) - 0.5) * 2;
+      let rr = dot.r;
+      let first = true;
+      while (first || rr > pitch * 0.45) {
+        const n = Math.max(10, Math.ceil((Math.PI * 2 * rr) / 0.5));
+        const pts = [];
+        const scale = rr / dot.r; /* sisarenkaat perivat muodon -> eivat leikkaa */
+        for (let k = 0; k < n; k++) {
+          const ang = (k / n) * Math.PI * 2;
+          const rad = rr * (1 + wob(ang) * wobAmp * (0.3 + 0.7 * scale));
+          pts.push([dot.x + Math.cos(ang) * rad, dot.y + Math.sin(ang) * rad]);
+        }
+        paths.push({ pts, closed: true, layer: L });
+        rr -= pitch;
+        first = false;
+      }
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
 };
 ```
 
@@ -21028,6 +22166,313 @@ export default {
       return applyStyle({ paths }, ins[0]);
     }
   
+};
+```
+
+## typegrating.js
+
+```js
+import { Pin, EMPTY, mulberry32, applyStyle, SFONT, fontStrokes } from "../helpers.js";
+
+export default {
+  key: "typegrating",
+  name: "Type Grating",
+  cat: "gen",
+  group: "textimg",
+  desc: "Typography concealed inside a strict vertical or horizontal line grating — readable up close, op-art from a distance. The single-stroke font is thickened into a glyph mask (Glyph stroke mm) and shaped by a Glyph style first: Plain (letters as-is), Modular (letterforms quantized onto a module grid — blocky Atype abstraction), Fragments (only a seeded window of each stroke survives), Outline (hollow letters — only the edge band disturbs the grating), Stencil (readable letters with periodic stencil cuts every Module mm). Slant shears the whole block for an italic. The grating then reacts with one of five encodings — Break (lines gap inside), Phase shift (lines jog half a pitch sideways as one continuous pen stroke with square jogs), Density (midlines double the frequency), Dashes (a seeded checker), or Weight (strokes triple up). Invert swaps figure and ground. Multi-line text with |, auto-fit to the margin box, every line strictly axis-aligned; a | grid of single letters makes an alphabet chart.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "text", label: "Text (| = new line)", type: "text", def: "ATYPE" },
+    { key: "gstyle", label: "Glyph style", type: "select", options: ["Plain", "Modular", "Fragments", "Outline", "Stencil"], def: "Modular" },
+    { key: "mode", label: "Encode", type: "select", options: ["Break", "Phase shift", "Density", "Dashes", "Weight"], def: "Phase shift" },
+    { key: "dir", label: "Lines", type: "select", options: ["Vertical", "Horizontal"], def: "Vertical" },
+    { key: "pitch", label: "Line pitch mm", type: "slider", min: 0.6, max: 6, step: 0.05, def: 1.4 },
+    { key: "size", label: "Text size mm", type: "slider", min: 10, max: 120, step: 1, def: 30 },
+    { key: "sw", label: "Glyph stroke mm", type: "slider", min: 2, max: 25, step: 0.5, def: 7 },
+    { key: "module", label: "Module / stencil mm", type: "slider", min: 2, max: 15, step: 0.5, def: 6 },
+    { key: "frag", label: "Fragment keep", type: "slider", min: 0.2, max: 0.9, step: 0.01, def: 0.55 },
+    { key: "slant", label: "Slant °", type: "slider", min: -30, max: 30, step: 1, def: 0 },
+    { key: "track", label: "Tracking", type: "slider", min: 0.6, max: 2, step: 0.05, def: 1 },
+    { key: "tx", label: "Text X %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
+    { key: "ty", label: "Text Y %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
+    { key: "invert", label: "Invert", type: "check", def: false },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 27 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+  overlay(p, ctx) {
+    /* tekstilohkon bbox-guide siirrettavia tx/ty varten; sama auto-fit kuin computessa */
+    const lines = String(p.text || "").split("|");
+    let bw = 0;
+    for (const ln of lines) bw = Math.max(bw, fontStrokes(ln, p.size, p.track).width);
+    let bh = lines.length * p.size + (lines.length - 1) * p.size * 0.5;
+    const m = Math.max(0, p.margin);
+    const f = Math.min(1,
+      bw > 0 ? (ctx.W - 2 * m - p.sw) / bw : 1,
+      bh > 0 ? (ctx.H - 2 * m - p.sw) / bh : 1);
+    bw *= f; bh *= f;
+    const cx = (ctx.W * p.tx) / 100, cy = (ctx.H * p.ty) / 100;
+    return [{ kind: "rect", x: cx - bw / 2 - p.sw / 2, y: cy - bh / 2 - p.sw / 2, w: bw + p.sw, h: bh + p.sw }];
+  },
+  compute(ins, p, ctx) {
+    const { W, H } = ctx;
+    const m = Math.max(0, p.margin);
+    if (W - 2 * m < 10 || H - 2 * m < 10) return EMPTY;
+    const L = Math.round(p.layer);
+    const pitch = Math.max(0.4, p.pitch);
+    const seed = Math.round(p.seed) || 1;
+    const paths = [];
+    let budget = 130000;
+    const push = (pts) => {
+      if (pts.length < 2 || budget <= 0) return;
+      budget -= pts.length;
+      paths.push({ pts, closed: false, layer: L });
+    };
+
+    /* ---- tekstin ladonta (auto-fit + slant), merkkitasolla ---- */
+    const lines = String(p.text || "").split("|");
+    let bw0 = 0;
+    for (const ln of lines) bw0 = Math.max(bw0, fontStrokes(ln, p.size, p.track).width);
+    const bh0 = lines.length * p.size + (lines.length - 1) * p.size * 0.5;
+    const f = Math.min(1,
+      bw0 > 0 ? (W - 2 * m - p.sw) / bw0 : 1,
+      bh0 > 0 ? (H - 2 * m - p.sw) / bh0 : 1);
+    const size = p.size * Math.max(0.05, f);
+    const cx = (W * p.tx) / 100, cy = (H * p.ty) / 100;
+    const lineH = size * 1.5;
+    const bh = lines.length * size + (lines.length - 1) * size * 0.5;
+    const shear = Math.tan((p.slant * Math.PI) / 180);
+    const sc0 = size / 10, tr = p.track || 1;
+
+
+    const glyphSegs = []; /* [x0,y0,x1,y1] */
+    const stencilCuts = []; /* [x, y, tx, ty] slantattussa tilassa */
+    let strokeIdx = 0, charIdx = 0;
+    const stencilPitch = Math.max(2, p.module);
+    lines.forEach((ln, k) => {
+      const fsw = fontStrokes(ln, size, p.track).width;
+      const ox = cx - fsw / 2;
+      const oy = cy - bh / 2 + k * lineH;
+      const yMid = oy + size / 2;
+      const sl = (pt) => [pt[0] + (pt[1] - yMid) * -shear, pt[1]]; /* kursivointi rivin keskilinjasta */
+      let xcur = 0;
+      for (const ch of String(ln).toUpperCase()) {
+        const g = SFONT[ch] || SFONT[" "];
+        const polys = [];
+        {
+          for (const st of g.s) {
+            if (st.length < 2) continue;
+            let poly = st.map(([gx2, gy2]) => [ox + xcur + gx2 * sc0, oy + gy2 * sc0]);
+            if (p.gstyle === "Fragments") {
+              /* pida vain seedattu ikkuna vedon kaarenpituudesta */
+              const fr = mulberry32(seed * 53 + strokeIdx * 17 + 5);
+              const cum = [0];
+              for (let i = 1; i < poly.length; i++)
+                cum.push(cum[i - 1] + Math.hypot(poly[i][0] - poly[i - 1][0], poly[i][1] - poly[i - 1][1]));
+              const TL = cum[cum.length - 1];
+              const keep = Math.max(0.05, Math.min(0.95, p.frag));
+              const a = fr() * (1 - keep) * TL, b = a + keep * TL;
+              const at2 = (d) => {
+                let i = 1;
+                while (i < cum.length - 1 && cum[i] < d) i++;
+                const t = (d - cum[i - 1]) / Math.max(1e-9, cum[i] - cum[i - 1]);
+                return [poly[i - 1][0] + (poly[i][0] - poly[i - 1][0]) * t,
+                        poly[i - 1][1] + (poly[i][1] - poly[i - 1][1]) * t];
+              };
+              const cut = [at2(a)];
+              for (let i = 0; i < poly.length; i++) if (cum[i] > a && cum[i] < b) cut.push(poly[i]);
+              cut.push(at2(b));
+              polys.push(cut);
+            } else if (p.gstyle === "Stencil") {
+              /* koko veto maskiin; sabluunakatkot leikataan maskin POIKKI myohemmin */
+              polys.push(poly);
+              const tp = poly.map(sl);
+              const cum = [0];
+              for (let i = 1; i < tp.length; i++)
+                cum.push(cum[i - 1] + Math.hypot(tp[i][0] - tp[i - 1][0], tp[i][1] - tp[i - 1][1]));
+              const TL = cum[cum.length - 1];
+              for (let a = stencilPitch * 0.5; a < TL; a += stencilPitch) {
+                let i = 1;
+                while (i < cum.length - 1 && cum[i] < a) i++;
+                const segl = Math.max(1e-9, cum[i] - cum[i - 1]);
+                const t = (a - cum[i - 1]) / segl;
+                const qx = tp[i - 1][0] + (tp[i][0] - tp[i - 1][0]) * t;
+                const qy = tp[i - 1][1] + (tp[i][1] - tp[i - 1][1]) * t;
+                const tx2 = (tp[i][0] - tp[i - 1][0]) / segl, ty2 = (tp[i][1] - tp[i - 1][1]) / segl;
+                stencilCuts.push([qx, qy, tx2, ty2]);
+              }
+            } else {
+              polys.push(poly);
+            }
+            strokeIdx++;
+          }
+        }
+        for (const poly of polys)
+          for (let i = 1; i < poly.length; i++) {
+            const a2 = sl(poly[i - 1]), b2 = sl(poly[i]);
+            glyphSegs.push([a2[0], a2[1], b2[0], b2[1]]);
+          }
+        xcur += (g.w + 2) * sc0 * tr;
+        charIdx++;
+      }
+    });
+
+    /* ---- glyyfimaski: paksunnetut vedot rasteroituna hilaan ---- */
+    const r = Math.max(0.5, p.sw) / 2;
+    const isOutline = p.gstyle === "Outline";
+    const r2 = isOutline ? Math.max(0.25, r - Math.max(0.7, r * 0.5)) : 0;
+    let gx0 = 1e9, gy0 = 1e9, gx1 = -1e9, gy1 = -1e9;
+    for (const [x0s, y0s, x1s, y1s] of glyphSegs) {
+      gx0 = Math.min(gx0, x0s, x1s); gx1 = Math.max(gx1, x0s, x1s);
+      gy0 = Math.min(gy0, y0s, y1s); gy1 = Math.max(gy1, y0s, y1s);
+    }
+    const hasText = glyphSegs.length > 0;
+    gx0 -= r + 1; gy0 -= r + 1; gx1 += r + 1; gy1 += r + 1;
+    const gc = 0.32;
+    const gcols = hasText ? Math.max(2, Math.ceil((gx1 - gx0) / gc) + 1) : 2;
+    const grows = hasText ? Math.max(2, Math.ceil((gy1 - gy0) / gc) + 1) : 2;
+    const gmask = new Uint8Array(gcols * grows);
+    const gcore = isOutline ? new Uint8Array(gcols * grows) : null;
+    if (hasText) {
+      const rc = Math.ceil(r / gc);
+      for (const [x0s, y0s, x1s, y1s] of glyphSegs) {
+        const len = Math.hypot(x1s - x0s, y1s - y0s);
+        const n = Math.max(1, Math.ceil(len / (gc * 0.5)));
+        for (let k = 0; k <= n; k++) {
+          const px = x0s + (x1s - x0s) * (k / n), py = y0s + (y1s - y0s) * (k / n);
+          const cc = Math.round((px - gx0) / gc), cr = Math.round((py - gy0) / gc);
+          for (let jr = Math.max(0, cr - rc); jr <= Math.min(grows - 1, cr + rc); jr++)
+            for (let jc = Math.max(0, cc - rc); jc <= Math.min(gcols - 1, cc + rc); jc++) {
+              const dx = gx0 + jc * gc - px, dy = gy0 + jr * gc - py;
+              const d2 = dx * dx + dy * dy;
+              if (d2 <= r * r) gmask[jr * gcols + jc] = 1;
+              if (gcore && d2 <= r2 * r2) gcore[jr * gcols + jc] = 1;
+            }
+        }
+      }
+    }
+    /* Stencil: tyhjenna maskista kaista jokaisen leikkauspisteen kohdalta vedon poikki */
+    if (hasText && stencilCuts.length) {
+      const GW = 1.3 / 2;
+      const rr = r + 0.6;
+      for (const [qx, qy, tx2, ty2] of stencilCuts) {
+        const c0 = Math.max(0, Math.floor((qx - rr - gx0) / gc));
+        const c1 = Math.min(gcols - 1, Math.ceil((qx + rr - gx0) / gc));
+        const r0 = Math.max(0, Math.floor((qy - rr - gy0) / gc));
+        const r1 = Math.min(grows - 1, Math.ceil((qy + rr - gy0) / gc));
+        for (let jr = r0; jr <= r1; jr++) for (let jc = c0; jc <= c1; jc++) {
+          const dx = gx0 + jc * gc - qx, dy = gy0 + jr * gc - qy;
+          if (dx * dx + dy * dy <= rr * rr && Math.abs(dx * tx2 + dy * ty2) <= GW)
+            gmask[jr * gcols + jc] = 0;
+        }
+      }
+    }
+    const inFine = (x, y) => {
+      if (!hasText || x < gx0 || y < gy0 || x > gx1 || y > gy1) return false;
+      const i = Math.round((y - gy0) / gc) * gcols + Math.round((x - gx0) / gc);
+      if (gmask[i] !== 1) return false;
+      return gcore ? gcore[i] !== 1 : true; /* Outline: vain reunakaista */
+    };
+    /* Modular: kvantisoi maski moduuliruudukkoon -> abstraktit palikkamuodot */
+    let inGlyphRaw = inFine;
+    if (p.gstyle === "Modular" && hasText) {
+      const M = Math.max(1, p.module);
+      const mcols = Math.max(1, Math.ceil((gx1 - gx0) / M));
+      const mrows = Math.max(1, Math.ceil((gy1 - gy0) / M));
+      const cover = new Float64Array(mcols * mrows);
+      const tot = new Float64Array(mcols * mrows);
+      for (let rr2 = 0; rr2 < grows; rr2++) for (let c2 = 0; c2 < gcols; c2++) {
+        const mc = Math.min(mcols - 1, Math.floor((c2 * gc) / M));
+        const mr2 = Math.min(mrows - 1, Math.floor((rr2 * gc) / M));
+        tot[mr2 * mcols + mc]++;
+        if (gmask[rr2 * gcols + c2]) cover[mr2 * mcols + mc]++;
+      }
+      const mmask = new Uint8Array(mcols * mrows);
+      for (let i = 0; i < mmask.length; i++) mmask[i] = cover[i] / Math.max(1, tot[i]) >= 0.3 ? 1 : 0;
+      const mx1 = gx0 + mcols * M, my1 = gy0 + mrows * M;
+      inGlyphRaw = (x, y) => {
+        if (x < gx0 || y < gy0 || x >= mx1 || y >= my1) return false;
+        const mc = Math.floor((x - gx0) / M);
+        const mr2 = Math.floor((y - gy0) / M);
+        return mmask[mr2 * mcols + mc] === 1;
+      };
+    }
+    const inG = p.invert ? (x, y) => !inGlyphRaw(x, y) : inGlyphRaw;
+
+    /* ---- viivan skannaus: [a, b, sisalla] -segmentit bisektio-tarkennuksella ---- */
+    const isV = p.dir === "Vertical";
+    const lo = m, hi = isV ? H - m : W - m;
+    const at = (c, t) => (isV ? inG(c, t) : inG(t, c));
+    const scan = (c) => {
+      const segs = [];
+      const st = 0.3;
+      let a = lo, state = at(c, lo);
+      let prev = lo;
+      for (let t = lo + st; t <= hi + 1e-9; t += st) {
+        const s2 = at(c, Math.min(t, hi));
+        if (s2 !== state) {
+          let t0 = prev, t1 = Math.min(t, hi);
+          for (let it = 0; it < 6; it++) {
+            const tm = (t0 + t1) / 2;
+            if (at(c, tm) === state) t0 = tm; else t1 = tm;
+          }
+          segs.push([a, t1, state]);
+          a = t1; state = s2;
+        }
+        prev = Math.min(t, hi);
+      }
+      segs.push([a, hi, state]);
+      return segs.filter((s) => s[1] - s[0] > 0.05);
+    };
+
+    /* ---- emissio per moodi ---- */
+    const mk = (c, a, b) => (isV ? [[c, a], [c, b]] : [[a, c], [b, c]]);
+    const cLo = m, cHi = isV ? W - m : H - m;
+    let li = 0;
+    for (let c = cLo; c <= cHi + 1e-9; c += pitch, li++) {
+      const cc = Math.min(c, cHi);
+      const segs = scan(cc);
+      const rev = li % 2 === 1;
+      if (p.mode === "Break") {
+        for (const [a, b, s] of segs) if (!s) push(rev ? mk(cc, b, a) : mk(cc, a, b));
+      } else if (p.mode === "Phase shift") {
+        /* yhtenainen polyline: sisalla oleva osuus hyppaa pitch/2 sivuun suorakulmaisella jogilla */
+        const off = pitch / 2;
+        const pts = [];
+        const ordered = rev ? [...segs].reverse() : segs;
+        for (const [a, b, s] of ordered) {
+          const ce = s ? cc + off : cc;
+          const p0 = isV ? [ce, rev ? b : a] : [rev ? b : a, ce];
+          const p1 = isV ? [ce, rev ? a : b] : [rev ? a : b, ce];
+          pts.push(p0, p1);
+        }
+        push(pts);
+      } else if (p.mode === "Density") {
+        push(rev ? mk(cc, hi, lo) : mk(cc, lo, hi));
+        for (const [a, b, s] of segs) if (s && cc + pitch / 2 <= cHi) push(mk(cc + pitch / 2, a, b));
+      } else if (p.mode === "Dashes") {
+        const dr = mulberry32(Math.floor(cc * 53) + seed);
+        for (const [a, b, s] of segs) {
+          if (!s) { push(rev ? mk(cc, b, a) : mk(cc, a, b)); continue; }
+          let t = a - (li % 2) * pitch;
+          let on = true;
+          while (t < b) {
+            const da = Math.max(a, t), db = Math.min(b, t + pitch);
+            if (on && db - da > 0.12 && dr() > 0.2) push(mk(cc, da, db));
+            t += pitch; on = !on;
+          }
+        }
+      } else { /* Weight */
+        push(rev ? mk(cc, hi, lo) : mk(cc, lo, hi));
+        for (const [a, b, s] of segs) if (s) {
+          push(mk(cc - 0.22, a, b));
+          push(mk(cc + 0.22, b, a));
+        }
+      }
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
 };
 ```
 

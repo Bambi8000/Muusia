@@ -77,11 +77,14 @@ so short horn radius + small swing is plenty and maximizes force/precision.
   Preference is a USB endoscope/microscope-type (UVC, close focus, light, long
   flexible USB cable) over a wide-angle webcam. Leave room + a mount point and a
   cable path for it. Optional small LED for tip lighting.
-- **Laser pointer (planned):** a small laser on the pen holder for the magnet-jig
-  workflow (marks magnet positions with pen up). It sits at a fixed **offset** from
-  the pen tip; that offset (`laserOffX/Y`) lives in the Muusia machine profile, not
-  the mechanics — but the holder must rigidly mount the laser so the offset stays
-  constant. (See MUUSIA-MAGNET-JIG-SPEC.md for the software side.)
+- **Laser pointer (planned):** a small laser on the pen holder, now serving **two
+  workflows**: (a) the magnet-jig workflow (marks magnet positions with pen up,
+  see MUUSIA-MAGNET-JIG-SPEC.md) and (b) **pen offset calibration** (section 5.1).
+  It sits at a fixed **offset** from the pen tip; that offset (`laserOffX/Y`)
+  lives in the Muusia machine profile, not the mechanics — but the holder must
+  rigidly mount the laser so the offset stays constant. The rigidity requirement
+  is now hard: both workflows assume the laser never moves relative to the
+  carriage between sessions.
 - **Ink nozzle on sweep stepper (planned):** the tube end / dispensing needle of
   the ink blot tool (section 4) rides near the carriage on a small rotating
   stepper. Heavy parts (pump, valve, reservoir) stay on the gantry frame; only
@@ -102,8 +105,6 @@ Design tool: `public/sim/ink-blow-sim.html` (served at /Muusia/sim/ on
 Pages) — interactive drop + blow simulator; parameters map 1:1 to this
 hardware. Physics coefficients are uncalibrated first guesses until the
 first real blot tests (50 µl per ink per paper, measure Ø + branch lengths).
-
-Design tool: docs/sim/ink-blow-sim.html (parameters map 1:1 to the planned hardware; coefficients uncalibrated until first real blot tests).
 
 ### Ink dosing
 
@@ -163,6 +164,40 @@ times.
   Muusia "Safe Areas / Magnet Jig" tool and marked physically by driving the
   carriage (pen up, laser on) to each point. → the laser above is part of this.
 - **Phase 2 (later):** CNC-milled zoned vacuum table.
+
+### 5.1 Pen offset calibration (laser, KlipperScreen)
+
+Designed August 2026; draft Klipper configs exist (see `klipper/` below), waiting
+for the Kraken to be wired. Different pens (diameters, holders) put the tip at
+slightly different XY positions — this workflow measures that per pen so all pens
+follow the same line, entirely on the RPi touchscreen:
+
+1. `PEN_CAL_MARK` — the pen draws a small **cross** at a fixed calibration point
+   (cross center is easier to aim at than a dot), the carriage parks aside, laser ON.
+2. Jog with the KlipperScreen Move panel until the laser dot sits on the cross center.
+3. `PEN_CAL_SAVE` — an `action:prompt` touch dialog with buttons **Pen 1–12**
+   (matches Muusia's pen count); the offset persists in `variables.cfg`
+   via `[save_variables]`.
+4. `PEN_USE PEN=n [REF=m]` before plotting — applies `SET_GCODE_OFFSET` so pen n
+   follows reference pen m (default 1). Muusia's exported G-code stays offset-free;
+   the correction lives entirely in Klipper at pen-change time.
+
+**Geometry:** the measured delta per pen is `D = p − L` (pen-tip offset minus laser
+offset, both relative to the carriage). `PEN_USE` applies `D_ref − D_n = p_ref − p_n`,
+so the laser offset cancels and the reference pen keeps zero offset (old plots stay
+in register). **Bonus:** saving the *reference* pen directly yields the Muusia
+machine-profile laser offset: `laserOffX = −dx`, `laserOffY = −dy` — one calibration
+feeds both this workflow and the magnet jig.
+
+Prerequisites: paper must not move between steps 1 and 3 (magnets/tape); laser
+rigidly mounted (section 3); `[output_pin laser]` pin is a TODO until the Kraken
+is wired (same output the magnet jig's `laserOnCmd` uses).
+
+**Draft configs live in `klipper/` at the repo root** (`pen-cal.cfg`,
+`KlipperScreen-pencal.conf`, plus a README marking them as drafts). The folder is
+outside `src/` and `public/`, so it never touches the Vite build or Pages deploy;
+final versions move to the Pi's `~/printer_data/config/` once the Kraken arrives,
+with `klipper/` remaining the version-controlled source of truth.
 
 ---
 
