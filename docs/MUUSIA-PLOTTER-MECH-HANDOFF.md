@@ -1,8 +1,9 @@
 # Muusia Plotter — Mechanical Handoff
 
-Self-contained context for continuing the build in a new chat. Hardware-planning
-stage (July 2026); nothing wired or configured yet. Next task: **design the pen
-holder / carriage** together.
+Self-contained context for continuing the build in a new chat. Hardware
+planning + host software stage (Aug 2026): the Pi software stack is installed
+and configured, the Kraken has not yet arrived, nothing is wired. Next task:
+**design the pen holder / carriage** together.
 
 Working language: Finnish in chat, English in all code/GUI/docs.
 
@@ -23,8 +24,22 @@ Working language: Finnish in chat, English in all code/GUI/docs.
 - **PSU:** Meishile S-500-24 (24 V, 21 A, 500 W) enclosed switching supply from
   parts bin — correct type for motors. Run steppers at moderate current
   (~1.3–1.8 A RMS), not full 2.8 A. Verify 230 V mains selector + test before use.
-- **Software (context only, not this task):** Klipper + Moonraker + Mainsail/
-  Fluidd + KlipperScreen on the Pi.
+- **Software:** Klipper + Moonraker + Mainsail + KlipperScreen **installed
+  and running** on the Pi (hostname `nakit`, 192.168.0.57; via KIAUH,
+  Jul 2026). Kraken firmware pre-compiled (STM32H723, 128KiB bootloader,
+  25 MHz crystal, USB PA11/PA12 — recipe in `klipper/README.md`); flashing +
+  the real serial ID wait for the board. `klipper/printer.cfg` draft exists:
+  official BTT pin map, slots S1=X, S2=Y-left, S3=Y-right, S4=Z, S5=brush
+  (stubbed). Dual-Y homes as a pair against the single Y switch (a second
+  switch on STOP2 or sensorless DIAG = future auto-square); no Z switch →
+  `[homing_override]` virtual zero (jog Z to working height, G28 declares it
+  Z=0; `Z_ZERO_HERE` re-declares after pen/paper changes). Pen servo macros
+  PEN_UP / PEN_DOWN / PEN_RELEASE live only in printer.cfg so exported G-code
+  stays hardware-agnostic. Muusia side: read-only **Moonraker DRO**
+  (`src/dro.jsx`) shows live position over the websocket — LAN/local only;
+  Moonraker cors_domains carries the local dev origins
+  (`klipper/moonraker-cors.snippet.conf`, applied on nakit). Never
+  port-forward Moonraker (7125) or Mainsail (80) to the internet.
 
 The pen tool is **not a router** — this is a pen/brush plotter. Loads are light;
 the design concern is precision and repeatability, not cutting force.
@@ -193,8 +208,10 @@ Prerequisites: paper must not move between steps 1 and 3 (magnets/tape); laser
 rigidly mounted (section 3); `[output_pin laser]` pin is a TODO until the Kraken
 is wired (same output the magnet jig's `laserOnCmd` uses).
 
-**Draft configs live in `klipper/` at the repo root** (`pen-cal.cfg`,
-`KlipperScreen-pencal.conf`, plus a README marking them as drafts). The folder is
+**Draft configs live in `klipper/` at the repo root** (`printer.cfg`,
+`pen-cal.cfg`, `KlipperScreen-pencal.conf`, `moonraker-cors.snippet.conf`,
+plus a README with the firmware build recipe and the Pi↔repo sync
+convention). The folder is
 outside `src/` and `public/`, so it never touches the Vite build or Pages deploy;
 final versions move to the Pi's `~/printer_data/config/` once the Kraken arrives,
 with `klipper/` remaining the version-controlled source of truth.

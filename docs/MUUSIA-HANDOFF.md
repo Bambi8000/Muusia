@@ -42,12 +42,23 @@ text are **English**.
   with `node tools/validate-examples.mjs` before build. New examples arrive
   as module exports (`*-module.json`, whole graph selected) and are converted
   to entries (param-diff + id renumbering).
+- `src/dro.jsx` — Moonraker DRO: self-contained read-only websocket client +
+  top-bar chip (live X/Y/Z, homed-axes dimming, 3 s auto-reconnect,
+  re-subscribe on klippy restart). URL in the machine profile
+  (`moonrakerUrl`). LAN/local only by design — the Pages build shows a
+  red/failed DRO (https page cannot open insecure ws://; correct, not a bug).
+  Wired into App.jsx via tools/era/patch-dro.mjs.
 - `docs/` — MUUSIA-HANDOFF.md (this), MUUSIA-NODES.md (every node),
   MUUSIA-NODE-API.md (custom-node authoring spec, plotternode format),
   MUUSIA-MAP.md (OSM map import guide: overpass-turbo workflow, sizing, queries),
   MUUSIA-PLOTTER-MECH-HANDOFF.md (X-Carve build: mechanics + ink blot tool),
   MUUSIA-MAGNET-JIG-SPEC.md (safe-areas / laser jig feature, design complete),
   MUUSIA-NODES-SRC.md (generated here by `tools/make-src-bundle.mjs`).
+- `klipper/` — machine-side configs at the repo root: `printer.cfg` draft for
+  the BTT Kraken, `moonraker-cors.snippet.conf`, pen-cal drafts, README with
+  the firmware build recipe. Version-controlled source of truth; live copies
+  on the Pi (`nakit`). Outside `src/` and `public/` — never touches the Vite
+  build or Pages. Details: MUUSIA-PLOTTER-MECH-HANDOFF.md §1 and §5.1.
 - `tools/` — living tools only; applied one-shots (surgery, versioned doc
   patches, era validators) live in `tools/era/` — do **not** re-run, anchored
   patches are not idempotent. Living: `extract.mjs`,
@@ -135,6 +146,11 @@ text are **English**.
 - **Add & Tidy:** `addNode` grid-scans the visible viewport for empty space
   (measured card boxes via `cardEls`); toolbar **Tidy** = `tidyNodes()`
   dependency-column layout (both live next to `addNodeAt` in App.jsx).
+- **Moonraker DRO:** top-bar chip (src/dro.jsx) — click toggles the
+  connection; green = klippy ready, amber = connecting / klippy down, red =
+  retrying. Requires the local dev origins in Moonraker's cors_domains
+  (klipper/moonraker-cors.snippet.conf, applied on nakit). Read-only: it
+  never sends G-code.
 - **Animation, Mega Canvas, Mini Canvas, magnet jig, machine profiles,
   Travel Stop, custom modules:** unchanged since v2.0–2.1 era; see MUUSIA-NODES.md
   and README for user-facing docs. Magnet jig functions (`magnetPlacement`,
@@ -260,7 +276,11 @@ text are **English**.
   via tools/patch-overlay-ins.mjs, documented in NODE-API), so zone nodes can
   show WIRED regions as dashed guides. Validator lessons: name harnesses
   validate-<key>; a process.exit() before appended checks silently skips
-  them — prefer process.exitCode.
+  them — prefer process.exitCode. Same push window: **Moonraker DRO**
+  shipped (src/dro.jsx + machine-profile `moonrakerUrl`, applied via
+  tools/era/patch-dro.mjs) — read-only live-position websocket chip in the
+  top bar; see UI systems. The klipper/ folder gained printer.cfg and the
+  CORS snippet in the same session (MECH handoff §1).
 - **2.39** editor QoL, no node/export changes: **empty-space add** (palette
   click / quick-add scans the visible viewport in a coarse grid against
   MEASURED card boxes — cardEls offsetHeight, +14 air — and falls back to the
