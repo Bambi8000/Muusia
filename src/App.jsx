@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo, useEffect } from "react";
 import { DEFS_NODES } from "./defs/index.js";
 import { EXAMPLES } from "./examples.js";
 import { PENS_DEFAULT, PENS, savePens, resetPens, mulberry32, hash2, noise2, EMPTY, pathLength, resample, applyStyle, Pin, parseSVG, signedArea, SFONT, fontStrokes, isStyle } from "./defs/helpers.js";
+import DroPanel from "./dro.jsx";
 
 /* ============================================================
    MUUSIA v2.20
@@ -903,7 +904,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.43"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.44"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1638,6 +1639,7 @@ export default function App() {
     dipOn: false, dipX: 320, dipY: 20, dipZ: -2, dipEvery: 800, dipDwell: 600,
     maintOn: false, maintEvery: 4000, maintMsg: "Advance chalk / re-sharpen", maintPark: false, maintX: 20, maintY: 20,
     laserOn: false, laserOffX: 0, laserOffY: 0, laserOnCmd: "SET_PIN PIN=laser VALUE=1", laserOffCmd: "SET_PIN PIN=laser VALUE=0",
+    moonrakerUrl: "ws://192.168.0.57:7125/websocket",
   };
   const DEFAULT_MACHINE_B = {
     ...DEFAULT_MACHINE,
@@ -2651,6 +2653,7 @@ export default function App() {
           MUUSIA
           <span style={{ color: T.dim, fontWeight: 500, fontSize: 11, marginLeft: 8 }}>{"v" + APP_VERSION}</span>
         </div>
+        <DroPanel url={prof.moonrakerUrl} />
         <button style={toolBtn(selIds.length > 0)} onClick={duplicateSelected} title="Cmd/Ctrl+D">Duplicate ({selIds.length})</button>
         <button style={toolBtn(selIds.length >= 2)} onClick={groupSelected} title="Cmd/Ctrl+G">Group</button>
         <button style={toolBtn(!!primaryIsGroup)} onClick={ungroupSelected}>Ungroup</button>
@@ -3330,6 +3333,12 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Pause command</div>
                   <input type="text" value={prof.pauseCmd} onChange={(e) => setProf((pr) => ({ ...pr, pauseCmd: e.target.value }))}
+                    style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                  <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Moonraker WS URL</div>
+                  <input type="text" value={prof.moonrakerUrl || ""} onChange={(e) => setProf((pr) => ({ ...pr, moonrakerUrl: e.target.value }))}
+                    placeholder="ws://192.168.0.57:7125/websocket"
                     style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
                 </div>
                 <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.05em", margin: "10px 0 4px" }}>Z MODE</div>
