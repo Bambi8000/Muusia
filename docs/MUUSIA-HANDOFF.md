@@ -355,9 +355,22 @@ text are **English**.
   must be a pure translation) tests glyph consistency without duplicating
   glyph tables in the harness; sample hand-tremor noise in the arc-length
   domain, not canvas position, or that invariance breaks.
+- **2.44** restore, no new features: the **Moonraker DRO** integration had
+  silently vanished from App.jsx somewhere in the 2.38→2.43 window (an
+  App.jsx overwrite from a pre-DRO base; src/dro.jsx and the era patch
+  survived untouched). Re-applied via tools/era/patch-dro.mjs — all four
+  anchors still matched on the 2.43 file. Post-push guard added to the
+  routine: `grep -c "DroPanel" src/App.jsx` must print 2.
 
 ## Hard-won pitfalls (keep)
 
+- Era-patch changes to App.jsx can VANISH silently if a later session
+  rewrites App.jsx from an older base (the v2.44 DRO regression: module file
+  survived, integration gone). Cheap insurance: after any session that
+  touches App.jsx wholesale, grep for sentinel strings of past era patches
+  (e.g. `DroPanel`). Re-running an era patch is correct ONLY when its target
+  has demonstrably reverted to the unpatched state — the OK/MISS anchor
+  report is the proof either way.
 - Browsers do NOT overwrite downloads (`name (1).ext`) — irrelevant post-C0 for
   code, still true for any downloaded file.
 - NODE_HELP-style strings may contain escaped quotes: regex-replacing doc strings
