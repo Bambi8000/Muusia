@@ -29,8 +29,8 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **206 files** (208 nodes total with
-  group + reititys; Generators 114, Modifiers 65). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **208 files** (210 nodes total with
+  group + reititys; Generators 116, Modifiers 65). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -78,7 +78,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (206) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (208) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -361,6 +361,24 @@ text are **English**.
   survived untouched). Re-applied via tools/era/patch-dro.mjs — all four
   anchors still matched on the 2.43 file. Post-push guard added to the
   routine: `grep -c "DroPanel" src/App.jsx` must print 2.
+- **2.45** two nodes. **Mini Squares** (gen/geometric: occupancy-grid square
+  mosaic, big-first placement, fBm x spread-falloff density, concentric/corner
+  nesting with per-cell rng streams; validator proves every square pair
+  interior-disjoint or strictly nested across seeds/styles/gaps). **Color Mesh**
+  (gen/geometric: BSP convex facets + per-facet cross-hatch with light-aligned
+  spacing gradient, noise-zoned pens; **Mode 3D**: hash-lifted vertices —
+  bitwise-identical shared cut points keep the surface continuous —
+  fan-triangle fold interpolation, adaptive resample + tilt + margin refit,
+  Lambert spacing modulation normalized so relief 0 reproduces Flat
+  line-for-line; output z stripped, since a third point component means pen
+  plunge). Validator lessons: harness helper stubs MUST be verbatim copies of
+  src/defs/helpers.js — the NODE-API §9 snippet had drifted (different
+  hash2/noise2 family), making a lab-mode pass and a baked-mode fail on the
+  same node (fixed in NODE-API v1.3 this release); a stub `resample` silently
+  skipped the whole 3D lift (straight lines, zero deviation); and single-facet
+  oracles must size the facet so the effect exceeds the detection threshold
+  (an A4 facet under ±15 mm relief tilts <1° — the Lambert check needed a
+  60x60 canvas to have power).
 
 ## Hard-won pitfalls (keep)
 
@@ -384,6 +402,10 @@ text are **English**.
   preview (a "slicing bug" in 2.30 investigation was exactly this illusion).
 - Custom-node sandbox (NODE_HELPERS) must list every helper the NODE-API
   documents — a missing one fails silently as an empty node.
+- Validator harness helpers must be verbatim copies of src/defs/helpers.js —
+  stubs or drifted snippets pass in lab mode and fail (or worse, silently
+  under-test) in baked mode. When lab and baked runs disagree, diff the
+  harness helpers against helpers.js first.
 
 ## Roadmap / ideas
 

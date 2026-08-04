@@ -1,4 +1,4 @@
-# Muusia — Custom Node API (v1.2, app v2.29)
+# Muusia — Custom Node API (v1.3, app v2.45)
 
 This document is a **complete, self-contained specification** for writing a custom node
 for Muusia, a node-graph editor for generative pen-plotter art. You can hand this
@@ -220,16 +220,18 @@ stable when others change.
 ## 9. Testing your node before importing
 
 The definition file is plain JavaScript, so you can validate it in Node.js with a
-ten-line harness — the same practice used for every built-in node:
+ten-line harness — the same practice used for every built-in node. **Keep these
+helper snippets verbatim-identical to `src/defs/helpers.js`** — a drifted or stubbed
+helper makes the harness test a different node than the app runs (v2.45 lesson):
 
 ```js
 const fs = require("fs");
 const Pin = (t, l) => ({ type: t, label: l });
 const EMPTY = { paths: [] };
 const PENS = Array.from({ length: 12 }, (_, i) => ({ name: "P" + i, c: "#000" }));
-function mulberry32(a){return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
-function hash2(x,y,s){let h=Math.imul(Math.floor(x)^0x9e3779b9,2654435761);h^=Math.imul(Math.floor(y)^0x85ebca6b,2246822519);h^=Math.imul((s|0)^0xc2b2ae35,3266489917);h=(h^(h>>>15))>>>0;return h/4294967296;}
-function noise2(x,y,s){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const a=hash2(xi,yi,s),b=hash2(xi+1,yi,s),c=hash2(xi,yi+1,s),d=hash2(xi+1,yi+1,s);const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);return a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v;}
+function mulberry32(seed){let a=seed>>>0;return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+function hash2(x,y,seed){let h=seed+x*374761393+y*668265263;h=(h^(h>>>13))*1274126177;return((h^(h>>>16))>>>0)/4294967296;}
+function noise2(x,y,seed){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);const a=hash2(xi,yi,seed),b=hash2(xi+1,yi,seed);const c=hash2(xi,yi+1,seed),d=hash2(xi+1,yi+1,seed);return(a+(b-a)*u)*(1-v)+(c+(d-c)*u)*v;}
 function resample(pts,closed,step){/* even resampling; see spec section 6 */ if(pts.length<2)return pts.map(p=>p.slice());const src=closed?[...pts,pts[0]]:pts;const out=[src[0].slice()];let acc=0;for(let i=1;i<src.length;i++){let[x0,y0]=src[i-1],[x1,y1]=src[i];let seg=Math.hypot(x1-x0,y1-y0);while(acc+seg>=step){const t=(step-acc)/seg;const nx=x0+(x1-x0)*t,ny=y0+(y1-y0)*t;out.push([nx,ny]);x0=nx;y0=ny;seg=Math.hypot(x1-x0,y1-y0);acc=0;}acc+=seg;}if(!closed)out.push(src[src.length-1].slice());return out;}
 const pathLength=(pts)=>{let l=0;for(let i=1;i<pts.length;i++)l+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return l;};
 const applyStyle=(ps)=>ps, signedArea=()=>0;

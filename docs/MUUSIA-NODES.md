@@ -1,13 +1,13 @@
-# MUUSIA v2.43 — Node Reference
+# MUUSIA v2.45 — Node Reference
 
-All 208 built-in nodes. Conventions used below: most generators accept a **Style**
+All 210 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (114)
+## Generators (116)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -585,6 +585,32 @@ invented wedge signs — real cuneiform is syllabic, no faithful letter map exis
 Alchemy symbols, or Asemic — the Seed generates a whole coherent invented script where
 the same letter always maps to the same glyph. Tracking goes negative for piled
 scrawl.
+
+**Mini Squares** — a field of axis-aligned squares packed on a hidden grid: larger
+multi-cell squares (*Max square*) are placed first, then single cells fill in around
+them against an occupancy grid, so neighbours share edges like a mosaic. Density is
+patchy fBm noise multiplied by a *Spread* falloff (Full / Corner / Center / Linear,
+strength via *Fade*) so the field crumbles away at its edge. *Nest depth* tucks
+smaller squares inside squares — concentric insets or corner-anchored knots (*Mixed*
+picks per square; each square keeps its own rng stream keyed to its cell, so its
+interior is stable while other params move). *Gap* shrinks every top-level square so
+shared edges separate. Structural invariant (validated): any two squares are
+interior-disjoint or strictly nested. Chain into Container or Wind Tunnel as an
+obstacle field, or drive Density with a value wire for animated growth.
+
+**Color Mesh** — crumpled-paper facet field filled with fine cross-hatch mesh. The
+sheet is fractured into convex facets by random BSP cuts; each facet gets its own
+hatch angle (*Angle* + *Angle spread*) and a line-spacing gradient aligned to the
+global *Light angle*, so facets shade like folded paper. Facets take pens from a
+coarse noise field (*First pen* + *Pens used*, region size via *Color patch*),
+producing large coherent color regions. **Mode 3D** lifts every facet corner to a
+deterministic hash height (*Relief*) — shared cut vertices lift identically, so the
+surface never tears — interpolates facet interiors over centroid-fan triangles for
+sharp folds, bends the resampled hatch over them, applies true Lambert spacing
+modulation (facets facing away from the Light go denser; normalized so Relief 0
+reproduces Flat line-for-line), then tilts the sheet (*Tilt*) and refits it to the
+margin box. Lines alternate direction per facet for efficient plotting; *Outline*
+draws facet borders, folded too in 3D.
 
 ## Modifiers (65)
 
