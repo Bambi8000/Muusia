@@ -3,6 +3,8 @@ import { DEFS_NODES } from "./defs/index.js";
 import { EXAMPLES } from "./examples.js";
 import { PENS_DEFAULT, PENS, savePens, resetPens, mulberry32, hash2, noise2, EMPTY, pathLength, resample, applyStyle, Pin, parseSVG, signedArea, SFONT, fontStrokes, isStyle } from "./defs/helpers.js";
 import DroPanel from "./dro.jsx";
+import { makeAnalyzeButton, intakeImage } from "./analyze.js";
+const AnalyzeButton = makeAnalyzeButton(React);
 
 /* ============================================================
    MUUSIA v2.20
@@ -904,7 +906,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.45"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.46"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -3137,6 +3139,18 @@ export default function App() {
                                     })));
                                   } : null}
                                   onFileText={pd.type === "file" && def.fileImage ? (dataUrl, name) => {
+                                    if (def.faceAnalysis) {
+                                      intakeImage(dataUrl, name).then(({ img, src }) => {
+                                        setNodesL((ns) => ns.map((n) => n.id === node.id
+                                          ? { ...n, params: { ...n.params, [pd.key]: name }, data: { ...(n.data || {}), img, src, analysis: undefined } }
+                                          : n));
+                                      }).catch((err) => {
+                                        setNodesL((ns) => ns.map((n) => n.id === node.id
+                                          ? { ...n, params: { ...n.params, [pd.key]: "Error: " + err.message } }
+                                          : n));
+                                      });
+                                      return;
+                                    }
                                     const img = new Image();
                                     img.onload = () => {
                                       const MAX = 160;
@@ -3181,6 +3195,11 @@ export default function App() {
                               );
                             })
                           )}
+                          {setupFor !== node.id && def.faceAnalysis && node.data && node.data.src ? (
+                            <AnalyzeButton data={node.data} T={T}
+                              onResult={(analysis) => setNodesL((ns) => ns.map((n) => n.id === node.id
+                                ? { ...n, data: { ...(n.data || {}), analysis } } : n))} />
+                          ) : null}
                         </div>
                       </>
                     )}
