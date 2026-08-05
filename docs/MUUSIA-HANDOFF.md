@@ -54,6 +54,8 @@ text are **English**.
   MUUSIA-PLOTTER-MECH-HANDOFF.md (X-Carve build: mechanics + ink blot tool),
   MUUSIA-MAGNET-JIG-SPEC.md (safe-areas / laser jig feature, design complete),
   MUUSIA-NODES-SRC.md (generated here by `tools/make-src-bundle.mjs`).
+  MUUSIA-PORTRAIT-SPEC.md (Portrait node: face analysis + tonal rounds +
+  one-line modes, design complete),
 - `klipper/` — machine-side configs at the repo root: `printer.cfg` draft for
   the BTT Kraken, `moonraker-cors.snippet.conf`, pen-cal drafts, README with
   the firmware build recipe. Version-controlled source of truth; live copies
