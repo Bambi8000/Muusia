@@ -1,13 +1,13 @@
 # MUUSIA v2.48 — Node Reference
 
-All 210 built-in nodes. Conventions used below: most generators accept a **Style**
+All 217 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (116)
+## Generators (121)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -612,7 +612,7 @@ reproduces Flat line-for-line), then tilts the sheet (*Tilt*) and refits it to t
 margin box. Lines alternate direction per facet for efficient plotting; *Outline*
 draws facet borders, folded too in 3D.
 
-## Modifiers (65)
+## Modifiers (67)
 
 **Apply Style** — applies a Stroke style to existing paths.
 

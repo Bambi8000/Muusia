@@ -29,8 +29,8 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **208 files** (210 nodes total with
-  group + reititys; Generators 116, Modifiers 65). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **215 files** (217 nodes total with
+  group + reititys; Generators 121, Modifiers 67). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -80,7 +80,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (208) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (215) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -126,6 +126,17 @@ text are **English**.
 - **Session start:** refresh project files (HANDOFF, NODES, NODES-SRC via
   `make-src-bundle.mjs`, NODE-API, App.jsx, analyze.js) so work never runs
   against stale copies.
+
+- **Doc batches as era scripts:** version-numbered doc updates (NODES.md
+  counts/paragraph anchors, HANDOFF history, NODE-API) ship as a one-shot
+  script in tools/era/ (patch-docs-vXXX.mjs) with OK/MISS/SKIP reporting —
+  no manual file surgery. Run once from the repo root, commit the script
+  with the docs.
+- **File delivery:** Daniel moves downloaded lab nodes to nodes-lab/ and
+  validators to tools/ himself; sessions deliver files + commands only, no
+  cp-from-Downloads sequences. Lab nodes must be plain ({...}) object
+  literals — bake.mjs rejects IIFEs; share compute/overlay logic via a
+  this._helper method (the engine calls both as methods on the def).
 
 ## Architecture — do not break these
 
@@ -431,6 +442,30 @@ text are **English**.
   AnalyzeButton 3). Split Pens baked: 12-way pen router + Preview tap on
   pin 1 (selector never touches routing outputs). Validators run against the
   real-photo fixture in fixtures/.
+
+- **2.48** two nodes, the needle-toolhead workflow. **Needle Punch**
+  (mod/penout: lines → piercings as degenerate 2-pt paths carrying z = plunge
+  below pen-down — ZERO engine changes: the Brush Z / Fade Out z architecture
+  plus the existing penDown/penUp/zHop profile fields already produce the stab
+  cycle, proven by running punches through toGcode; Interval/Intersections/
+  Both/Centers modes, arc-length spacing modulation Wave/Noise/Ramp/Jitter with
+  a 0.1 mm progress floor, Min gap dedupe so the needle never re-stabs a hole;
+  punches render as dots via the preview's round linecap). **Braille**
+  (gen/textimg: Grade 1 dot circles on the 2.5 mm grid, Nordic å/ä/ö,
+  punctuation verified against the Finnish table on fi.wikipedia — piste 3 and
+  huutomerkki 256 differ from UEB; number/capital signs, cell-level stamp
+  Mirror, SFONT letter overlay with Show letters toggle; one _layout method
+  shared by compute and overlay so guides cannot drift — called via this,
+  which works because the engine invokes compute/overlay as methods on the
+  def). Lessons: bake.mjs rejects IIFE-wrapped lab files ("Unexpected token
+  ')'") — lab nodes must be plain ({...}) literals, share logic via a
+  this._helper instead; mirror must reflect around the CELL GRID, not the
+  occupied-ink bbox; intersection punches need the adjacency skip incl. closed
+  wraparound or path joints punch falsely; a stale Downloads copy ("name
+  (1).ext", the known browser no-overwrite pitfall) shipped an old node once
+  — grep a sentinel string after moving files; and HANDOFF's own repo-layout
+  counts were stale (213 files pre-bake, not 208) — doc counts come from
+  `ls src/defs/nodes | wc -l` + per-cat greps, never from HANDOFF.
 
 ## Hard-won pitfalls (keep)
 
