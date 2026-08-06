@@ -105,6 +105,8 @@ that. Prefer resolution parameters so the user can trade detail for speed.
 `ins: [Pin("paths", "Target"), Pin("paths", "Mask")]`,
 `outs: (node) => Array.from({length: Math.round(node.params.count)}, (_, i) => Pin("paths", String(i+1)))`.
 
+| `faceAnalysis` | boolean, optional | Definition-level flag. File intake switches to the portrait pipeline (EXIF orientation honored, long side resized to 1280 px, re-encoded JPEG frozen at `node.data.src`) and the inspector shows an **Analyze face** button when a photo is loaded. The result is frozen to `node.data.analysis` (schema: MUUSIA-PORTRAIT-SPEC.md); a new photo invalidates it. Compute reads only frozen data. |
+
 ## 4. Parameter UI types
 
 Each descriptor: `{ key, label, type, def, ... }`. The engine auto-generates the UI row

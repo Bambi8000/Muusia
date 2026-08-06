@@ -1,4 +1,6 @@
-({
+import { Pin, PENS, mulberry32, resample, applyStyle } from "../helpers.js";
+
+export default {
   key: "portrait",
   name: "Portrait",
   cat: "gen",
@@ -6,12 +8,14 @@
   fileImage: true,
   faceAnalysis: true,
   fileAccept: ".jpg,.jpeg,.png",
-  desc: "Draws a photo the way a portraitist works: several ROUNDS over the same sheet, each round hatching only where the image is still darker than the ink already placed (a digital residual), with the 'squint' blur narrowing round by round - big masses first, detail last. Round = pen: with Pen assignment Cycle each round gets the next pen, so the G-code pauses at every round and you decide at the machine whether to continue (finer tip for detail rounds). Hatch mode Flow follows tonal contours, Cross-hatch rotates 45/135/90 degrees per round, Mix alternates. Detail scales how fine the last rounds get; Ink strength calibrates the simulated pen darkness (plot the value in with a small hatch swatch first). The Focus ellipse multiplies detail weight inside it - put it on the eyes. Strokes hard-stop at the White cutoff boundary so eye whites and catchlights stay clean. Modes Spiral and TSP instead draw the whole image as ONE unbroken line: Spiral modulates a wave along an Archimedean spiral by darkness, TSP densifies a dot cloud and links it with a seeded traveling-salesman tour (Quality = 2-opt budget). Chain into Travel Sort as usual; round layer boundaries are preserved.",
+  desc: "Draws a photo the way a portraitist works. Modes Features+tonal and Features only read the frozen face analysis (Analyze face button): landmark chains become smoothed splines pruned in importance order by Line economy (max = all contours, min = just the eyes), the face oval splits into a high-importance jaw arc and an early-dropping upper arc, glasses come from the parsed region behind their own checkbox, and hair is drawn as FLOW, not outline - streamlines seeded in the hair mask along the frozen flow field, density from image darkness. Feature lines take the node's Pen; tonal rounds continue on the next pens with the feature ink already deposited, so shading automatically avoids the lines. Without a valid analysis the feature modes degrade to pure Tonal. Tonal works with no ML at all: several ROUNDS over the same sheet, each hatching only where the image is still darker than the ink already placed (a digital residual), the 'squint' blur narrowing round by round - big masses first, detail last. Round = pen: with Pen assignment Cycle the G-code pauses at every round and you decide at the machine whether to continue. Hatch mode Flow follows tonal contours, Cross-hatch rotates 45/135/90 degrees per round, Mix alternates. Ink strength calibrates the simulated pen darkness (plot a small hatch swatch first). The Focus ellipse multiplies detail weight inside it. Strokes hard-stop at the White cutoff boundary so eye whites and catchlights stay clean. Modes Spiral and TSP draw the whole image as ONE unbroken line. Chain into Travel Sort as usual; layer boundaries are preserved.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
     { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
-    { key: "mode", label: "Mode", type: "select", options: ["Tonal", "Spiral", "TSP"], def: "Tonal" },
+    { key: "mode", label: "Mode", type: "select", options: ["Tonal", "Features+tonal", "Features only", "Spiral", "TSP"], def: "Tonal" },
+    { key: "economy", label: "Line economy", type: "slider", min: 0, max: 1, step: 0.01, def: 0.7 },
+    { key: "glassesOn", label: "Glasses lines", type: "check", def: true },
     { key: "rounds", label: "Rounds", type: "slider", min: 1, max: 8, step: 1, def: 4 },
     { key: "detail", label: "Detail", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5 },
     { key: "penW", label: "Pen width mm", type: "slider", min: 0.2, max: 2, step: 0.05, def: 0.5 },
@@ -31,7 +35,7 @@
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
 
-  overlay(p, ctx) {
+  overlay(p, ctx, ins, node) {
     const { W, H } = ctx;
     const m = Math.max(0, p.margin);
     const guides = [{ kind: "rect", x: m, y: m, w: Math.max(0, W - 2 * m), h: Math.max(0, H - 2 * m) }];
@@ -45,6 +49,37 @@
     }
     guides.push({ kind: "poly", pts });
     guides.push({ kind: "point", x: ex, y: ey });
+    /* frozen analysis as dashed guides - one glance shows whether the
+       analysis landed, before any ink (needs the engine's 4th overlay arg) */
+    try {
+      const a = node && node.data && node.data.analysis;
+      const img = node && node.data && node.data.img;
+      if (a && a.v === 1 && a.img && a.img.w > 0 && img && img.w > 0) {
+        const boxW = W - 2 * m, boxH = H - 2 * m;
+        const sc = Math.min(boxW / img.w, boxH / img.h);
+        const pxs = sc * (img.w / a.img.w);
+        const x0 = (W - img.w * sc) / 2, y0 = (H - img.h * sc) / 2;
+        const put = (cpts, closed) => {
+          if (!Array.isArray(cpts) || cpts.length < 2) return;
+          const q = cpts.map((u) => [x0 + u[0] * pxs, y0 + u[1] * pxs]);
+          if (closed) q.push(q[0].slice());
+          guides.push({ kind: "poly", pts: q });
+        };
+        if (a.face && a.face.found && a.face.chains) {
+          let nC = 0;
+          for (const c of Object.values(a.face.chains)) {
+            if (nC >= 12 || !c || !Array.isArray(c.pts)) continue;
+            put(c.pts, !!c.closed); nC++;
+          }
+        }
+        for (const key of ["hair", "glasses"]) {
+          const r = a.regions && a.regions[key];
+          if (!r || !Array.isArray(r.outline)) continue;
+          put(r.outline, true);
+          (r.holes || []).slice(0, 4).forEach((hh) => put(hh, true));
+        }
+      }
+    } catch (e) { /* garbage analysis never breaks the overlay */ }
     return guides;
   },
 
@@ -250,9 +285,12 @@
 
     const detail = Math.max(0, Math.min(1, p.detail));
     const L0 = Math.round(p.layer);
+    /* decision (spec open question 4): feature lines take the node's own Pen
+       slot; tonal rounds continue the assignment sequence AFTER it */
+    let penShift = 0;
     const penFor = (r) =>
-      p.penAssign === "Cycle" ? (L0 + r) % PENS.length :
-      p.penAssign === "Start+1" ? Math.min(PENS.length - 1, L0 + r) : L0;
+      p.penAssign === "Cycle" ? (L0 + penShift + r) % PENS.length :
+      p.penAssign === "Start+1" ? Math.min(PENS.length - 1, L0 + penShift + r) : L0;
 
     /* focus ellipse multiplier - same math as overlay() */
     const ex = (W * p.focusX) / 100, ey = (H * p.focusY) / 100;
@@ -282,6 +320,202 @@
 
     const paths = [];
     let total = 0;
+
+    /* ================= FEATURE LINES (phase 2B) =================
+       Raw landmark chains drawn 1:1 are geometrically right and artistically
+       dead - so: importance-ordered pruning (Line economy), splines, hair as
+       FLOW not outline, and every feature line deposits its ink into I so the
+       tonal rounds underneath automatically avoid the lines.
+       Degradation rule: missing/garbage analysis -> both feature modes run
+       pure Tonal; a valid analysis without a face still draws hair. */
+    const featMode = p.mode === "Features+tonal" || p.mode === "Features only";
+    if (featMode) {
+      const A = (() => {
+        try {
+          const a = node && node.data && node.data.analysis;
+          if (!a || a.v !== 1 || !a.img || !(a.img.w > 0) || !(a.img.h > 0)) return null;
+          return a;
+        } catch (e) { return null; }
+      })();
+      let featCount = 0;
+      if (A) {
+        const pxs = sc * (img.w / A.img.w); /* analysis px -> mm, survives res drift */
+        const toMM = (q) => [x0 + q[0] * pxs, y0 + q[1] * pxs];
+        const finitePts = (c) => Array.isArray(c) && c.length >= 2 &&
+          c.every((q) => Array.isArray(q) && Number.isFinite(q[0]) && Number.isFinite(q[1]));
+        const chaikin = (pts, closed, iters) => {
+          let cur = pts;
+          for (let k = 0; k < iters; k++) {
+            const out = [];
+            const n = cur.length;
+            const lim = closed ? n : n - 1;
+            if (!closed) out.push(cur[0].slice());
+            for (let i = 0; i < lim; i++) {
+              const a0 = cur[i], b0 = cur[(i + 1) % n];
+              out.push([a0[0] * 0.75 + b0[0] * 0.25, a0[1] * 0.75 + b0[1] * 0.25]);
+              out.push([a0[0] * 0.25 + b0[0] * 0.75, a0[1] * 0.25 + b0[1] * 0.75]);
+            }
+            if (!closed) out.push(cur[n - 1].slice());
+            cur = out;
+          }
+          return cur;
+        };
+        const depositPath = (ptsMM, closed) => {
+          const q = resample(ptsMM, closed, cell); /* one deposit per grid cell of travel */
+          for (const [qx, qy] of q) {
+            const ci = cellIdxAt(qx, qy);
+            if (ci >= 0) I[ci] += dep * 1.15; /* feature ink slightly heavy: shading keeps clear */
+          }
+        };
+        /* AFFINE INVARIANT (spec checklist): all feature geometry is generated
+           in ANALYSIS PIXEL SPACE - smoothing, resampling, seeding, marching -
+           and mapped to mm only on emit. Margin/paper changes are then a pure
+           affine remap of the output, bit-comparable across fits. */
+        const PX_STEP = 2.5; /* chain resample step, analysis px */
+        const emitFeat = (ptsPx, closed) => {
+          if (!finitePts(ptsPx)) return;
+          let q = chaikin(ptsPx, closed, 2);
+          q = resample(q, closed, PX_STEP);
+          if (!q || q.length < 2) return;
+          if (total + q.length > POINT_BUDGET) return;
+          const mm = q.map(toMM);
+          paths.push({ pts: mm, closed, layer: L0 });
+          total += mm.length;
+          featCount++;
+          depositPath(mm, closed);
+        };
+
+        /* importance table (spec open question 3 - initial values, tune by eye):
+           economy 0 keeps only the eyes, 1 keeps everything */
+        const IMP = { eyeL: 1, eyeR: 1, irisL: 0.95, irisR: 0.95, lipsOuter: 0.9, jaw: 0.85,
+          browL: 0.8, browR: 0.8, nostrils: 0.75, glasses: 0.7, lipsInner: 0.55,
+          noseBridge: 0.5, ovalUpper: 0.3 };
+        const thr = 0.97 - 0.94 * Math.max(0, Math.min(1, p.economy));
+        const keep = (k) => (IMP[k] != null ? IMP[k] : 0.5) >= thr;
+
+        const F = A.face && A.face.found === true && A.face.chains ? A.face.chains : null;
+        if (F) {
+          for (const [k, c] of Object.entries(F)) {
+            if (k === "faceOval" || !keep(k) || !c || !finitePts(c.pts)) continue;
+            emitFeat(c.pts, !!c.closed);
+          }
+          /* faceOval splits: jaw (lower arc, high importance) vs upper oval
+             (drops early - a real artist omits half the outline) */
+          const ov = F.faceOval;
+          if (ov && finitePts(ov.pts) && ov.pts.length >= 6) {
+            const cy = ov.pts.reduce((s, q) => s + q[1], 0) / ov.pts.length;
+            const n = ov.pts.length;
+            const lower = ov.pts.map((q) => q[1] > cy);
+            let s0 = -1; /* start of the longest lower run (wraparound-safe) */
+            for (let i = 0; i < n; i++) if (lower[i] && !lower[(i - 1 + n) % n]) { s0 = i; break; }
+            if (s0 >= 0) {
+              const jaw = [], upper = [];
+              for (let i = 0; i < n; i++) {
+                const q = ov.pts[(s0 + i) % n];
+                (lower[(s0 + i) % n] ? jaw : upper).push(q);
+              }
+              if (keep("jaw") && jaw.length >= 3) emitFeat(jaw, false);
+              if (keep("ovalUpper") && upper.length >= 3) emitFeat(upper, false);
+            } else if (keep("ovalUpper")) emitFeat(ov.pts, !!ov.closed);
+          }
+        }
+
+        /* glasses: manual checkbox (spec open question 5) AND economy gate */
+        const gl = A.regions && A.regions.glasses;
+        if (p.glassesOn && keep("glasses") && gl && finitePts(gl.outline)) {
+          emitFeat(gl.outline, true);
+          (gl.holes || []).forEach((hh) => { if (finitePts(hh)) emitFeat(hh, true); });
+        }
+
+        /* hair is flow, not outline: streamlines along the frozen hairFlow
+           field, density from darkness. Generated ENTIRELY in analysis px
+           space (affine invariant); density is regulated by a px-space
+           occupancy raster, not the mm ink grid. */
+        const hr = A.regions && A.regions.hair;
+        const HF = A.hairFlow;
+        if (hr && finitePts(hr.outline) && HF && Array.isArray(HF.ang) &&
+            HF.ang.length === HF.w * HF.h && HF.cell > 0) {
+          const pip = (x, y, poly) => {
+            let inside = false;
+            for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+              const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+              if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+            }
+            return inside;
+          };
+          const holesPx = (hr.holes || []).filter(finitePts);
+          const inHair = (x, y) => pip(x, y, hr.outline) && !holesPx.some((hh) => pip(x, y, hh));
+          const darkPx = (x, y) => {
+            const xi = Math.max(0, Math.min(A.img.w - 1, Math.round((x / A.img.w) * img.w)));
+            const yi = Math.max(0, Math.min(A.img.h - 1, Math.round((y / A.img.h) * img.h)));
+            const v = img.g[Math.min(img.h - 1, yi) * img.w + Math.min(img.w - 1, xi)];
+            return Math.pow(Math.max(0, Math.min(1, v)), gamma);
+          };
+          const flowAt = (x, y) => {
+            const gxp = Math.max(0, Math.min(HF.w - 1, Math.floor(x / HF.cell)));
+            const gyp = Math.max(0, Math.min(HF.h - 1, Math.floor(y / HF.cell)));
+            const i = gyp * HF.w + gxp;
+            return { a: HF.ang[i], c: HF.coh[i] };
+          };
+          /* fallback for incoherent cells: coherence-weighted dominant direction */
+          let dsx = 0, dsy = 0;
+          for (let i = 0; i < HF.ang.length; i++) { dsx += HF.coh[i] * Math.cos(2 * HF.ang[i]); dsy += HF.coh[i] * Math.sin(2 * HF.ang[i]); }
+          const domA = 0.5 * Math.atan2(dsy, dsx);
+          /* occupancy raster: ~one streamline per OC px cell keeps pen spacing */
+          const OC = 8;
+          const ow = Math.max(1, Math.ceil(A.img.w / OC)), ohh = Math.max(1, Math.ceil(A.img.h / OC));
+          const occ = new Uint8Array(ow * ohh);
+          const occAt = (x, y) => Math.max(0, Math.min(ohh - 1, Math.floor(y / OC))) * ow + Math.max(0, Math.min(ow - 1, Math.floor(x / OC)));
+          let bx0 = Infinity, bx1 = -Infinity, by0 = Infinity, by1 = -Infinity;
+          for (const q of hr.outline) { bx0 = Math.min(bx0, q[0]); bx1 = Math.max(bx1, q[0]); by0 = Math.min(by0, q[1]); by1 = Math.max(by1, q[1]); }
+          const rngH = mulberry32(p.seed * 7919 + 331);
+          const stepH = 3, maxStepsH = 200, minLenPx = 16;
+          const marchH = (sx0, sy0, sgn) => {
+            const out = [];
+            let x = sx0, y = sy0, prev = null;
+            for (let s = 0; s < maxStepsH; s++) {
+              const f = flowAt(x, y);
+              const aa = f.c < 0.2 ? domA : f.a;
+              let dx = Math.cos(aa), dy = Math.sin(aa);
+              if (prev ? (dx * prev[0] + dy * prev[1] < 0) : sgn < 0) { dx = -dx; dy = -dy; }
+              prev = [dx, dy];
+              const nx = x + dx * stepH, ny = y + dy * stepH;
+              if (!inHair(nx, ny) || darkPx(nx, ny) <= cut) break;
+              if (occ[occAt(nx, ny)] >= 2) break; /* lane already taken */
+              out.push([nx, ny]);
+              x = nx; y = ny;
+            }
+            return out;
+          };
+          const attemptsH = quality * 1400;
+          for (let a2 = 0; a2 < attemptsH; a2++) {
+            if (total > POINT_BUDGET - 2000) break;
+            const x = bx0 + rngH() * (bx1 - bx0), y = by0 + rngH() * (by1 - by0);
+            if (!inHair(x, y)) continue;
+            const d = darkPx(x, y);
+            if (d <= cut) continue;
+            if (rngH() > (d - cut) / (1 - cut)) continue;
+            if (occ[occAt(x, y)] >= 1) continue; /* seed only in free lanes */
+            const fwd = marchH(x, y, 1), bck = marchH(x, y, -1);
+            const ptsPx = [];
+            for (let i = bck.length - 1; i >= 0; i--) ptsPx.push(bck[i]);
+            ptsPx.push([x, y]);
+            for (const q of fwd) ptsPx.push(q);
+            if ((ptsPx.length - 1) * stepH < minLenPx) continue;
+            if (total + ptsPx.length > POINT_BUDGET) break;
+            for (const q of ptsPx) { const oi = occAt(q[0], q[1]); if (occ[oi] < 255) occ[oi]++; }
+            const mm = ptsPx.map(toMM);
+            paths.push({ pts: mm, closed: false, layer: L0 });
+            total += mm.length;
+            featCount++;
+            depositPath(mm, false);
+          }
+        }
+      }
+      if (p.mode === "Features only" && featCount > 0) return applyStyle({ paths }, ins[0]);
+      penShift = featCount > 0 ? 1 : 0;
+      /* Features only with nothing to draw falls through to Tonal (degrade) */
+    }
 
     for (let r = 0; r < rounds; r++) {
       const brMm = 6 * Math.pow(fall, r);           /* the round's "squint" */
@@ -395,4 +629,4 @@
 
     return applyStyle({ paths }, ins[0]);
   },
-})
+};

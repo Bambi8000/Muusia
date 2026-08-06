@@ -294,5 +294,125 @@ console.log("rounds liveness");
   ok(r5.paths.length > r1.paths.length, "more rounds -> more paths (" + r1.paths.length + " -> " + r5.paths.length + ")");
 }
 
+/* ---------- PHASE B: feature lines from the frozen real-photo fixture ---------- */
+console.log("phase B: fixture feature lines");
+{
+  const A = JSON.parse(fs.readFileSync(new URL("../fixtures/portrait-analysis-v1.json", import.meta.url), "utf8"));
+  /* synthetic mid-gray image matching the analysis dimensions - geometry
+     comes from the frozen analysis, tone from this stand-in (no ML, no net) */
+  const AW = A.img.w, AH = A.img.h;
+  const ag = new Float32Array(AW * AH).fill(0.55);
+  const nodeA = { data: { img: { w: AW, h: AH, g: ag }, analysis: A } };
+  const runA = (over = {}) => N.compute([undefined], P(over), CTX, nodeA);
+  const FA = (() => { const m = Math.max(0, defs.margin);
+    const s = Math.min((CTX.W - 2 * m) / AW, (CTX.H - 2 * m) / AH);
+    return { sc: s, x0: (CTX.W - AW * s) / 2, y0: (CTX.H - AH * s) / 2 }; })();
+
+  const fOnly = runA({ mode: "Features only", economy: 1 });
+  ok(fOnly.paths.length > 20, "Features only draws (" + fOnly.paths.length + " paths, " + totalPts(fOnly) + " pts)");
+  ok(fOnly.paths.every((pa) => pa.layer === Math.round(defs.layer)), "feature lines take the node's own Pen slot");
+  ok(allPts(fOnly).every(([x, y]) => x >= -0.01 && x <= CTX.W + 0.01 && y >= -0.01 && y <= CTX.H + 0.01), "in bounds");
+  ok(J(fOnly) === J(runA({ mode: "Features only", economy: 1 })), "deterministic");
+
+  /* economy: eyes always survive, everything prunes toward them */
+  const fMin = runA({ mode: "Features only", economy: 0 });
+  ok(fMin.paths.length < fOnly.paths.length, "Line economy prunes (" + fOnly.paths.length + " -> " + fMin.paths.length + " paths)");
+  const eyeC = A.face.chains.eyeL.pts.reduce((s, q) => [s[0] + q[0], s[1] + q[1]], [0, 0]).map((v) => v / A.face.chains.eyeL.pts.length);
+  const eyeMM = [FA.x0 + eyeC[0] * FA.sc, FA.y0 + eyeC[1] * FA.sc];
+  const nearEye = (r) => r.paths.some((pa) => {
+    const mid = pa.pts[Math.floor(pa.pts.length / 2)];
+    return Math.hypot(mid[0] - eyeMM[0], mid[1] - eyeMM[1]) < 8;
+  });
+  ok(nearEye(fMin), "eyes survive economy 0");
+
+  /* glasses checkbox */
+  const gOn = runA({ mode: "Features only", economy: 1, glassesOn: true });
+  const gOff = runA({ mode: "Features only", economy: 1, glassesOn: false });
+  ok(gOn.paths.length > gOff.paths.length, "Glasses lines checkbox is live (" + gOn.paths.length + " vs " + gOff.paths.length + " paths)");
+
+  /* hair streamlines follow the frozen flow field */
+  {
+    const oMM = A.regions.hair.outline.map((q) => [FA.x0 + q[0] * FA.sc, FA.y0 + q[1] * FA.sc]);
+    const pip = (x, y, poly) => { let ins = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) ins = !ins;
+      } return ins; };
+    const HF = A.hairFlow;
+    const devs = [];
+    let hairPaths = 0;
+    for (const pa of fOnly.paths) {
+      const mid = pa.pts[Math.floor(pa.pts.length / 2)];
+      if (!pip(mid[0], mid[1], oMM) || pa.pts.length < 6) continue;
+      hairPaths++;
+      for (let i = 2; i < pa.pts.length - 2; i += 4) {
+        const [x1, y1] = pa.pts[i - 1], [x2, y2] = pa.pts[i + 1];
+        const segA = Math.atan2(y2 - y1, x2 - x1);
+        const gx = Math.max(0, Math.min(HF.w - 1, Math.floor(((pa.pts[i][0] - FA.x0) / FA.sc) / HF.cell)));
+        const gy = Math.max(0, Math.min(HF.h - 1, Math.floor(((pa.pts[i][1] - FA.y0) / FA.sc) / HF.cell)));
+        const fi = gy * HF.w + gx;
+        if (HF.coh[fi] < 0.5) continue;
+        let d = Math.abs(segA - HF.ang[fi]) % Math.PI;
+        devs.push(Math.min(d, Math.PI - d));
+      }
+    }
+    devs.sort((a, b) => a - b);
+    const med = devs.length ? devs[Math.floor(devs.length / 2)] * 180 / Math.PI : 999;
+    ok(hairPaths > 15, "hair streamlines drawn inside the hair mask (" + hairPaths + " paths)");
+    ok(devs.length > 100 && med < 20, "streamlines follow hairFlow (median dev " + med.toFixed(1) + " deg, n=" + devs.length + ")");
+  }
+
+  /* margin change = pure affine remap of the output (spec checklist) */
+  {
+    const a1 = runA({ mode: "Features only", economy: 1, margin: 12 });
+    const a2 = runA({ mode: "Features only", economy: 1, margin: 24 });
+    const f1 = (() => { const s = Math.min((CTX.W - 24) / AW, (CTX.H - 24) / AH); return { s, x0: (CTX.W - AW * s) / 2, y0: (CTX.H - AH * s) / 2 }; })();
+    const f2 = (() => { const s = Math.min((CTX.W - 48) / AW, (CTX.H - 48) / AH); return { s, x0: (CTX.W - AW * s) / 2, y0: (CTX.H - AH * s) / 2 }; })();
+    let maxErr = 0;
+    const pa1 = a1.paths[0].pts, pa2 = a2.paths[0].pts;
+    ok(a1.paths.length === a2.paths.length && pa1.length === pa2.length, "margin change keeps path structure");
+    for (let i = 0; i < Math.min(pa1.length, pa2.length); i++) {
+      const ex2 = [(pa1[i][0] - f1.x0) / f1.s * f2.s + f2.x0, (pa1[i][1] - f1.y0) / f1.s * f2.s + f2.y0];
+      maxErr = Math.max(maxErr, Math.hypot(ex2[0] - pa2[i][0], ex2[1] - pa2[i][1]));
+    }
+    ok(maxErr < 1e-6, "margin change is a pure affine remap (max err " + maxErr.toExponential(1) + " mm)");
+  }
+
+  /* Features+tonal: features first on pen L0, tonal continues shifted; prefix holds */
+  {
+    const ft = runA({ mode: "Features+tonal", rounds: 3, penAssign: "Cycle", layer: 0, economy: 1 });
+    const fCount = fOnly.paths.length;
+    ok(ft.paths.length > fCount, "tonal rounds add on top of features (" + fCount + " -> " + ft.paths.length + ")");
+    ok(JSON.stringify(ft.paths.slice(0, fCount)) === J(fOnly), "feature prefix identical between modes");
+    const tonalLayers = [...new Set(ft.paths.slice(fCount).map((pa) => pa.layer))];
+    ok(tonalLayers.every((l) => l >= 1), "tonal pens shifted past the feature pen (layers " + tonalLayers.join(",") + ")");
+    const a2r = runA({ mode: "Features+tonal", rounds: 5, penAssign: "Cycle", layer: 0, economy: 1 });
+    ok(JSON.stringify(ft.paths) === JSON.stringify(a2r.paths.slice(0, ft.paths.length)), "prefix invariant holds in Features+tonal");
+  }
+
+  /* degradation: garbage / missing / found:false never crash, fall back to Tonal */
+  {
+    const base = J(runA({ mode: "Tonal", rounds: 2 }));
+    for (const [bad, label] of [[{ v: 99 }, "wrong version"], ["garbage", "a string"], [{ v: 1, img: { w: NaN } }, "NaN img"], [undefined, "missing analysis"]]) {
+      const nb = { data: { img: { w: AW, h: AH, g: ag }, analysis: bad } };
+      const r = N.compute([undefined], P({ mode: "Features+tonal", rounds: 2 }), CTX, nb);
+      ok(JSON.stringify(r.paths) === base, "degrades to Tonal on " + label);
+    }
+    const noFace = { ...A, face: { found: false }, regions: {}, hairFlow: null };
+    const nb2 = { data: { img: { w: AW, h: AH, g: ag }, analysis: noFace } };
+    const r2 = N.compute([undefined], P({ mode: "Features only", rounds: 2 }), CTX, nb2);
+    ok(JSON.stringify(r2.paths) === J(runA({ mode: "Tonal", rounds: 2 })), "found:false with no regions degrades to Tonal");
+  }
+
+  /* overlay guides from frozen analysis (engine's additive 4th arg) */
+  {
+    const g0 = N.overlay(P(), CTX, [undefined]);
+    const g1 = N.overlay(P(), CTX, [undefined], nodeA);
+    ok(Array.isArray(g0) && g0.length >= 3, "overlay without node still works (legacy signature)");
+    ok(g1.length > g0.length + 8, "analysis chains + regions appear as guides (" + g0.length + " -> " + g1.length + ")");
+    ok(N.overlay(P(), CTX, [undefined], { data: { img: nodeA.data.img, analysis: "garbage" } }).length === g0.length, "garbage analysis never breaks the overlay");
+  }
+}
+
 console.log("\n" + pass + " passed, " + fail + " failed (" + from + " version)");
 if (fail > 0) process.exitCode = 1;

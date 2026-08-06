@@ -381,6 +381,23 @@ text are **English**.
   oracles must size the facet so the effect exceeds the detection threshold
   (an A4 facet under ±15 mm relief tilts <1° — the Lambert check needed a
   60x60 canvas to have power).
+  - **2.46** Portrait phase 2A - face analysis infra, no node compute changes.
+  src/analyze.js (DRO mould, no react import so validators import it
+  directly): intake for faceAnalysis nodes (EXIF orientation, 1280 px,
+  frozen JPEG at node.data.src - legacy 160 px path untouched for all
+  other image nodes), lazy CDN engines with Cache API + SHA-256 recorded
+  in analysis.engine, MediaPipe landmarker chains, SegFormer face parsing
+  (jonathandinu/face-parsing, pinned commit; CELEB table matches the
+  model's ACTUAL id2label - hair=13, glasses=3, NOT classic BiSeNet
+  order), marching-squares vectorization + DP + smoothing, hairFlow
+  structure tensor, schema v1 + shared structural validator. Analyze
+  button seam applied via tools/era/patch-analyze.mjs (3 anchors);
+  POST-PUSH GUARD: grep -c "AnalyzeButton" src/App.jsx must print 3
+  (alongside DroPanel 2). Real-photo fixture frozen to fixtures/
+  (portrait-photo.jpg + portrait-analysis-v1.json) - phase B geometry
+  tests run against it with no ML and no network. Validator lesson: the
+  guessed parsing-model URL and label order were both wrong until
+  verified against the live repo - pin AND verify, never assume.
 
 ## Hard-won pitfalls (keep)
 
