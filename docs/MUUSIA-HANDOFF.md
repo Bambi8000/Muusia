@@ -112,6 +112,21 @@ text are **English**.
    history **immediately after every push** — the standing doc-batch rule
    (agreed v2.38): docs never lag a release.
 
+## Working conventions (collaboration)
+
+- **Command sequences, always in full:** every procedure — release, patch,
+  test run, file moves — is delivered as complete copy-paste-ready zsh-safe
+  command blocks with expected outputs stated, never described in prose only.
+  No `#` comments in interactive commands (zsh).
+- **Complete files over diffs** when an edit is complex or error-prone:
+  deliver the whole replacement file rather than fragments to hand-merge.
+- **Docs never lag a release:** the doc batch (NODES.md paragraph + counts,
+  HANDOFF version history, NODE-API when the API moved) happens immediately
+  after every push — see the node authoring recipe above.
+- **Session start:** refresh project files (HANDOFF, NODES, NODES-SRC via
+  `make-src-bundle.mjs`, NODE-API, App.jsx, analyze.js) so work never runs
+  against stale copies.
+
 ## Architecture — do not break these
 
 - **One registry `DEFS`** = `{ ...DEFS_NODES, group, reititys }` in App.jsx. The
@@ -398,6 +413,24 @@ text are **English**.
   tests run against it with no ML and no network. Validator lesson: the
   guessed parsing-model URL and label order were both wrong until
   verified against the live repo - pin AND verify, never assume.
+  
+  - **2.47** Portrait phase 2B + Split Pens. Portrait baked (lab graduated):
+  feature lines from the frozen analysis - importance table (IMP const, tune
+  by eye), Line economy pruning, jaw/upper-oval split, glasses checkbox
+  (open question 5: manual), hair streamlines along the frozen hairFlow field
+  with px-space occupancy spacing (OC const). LOCKED: all feature geometry is
+  generated in ANALYSIS PIXEL SPACE and mapped to mm only on emit, so margin
+  and paper changes are a pure affine remap (validated to 3e-14 mm); the
+  first mm-space implementation failed this and was redesigned. Feature lines
+  take the node's Pen slot, tonal rounds shift by one (open question 4).
+  Feature ink pre-deposited into I so shading avoids the lines; invalid or
+  missing analysis degrades bit-identically to pure Tonal. Engine: overlay()
+  gains an additive 4th argument (the node) via tools/era/patch-overlay-node.mjs
+  so nodes carrying frozen data can draw it as guides; POST-PUSH GUARD:
+  grep -c "oins, primaryNode" src/App.jsx -> 1 (alongside DroPanel 2,
+  AnalyzeButton 3). Split Pens baked: 12-way pen router + Preview tap on
+  pin 1 (selector never touches routing outputs). Validators run against the
+  real-photo fixture in fixtures/.
 
 ## Hard-won pitfalls (keep)
 

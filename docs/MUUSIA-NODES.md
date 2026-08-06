@@ -1012,6 +1012,39 @@ frame; use Triangle for seamless loops.
 release as fractions of the loop. Starts and ends at zero, ideal for animations
 that appear, hold, and fade.
 
+**Portrait** (gen / textimg) draws a photo the way a portraitist works. Load a
+photo (JPEG/PNG; EXIF-corrected, resized to 1280 px, frozen to the node) and
+press Analyze face to freeze a face analysis into the node - landmark chains,
+parsed hair/glasses/skin regions and a hair flow field, all carried inside the
+patch. Modes Features+tonal and Features only turn the analysis into drawing:
+chains become smoothed splines pruned in importance order by Line economy
+(max = every contour, min = just the eyes; the face oval splits into a
+high-importance jaw arc and an early-dropping upper arc), glasses come from
+the parsed region behind their own checkbox, and hair is drawn as FLOW -
+streamlines seeded in the hair mask along the frozen flow field, density from
+darkness. Feature lines take the node's Pen; tonal rounds continue on the
+following pens with the feature ink already deposited, so shading avoids the
+lines. Tonal mode needs no analysis at all: residual rounds (draw only where
+the image is still darker than the ink placed so far) under a coarse-to-fine
+"squint" blur, Flow/Cross-hatch/Mix hatching, a Focus ellipse for manual
+attention, hard stops at the White cutoff so eye whites stay clean, and the
+locked prefix invariant that makes round = pen work - the G-code pauses at
+every round and you decide at the machine whether to continue. Spiral and TSP
+draw the whole image as one unbroken line. Without a valid analysis the
+feature modes degrade to pure Tonal. When selected, the overlay shows the
+analysis chains and regions as dashed guides before any ink.
+
+**Split Pens** (mod / penout) routes every incoming path to the output of its
+pen - one routing output per pen in PENS order on pins 2 onward, passthrough
+untouched, unused pens empty, out-of-range layers wrapping modulo the pen
+count. Pin 1 is a preview tap: the Preview pen selector picks which single pen
+it carries (or All), and since the preview window shows a selected node's
+first output, flipping the selector steps through the drawing one color at a
+time - without ever changing the routing outputs, so nothing can be
+accidentally soloed out of an export. The natural partner of Portrait's
+round = pen: split, restyle a round with Set Pen or drop it, and Merge the
+survivors.
+
 ## Routing (1)
 
 **Route** — legacy in-graph route optimizer (hidden from the palette; routing now
