@@ -580,7 +580,7 @@ const NODE_HELP = {
   occlude: "hidden-line removal. Wire closed shapes into the Occluders input to hide the Lines input behind them, or leave it unwired for painter mode where later closed shapes in the set hide earlier paths. Gap grows (+) or shrinks (-) the occlusion region so lines die cleanly before an edge.",
   offset: "parallel copies at a distance, with *Clean corners* cusp removal.",
   origami: "crease-pattern style folded-paper facets.",
-  origami_glitch_fold: "mirrors everything on one side of an adjustable fold line back across it, with a distance-proportional crease warp; optional Keep Original for layered folds. Output clamped to the sheet.",
+  origami_glitch_fold: "mirrors everything on one side of an adjustable fold line back across it, with a distance-proportional crease warp; optional Keep Original for layered folds. The fold pivots around a movable point (Pivot X/Y, or the canvas center) and Axis Position slides the line along its normal; dashed guides show the fold line, pivot and mirrored side. Output clamped to the sheet.",
   outline: "encloses each stroke in a closed capsule (offset both sides + semicircle caps); closed paths become two-ring bands. Turns strokes into fillable shapes: Outline \u2192 Hatch Fill = fat filled lines.",
   panelka: "brutalist Soviet panel block: floors \u00d7 sections (stairwells), panel seams every floor/section, windows (some lit with diagonals), balconies (none / alternating columns / all) with railing lines, doors with canopies, roof machine room and antennas, and an optional oblique side face with its own seams and end windows.",
   pencycle: "assigns pens to whole paths in rotation.",
@@ -906,7 +906,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.48"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.49"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1539,7 +1539,7 @@ function ParamRow({ def, value, onChange, wired, liveVal, portRef, portProps, on
           fontSize: 10, padding: "4px 9px", cursor: "pointer", flexShrink: 0,
         }}>
           {fileLabel || "Choose SVG…"}
-          <input type="file" accept={fileMode === "dataurl" ? "image/*" : (fileAccept || ".svg,image/svg+xml")} style={{ display: "none" }}
+          <input type="file" accept={fileAccept || (fileMode === "dataurl" ? "image/*" : ".svg,image/svg+xml")} style={{ display: "none" }}
             onChange={(e) => {
               const f = e.target.files && e.target.files[0];
               if (f && onFileText) {
@@ -3126,7 +3126,7 @@ export default function App() {
                                     onMouseDown: (e) => detachWire(e, node.id, "p:" + pd.key),
                                     onMouseUp: (e) => finishWire(e, node.id, "p:" + pd.key, "value"),
                                   } : null}
-                                  fileMode={def.fileImage ? "dataurl" : "text"}
+                                  fileMode={def.fileImage || def.fileBinary ? "dataurl" : "text"}
                                   fileLabel={def.fileImage ? "Choose image…" : (def.fileLabel || null)}
                                   fileAccept={def.fileAccept || null}
                                   onPromote={stack.length > 0 ? () => {
