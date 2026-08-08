@@ -99,6 +99,7 @@ that. Prefer resolution parameters so the user can trade detail for speed.
 | `onFile` | function, optional | `(text) => data` — parse a file for a `type:"file"` param. **The result is stored at `node.data.svg`** (the `.svg` key is a historical artifact of Import SVG and applies to every file node — Point Cloud reads its point data from there too); `compute` must read `node && node.data && node.data.svg`. |
 | `fileLabel` | string, optional | Label for the file picker button (default "Choose SVG…"). **Definition-level field** — set it next to `key`/`name`, not inside the param descriptor. |
 | `fileAccept` | string, optional | `accept` attribute for the file input, e.g. `".geojson,.json"` (default `.svg`). **Definition-level field**; a `fileAccept` placed inside the param descriptor is silently ignored. |
+| `fileBinary` | boolean, optional | Definition-level flag (v2.49). The file is read as a **dataURL** (like `fileImage`) but routed to the normal `onFile` branch, so `onFile` receives the dataURL string and can base64-decode binary formats (see Sound Line's WAV parser). Result still lands at `node.data.svg`. Set `fileAccept` too — it now wins over the `image/*` default. |
 
 **Pins:** create with `Pin(type, label?)` where type is `"paths"`, `"value"`, or
 `"style"`. Only equal types connect. Examples:

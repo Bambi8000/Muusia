@@ -80,7 +80,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (215) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (223) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -467,6 +467,46 @@ text are **English**.
   counts were stale (213 files pre-bake, not 208) — doc counts come from
   `ls src/defs/nodes | wc -l` + per-cat greps, never from HANDOFF.
 
+- **2.49** big batch: one engine seam, one node fix, EIGHT new nodes.
+  Engine: **fileBinary** definition flag (tools/era/patch-file-binary.mjs) —
+  file params read as dataURL and routed to the existing onFile branch, so
+  onFile can base64-decode binary formats; fileAccept now wins over the
+  image/* default; sentinel grep -c "fileBinary" src/App.jsx -> 1. Fix:
+  **Origami Glitch Fold** gained a movable pivot (Pivot X/Y + Pivot-at-center,
+  legacy Axis Position preserved, old patches byte-identical via useCenter
+  default) and the previously missing overlay (fold line clipped to the sheet
+  + pivot + mirrored-side arrow). New nodes: **Sound Line** (gen/textimg:
+  self-contained WAV parser in onFile — RIFF chunk walk, PCM 8/16/24/32 +
+  float32/64 + WAVE_FORMAT_EXTENSIBLE, mono mix, peak-normalize, freeze
+  ≤16384-sample signal + 2048-bin min/max envelope into node.data; Wave/
+  Envelope over margin Rows or wired Anchor paths, Fit / Speed mm/s + Loop,
+  Start/Segment, Smooth), **Flash Distort** (mod/deform: canvas-spanning
+  rotatable strips with patterned widths + shifts, EXACT boundary
+  interpolation — no resample gaps — and Sutherland-Hodgman Close cut faces
+  for the filled poster look), **Orbit Scribble** (gen/organic: continuous
+  drifting-loop strands in a soft-radially-bounded noise cloud + bead spirals
+  with core falloff on their own pen), **Smoke Mesh** (gen/organic: folded
+  ribbon-sheet veils as parallel filaments, twist/fold/ripple, auto detail
+  shrink under the point budget), **Contour Field** (gen/scientific: coarse-
+  grid marching squares with saddle disambiguation, chained level lines,
+  SFONT edge numbers with greedy collision avoidance; validator holds a
+  vertex-on-grid-edge == exact-level oracle), **Radial Burst** (gen/organic:
+  gap-driven ray insertion — hairs born whenever neighbour gap × radius
+  exceeds spacing, silhouette-aware so density stays uniform to the LOCAL
+  edge; 6 waveforms incl. Seismic and Straight; validator: rim-gap bound +
+  no-bald-wedge sector oracle after the level-doubling version tore wedges),
+  **Truchet Multiscale** (gen/geometric: sibling of built-in Truchet — cross-
+  tile CHAINED strands into closed loops / border strokes, Carlson multiscale
+  subdivision, pens by depth; renamed from "truchet" after the built-in key
+  collision), **Fingerprint** (gen/organic: soft-min distance-field ridges at
+  constant spacing, LSE merge, domain-warp wobble, dashed breaks with ink
+  dots; oracles: single-seed exact-gap circles with curvature-aware tolerance
+  and ridge-length × gap ≈ area coverage). Lessons: a lab key colliding with
+  a built-in is caught at import — check DEFS before naming; scanline crossing
+  spacing ≠ perpendicular ridge spacing (gap/|sin θ|), measure coverage as
+  length × gap / area; chain walks must START from the border endpoint;
+  soft-min k beyond ~2× gap visibly stretches saddle spacing.
+
 ## Hard-won pitfalls (keep)
 
 - Era-patch changes to App.jsx can VANISH silently if a later session
@@ -500,4 +540,6 @@ Frame-sequence export as single ZIP · per-pen time estimates · value ports on
 promoted group params · multi-tip brush tool change (servo) · zoned vacuum table
 workflow for wet media · registration marks for mega sheets · SimView zoom ·
 GitHub nodes library curation · surface compute errors on the node card
-(engine currently swallows compute exceptions silently).
+(engine currently swallows compute exceptions silently) · built-in Truchet
+"Chain strokes" opt-in backport (def false to keep old patches byte-identical;
+see Truchet Multiscale).

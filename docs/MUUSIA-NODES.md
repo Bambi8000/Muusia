@@ -1,13 +1,13 @@
-# MUUSIA v2.48 — Node Reference
+# MUUSIA v2.49 — Node Reference
 
-All 217 built-in nodes. Conventions used below: most generators accept a **Style**
+All 225 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (121)
+## Generators (128)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -92,6 +92,14 @@ spacing, start radius.
 size, steps set line length. The classic organic-flow workhorse.
 
 **Truchet** — tiled quarter-circle patterns. *Tiles* mode draws arc or diagonal tiles; *Tile fill* leaves a seeded share of tiles empty; *Separate* clamps arc radii and forces an edge gap so strands never meet or cross. *Loop* mode grows a spanning tree and emits **one single closed line** that fills the canvas — a maze you can plot without lifting the pen.
+
+**Truchet Multiscale** — the Carlson-style multiscale sibling of Truchet:
+strands cross cell edges at fixed stations, and the node **chains** them tile
+to tile, so the labyrinth comes out as closed loops and border-to-border
+strokes instead of thousands of tiny arcs. *Strands* 1–4 parallel lines,
+*Tiles* Arcs / Lines (45° chamfers) / Mixed, *Subdivide* + *Sub levels* split
+seeded cells into quarter-size tiles (strands break at scale seams — that is
+the style), *Pens by depth* inks each scale level separately.
 
 **Zigzag** — rows of zigzag, sine or square waves. *Skew* tilts the zigzag toward a sawtooth; *Envelope* modulates amplitude with a seeded noise envelope (bursts and quiet passages); *Row phase* offsets rows for interference. Wire any path into **Spine** and the waves follow it as parallel offset rows.
 
@@ -225,6 +233,17 @@ closed stroke. At lines = 1 it is a clean single guide curve — a good Spine fo
 Ruler or Follow Lines.
 
 **Halftone** — dot/pattern shading driven by a noise field.
+
+**Sound Line** — turns sound into pen lines. Import a WAV (PCM or float; mixed
+to mono, peak-normalized, frozen into the patch) and draw it as *Wave* (the
+signal as one line) or *Envelope* (mirrored min/max outline, the classic
+waveform block). Unwired: stacked *Rows* inside the margin — a sound poster.
+Wire paths into Anchor and the sound rides them instead, displacing each line
+along its normal, the timeline continuing from path to path. *Fit* maps the
+clip onto the available length; *Speed mm/s* plays at a fixed rate and *Loop*
+repeats a too-short clip (off: the line goes quiet when the sound ends).
+Start/Segment slice the clip; Smooth tames noise. Needs the v2.49 fileBinary
+engine intake.
 
 **Import SVG** — load an SVG file's paths onto the canvas (no text/CSS support).
 
@@ -360,6 +379,36 @@ filaments twisting around the stream and folding like real smoke sheets. Wind
 bends the column, View yaw orbits it, and Drift wired to Frame makes the smoke
 flow through an animation. Each filament is one continuous pen stroke.
 
+**Smoke Mesh** — floating smoke veils in 3D: each sheet is a ribbon surface
+swept along a noise-wandering spine while the sheet direction rotates (Twist)
+and folds back on itself (Folds) — drawn as hundreds of parallel filaments, so
+a face-on veil reads pale and an edge-on fold turns into a dark seam, like
+long-exposure smoke. Sheets layers 1–4 veils in one camera; Pens spreads a
+gradient across the sheet; each filament is one continuous stroke. Rotate with
+View yaw/pitch; wire Frame into Yaw to drift the smoke through an animation.
+
+**Orbit Scribble** — the looping-thread tangle: each strand is ONE continuous
+stroke that keeps drawing circles while its center wanders inside a rounded
+noise cloud and the loop radius breathes — scribbled orbits without lifting
+the pen. Built-in *Beads* stamp ink dots (tiny filled spirals) along the
+strands on their own pen, and *Core falloff* thins them toward the cloud edge
+so the fringe loops run bare.
+
+**Radial Burst** — lines fleeing a center point: squiggly hairs radiate
+outward and new hairs are born mid-flight wherever the neighbour gap exceeds
+*Hair spacing*, so the coat stays evenly dense from core to rim relative to
+the LOCAL blob edge at any *Edge variation*. Waveform: Zigzag, Sine, Square,
+Saw, Seismic (quiet stretches broken by bursts) or Straight; *Inner radius*
+opens a hole; the pivot is movable. Each hair is one stroke drawn inside out.
+
+**Fingerprint** — fingerprint ridges: evenly spaced rings grow from seeded
+centers and MERGE where systems meet — contours of a soft-min distance field,
+so the gap between neighbouring lines stays constant everywhere. *Merge* sets
+the fusion softness (0 kissing circles, 1 one big swirl), *Wobble* warps the
+ridges loose, *Max rings* leaves white pools, and *Line breaks* + *Gap dots*
+cut the ridges like a drying pen with ink dots dropped into some breaks.
+Heavier than average — lower Centers or raise Ring gap while sketching.
+
 **Himmeli** — the traditional Finnish straw mobile in 3D: octahedral straw units
 built into classic forms — Single crystal (nested at higher complexity), Column
 (units tip to tip on threads), Chandelier (center with hanging side units), or
@@ -382,6 +431,15 @@ bends only) routed between round pads, IC footprints as twin rows of pads
 feeding tracks outward, and via dots along the runs.
 
 **Moon Craters** — cratered lunar terrain from a heightfield of bowl-and-rim craters. Top view (default) draws rim/floor outlines or a relief-displaced mesh; 3D view looks across the plain to a horizon — rotate with Yaw, raise the camera with Pitch. 3D Mesh uses classic silhouette occlusion; 3D Outlines drapes the crater rings over the terrain.
+
+**Contour Field** — early-computer-art contour plot: a random height field
+sampled on a COARSE grid and contoured with straight-line interpolation, so
+the level lines stay hard-cornered and angular — nested angular diamonds
+around peaks, tight parallel bundles on slopes. *Cells* sets the coarseness,
+*Roughness* blends smooth terrain into independent random spot heights, and
+*Edge numbers* stamps each level's index where its line runs off the field,
+like hand-annotated 1970 plotter output (collision-avoided, own pen). Pens
+cycles levels across the palette.
 
 **Comets** — nucleus and sweeping tail. Detailed draws the ball with coma arcs
 and a fan of curved tail streamlines; Minimal is just a dot and a single line.
@@ -612,7 +670,7 @@ reproduces Flat line-for-line), then tilts the sheet (*Tilt*) and refits it to t
 margin box. Lines alternate direction per facet for efficient plotting; *Outline*
 draws facet borders, folded too in 3D.
 
-## Modifiers (67)
+## Modifiers (68)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -734,7 +792,17 @@ drip downward. Pitch, max shift, fray probability and length.
 
 **Origami Glitch Fold** — mirrors everything on one side of an adjustable fold line
 back across it, with a distance-proportional crease warp; optional Keep Original
-for layered folds. Output clamped to the sheet.
+for layered folds. The fold pivots around a movable point (Pivot X/Y or the
+canvas center) and *Axis Position* slides the line along its normal; dashed
+guides show the fold line, pivot and mirrored side. Output clamped to the sheet.
+
+**Flash Distort** — the lightning-bolt poster cut: slices everything into
+parallel strips and slides each strip along its own direction. *Angle* rotates
+the whole cut, *Segments* + *Widths* (Uniform/Random/Ramp/Wave) shape the
+strips, *Shift pattern* picks Alternate (the classic zigzag), Ramp, Wave,
+Random or Walk with *Jitter* on top. Cuts are exact; *Close cut faces* clips
+closed shapes into per-strip closed polygons (new edges along the cuts) — feed
+those into Hatch Fill for the filled flash-stripe poster. Guides show the cuts.
 
 **Cellular Mosaic Displace** — assigns points to lattice cells, splits paths at
 cell borders and displaces each fragment by its cell's seeded offset; optional
