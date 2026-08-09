@@ -550,7 +550,7 @@ const NODE_HELP = {
   hatch: "fills closed shapes with hatching (angle, spacing, inset from both edges with parity checking); *Outside* region mode inverts via a synthetic frame ring.",
   hersheytext: "single-stroke plotter typography: built-in geometric uppercase font (A\u2013Z 0\u20139 **\u00c4\u00d6\u00c5** punctuation), `|` for new lines, size = cap height, tracking, line height, alignment, canvas centring. Every letter is pen strokes, not outlines.",
   hyperbolic_truchet: "Truchet tiles on concentric rings: arcs join edge midpoints so strands continue seamlessly across cells (the original corner-diagonal style remains as an option). Ring-crowding slider packs rings toward the center (event-horizon look) or the rim.",
-  image: "raster import (PNG/JPG, downsampled to grayscale). Render modes: *Scanline wave* (darkness raises amplitude and frequency of horizontal waves), *Halftone dots*, *Hatch levels* (four cross-hatch passes gated by darkness), and *Flow shade* (noise streamlines seeded and lengthened by darkness). Gamma, invert, white cutoff.",
+  image: "raster import (PNG/JPG, downsampled to grayscale). Render modes: *Scanline wave* (darkness raises amplitude and frequency of horizontal waves), *Halftone dots*, *Hatch levels* (four cross-hatch passes gated by darkness), and *Flow shade* (noise streamlines seeded and lengthened by darkness), plus *Contours (trace)* — 1-6 tonal threshold levels traced as vector contour lines with a minimum-contour speck filter (the former Trace Image node; gamma/strength/cutoff/seed have no effect in this mode). Gamma, invert, white cutoff.",
   interference: "marching-squares contour lines over fBm terrain or wave interference; segments are chained into long polylines.",
   jitter: "per-point random displacement (densifies first).",
   joinends: "connects nearby path endpoints into longer polylines (distance \u00d7 angle scoring, rounds of batch pairing, optional same-pen-only). Run before export to reduce pen lifts.",
@@ -627,7 +627,7 @@ const NODE_HELP = {
   tiles: "grid of tiles, each a separate closed path. Shapes: parametric",
   tileshuffle: "the canvas is cut into a grid and tiles are permuted with optional flips/180s (bounds-safe). Cuts at tile borders are exact, so no ink is lost at the seams. Amount selects how many tiles join the shuffle.",
   topolar: "cartesian-to-polar remap: x becomes angle, y becomes radius, bending any horizontal composition into rings, discs or fans. Turns, start angle and inner radius shape the wrap.",
-  traceimg: "threshold contours of a loaded raster image (fileImage): 1-6 tonal levels traced as vector contours fitted to the margin box, with invert and a minimum-contour filter for specks.",
+  traceimg: "legacy alias hidden from the palette since 2.51 — merged into Image as the *Contours (trace)* render mode. Old patches keep loading and rendering unchanged. Threshold contours of a loaded raster image: 1-6 tonal levels traced as vector contours fitted to the margin box, with invert and a minimum-contour filter for specks.",
   travelsort: "greedy nearest-neighbour reordering of the plot: open paths may be reversed, closed loops are entered at the vertex nearest the pen, and pen groups stay intact. Same geometry, drastically less pen-up travel; place last before export.",
   travelstop: "inserts a pause or pen-change after a set distance of drawing, for wearing/refilling media (chalk, charcoal, dip/fountain pens). Every N mm of drawn length it tags the next path so the G-code lifts and pauses (M0) with your message (\"Advance chalk / refill\"), or treats it as a pen change. Unlike the machine profile's Maintenance pause (which is fixed per machine), this lives in the graph and trave",
   trimext: "shortens or lengthens path ends.",
@@ -987,7 +987,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.50"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.51"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1412,7 +1412,7 @@ function ZoomBox({ children, width, height }) {
     </div>
   );
 }
-function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = null, magnets = null, onMagnets = null, placing = false }) {
+function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = null, magnets = null, onMagnets = null, placing = false, bg = null }) {
   const sx = (width - pad * 2) / W, sy = (height - pad * 2) / H;
   const s = Math.min(sx, sy);
   const ox = (width - W * s) / 2, oy = (height - H * s) / 2;
@@ -1511,6 +1511,15 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
       } : undefined}
       onPointerUp={onMagnets ? () => { dragRef.current = -1; } : undefined}>
       <rect x={ox} y={oy} width={W * s} height={H * s} fill="none" stroke={T.paperLine} strokeWidth="1" />
+      {bg && bg.src ? (
+        <image key="bg" href={bg.src}
+          x={ox + (bg.cx - bg.w / 2) * s} y={oy + (bg.cy - bg.h / 2) * s}
+          width={Math.max(0, bg.w * s)} height={Math.max(0, bg.h * s)}
+          transform={`rotate(${bg.rotDeg || 0} ${ox + bg.cx * s} ${oy + bg.cy * s})`}
+          opacity={bg.opacity == null ? 0.4 : bg.opacity}
+          style={bg.gray ? { filter: "grayscale(1)" } : undefined}
+          preserveAspectRatio="none" />
+      ) : null}
       {els}
       {gEls}
       {mEls}
@@ -1889,7 +1898,7 @@ export default function App() {
     const iv = setInterval(() => setFrameIdx((i) => (i + 1) % Math.max(1, frameCount)), 170);
     return () => clearInterval(iv);
   }, [animPlay, frameCount]);
-  const ctx = useMemo(() => ({ W: megaW, H: megaH, frameIdx, frameCount }), [megaW, megaH, frameIdx, frameCount]);
+  const ctx = useMemo(() => ({ W: megaW, H: megaH, frameIdx, frameCount, machine: { originX: prof.originX || 0, originY: prof.originY || 0, flipY: !!prof.flipY, laserOffX: prof.laserOffX || 0, laserOffY: prof.laserOffY || 0, workW: prof.workW || 0, workH: prof.workH || 0 } }), [megaW, megaH, frameIdx, frameCount, prof]);
   const evalResult = useMemo(() => {
     let level = root, res = evalLevel(root, ctx, null);
     for (const gid of stack) {
@@ -2376,6 +2385,19 @@ export default function App() {
       return e ? (results[e.from] || [])[e.fromPort || 0] : undefined;
     });
     try { return def.overlay(merged, ctx, oins, primaryNode); } catch (e) { return null; }
+  })();
+
+  /* background underlay: first bgImage node with a loaded photo (one at a time by design) */
+  const previewBg = (() => {
+    for (const n of lvl.nodes) {
+      const bdef = DEFS[n.type];
+      if (!bdef || !bdef.bgImage || !bdef.bgRender) continue;
+      if (!n.data || !n.data.src) continue;
+      const bmerged = { ...n.params, ...((pvals && pvals[n.id]) || {}) };
+      if (bmerged.show === false) continue;
+      try { const bgv = bdef.bgRender(bmerged, ctx, n); if (bgv && bgv.src) return bgv; } catch (e) {}
+    }
+    return null;
   })();
 
   const [copied, setCopied] = useState(false);
@@ -2904,6 +2926,8 @@ export default function App() {
             <option value="297x420">A3 tall</option>
             <option value="594x420">A2 wide</option>
             <option value="420x594">A2 tall</option>
+            <option value="841x594">A1 wide</option>
+            <option value="594x841">A1 tall</option>
           </select>
           Canvas
           <NumBox value={canvasW} onChange={(v) => setCanvasW(Math.max(10, v))} min={10} width={56} />
@@ -3305,7 +3329,7 @@ export default function App() {
                                     })));
                                   } : null}
                                   onFileText={pd.type === "file" && def.fileImage ? (dataUrl, name) => {
-                                    if (def.faceAnalysis) {
+                                    if (def.faceAnalysis || def.bgImage) {
                                       intakeImage(dataUrl, name).then(({ img, src }) => {
                                         setNodesL((ns) => ns.map((n) => n.id === node.id
                                           ? { ...n, params: { ...n.params, [pd.key]: name }, data: { ...(n.data || {}), img, src, analysis: undefined } }
@@ -3402,7 +3426,7 @@ export default function App() {
               <OutPreview out={primaryOut} W={megaW} H={megaH} width={316} />
             ) : (
               <ZoomBox width={316} height={316 * (megaH / megaW)}>
-                <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} arrows={showArrows} pad={8} />
+                <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} bg={previewBg} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} arrows={showArrows} pad={8} />
               </ZoomBox>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
@@ -4028,7 +4052,7 @@ export default function App() {
                 return (
                   <ZoomBox width={bw2} height={bh2}>
                     <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={bw2} height={bh2}
-                      arrows={showArrows} pad={16} guides={primaryGuides} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} />
+                      arrows={showArrows} pad={16} bg={previewBg} guides={primaryGuides} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} />
                   </ZoomBox>
                 );
               })()

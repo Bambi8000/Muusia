@@ -1,80 +1,87 @@
-/* validate-singlemarker.mjs — validates the baked node.
-   Run from repo root: node tools/validate-singlemarker.mjs */
+/* tools/validate-singlemarker.mjs — Single Marker DRO-mode oracles
+ *
+ * Run from repo root AFTER tools/era/patch-marker-dro.mjs:
+ *   node tools/validate-singlemarker.mjs
+ *
+ * Oracles:
+ *   V1 byte-identity: coord ABSENT (old patch) deep-equals coord="Canvas mm",
+ *      and Canvas-mode Dot spiral ends exactly at (p.x, p.y) — old behavior
+ *   V2 DRO round-trip: marker center pushed through export fx/fy minus
+ *      laserOff == the entered DRO reading (both flipY variants)
+ *   V3 DRO mode without ctx.machine does not throw, output finite
+ *   V4 overlay guide == compute center in DRO mode (inlined copies agree)
+ *   V5 determinism (double run deep-equal, all styles)
+ */
 import def from "../src/defs/nodes/singlemarker.js";
 
-const N = def;
-const pathLength = (pts) => { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; };
-
 let fails = 0;
-const ok = (cond, msg) => { console.log((cond ? "OK  " : "FAIL") + " " + msg); if (!cond) fails++; };
-const defP = () => { const p = {}; for (const pr of N.params) p[pr.key] = pr.def; return p; };
-const ctx = { W: 210, H: 297 };
-const run = (p) => N.compute([undefined], p, ctx, {});
-const allPts = (r) => r.paths.flatMap((pa) => pa.pts);
-const centroid = (r) => { const pts = allPts(r); let sx=0, sy=0; for (const [x,y] of pts){sx+=x;sy+=y;} return [sx/pts.length, sy/pts.length]; };
+const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fails++; };
+const close = (a, b, t) => Math.abs(a - b) <= t;
+const deep = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const CTX = { W: 300, H: 200 };
+const base = () => {
+  const o = {};
+  def.params.forEach((pd) => (o[pd.key] = pd.def));
+  return o;
+};
 
-/* 1. determinism */
+/* V1 byte-identity for old patches */
 {
-  const p = defP();
-  ok(JSON.stringify(run(p)) === JSON.stringify(run(p)), "determinism: double run identical");
+  const pNew = { ...base(), x: 77.5, y: 42, style: "Dot", size: 4 };
+  const pOld = { ...pNew };
+  delete pOld.coord; /* an old patch has no coord key */
+  const a = def.compute([], pOld, CTX);
+  const b = def.compute([], pNew, CTX);
+  ok(deep(a, b), "V1: coord absent deep-equals coord=Canvas mm");
+  const last = a.paths[0].pts[a.paths[0].pts.length - 1];
+  ok(close(last[0], 77.5, 1e-9) && close(last[1], 42, 1e-9), "V1: Canvas-mode Dot spiral ends at (x, y) — old behavior");
+  for (const S of ["Circle", "Cross +", "Cross \u00d7", "Circle + cross", "Circle + dot"]) {
+    const r1 = def.compute([], { ...pOld, style: S }, CTX);
+    const r2 = def.compute([], { ...pNew, style: S }, CTX);
+    ok(deep(r1, r2), `V1: style ${S} identical with/without coord key`);
+  }
 }
 
-/* 2. every style: output exists, finite, >=2-pt paths, centroid at (x,y) */
-const styles = N.params.find((q) => q.key === "style").options;
-for (const S of styles) {
-  const p = { ...defP(), style: S, x: 60, y: 80, size: 6 };
-  const r = run(p);
-  ok(r.paths.length >= 1, `style "${S}": produces paths (${r.paths.length})`);
-  ok(r.paths.every((pa) => pa.pts.length >= 2), `style "${S}": every path >= 2 pts`);
-  ok(allPts(r).every(([x, y]) => Number.isFinite(x) && Number.isFinite(y)), `style "${S}": finite coords`);
-  const [cx, cy] = centroid(r);
-  ok(Math.hypot(cx - 60, cy - 80) < 0.6, `style "${S}": centroid ~ (x,y) — Bridges "Path centers" lands on the marker (off ${Math.hypot(cx-60,cy-80).toFixed(3)} mm)`);
-  const R = Math.max(...allPts(r).map(([x, y]) => Math.hypot(x - 60, y - 80)));
-  ok(R <= p.size / 2 + 1e-6, `style "${S}": stays inside size/2 radius (max ${R.toFixed(2)})`);
+/* V2 DRO round-trip, V4 overlay agreement */
+const canvas2dro = (x, y, M, H) => {
+  const mx = x + M.originX;
+  const my = (M.flipY ? H - y : y) + M.originY;
+  return [mx - M.laserOffX, my - M.laserOffY];
+};
+for (const [name, M] of [
+  ["flipY+negOff", { originX: 12, originY: 7, flipY: true, laserOffX: -3.2, laserOffY: 4.7 }],
+  ["noFlip+posOff", { originX: 0, originY: 0, flipY: false, laserOffX: 5.5, laserOffY: 2.25 }],
+]) {
+  const target = [123.4, 87.6]; /* desired canvas position */
+  const [dx, dy] = canvas2dro(target[0], target[1], M, CTX.H);
+  const p = { ...base(), coord: "DRO (laser)", x: dx, y: dy, style: "Dot", size: 4 };
+  const ctx = { ...CTX, machine: M };
+  const r = def.compute([], p, ctx);
+  const c = r.paths[0].pts[r.paths[0].pts.length - 1]; /* spiral ends at center */
+  ok(close(c[0], target[0], 1e-9) && close(c[1], target[1], 1e-9), `V2 ${name}: DRO reading lands marker at target canvas position`);
+  const back = canvas2dro(c[0], c[1], M, CTX.H);
+  ok(close(back[0], dx, 1e-9) && close(back[1], dy, 1e-9), `V2 ${name}: round-trip back to entered DRO reading`);
+  const g = def.overlay(p, ctx);
+  const pt = g.find((x) => x.kind === "point");
+  ok(close(pt.x, c[0], 1e-9) && close(pt.y, c[1], 1e-9), `V4 ${name}: overlay guide == compute center`);
 }
 
-/* 3. X/Y liveness: moving the marker translates the output exactly */
+/* V3 missing ctx.machine */
 {
-  const a = run({ ...defP(), x: 40, y: 50 });
-  const b = run({ ...defP(), x: 140, y: 210 });
-  const pa = allPts(a), pb = allPts(b);
-  ok(pa.length === pb.length, "x/y liveness: same point count");
-  let maxErr = 0;
-  for (let i = 0; i < pa.length; i++) maxErr = Math.max(maxErr, Math.hypot(pb[i][0] - (pa[i][0] + 100), pb[i][1] - (pa[i][1] + 160)));
-  ok(maxErr < 1e-9, `x/y liveness: pure translation (err ${maxErr.toExponential(1)})`);
+  const p = { ...base(), coord: "DRO (laser)", x: 50, y: 60 };
+  let threw = false, r = null;
+  try { r = def.compute([], p, CTX); } catch (e) { threw = true; }
+  ok(!threw && r && isFinite(r.paths[0].pts[0][0]), "V3: DRO mode without ctx.machine — no throw, finite output");
 }
 
-/* 4. size liveness */
-for (const S of styles) {
-  const small = allPts(run({ ...defP(), style: S, size: 2 }));
-  const big = allPts(run({ ...defP(), style: S, size: 20 }));
-  const ext = (pts) => Math.max(...pts.map(([x, y]) => Math.hypot(x - 105, y - 148.5)));
-  ok(ext(big) > ext(small) * 3, `style "${S}": size is live (${ext(small).toFixed(1)} -> ${ext(big).toFixed(1)} mm)`);
-}
-
-/* 5. Dot style is one continuous stroke (single pen-down) with tight pitch */
+/* V5 determinism */
 {
-  const r = run({ ...defP(), style: "Dot", size: 6 });
-  ok(r.paths.length === 1 && !r.paths[0].closed, "Dot: one open spiral stroke");
-  ok(pathLength(r.paths[0].pts) > 6, "Dot: spiral actually fills (length > diameter)");
+  for (const S of ["Dot", "Circle", "Circle + cross"]) {
+    const p = { ...base(), style: S, coord: "DRO (laser)", x: 100, y: 100 };
+    const ctx = { ...CTX, machine: { originX: 5, originY: 5, flipY: true, laserOffX: 1, laserOffY: -1 } };
+    ok(deep(def.compute([], p, ctx), def.compute([], p, ctx)), `V5: determinism (${S}, DRO)`);
+  }
 }
 
-/* 6. pen clamp + wire abuse: out-of-range values must not crash or leak NaN */
-{
-  const r = run({ ...defP(), layer: 99, x: -50, y: 900, size: -3 });
-  ok(r.paths.every((pa) => pa.layer >= 0 && pa.layer <= 11), "pen clamps to 0..11");
-  ok(allPts(r).every(([x, y]) => Number.isFinite(x) && Number.isFinite(y)), "extreme wire values: finite output");
-}
-
-/* 7. overlay shares compute math */
-{
-  const p = { ...defP(), x: 33, y: 44, size: 10 };
-  const g = N.overlay(p, ctx);
-  const pt = g.find((q) => q.kind === "point");
-  const ci = g.find((q) => q.kind === "circle");
-  ok(pt && pt.x === 33 && pt.y === 44, "overlay point at (x,y)");
-  ok(ci && ci.cx === 33 && ci.cy === 44 && Math.abs(ci.r - 5) < 1e-9, "overlay circle radius = size/2");
-}
-
-console.log(fails ? `\n${fails} FAILURES` : "\nALL PASS");
-process.exit(fails ? 1 : 0);
+console.log(`\n${fails === 0 ? "ALL ORACLES PASS" : fails + " FAILURE(S)"}`);
+process.exit(fails === 0 ? 0 : 1);

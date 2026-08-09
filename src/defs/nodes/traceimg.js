@@ -5,6 +5,7 @@ export default {
     name: "Trace Image",
     cat: "gen",
     group: "textimg",
+    hidden: true, /* merged into Image (Contours (trace) mode) in 2.51 — legacy alias, old patches keep loading unchanged */
     fileImage: true,
     ins: [Pin("style", "Style")],
     outs: [Pin("paths")],
