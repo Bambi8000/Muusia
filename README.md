@@ -117,6 +117,11 @@ to return exactly.
   machine, origin, a work-area warning and a time estimate (draw/travel meters and
   minutes).
 - **EXPORT SVG** — millimetre-true SVG with one group per pen layer.
+- **EXPORT DXF** — DXF R12 for laser cutting: POLYLINE entities on one layer per
+  pen (`PEN_0`…`PEN_11`, nearest-ACI colors so LightBurn/RDWorks pick them up as
+  separate cut layers), y flipped to DXF's y-up so the file opens the same way up
+  as the SVG. Millimetre-true; R12 carries no unit field, so answer "mm" if the
+  importer asks. Point z (pen plunge) is dropped — laser output is 2D.
 
 **Mega Canvas (multi-sheet).** Compose on a virtual canvas of C x R sheets with
 **Overlap** or **Gap** seams; export slices the work into per-sheet tiles with
@@ -127,6 +132,20 @@ bottom-left corner on the mark pen, for sorting the physical sheets. *Download
 full SVG (composed proof)* saves the whole composed work as one SVG at full mega
 size — a proofing reference to compare against the preview; the numbered tiles
 remain the plottable output.
+
+**Mega Canvas Roll (wallpaper).** Switch the mega **Kind** from Sheets to
+**Roll** to compose onto adjacent wallpaper strips: set the **Roll width**
+(530 mm default), the number of **Strips**, the strip **Length** (e.g. wall
+height) and the **Piece** length one machine setup can plot. The seam +
+Overlap/Gap applies only between strips (Overlap = hang overlapped and
+double-cut; Gap = hang with spacing); along the roll there is **no seam** —
+pieces continue exactly, and registration ticks are drawn on both roll edges at
+every piece boundary: after advancing the roll, align the pen at y=0 with the
+ticks plotted at the end of the previous piece. Piece labels read `S1 P2`
+(strip/piece) and files download as `name-strip-01-piece-02.gcode` so they sort
+in plotting order, one strip at a time. The last piece is shorter when Length
+does not divide evenly; the summary warns if a piece exceeds the machine work
+area. Works with G-code, SVG and DXF downloads and with the magnet jig.
 
 **Mini Canvas (production runs).** The inverse, as a node: *Auto grid* packs up to six
 wired compositions into a contact sheet; *Fixed size* replicates one mini size

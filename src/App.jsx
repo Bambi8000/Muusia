@@ -780,6 +780,87 @@ function sliceMega(ps, sw, sh, C, R, seam, mode, marks, markPen = 0, labels = fa
   return tiles;
 }
 
+/* --- Wallpaper roll slicer: C adjacent strips of fixed roll width (seam join in X,
+   Overlap = wall overlap + double-cut, Gap = hang with spacing), each strip cut into
+   pieces along the roll with NO seam in Y - the roll is advanced between pieces and
+   re-registered. marks: registration ticks on both roll edges at every internal piece
+   boundary (piece r draws them at its bottom edge, piece r+1 redraws them at y=0 -
+   after advancing the roll, align the pen/laser at y=0 with the plotted ticks).
+   labels: "S{strip} P{piece}" bottom-left, mark pen. Tiles carry their own W/H (the
+   last piece may be shorter) and are returned row-major like sliceMega. --- */
+function sliceRoll(ps, rw, segH, C, totalLen, seam, mode, marks, markPen = 0, labels = false) {
+  const gap = mode === "Gap";
+  const strideX = gap ? rw + seam : rw - seam;
+  const R = Math.max(1, Math.ceil(totalLen / Math.max(1, segH)));
+  const tiles = [];
+  for (let r = 0; r < R; r++) {
+    const y0 = r * segH;
+    const th = Math.min(segH, totalLen - y0);
+    for (let c = 0; c < C; c++) {
+      const x0 = c * strideX;
+      const clipSeg = (ax, ay, bx, by) => {
+        let t0 = 0, t1 = 1;
+        const dx = bx - ax, dy = by - ay;
+        const P = [-dx, dx, -dy, dy];
+        const Q = [ax - x0, x0 + rw - ax, ay - y0, y0 + th - ay];
+        for (let i = 0; i < 4; i++) {
+          if (Math.abs(P[i]) < 1e-12) { if (Q[i] < 0) return null; }
+          else {
+            const rr = Q[i] / P[i];
+            if (P[i] < 0) { if (rr > t1) return null; if (rr > t0) t0 = rr; }
+            else { if (rr < t0) return null; if (rr < t1) t1 = rr; }
+          }
+        }
+        return [ax + dx * t0, ay + dy * t0, ax + dx * t1, ay + dy * t1, t1];
+      };
+      const paths = [];
+      for (const pa of ps.paths) {
+        const allIn = pa.pts.every(([x, y]) => x >= x0 && x <= x0 + rw && y >= y0 && y <= y0 + th);
+        if (allIn) {
+          paths.push({ pts: pa.pts.map(([x, y]) => [x - x0, y - y0]), closed: pa.closed, layer: pa.layer });
+          continue;
+        }
+        const src = pa.closed ? [...pa.pts, pa.pts[0]] : pa.pts;
+        let run = [];
+        const flush = () => { if (run.length > 1) paths.push({ pts: run, closed: false, layer: pa.layer }); run = []; };
+        for (let i = 1; i < src.length; i++) {
+          const cseg = clipSeg(src[i - 1][0], src[i - 1][1], src[i][0], src[i][1]);
+          if (!cseg) { flush(); continue; }
+          const A = [cseg[0] - x0, cseg[1] - y0], B = [cseg[2] - x0, cseg[3] - y0];
+          if (run.length && Math.hypot(run[run.length - 1][0] - A[0], run[run.length - 1][1] - A[1]) < 1e-6) {
+            run.push(B);
+          } else {
+            flush();
+            run = [A, B];
+          }
+          if (cseg[4] < 1) flush(); /* exited the piece mid-segment */
+        }
+        flush();
+      }
+      if (marks) {
+        const LP = Math.max(0, Math.round(markPen));
+        const MK = 4;
+        const tick = (y) => {
+          paths.push({ pts: [[0, y], [MK, y]], closed: false, layer: LP });
+          paths.push({ pts: [[rw - MK, y], [rw, y]], closed: false, layer: LP });
+        };
+        if (r > 0) tick(0);
+        if (r < R - 1) tick(th);
+      }
+      if (labels) {
+        const LP = Math.max(0, Math.round(markPen));
+        const txt = "S" + (c + 1) + " P" + (r + 1);
+        const fsx = fontStrokes(txt, 4, 1);
+        for (const st of fsx.strokes) {
+          paths.push({ pts: st.map(([gx, gy]) => [6 + gx, th - 11 + gy]), closed: false, layer: LP });
+        }
+      }
+      tiles.push({ paths, W: rw, H: th });
+    }
+  }
+  return tiles;
+}
+
 /* ---- Magnet placement: grid cells, exact clearance, chamfer ranking ---- */
 function magnetPlacement(ps, sw, sh, opts) {
   const N = Math.max(1, Math.round(opts.magnets || 5));
@@ -906,7 +987,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.49"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.50"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1099,6 +1180,65 @@ function toSVG(ps, ctx) {
     ...groups,
     `</svg>`,
   ].join("\n");
+}
+
+/* --- DXF R12 export: POLYLINE entities on per-pen layers (PEN_0..PEN_11), y
+   flipped to DXF's y-up so the file matches the SVG/preview orientation, mm
+   units implied, layer colors as the nearest ACI match of the pen color.
+   R12 with an explicit LTYPE/LAYER table = maximum laser-software
+   compatibility (LightBurn, RDWorks, Inkscape). Optional point z (pen plunge)
+   is ignored - laser cutting is 2D. --- */
+function toDXF(ps, ctx) {
+  const f3 = (v) => {
+    const r = Math.round(v * 1000) / 1000;
+    return Object.is(r, -0) ? "0" : String(r); /* -0 breaks naive DXF parsers and dedupe keys */
+  };
+  const ACI = [
+    [1, 255, 0, 0], [2, 255, 255, 0], [3, 0, 255, 0], [4, 0, 255, 255], [5, 0, 0, 255],
+    [6, 255, 0, 255], [7, 0, 0, 0], [8, 128, 128, 128], [9, 192, 192, 192],
+    [30, 255, 127, 0], [34, 189, 126, 94], [40, 191, 255, 0], [92, 38, 140, 89],
+    [140, 61, 96, 133], [200, 142, 61, 189],
+  ];
+  const aciOf = (hex) => {
+    const n = parseInt(String(hex).slice(1), 16) || 0;
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    let best = 7, bd = Infinity;
+    for (const [code, ar, ag, ab] of ACI) {
+      const d = (r - ar) * (r - ar) + (g - ag) * (g - ag) + (b - ab) * (b - ab);
+      if (d < bd) { bd = d; best = code; }
+    }
+    return best;
+  };
+  const drawable = ps.paths.filter((p) => p.pts.length >= 2);
+  const layers = [...new Set(drawable.map((p) => p.layer))].sort((a, b) => a - b);
+  const L = [];
+  const P = (code, val) => { L.push(String(code)); L.push(String(val)); };
+  P(0, "SECTION"); P(2, "HEADER");
+  P(9, "$ACADVER"); P(1, "AC1009");
+  P(9, "$EXTMIN"); P(10, "0"); P(20, "0"); P(30, "0");
+  P(9, "$EXTMAX"); P(10, f3(ctx.W)); P(20, f3(ctx.H)); P(30, "0");
+  P(0, "ENDSEC");
+  P(0, "SECTION"); P(2, "TABLES");
+  P(0, "TABLE"); P(2, "LTYPE"); P(70, 1);
+  P(0, "LTYPE"); P(2, "CONTINUOUS"); P(70, 0); P(3, "Solid line"); P(72, 65); P(73, 0); P(40, "0");
+  P(0, "ENDTAB");
+  P(0, "TABLE"); P(2, "LAYER"); P(70, layers.length);
+  for (const li of layers) {
+    const pen = PENS[li % PENS.length];
+    P(0, "LAYER"); P(2, "PEN_" + li); P(70, 0); P(62, aciOf(pen.c)); P(6, "CONTINUOUS");
+  }
+  P(0, "ENDTAB"); P(0, "ENDSEC");
+  P(0, "SECTION"); P(2, "ENTITIES");
+  for (const pa of drawable) {
+    const name = "PEN_" + pa.layer;
+    P(0, "POLYLINE"); P(8, name); P(66, 1); P(70, pa.closed ? 1 : 0);
+    for (const [x, y] of pa.pts) {
+      P(0, "VERTEX"); P(8, name); P(10, f3(x)); P(20, f3(ctx.H - y)); P(30, "0");
+    }
+    P(0, "SEQEND"); P(8, name);
+  }
+  P(0, "ENDSEC"); P(0, "EOF");
+  return L.join("\n") + "\n";
 }
 
 /* ============================================================
@@ -1618,6 +1758,11 @@ export default function App() {
   const [megaMode, setMegaMode] = useState("Overlap"); /* Overlap: sheets repeat the seam strip (cut & butt-join). Gap: seam strip is skipped (mount with spacing). */
   const [megaMarks, setMegaMarks] = useState(true);
   const [megaMarkPen, setMegaMarkPen] = useState(0); /* own pen for marks: pencil / fine liner */
+  const [megaKind, setMegaKind] = useState("Sheets"); /* Sheets: grid of paper sheets | Roll: wallpaper strips */
+  const [rollW, setRollW] = useState(530);         /* wallpaper roll width mm */
+  const [rollLen, setRollLen] = useState(2400);    /* strip length mm (e.g. wall height) */
+  const [rollStrips, setRollStrips] = useState(2); /* adjacent strips */
+  const [rollSeg, setRollSeg] = useState(800);     /* plotted piece length per machine setup mm */
   const [jigN, setJigN] = useState(5);
   const [jigShow, setJigShow] = useState(false); /* auto magnet positions in preview */
   const [jigMode, setJigMode] = useState("Auto"); /* Auto | Manual */
@@ -1627,8 +1772,16 @@ export default function App() {
   const [jigClear, setJigClear] = useState(12);
   const [jigMargin, setJigMargin] = useState(10);
   const [jigSpacing, setJigSpacing] = useState(40);
-  const megaW = megaOn ? (megaMode === "Gap" ? megaC * canvasW + (megaC - 1) * megaSeam : megaC * canvasW - (megaC - 1) * megaSeam) : canvasW;
-  const megaH = megaOn ? (megaMode === "Gap" ? megaR * canvasH + (megaR - 1) * megaSeam : megaR * canvasH - (megaR - 1) * megaSeam) : canvasH;
+  const megaRoll = megaOn && megaKind === "Roll";
+  const rollPieces = Math.max(1, Math.ceil(rollLen / Math.max(1, rollSeg)));
+  const megaCols = megaRoll ? rollStrips : megaC;
+  const megaRows = megaRoll ? rollPieces : megaR;
+  const megaW = megaOn
+    ? (megaRoll
+      ? (megaMode === "Gap" ? rollStrips * rollW + (rollStrips - 1) * megaSeam : rollStrips * rollW - (rollStrips - 1) * megaSeam)
+      : (megaMode === "Gap" ? megaC * canvasW + (megaC - 1) * megaSeam : megaC * canvasW - (megaC - 1) * megaSeam))
+    : canvasW;
+  const megaH = megaOn ? (megaRoll ? rollLen : (megaMode === "Gap" ? megaR * canvasH + (megaR - 1) * megaSeam : megaR * canvasH - (megaR - 1) * megaSeam)) : canvasH;
   const DEFAULT_MACHINE = {
     name: "A — Servo Z (multi-tip brush)",
     workW: 330, workH: 240, originX: 0, originY: 0, flipY: false, pauseCmd: "M0",
@@ -2237,18 +2390,26 @@ export default function App() {
   const [routeOpt, setRouteOpt] = useState(true);
   const [preserveDir, setPreserveDir] = useState(true);
   const exportPS = () => (routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS);
-  const megaTiles = () => sliceMega(exportPS(), canvasW, canvasH, megaC, megaR, megaSeam, megaMode, megaMarks, megaMarkPen, megaLabels);
+  const megaTiles = () => megaRoll
+    ? sliceRoll(exportPS(), rollW, rollSeg, rollStrips, rollLen, megaSeam, megaMode, megaMarks, megaMarkPen, megaLabels)
+    : sliceMega(exportPS(), canvasW, canvasH, megaC, megaR, megaSeam, megaMode, megaMarks, megaMarkPen, megaLabels).map((t) => ({ ...t, W: canvasW, H: canvasH }));
+  const tileTag = (i) => {
+    const rr = Math.floor(i / megaCols) + 1, cc = (i % megaCols) + 1;
+    return megaRoll
+      ? `strip-${String(cc).padStart(2, "0")}-piece-${String(rr).padStart(2, "0")}`
+      : `tile-${String(i + 1).padStart(2, "0")}-r${rr}c${cc}`;
+  };
   const autoJigPositions = (() => {
     if (jigMode !== "Auto" || !jigShow || !primaryPS.paths.length) return null;
     const opts = { magnets: jigN, grid: jigGrid, clearance: jigClear, magnetMargin: jigMargin, minSpacing: jigSpacing };
     const gs = [];
     try {
       if (megaOn) {
-        const dx = megaMode === "Gap" ? canvasW + megaSeam : canvasW - megaSeam;
-        const dy = megaMode === "Gap" ? canvasH + megaSeam : canvasH - megaSeam;
+        const dx = megaRoll ? (megaMode === "Gap" ? rollW + megaSeam : rollW - megaSeam) : (megaMode === "Gap" ? canvasW + megaSeam : canvasW - megaSeam);
+        const dy = megaRoll ? rollSeg : (megaMode === "Gap" ? canvasH + megaSeam : canvasH - megaSeam);
         megaTiles().forEach((t, i) => {
-          const rr = Math.floor(i / megaC), cc = i % megaC;
-          const r = magnetPlacement(t, canvasW, canvasH, opts);
+          const rr = Math.floor(i / megaCols), cc = i % megaCols;
+          const r = magnetPlacement(t, t.W ?? canvasW, t.H ?? canvasH, opts);
           for (const q of r.positions) gs.push([cc * dx + q[0], rr * dy + q[1]]);
         });
       } else {
@@ -2261,23 +2422,27 @@ export default function App() {
   const previewMagnets = jigMode === "Manual" ? manualMags : autoJigPositions;
   const megaPreview = (kind) => {
     const tiles = megaTiles();
-    const sheetCtx = { W: canvasW, H: canvasH, frameIdx, frameCount };
-    const note = `MEGA CANVAS \u2014 previewing tile 1/${tiles.length}. Download saves all ${tiles.length} numbered tiles.`;
+    const t0 = tiles[0];
+    const sheetCtx = { W: t0.W ?? canvasW, H: t0.H ?? canvasH, frameIdx, frameCount };
+    const note = megaRoll
+      ? `MEGA CANVAS ROLL \u2014 previewing strip 1 piece 1. Download saves all ${tiles.length} pieces (${rollStrips} strips \u00d7 ${rollPieces}).`
+      : `MEGA CANVAS \u2014 previewing tile 1/${tiles.length}. Download saves all ${tiles.length} numbered tiles.`;
+    if (kind === "dxf") return `999\n${note}\n` + toDXF(t0, sheetCtx);
     return kind === "svg"
-      ? toSVG(tiles[0], sheetCtx).replace("?>\n", `?>\n<!-- ${note} -->\n`)
-      : `; ${note}\n` + toGcode(tiles[0], sheetCtx, prof);
+      ? toSVG(t0, sheetCtx).replace("?>\n", `?>\n<!-- ${note} -->\n`)
+      : `; ${note}\n` + toGcode(t0, sheetCtx, prof);
   };
   const doExport = () => { setGcode(megaOn ? megaPreview("gcode") : toGcode(exportPS(), ctx, prof)); setExportKind("gcode"); setCopied(false); };
   const doExportSVG = () => { setGcode(megaOn ? megaPreview("svg") : toSVG(exportPS(), ctx)); setExportKind("svg"); setCopied(false); };
+  const doExportDXF = () => { setGcode(megaOn ? megaPreview("dxf") : toDXF(exportPS(), ctx)); setExportKind("dxf"); setCopied(false); };
   const downloadMega = (kind) => {
     /* browsers block sequential programmatic downloads -> bundle everything in one zip */
     const tiles = megaTiles();
-    const sheetCtx = { W: canvasW, H: canvasH, frameIdx, frameCount };
     const files = tiles.map((t, i) => {
-      const rr = Math.floor(i / megaC) + 1, cc = (i % megaC) + 1;
+      const sheetCtx = { W: t.W ?? canvasW, H: t.H ?? canvasH, frameIdx, frameCount };
       return {
-        name: `${projName || "patch"}-tile-${String(i + 1).padStart(2, "0")}-r${rr}c${cc}${kind === "svg" ? ".svg" : ".gcode"}`,
-        text: kind === "svg" ? toSVG(t, sheetCtx) : toGcode(t, sheetCtx, prof)
+        name: `${projName || "patch"}-${tileTag(i)}${kind === "svg" ? ".svg" : kind === "dxf" ? ".dxf" : ".gcode"}`,
+        text: kind === "svg" ? toSVG(t, sheetCtx) : kind === "dxf" ? toDXF(t, sheetCtx) : toGcode(t, sheetCtx, prof)
       };
     });
     const blob = new Blob([buildZip(files)], { type: "application/zip" });
@@ -2308,22 +2473,24 @@ export default function App() {
     if (jigMode === "Manual") {
       if (!manualMags.length) { setGcode("; MAGNET JIG: no magnets placed - use + Place magnets in the preview"); setExportKind("gcode"); setCopied(false); return; }
       if (megaOn) {
-        const dx = megaMode === "Gap" ? canvasW + megaSeam : canvasW - megaSeam;
-        const dy = megaMode === "Gap" ? canvasH + megaSeam : canvasH - megaSeam;
-        const perTile = Array.from({ length: megaC * megaR }, () => []);
+        const tileW = megaRoll ? rollW : canvasW;
+        const dx = megaMode === "Gap" ? tileW + megaSeam : tileW - megaSeam;
+        const dy = megaRoll ? rollSeg : (megaMode === "Gap" ? canvasH + megaSeam : canvasH - megaSeam);
+        const rowH = (rr) => megaRoll ? Math.min(rollSeg, rollLen - rr * rollSeg) : canvasH;
+        const perTile = Array.from({ length: megaCols * megaRows }, () => []);
         for (const [x, y] of manualMags) {
-          const cc = Math.max(0, Math.min(megaC - 1, Math.floor(x / dx)));
-          const rr = Math.max(0, Math.min(megaR - 1, Math.floor(y / dy)));
-          const lx = Math.max(0, Math.min(canvasW, x - cc * dx));
-          const ly = Math.max(0, Math.min(canvasH, y - rr * dy));
-          perTile[rr * megaC + cc].push([Math.round(lx * 10) / 10, Math.round(ly * 10) / 10]);
+          const cc = Math.max(0, Math.min(megaCols - 1, Math.floor(x / dx)));
+          const rr = Math.max(0, Math.min(megaRows - 1, Math.floor(y / dy)));
+          const lx = Math.max(0, Math.min(tileW, x - cc * dx));
+          const ly = Math.max(0, Math.min(rowH(rr), y - rr * dy));
+          perTile[rr * megaCols + cc].push([Math.round(lx * 10) / 10, Math.round(ly * 10) / 10]);
         }
         perTile.forEach((pos, i) => {
           if (!pos.length) return;
-          const rr = Math.floor(i / megaC) + 1, cc = (i % megaC) + 1;
-          const g = jigGcode(pos, prof, canvasW, canvasH, `manual - tile ${i + 1}/${megaC * megaR} r${rr}c${cc}`);
+          const rr = Math.floor(i / megaCols);
+          const g = jigGcode(pos, prof, tileW, rowH(rr), `manual - ${tileTag(i)} (${i + 1}/${megaCols * megaRows})`);
           g.warnings.forEach((w) => notes.push(`tile ${i + 1}: ${w}`));
-          files.push({ name: `${projName || "patch"}-tile-${String(i + 1).padStart(2, "0")}-r${rr}c${cc}-jig.gcode`, text: g.text });
+          files.push({ name: `${projName || "patch"}-${tileTag(i)}-jig.gcode`, text: g.text });
         });
       } else {
         const g = jigGcode(manualMags.map(([x, y]) => [Math.round(x * 10) / 10, Math.round(y * 10) / 10]), prof, canvasW, canvasH, "manual - sheet 1/1");
@@ -2355,13 +2522,12 @@ export default function App() {
     if (megaOn) {
       const tiles = megaTiles();
       tiles.forEach((t, i) => {
-        const rr = Math.floor(i / megaC) + 1, cc = (i % megaC) + 1;
-        const r = magnetPlacement(t, canvasW, canvasH, opts);
-        if (r.error) notes.push(`tile ${i + 1} r${rr}c${cc}: ${r.error}`);
+        const r = magnetPlacement(t, t.W ?? canvasW, t.H ?? canvasH, opts);
+        if (r.error) notes.push(`tile ${i + 1} ${tileTag(i)}: ${r.error}`);
         if (r.positions.length) {
-          const g = jigGcode(r.positions, prof, canvasW, canvasH, `tile ${i + 1}/${tiles.length} r${rr}c${cc}`);
+          const g = jigGcode(r.positions, prof, t.W ?? canvasW, t.H ?? canvasH, `${tileTag(i)} (${i + 1}/${tiles.length})`);
           g.warnings.forEach((w) => notes.push(`tile ${i + 1}: ${w}`));
-          files.push({ name: `${projName || "patch"}-tile-${String(i + 1).padStart(2, "0")}-r${rr}c${cc}-jig.gcode`, text: g.text });
+          files.push({ name: `${projName || "patch"}-${tileTag(i)}-jig.gcode`, text: g.text });
         }
       });
     } else {
@@ -2434,7 +2600,7 @@ export default function App() {
       const blob = new Blob([gcode], { type: exportKind === "svg" ? "image/svg+xml" : "text/plain" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = (projName || "patch") + (exportKind === "svg" ? ".svg" : ".gcode");
+      a.download = (projName || "patch") + (exportKind === "svg" ? ".svg" : exportKind === "dxf" ? ".dxf" : ".gcode");
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -2445,7 +2611,7 @@ export default function App() {
   };
   /* --- patchin tallennus / lataus --- */
   const buildPatchJSON = () =>
-    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels } : null, prof, machines, machineIdx, customNodes, root }, null, 1);
+    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels, kind: megaKind, rollW, rollLen, rollStrips, rollSeg } : null, prof, machines, machineIdx, customNodes, root }, null, 1);
   const savePatch = () => {
     const data = buildPatchJSON();
     try {
@@ -2487,7 +2653,7 @@ export default function App() {
       setSelIds([]);
       setRoot(data.root);
       if (data.canvas) { setCanvasW(data.canvas.W || 300); setCanvasH(data.canvas.H || 200); }
-      if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); setMegaMarkPen(data.mega.markPen || 0); setMegaLabels(!!data.mega.labels); } else { setMegaOn(false); }
+      if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); setMegaMarkPen(data.mega.markPen || 0); setMegaLabels(!!data.mega.labels); setMegaKind(data.mega.kind || "Sheets"); setRollW(data.mega.rollW || 530); setRollLen(data.mega.rollLen || 2400); setRollStrips(data.mega.rollStrips || 2); setRollSeg(data.mega.rollSeg || 800); } else { setMegaOn(false); }
       if (Array.isArray(data.machines) && data.machines.length) {
         setMachines(data.machines.map((m) => ({ ...DEFAULT_MACHINE, ...m })));
         setMachineIdx(Math.min(data.machineIdx || 0, data.machines.length - 1));
@@ -3507,6 +3673,15 @@ export default function App() {
               }}>
               EXPORT SVG (laser / vector)
             </button>
+            <button onClick={doExportDXF} disabled={!primaryPS.paths.length}
+              style={{
+                width: "100%", marginTop: 6, padding: "7px 0", borderRadius: 5,
+                border: `1px solid ${primaryPS.paths.length ? T.accent : T.line}`,
+                background: "transparent", color: primaryPS.paths.length ? T.accent : T.dim,
+                fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: primaryPS.paths.length ? "pointer" : "default", letterSpacing: "0.03em",
+              }}>
+              EXPORT DXF (laser cut, R12)
+            </button>
           </div>
 
           {/* ---------- Mega canvas ---------- */}
@@ -3519,6 +3694,15 @@ export default function App() {
             {megaOn && (
               <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 7, fontSize: 11, color: T.text }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: T.dim }}>Kind</span>
+                  <select value={megaKind} onChange={(e) => setMegaKind(e.target.value)}
+                    style={{ background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }}>
+                    <option>Sheets</option>
+                    <option>Roll</option>
+                  </select>
+                  <span style={{ color: T.dim }}>{megaKind === "Roll" ? "wallpaper strips" : "grid of sheets"}</span>
+                </div>
+                {megaKind !== "Roll" && <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ color: T.dim }}>Sheets</span>
                   <input type="number" value={megaC} min={1} max={6} onChange={(e) => setMegaC(Math.max(1, Math.min(6, Math.round(+e.target.value || 1))))}
                     style={{ width: 40, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
@@ -3526,7 +3710,28 @@ export default function App() {
                   <input type="number" value={megaR} min={1} max={8} onChange={(e) => setMegaR(Math.max(1, Math.min(8, Math.round(+e.target.value || 1))))}
                     style={{ width: 40, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
                   <span style={{ color: T.dim }}>cols × rows</span>
-                </div>
+                </div>}
+                {megaKind === "Roll" && <>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ color: T.dim }}>Roll width</span>
+                    <input type="number" value={rollW} min={100} max={1200} step={1} onChange={(e) => setRollW(Math.max(100, Math.min(1200, +e.target.value || 100)))}
+                      style={{ width: 52, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
+                    <span style={{ color: T.dim }}>mm</span>
+                    <span style={{ color: T.dim }}>Strips</span>
+                    <input type="number" value={rollStrips} min={1} max={12} onChange={(e) => setRollStrips(Math.max(1, Math.min(12, Math.round(+e.target.value || 1))))}
+                      style={{ width: 40, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ color: T.dim }}>Length</span>
+                    <input type="number" value={rollLen} min={100} max={30000} step={10} onChange={(e) => setRollLen(Math.max(100, Math.min(30000, +e.target.value || 100)))}
+                      style={{ width: 52, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
+                    <span style={{ color: T.dim }}>mm</span>
+                    <span style={{ color: T.dim }}>Piece</span>
+                    <input type="number" value={rollSeg} min={50} max={2000} step={10} onChange={(e) => setRollSeg(Math.max(50, Math.min(2000, +e.target.value || 50)))}
+                      style={{ width: 52, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
+                    <span style={{ color: T.dim }}>mm</span>
+                  </div>
+                </>}
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ color: T.dim }}>Seam</span>
                   <input type="number" value={megaSeam} min={0} max={40} step={0.5} onChange={(e) => setMegaSeam(Math.max(0, Math.min(40, +e.target.value || 0)))}
@@ -3540,7 +3745,7 @@ export default function App() {
                 </div>
                 <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: T.dim }}>
                   <input type="checkbox" checked={megaLabels} onChange={(e) => setMegaLabels(e.target.checked)} />
-                  Tile labels (number + row/col, mark pen)
+                  {megaKind === "Roll" ? "Piece labels (S strip P piece, mark pen)" : "Tile labels (number + row/col, mark pen)"}
                 </label>
                 <button onClick={downloadMegaFull}
                   title="One SVG of the whole composed work at full mega size - proofing reference, not a plottable tile"
@@ -3550,7 +3755,7 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: T.dim, flex: 1 }}>
                     <input type="checkbox" checked={megaMarks} onChange={(e) => setMegaMarks(e.target.checked)} />
-                    Crop marks
+                    {megaKind === "Roll" ? "Registration ticks (piece boundaries)" : "Crop marks"}
                   </label>
                   {megaMarks && (
                     <select value={megaMarkPen} onChange={(e) => setMegaMarkPen(+e.target.value)}
@@ -3561,8 +3766,15 @@ export default function App() {
                   )}
                 </div>
                 <div style={{ fontSize: 10, color: T.dim, lineHeight: 1.5 }}>
-                  Total {megaW} × {megaH} mm · {megaC * megaR} sheets of {canvasW} × {canvasH} mm.
-                  {megaMode === "Overlap" ? " Sheets repeat the seam strip — cut through it and butt-join." : " A seam-wide strip is skipped between sheets — mount with spacing."}
+                  {megaKind === "Roll" ? <>
+                    Total {megaW} × {megaH} mm · {rollStrips} strip(s) × {rollPieces} piece(s) of {rollW} × {rollSeg} mm (last piece {Math.round((rollLen - (rollPieces - 1) * rollSeg) * 10) / 10} mm).
+                    {megaMode === "Overlap" ? " Adjacent strips repeat the seam strip — overlap on the wall and double-cut." : " A seam-wide strip is skipped between strips — hang with spacing."}
+                    {" Pieces continue seamlessly along the roll: registration ticks mark every boundary — advance the roll, align the pen at y=0 with the plotted ticks."}
+                    {(rollW > prof.workW || rollSeg > prof.workH) ? " ⚠ Piece exceeds the machine work area." : ""}
+                  </> : <>
+                    Total {megaW} × {megaH} mm · {megaC * megaR} sheets of {canvasW} × {canvasH} mm.
+                    {megaMode === "Overlap" ? " Sheets repeat the seam strip — cut through it and butt-join." : " A seam-wide strip is skipped between sheets — mount with spacing."}
+                  </>}
                   {" Export previews tile 1; Download saves all numbered tiles."}
                 </div>
               </div>
@@ -3626,7 +3838,7 @@ export default function App() {
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <button onClick={downloadJig}
                   style={{ background: T.panel2, border: `1px solid ${T.line}`, color: T.text, borderRadius: 4, fontSize: 10, padding: "5px 10px", cursor: "pointer", fontFamily: mono }}>
-                  {megaOn ? `Download ${megaC * megaR} jigs (.zip)` : "Download jig .gcode"}
+                  {megaOn ? `Download ${megaCols * megaRows} jigs (.zip)` : "Download jig .gcode"}
                 </button>
                 {jigMode === "Auto" && <label style={{ display: "flex", alignItems: "center", gap: 5, cursor: "pointer", fontSize: 10, color: T.dim }}>
                   <input type="checkbox" checked={jigShow} onChange={(e) => setJigShow(e.target.checked)} style={{ accentColor: T.accent }} />
@@ -3646,7 +3858,7 @@ export default function App() {
             <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 12, minHeight: 200 }}>
               <div style={{ display: "flex", alignItems: "center", marginBottom: 6 }}>
                 <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.08em", flex: 1 }}>
-                  {exportKind === "svg" ? "SVG" : "G-CODE"} · {gcode.split("\n").length} lines
+                  {exportKind === "svg" ? "SVG" : exportKind === "dxf" ? "DXF" : "G-CODE"} · {gcode.split("\n").length} lines
                 </div>
                 <button onClick={copyGcode}
                   style={{ background: copied ? T.value : T.panel2, border: `1px solid ${T.line}`, color: copied ? "#0D1117" : T.text, borderRadius: 4, fontSize: 10, padding: "3px 10px", cursor: "pointer", fontFamily: mono, marginRight: 6 }}>
@@ -3654,7 +3866,7 @@ export default function App() {
                 </button>
                 <button onClick={download}
                   style={{ background: T.panel2, border: `1px solid ${T.line}`, color: T.text, borderRadius: 4, fontSize: 10, padding: "3px 10px", cursor: "pointer", fontFamily: mono }}>
-                  {megaOn ? `Download ${megaC * megaR} tiles (.zip)` : `Download ${exportKind === "svg" ? ".svg" : ".gcode"}`}
+                  {megaOn ? `Download ${megaCols * megaRows} tiles (.zip)` : `Download ${exportKind === "svg" ? ".svg" : exportKind === "dxf" ? ".dxf" : ".gcode"}`}
                 </button>
                 <button onClick={() => setGcode(null)}
                   style={{ background: "none", border: "none", color: T.dim, fontSize: 12, cursor: "pointer", marginLeft: 6 }}>×</button>

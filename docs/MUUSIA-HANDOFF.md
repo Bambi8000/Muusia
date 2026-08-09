@@ -45,8 +45,12 @@ text are **English**.
 - `src/dro.jsx` — Moonraker DRO: self-contained read-only websocket client +
   top-bar chip (live X/Y/Z, homed-axes dimming, 3 s auto-reconnect,
   re-subscribe on klippy restart). URL in the machine profile
-  (`moonrakerUrl`). LAN/local only by design — the Pages build shows a
-  red/failed DRO (https page cannot open insecure ws://; correct, not a bug).
+  (`moonrakerUrl`). LAN/local only by design — since v2.50 an https origin
+  with a ws:// URL never attempts to connect (mixed content cannot succeed):
+  the Pages build shows a static dim "DRO LAN only" chip instead of a retry
+  loop. The chip is fixed-width (constant "DRO" label, state in the dot color
+  + tooltip, always-rendered X/Y/Z slots with tabular figures and dashes) so
+  state transitions never reflow the top bar.
   Wired into App.jsx via tools/era/patch-dro.mjs.
 - `docs/` — MUUSIA-HANDOFF.md (this), MUUSIA-NODES.md (every node),
   MUUSIA-NODE-API.md (custom-node authoring spec, plotternode format),
@@ -176,13 +180,24 @@ text are **English**.
   dependency-column layout (both live next to `addNodeAt` in App.jsx).
 - **Moonraker DRO:** top-bar chip (src/dro.jsx) — click toggles the
   connection; green = klippy ready, amber = connecting / klippy down, red =
-  retrying. Requires the local dev origins in Moonraker's cors_domains
+  retrying; the label is always "DRO" and the X/Y/Z slots are fixed-width
+  (dashes while offline), so the top bar never jumps. On an https origin
+  with a ws:// URL the chip is a static dim "LAN only" (no retry loop).
+  Requires the local dev origins in Moonraker's cors_domains
   (klipper/moonraker-cors.snippet.conf, applied on nakit). Read-only: it
   never sends G-code.
-- **Animation, Mega Canvas, Mini Canvas, magnet jig, machine profiles,
+- **Animation, Mini Canvas, magnet jig, machine profiles,
   Travel Stop, custom modules:** unchanged since v2.0–2.1 era; see MUUSIA-NODES.md
   and README for user-facing docs. Magnet jig functions (`magnetPlacement`,
   `jigGcode`, `buildZip`/`crc32`) live above APP_VERSION in App.jsx.
+- **Mega Canvas Kinds (v2.50):** Sheets (the original C×R grid, sliceMega) or
+  **Roll** — wallpaper strips: roll width × strips side by side (seam join in X
+  only), pieces along the roll with no Y seam (sliceRoll, per-tile W/H, short
+  last piece), registration ticks at piece boundaries, `S# P#` labels,
+  `strip-XX-piece-YY` filenames, jig split and patch save/load fields
+  (`mega.kind` + roll params; old patches load as Sheets byte-identically).
+  Export kinds: G-code, SVG, and **DXF R12** (toDXF next to toSVG: POLYLINE
+  per path on PEN_n layers, nearest-ACI colors, y-up flip, plunge z dropped).
 
 ## Version history (condensed)
 
@@ -507,8 +522,44 @@ text are **English**.
   length × gap / area; chain walks must START from the border endpoint;
   soft-min k beyond ~2× gap visibly stretches saddle spacing.
 
+- **2.50** app-level batch, no node changes. **Mega Canvas Roll kind**
+  (wallpaper mode): sliceRoll beside sliceMega — C strips of fixed roll width
+  (seam + Overlap/Gap in X only), seamless pieces along the roll (validated:
+  Σ clipped = exact total length, exact butt joints), per-tile W/H with a
+  short last piece, edge registration ticks at every internal boundary,
+  S#/P# labels, strip-XX-piece-YY filenames, jig split, mega.kind + roll
+  fields in patch save/load (old patches → Sheets). **DRO chip rewrite**
+  (src/dro.jsx full replacement): constant-width chip — label always "DRO",
+  state in dot color + tooltip, always-rendered fixed-width X/Y/Z slots with
+  tabular figures — the top bar no longer reflows on the reconnect cycle;
+  https origin + ws:// URL = static "LAN only" state with zero connection
+  attempts (mixed content can never succeed). **DXF R12 export**: toDXF next
+  to toSVG (POLYLINE entities preserving path continuity, PEN_n layers with
+  nearest-ACI colors from the live pen palette, LTYPE/LAYER tables, y-up
+  flip, -0 guard, plunge z dropped), EXPORT DXF button, dxf kind through
+  preview/download/mega tiles. Applied via tools/era/patch-mega-roll.mjs,
+  patch-roll-labels-text.mjs, patch-dxf-export.mjs + patch-dxf-hoist.mjs
+  (see pitfall below — the pair is the correct as-applied history).
+  Validators: validate-mega-roll.mjs (14 oracles incl. seam/continuity
+  conservation), validate-dxf.mjs (20 oracles incl. module-scope + toSVG
+  smoke). Lessons: era-patch INSERTION DIRECTION must be reviewed
+  (`NEW + anchor` vs `anchor + NEW` — the dxf patch nested toDXF inside
+  toSVG's return array, where the following template literal parsed as a
+  tagged-template call: syntactically valid, build green, toSVG dead at
+  runtime and toDXF gone from module scope); and a validator that extracts a
+  function from App.jsx proves nothing about that function's scope — every
+  extract-style validator now smoke-runs the neighbour function it was
+  inserted next to.
+
 ## Hard-won pitfalls (keep)
 
+- Era-patch INSERTIONS can land inside the anchor's enclosing scope and stay
+  syntactically valid: a function expression dropped into an array literal
+  turns the next template-literal element into a tagged-template CALL — the
+  build passes while the host function dies at runtime and the inserted
+  function never reaches module scope (the v2.50 toDXF/toSVG incident).
+  Review `NEW + anchor` vs `anchor + NEW` on every insertion edit, and give
+  every extract-and-run validator a smoke test of the neighbour function.
 - Era-patch changes to App.jsx can VANISH silently if a later session
   rewrites App.jsx from an older base (the v2.44 DRO regression: module file
   survived, integration gone). Cheap insurance: after any session that

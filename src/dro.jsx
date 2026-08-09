@@ -14,6 +14,18 @@ import React, { useState, useRef, useEffect } from "react";
    - "notify_klippy_ready" / "notify_klippy_disconnected" /
      "notify_klippy_shutdown" track firmware state.
 
+   Layout stability: the chip must NEVER change width from a state
+   transition, or the whole top bar reflows on every reconnect tick.
+   Therefore the label is always the constant string "DRO" (state
+   lives in the dot color + tooltip) and, while connected-mode is on,
+   the X/Y/Z readout slots are always rendered at fixed widths with
+   tabular figures — dashes stand in when there is no data.
+
+   Mixed content: an https page (GitHub Pages) can never open an
+   insecure ws:// socket, so on an https origin with a ws:// URL the
+   panel goes to a static "blocked" state — no connection attempts,
+   no retry loop. wss:// URLs are still attempted normally.
+
    Security note: the URL should point at a LAN address; Moonraker's
    cors_domains must include this app's origin (see moonraker.conf).
    ============================================================ */
@@ -25,25 +37,33 @@ const C = {
 const mono = "'IBM Plex Mono', ui-monospace, Menlo, monospace";
 
 const RETRY_MS = 3000;
+const AXIS_W = 56; /* px per axis slot — fits "X1000.00" in 10px mono */
+
+const wsBlocked = (url) => {
+  try {
+    return !!url && url.startsWith("ws://") && typeof window !== "undefined" && window.location.protocol === "https:";
+  } catch (e) { return false; }
+};
 
 export default function DroPanel({ url }) {
   const [on, setOn] = useState(() => {
     try { return localStorage.getItem("muusia-dro-on") === "1"; } catch (e) { return false; }
   });
-  /* state: off | connecting | ready | klippy-down | error */
+  /* state: off | blocked | connecting | ready | klippy-down | error */
   const [conn, setConn] = useState("off");
   const [pos, setPos] = useState(null);        /* [x, y, z, e] mm */
   const [homed, setHomed] = useState("");      /* e.g. "xyz" */
   const wsRef = useRef(null);
   const subIdRef = useRef(0);
   const retryRef = useRef(null);
+  const blocked = wsBlocked(url);
 
   useEffect(() => {
     try { localStorage.setItem("muusia-dro-on", on ? "1" : "0"); } catch (e) { /* ignore */ }
-    if (!on || !url) {
+    if (!on || !url || blocked) {
       if (wsRef.current) { try { wsRef.current.close(); } catch (e) { /* ignore */ } wsRef.current = null; }
       if (retryRef.current) { clearTimeout(retryRef.current); retryRef.current = null; }
-      setConn("off"); setPos(null); setHomed("");
+      setConn(on && blocked ? "blocked" : "off"); setPos(null); setHomed("");
       return undefined;
     }
     let dead = false;
@@ -117,28 +137,39 @@ export default function DroPanel({ url }) {
       if (retryRef.current) { clearTimeout(retryRef.current); retryRef.current = null; }
       if (wsRef.current) { try { wsRef.current.close(); } catch (e) { /* ignore */ } wsRef.current = null; }
     };
-  }, [on, url]);
+  }, [on, url, blocked]);
 
   const dotColor =
     conn === "ready" ? C.ok :
     conn === "connecting" ? C.warn :
     conn === "klippy-down" ? C.warn :
     conn === "error" ? C.err : C.dim;
-  const label =
-    conn === "ready" ? "DRO" :
-    conn === "connecting" ? "DRO…" :
-    conn === "klippy-down" ? "DRO (klippy)" :
-    conn === "error" ? "DRO (retry)" : "DRO";
-  const f = (v) => (typeof v === "number" && isFinite(v) ? v.toFixed(2) : "—");
+  const stateWord =
+    conn === "ready" ? "connected" :
+    conn === "connecting" ? "connecting\u2026" :
+    conn === "klippy-down" ? "klippy not ready" :
+    conn === "error" ? `retrying every ${RETRY_MS / 1000} s` :
+    conn === "blocked" ? "LAN only \u2014 an https page cannot open an insecure ws:// socket; use the local dev build" :
+    "off";
+  const f = (v) => (typeof v === "number" && isFinite(v) ? v.toFixed(2) : "\u2014");
+  /* fixed-width axis slot: identical footprint with live values, dashes or while off-line */
   const ax = (name, v, homedFlag) => (
-    <span style={{ color: homedFlag ? C.text : C.dim, marginLeft: 6 }}>
+    <span style={{
+      display: "inline-block", width: AXIS_W, textAlign: "left", whiteSpace: "nowrap",
+      overflow: "hidden", fontVariantNumeric: "tabular-nums",
+      color: homedFlag && typeof v === "number" ? C.text : C.dim,
+    }}>
       <span style={{ color: C.dim }}>{name}</span>{f(v)}
     </span>
   );
 
+  const title = !on
+    ? "Click to connect to Moonraker (live position DRO)"
+    : `Moonraker DRO \u2014 ${stateWord}\n${url || "(no URL in machine profile)"}\nClick to disconnect`;
+
   return (
     <div
-      title={on ? `Moonraker: ${url || "(no URL in machine profile)"}\nClick to disconnect` : "Click to connect to Moonraker (live position DRO)"}
+      title={title}
       onClick={() => setOn((v) => !v)}
       style={{
         display: "flex", alignItems: "center", gap: 6, padding: "3px 8px",
@@ -147,12 +178,15 @@ export default function DroPanel({ url }) {
         opacity: on ? 1 : 0.7,
       }}>
       <span style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor, display: "inline-block" }} />
-      <span style={{ color: C.dim }}>{label}</span>
-      {on && conn === "ready" && pos && (
-        <span>
-          {ax("X", pos[0], homed.includes("x"))}
-          {ax("Y", pos[1], homed.includes("y"))}
-          {ax("Z", pos[2], homed.includes("z"))}
+      <span style={{ color: C.dim }}>DRO</span>
+      {on && conn === "blocked" && (
+        <span style={{ color: C.dim }}>LAN only</span>
+      )}
+      {on && conn !== "blocked" && (
+        <span style={{ display: "inline-flex" }}>
+          {ax("X", pos ? pos[0] : undefined, homed.includes("x"))}
+          {ax("Y", pos ? pos[1] : undefined, homed.includes("y"))}
+          {ax("Z", pos ? pos[2] : undefined, homed.includes("z"))}
         </span>
       )}
     </div>
