@@ -550,6 +550,37 @@ text are **English**.
   function from App.jsx proves nothing about that function's scope — every
   extract-style validator now smoke-runs the neighbour function it was
   inserted next to.
+- **2.51** three nodes, one merge, one marker feature, two engine seams.
+  Engine: **bgImage seam** (tools/era/patch-bg-image.mjs) — def flag
+  `bgImage` routes file intake to the Portrait image pipeline (EXIF, 1280
+  px, JPEG dataURL at node.data.src + node.data.img), `ctx.machine`
+  additively exposes the active profile subset {originX/Y, flipY,
+  laserOffX/Y, workW/H}, and the preview draws the first bgImage node's
+  `bgRender()` under the paths in both PathsSVG call sites. **A1 canvas
+  presets** (patch-a1-preset.mjs). Nodes: **Image Underlay** (bgImage
+  tracing reference; 2-4 laser/DRO corner anchors -> least-squares 2D
+  similarity fit, per-anchor mm residuals as arrow guides, Frame output
+  for masking; renamed from photo_underlay in the lab BEFORE bake — keys
+  freeze on bake), **Clock Face** (hands-free dial: parametric hour count,
+  keystone baton quads, quarter emphasis on exact quarter fractions
+  `(i*4)%hours===0`, minute dots/lines on their own pen, spiral center,
+  rim %), **Sweep 3D** (profile swept along Helix / Cone spiral / Flat
+  spiral / Circle / Figure 8 / Line; wired-profile input bbox-fitted; End
+  scale + deterministic sine modulation + Twist; ortho Tilt/Yaw; 90k point
+  budget coarsens the profile, never drops instances). **Single Marker**
+  gained *Coordinates: DRO (laser)* (patch-marker-dro.mjs) — the machine
+  inversion INLINED in compute+overlay per the this-binding pitfall, with
+  an agreement oracle; X/Y slider max 800. **Image + Trace Image merged**
+  (patch-image-merge.mjs): Image gained *Contours (trace)* as a VERBATIM
+  transcription (byte-identity proven across an 8-combo sweep in
+  validate-image-merge.mjs); traceimg is now a `hidden: true` legacy alias
+  (the Route precedent) — old patches byte-identical. Validators:
+  image_underlay 33, singlemarker 17, image-merge 23, clockface 27,
+  sweep3d 23 oracles. Lessons: an exactness oracle must measure along the
+  feature's own axis, not corner radii (clockface C4 — corner distance is
+  hypot(r, halfWidth)); equivalence harnesses must unify param DEFAULTS
+  across both defs before comparing (image-merge B1 — image cell 2.4 vs
+  traceimg 1.6 broke deep-equal until traceimg defaults won).
 
 ## Hard-won pitfalls (keep)
 

@@ -1,19 +1,33 @@
-# MUUSIA v2.50 — Node Reference
+# MUUSIA v2.51 — Node Reference
 
-All 225 built-in nodes. Conventions used below: most generators accept a **Style**
+All 226 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (128)
+## Generators (131)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
-*Halftone dots*, *Hatch levels* (four cross-hatch passes gated by darkness), and
-*Flow shade* (noise streamlines seeded and lengthened by darkness). Gamma, invert,
+*Halftone dots*, *Hatch levels* (four cross-hatch passes gated by darkness),
+*Flow shade* (noise streamlines seeded and lengthened by darkness), and
+*Contours (trace)* — 1-6 tonal threshold levels traced as vector contour lines
+with a minimum-contour speck filter (the former Trace Image node, merged in 2.51;
+gamma, strength, cutoff and seed have no effect in this mode). Gamma, invert,
 white cutoff.
+
+**Image Underlay** — shows an image behind the preview without ever plotting it —
+a tracing reference for drawing over a physical print. Without calibration the
+image fits the margin box; with *Calibrate* on, jog the machine so the laser dot
+hits 2-4 corners of the physical print, type each DRO X/Y reading into its
+anchor, and a least-squares similarity fit (position + rotation + uniform scale)
+lands the on-screen image exactly where the print lies on the bed (laser offset
+and canvas origin from the machine profile). Per-anchor residuals draw as red
+arrows — a long arrow means that reading is off. The *Frame* output is the image
+outline as a closed path for region/containment masking. Uses the 2.51 bgImage
+engine seam; the photo travels inside the patch.
 
 **Growth** — differential growth: a loop that grows (random edge splits + long-edge
 splits) while short-range repulsion keeps it self-avoiding and cohesion keeps it
@@ -160,6 +174,17 @@ feed a Ribbon or Tracks ring to get curved measuring tape.
 silhouette ("Profile"), or both. Shed shapes: *Skirt* (the ceramic high-voltage
 insulator default), round wave, sharp zigzag; view tilt; ends taper automatically.
 
+**Sweep 3D** — a profile repeated along a 3D path and projected flat: the
+transparent-wireframe sweep where the overlapping outlines build a moiré body
+(no hidden-line removal, on purpose). Profiles: Circle, Rectangle, Polygon,
+Star, Line — or wire any paths into the Profile input (fitted to the
+Width/Height box). Paths: Helix, Cone spiral, Flat spiral, Circle, Figure 8,
+Line, with elliptical Path width/depth, Rise, Turns, Phase and *Path end %* for
+the shrinking spirals. Along the way the profile can taper (*End scale %*),
+breathe (*Mod amount/cycles*, a deterministic sine) and *Twist*; orthographic
+*Tilt/Yaw* view. Fully deterministic — no seed; a point budget coarsens the
+profile before Instances × resolution explodes.
+
 **Fabric** — warp and weft lines deformed by one shared displacement field (so the
 weave stays coherent): *Curtain* folds deepening downward with sag, *Flag* traveling
 wave, *Silk* pure noise flow; plus fine rumple.
@@ -196,7 +221,20 @@ guide shows the spot while the node is selected, and X/Y are value ports so
 the marker can be animated. Made for marking points: drop several, Merge, then
 Bridges (*Path centers* + *Source order*) joins them in the exact order they
 are wired into Merge. Every style collapses to exactly one Bridges point at
-the marker's center.
+the marker's center. *Coordinates: DRO (laser)* (2.51) reads X/Y as DRO
+values — jog the laser dot onto the target, type the reading in, and the marker
+lands at that exact bed position (laser offset and origin from the machine
+profile, same convention as Image Underlay anchors).
+
+**Clock Face** — a clock dial without hands or numerals: hour batons around a
+circle (count is a parameter — 12 is a clock, 24 a day dial), minute marks
+between them (*None / Dots / Lines*, on their own pen), an optional spiral-dot
+center and a rim circle at an adjustable percentage of the radius. Each baton is
+a closed quad: *Keystone* tapers it (positive = wider at the rim, ±1 collapses
+to a triangle, like a classic radial baton) and *Quarter scale* enlarges the
+markers sitting on exact quarter fractions of the circle (12/3/6/9 on a
+twelve-hour dial). Outlines only — hatch downstream for solid batons. Diameter
+and center are value ports, so the dial can be driven.
 
 **Noise** — analog-TV static: cells randomly filled with square/circle pixels or
 horizontal *scanline dashes*; size/position jitter and rolling *interference bands*
@@ -307,9 +345,9 @@ so no line is drawn twice. Optional site crosses.
 1-5 nested iso-bands; segments are stitched into closed organic loops that merge
 where blobs meet.
 
-**Trace Image** — threshold contours of a loaded raster image (fileImage): 1-6 tonal
-levels traced as vector contours fitted to the margin box, with invert and a
-minimum-contour filter for specks.
+**Trace Image** — legacy alias, hidden from the palette since 2.51: merged into
+Image as the *Contours (trace)* render mode. Old patches keep loading and
+rendering unchanged (byte-identical compute).
 
 **Harmonograph** — the classic twin-pendulum drawing machine: two damped
 oscillators per axis trace one continuous stroke that spirals inward as it dies.

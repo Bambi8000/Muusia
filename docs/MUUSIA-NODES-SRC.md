@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (223 files, generated)
+# MUUSIA v2.29 — Node Sources (226 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -2474,6 +2474,129 @@ export default {
       return applyStyle({ paths }, ins[0]);
     },
   
+};
+```
+
+## clockface.js
+
+```js
+import { Pin, applyStyle } from "../helpers.js";
+
+export default {
+  key: "clockface",
+  name: "Clock Face",
+  cat: "gen",
+  group: "geometric",
+  desc: "A clock dial without hands or numerals: hour batons around a circle, minute marks between them, an optional center dot and rim ring. Each hour marker is a closed quad — Keystone tapers it (0 = rectangle, positive = wider at the rim like a classic radial baton, negative = wider toward the center; at ±1 it collapses to a triangle). Hours is a parameter (12 = a clock, 24 = a day dial, other counts go abstract). Quarter scale enlarges the markers at the quarter positions (with 12 hours: 12, 3, 6 and 9 — the markers that land exactly on a quarter fraction of the circle grow, so counts not divisible by 4 scale fewer of them — e.g. 10 hours scales top and bottom only). Minute marks: None, Dots or radial Lines, with Subdivisions per hour gap; they draw on their own pen. Rim is an optional full circle whose radius is set as a percentage of the dial radius. Outlines only — wire the output through a hatch or fill node to blacken the batons. Center X/Y and Diameter are value ports, so the whole dial can be driven or animated.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "hours", label: "Hours", type: "slider", min: 2, max: 24, step: 1, def: 12 },
+    { key: "diameter", label: "Diameter mm", type: "slider", min: 10, max: 400, step: 1, def: 120 },
+    { key: "cx", label: "Center X %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
+    { key: "cy", label: "Center Y %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
+    { key: "rot", label: "Rotate \u00b0", type: "slider", min: -180, max: 180, step: 1, def: 0 },
+    { key: "len", label: "Baton length mm", type: "slider", min: 1, max: 60, step: 0.5, def: 12 },
+    { key: "wid", label: "Baton width mm", type: "slider", min: 0.5, max: 30, step: 0.5, def: 4 },
+    { key: "keystone", label: "Keystone", type: "slider", min: -1, max: 1, step: 0.05, def: 0 },
+    { key: "inset", label: "Rim inset mm", type: "slider", min: 0, max: 40, step: 0.5, def: 0 },
+    { key: "quarterScale", label: "Quarter scale", type: "slider", min: 0.5, max: 2, step: 0.05, def: 1 },
+    { key: "minutes", label: "Minute marks", type: "select", options: ["None", "Dots", "Lines"], def: "Lines" },
+    { key: "subs", label: "Subdivisions", type: "slider", min: 1, max: 9, step: 1, def: 4 },
+    { key: "minDot", label: "Dot mm", type: "slider", min: 0.3, max: 5, step: 0.1, def: 1 },
+    { key: "minTick", label: "Tick length mm", type: "slider", min: 0.5, max: 20, step: 0.5, def: 3 },
+    { key: "showCenter", label: "Show center", type: "check", def: true },
+    { key: "centerSize", label: "Center mm", type: "slider", min: 0.5, max: 10, step: 0.5, def: 2 },
+    { key: "rim", label: "Rim circle", type: "check", def: false },
+    { key: "rimR", label: "Rim % of radius", type: "slider", min: 20, max: 140, step: 1, def: 100 },
+    { key: "penH", label: "Markers pen", type: "pen", def: 0 },
+    { key: "penM", label: "Minutes pen", type: "pen", def: 0 },
+  ],
+  overlay(p, ctx) {
+    const X = (ctx.W * p.cx) / 100, Y = (ctx.H * p.cy) / 100;
+    const R = Math.max(1, p.diameter / 2);
+    const g = [
+      { kind: "point", x: X, y: Y },
+      { kind: "circle", cx: X, cy: Y, r: R },
+    ];
+    if (p.rim) g.push({ kind: "circle", cx: X, cy: Y, r: (R * p.rimR) / 100 });
+    return g;
+  },
+  compute(ins, p, ctx) {
+    const X = (ctx.W * p.cx) / 100, Y = (ctx.H * p.cy) / 100;
+    const R = Math.max(1, p.diameter / 2);
+    const hours = Math.max(2, Math.round(p.hours));
+    const LH = Math.round(p.penH), LM = Math.round(p.penM);
+    const paths = [];
+    const D2R = Math.PI / 180;
+    /* angle 0 = 12 o'clock (screen up), positive = clockwise on screen */
+    const dir = (aDeg) => {
+      const a = aDeg * D2R;
+      return [Math.sin(a), -Math.cos(a)];
+    };
+    const circle = (cx0, cy0, rad, layer) => {
+      const n = Math.max(12, Math.round(rad * 8));
+      const pts = [];
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2;
+        pts.push([cx0 + Math.cos(a) * rad, cy0 + Math.sin(a) * rad]);
+      }
+      paths.push({ pts, closed: true, layer });
+    };
+    /* hour batons: closed trapezoids (keystone quads) */
+    const k = Math.max(-1, Math.min(1, p.keystone));
+    const step = 360 / hours;
+    for (let i = 0; i < hours; i++) {
+      const q = p.quarterScale !== 1 && (i * 4) % hours === 0 ? p.quarterScale : 1;
+      const a = p.rot + i * step;
+      const [dx, dy] = dir(a);
+      const tx = -dy, ty = dx; /* tangent, clockwise-consistent */
+      const rOut = Math.max(0, R - p.inset);
+      const rIn = Math.max(0, rOut - p.len * q);
+      const hOut = Math.max(0, (p.wid * q * (1 + k)) / 2);
+      const hIn = Math.max(0, (p.wid * q * (1 - k)) / 2);
+      const P = (r, h, s) => [X + dx * r + tx * h * s, Y + dy * r + ty * h * s];
+      const pts = [P(rOut, hOut, -1), P(rOut, hOut, 1), P(rIn, hIn, 1), P(rIn, hIn, -1)];
+      paths.push({ pts, closed: true, layer: LH });
+    }
+    /* minute marks between the hours */
+    if (p.minutes !== "None") {
+      const subs = Math.max(1, Math.round(p.subs));
+      const per = subs + 1;
+      const total = hours * per;
+      const rOut = Math.max(0, R - p.inset);
+      for (let j = 0; j < total; j++) {
+        if (j % per === 0) continue; /* hour position */
+        const a = p.rot + (j / total) * 360;
+        const [dx, dy] = dir(a);
+        if (p.minutes === "Dots") {
+          const rr = Math.max(0.15, p.minDot / 2);
+          circle(X + dx * (rOut - rr), Y + dy * (rOut - rr), rr, LM);
+        } else {
+          const rIn = Math.max(0, rOut - p.minTick);
+          paths.push({ pts: [[X + dx * rOut, Y + dy * rOut], [X + dx * rIn, Y + dy * rIn]], closed: false, layer: LM });
+        }
+      }
+    }
+    /* center: spiral-filled solid dot (Single Marker Dot convention) */
+    if (p.showCenter) {
+      const r = Math.max(0.25, p.centerSize / 2);
+      const pitch = 0.4;
+      const turns = Math.max(1, r / pitch);
+      const n = Math.max(24, Math.round(turns * 24));
+      const pts = [];
+      for (let kk = 0; kk <= n; kk++) {
+        const t = kk / n;
+        const rad = r * (1 - t);
+        const a = t * turns * Math.PI * 2;
+        pts.push([X + Math.cos(a) * rad, Y + Math.sin(a) * rad]);
+      }
+      paths.push({ pts, closed: false, layer: LH });
+    }
+    /* rim ring */
+    if (p.rim) circle(X, Y, Math.max(0.5, (R * p.rimR) / 100), LH);
+    return applyStyle({ paths }, ins[0]);
+  },
 };
 ```
 
@@ -9247,7 +9370,7 @@ export default {
 ## image.js
 
 ```js
-import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
+import { Pin, EMPTY, mulberry32, noise2, applyStyle, pathLength } from "../helpers.js";
 
 export default {
   key: "image",
@@ -9255,12 +9378,16 @@ export default {
     ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
       { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
-      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade"], def: "Scanline wave" },
+      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)"], def: "Scanline wave" },
       { key: "cell", label: "Cell / spacing mm", type: "slider", min: 0.8, max: 12, step: 0.1, def: 2.4 },
       { key: "strength", label: "Strength", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.8 },
       { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
       { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.06 },
       { key: "invert", label: "Invert", type: "check", def: false },
+      { key: "levels", label: "Contour levels", type: "slider", min: 1, max: 6, step: 1, def: 3 },
+      { key: "low", label: "Lowest threshold", type: "slider", min: 0.05, max: 0.9, step: 0.05, def: 0.25 },
+      { key: "high", label: "Highest threshold", type: "slider", min: 0.1, max: 0.95, step: 0.05, def: 0.75 },
+      { key: "minlen", label: "Min contour mm", type: "slider", min: 0, max: 30, step: 1, def: 5 },
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
       { key: "seed", label: "Seed", type: "seed", def: 139 },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
@@ -9268,6 +9395,104 @@ export default {
     compute(ins, p, ctx, node) {
       const img = node && node.data && node.data.img;
       if (!img) return EMPTY;
+      if (p.mode === "Contours (trace)") {
+        /* verbatim traceimg body — merged 2.51; traceimg is a hidden alias */
+      const { W, H } = ctx;
+      const m = Math.max(0, p.margin);
+      const boxW = W - 2 * m, boxH = H - 2 * m;
+      if (boxW < 10 || boxH < 10) return applyStyle({ paths: [] }, ins[0]);
+      const sc = Math.min(boxW / img.w, boxH / img.h);
+      const iw = img.w * sc, ih = img.h * sc;
+      const ox = (W - iw) / 2, oy = (H - ih) / 2;
+      const darkAt = (x, y) => {
+        const u = (x - ox) / sc - 0.5, v = (y - oy) / sc - 0.5;
+        const iu = Math.floor(u), iv = Math.floor(v);
+        const s = (a, b) => (a < 0 || b < 0 || a >= img.w || b >= img.h) ? 0 : img.g[b * img.w + a];
+        const fu = u - iu, fv = v - iv;
+        let d = s(iu, iv) * (1 - fu) * (1 - fv) + s(iu + 1, iv) * fu * (1 - fv) +
+                s(iu, iv + 1) * (1 - fu) * fv + s(iu + 1, iv + 1) * fu * fv;
+        return p.invert ? 1 - d : d;
+      };
+      const cell = Math.max(0.5, p.cell);
+      const cols = Math.max(2, Math.round(iw / cell) + 1);
+      const rows = Math.max(2, Math.round(ih / cell) + 1);
+      const gx = (c) => ox + (c / (cols - 1)) * iw;
+      const gy = (r) => oy + (r / (rows - 1)) * ih;
+      const F = new Float64Array(cols * rows);
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) F[r * cols + c] = darkAt(gx(c), gy(r));
+      const NL = Math.max(1, Math.min(8, Math.round(p.levels)));
+      const lo = Math.min(p.low, p.high), hi = Math.max(p.low, p.high);
+      const segs = [];
+      const interp = (a, b, lvl) => Math.abs(b - a) < 1e-12 ? 0.5 : (lvl - a) / (b - a);
+      for (let li = 0; li < NL; li++) {
+        const lvl = NL === 1 ? (lo + hi) / 2 : lo + (li / (NL - 1)) * (hi - lo);
+        for (let r = 0; r < rows - 1; r++) {
+          for (let c = 0; c < cols - 1; c++) {
+            const tl = F[r * cols + c], tr = F[r * cols + c + 1];
+            const bl = F[(r + 1) * cols + c], br = F[(r + 1) * cols + c + 1];
+            let idx = 0;
+            if (tl > lvl) idx |= 8; if (tr > lvl) idx |= 4;
+            if (br > lvl) idx |= 2; if (bl > lvl) idx |= 1;
+            if (idx === 0 || idx === 15) continue;
+            const xL = gx(c), xR = gx(c + 1), yT = gy(r), yB = gy(r + 1);
+            const eT = () => [xL + interp(tl, tr, lvl) * (xR - xL), yT];
+            const eB = () => [xL + interp(bl, br, lvl) * (xR - xL), yB];
+            const eL = () => [xL, yT + interp(tl, bl, lvl) * (yB - yT)];
+            const eR = () => [xR, yT + interp(tr, br, lvl) * (yB - yT)];
+            const S = (A, B) => segs.push([A, B]);
+            switch (idx) {
+              case 1: S(eL(), eB()); break; case 2: S(eB(), eR()); break;
+              case 3: S(eL(), eR()); break; case 4: S(eT(), eR()); break;
+              case 5: S(eL(), eT()); S(eB(), eR()); break;
+              case 6: S(eT(), eB()); break; case 7: S(eL(), eT()); break;
+              case 8: S(eL(), eT()); break; case 9: S(eT(), eB()); break;
+              case 10: S(eL(), eB()); S(eT(), eR()); break;
+              case 11: S(eT(), eR()); break; case 12: S(eL(), eR()); break;
+              case 13: S(eB(), eR()); break; case 14: S(eL(), eB()); break;
+            }
+          }
+        }
+      }
+      const q = (v) => Math.round(v * 100) / 100;
+      const kk = (pt) => q(pt[0]) + "," + q(pt[1]);
+      const map = new Map();
+      const items = segs.map((s) => ({ a: s[0], b: s[1], used: false }));
+      const push = (k, ref) => { let a = map.get(k); if (!a) { a = []; map.set(k, a); } a.push(ref); };
+      items.forEach((s, i) => { push(kk(s.a), { i, end: "a" }); push(kk(s.b), { i, end: "b" }); });
+      const paths = [];
+      const L = Math.round(p.layer);
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].used) continue;
+        items[i].used = true;
+        const chain = [items[i].a, items[i].b];
+        let grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[chain.length - 1])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.push(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        grow = true;
+        while (grow) {
+          grow = false;
+          for (const ref of (map.get(kk(chain[0])) || [])) {
+            const s = items[ref.i];
+            if (s.used) continue;
+            chain.unshift(ref.end === "a" ? s.b : s.a);
+            s.used = true; grow = true; break;
+          }
+        }
+        if (chain.length < 3) continue;
+        if (p.minlen > 0 && pathLength(chain, false) < p.minlen) continue;
+        const closed = Math.hypot(chain[0][0] - chain[chain.length - 1][0], chain[0][1] - chain[chain.length - 1][1]) < cell * 1.5;
+        if (closed) chain.pop();
+        if (chain.length > 2) paths.push({ pts: chain, closed, layer: L });
+      }
+      return applyStyle({ paths }, ins[0]);
+      }
       const { W, H } = ctx;
       const m = p.margin;
       /* sovita kuva marginaalilaatikkoon mittasuhteet sailyttaen */
@@ -9366,6 +9591,137 @@ export default {
       return applyStyle({ paths }, ins[0]);
     },
   
+};
+```
+
+## image_underlay.js
+
+```js
+import { Pin, EMPTY } from "../helpers.js";
+
+export default {
+  key: "image_underlay",
+  name: "Image Underlay",
+  cat: "gen",
+  group: "textimg",
+  fileImage: true,
+  bgImage: true,
+  desc: "Shows an image behind the preview without ever plotting it — a tracing reference for drawing over a physical print. Without calibration the image sits in the margin box. With Calibrate on, jog the machine so the laser dot hits 2–4 corners of the physical print, type each DRO X/Y reading into the matching anchor, and the node fits a similarity transform (position + rotation + uniform scale) so the on-screen image lands exactly where the print lies on the bed. Laser offset and canvas origin come from the machine profile. Anchor residual errors are shown as red arrows in the preview — a long arrow means that reading is off. The Frame output is the image's outline as a closed path: wire it into a region/containment node to keep your drawing on the print.",
+  ins: [],
+  outs: [Pin("paths", "Frame")],
+  params: [
+    { key: "image", label: "Image", type: "file", def: "" },
+    { key: "show", label: "Show underlay", type: "check", def: true },
+    { key: "opacity", label: "Opacity %", type: "slider", min: 5, max: 100, step: 1, def: 40 },
+    { key: "gray", label: "Grayscale", type: "check", def: true },
+    { key: "margin", label: "Fit margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
+    { key: "calibrate", label: "Calibrate (laser anchors)", type: "check", def: false },
+    { key: "useTL", label: "Use top-left", type: "check", def: true },
+    { key: "tlX", label: "TL DRO X mm", type: "number", min: -50, max: 800, step: 0.01, def: 0 },
+    { key: "tlY", label: "TL DRO Y mm", type: "number", min: -50, max: 800, step: 0.01, def: 0 },
+    { key: "useTR", label: "Use top-right", type: "check", def: true },
+    { key: "trX", label: "TR DRO X mm", type: "number", min: -50, max: 800, step: 0.01, def: 0 },
+    { key: "trY", label: "TR DRO Y mm", type: "number", min: -50, max: 800, step: 0.01, def: 0 },
+    { key: "useBR", label: "Use bottom-right", type: "check", def: true },
+    { key: "brX", label: "BR DRO X mm", type: "number", min: -50, max: 800, step: 0.01, def: 0 },
+    { key: "brY", label: "BR DRO Y mm", type: "number", min: -50, max: 800, step: 0.01, def: 0 },
+    { key: "useBL", label: "Use bottom-left", type: "check", def: false },
+    { key: "blX", label: "BL DRO X mm", type: "number", min: -50, max: 800, step: 0.01, def: 0 },
+    { key: "blY", label: "BL DRO Y mm", type: "number", min: -50, max: 800, step: 0.01, def: 0 },
+    { key: "framePen", label: "Frame pen", type: "pen", def: 0 },
+  ],
+
+  /* Shared transform: fit (margin box) or cal (similarity from anchors).
+     Returns { mode, s, rot, cx, cy, w, h, residuals, map } or null when no
+     image is loaded. Called as a method (this._xform) by compute, overlay
+     and bgRender so all three can never drift apart. Must never throw. */
+  _xform(p, ctx, node) {
+    const img = node && node.data && node.data.img;
+    if (!img || !(img.w > 0) || !(img.h > 0)) return null;
+    const W = (ctx && ctx.W) || 300, H = (ctx && ctx.H) || 200;
+    const fit = () => {
+      const m = Math.max(0, Math.min(p.margin || 0, Math.min(W, H) / 2 - 1));
+      const s = Math.max(1e-9, Math.min((W - 2 * m) / img.w, (H - 2 * m) / img.h));
+      const map = (px, py) => [W / 2 + (px - img.w / 2) * s, H / 2 + (py - img.h / 2) * s];
+      return { mode: "fit", s, rot: 0, cx: W / 2, cy: H / 2, w: img.w * s, h: img.h * s, residuals: [], map };
+    };
+    if (!p.calibrate) return fit();
+    const M = (ctx && ctx.machine) || {};
+    const oX = M.originX || 0, oY = M.originY || 0, fY = !!M.flipY;
+    const lx = M.laserOffX || 0, ly = M.laserOffY || 0;
+    /* DRO reading -> laser dot machine coord -> canvas mm (inverse of export fx/fy) */
+    const m2c = (dx, dy) => {
+      const mx = dx + lx, my = dy + ly;
+      const x = mx - oX, yy = my - oY;
+      return [x, fY ? H - yy : yy];
+    };
+    const corners = [
+      { use: p.useTL, P: [0, 0], dx: p.tlX, dy: p.tlY },
+      { use: p.useTR, P: [img.w, 0], dx: p.trX, dy: p.trY },
+      { use: p.useBR, P: [img.w, img.h], dx: p.brX, dy: p.brY },
+      { use: p.useBL, P: [0, img.h], dx: p.blX, dy: p.blY },
+    ].filter((c) => c.use);
+    if (corners.length < 2) return fit();
+    const pairs = corners.map((c) => ({ P: c.P, Q: m2c(+c.dx || 0, +c.dy || 0) }));
+    /* 2D Umeyama similarity, closed form, no reflection */
+    let pcx = 0, pcy = 0, qcx = 0, qcy = 0;
+    for (const { P, Q } of pairs) { pcx += P[0]; pcy += P[1]; qcx += Q[0]; qcy += Q[1]; }
+    const n = pairs.length;
+    pcx /= n; pcy /= n; qcx /= n; qcy /= n;
+    let a = 0, b = 0, n2 = 0;
+    for (const { P, Q } of pairs) {
+      const px = P[0] - pcx, py = P[1] - pcy, qx = Q[0] - qcx, qy = Q[1] - qcy;
+      a += px * qx + py * qy;
+      b += px * qy - py * qx;
+      n2 += px * px + py * py;
+    }
+    if (!(n2 > 1e-9)) return fit();
+    const s = Math.hypot(a, b) / n2;
+    if (!isFinite(s) || s < 1e-9) return fit();
+    const th = Math.atan2(b, a), ca = Math.cos(th), sa = Math.sin(th);
+    const map = (px, py) => {
+      const dx = px - pcx, dy = py - pcy;
+      return [qcx + s * (ca * dx - sa * dy), qcy + s * (sa * dx + ca * dy)];
+    };
+    const residuals = pairs.map(({ P, Q }) => {
+      const F = map(P[0], P[1]);
+      return { qx: Q[0], qy: Q[1], fx: F[0], fy: F[1], r: Math.hypot(F[0] - Q[0], F[1] - Q[1]) };
+    });
+    const C = map(img.w / 2, img.h / 2);
+    return { mode: "cal", s, rot: (th * 180) / Math.PI, cx: C[0], cy: C[1], w: img.w * s, h: img.h * s, residuals, map };
+  },
+
+  /* Engine hook (bgImage flag): what the preview draws under the paths. */
+  bgRender(p, ctx, node) {
+    if (p.show === false) return null;
+    if (!node || !node.data || !node.data.src) return null;
+    const T = this._xform(p, ctx, node);
+    if (!T) return null;
+    const op = Math.max(0.05, Math.min(1, (p.opacity == null ? 40 : p.opacity) / 100));
+    return { src: node.data.src, cx: T.cx, cy: T.cy, w: T.w, h: T.h, rotDeg: T.rot, opacity: op, gray: !!p.gray };
+  },
+
+  overlay(p, ctx, ins, node) {
+    const T = this._xform(p, ctx, node);
+    if (!T) return [];
+    const g = [];
+    const img = node.data.img;
+    const F = [T.map(0, 0), T.map(img.w, 0), T.map(img.w, img.h), T.map(0, img.h)];
+    g.push({ kind: "poly", pts: F });
+    for (const r of T.residuals) {
+      g.push({ kind: "point", x: r.qx, y: r.qy });
+      if (r.r > 0.05) g.push({ kind: "arrow", x1: r.qx, y1: r.qy, x2: r.fx, y2: r.fy });
+    }
+    return g;
+  },
+
+  compute(ins, p, ctx, node) {
+    const T = this._xform(p, ctx, node);
+    if (!T) return EMPTY;
+    const img = node.data.img;
+    const pts = [T.map(0, 0), T.map(img.w, 0), T.map(img.w, img.h), T.map(0, img.h)];
+    return { paths: [{ pts, closed: true, layer: Math.round(p.framePen || 0) }] };
+  },
 };
 ```
 
@@ -20926,25 +21282,41 @@ export default {
   name: "Single Marker",
   cat: "gen",
   group: "structural",
-  desc: "One movable marker at an exact X/Y mm position — at its simplest a solid ink dot. Styles: Dot (spiral-filled solid point), Circle, Cross +, Cross ×, Circle + cross (registration style), Circle + dot. Move it with the X/Y sliders (both are value ports, so they can be wired); a dashed guide shows the spot while the node is selected. Made for marking points: drop several markers, Merge them, then wire into Bridges (Points from: Path centers, Connect: Source order) to join the points in the exact order they are wired into Merge — Trim ends keeps the line off the dots, Close loop returns to the first marker. Connect: Chain joins them by nearest neighbour instead.",
+  desc: "One movable marker at an exact X/Y mm position — at its simplest a solid ink dot. Styles: Dot (spiral-filled solid point), Circle, Cross +, Cross ×, Circle + cross (registration style), Circle + dot. Move it with the X/Y sliders (both are value ports, so they can be wired); a dashed guide shows the spot while the node is selected. Made for marking points: drop several markers, Merge them, then wire into Bridges (Points from: Path centers, Connect: Source order) to join the points in the exact order they are wired into Merge — Trim ends keeps the line off the dots, Close loop returns to the first marker. Connect: Chain joins them by nearest neighbour instead. Coordinates: DRO (laser) reads X/Y as DRO values — jog the laser dot onto the target spot on the bed, type the DRO reading in, and the marker lands at that exact physical position (laser offset and origin come from the machine profile, same convention as Image Underlay anchors).",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "x", label: "X mm", type: "slider", min: 0, max: 420, step: 0.5, def: 105 },
-    { key: "y", label: "Y mm", type: "slider", min: 0, max: 594, step: 0.5, def: 148.5 },
+    { key: "x", label: "X mm", type: "slider", min: 0, max: 800, step: 0.5, def: 105 },
+    { key: "y", label: "Y mm", type: "slider", min: 0, max: 800, step: 0.5, def: 148.5 },
+    { key: "coord", label: "Coordinates", type: "select", options: ["Canvas mm", "DRO (laser)"], def: "Canvas mm" },
     { key: "style", label: "Style", type: "select", options: ["Dot", "Circle", "Cross +", "Cross \u00d7", "Circle + cross", "Circle + dot"], def: "Dot" },
     { key: "size", label: "Size mm", type: "slider", min: 0.5, max: 30, step: 0.5, def: 3 },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
   overlay(p, ctx) {
     const r = Math.max(0.25, p.size / 2);
+    let gx = p.x, gy = p.y;
+    if (p.coord === "DRO (laser)") {
+      const M = (ctx && ctx.machine) || {};
+      const mmx = (+p.x || 0) + (M.laserOffX || 0), mmy = (+p.y || 0) + (M.laserOffY || 0);
+      gx = mmx - (M.originX || 0);
+      const dyy = mmy - (M.originY || 0);
+      gy = M.flipY ? ((ctx && ctx.H) || 0) - dyy : dyy;
+    }
     return [
-      { kind: "point", x: p.x, y: p.y },
-      { kind: "circle", cx: p.x, cy: p.y, r: Math.max(r, 2) },
+      { kind: "point", x: gx, y: gy },
+      { kind: "circle", cx: gx, cy: gy, r: Math.max(r, 2) },
     ];
   },
   compute(ins, p, ctx) {
-    const cx = p.x, cy = p.y;
+    let cx = p.x, cy = p.y;
+    if (p.coord === "DRO (laser)") {
+      const M = (ctx && ctx.machine) || {};
+      const mmx = (+p.x || 0) + (M.laserOffX || 0), mmy = (+p.y || 0) + (M.laserOffY || 0);
+      cx = mmx - (M.originX || 0);
+      const dyy = mmy - (M.originY || 0);
+      cy = M.flipY ? ((ctx && ctx.H) || 0) - dyy : dyy;
+    }
     const r = Math.max(0.25, p.size / 2);
     const L = Math.max(0, Math.min(11, Math.round(p.layer)));
     const paths = [];
@@ -23761,6 +24133,220 @@ export default {
 };
 ```
 
+## sweep3d.js
+
+```js
+import { Pin, applyStyle } from "../helpers.js";
+
+export default {
+  key: "sweep3d",
+  name: "Sweep 3D",
+  cat: "gen",
+  group: "geometric",
+  desc: "A profile shape repeated along a 3D path and projected flat — the classic transparent-wireframe sweep where all the overlapping outlines build a moir\u00e9 body (no hidden-line removal, on purpose). Profile: Circle, Rectangle, Polygon, Star or Line, sized by Width/Height (an oval is a Circle with unequal Width/Height) — or wire any paths into the Profile input to sweep them instead (they are centered and fitted into the Width/Height box). Path: Helix (constant radius), Cone spiral (radius shrinks to Path end %), Flat spiral (Archimedean, in plane, outer to Path end %), Circle, Figure 8, or Line; Path width/depth make elliptical orbits, Rise is the vertical travel, Turns and Phase place the revolutions. Along the way the profile can shrink or grow (End scale %) and breathe (Mod amount/cycles, a deterministic sine). Twist rotates the profile around the path over the full length. View: orthographic Tilt/Yaw. Fully deterministic \u2014 no seed. Point budget: the profile is automatically coarsened when Instances \u00d7 resolution would explode.",
+  ins: [Pin("paths", "Profile"), Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "profile", label: "Profile", type: "select", options: ["Circle", "Rectangle", "Polygon", "Star", "Line"], def: "Polygon" },
+    { key: "pw", label: "Width mm", type: "slider", min: 2, max: 200, step: 0.5, def: 57 },
+    { key: "ph", label: "Height mm", type: "slider", min: 1, max: 200, step: 0.5, def: 18 },
+    { key: "sides", label: "Sides", type: "slider", min: 3, max: 12, step: 1, def: 5 },
+    { key: "inner", label: "Star inner %", type: "slider", min: 10, max: 90, step: 1, def: 45 },
+    { key: "path", label: "Path", type: "select", options: ["Helix", "Cone spiral", "Flat spiral", "Circle", "Figure 8", "Line"], def: "Helix" },
+    { key: "pathW", label: "Path width mm", type: "slider", min: 0, max: 200, step: 0.5, def: 45 },
+    { key: "pathD", label: "Path depth mm", type: "slider", min: 0, max: 200, step: 0.5, def: 45 },
+    { key: "rise", label: "Rise mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
+    { key: "turns", label: "Turns", type: "slider", min: 0.25, max: 10, step: 0.05, def: 1.5 },
+    { key: "phase", label: "Phase \u00b0", type: "slider", min: -180, max: 180, step: 1, def: 0 },
+    { key: "pathEnd", label: "Path end %", type: "slider", min: 2, max: 150, step: 1, def: 35 },
+    { key: "instances", label: "Instances", type: "slider", min: 8, max: 800, step: 1, def: 432 },
+    { key: "endScale", label: "End scale %", type: "slider", min: 2, max: 200, step: 1, def: 100 },
+    { key: "modAmt", label: "Mod amount %", type: "slider", min: 0, max: 100, step: 1, def: 0 },
+    { key: "modCyc", label: "Mod cycles", type: "slider", min: 0.5, max: 12, step: 0.5, def: 3 },
+    { key: "twist", label: "Twist \u00b0", type: "slider", min: -1080, max: 1080, step: 5, def: 0 },
+    { key: "tilt", label: "Tilt \u00b0", type: "slider", min: -90, max: 90, step: 1, def: 0 },
+    { key: "yaw", label: "Yaw \u00b0", type: "slider", min: -180, max: 180, step: 1, def: 0 },
+    { key: "cx", label: "Center X %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
+    { key: "cy", label: "Center Y %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+
+  /* Path point in world mm (X right, Y up, Z depth) at t in [0,1].
+     Kept as a def method shared by compute and overlay via `this`. */
+  _path(p, t) {
+    const TAU = Math.PI * 2;
+    const th = (p.phase * Math.PI) / 180 + t * p.turns * TAU;
+    const Rx = p.pathW, Rz = p.pathD, rise = p.rise;
+    const endF = p.pathEnd / 100;
+    switch (p.path) {
+      case "Cone spiral": {
+        const s = 1 + (endF - 1) * t;
+        return [Rx * s * Math.cos(th), rise * (t - 0.5), Rz * s * Math.sin(th)];
+      }
+      case "Flat spiral": {
+        const s = 1 + (endF - 1) * t;
+        return [Rx * s * Math.cos(th), 0, Rz * s * Math.sin(th)];
+      }
+      case "Circle":
+        return [Rx * Math.cos(th), 0, Rz * Math.sin(th)];
+      case "Figure 8":
+        return [Rx * Math.sin(th), rise * (t - 0.5), Rz * Math.sin(th) * Math.cos(th)];
+      case "Line":
+        return [Rx * (t * 2 - 1), rise * (t - 0.5), 0];
+      default: /* Helix */
+        return [Rx * Math.cos(th), rise * (t - 0.5), Rz * Math.sin(th)];
+    }
+  },
+
+  overlay(p, ctx) {
+    const X = (ctx.W * p.cx) / 100, Y = (ctx.H * p.cy) / 100;
+    const ty = (p.tilt * Math.PI) / 180, yw = (p.yaw * Math.PI) / 180;
+    const proj = (w) => {
+      const x1 = w[0] * Math.cos(yw) + w[2] * Math.sin(yw);
+      const z1 = -w[0] * Math.sin(yw) + w[2] * Math.cos(yw);
+      const y1 = w[1] * Math.cos(ty) - z1 * Math.sin(ty);
+      return [X + x1, Y - y1];
+    };
+    const g = [{ kind: "point", x: X, y: Y }];
+    const N = 9;
+    for (let i = 0; i < N; i++) {
+      const a = proj(this._path(p, i / N)), b = proj(this._path(p, (i + 1) / N));
+      g.push({ kind: "arrow", x1: a[0], y1: a[1], x2: b[0], y2: b[1] });
+    }
+    return g;
+  },
+
+  compute(ins, p, ctx) {
+    const X = (ctx.W * p.cx) / 100, Y = (ctx.H * p.cy) / 100;
+    const N = Math.max(2, Math.round(p.instances));
+    const L = Math.round(p.layer);
+    const TAU = Math.PI * 2;
+
+    /* ---- profile in local (u, v) mm, centered; array of {pts, closed} ---- */
+    const halfW = Math.max(0.1, p.pw) / 2, halfH = Math.max(0.1, p.ph) / 2;
+    const subs = [];
+    const wired = ins[0] && ins[0].paths && ins[0].paths.length ? ins[0].paths : null;
+    /* budget: coarsen the profile so N * pts stays sane */
+    const MAXPTS = 90000;
+    if (wired) {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, tot = 0;
+      for (const pa of wired) for (const q of pa.pts) {
+        if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0];
+        if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1];
+        tot++;
+      }
+      const bw = Math.max(1e-6, x1 - x0), bh = Math.max(1e-6, y1 - y0);
+      const s = Math.min((halfW * 2) / bw, (halfH * 2) / bh);
+      const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+      const skip = Math.max(1, Math.ceil((tot * N) / MAXPTS));
+      for (const pa of wired) {
+        const pts = [];
+        for (let i = 0; i < pa.pts.length; i += skip) pts.push([(pa.pts[i][0] - mx) * s, (pa.pts[i][1] - my) * s]);
+        if (skip > 1 && !pa.closed && (pa.pts.length - 1) % skip !== 0) {
+          const q = pa.pts[pa.pts.length - 1];
+          pts.push([(q[0] - mx) * s, (q[1] - my) * s]);
+        }
+        if (pts.length > 1) subs.push({ pts, closed: !!pa.closed });
+      }
+    } else {
+      const seg = (pts, closed, step) => {
+        /* subdivide straight edges so twist and projection bend them smoothly */
+        const out = [];
+        const n = pts.length;
+        const lim = closed ? n : n - 1;
+        for (let i = 0; i < lim; i++) {
+          const a = pts[i], b = pts[(i + 1) % n];
+          const d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          const k = Math.max(1, Math.round(d / step));
+          for (let j = 0; j < k; j++) out.push([a[0] + ((b[0] - a[0]) * j) / k, a[1] + ((b[1] - a[1]) * j) / k]);
+        }
+        if (!closed) out.push(pts[n - 1].slice());
+        return out;
+      };
+      let base = null, closed = true;
+      if (p.profile === "Circle") {
+        const per = Math.PI * (halfW + halfH) * 2;
+        base = [];
+        const n = Math.max(16, Math.round(per / 1.2));
+        for (let k = 0; k < n; k++) {
+          const a = (k / n) * TAU;
+          base.push([Math.cos(a) * halfW, Math.sin(a) * halfH]);
+        }
+      } else if (p.profile === "Rectangle") {
+        base = seg([[-halfW, -halfH], [halfW, -halfH], [halfW, halfH], [-halfW, halfH]], true, 2);
+      } else if (p.profile === "Polygon") {
+        const n = Math.max(3, Math.round(p.sides));
+        const vs = [];
+        for (let k = 0; k < n; k++) {
+          const a = -Math.PI / 2 + (k / n) * TAU;
+          vs.push([Math.cos(a) * halfW, Math.sin(a) * halfH]);
+        }
+        base = seg(vs, true, 2);
+      } else if (p.profile === "Star") {
+        const n = Math.max(3, Math.round(p.sides));
+        const vs = [];
+        for (let k = 0; k < n * 2; k++) {
+          const a = -Math.PI / 2 + (k / (n * 2)) * TAU;
+          const f = k % 2 === 0 ? 1 : p.inner / 100;
+          vs.push([Math.cos(a) * halfW * f, Math.sin(a) * halfH * f]);
+        }
+        base = seg(vs, true, 2);
+      } else { /* Line */
+        base = seg([[-halfW, 0], [halfW, 0]], false, 2);
+        closed = false;
+      }
+      const skip = Math.max(1, Math.ceil((base.length * N) / MAXPTS));
+      const pts = [];
+      for (let i = 0; i < base.length; i += skip) pts.push(base[i]);
+      subs.push({ pts, closed });
+    }
+
+    /* ---- projection ---- */
+    const ty = (p.tilt * Math.PI) / 180, yw = (p.yaw * Math.PI) / 180;
+    const cyw = Math.cos(yw), syw = Math.sin(yw), cty = Math.cos(ty), sty = Math.sin(ty);
+    const proj = (wx, wy, wz) => {
+      const x1 = wx * cyw + wz * syw;
+      const z1 = -wx * syw + wz * cyw;
+      const y1 = wy * cty - z1 * sty;
+      return [X + x1, Y - y1];
+    };
+
+    /* ---- sweep ---- */
+    const paths = [];
+    const h = 1e-4;
+    for (let i = 0; i < N; i++) {
+      const t = N === 1 ? 0 : i / (N - 1);
+      const P = this._path(p, t);
+      /* frame: tangent by central difference, up-referenced */
+      const Pa = this._path(p, Math.min(1, t + h)), Pb = this._path(p, Math.max(0, t - h));
+      let Tv = [Pa[0] - Pb[0], Pa[1] - Pb[1], Pa[2] - Pb[2]];
+      let tl = Math.hypot(Tv[0], Tv[1], Tv[2]);
+      if (tl < 1e-12) Tv = [1, 0, 0]; else Tv = [Tv[0] / tl, Tv[1] / tl, Tv[2] / tl];
+      let up = Math.abs(Tv[1]) > 0.999 ? [1, 0, 0] : [0, 1, 0];
+      /* B = T x up, Nf = B x T */
+      let B = [Tv[1] * up[2] - Tv[2] * up[1], Tv[2] * up[0] - Tv[0] * up[2], Tv[0] * up[1] - Tv[1] * up[0]];
+      let bl = Math.hypot(B[0], B[1], B[2]);
+      if (bl < 1e-12) B = [0, 0, 1]; else B = [B[0] / bl, B[1] / bl, B[2] / bl];
+      const Nf = [B[1] * Tv[2] - B[2] * Tv[1], B[2] * Tv[0] - B[0] * Tv[2], B[0] * Tv[1] - B[1] * Tv[0]];
+      /* size along the path: taper x sine modulation, floored at 1% */
+      const s = Math.max(0.01, (1 + (p.endScale / 100 - 1) * t) * (1 + (p.modAmt / 100) * Math.sin(TAU * p.modCyc * t)));
+      const tw = ((p.twist * Math.PI) / 180) * t;
+      const ct = Math.cos(tw), st = Math.sin(tw);
+      for (const sub of subs) {
+        const pts = [];
+        for (const q of sub.pts) {
+          const u = (q[0] * ct - q[1] * st) * s;
+          const v = (q[0] * st + q[1] * ct) * s;
+          pts.push(proj(P[0] + B[0] * u + Nf[0] * v, P[1] + B[1] * u + Nf[1] * v, P[2] + B[2] * u + Nf[2] * v));
+        }
+        if (pts.length > 1) paths.push({ pts, closed: sub.closed, layer: L });
+      }
+    }
+    return applyStyle({ paths }, ins[1]);
+  },
+};
+```
+
 ## switch.js
 
 ```js
@@ -24518,6 +25104,7 @@ export default {
     name: "Trace Image",
     cat: "gen",
     group: "textimg",
+    hidden: true, /* merged into Image (Contours (trace) mode) in 2.51 — legacy alias, old patches keep loading unchanged */
     fileImage: true,
     ins: [Pin("style", "Style")],
     outs: [Pin("paths")],

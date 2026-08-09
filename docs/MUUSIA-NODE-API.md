@@ -96,6 +96,9 @@ that. Prefer resolution parameters so the user can trade detail for speed.
 | `params` | array | Parameter descriptors, section 4. |
 | `compute` | function | `(ins, p, ctx, node) => result`, section 5. |
 | `overlay` | function, expected for spatial params | `(params, ctx, ins?) => guides[]` — dashed preview guides shown when the node is selected. The engine also passes the node's resolved data inputs as an optional third argument (unwired pins are `undefined`), so a node with a wired region input can return the region's closed paths as `{kind:"poly"}` guides; guard with `(ins && ins[k]) || EMPTY` and cap the guide count. Guide kinds: `{kind:"rect",x,y,w,h}`, `{kind:"circle",cx,cy,r}`, `{kind:"point",x,y}`, `{kind:"arrow",x1,y1,x2,y2}`, `{kind:"poly",pts}`. Never plotted. **Required convention:** any node whose parameters place, size or bound a spatial region — zones, masks, pools, margins, placement offsets, effect areas — must provide an overlay showing that region (see Smear, Ripple, Eraser). Compute the guide with the same math as `compute` so the guide matches the output exactly. Since 2.47 the engine also passes the node object as an optional FOURTH argument — `(params, ctx, ins, node)` — so a node carrying frozen data (e.g. Portrait's `node.data.analysis`) can draw it as guides. Guard everything: the argument may be absent (older callers), `node.data` may be missing, and frozen data may be garbage from an imported patch; a guide function must never throw. |
+| `bgImage` | flag (2.51) | Background-underlay node: the file param intakes via the Portrait image pipeline (EXIF orientation honored, long side 1280 px, JPEG dataURL frozen at `node.data.src` + dims/grayscale at `node.data.img`), and the preview draws the node's `bgRender()` UNDER the paths — always visible, not only when selected. One bgImage node renders at a time. The image travels inside the patch. |
+| `bgRender` | function (2.51) | `(params, ctx, node) => {src, cx, cy, w, h, rotDeg, opacity, gray} \| null` — what the preview draws for a `bgImage` node, in canvas mm. Never plotted, never exported. Must never throw; return `null` to hide. |
+| `hidden` | flag | Hides the node from the palette while old patches keep loading and rendering unchanged — the legacy-alias mechanism (Route since 2.3x, Trace Image since 2.51). |
 | `onFile` | function, optional | `(text) => data` — parse a file for a `type:"file"` param. **The result is stored at `node.data.svg`** (the `.svg` key is a historical artifact of Import SVG and applies to every file node — Point Cloud reads its point data from there too); `compute` must read `node && node.data && node.data.svg`. |
 | `fileLabel` | string, optional | Label for the file picker button (default "Choose SVG…"). **Definition-level field** — set it next to `key`/`name`, not inside the param descriptor. |
 | `fileAccept` | string, optional | `accept` attribute for the file input, e.g. `".geojson,.json"` (default `.svg`). **Definition-level field**; a `fileAccept` placed inside the param descriptor is silently ignored. |
@@ -141,7 +144,11 @@ compute(ins, p, ctx, node) → pathSet | number | style | array-of-pathSets
   A `value` input arrives as a `number`; a `style` input as an opaque object you only
   pass to `applyStyle`.
 - `p` — plain object of parameter values, numeric params already resolved from wires.
-- `ctx` — `{ W, H }` canvas size in mm.
+- `ctx` — `{ W, H }` canvas size in mm. Since 2.51 also `ctx.machine` —
+  `{ originX, originY, flipY, laserOffX, laserOffY, workW, workH }` from the
+  active machine profile, for nodes that convert DRO/machine coordinates to
+  canvas mm (Image Underlay anchors, Single Marker DRO mode). Guard it: the
+  field may be absent in older callers and bare validator harnesses.
 - `node` — the node instance; only needed for `node.data` (file payloads) or dynamic outs.
 - Return one path set normally; a `number` for math nodes (`outs: [Pin("value")]`);
   an **array of path sets** if `outs` declares multiple outputs.
