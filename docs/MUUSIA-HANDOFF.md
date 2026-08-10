@@ -29,8 +29,8 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **215 files** (217 nodes total with
-  group + reititys; Generators 121, Modifiers 67). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **231 files** (233 nodes total with
+  group + reititys; Generators 135, Modifiers 69). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -84,7 +84,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (223) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (231) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -581,6 +581,31 @@ text are **English**.
   hypot(r, halfWidth)); equivalence harnesses must unify param DEFAULTS
   across both defs before comparing (image-merge B1 — image cell 2.4 vs
   traceimg 1.6 broke deep-equal until traceimg defaults won).
+
+- **2.52** five nodes, one release batch. **Loom** (gen/structural: draped
+  warp/weft mesh; Shape noise rumple + Drift directional ramp added as SHARED
+  fields so warp and weft stay woven; drift-ramp monotonicity + noise-amplitude
+  oracles), **Torn** (mod/cutsplit: tear band, per-crossing Bridge/Fling/Snap,
+  Gape, ragged edge; vertex-based BY DESIGN — the sparse-input hard-quantized
+  tear was evaluated, an adaptive-densify fix built and validated, and then
+  REJECTED as the better look; Detail>0 gives the smooth cut), **Op Tunnel**
+  (gen/geometric: sector-striped polygon tunnel, per-sector geometric ratio
+  from an off-center vanishing point, half-period glitch patches, alternate-
+  band fill; parallel-to-edge oracle over every segment + constant-ratio
+  oracle at 1e-15; overlay/compute geometry INLINED per the this-binding
+  pitfall), **Woven Ribbon** (gen/structural: lattice-walk spine -> exact
+  corner arcs -> offset track pairs, under pass clipped by over-pass width at
+  every self-crossing; walk is rollout-scored — pure random stalled in dead
+  ends, greedy backtracking DFS collapsed to a perimeter spiral, 40 seeded
+  rollouts scored length + 6x crossings won), **Flow Traces** (gen/structural:
+  strictly self-avoiding orthogonal flow-field router — flow angle, center
+  swirl, square-wave Wave detours, turn bias; trimmed Dots/Rings/Pads
+  terminals; sibling of PCB Tracks). Validators: loom 35, torn 36, op_tunnel
+  34, woven_ribbon 41, flow_traces 44 oracles; woven_ribbon and flow_traces
+  share THE weave oracle — a spatial-hash proof of ZERO segment intersections
+  in the entire output across seeds, weave modes and extreme params. Lesson:
+  a greedy DFS finds *a* maximum-length walk, not an interesting one; scored
+  rollouts beat both pure randomness and backtracking for generative walks.
 
 ## Hard-won pitfalls (keep)
 

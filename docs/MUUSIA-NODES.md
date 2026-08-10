@@ -1,13 +1,13 @@
-# MUUSIA v2.51 — Node Reference
+# MUUSIA v2.52 — Node Reference
 
-All 226 built-in nodes. Conventions used below: most generators accept a **Style**
+All 233 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (131)
+## Generators (135)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -708,7 +708,42 @@ reproduces Flat line-for-line), then tilts the sheet (*Tilt*) and refits it to t
 margin box. Lines alternate direction per facet for efficient plotting; *Outline*
 draws facet borders, folded too in 3D.
 
-## Modifiers (68)
+**Loom** — a dense woven mesh: warp (row) and weft (column) threads on a
+regular grid; *Density* is the thread spacing in mm, auto-coarsened to the
+point budget. *Drape* bends the fabric with low-frequency noise, *Shape noise*
+adds finer rumple at its own scale, and *Drift* drags the whole cloth toward an
+angle with a ramp across the sheet — all three are shared displacement fields,
+so the two thread directions stay woven together. The intact companion of the
+Torn modifier.
+
+**Op Tunnel** — op-art perspective tunnel: an (optionally irregular) polygon is
+split into wedge sectors from a vanishing point and each sector is striped
+parallel to its outer edge with geometrically shrinking spacing — *Edge gap*
+sets the stripe period at the rim and a per-sector ratio keeps rim density
+uniform even off-center. *Depth %* is the center hole, *Fill step* hatches
+every second band solid for the painted look, and *Glitches* punch seeded
+rectangular patches where stripes shift half a period inward, flipping the
+apparent color. VP X/Y place the vanishing point.
+
+**Woven Ribbon** — a multi-track ribbon woven over and under itself: a seeded
+lattice walk (no edge reused; an already-visited point is crossed straight
+through, so crossings are always perpendicular) becomes a spine with exact
+corner arcs, offset into a center line plus *Offset pairs* parallel tracks. At
+every self-crossing the under pass is clipped by the full over-pass width plus
+*Gap* — cover-underpasses weaving, so nothing in the output intersects
+(validated). *Weave*: Alternate (basket parity), Later over, Earlier over;
+*End caps* close the loose ends with nested semicircles.
+
+**Flow Traces** — circuit-atlas routing: strictly self-avoiding traces walk an
+orthogonal grid steered by a flow field — *Flow angle* plus *Swirl* around the
+canvas center plus *Wave* (periodic side-urge that turns runs into square-wave
+detours) plus *Turn bias*. Every lattice point is used at most once, so nothing
+touches or crosses (validated). Corners are exact arcs; ends get terminals
+(*Dots* double rings, *Rings*, *Pads*, *None*) with the centerline trimmed
+back clear of its own terminal. Sibling of PCB Tracks — that one is octilinear
+copper with pads, this one pure orthogonal flow.
+
+## Modifiers (69)
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -1150,6 +1185,17 @@ time - without ever changing the routing outputs, so nothing can be
 accidentally soloed out of an export. The natural partner of Portrait's
 round = pen: split, restyle a round with Set Pen or drop it, and Merge the
 survivors.
+
+**Torn** — rips the wired paths open along a tear band: every crossing
+deterministically *bridges* the gap as one straight span, is *flung* aside as a
+coherent burst (*Fling* mm reach, *Chaos* angular spread), or *snaps* into two
+spiky loose ends — *Fling %* / *Snap %* set the mix, the rest bridge. *Gape*
+pushes intact geometry apart so the wound opens, *Ragged* roughens the edge,
+*Detail* resamples the input first. Tearing is vertex-based: sparse inputs
+(e.g. 2-point stripes from Op Tunnel) tear whole-segment with hard quantized
+edges — raise Detail for smooth edge cuts; both are intended looks. Stack
+several Torn nodes for multiple rips; classic pairings: Loom → Torn,
+Op Tunnel → Torn.
 
 ## Routing (1)
 
