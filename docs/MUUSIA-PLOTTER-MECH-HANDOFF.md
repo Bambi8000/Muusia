@@ -40,6 +40,26 @@ Working language: Finnish in chat, English in all code/GUI/docs.
   Moonraker cors_domains carries the local dev origins
   (`klipper/moonraker-cors.snippet.conf`, applied on nakit). Never
   port-forward Moonraker (7125) or Mainsail (80) to the internet.
+- **DRO displays:** 3× TM1637 6-digit 7-seg (X/Y/Z work coordinates), driven
+  by `klipper/dro/dro_tm1637.py` — a stdlib-only Python service (systemd unit
+  `dro.service`, installed and running on nakit) polling Moonraker over HTTP
+  at 10 Hz (`gcode_move.gcode_position`); GPIO via python3-lgpio, TM1637
+  bit-banged (2-wire, NOT I2C). **Power from 3V3 (phys 17), never 5 V** —
+  the modules pull CLK/DIO up to VCC and Pi GPIO is not 5 V tolerant.
+  GND = phys 39. Pin + cable-color plan (soldering in progress):
+
+  | Display | CLK (BCM / phys / color) | DIO (BCM / phys / color) |
+  |---|---|---|
+  | X | GPIO5 / 29 / white | GPIO6 / 31 / orange |
+  | Y | GPIO13 / 33 / white | GPIO19 / 35 / orange |
+  | Z | GPIO26 / 37 / orange | GPIO16 / 36 / black |
+
+  Power pair: red + white (red = 3V3, white = GND — confirm at hookup).
+  Open item: `DIGIT_MAP` — 6-digit TM1637 boards often cross-wire the two
+  3-digit groups ("123456" renders "321654"); verify with
+  `python3 ~/dro-service/dro_tm1637.py --test` (stop `dro.service` first,
+  both claim the same GPIO lines) and fix the map in BOTH the Pi copy and
+  `klipper/dro/`. The service shows `------` while Moonraker is unreachable.
 
 The pen tool is **not a router** — this is a pen/brush plotter. Loads are light;
 the design concern is precision and repeatability, not cutting force.
