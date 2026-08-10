@@ -236,6 +236,19 @@ outside `src/` and `public/`, so it never touches the Vite build or Pages deploy
 final versions move to the Pi's `~/printer_data/config/` once the Kraken arrives,
 with `klipper/` remaining the version-controlled source of truth.
 
+### 5.2 Canvas check (laser framing)
+
+Exported G-code can open with `CANVAS_CHECK` (macro in
+`klipper/canvas-check.cfg`, included from printer.cfg): pen up, the laser
+traces the job's bounding box, then the job pauses with a Continue/Abort
+prompt on the touchscreen — paper size and placement get verified before a
+single line is drawn. Bounds and the laser offset arrive baked into the call
+by Muusia's exporter (machine-profile toggle `canvasCheckOn`, off by
+default). The macro also refuses frames beyond machine travel, which doubles
+as an oversized-job guard, and runs laser-dark with a console note until
+`[output_pin laser]` is wired — same laser and same pin TODO as the
+magnet-jig and pen-cal workflows above.
+
 ---
 
 ## 6. What to design next (this is the task for the new chat)

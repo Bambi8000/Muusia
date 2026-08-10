@@ -606,6 +606,20 @@ text are **English**.
   in the entire output across seeds, weave modes and extreme params. Lesson:
   a greedy DFS finds *a* maximum-length walk, not an interesting one; scored
   rollouts beat both pure randomness and backtracking for generative walks.
+- **2.53** cross-stack feature: **Canvas check** — laser-framed job bounds
+  before plotting. Klipper side: `klipper/canvas-check.cfg` (`CANVAS_CHECK`
+  macro: pen up, laser traces the bounds rectangle, refuses unhomed or
+  beyond machine travel — doubles as an oversized-job guard; inside a job it
+  PAUSEs with a Continue/Abort touch prompt; runs laser-dark with an M117
+  note until `[output_pin laser]` exists, so it smoke-tests without the
+  laser). Muusia side: `toGcode()` emits `CANVAS_CHECK X_MIN=.. Y_MAX=..
+  LASER_OFF_X=..` right after startG from real path bounds (through fx/fy so
+  origin + flipY are baked in; `__stop` marker paths excluded), gated by
+  profile `canvasCheckOn` (opt-in — the macro pauses the job); CANVAS CHECK
+  toggle sits after the laser-jig section. Extract-and-run validated:
+  origin, flipY, opt-out, stop-only cases. Shipped as commit cb72882
+  mislabeled "v2.45" + bump 29a03fa — the repo was already at 2.52 (see the
+  sed pitfall below).
 
 ## Hard-won pitfalls (keep)
 
@@ -623,6 +637,13 @@ text are **English**.
   (e.g. `DroPanel`). Re-running an era patch is correct ONLY when its target
   has demonstrably reverted to the unpatched state — the OK/MISS anchor
   report is the proof either way.
+- Version bumps via `sed` fail SILENTLY when the assumed current version is
+  wrong (the "v2.45" mislabel: the repo had moved to 2.52 in other sessions,
+  sed matched nothing, and the feature shipped under an unbumped version in
+  a mislabeled commit). The `grep -o 'APP_VERSION = ...'` line after every
+  bump is not decoration — READ its output before building. Between chats
+  the repo moves: verify version numbers in command sequences against the
+  working copy, never against the previous session's state.
 - Browsers do NOT overwrite downloads (`name (1).ext`) — irrelevant post-C0 for
   code, still true for any downloaded file.
 - NODE_HELP-style strings may contain escaped quotes: regex-replacing doc strings
