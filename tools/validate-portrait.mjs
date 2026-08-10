@@ -404,6 +404,110 @@ console.log("phase B: fixture feature lines");
     ok(JSON.stringify(r2.paths) === J(runA({ mode: "Tonal", rounds: 2 })), "found:false with no regions degrades to Tonal");
   }
 
+  /* ---------- phase 3: One line (Picasso) ---------- */
+  console.log("phase 3: One line");
+  {
+    const ol = runA({ mode: "One line", economy: 1 });
+    ok(ol.paths.length === 1 && ol.paths[0].closed === false, "exactly one open path - the pen never lifts");
+    ok(ol.paths[0].pts.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y)), "coords finite");
+    ok(J(ol) === J(runA({ mode: "One line", economy: 1 })), "deterministic");
+    /* the line visits every kept chain: max over eye/lips/brow centroids of
+       min distance to the line stays small */
+    const chainC = (k) => { const c = A.face.chains[k].pts;
+      const s = c.reduce((a, q) => [a[0] + q[0], a[1] + q[1]], [0, 0]);
+      return [FA.x0 + (s[0] / c.length) * FA.sc, FA.y0 + (s[1] / c.length) * FA.sc]; };
+    const minD = (pt) => Math.min(...ol.paths[0].pts.filter((_, i) => i % 3 === 0).map((q) => Math.hypot(q[0] - pt[0], q[1] - pt[1])));
+    const worst = Math.max(...["eyeL", "eyeR", "lipsOuter", "browL", "browR"].map((k) => minD(chainC(k))));
+    ok(worst < 6, "the line visits every major feature (worst centroid distance " + worst.toFixed(1) + "mm)");
+    const olMin = runA({ mode: "One line", economy: 0 });
+    ok(H.pathLength(olMin.paths[0].pts, false) < H.pathLength(ol.paths[0].pts, false), "economy shortens the line (" + H.pathLength(ol.paths[0].pts, false).toFixed(0) + " -> " + H.pathLength(olMin.paths[0].pts, false).toFixed(0) + " mm)");
+    /* spec: One line without analysis is EMPTY, not tonal */
+    const noA = N.compute([undefined], P({ mode: "One line" }), CTX, { data: { img: nodeA.data.img } });
+    ok(noA.paths.length === 0, "no analysis -> EMPTY (unlike the other feature modes)");
+    ok(totalPts(ol) <= 120000, "under budget (" + totalPts(ol) + " pts)");
+  }
+
+  /* ---------- Sketch nerve (Tresset) ---------- */
+  console.log("sketch nerve");
+  {
+    const clean = runA({ mode: "Features+tonal", rounds: 3, economy: 1 });
+    const cleanExplicit = runA({ mode: "Features+tonal", rounds: 3, economy: 1, nerve: 0 });
+    ok(J(clean) === J(cleanExplicit), "nerve 0 is bit-identical to the clean drawing");
+    const nervy = runA({ mode: "Features+tonal", rounds: 3, economy: 1, nerve: 0.8 });
+    ok(J(nervy) !== J(clean), "nerve changes the drawing");
+    ok(nervy.paths.length > clean.paths.length, "contours are re-stated (" + clean.paths.length + " -> " + nervy.paths.length + " paths)");
+    ok(allPts(nervy).every(([x, y]) => x >= -0.5 && x <= CTX.W + 0.5 && y >= -0.5 && y <= CTX.H + 0.5), "wobble stays in bounds");
+    const pref = runA({ mode: "Features+tonal", rounds: 2, economy: 1, nerve: 0.8, penAssign: "Cycle" });
+    const pref5 = runA({ mode: "Features+tonal", rounds: 5, economy: 1, nerve: 0.8, penAssign: "Cycle" });
+    ok(JSON.stringify(pref.paths) === JSON.stringify(pref5.paths.slice(0, pref.paths.length)), "prefix invariant survives nerve (coordinate noise, no rng drift)");
+    const olN = runA({ mode: "One line", economy: 1, nerve: 0.7 });
+    ok(olN.paths.length === 1, "one line stays one line under nerve");
+  }
+
+  /* ---------- multi-face + beard (additive schema) ---------- */
+  console.log("multi-face + beard");
+  {
+    /* second face: primary's chains scaled 0.5 into the top-left corner */
+    const scaleChain = (c) => c ? { pts: c.pts.map((q) => [q[0] * 0.5 + 30, q[1] * 0.5 + 40]), closed: c.closed, confidence: 1 } : null;
+    const face2 = { found: true, confidence: 0.9, pose: A.face.pose,
+      chains: Object.fromEntries(Object.entries(A.face.chains).map(([k, c]) => [k, scaleChain(c)])) };
+    /* synthetic beard under the primary jaw: box around the chin area */
+    const ovPts = A.face.chains.faceOval.pts;
+    const oy1 = Math.max(...ovPts.map((q) => q[1]));
+    const lipsY = A.face.chains.lipsOuter.pts.reduce((s, q) => s + q[1], 0) / A.face.chains.lipsOuter.pts.length;
+    const oxs = ovPts.map((q) => q[0]);
+    const bx0 = Math.min(...oxs) + 40, bx1 = Math.max(...oxs) - 40;
+    /* box top BELOW the lower lip - the real texture mask can never cover the
+       lips (lip classes are not skinLike), and the mouth must stay drawable */
+    const bTop = Math.max(...A.face.chains.lipsOuter.pts.map((q) => q[1])) + 6;
+    const beard = { outline: [[bx0, bTop], [bx1, bTop], [bx1, oy1 + 55], [bx0, oy1 + 55]], holes: [], area: (bx1 - bx0) * (oy1 + 55 - bTop), confidence: 0.9 };
+    const bfw = 8, bfh = 6;
+    const beardFlow = { cell: Math.ceil(AW / bfw), w: bfw, h: bfh, ang: new Array(bfw * bfh).fill(1.35), coh: new Array(bfw * bfh).fill(0.9) };
+    const A2 = { ...A, faces: [A.face, face2], regions: { ...A.regions, beard }, beardFlow };
+    const node2 = { data: { img: nodeA.data.img, analysis: A2 } };
+    const run2 = (o = {}) => N.compute([undefined], P(o), CTX, node2);
+
+    const one = runA({ mode: "Features only", economy: 1 });
+    const two = run2({ mode: "Features only", economy: 1 });
+    ok(two.paths.length > one.paths.length + 8, "second face adds its chains (" + one.paths.length + " -> " + two.paths.length + " paths)");
+    const f2eye = face2.chains.eyeL.pts.reduce((s, q) => [s[0] + q[0], s[1] + q[1]], [0, 0]).map((v) => v / face2.chains.eyeL.pts.length);
+    const f2mm = [FA.x0 + f2eye[0] * FA.sc, FA.y0 + f2eye[1] * FA.sc];
+    ok(two.paths.some((pa) => { const m2 = pa.pts[Math.floor(pa.pts.length / 2)]; return Math.hypot(m2[0] - f2mm[0], m2[1] - f2mm[1]) < 6; }), "second face's eye is drawn");
+    const olTwo = run2({ mode: "One line", economy: 1 });
+    ok(olTwo.paths.length === 1, "One line links BOTH faces into a single line");
+    const dMin = Math.min(...olTwo.paths[0].pts.filter((_, i) => i % 3 === 0).map((q) => Math.hypot(q[0] - f2mm[0], q[1] - f2mm[1])));
+    ok(dMin < 6, "the single line visits the second face too (dist " + dMin.toFixed(1) + "mm)");
+
+    /* beard streamlines: paths inside the beard polygon following the flow */
+    const bMM = beard.outline.map((q) => [FA.x0 + q[0] * FA.sc, FA.y0 + q[1] * FA.sc]);
+    const pip2 = (x, y, poly) => { let ins = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) ins = !ins;
+      } return ins; };
+    const inB = (pa) => { const m2 = pa.pts[Math.floor(pa.pts.length / 2)]; return pip2(m2[0], m2[1], bMM); };
+    const beardPaths = two.paths.filter((pa) => !pa.closed && pa.pts.length > 6 && inB(pa));
+    ok(beardPaths.length > 8, "beard streamlines drawn (" + beardPaths.length + " paths in the beard)");
+    let devs2 = [];
+    for (const pa of beardPaths) for (let i = 2; i < pa.pts.length - 2; i += 4) {
+      const a2 = Math.atan2(pa.pts[i + 1][1] - pa.pts[i - 1][1], pa.pts[i + 1][0] - pa.pts[i - 1][0]);
+      let d2 = Math.abs(a2 - 1.35) % Math.PI; devs2.push(Math.min(d2, Math.PI - d2));
+    }
+    devs2.sort((x, y) => x - y);
+    ok(devs2.length > 20 && devs2[Math.floor(devs2.length / 2)] < 0.35, "beard streamlines follow beardFlow");
+
+    /* jaw clipping isolated: beard region WITHOUT flow -> only chains remain,
+       and none of them may run through the beard interior */
+    const A3 = { ...A2, beardFlow: null, regions: { ...A.regions, hair: null, beard }, hairFlow: null };
+    const node3 = { data: { img: nodeA.data.img, analysis: A3 } };
+    const r3 = N.compute([undefined], P({ mode: "Features only", economy: 0.6 }), CTX, node3);
+    const inset = 2.5;
+    const deepIn = allPts(r3).filter(([x, y]) => pip2(x, y, bMM) &&
+      Math.min(x - bMM[0][0], bMM[1][0] - x, y - bMM[0][1], bMM[2][1] - y) > inset).length;
+    ok(deepIn === 0, "jaw/oval chains are clipped outside the beard (0 pts deep inside)");
+    ok(J(runA({ mode: "Features only", economy: 1 })) === J(one), "old single-face analysis unchanged (back-compat)");
+  }
+
   /* overlay guides from frozen analysis (engine's additive 4th arg) */
   {
     const g0 = N.overlay(P(), CTX, [undefined]);

@@ -7,6 +7,7 @@
 import {
   traceMask, regionFromMask, simplifyDP, smoothChain, orderConnections,
   structureTensorField, validateAnalysis, polyArea, pointInPoly, analyzeFace, intakeImage,
+  detectBeard, CELEB,
 } from "../src/analyze.js";
 
 let pass = 0, fail = 0;
@@ -180,6 +181,57 @@ console.log("early error paths");
   msg = "";
   await intakeImage("data:image/webp;base64,AAA", "kuva.webp").catch((e) => { msg = e.message; });
   ok(/JPEG and PNG/.test(msg), "non-JPEG/PNG rejected");
+}
+
+/* ---------- detectBeard: texture heuristic, synthetic fixture ---------- */
+console.log("detectBeard");
+{
+  const W = 400, H = 400;
+  const g = new Array(W * H);
+  let s = 777;
+  const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    let v = 0.35 + 0.1 * (y / H); /* smooth skin */
+    if (y > 250 && y < 360 && x > 140 && x < 260) v = 0.3 + 0.5 * rnd(); /* whisker texture below the mouth */
+    g[y * W + x] = v;
+  }
+  const oval = []; /* face oval ~ circle centered (200,190) r 120 */
+  for (let k = 0; k < 24; k++) oval.push([200 + Math.cos(k / 24 * 2 * Math.PI) * 110, 190 + Math.sin(k / 24 * 2 * Math.PI) * 120]);
+  const lips = [[170, 250], [190, 254], [210, 254], [230, 250]];
+  const faces = [{ found: true, chains: { faceOval: { pts: oval }, lipsOuter: { pts: lips } } }];
+  const bd = detectBeard({ img: { w: W, h: H, g }, faces, clsAt: () => CELEB.skin, C: CELEB });
+  ok(!!bd && bd.cells > 20, "textured zone below the mouth detected (" + (bd ? bd.cells : 0) + " cells)");
+  ok(bd.maskAtImg(200, 300) && !bd.maskAtImg(200, 150), "mask covers the whiskers, not the smooth forehead");
+  let strays = 0;
+  for (let cy = 0; cy < bd.gh; cy++) for (let cx = 0; cx < bd.gw; cx++) {
+    if (!bd.mask[cy * bd.gw + cx]) continue;
+    const X = cx * bd.cell + 4, Y = cy * bd.cell + 4;
+    if (!(Y > 235 && Y < 375 && X > 125 && X < 275)) strays++;
+  }
+  ok(strays === 0, "no beard cells outside the textured zone");
+  const smoothG = g.map((v, i) => 0.35 + 0.1 * (Math.floor(i / W) / H));
+  ok(detectBeard({ img: { w: W, h: H, g: smoothG }, faces, clsAt: () => CELEB.skin, C: CELEB }) === null, "clean-shaven face -> null");
+  ok(detectBeard({ img: { w: W, h: H, g }, faces: [], clsAt: () => CELEB.skin, C: CELEB }) === null, "no faces -> null");
+  ok(JSON.stringify(detectBeard({ img: { w: W, h: H, g }, faces, clsAt: () => CELEB.skin, C: CELEB }).mask) === JSON.stringify(bd.mask), "deterministic");
+}
+
+/* ---------- schema: additive multi-face + beard fields ---------- */
+console.log("schema additions");
+{
+  const chain = (n) => ({ pts: Array.from({ length: n }, (_, i) => [i * 2, i]), closed: false, confidence: 1 });
+  const face = { found: true, confidence: 0.9, pose: { yaw: 0, pitch: 0, roll: 0 }, chains: { eyeL: chain(8), faceOval: chain(20), lipsOuter: chain(10) } };
+  const a = {
+    v: 1, engine: { landmarker: "x", parsing: "y", modelHash: "z" }, img: { w: 960, h: 1280 },
+    face, faces: [face, face],
+    regions: { beard: { outline: [[0, 0], [50, 0], [25, 40]], holes: [], area: 900, confidence: 0.8,
+      parts: [{ outline: [[0, 0], [50, 0], [25, 40]], holes: [], area: 900 }] } },
+    hairFlow: null, beardFlow: { cell: 16, w: 3, h: 2, ang: new Array(6).fill(1), coh: new Array(6).fill(0.9) },
+    warnings: [],
+  };
+  ok(validateAnalysis(a, 960, 1280).ok, "faces[] + beard region + parts + beardFlow accepted");
+  ok(!validateAnalysis({ ...a, faces: "x" }, 960, 1280).ok, "malformed faces rejected");
+  ok(!validateAnalysis({ ...a, beardFlow: { cell: 16, w: 3, h: 2, ang: [1], coh: [1] } }, 960, 1280).ok, "malformed beardFlow rejected");
+  ok(!validateAnalysis({ ...a, regions: { beard: { ...a.regions.beard, parts: [{ outline: [[0, 0]] }] } } }, 960, 1280).ok, "malformed parts rejected");
 }
 
 console.log("\n" + pass + " passed, " + fail + " failed");

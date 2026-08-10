@@ -326,6 +326,7 @@ export function regionFromMask(mask, w, h) {
   const outline = loops[best];
   if (polyArea(outline) < 0) outline.reverse(); /* normalize outline winding */
   const holes = [];
+  const others = [];
   let holeA = 0, otherA = 0;
   loops.forEach((lp, i) => {
     if (i === best) return;
@@ -333,11 +334,20 @@ export function regionFromMask(mask, w, h) {
     if (pointInPoly(px, py, outline)) {
       if (polyArea(lp) > 0) lp.reverse(); /* holes wind the other way */
       holes.push(lp); holeA += Math.abs(polyArea(lp));
-    } else otherA += Math.abs(polyArea(lp));
+    } else { otherA += Math.abs(polyArea(lp)); others.push(lp); }
   });
   const area = bestA - holeA;
   const conf = bestA / Math.max(1e-9, bestA + otherA);
-  return { outline, holes, area, confidence: Math.round(conf * 1000) / 1000 };
+  /* parts: all outer components largest-first (their holes resolved against
+     each part), so multi-person regions survive vectorization */
+  const parts = [{ outline, holes, area }];
+  others.sort((a, b) => Math.abs(polyArea(b)) - Math.abs(polyArea(a)));
+  for (const lp of others) {
+    if (polyArea(lp) < 0) lp.reverse();
+    if (Math.abs(polyArea(lp)) < 20) continue;
+    parts.push({ outline: lp, holes: [], area: Math.abs(polyArea(lp)) });
+  }
+  return { outline, holes, area, confidence: Math.round(conf * 1000) / 1000, parts };
 }
 
 /* Structure tensor flow field of img.g inside maskAt(x,y), sparse grid.
@@ -375,6 +385,74 @@ export function structureTensorField(img, maskAt, cell) {
   return { cell, w: gw, h: gh, ang, coh };
 }
 
+/* Beard detection - the parsing model has NO facial-hair class (CelebAMask
+   limitation): beard pixels classify as skin or neck. So detect beard as
+   TEXTURE: high-frequency energy on skin/neck in a zone below the mouth,
+   referenced against the smooth cheek band of the same face. Pure and
+   Node-testable; geometry in IMAGE PIXELS. */
+export function detectBeard({ img, faces, clsAt, C }) {
+  if (!img || !Array.isArray(faces) || !faces.length) return null;
+  const { w, h, g } = img;
+  const cell = 8;
+  const gw = Math.max(1, Math.ceil(w / cell)), gh = Math.max(1, Math.ceil(h / cell));
+  const tex = new Float32Array(gw * gh);
+  const cnt = new Uint16Array(gw * gh);
+  for (let y = 1; y < h - 1; y++) {
+    const cy = Math.min(gh - 1, Math.floor(y / cell));
+    for (let x = 1; x < w - 1; x++) {
+      const gx = g[y * w + x + 1] - g[y * w + x - 1];
+      const gy = g[(y + 1) * w + x] - g[(y - 1) * w + x];
+      const i = cy * gw + Math.min(gw - 1, Math.floor(x / cell));
+      tex[i] += Math.abs(gx) + Math.abs(gy);
+      cnt[i]++;
+    }
+  }
+  for (let i = 0; i < tex.length; i++) tex[i] = cnt[i] ? tex[i] / cnt[i] : 0;
+  const zones = [];
+  for (const f of faces) {
+    const ov = f && f.chains && f.chains.faceOval && f.chains.faceOval.pts;
+    const lp = f && f.chains && f.chains.lipsOuter && f.chains.lipsOuter.pts;
+    if (!ov || !lp || ov.length < 4 || lp.length < 4) continue;
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const q of ov) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); }
+    const fh = y1 - y0, fw = x1 - x0;
+    const mouthY = lp.reduce((s, q) => s + q[1], 0) / lp.length;
+    zones.push({
+      x0: x0 - fw * 0.08, x1: x1 + fw * 0.08,
+      yTop: mouthY - fh * 0.06, yBot: y1 + fh * 0.35,     /* beard reaches below the chin */
+      refY0: y0 + fh * 0.45, refY1: mouthY - fh * 0.08,    /* smooth cheek reference band */
+    });
+  }
+  if (!zones.length) return null;
+  const skinLike = (X, Y) => { const c = clsAt(X, Y); return c === C.skin || c === C.neck; };
+  const refVals = [];
+  for (let cy = 0; cy < gh; cy++) for (let cx = 0; cx < gw; cx++) {
+    const X = cx * cell + cell / 2, Y = cy * cell + cell / 2;
+    for (const z of zones) {
+      if (X >= z.x0 && X <= z.x1 && Y >= z.refY0 && Y <= z.refY1 && skinLike(X, Y)) { refVals.push(tex[cy * gw + cx]); break; }
+    }
+  }
+  refVals.sort((a, b) => a - b);
+  const refMed = refVals.length ? refVals[Math.floor(refVals.length / 2)] : 0.01;
+  const thr = Math.max(refMed * 2.0, 0.012);
+  const mask = new Uint8Array(gw * gh);
+  let n = 0;
+  for (let cy = 0; cy < gh; cy++) for (let cx = 0; cx < gw; cx++) {
+    const X = cx * cell + cell / 2, Y = cy * cell + cell / 2;
+    if (tex[cy * gw + cx] <= thr || !skinLike(X, Y)) continue;
+    for (const z of zones) {
+      if (X >= z.x0 && X <= z.x1 && Y >= z.yTop && Y <= z.yBot) { mask[cy * gw + cx] = 1; n++; break; }
+    }
+  }
+  if (n < 20) return null; /* too little texture: clean-shaven */
+  return { cell, gw, gh, mask, refMed, cells: n,
+    maskAtImg: (x, y) => {
+      const cx = Math.max(0, Math.min(gw - 1, Math.floor(x / cell)));
+      const cy = Math.max(0, Math.min(gh - 1, Math.floor(y / cell)));
+      return mask[cy * gw + cx] === 1;
+    } };
+}
+
 /* ================================================================== */
 /* Schema v1 structural validator - shared by tools AND the app; an   */
 /* imported patch may carry garbage in `analysis`, compute must live. */
@@ -402,13 +480,24 @@ export function validateAnalysis(a, imgW, imgH) {
         if (!isChain(r.outline) || r.outline.length < 3) errs.push("region " + k + " outline malformed");
         if (!Array.isArray(r.holes) || r.holes.some((hh) => !isChain(hh))) errs.push("region " + k + " holes malformed");
         if (!Number.isFinite(r.area)) errs.push("region " + k + " area missing");
+        if (r.parts !== undefined && (!Array.isArray(r.parts) || r.parts.some((pp) => !pp || !isChain(pp.outline) || !Array.isArray(pp.holes)))) errs.push("region " + k + " parts malformed");
       }
     }
-    if (a.hairFlow) {
-      const f = a.hairFlow;
+    for (const fk of ["hairFlow", "beardFlow"]) {
+      const f = a[fk];
+      if (!f) continue;
       if (!Number.isFinite(f.cell) || !Number.isFinite(f.w) || !Number.isFinite(f.h) ||
           !Array.isArray(f.ang) || !Array.isArray(f.coh) ||
-          f.ang.length !== f.w * f.h || f.coh.length !== f.w * f.h) errs.push("hairFlow malformed");
+          f.ang.length !== f.w * f.h || f.coh.length !== f.w * f.h) errs.push(fk + " malformed");
+    }
+    if (a.faces !== undefined) {
+      if (!Array.isArray(a.faces)) errs.push("faces not an array");
+      else a.faces.forEach((f, i) => {
+        if (!f || f.found !== true || !f.chains || typeof f.chains !== "object") { errs.push("faces[" + i + "] malformed"); return; }
+        for (const [k, c] of Object.entries(f.chains)) {
+          if (c && !isChain(c.pts != null ? c.pts : c)) errs.push("faces[" + i + "] chain " + k + " malformed");
+        }
+      });
     }
     if (a.warnings && (!Array.isArray(a.warnings) || a.warnings.some((s) => typeof s !== "string"))) errs.push("warnings malformed");
   } catch (e) { errs.push("validator exception: " + e.message); }
@@ -464,29 +553,19 @@ export async function analyzeFace(data, onProgress) {
     warnings,
   };
 
-  /* --- landmarks -> named chains + pose --- */
+  /* --- landmarks -> named chains + pose, ALL faces (additive: analysis.faces),
+     analysis.face stays the largest for back-compat --- */
   const res = landmarker.detect(bmp);
   const faces = (res && res.faceLandmarks) || [];
-  if (faces.length === 0) {
-    warnings.push("no face found");
-  } else {
-    if (faces.length > 1) warnings.push("multiple faces (" + faces.length + ") - using the largest");
-    let fi = 0, fa = -1;
-    faces.forEach((lm, i) => {
-      let x0 = 1, x1 = 0, y0 = 1, y1 = 0;
-      for (const q of lm) { if (q.x < x0) x0 = q.x; if (q.x > x1) x1 = q.x; if (q.y < y0) y0 = q.y; if (q.y > y1) y1 = q.y; }
-      const A = (x1 - x0) * (y1 - y0);
-      if (A > fa) { fa = A; fi = i; }
-    });
-    const lm = faces[fi];
+  const FL = vision.FaceLandmarker;
+  const faceFrom = (lm, mat) => {
     const px = (i) => [Math.round(lm[i].x * W * 10) / 10, Math.round(lm[i].y * H * 10) / 10];
-    const FL = vision.FaceLandmarker;
     const chainFromConn = (conn) => orderConnections(conn).map((c) => ({
       pts: c.idx.map(px), closed: c.closed, confidence: 1,
     }));
     const one = (conn) => { const cs = chainFromConn(conn); return cs.length ? cs[0] : null; };
     const lips = chainFromConn(FL.FACE_LANDMARKS_LIPS).sort((a, b) => b.pts.length - a.pts.length);
-    analysis.face = {
+    const f = {
       found: true,
       confidence: 0.9, /* tasks-vision exposes no per-face score; heuristic */
       pose: null,
@@ -504,19 +583,33 @@ export async function analyzeFace(data, onProgress) {
         lipsInner: lips[1] || null,
       },
     };
-    /* pose from the transformation matrix (column-major 4x4) */
-    const mats = res.facialTransformationMatrixes;
-    if (mats && mats[fi] && mats[fi].data) {
-      const mm = mats[fi].data;
+    if (mat && mat.data) {
+      const mm = mat.data;
       const R00 = mm[0], R10 = mm[1], R20 = mm[2], R21 = mm[6], R22 = mm[10];
       const deg = (r) => Math.round((r * 180) / Math.PI * 10) / 10;
-      analysis.face.pose = {
+      f.pose = {
         yaw: deg(Math.atan2(R10, R00)),
         pitch: deg(Math.asin(Math.max(-1, Math.min(1, -R20)))),
         roll: deg(Math.atan2(R21, R22)),
       };
-      if (Math.abs(analysis.face.pose.yaw) > 25) warnings.push("strong yaw - side chains may be unreliable");
-      if (Math.abs(analysis.face.pose.pitch) > 25) warnings.push("strong pitch");
+    }
+    return f;
+  };
+  if (faces.length === 0) {
+    warnings.push("no face found");
+  } else {
+    const areas = faces.map((lm) => {
+      let x0 = 1, x1 = 0, y0 = 1, y1 = 0;
+      for (const q of lm) { if (q.x < x0) x0 = q.x; if (q.x > x1) x1 = q.x; if (q.y < y0) y0 = q.y; if (q.y > y1) y1 = q.y; }
+      return (x1 - x0) * (y1 - y0);
+    });
+    const order = areas.map((_, i) => i).sort((a, b) => areas[b] - areas[a]);
+    const mats = res.facialTransformationMatrixes || [];
+    analysis.faces = order.map((i) => faceFrom(faces[i], mats[i]));
+    analysis.face = analysis.faces[0];
+    if (faces.length > 1) warnings.push(faces.length + " faces found - all captured, largest is primary");
+    for (const f of analysis.faces) {
+      if (f.pose && Math.abs(f.pose.yaw) > 25) { warnings.push("strong yaw on a face - side chains may be unreliable"); break; }
     }
   }
 
@@ -563,12 +656,23 @@ export async function analyzeFace(data, onProgress) {
     const reg = regionFromMask(mask, PARSE_SIZE, PARSE_SIZE);
     if (!reg) return null;
     const simp = (lp) => smoothChain(simplifyDP(lp, 1.5, true), true, 1); /* ~1-2 px tol + light smoothing */
-    return {
+    const out = {
       outline: toImg(simp(reg.outline)),
       holes: reg.holes.map((hh) => toImg(simp(hh))),
       area: Math.round(reg.area * sx * sy),
       confidence: reg.confidence,
     };
+    /* ADDITIVE (multi-face): every component, largest first, so a second
+       person's hair or beard is never dropped. Consumers use parts when
+       present and fall back to outline. */
+    if (reg.parts && reg.parts.length > 1) {
+      out.parts = reg.parts.slice(0, 6).map((pp) => ({
+        outline: toImg(simp(pp.outline)),
+        holes: pp.holes.map((hh) => toImg(simp(hh))),
+        area: Math.round(pp.area * sx * sy),
+      }));
+    }
+    return out;
   };
   analysis.regions = {
     hair: vecClass([CELEB.hair]),
@@ -590,6 +694,41 @@ export async function analyzeFace(data, onProgress) {
       return cls[my * PARSE_SIZE + mx] === CELEB.hair;
     };
     analysis.hairFlow = structureTensorField(data.img, maskAt, 16);
+  }
+
+  /* --- beard (texture heuristic; ADDITIVE fields regions.beard + beardFlow) --- */
+  if (analysis.faces && analysis.faces.length) {
+    prog(0.97, "beard detection");
+    const clsAtImg = (x, y) => {
+      const mx = Math.max(0, Math.min(PARSE_SIZE - 1, Math.floor(x / sx)));
+      const my = Math.max(0, Math.min(PARSE_SIZE - 1, Math.floor(y / sy)));
+      return cls[my * PARSE_SIZE + mx];
+    };
+    const bd = detectBeard({ img: data.img, faces: analysis.faces, clsAt: clsAtImg, C: CELEB });
+    if (bd) {
+      /* rasterize the cell mask into 512 space and vectorize like any class */
+      const bm = new Uint8Array(PARSE_SIZE * PARSE_SIZE);
+      for (let y = 0; y < PARSE_SIZE; y++) for (let x = 0; x < PARSE_SIZE; x++) {
+        if (bd.maskAtImg(x * sx, y * sy)) bm[y * PARSE_SIZE + x] = 1;
+      }
+      const reg = regionFromMask(bm, PARSE_SIZE, PARSE_SIZE);
+      if (reg) {
+        const simp2 = (lp) => smoothChain(simplifyDP(lp, 1.5, true), true, 1);
+        analysis.regions.beard = {
+          outline: toImg(simp2(reg.outline)),
+          holes: reg.holes.map((hh) => toImg(simp2(hh))),
+          area: Math.round(reg.area * sx * sy),
+          confidence: reg.confidence,
+        };
+        if (reg.parts && reg.parts.length > 1) {
+          analysis.regions.beard.parts = reg.parts.slice(0, 6).map((pp) => ({
+            outline: toImg(simp2(pp.outline)), holes: pp.holes.map((hh) => toImg(simp2(hh))), area: Math.round(pp.area * sx * sy),
+          }));
+        }
+        analysis.beardFlow = structureTensorField(data.img, bd.maskAtImg, 16);
+        if (analysis.regions.beard.confidence < 0.6) warnings.push("beard low confidence - texture heuristic, check the guides");
+      }
+    }
   }
 
   landmarker.close();
