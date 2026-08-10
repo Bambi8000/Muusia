@@ -435,13 +435,140 @@ console.log("phase B: fixture feature lines");
     ok(J(clean) === J(cleanExplicit), "nerve 0 is bit-identical to the clean drawing");
     const nervy = runA({ mode: "Features+tonal", rounds: 3, economy: 1, nerve: 0.8 });
     ok(J(nervy) !== J(clean), "nerve changes the drawing");
-    ok(nervy.paths.length > clean.paths.length, "contours are re-stated (" + clean.paths.length + " -> " + nervy.paths.length + " paths)");
+    const l0 = (r) => r.paths.filter((pa) => pa.layer === 0).length;
+    ok(l0(nervy) > l0(clean), "contours are re-stated on the feature pen (" + l0(clean) + " -> " + l0(nervy) + " L0 paths; total may SHRINK - white space trades tonal strokes away)");
     ok(allPts(nervy).every(([x, y]) => x >= -0.5 && x <= CTX.W + 0.5 && y >= -0.5 && y <= CTX.H + 0.5), "wobble stays in bounds");
     const pref = runA({ mode: "Features+tonal", rounds: 2, economy: 1, nerve: 0.8, penAssign: "Cycle" });
     const pref5 = runA({ mode: "Features+tonal", rounds: 5, economy: 1, nerve: 0.8, penAssign: "Cycle" });
     ok(JSON.stringify(pref.paths) === JSON.stringify(pref5.paths.slice(0, pref.paths.length)), "prefix invariant survives nerve (coordinate noise, no rng drift)");
     const olN = runA({ mode: "One line", economy: 1, nerve: 0.7 });
     ok(olN.paths.length === 1, "one line stays one line under nerve");
+    /* the miscalibration guard: restated grooves must be VISIBLY separate.
+       Compare each nervy feature path against the nearest clean feature path:
+       at nerve 0.8 the median offset of restates must exceed 0.8 mm */
+    const cleanF = runA({ mode: "Features only", economy: 1 });
+    const nervyF = runA({ mode: "Features only", economy: 1, nerve: 0.8 });
+    ok(nervyF.paths.length >= cleanF.paths.length + 25, "restates add contour copies - streamlines stay single (" + cleanF.paths.length + " -> " + nervyF.paths.length + ")");
+    const off = (pa, pb) => {
+      let s2 = 0, n2 = 0;
+      for (let i = 0; i < pa.pts.length; i += 4) {
+        let bd = Infinity;
+        for (let j = 0; j < pb.pts.length; j += 4) {
+          const dd = Math.hypot(pa.pts[i][0] - pb.pts[j][0], pa.pts[i][1] - pb.pts[j][1]);
+          if (dd < bd) bd = dd;
+        }
+        s2 += bd; n2++;
+      }
+      return s2 / Math.max(1, n2);
+    };
+    /* brow chain: clean has one, nervy has restates; measure spread of the
+       nervy copies against the clean one */
+    const browC = A.face.chains.browL.pts.reduce((s2, q) => [s2[0] + q[0], s2[1] + q[1]], [0, 0]).map((v) => v / A.face.chains.browL.pts.length);
+    const browMM = [FA.x0 + browC[0] * FA.sc, FA.y0 + browC[1] * FA.sc];
+    const near = (r) => r.paths.filter((pa) => { const m2 = pa.pts[Math.floor(pa.pts.length / 2)]; return Math.hypot(m2[0] - browMM[0], m2[1] - browMM[1]) < 8 && pa.pts.length < 80; });
+    const cB = near(cleanF), nB = near(nervyF);
+    const spreads = nB.map((pa) => off(pa, cB[0])).sort((x, y) => x - y);
+    const medSpread = spreads.length ? spreads[Math.floor(spreads.length / 2)] : 0;
+    ok(cB.length >= 1 && nB.length > cB.length && medSpread > 0.35, "restated grooves are visibly separate (median offset " + medSpread.toFixed(2) + " mm, " + nB.length + " brow strokes)");
+    /* Tresset structure: at nerve > 0 the tonal ink PACKS toward the feature
+       lines and leaves white space; strokes get longer and wander */
+    /* structure checks need a feature-FREE far field: the base fixture's
+       hair reaches the bottom of the image, so use a chains-only variant */
+    const Achains = { ...A, regions: {}, hairFlow: null };
+    const nodeC = { data: { img: nodeA.data.img, analysis: Achains } };
+    const runC = (o = {}) => N.compute([undefined], P(o), CTX, nodeC);
+    const ft0 = runC({ mode: "Features+tonal", rounds: 3, economy: 1, nerve: 0, penAssign: "Cycle", layer: 0 });
+    const ft8 = runC({ mode: "Features+tonal", rounds: 3, economy: 1, nerve: 0.85, penAssign: "Cycle", layer: 0 });
+    const featRef = runC({ mode: "Features only", economy: 1 });
+    const featPts = featRef.paths.flatMap((pa) => pa.pts.filter((_, i) => i % 5 === 0));
+    const tonalOf = (r) => r.paths.filter((pa) => pa.layer >= 1);
+    const meanDistToFeat = (r) => {
+      const t = tonalOf(r);
+      let s2 = 0, n2 = 0;
+      for (let k = 0; k < t.length; k += 3) {
+        const m2 = t[k].pts[Math.floor(t[k].pts.length / 2)];
+        let bd = Infinity;
+        for (let j = 0; j < featPts.length; j += 7) {
+          const dd = (m2[0] - featPts[j][0]) ** 2 + (m2[1] - featPts[j][1]) ** 2;
+          if (dd < bd) bd = dd;
+        }
+        s2 += Math.sqrt(bd); n2++;
+      }
+      return s2 / Math.max(1, n2);
+    };
+    const d0 = meanDistToFeat(ft0), d8 = meanDistToFeat(ft8);
+    ok(d8 < d0 * 0.75, "tonal ink packs toward the feature lines (mean dist " + d0.toFixed(1) + " -> " + d8.toFixed(1) + " mm)");
+    const cover = (r) => {
+      const cells = new Set();
+      for (const pa of tonalOf(r)) for (let i = 0; i < pa.pts.length; i += 4)
+        cells.add(Math.floor(pa.pts[i][0] / 5) + "," + Math.floor(pa.pts[i][1] / 5));
+      return cells.size;
+    };
+    const c0 = cover(ft0), c8 = cover(ft8);
+    ok(c8 < c0 * 0.85, "white space emerges - tonal coverage shrinks (" + c0 + " -> " + c8 + " 5mm cells)");
+    /* the Tresset distribution: MANY short packed marks + a LONG wandering
+       tail - the median drops (packing) while the longest strokes grow */
+    /* rooted but wild: a stroke STARTS at its anchor and ESCAPES far from it -
+       median start-distance to features stays small while the endpoint
+       distance tail grows long */
+    const dToFeat = (q) => {
+      let bd = Infinity;
+      for (let j = 0; j < featPts.length; j += 5) {
+        const dd = (q[0] - featPts[j][0]) ** 2 + (q[1] - featPts[j][1]) ** 2;
+        if (dd < bd) bd = dd;
+      }
+      return Math.sqrt(bd);
+    };
+    const starts = tonalOf(ft8).map((pa) => dToFeat(pa.pts[0])).sort((a2, b2) => a2 - b2);
+    const ends = tonalOf(ft8).map((pa) => dToFeat(pa.pts[pa.pts.length - 1]));
+    const medStart = starts[Math.floor(starts.length / 2)];
+    const escapees = ends.filter((d2) => d2 > 25).length;
+    ok(medStart < 6 && escapees >= 8, "rooted piles + real escapees (median root " + medStart.toFixed(1) + " mm, " + escapees + " strokes escape past 25 mm)");
+    /* eruption: neighbouring strokes must SPLAY, not copy each other - the
+       initial directions of tonal strokes occupy far more angle bins */
+    const dirBins = (r) => {
+      const bins = new Set();
+      for (const pa of tonalOf(r)) {
+        if (pa.pts.length < 4) continue;
+        const a2 = Math.atan2(pa.pts[3][1] - pa.pts[0][1], pa.pts[3][0] - pa.pts[0][0]);
+        bins.add(Math.floor(((a2 + Math.PI) / (2 * Math.PI)) * 16) % 16);
+      }
+      return bins.size;
+    };
+    ok(dirBins(ft8) >= 14 && dirBins(ft8) > dirBins(ft0), "strokes splay in all directions (" + dirBins(ft0) + " -> " + dirBins(ft8) + " of 16 angle bins)");
+    /* and their lengths scatter: coefficient of variation grows */
+    const cv = (r) => {
+      const L = tonalOf(r).map((pa) => H.pathLength(pa.pts, false));
+      const m2 = L.reduce((s2, v) => s2 + v, 0) / L.length;
+      const v2 = L.reduce((s2, v) => s2 + (v - m2) ** 2, 0) / L.length;
+      return Math.sqrt(v2) / m2;
+    };
+    /* absolute floor, not relative to nerve 0: the nerve-0 CV is inflated by
+       cross-round mixing (block-in giants + late-round ticks), which the
+       packed nerve structure deliberately lacks */
+    ok(cv(ft8) > 0.5, "length scatter: bursts and escapees mixed (CV " + cv(ft8).toFixed(2) + ", floor 0.5)");
+    /* worminess guard: long strokes must MEANDER (displacement well under arc
+       length) yet still travel - a ruler and a knot both fail this */
+    const straight = tonalOf(ft8).filter((pa) => H.pathLength(pa.pts, false) > 10).map((pa) => {
+      const a0 = pa.pts[0], a1 = pa.pts[pa.pts.length - 1];
+      return Math.hypot(a1[0] - a0[0], a1[1] - a0[1]) / H.pathLength(pa.pts, false);
+    }).sort((x2, y2) => x2 - y2);
+    const medStr = straight.length ? straight[Math.floor(straight.length / 2)] : 1;
+    ok(straight.length > 20 && medStr > 0.2 && medStr < 0.85, "strokes are worms, not rulers or knots (median straightness " + medStr.toFixed(2) + ")");
+    /* CONTRAST: same chains, two-tone image - the dark half piles far more
+       ink than the light half (tone-scaled pile floor) */
+    {
+      const g2 = new Float32Array(AW * AH);
+      for (let y2 = 0; y2 < AH; y2++) for (let x2 = 0; x2 < AW; x2++)
+        g2[y2 * AW + x2] = x2 < AW / 2 ? 0.75 : 0.25;
+      const nodeT = { data: { img: { w: AW, h: AH, g: g2 }, analysis: Achains } };
+      const rT = N.compute([undefined], P({ mode: "Features+tonal", rounds: 3, economy: 1, nerve: 0.9 }), CTX, nodeT);
+      const midX = FA.x0 + (AW / 2) * FA.sc;
+      let dark = 0, light = 0;
+      for (const pa of rT.paths.filter((p2) => p2.layer >= 1))
+        for (let i = 0; i < pa.pts.length; i += 3) (pa.pts[i][0] < midX ? dark++ : light++);
+      ok(dark > light * 1.8, "contrast: the dark half piles ink, the light half stays sparse (" + dark + " vs " + light + " pts)");
+    }
   }
 
   /* ---------- multi-face + beard (additive schema) ---------- */

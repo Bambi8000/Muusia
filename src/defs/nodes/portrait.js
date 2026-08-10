@@ -1,4 +1,4 @@
-import { Pin, EMPTY, PENS, mulberry32, noise2, resample, applyStyle } from "../helpers.js";
+import { Pin, EMPTY, PENS, mulberry32, hash2, noise2, resample, applyStyle } from "../helpers.js";
 
 export default {
   key: "portrait",
@@ -324,6 +324,7 @@ export default {
 
     const paths = [];
     let total = 0;
+    let featMask = null; /* set in feature modes when nerve > 0 */
 
     /* ================= FEATURE LINES (phase 2B) =================
        Raw landmark chains drawn 1:1 are geometrically right and artistically
@@ -351,6 +352,10 @@ export default {
       if (oneLine && !A) return applyStyle({ paths: [] }, ins[0]); /* spec: no analysis -> EMPTY, like image nodes without an image */
       let featCount = 0;
       const segs = []; /* One line: collected px-space chains for the linker */
+      /* Tresset structure (nerve > 0): remember where the feature ink went -
+         the tonal rounds will PACK toward these cells and leave the rest
+         white, like the obsessive sketcher who only shades what matters */
+      if (NERVE > 0) featMask = new Uint8Array(NC);
       if (A) {
         const pxs = sc * (img.w / A.img.w); /* analysis px -> mm, survives res drift */
         const toMM = (q) => [x0 + q[0] * pxs, y0 + q[1] * pxs];
@@ -415,7 +420,7 @@ export default {
           const q = resample(ptsMM, closed, cell); /* one deposit per grid cell of travel */
           for (const [qx, qy] of q) {
             const ci = cellIdxAt(qx, qy);
-            if (ci >= 0) I[ci] += dep * 1.15; /* feature ink slightly heavy: shading keeps clear */
+            if (ci >= 0) { I[ci] += dep * 1.15; if (featMask) featMask[ci] = 1; }
           }
         };
         /* AFFINE INVARIANT (spec checklist): all feature geometry is generated
@@ -424,11 +429,21 @@ export default {
            affine remap of the output, bit-comparable across fits. */
         const PX_STEP = 2.5; /* chain resample step, analysis px */
         /* coordinate-based smooth jitter, px space (affine-safe) */
-        const jit = (pts, tag, ampPx) => ampPx <= 0 ? pts : pts.map(([qx, qy]) => [
-          qx + (noise2(qx * 0.055 + tag, qy * 0.055) - 0.5) * 2 * ampPx,
-          qy + (noise2(qx * 0.055 + 31.7 + tag, qy * 0.055 + 7.3) - 0.5) * 2 * ampPx,
+        /* two-scale jitter: fine tremor + slow DRIFT that carries a restate
+           away from the groove and back - the hand losing the line */
+        const jit = (pts, tag, fineA, driftA) => pts.map(([qx, qy]) => [
+          qx + (noise2(qx * 0.055 + tag, qy * 0.055, p.seed) - 0.5) * 2 * fineA
+             + (noise2(qx * 0.012 + tag + 77, qy * 0.012, p.seed) - 0.5) * 2 * driftA,
+          qy + (noise2(qx * 0.055 + 31.7 + tag, qy * 0.055 + 7.3, p.seed) - 0.5) * 2 * fineA
+             + (noise2(qx * 0.012 + tag + 91, qy * 0.012 + 5, p.seed) - 0.5) * 2 * driftA,
         ]);
-        const restates = NERVE > 0 ? 1 + Math.round(NERVE * 2) : 1;
+        /* nerve scale: relative to the analysis image, so the wobble is a
+           constant FRACTION of the face at any paper size (affine-safe).
+           At 1024 px and nerve 1: first pass ~3 px (~0.6 mm on A4), restates
+           ~8-11 px (~1.5-2 mm) - visibly separate grooves, like the pen
+           returning to the same contour and missing a little. */
+        const NSCALE = NERVE * A.img.w * 0.006;
+        const restates = NERVE > 0 ? 1 + Math.round(NERVE * 4) : 1;
         const emitFeat = (ptsPx, closed) => {
           if (!finitePts(ptsPx)) return;
           let base = chaikin(ptsPx, closed, 2);
@@ -436,24 +451,47 @@ export default {
           if (!base || base.length < 2) return;
           const passes = oneLine ? 1 : restates; /* one line stays one line */
           for (let rs = 0; rs < passes; rs++) {
-            let q = NERVE > 0 ? jit(base, rs * 13.7, NERVE * (rs === 0 ? 1.4 : 2.6)) : base;
-            /* Tresset flyaways: open contours overshoot their ends */
-            if (NERVE > 0 && !closed && !oneLine && q.length >= 3) {
+            let q = base, cl2 = closed;
+            if (NERVE > 0) {
+              q = jit(base, rs * 13.7,
+                rs === 0 ? NSCALE * 0.5 : NSCALE * 0.4,
+                rs === 0 ? 0 : NSCALE * (0.6 + 0.7 * rs));
+              /* glitch: from the 3rd pass on, restates are PARTIAL - a random
+                 span of the contour, closed loops break open into arcs */
+              if (rs >= 2 && q.length > 8) {
+                const h1 = noise2(base[0][0] * 0.21 + rs * 7.7, base[0][1] * 0.21, p.seed);
+                const h2 = noise2(base[0][0] * 0.17 + rs * 3.3 + 40, base[0][1] * 0.17, p.seed);
+                const spanLen = Math.max(4, Math.floor(q.length * (0.3 + 0.5 * h2)));
+                const start = Math.floor(h1 * q.length) % q.length;
+                if (cl2) {
+                  const w2 = [];
+                  for (let i2 = 0; i2 < spanLen; i2++) w2.push(q[(start + i2) % q.length]);
+                  q = w2; cl2 = false;
+                } else {
+                  const s2 = Math.min(start, q.length - spanLen);
+                  q = q.slice(Math.max(0, s2), Math.max(0, s2) + spanLen);
+                }
+                if (q.length < 3) continue;
+              }
+            }
+            /* Tresset flyaways: open contours overshoot their ends, later
+               restates fling further */
+            if (NERVE > 0 && !cl2 && !oneLine && q.length >= 3) {
               const fly = (a0, a1, tag2) => {
                 const dx = a0[0] - a1[0], dy = a0[1] - a1[1];
                 const m = Math.hypot(dx, dy) || 1;
-                const L = NERVE * (2.5 + 7 * noise2(a0[0] * 0.13 + tag2, a0[1] * 0.13));
+                const L = NERVE * A.img.w * (0.006 + 0.022 * noise2(a0[0] * 0.13 + tag2, a0[1] * 0.13, p.seed)) * (1 + rs * 0.5);
                 return [a0[0] + (dx / m) * L, a0[1] + (dy / m) * L];
               };
               q = [fly(q[0], q[1], rs * 3.1)].concat(q, [fly(q[q.length - 1], q[q.length - 2], rs * 3.1 + 50)]);
             }
-            if (oneLine) { segs.push({ pts: q, closed }); featCount++; break; }
+            if (oneLine) { segs.push({ pts: q, closed: cl2 }); featCount++; break; }
             if (total + q.length > POINT_BUDGET) return;
             const mm = q.map(toMM);
-            paths.push({ pts: mm, closed, layer: L0 });
+            paths.push({ pts: mm, closed: cl2, layer: L0 });
             total += mm.length;
             featCount++;
-            if (rs === 0) depositPath(mm, closed); /* ink counted once per contour */
+            if (rs === 0) depositPath(mm, cl2); /* ink counted once per contour */
           }
         };
 
@@ -539,9 +577,13 @@ export default {
           const marchH = (sx0, sy0, sgn) => {
             const out = [];
             let x = sx0, y = sy0, prev = null;
+            /* nerve: each streamline gets its own phase and drifts off the
+               flow field - lanes break, strands stray and cross (messy hair) */
+            const hs = hash2(sx0 * 0.53 + 2.7, sy0 * 0.71, p.seed) * 83;
             for (let s = 0; s < maxStepsH; s++) {
               const f = flowAt(x, y);
-              const aa = f.c < 0.2 ? domA : f.a;
+              let aa = f.c < 0.2 ? domA : f.a;
+              if (NERVE > 0) aa += (noise2(s * 0.14 + hs, hs * 0.29 + 4.1, p.seed) - 0.5) * 2 * NERVE * 0.75;
               let dx = Math.cos(aa), dy = Math.sin(aa);
               if (prev ? (dx * prev[0] + dy * prev[1] < 0) : sgn < 0) { dx = -dx; dy = -dy; }
               prev = [dx, dy];
@@ -571,8 +613,9 @@ export default {
             if (NERVE > 0) { /* light liveliness, px space */
               for (let i = 0; i < ptsPx.length; i++) {
                 const [qx, qy] = ptsPx[i];
-                ptsPx[i] = [qx + (noise2(qx * 0.07, qy * 0.07 + 2.2) - 0.5) * 2 * NERVE * 1.8,
-                            qy + (noise2(qx * 0.07 + 5.5, qy * 0.07) - 0.5) * 2 * NERVE * 1.8];
+                const hAmp = NERVE * A.img.w * 0.003;
+                ptsPx[i] = [qx + (noise2(qx * 0.07, qy * 0.07 + 2.2, p.seed) - 0.5) * 2 * hAmp,
+                            qy + (noise2(qx * 0.07 + 5.5, qy * 0.07, p.seed) - 0.5) * 2 * hAmp];
               }
             }
             if (total + ptsPx.length > POINT_BUDGET) break;
@@ -695,6 +738,43 @@ export default {
       /* Features only with nothing to draw falls through to Tonal (degrade) */
     }
 
+    /* feature affinity (nerve > 0): chamfer distance from feature ink,
+       tonal seeds weighted exp(-dist/falloff) - high nerve packs the
+       shading against the lines and leaves large areas WHITE */
+    let featDistG = null, baseFalloffC = 0;
+    if (NERVE > 0 && featMask) {
+      let any = false;
+      const distG = new Float32Array(NC).fill(1e9);
+      for (let i = 0; i < NC; i++) if (featMask[i]) { distG[i] = 0; any = true; }
+      if (any) {
+        for (let cy2 = 0; cy2 < gh; cy2++) for (let cx2 = 0; cx2 < gw; cx2++) {
+          const i = cy2 * gw + cx2;
+          if (cx2 > 0) distG[i] = Math.min(distG[i], distG[i - 1] + 1);
+          if (cy2 > 0) {
+            distG[i] = Math.min(distG[i], distG[i - gw] + 1);
+            if (cx2 > 0) distG[i] = Math.min(distG[i], distG[i - gw - 1] + 1.414);
+            if (cx2 < gw - 1) distG[i] = Math.min(distG[i], distG[i - gw + 1] + 1.414);
+          }
+        }
+        for (let cy2 = gh - 1; cy2 >= 0; cy2--) for (let cx2 = gw - 1; cx2 >= 0; cx2--) {
+          const i = cy2 * gw + cx2;
+          if (cx2 < gw - 1) distG[i] = Math.min(distG[i], distG[i + 1] + 1);
+          if (cy2 < gh - 1) {
+            distG[i] = Math.min(distG[i], distG[i + gw] + 1);
+            if (cx2 < gw - 1) distG[i] = Math.min(distG[i], distG[i + gw + 1] + 1.414);
+            if (cx2 > 0) distG[i] = Math.min(distG[i], distG[i + gw - 1] + 1.414);
+          }
+        }
+        /* a GATE, not a weight: the greedy engine would otherwise fill the
+           far field anyway once the near residual saturates - seeds far from
+           any feature are refused outright, strokes may still WANDER there.
+           The falloff TIGHTENS per round (x0.78^r, a function of r only -
+           prefix-safe) so later rounds pack ever closer and the white stays. */
+        featDistG = distG;
+        baseFalloffC = Math.max(1.5, (10 - 7.5 * NERVE) / cell); /* tight: seeds hug the lines */
+      }
+    }
+
     for (let r = 0; r < rounds; r++) {
       const brMm = 6 * Math.pow(fall, r);           /* the round's "squint" */
       const radC = Math.round(brMm / cell);
@@ -713,13 +793,25 @@ export default {
         return [(Db[i + 1] - Db[i - 1]) / (2 * cell), (Db[i + gw] - Db[i - gw]) / (2 * cell)];
       };
 
+      /* eruption direction: gradient of the feature distance field points
+         AWAY from the nearest contour - strokes shoot out of their anchors */
+      const outwardAt = (x, y) => {
+        if (!featDistG) return null;
+        const cx = Math.max(1, Math.min(gw - 2, Math.floor((x - x0) / cell)));
+        const cy = Math.max(1, Math.min(gh - 2, Math.floor((y - y0) / cell)));
+        const i = cy * gw + cx;
+        const gx2 = featDistG[i + 1] - featDistG[i - 1];
+        const gy2 = featDistG[i + gw] - featDistG[i - gw];
+        const m2 = Math.hypot(gx2, gy2);
+        return m2 < 1e-6 ? null : [gx2 / m2, gy2 / m2];
+      };
       const kGrad = detail * r * 0.9; /* weight shifts toward gradient in later rounds */
       const angDeg = [45, 135, 90][r % 3];
       const fixDir = [Math.cos((angDeg * Math.PI) / 180), Math.sin((angDeg * Math.PI) / 180)];
       const flowRound = p.hatch === "Flow" || (p.hatch === "Mix" && r % 2 === 0);
       const GTHR = 0.012; /* |grad| below this: flow falls back to the fixed angle */
 
-      const maxLenMm = Math.max(6, Math.min(110, brMm * 12));
+      const maxLenMm = Math.max(6, Math.min(160, brMm * 12 * (1 + NERVE * 1.2)));
       const minLenMm = Math.max(penW * 2, brMm * 0.9 * (1 - 0.5 * detail));
       const maxSteps = Math.ceil(maxLenMm / stepMm);
 
@@ -741,18 +833,60 @@ export default {
         return fixDir;
       };
 
-      const march = (sx, sy, sign, stepCap) => {
+      /* nerve bridging: Tresset's pen does not lift when the tone goes
+         light - a wandering stroke may cross up to bridgeCap consecutive
+         low-residual steps before it ends */
+      const bridgeCap = NERVE > 0 ? Math.ceil(NERVE * 9) : 0;
+      const march = (sx, sy, sign, stepCap, sp) => {
         const out = [];
-        let x = sx, y = sy, prev = null;
+        let x = sx, y = sy, prev = null, lowRun = 0;
+        /* WORM MODE (nerve): heading is per-stroke STATE and curvature is
+           INTEGRATED along arc length - two noise wavelengths (long sweeps +
+           tight wiggle) times the stroke's own curl personality, with only a
+           whisper of homing toward the launch heading. Curvature accumulates,
+           so lines meander, S-curve and loop instead of shooting straight. */
+        let theta = sp ? sp.esc + (sign < 0 ? Math.PI : 0) : 0;
+        const escT = theta;
         for (let s = 0; s < stepCap; s++) {
-          let d = dirAt(x, y, prev);
-          if (sign < 0 && s === 0) d = [-d[0], -d[1]];
-          prev = d;
+          let d;
+          if (sp) {
+            /* heading = launch course + BOUNDED noise-shaped deviation: the
+               worm S-curves and near-loops around its course but the course
+               itself never random-walks away - meander with guaranteed travel */
+            const dev1 = (noise2(s * 0.09 + sp.phase, sp.phase * 0.37 + 1.7, p.seed) - 0.5) * 2 * NERVE * 1.5 * sp.curl;
+            const dev2 = (noise2(s * 0.55 + sp.phase + 53.1, 2.9, p.seed) - 0.5) * 2 * NERVE * 0.6;
+            theta = escT + dev1 + dev2;
+            d = [Math.cos(theta), Math.sin(theta)];
+            prev = d;
+          } else {
+            d = dirAt(x, y, prev);
+            if (sign < 0 && s === 0) d = [-d[0], -d[1]];
+            prev = d;
+            if (NERVE > 0) { /* plain strokes keep the gentle position wander */
+              const rot = (noise2(x * 0.018, y * 0.018 + 3.3, p.seed) - 0.5) * NERVE * 0.7;
+              const cr = Math.cos(rot), sr = Math.sin(rot);
+              d = [d[0] * cr - d[1] * sr, d[0] * sr + d[1] * cr];
+            }
+          }
           const nx = x + d[0] * stepMm, ny = y + d[1] * stepMm;
           const ci = cellIdxAt(nx, ny);
           if (ci < 0 || cutM[ci]) break;             /* hard stop at the white-cutoff boundary */
-          if (R[ci] < STOP_R) break;                  /* residual exhausted */
-          if (I[ci] >= D[ci] + OVER_TOL) break;       /* over-ink guard */
+          /* blocked = spent residual OR already-inked cell. Nerve bridges
+             both: an escaping stroke CROSSES the packed ring around its
+             anchor the way Tresset's pen crosses its own lines - escapees
+             (high lenScale) get the longest bridges. Nerve 0 keeps the old
+             immediate breaks bit-identically (bridge 0). */
+          /* eruption strokes (sp) are structural marks, not shading: their
+             only honest obstacle is REAL INK - the round's depleted-R halos
+             (neighbour splats) must not strangle an escape. Plain strokes
+             keep both conditions, bit-identical at nerve 0. */
+          const blocked = sp ? I[ci] >= D[ci] + OVER_TOL
+                             : (R[ci] < STOP_R || I[ci] >= D[ci] + OVER_TOL);
+          if (blocked) {
+            lowRun++;
+            const bridgeEff = sp ? Math.ceil(bridgeCap * sp.lenScale) : bridgeCap;
+            if (lowRun > bridgeEff) break;
+          } else lowRun = 0;
           out.push([nx, ny]);
           x = nx; y = ny;
         }
@@ -768,7 +902,21 @@ export default {
         const sy = y0 + (Math.floor(ci0 / gw) + 0.5) * cell + jy;
         const [ggx, ggy] = gradAt(sx, sy);
         const fm = focusMul(sx, sy);
-        const w = R[ci0] * (1 + kGrad * Math.hypot(ggx, ggy)) * fm;
+        let aff = 1;
+        if (featDistG) {
+          aff = Math.exp(-featDistG[ci0] / (baseFalloffC * Math.max(0.5, Math.pow(0.78, r))));
+          if (aff < 0.05) { dry++; if (dry > attempts / 6 && !accepted) break; continue; }
+          aff *= aff; /* squared: packing, not a gentle bias */
+        }
+        /* population decided BEFORE the weight: only PILES get the seed
+           floor (re-stating a spent hotspot is the point of piling);
+           escapees pay the normal residual price and stay rare */
+        const isPile = NERVE > 0 && featDistG ? hash2(sx * 0.61 + 1.9, sy * 0.47, p.seed) < 0.88 : false;
+        /* CONTRAST: the pile floor is scaled by local tone - lines through
+           light areas stay single clean strokes (white around them), lines
+           through dark areas pile into black knots */
+        const Rw = isPile ? R[ci0] + NERVE * 0.4 * Math.min(1, D[ci0] * 1.6) : R[ci0];
+        const w = Rw * (1 + kGrad * Math.hypot(ggx, ggy)) * fm * aff;
         if (w <= STOP_R) { dry++; if (dry > attempts / 6 && !accepted) break; continue; }
         if (rng() >= w / (w + 0.3)) continue; /* residual-weighted rejection sampling */
         if (I[ci0] >= D[ci0] + OVER_TOL) continue;
@@ -776,24 +924,49 @@ export default {
         /* focus = detail weighting: inside the ellipse strokes get shorter
            (finer rendering), not just more likely - same ink, denser strokes */
         const stepCap = Math.max(2, Math.ceil(maxSteps / (1 + 0.6 * (fm - 1))));
-        const fwd = march(sx, sy, 1, stepCap);
-        const bck = march(sx, sy, -1, stepCap);
+        /* per-stroke identity (nerve): own noise phase, own fan angle out of
+           the anchor, own length - short bursts and long escapees mixed */
+        let sp = null;
+        if (NERVE > 0 && featDistG) {
+          const ow = outwardAt(sx, sy) || fixDir;
+          /* TWO POPULATIONS: most strokes PILE onto the contour - their course
+             runs ALONG the feature (perpendicular to outward), short and
+             tightly curled, scribbling the line over and over; a minority are
+             ESCAPEES that shoot outward as travelling worms. */
+          const fan = (hash2(sx * 0.73 + 9.1, sy * 0.31, p.seed) - 0.5) * NERVE * (isPile ? 0.9 : 3.4);
+          const flip = hash2(sx * 0.41 + 5.5, sy * 0.67, p.seed) < 0.5 ? 1 : -1;
+          const bx2 = isPile ? -ow[1] * flip : ow[0];
+          const by2 = isPile ? ow[0] * flip : ow[1];
+          sp = {
+            phase: hash2(sx * 0.37, sy * 0.41, p.seed) * 97,
+            lenScale: isPile ? 0 : 0.4 + 2.2 * Math.pow(hash2(sx * 0.19 + 3.3, sy * 0.57, p.seed), 2),
+            capMm: isPile ? 5 + 16 * hash2(sx * 0.19 + 3.3, sy * 0.57, p.seed) : 0, /* scribbles: 5-21 mm, absolute */
+            esc: Math.atan2(bx2 * Math.sin(fan) + by2 * Math.cos(fan),
+                            bx2 * Math.cos(fan) - by2 * Math.sin(fan)),
+            curl: (isPile ? 1.1 : 0.5) + 1.1 * hash2(sx * 0.83 + 7.7, sy * 0.29, p.seed),
+          };
+        }
+        const capF = sp ? (sp.capMm > 0 ? Math.max(3, Math.ceil(sp.capMm / stepMm))
+                                        : Math.max(3, Math.ceil(stepCap * sp.lenScale))) : stepCap;
+        const capB = sp ? Math.max(2, Math.ceil(capF * 0.25)) : stepCap; /* short root into the anchor */
+        const fwd = march(sx, sy, 1, capF, sp);
+        const bck = march(sx, sy, -1, capB, sp);
         const pts = [];
         for (let i = bck.length - 1; i >= 0; i--) pts.push(bck[i]);
         pts.push([sx, sy]);
         for (const q of fwd) pts.push(q);
         if (pts.length < 2) continue;
-        if ((pts.length - 1) * stepMm < minLenMm / fm) continue;
+        if ((pts.length - 1) * stepMm < (sp ? Math.max(penW * 1.5, (minLenMm / fm) * 0.35) : minLenMm / fm)) continue;
         if (total + pts.length > POINT_BUDGET) break;
         /* Sketch nerve: nervous lateral wobble on shading strokes (Tresset);
            coordinate noise only - the rng streams and prefix stay untouched.
            A wobbled point never enters a white-cutoff cell. */
         if (NERVE > 0) {
-          const wAmp = NERVE * penW * 1.1;
+          const wAmp = NERVE * penW * 1.7;
           for (let i = 0; i < pts.length; i++) {
             const [qx, qy] = pts[i];
-            const wx = qx + (noise2(qx * 0.9, qy * 0.9 + 4.2) - 0.5) * 2 * wAmp;
-            const wy = qy + (noise2(qx * 0.9 + 9.1, qy * 0.9) - 0.5) * 2 * wAmp;
+            const wx = qx + (noise2(qx * 0.9, qy * 0.9 + 4.2, p.seed) - 0.5) * 2 * wAmp;
+            const wy = qy + (noise2(qx * 0.9 + 9.1, qy * 0.9, p.seed) - 0.5) * 2 * wAmp;
             const wi = cellIdxAt(wx, wy);
             if (wi >= 0 && !cutM[wi]) pts[i] = [wx, wy];
           }
