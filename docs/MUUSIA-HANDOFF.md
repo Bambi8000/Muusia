@@ -647,6 +647,26 @@ text are **English**.
   and One line links them all into a single unbroken line. Validators
   49 (analyze) + 87 (portrait) against the real-photo fixture; the jaw-clip
   test isolates clipping via a beard-without-flow fixture variant.
+  
+  - **2.55** Portrait: the nerve arc - one long calibration session. Sketch
+  nerve is now a STRUCTURAL switch, not a tremor: a chamfer distance field
+  from the feature ink GATES tonal seeds (falloff 10-7.5*NERVE mm,
+  tightening x0.78 per round with floor 0.5 - rounds became a piling knob);
+  seeds split into two populations - ~88% PILES: 5-21 mm absolute scribbles
+  whose course runs ALONG the contour (outward-gradient normal) and whose
+  seed weight has a floor SCALED BY LOCAL TONE (the contrast mechanism:
+  dark areas stack into knots, light areas keep single clean lines) - and
+  ~12% ESCAPEES: frozen outward launch course + bounded two-wavelength
+  meander (worms that travel; heading random-walks knot, position noise
+  makes rulers - both were tried and measured out), ink-only blocking with
+  length-scaled bridging so strokes cross existing lines like Tresset's pen.
+  Restates up to 5x with per-pass drift, PARTIAL fragments from pass 3,
+  flyaways grow per pass; hair/beard strands get per-strand heading
+  deviation off the flow field. Six structural oracles guard the look
+  (packing distance, coverage shrink, 16-bin splay, rooted-pile median +
+  escapee tail count, straightness window 0.2-0.85, two-tone contrast
+  ratio). MUUSIA-PORTRAIT-MANUAL.md added (parameter meanings + presets).
+  TWO PITFALLS FOUND: see below.
 
 ## Hard-won pitfalls (keep)
 
@@ -694,6 +714,18 @@ text are **English**.
   stubs or drifted snippets pass in lab mode and fail (or worse, silently
   under-test) in baked mode. When lab and baked runs disagree, diff the
   harness helpers against helpers.js first.
+  - helpers `hash2`/`noise2` REQUIRE the seed argument: a 2-arg call computes
+  `undefined + x` -> NaN -> bit-ops -> ALWAYS 0, silently. Eighteen call
+  sites in the v2.55 session produced constant-offset "jitter" and dead-
+  straight "worms" before this was caught - the user literally described
+  the bug ("copies of each other with a small offset") before the code
+  audit found it. The tell: noise-driven variation that looks like a
+  CONSTANT shift. Every hash2/noise2 call gets a seed, no exceptions.
+- Node ⇣ collision guard refuses imports for already-baked keys (by
+  design, the truchet lesson) - iterating a baked node happens via
+  bake + dev-server HMR with the lab file as the working copy, never via
+  browser import. Symptom of forgetting: "the slider does nothing" while
+  editing the lab file - the browser is running the old bake.
 
 ## Roadmap / ideas
 

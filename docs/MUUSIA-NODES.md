@@ -1174,9 +1174,13 @@ lines. Mode One line is the Picasso portrait: the pruned chains of every
 face are ordered by a small endpoint tour and linked with light arcs bulging
 over the cheeks and forehead - one unbroken line (requires an analysis,
 empty without one). Sketch nerve brings the Tresset look at any nerve > 0:
-contours re-stated by nervous slightly-offset passes with flyaway line ends,
-and shading strokes that wobble - 0 is the clean drawing, bit-identical to
-before. Tonal mode needs no analysis at all: residual rounds (draw only where
+contours re-stated by nervous drifting passes that fragment into partial
+arcs, flyaway line ends, and a structural shift in the shading - tonal ink
+is gated to a tight zone around the feature lines and piles onto them as
+short scribbles whose density follows local tone (dark knots, light single
+lines, white in between), while rare worm-strokes escape outward on
+meandering courses; 0 is the clean drawing, bit-identical to before. See
+MUUSIA-PORTRAIT-MANUAL.md for parameter meanings and presets. Tonal mode needs no analysis at all: residual rounds (draw only where
 the image is still darker than the ink placed so far) under a coarse-to-fine
 "squint" blur, Flow/Cross-hatch/Mix hatching, a Focus ellipse for manual
 attention, hard stops at the White cutoff so eye whites stay clean, and the
