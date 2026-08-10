@@ -621,6 +621,33 @@ text are **English**.
   mislabeled "v2.45" + bump 29a03fa — the repo was already at 2.52 (see the
   sed pitfall below).
 
+- **2.54** Portrait phase 3 + Tresset + beard + multi-face (commit 7be678a
+  shipped these under a stale 2.53 stamp with a v2.48 message — the sed
+  pitfall struck AGAIN from a different session's stale context; this bump
+  corrects the stamp). **One line** (Picasso): economy-pruned chains of
+  every found face ordered by an endpoint tour (greedy NN + seeded pair
+  swaps), closed loops entered at the nearest point and traversed fully,
+  transitions as quadratic arcs bulging AWAY from the face centroid so they
+  ride the cheeks/forehead; requires analysis, degrades to EMPTY like image
+  nodes without an image. **Sketch nerve** (Tresset): contours re-stated
+  1–3× with coordinate-noise jitter, shading strokes wobble (white-cutoff-
+  guarded), open contours get flyaway overshoot ends; nerve 0 is
+  bit-identical to the clean drawing and the prefix invariant provably
+  survives (noise2 only — no rng consumption). **Beard**: no parsing class
+  exists (CelebAMask limitation) — `detectBeard()` in `src/analyze.js` finds
+  facial hair as TEXTURE vs the same face's smooth-cheek median inside a
+  landmark-derived zone (below the mouth, past the chin); ADDITIVE fields
+  `regions.beard` + `beardFlow`; jaw/oval chains are clipped OUTSIDE the
+  beard mask (draw the mass, not the bone — lips can never enter the mask
+  since lip classes are not skinLike), beard streamlines share the
+  generalized `drawFlow` with hair, tighter lanes (OC 6 vs 8). **Multi-
+  face**: `analysis.faces[]` largest-first (`face` stays primary for
+  back-compat, proven bit-identical), regions carry all components as
+  `parts[]` so a second person's hair survives, the node draws every face,
+  and One line links them all into a single unbroken line. Validators
+  49 (analyze) + 87 (portrait) against the real-photo fixture; the jaw-clip
+  test isolates clipping via a beard-without-flow fixture variant.
+
 ## Hard-won pitfalls (keep)
 
 - Era-patch INSERTIONS can land inside the anchor's enclosing scope and stay
@@ -644,6 +671,12 @@ text are **English**.
   bump is not decoration — READ its output before building. Between chats
   the repo moves: verify version numbers in command sequences against the
   working copy, never against the previous session's state.
+- Validator auto-switch PREFERS BAKED: re-opening a lab file for an
+  already-baked node and running the validator silently tests the OLD baked
+  node — the v2.54 session saw 14 "failures" that were just the new tests
+  hitting the 2.47 bake. The `[lab]`/`[baked]` tag on the first output line
+  is the tell — READ it. Bake before validating whenever the lab file is a
+  reincarnation of a baked key.
 - Browsers do NOT overwrite downloads (`name (1).ext`) — irrelevant post-C0 for
   code, still true for any downloaded file.
 - NODE_HELP-style strings may contain escaped quotes: regex-replacing doc strings

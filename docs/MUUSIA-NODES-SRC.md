@@ -17649,7 +17649,7 @@ export default {
 ## portrait.js
 
 ```js
-import { Pin, PENS, mulberry32, resample, applyStyle } from "../helpers.js";
+import { Pin, EMPTY, PENS, mulberry32, noise2, resample, applyStyle } from "../helpers.js";
 
 export default {
   key: "portrait",
@@ -17659,14 +17659,15 @@ export default {
   fileImage: true,
   faceAnalysis: true,
   fileAccept: ".jpg,.jpeg,.png",
-  desc: "Draws a photo the way a portraitist works. Modes Features+tonal and Features only read the frozen face analysis (Analyze face button): landmark chains become smoothed splines pruned in importance order by Line economy (max = all contours, min = just the eyes), the face oval splits into a high-importance jaw arc and an early-dropping upper arc, glasses come from the parsed region behind their own checkbox, and hair is drawn as FLOW, not outline - streamlines seeded in the hair mask along the frozen flow field, density from image darkness. Feature lines take the node's Pen; tonal rounds continue on the next pens with the feature ink already deposited, so shading automatically avoids the lines. Without a valid analysis the feature modes degrade to pure Tonal. Tonal works with no ML at all: several ROUNDS over the same sheet, each hatching only where the image is still darker than the ink already placed (a digital residual), the 'squint' blur narrowing round by round - big masses first, detail last. Round = pen: with Pen assignment Cycle the G-code pauses at every round and you decide at the machine whether to continue. Hatch mode Flow follows tonal contours, Cross-hatch rotates 45/135/90 degrees per round, Mix alternates. Ink strength calibrates the simulated pen darkness (plot a small hatch swatch first). The Focus ellipse multiplies detail weight inside it. Strokes hard-stop at the White cutoff boundary so eye whites and catchlights stay clean. Modes Spiral and TSP draw the whole image as ONE unbroken line. Chain into Travel Sort as usual; layer boundaries are preserved.",
+  desc: "Draws a photo the way a portraitist works. Modes Features+tonal and Features only read the frozen face analysis (Analyze face button): landmark chains become smoothed splines pruned in importance order by Line economy (max = all contours, min = just the eyes), the face oval splits into a high-importance jaw arc and an early-dropping upper arc, glasses come from the parsed region behind their own checkbox, and hair is drawn as FLOW, not outline - streamlines seeded in the hair mask along the frozen flow field, density from image darkness. Feature lines take the node's Pen; tonal rounds continue on the next pens with the feature ink already deposited, so shading automatically avoids the lines. Without a valid analysis the feature modes degrade to pure Tonal. Tonal works with no ML at all: several ROUNDS over the same sheet, each hatching only where the image is still darker than the ink already placed (a digital residual), the 'squint' blur narrowing round by round - big masses first, detail last. Round = pen: with Pen assignment Cycle the G-code pauses at every round and you decide at the machine whether to continue. Hatch mode Flow follows tonal contours, Cross-hatch rotates 45/135/90 degrees per round, Mix alternates. Ink strength calibrates the simulated pen darkness (plot a small hatch swatch first). The Focus ellipse multiplies detail weight inside it. Strokes hard-stop at the White cutoff boundary so eye whites and catchlights stay clean. Mode One line is the Picasso portrait: the pruned feature chains are ordered by a small endpoint tour and linked with light arcs bulging over the cheeks and forehead - one unbroken line, requiring an analysis (empty without one). Sketch nerve brings the Tresset look: contours re-stated by nervous slightly-offset passes and shading strokes that wobble - 0 is the clean drawing, bit-identical to before. Modes Spiral and TSP draw the whole image as ONE unbroken line from tone alone. Chain into Travel Sort as usual; layer boundaries are preserved.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
     { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
-    { key: "mode", label: "Mode", type: "select", options: ["Tonal", "Features+tonal", "Features only", "Spiral", "TSP"], def: "Tonal" },
+    { key: "mode", label: "Mode", type: "select", options: ["Tonal", "Features+tonal", "Features only", "One line", "Spiral", "TSP"], def: "Tonal" },
     { key: "economy", label: "Line economy", type: "slider", min: 0, max: 1, step: 0.01, def: 0.7 },
     { key: "glassesOn", label: "Glasses lines", type: "check", def: true },
+    { key: "nerve", label: "Sketch nerve", type: "slider", min: 0, max: 1, step: 0.01, def: 0 },
     { key: "rounds", label: "Rounds", type: "slider", min: 1, max: 8, step: 1, def: 4 },
     { key: "detail", label: "Detail", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5 },
     { key: "penW", label: "Pen width mm", type: "slider", min: 0.2, max: 2, step: 0.05, def: 0.5 },
@@ -17716,14 +17717,17 @@ export default {
           if (closed) q.push(q[0].slice());
           guides.push({ kind: "poly", pts: q });
         };
-        if (a.face && a.face.found && a.face.chains) {
-          let nC = 0;
-          for (const c of Object.values(a.face.chains)) {
-            if (nC >= 12 || !c || !Array.isArray(c.pts)) continue;
+        const ovFaces = Array.isArray(a.faces) && a.faces.length ? a.faces
+          : (a.face && a.face.found && a.face.chains ? [a.face] : []);
+        let nC = 0;
+        for (const fc of ovFaces) {
+          if (!fc || !fc.chains) continue;
+          for (const c of Object.values(fc.chains)) {
+            if (nC >= 26 || !c || !Array.isArray(c.pts)) continue;
             put(c.pts, !!c.closed); nC++;
           }
         }
-        for (const key of ["hair", "glasses"]) {
+        for (const key of ["hair", "beard", "glasses"]) {
           const r = a.regions && a.regions[key];
           if (!r || !Array.isArray(r.outline)) continue;
           put(r.outline, true);
@@ -17979,7 +17983,14 @@ export default {
        tonal rounds underneath automatically avoid the lines.
        Degradation rule: missing/garbage analysis -> both feature modes run
        pure Tonal; a valid analysis without a face still draws hair. */
-    const featMode = p.mode === "Features+tonal" || p.mode === "Features only";
+    const oneLine = p.mode === "One line";
+    const featMode = p.mode === "Features+tonal" || p.mode === "Features only" || oneLine;
+    /* Sketch nerve (Tresset): the aesthetic of apparent imprecision - contours
+       re-stated by nervous slightly-offset passes, shading strokes wobbling.
+       All jitter is coordinate-based noise2 - no rng stream is consumed, so
+       nerve NEVER moves the prefix invariant, and nerve 0 is bit-identical
+       to the clean output. */
+    const NERVE = Math.max(0, Math.min(1, p.nerve || 0));
     if (featMode) {
       const A = (() => {
         try {
@@ -17988,12 +17999,52 @@ export default {
           return a;
         } catch (e) { return null; }
       })();
+      if (oneLine && !A) return applyStyle({ paths: [] }, ins[0]); /* spec: no analysis -> EMPTY, like image nodes without an image */
       let featCount = 0;
+      const segs = []; /* One line: collected px-space chains for the linker */
       if (A) {
         const pxs = sc * (img.w / A.img.w); /* analysis px -> mm, survives res drift */
         const toMM = (q) => [x0 + q[0] * pxs, y0 + q[1] * pxs];
         const finitePts = (c) => Array.isArray(c) && c.length >= 2 &&
           c.every((q) => Array.isArray(q) && Number.isFinite(q[0]) && Number.isFinite(q[1]));
+        const pipG = (x, y, poly) => {
+          let inside = false;
+          for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+            const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+            if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+          }
+          return inside;
+        };
+        /* region -> outline/hole polygon lists (parts-aware for multi-face) */
+        const polysOf = (reg) => {
+          const src2 = reg.parts && reg.parts.length ? reg.parts : [reg];
+          const O = [], HH = [];
+          for (const pp of src2) {
+            if (!finitePts(pp.outline)) continue;
+            O.push(pp.outline);
+            for (const hh of (pp.holes || [])) if (finitePts(hh)) HH.push(hh);
+          }
+          return { O, HH };
+        };
+        const beardPolys = (() => {
+          const b = A.regions && A.regions.beard;
+          if (!b || !finitePts(b.outline)) return [];
+          return polysOf(b).O;
+        })();
+        const inBeard = (x, y) => beardPolys.some((poly) => pipG(x, y, poly));
+        /* an artist draws the beard mass, not the chin bone through it:
+           jaw/oval runs inside the beard are clipped away */
+        const clipOutsideBeard = (pts2) => {
+          if (!beardPolys.length) return [pts2];
+          const runs = [];
+          let cur = [];
+          for (const q of pts2) {
+            if (inBeard(q[0], q[1])) { if (cur.length >= 3) runs.push(cur); cur = []; }
+            else cur.push(q);
+          }
+          if (cur.length >= 3) runs.push(cur);
+          return runs;
+        };
         const chaikin = (pts, closed, iters) => {
           let cur = pts;
           for (let k = 0; k < iters; k++) {
@@ -18023,17 +18074,38 @@ export default {
            and mapped to mm only on emit. Margin/paper changes are then a pure
            affine remap of the output, bit-comparable across fits. */
         const PX_STEP = 2.5; /* chain resample step, analysis px */
+        /* coordinate-based smooth jitter, px space (affine-safe) */
+        const jit = (pts, tag, ampPx) => ampPx <= 0 ? pts : pts.map(([qx, qy]) => [
+          qx + (noise2(qx * 0.055 + tag, qy * 0.055) - 0.5) * 2 * ampPx,
+          qy + (noise2(qx * 0.055 + 31.7 + tag, qy * 0.055 + 7.3) - 0.5) * 2 * ampPx,
+        ]);
+        const restates = NERVE > 0 ? 1 + Math.round(NERVE * 2) : 1;
         const emitFeat = (ptsPx, closed) => {
           if (!finitePts(ptsPx)) return;
-          let q = chaikin(ptsPx, closed, 2);
-          q = resample(q, closed, PX_STEP);
-          if (!q || q.length < 2) return;
-          if (total + q.length > POINT_BUDGET) return;
-          const mm = q.map(toMM);
-          paths.push({ pts: mm, closed, layer: L0 });
-          total += mm.length;
-          featCount++;
-          depositPath(mm, closed);
+          let base = chaikin(ptsPx, closed, 2);
+          base = resample(base, closed, PX_STEP);
+          if (!base || base.length < 2) return;
+          const passes = oneLine ? 1 : restates; /* one line stays one line */
+          for (let rs = 0; rs < passes; rs++) {
+            let q = NERVE > 0 ? jit(base, rs * 13.7, NERVE * (rs === 0 ? 1.4 : 2.6)) : base;
+            /* Tresset flyaways: open contours overshoot their ends */
+            if (NERVE > 0 && !closed && !oneLine && q.length >= 3) {
+              const fly = (a0, a1, tag2) => {
+                const dx = a0[0] - a1[0], dy = a0[1] - a1[1];
+                const m = Math.hypot(dx, dy) || 1;
+                const L = NERVE * (2.5 + 7 * noise2(a0[0] * 0.13 + tag2, a0[1] * 0.13));
+                return [a0[0] + (dx / m) * L, a0[1] + (dy / m) * L];
+              };
+              q = [fly(q[0], q[1], rs * 3.1)].concat(q, [fly(q[q.length - 1], q[q.length - 2], rs * 3.1 + 50)]);
+            }
+            if (oneLine) { segs.push({ pts: q, closed }); featCount++; break; }
+            if (total + q.length > POINT_BUDGET) return;
+            const mm = q.map(toMM);
+            paths.push({ pts: mm, closed, layer: L0 });
+            total += mm.length;
+            featCount++;
+            if (rs === 0) depositPath(mm, closed); /* ink counted once per contour */
+          }
         };
 
         /* importance table (spec open question 3 - initial values, tune by eye):
@@ -18044,14 +18116,19 @@ export default {
         const thr = 0.97 - 0.94 * Math.max(0, Math.min(1, p.economy));
         const keep = (k) => (IMP[k] != null ? IMP[k] : 0.5) >= thr;
 
-        const F = A.face && A.face.found === true && A.face.chains ? A.face.chains : null;
-        if (F) {
+        /* every found face: additive analysis.faces, single-face fallback */
+        const FACES = Array.isArray(A.faces) && A.faces.length
+          ? A.faces.filter((f) => f && f.found === true && f.chains)
+          : (A.face && A.face.found === true && A.face.chains ? [A.face] : []);
+        for (const face of FACES) {
+          const F = face.chains;
           for (const [k, c] of Object.entries(F)) {
             if (k === "faceOval" || !keep(k) || !c || !finitePts(c.pts)) continue;
             emitFeat(c.pts, !!c.closed);
           }
           /* faceOval splits: jaw (lower arc, high importance) vs upper oval
-             (drops early - a real artist omits half the outline) */
+             (drops early - a real artist omits half the outline); both are
+             clipped outside the beard */
           const ov = F.faceOval;
           if (ov && finitePts(ov.pts) && ov.pts.length >= 6) {
             const cy = ov.pts.reduce((s, q) => s + q[1], 0) / ov.pts.length;
@@ -18065,8 +18142,8 @@ export default {
                 const q = ov.pts[(s0 + i) % n];
                 (lower[(s0 + i) % n] ? jaw : upper).push(q);
               }
-              if (keep("jaw") && jaw.length >= 3) emitFeat(jaw, false);
-              if (keep("ovalUpper") && upper.length >= 3) emitFeat(upper, false);
+              if (keep("jaw") && jaw.length >= 3) for (const run of clipOutsideBeard(jaw)) emitFeat(run, false);
+              if (keep("ovalUpper") && upper.length >= 3) for (const run of clipOutsideBeard(upper)) emitFeat(run, false);
             } else if (keep("ovalUpper")) emitFeat(ov.pts, !!ov.closed);
           }
         }
@@ -18078,24 +18155,16 @@ export default {
           (gl.holes || []).forEach((hh) => { if (finitePts(hh)) emitFeat(hh, true); });
         }
 
-        /* hair is flow, not outline: streamlines along the frozen hairFlow
-           field, density from darkness. Generated ENTIRELY in analysis px
-           space (affine invariant); density is regulated by a px-space
-           occupancy raster, not the mm ink grid. */
-        const hr = A.regions && A.regions.hair;
-        const HF = A.hairFlow;
-        if (hr && finitePts(hr.outline) && HF && Array.isArray(HF.ang) &&
-            HF.ang.length === HF.w * HF.h && HF.cell > 0) {
-          const pip = (x, y, poly) => {
-            let inside = false;
-            for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-              const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
-              if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-            }
-            return inside;
-          };
-          const holesPx = (hr.holes || []).filter(finitePts);
-          const inHair = (x, y) => pip(x, y, hr.outline) && !holesPx.some((hh) => pip(x, y, hh));
+        /* One line skips flow regions - the Picasso line is chains only (v1).
+           Hair AND beard share the same machinery: streamlines along a frozen
+           flow field inside a (parts-aware) region, density from darkness,
+           px-space occupancy spacing. */
+        const drawFlow = (reg, HF, streamTag, OC) => {
+          if (!reg || !finitePts(reg.outline) || !HF || !Array.isArray(HF.ang) ||
+              HF.ang.length !== HF.w * HF.h || !(HF.cell > 0)) return;
+          const { O, HH } = polysOf(reg);
+          if (!O.length) return;
+          const inReg = (x, y) => O.some((o) => pipG(x, y, o)) && !HH.some((hh) => pipG(x, y, hh));
           const darkPx = (x, y) => {
             const xi = Math.max(0, Math.min(A.img.w - 1, Math.round((x / A.img.w) * img.w)));
             const yi = Math.max(0, Math.min(A.img.h - 1, Math.round((y / A.img.h) * img.h)));
@@ -18108,18 +18177,15 @@ export default {
             const i = gyp * HF.w + gxp;
             return { a: HF.ang[i], c: HF.coh[i] };
           };
-          /* fallback for incoherent cells: coherence-weighted dominant direction */
           let dsx = 0, dsy = 0;
           for (let i = 0; i < HF.ang.length; i++) { dsx += HF.coh[i] * Math.cos(2 * HF.ang[i]); dsy += HF.coh[i] * Math.sin(2 * HF.ang[i]); }
           const domA = 0.5 * Math.atan2(dsy, dsx);
-          /* occupancy raster: ~one streamline per OC px cell keeps pen spacing */
-          const OC = 8;
           const ow = Math.max(1, Math.ceil(A.img.w / OC)), ohh = Math.max(1, Math.ceil(A.img.h / OC));
           const occ = new Uint8Array(ow * ohh);
           const occAt = (x, y) => Math.max(0, Math.min(ohh - 1, Math.floor(y / OC))) * ow + Math.max(0, Math.min(ow - 1, Math.floor(x / OC)));
           let bx0 = Infinity, bx1 = -Infinity, by0 = Infinity, by1 = -Infinity;
-          for (const q of hr.outline) { bx0 = Math.min(bx0, q[0]); bx1 = Math.max(bx1, q[0]); by0 = Math.min(by0, q[1]); by1 = Math.max(by1, q[1]); }
-          const rngH = mulberry32(p.seed * 7919 + 331);
+          for (const o of O) for (const q of o) { bx0 = Math.min(bx0, q[0]); bx1 = Math.max(bx1, q[0]); by0 = Math.min(by0, q[1]); by1 = Math.max(by1, q[1]); }
+          const rngH = mulberry32(p.seed * 7919 + streamTag);
           const stepH = 3, maxStepsH = 200, minLenPx = 16;
           const marchH = (sx0, sy0, sgn) => {
             const out = [];
@@ -18131,7 +18197,7 @@ export default {
               if (prev ? (dx * prev[0] + dy * prev[1] < 0) : sgn < 0) { dx = -dx; dy = -dy; }
               prev = [dx, dy];
               const nx = x + dx * stepH, ny = y + dy * stepH;
-              if (!inHair(nx, ny) || darkPx(nx, ny) <= cut) break;
+              if (!inReg(nx, ny) || darkPx(nx, ny) <= cut) break;
               if (occ[occAt(nx, ny)] >= 2) break; /* lane already taken */
               out.push([nx, ny]);
               x = nx; y = ny;
@@ -18142,7 +18208,7 @@ export default {
           for (let a2 = 0; a2 < attemptsH; a2++) {
             if (total > POINT_BUDGET - 2000) break;
             const x = bx0 + rngH() * (bx1 - bx0), y = by0 + rngH() * (by1 - by0);
-            if (!inHair(x, y)) continue;
+            if (!inReg(x, y)) continue;
             const d = darkPx(x, y);
             if (d <= cut) continue;
             if (rngH() > (d - cut) / (1 - cut)) continue;
@@ -18153,6 +18219,13 @@ export default {
             ptsPx.push([x, y]);
             for (const q of fwd) ptsPx.push(q);
             if ((ptsPx.length - 1) * stepH < minLenPx) continue;
+            if (NERVE > 0) { /* light liveliness, px space */
+              for (let i = 0; i < ptsPx.length; i++) {
+                const [qx, qy] = ptsPx[i];
+                ptsPx[i] = [qx + (noise2(qx * 0.07, qy * 0.07 + 2.2) - 0.5) * 2 * NERVE * 1.8,
+                            qy + (noise2(qx * 0.07 + 5.5, qy * 0.07) - 0.5) * 2 * NERVE * 1.8];
+              }
+            }
             if (total + ptsPx.length > POINT_BUDGET) break;
             for (const q of ptsPx) { const oi = occAt(q[0], q[1]); if (occ[oi] < 255) occ[oi]++; }
             const mm = ptsPx.map(toMM);
@@ -18161,8 +18234,113 @@ export default {
             featCount++;
             depositPath(mm, false);
           }
+        };
+        if (!oneLine) {
+          drawFlow(A.regions && A.regions.hair, A.hairFlow, 331, 8);
+          /* beard lanes tighter - whiskers pack denser than scalp hair */
+          drawFlow(A.regions && A.regions.beard, A.beardFlow, 733, 6);
         }
+      /* ============ ONE LINE (Picasso, spec phase 3) ============
+         Order the collected chains with a small endpoint-TSP (greedy NN +
+         seeded pair-swap improvement), then link them with light bezier arcs
+         that bulge AWAY from the face centroid - transitions ride over the
+         cheeks and forehead, and the pen never lifts. */
+      if (oneLine) {
+        if (!segs.length) return applyStyle({ paths: [] }, ins[0]);
+        let ccx = 0, ccy = 0, cn = 0;
+        for (const s of segs) for (const q of s.pts) { ccx += q[0]; ccy += q[1]; cn++; }
+        ccx /= cn; ccy /= cn;
+        const tip = (s, rev) => s.closed ? s.pts[0] : (rev ? s.pts[0] : s.pts[s.pts.length - 1]);
+        const entry = (s, from) => { /* nearest entry point index + reversed flag */
+          if (s.closed) {
+            let bi = 0, bd = Infinity;
+            for (let i = 0; i < s.pts.length; i += 2) {
+              const dd = (s.pts[i][0] - from[0]) ** 2 + (s.pts[i][1] - from[1]) ** 2;
+              if (dd < bd) { bd = dd; bi = i; }
+            }
+            return { d: Math.sqrt(bd), i: bi, rev: false };
+          }
+          const d0 = Math.hypot(s.pts[0][0] - from[0], s.pts[0][1] - from[1]);
+          const d1 = Math.hypot(s.pts[s.pts.length - 1][0] - from[0], s.pts[s.pts.length - 1][1] - from[1]);
+          return d0 <= d1 ? { d: d0, i: 0, rev: false } : { d: d1, i: 0, rev: true };
+        };
+        /* order by greedy NN, then improve with seeded pair swaps */
+        const orderCost = (ord) => {
+          let c = 0, at = segs[ord[0]].pts[0];
+          for (let k = 0; k < ord.length; k++) {
+            const e = entry(segs[ord[k]], at);
+            c += e.d;
+            at = tip(segs[ord[k]], e.rev);
+          }
+          return c;
+        };
+        let order = [];
+        {
+          const used = new Uint8Array(segs.length);
+          let cur = 0; /* start at the first collected chain (deterministic) */
+          used[0] = 1; order.push(0);
+          let at = tip(segs[0], false);
+          for (let k = 1; k < segs.length; k++) {
+            let bi = -1, bd = Infinity, be = null;
+            for (let j = 0; j < segs.length; j++) {
+              if (used[j]) continue;
+              const e = entry(segs[j], at);
+              if (e.d < bd) { bd = e.d; bi = j; be = e; }
+            }
+            used[bi] = 1; order.push(bi);
+            at = tip(segs[bi], be.rev);
+          }
+          const rngO = mulberry32(p.seed * 7919 + 577);
+          let cost = orderCost(order);
+          for (let it = 0; it < 3000; it++) {
+            const i = 1 + Math.floor(rngO() * (order.length - 1));
+            const j = 1 + Math.floor(rngO() * (order.length - 1));
+            if (i === j) continue;
+            const cand = order.slice();
+            const t = cand[i]; cand[i] = cand[j]; cand[j] = t;
+            const cc = orderCost(cand);
+            if (cc < cost) { order = cand; cost = cc; }
+          }
+        }
+        /* walk the order, linking with quadratic arcs */
+        const line = [];
+        const pushPts = (pts2) => { for (const q of pts2) line.push(q); };
+        const bez = (a, c, b) => {
+          const LSTEP = 2.5; /* px, same density as the chain resample */
+          const out = [];
+          const n2 = Math.max(2, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / LSTEP));
+          for (let k = 1; k <= n2; k++) {
+            const t = k / n2, u = 1 - t;
+            out.push([u * u * a[0] + 2 * u * t * c[0] + t * t * b[0],
+                      u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]]);
+          }
+          return out;
+        };
+        let at = null;
+        for (const oi of order) {
+          const s = segs[oi];
+          const e = at ? entry(s, at) : { i: 0, rev: false };
+          let pts2;
+          if (s.closed) {
+            pts2 = s.pts.slice(e.i).concat(s.pts.slice(0, e.i));
+            pts2.push(pts2[0].slice()); /* traverse the loop and come back */
+          } else pts2 = e.rev ? s.pts.slice().reverse() : s.pts.slice();
+          if (at) {
+            const target = pts2[0];
+            const mx = (at[0] + target[0]) / 2, my = (at[1] + target[1]) / 2;
+            const away = Math.hypot(mx - ccx, my - ccy) || 1;
+            const bulge = Math.min(30, Math.hypot(target[0] - at[0], target[1] - at[1]) * 0.35);
+            const ctrl = [mx + ((mx - ccx) / away) * bulge, my + ((my - ccy) / away) * bulge];
+            pushPts(bez(at, ctrl, target));
+          } else line.push(pts2[0]);
+          pushPts(pts2.slice(1));
+          at = line[line.length - 1];
+        }
+        if (line.length < 2) return applyStyle({ paths: [] }, ins[0]);
+        const mm = line.slice(0, POINT_BUDGET).map(toMM);
+        return applyStyle({ paths: [{ pts: mm, closed: false, layer: L0 }] }, ins[0]);
       }
+      } /* end if (A) */
       if (p.mode === "Features only" && featCount > 0) return applyStyle({ paths }, ins[0]);
       penShift = featCount > 0 ? 1 : 0;
       /* Features only with nothing to draw falls through to Tonal (degrade) */
@@ -18258,6 +18436,19 @@ export default {
         if (pts.length < 2) continue;
         if ((pts.length - 1) * stepMm < minLenMm / fm) continue;
         if (total + pts.length > POINT_BUDGET) break;
+        /* Sketch nerve: nervous lateral wobble on shading strokes (Tresset);
+           coordinate noise only - the rng streams and prefix stay untouched.
+           A wobbled point never enters a white-cutoff cell. */
+        if (NERVE > 0) {
+          const wAmp = NERVE * penW * 1.1;
+          for (let i = 0; i < pts.length; i++) {
+            const [qx, qy] = pts[i];
+            const wx = qx + (noise2(qx * 0.9, qy * 0.9 + 4.2) - 0.5) * 2 * wAmp;
+            const wy = qy + (noise2(qx * 0.9 + 9.1, qy * 0.9) - 0.5) * 2 * wAmp;
+            const wi = cellIdxAt(wx, wy);
+            if (wi >= 0 && !cutM[wi]) pts[i] = [wx, wy];
+          }
+        }
 
         /* greedy deposit: into unblurred I, and locally out of this round's R */
         for (const [qx, qy] of pts) {

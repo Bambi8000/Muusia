@@ -1163,9 +1163,20 @@ chains become smoothed splines pruned in importance order by Line economy
 high-importance jaw arc and an early-dropping upper arc), glasses come from
 the parsed region behind their own checkbox, and hair is drawn as FLOW -
 streamlines seeded in the hair mask along the frozen flow field, density from
-darkness. Feature lines take the node's Pen; tonal rounds continue on the
+darkness. Beards are detected as texture at Analyze time (no parsing class
+exists for facial hair) and drawn as flow like hair with tighter lanes, and
+the jawline is clipped outside the beard mass - the node draws the beard,
+not the chin bone through it. Group photos work: every found face is drawn
+(analysis carries them all, largest primary) and the warning line reports
+the count. Feature lines take the node's Pen; tonal rounds continue on the
 following pens with the feature ink already deposited, so shading avoids the
-lines. Tonal mode needs no analysis at all: residual rounds (draw only where
+lines. Mode One line is the Picasso portrait: the pruned chains of every
+face are ordered by a small endpoint tour and linked with light arcs bulging
+over the cheeks and forehead - one unbroken line (requires an analysis,
+empty without one). Sketch nerve brings the Tresset look at any nerve > 0:
+contours re-stated by nervous slightly-offset passes with flyaway line ends,
+and shading strokes that wobble - 0 is the clean drawing, bit-identical to
+before. Tonal mode needs no analysis at all: residual rounds (draw only where
 the image is still darker than the ink placed so far) under a coarse-to-fine
 "squint" blur, Flow/Cross-hatch/Mix hatching, a Focus ellipse for manual
 attention, hard stops at the White cutoff so eye whites stay clean, and the
