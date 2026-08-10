@@ -1020,6 +1020,23 @@ function toGcode(ps, ctx, prof) {
   if (ps.paths.some((p) => p.__stop)) lines.push(`; Travel Stop markers present \u2014 place Travel Stop LAST and keep route optimize off for accurate spacing`);
   lines.push(`; Pen settle: down ${prof.penDelayDown}ms / up ${prof.penDelayUp}ms`);
   for (const l of String(prof.startG || "").split("\n")) if (l.trim()) lines.push(l);
+  /* canvas check: laser-framed bounds before plotting (CANVAS_CHECK macro in
+     klipper/canvas-check.cfg). Bounds in machine coords via fx/fy so origin +
+     flipY are baked in; laser offset comes from the profile. Opt-in. */
+  if (prof.canvasCheckOn) {
+    let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+    for (const pa of ps.paths) {
+      if (pa.__stop) continue;
+      for (const q of pa.pts) {
+        const gx = fx(q[0]), gy = fy(q[1]);
+        if (gx < bx0) bx0 = gx;
+        if (gx > bx1) bx1 = gx;
+        if (gy < by0) by0 = gy;
+        if (gy > by1) by1 = gy;
+      }
+    }
+    if (isFinite(bx0)) lines.push(`CANVAS_CHECK X_MIN=${f2(bx0)} X_MAX=${f2(bx1)} Y_MIN=${f2(by0)} Y_MAX=${f2(by1)} LASER_OFF_X=${f2(prof.laserOffX || 0)} LASER_OFF_Y=${f2(prof.laserOffY || 0)} ; frame the job, pause for confirm`);
+  }
   /* nostotaso siirroille: matala z-hop jos paalla, muuten taysi penUp.
      petiplotterille z-hop saastaa valtavasti aikaa kun ei nosteta koko matkaa. */
   const zServo = (prof.zMode || "bed") === "servo";
@@ -1804,6 +1821,7 @@ export default function App() {
     maintOn: false, maintEvery: 4000, maintMsg: "Advance chalk / re-sharpen", maintPark: false, maintX: 20, maintY: 20,
     laserOn: false, laserOffX: 0, laserOffY: 0, laserOnCmd: "SET_PIN PIN=laser VALUE=1", laserOffCmd: "SET_PIN PIN=laser VALUE=0",
     moonrakerUrl: "ws://192.168.0.57:7125/websocket",
+    canvasCheckOn: false,
   };
   const DEFAULT_MACHINE_B = {
     ...DEFAULT_MACHINE,
@@ -3597,6 +3615,15 @@ export default function App() {
                       Offset = laser dot position relative to the pen tip. The jig moves the pen so the laser lands on each magnet spot.
                     </div>
                   </>
+                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "10px 0 6px" }}>
+                  <input type="checkbox" checked={!!prof.canvasCheckOn} onChange={(e) => setProf((pr) => ({ ...pr, canvasCheckOn: e.target.checked }))} style={{ accentColor: T.accent }} />
+                  <div style={{ fontSize: 10, color: T.text, letterSpacing: "0.05em" }}>CANVAS CHECK (laser frame before plot)</div>
+                </div>
+                {prof.canvasCheckOn && (
+                  <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.5, marginBottom: 4 }}>
+                    G-code starts with CANVAS_CHECK: the laser traces the job bounds, then the job pauses for Continue/Abort on the touchscreen. Needs canvas-check.cfg on the machine. Uses the laser offset above.
+                  </div>
                 )}
                 <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.05em", margin: "10px 0 4px" }}>START G-CODE</div>
                 <textarea value={prof.startG} spellCheck={false}
