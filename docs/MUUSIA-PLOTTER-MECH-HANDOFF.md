@@ -25,7 +25,7 @@ Working language: Finnish in chat, English in all code/GUI/docs.
   parts bin — correct type for motors. Run steppers at moderate current
   (~1.3–1.8 A RMS), not full 2.8 A. Verify 230 V mains selector + test before use.
 - **Software:** Klipper + Moonraker + Mainsail + KlipperScreen **installed
-  and running** on the Pi (hostname `nakit`, 192.168.0.57; via KIAUH,
+  and running** on the Pi (hostname `viivain`, 192.168.0.57; via KIAUH,
   Jul 2026). Kraken firmware pre-compiled (STM32H723, 128KiB bootloader,
   25 MHz crystal, USB PA11/PA12 — recipe in `klipper/README.md`); flashing +
   the real serial ID wait for the board. `klipper/printer.cfg` draft exists:
@@ -38,11 +38,11 @@ Working language: Finnish in chat, English in all code/GUI/docs.
   stays hardware-agnostic. Muusia side: read-only **Moonraker DRO**
   (`src/dro.jsx`) shows live position over the websocket — LAN/local only;
   Moonraker cors_domains carries the local dev origins
-  (`klipper/moonraker-cors.snippet.conf`, applied on nakit). Never
+  (`klipper/moonraker-cors.snippet.conf`, applied on viivain). Never
   port-forward Moonraker (7125) or Mainsail (80) to the internet.
 - **DRO displays:** 3× TM1637 6-digit 7-seg (X/Y/Z work coordinates), driven
   by `klipper/dro/dro_tm1637.py` — a stdlib-only Python service (systemd unit
-  `dro.service`, installed and running on nakit) polling Moonraker over HTTP
+  `dro.service`, installed and running on viivain) polling Moonraker over HTTP
   at 10 Hz (`gcode_move.gcode_position`); GPIO via python3-lgpio, TM1637
   bit-banged (2-wire, NOT I2C). **Power from 3V3 (phys 17), never 5 V** —
   the modules pull CLK/DIO up to VCC and Pi GPIO is not 5 V tolerant.

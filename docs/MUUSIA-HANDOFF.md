@@ -63,7 +63,7 @@ text are **English**.
 - `klipper/` — machine-side configs at the repo root: `printer.cfg` draft for
   the BTT Kraken, `moonraker-cors.snippet.conf`, pen-cal drafts, README with
   the firmware build recipe. Version-controlled source of truth; live copies
-  on the Pi (`nakit`). Outside `src/` and `public/` — never touches the Vite
+  on the Pi (`viivain`). Outside `src/` and `public/` — never touches the Vite
   build or Pages. Details: MUUSIA-PLOTTER-MECH-HANDOFF.md §1 and §5.1.
 - `tools/` — living tools only; applied one-shots (surgery, versioned doc
   patches, era validators) live in `tools/era/` — do **not** re-run, anchored
@@ -184,7 +184,7 @@ text are **English**.
   (dashes while offline), so the top bar never jumps. On an https origin
   with a ws:// URL the chip is a static dim "LAN only" (no retry loop).
   Requires the local dev origins in Moonraker's cors_domains
-  (klipper/moonraker-cors.snippet.conf, applied on nakit). Read-only: it
+  (klipper/moonraker-cors.snippet.conf, applied on viivain). Read-only: it
   never sends G-code.
 - **Animation, Mini Canvas, magnet jig, machine profiles,
   Travel Stop, custom modules:** unchanged since v2.0–2.1 era; see MUUSIA-NODES.md

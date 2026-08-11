@@ -2,7 +2,7 @@
 """TM1637 DRO service for the Muusia plotter.
 
 Drives 3x TM1637 6-digit 7-segment displays (X, Y, Z work coordinates)
-from Moonraker on localhost. Runs as a systemd service on the Pi (nakit).
+from Moonraker on localhost. Runs as a systemd service on the Pi (viivain).
 
 Design notes:
 - Moonraker is read over plain HTTP polling (urllib, stdlib) instead of the
