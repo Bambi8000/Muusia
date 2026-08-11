@@ -1,9 +1,11 @@
 # Muusia Plotter — Mechanical Handoff
 
-Self-contained context for continuing the build in a new chat. Hardware
-planning + host software stage (Aug 2026): the Pi software stack is installed
-and configured, the Kraken has not yet arrived, nothing is wired. Next task:
-**design the pen holder / carriage** together.
+Self-contained context for continuing the build in a new chat. Axis commissioning DONE (2026-08-11): Kraken
+flashed and connected, X/Y endstops wired (NC), all four steppers wired and
+verified (directions, rotation_distance, travel X=793 Y=813, first homing OK).
+No servo or pen holder yet - a makeshift marker taped to Z plots via
+PEN_UP/PEN_DOWN as Z moves. Next tasks: **design the pen holder / carriage**
+and revert the makeshift pen macros when the S0017M servo arrives.
 
 Working language: Finnish in chat, English in all code/GUI/docs.
 
@@ -26,9 +28,9 @@ Working language: Finnish in chat, English in all code/GUI/docs.
   (~1.3–1.8 A RMS), not full 2.8 A. Verify 230 V mains selector + test before use.
 - **Software:** Klipper + Moonraker + Mainsail + KlipperScreen **installed
   and running** on the Pi (hostname `viivain`, 192.168.0.57; via KIAUH,
-  Jul 2026). Kraken firmware pre-compiled (STM32H723, 128KiB bootloader,
-  25 MHz crystal, USB PA11/PA12 — recipe in `klipper/README.md`); flashing +
-  the real serial ID wait for the board. `klipper/printer.cfg` draft exists:
+  Jul 2026). Kraken firmware v0.13.0 flashed (STM32H723, 128KiB bootloader,
+  25 MHz crystal, USB PA11/PA12 — recipe in `klipper/README.md`); real serial
+  ID is in printer.cfg, Klipper reports ready. `klipper/printer.cfg` draft exists:
   official BTT pin map, slots S1=X, S2=Y-left, S3=Y-right, S4=Z, S5=brush
   (stubbed). Dual-Y homes as a pair against the single Y switch (a second
   switch on STOP2 or sensorless DIAG = future auto-square); no Z switch →
