@@ -26,7 +26,7 @@ Working language: Finnish in chat, English in all code/GUI/docs.
 - **PSU:** Meishile S-500-24 (24 V, 21 A, 500 W) enclosed switching supply from
   parts bin — correct type for motors. Run steppers at moderate current
   (~1.3–1.8 A RMS), not full 2.8 A. Verify 230 V mains selector + test before use.
-- **Software:** Klipper + Moonraker + Mainsail + KlipperScreen **installed
+- **Software:** Klipper + Moonraker + Mainsail + KlipperScreen + Crowsnest (BRIO webcam, 1080p15) **installed
   and running** on the Pi (hostname `viivain`, 192.168.0.57; via KIAUH,
   Jul 2026). Kraken firmware v0.13.0 flashed (STM32H723, 128KiB bootloader,
   25 MHz crystal, USB PA11/PA12 — recipe in `klipper/README.md`); real serial
