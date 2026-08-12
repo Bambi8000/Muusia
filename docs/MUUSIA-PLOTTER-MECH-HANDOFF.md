@@ -3,9 +3,16 @@
 Self-contained context for continuing the build in a new chat. Axis commissioning DONE (2026-08-11): Kraken
 flashed and connected, X/Y endstops wired (NC), all four steppers wired and
 verified (directions, rotation_distance, travel X=793 Y=813, first homing OK).
-No servo or pen holder yet - a makeshift marker taped to Z plots via
-PEN_UP/PEN_DOWN as Z moves. Next tasks: **design the pen holder / carriage**
-and revert the makeshift pen macros when the S0017M servo arrives.
+Workflow commissioning DONE (2026-08-12): the S0017M servo is bench-tested on
+the Kraken SERVO header (PE7, loose on the desk — no holder yet), the full
+Muusia → Mainsail → plot chain is proven in an air run (canvas check frames
+the job, pauses with a Continue/Abort prompt, then plots), the paper-setup
+macros (PAPER_ZERO / Z_PAPER_BLOCK) are in printer.cfg, and per-print
+timelapse video lands in Telegram automatically. Details + hard-won pitfalls
+in section 8 (session log). A makeshift marker taped to Z still plots via
+PEN_UP/PEN_DOWN as Z moves. Next tasks: **first ink test + calibration
+figure**, then **design the pen holder / carriage** and revert the makeshift
+pen macros when the servo moves onto it.
 
 Working language: Finnish in chat, English in all code/GUI/docs.
 
@@ -77,7 +84,14 @@ The pen holder must integrate these already-chosen parts:
   **1.8 kg·cm**, ~25T spline (comes with a metal horn). Chosen for tight hold,
   low jitter, durability over many lift cycles. PWM-controlled (Klipper `[servo]`,
   Z-profile "A" = servo lift). Powered from 5–6 V (regulator/BEC or Kraken servo
-  rail) — NOT 24 V.
+  rail) — NOT 24 V. **Bench-tested OK (2026-08-12)** on the Kraken SERVO
+  header: signal = PE7 (matches the official BTT reference cfg), white =
+  signal / red = 5 V / black = GND. Full 10–170° sweep clean, no buzz.
+  **Pitfall:** consecutive `SET_SERVO` lines in one paste execute in
+  milliseconds — the servo never moves before the next command (or a
+  `PEN_RELEASE` WIDTH=0 kills the pulse). Always put `G4 P800`-class dwells
+  between test moves; in production the exporter's settle delays
+  (`penDelayDown`/`penDelayUp`) are mandatory in servo Z-mode, not optional.
 - **Spares / prototyping:** MG90S ×5 (metal gear, 9 g).
 
 ### Servo horn
@@ -253,7 +267,7 @@ magnet-jig and pen-cal workflows above.
 
 ---
 
-## 6. What to design next (this is the task for the new chat)
+## 6. What to design next
 
 Design the **pen holder / carriage assembly** that ties the above together:
 
@@ -286,6 +300,92 @@ Constraints to respect:
 
 ---
 
-## 7. Related project docs (software side — not needed for mechanics)
+## 7. Job workflow (proven 2026-08-12, air run end to end)
+
+The per-plot ritual. Muusia's machine profile keeps **Origin X/Y at 0** —
+paper placement is entirely a machine-side operation now.
+
+1. Boot → `G28` once (homes XY, gives Z a starting zero).
+2. Paper on the bed → jog the tool (later: laser dot) to the paper corner
+   that is the job's (0,0) → **PAPER_ZERO** (KlipperScreen/Mainsail macro
+   button; `SET_GCODE_OFFSET` from the jogged position — survives `G28 X Y`,
+   cleared by **PAPER_ZERO_CLEAR** or FIRMWARE_RESTART).
+3. Pen in → 9 mm setup block ON the paper → jog Z down (pen-down pose) until
+   the tip touches the block top → **Z_PAPER_BLOCK** (declares that height as
+   Z=9, so Z0 = paper surface — no marks on the paper; block height is
+   `variable_block_h`) → **REMOVE THE BLOCK** → PEN_UP. (PEN_UP goes to Z5,
+   below the block top — pressing it with the block in place drives the pen
+   into the block.)
+4. Upload the exported file to Mainsail → print. The file's `G28 X Y` re-homes
+   XY only (a bare `G28` would trip homing_override and re-zero Z at pen-up
+   height — the file must NEVER carry a bare G28), CLEAR_PAUSE resets stale
+   pause state, CANVAS_CHECK traces the job bounds (pen up), the job pauses
+   with the Continue/Abort prompt, Continue plots, and the Telegram bot
+   delivers a timelapse video at the end.
+
+Recommended Muusia profile fields (both zMode profiles):
+
+```
+START G-CODE                     END G-CODE
+G21 ; mm                         RESPOND PREFIX=timelapse MSG=stop
+G90 ; absolute                   RESPOND PREFIX=timelapse MSG=create
+G28 X Y                          G0 X0 Y0
+CLEAR_PAUSE
+RESPOND PREFIX=timelapse MSG=start
+```
+
+Muusia profile gotchas (until profiles auto-persist — roadmap item in
+MUUSIA-HANDOFF): profiles live in per-origin browser localStorage. Editing on
+localhost:5173 does not touch a file:// dist or Pages. **Set default** after
+every profile edit, verify with a browser refresh, and keep a calibrated
+profile exported (`.muusia-machine.json`, Machine setup export button) in the
+repo. Two test runs were lost to a reverted profile before this was pinned
+down.
+
+---
+
+## 8. Session log 2026-08-12 — workflow commissioning (keep the pitfalls)
+
+- **CANVAS_CHECK pause blew through silently at first.** Root cause chain:
+  (a) Klipper's pause state can be stale, making `PAUSE` a silent no-op
+  ("Print already paused") — `CLEAR_PAUSE` in start G-code is the standard
+  insurance and is now in the profile startG; (b) two runs were red herrings
+  caused by the profile reverting (see localStorage gotcha above), exporting
+  without the canvas-check toggle at all. An isolated pause-test.gcode
+  (G28 / CLEAR_PAUSE / PAUSE / moves) proved the Klipper side worked and
+  bisected the problem to the exported file. The prompt needs `[respond]` —
+  mainsail.cfg already provides it (`grep -n '^\[respond\]'`, not
+  `grep -l respond`, which matches comments).
+- **Telegram-bot timelapse never took a single frame — structural, not a
+  glitch.** Klipper's `print_stats.print_duration` is tied to primary-extruder
+  filament tracking and stays 0 forever on an extruderless plotter; the bot's
+  auto mode guards every frame with `printing_duration > 0`, so auto/time/
+  height lapsing can never fire on this machine. Fix (no code): telegram.conf
+  `[timelapse] manual_mode: true`, then `RESPOND PREFIX=timelapse MSG=start`
+  in startG raises the lapse `_running` flag — after which the configured
+  `time: 2` interval timer runs normally — and `MSG=stop` + `MSG=create` in
+  endG build and send the video. Manual mode also means nothing renders
+  without the explicit `create`. Rendering ~200 frames takes minutes on the
+  Pi 4 ("Images recoded n/m" progress in chat is normal). Debugging:
+  `[bot] debug: true` + `~/printer_data/logs/telegram.log`; the five guard
+  messages in `timelapse.py take_lapse_photo` name the exact blocker
+  ("lapse is not running" = start handshake missing; "zero print duration" =
+  auto mode on a plotter). Frames land in
+  `~/moonraker-telegram-bot-timelapse/<file>_<date>/`.
+- The bot is **not under KIAUH** — update via `cd ~/moonraker-telegram-bot &&
+  git pull && ./scripts/install.sh`. Upstream has been idle since 2025-01;
+  treat the bot as frozen. **Mainsail's Timelapse tab belongs to
+  moonraker-timelapse** — a completely separate, maintained system, currently
+  unused (its Hyperlapse mode is the plan-B video path; it clocks off
+  Moonraker job state, not print_duration).
+- Roadmap idea recorded in the app HANDOFF: exporter emits `MSG=photo` per
+  pen lift (`time: 0` in the bot) so the video grows one path at a time —
+  aesthetic upgrade, not a fix.
+- Klipper 0.13.0-718 was left un-updated on purpose mid-commissioning (host
+  update can demand an MCU reflash; the Kraken flashes via SD card).
+
+---
+
+## 9. Related project docs (software side — not needed for mechanics)
 - MUUSIA-MAGNET-JIG-SPEC.md — the Safe Areas / laser magnet-jig software feature.
 - MUUSIA-HANDOFF.md — the Muusia app (node-graph editor) architecture.
