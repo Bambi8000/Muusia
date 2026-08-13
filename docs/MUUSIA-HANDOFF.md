@@ -690,6 +690,25 @@ text are **English**.
   disorder (keeps overlaps clean). Endgame proven: Rings+Rings offset =
   hyperbolic arcs, Hatch+Hatch at 4 deg = shadow bands.
 
+- **2.57** Node catalog + deep search (discovery phase 1 of 3). NEW GENERATED
+  MODULE src/defs/catalog.js: tools/make-catalog.mjs parses the per-node
+  paragraphs out of docs/MUUSIA-NODES.md (+ optional curated tags from
+  docs/MUUSIA-TAGS.json, phase 2 seam) into { key: { t, tags } } — NODES.md
+  is the single source of the search text, so the doc batch now also feeds
+  the in-app search. tools/validate-catalog.mjs is a build gate: FAILS when
+  the committed catalog differs from a fresh regeneration (stale), on orphan
+  keys or malformed tags; WARNS on paragraph-less nodes. Quick-add (G/M/D/C/
+  X/N) became a DEEP search via tools/era/patch-catalog-search-v257.mjs:
+  scored word-start matching (name/nick 3, tags 2, desc + catalog paragraph
+  1, AND per word — "rib" hits Ribbon, "round" does not hit "background"),
+  deep-only hits show a match snippet under the node name, Cmd/Ctrl+K opens
+  the all-nodes search. Era validator extracts the search block VERBATIM
+  from App.jsx and runs 12 oracles against the real DEFS + catalog. The
+  catalog generator immediately exposed doc debt: braille, mm_paper,
+  needlepunch, numerals and river had NO NODES.md paragraph — written in
+  this batch. Phases ahead: tag vocabulary + palette chips (2), visual
+  thumbnail catalog (3).
+
 ## Hard-won pitfalls (keep)
 
 - Era-patch INSERTIONS can land inside the anchor's enclosing scope and stay

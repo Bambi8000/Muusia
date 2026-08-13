@@ -1,4 +1,4 @@
-# MUUSIA v2.56 — Node Reference
+# MUUSIA v2.57 — Node Reference
 
 All 235 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
@@ -76,6 +76,27 @@ Threshold leaves the lightest cells empty. Columns sets resolution; characters
 are real pen strokes, so the result plots like any other geometry — and loop
 letters (O 0 D Q 8 Ö, dots) come out as real closed shapes, so Pattern Fill,
 Container and the other region nodes see them.
+
+**Braille** — Grade 1 braille as a grid of dot circles at standard geometry
+(2.5 mm dot pitch, 6 mm cell, 10 mm line at Scale 1). Letters a–z plus Nordic
+å/ä/ö; digits get the number sign, capitals the capital sign, punctuation
+follows the Finnish table; | starts a new line. *Mirror* flips the whole block
+like a stamp (cells reverse AND dot columns swap) for punching from the front
+and reading the embossed bumps from the back — chain into Needle Punch with
+*Punch at: Centers* to pierce every dot, or plot the circles directly with a
+pen. When the node is selected, an overlay shows each cell's letter above it,
+unmirrored and readable; unknown characters are skipped.
+
+**Numerals** — numbers in sixteen numeral systems from around the world as
+plottable strokes. Digit scripts (Western, Eastern Arabic, Persian, Devanagari,
+Mongolian, Chinese) render digit by digit; value systems convert the whole
+number: Roman (subtractive, N for zero), Maya (base-20 dot-and-bar stacks,
+shell zero), Cistercian (one monk-glyph per number 0–9999), Babylonian
+(base-60 cuneiform wedges), Counting rods (alternating orientation per place),
+Kaktovik (Iñupiaq base-20 connected strokes), plus Braille, Dot matrix 5×7,
+7-segment and 14-segment displays. *Value* takes several numbers separated by
+spaces and *Tokens per line* wraps them into a table — run a counting table
+per system, or stack the same number in every system down the sheet.
 
 **Slide Rule** — slide rule scales with the real mathematics: C/D (log), A/B
 (two decades), K (cubes), CI (inverted C on its own pen — the classic red),
@@ -768,6 +789,28 @@ two with Pitch off by 5%, Angle off by 2-5 degrees or centers a few mm apart and
 the interference becomes moire; every knob has a value port, so Frame-driven
 moire breathes through an animation.
 
+**Millimeter Paper** — technical millimeter / graph paper: a grid of Fine-step
+lines with every Nth line promoted to Medium and every Nth to Major, each level
+on its own pen — the classic three-weight look from three colors, or plot the
+same pen 2–3 times for real line weight. *Whole major cells* snaps the grid
+down to complete major squares centered inside the margin; Border toggles the
+frame. Each line draws once at its highest level and lines serpentine for
+faster plotting; set a level's *every* to 0 to disable it, untick Fine lines
+for a cm-only grid. Wire a Stroke style for dashed engineering grids, or feed
+the output through Wave/Lens for distorted graph-paper art.
+
+**River** — meander-migration solver: the river centerline's per-point
+curvature is measured with an upstream flow-memory lag and every point migrates
+toward the outer bank a little each step — bends grow, wander downstream, and
+when a loop folds back on itself the neck is cut and the abandoned arc is left
+behind as a closed oxbow lake. All simulated steps stack into one drawing:
+*Steps* sets the simulation length, *Draw every* picks the inked intermediate
+channels, the final channel and the oxbows draw with their own pens. Migration
+is the erosion speed, Flow memory shifts meanders downstream, Channel width is
+the neck-cutoff distance, Confinement pulls the river back toward the valley
+axis. Wire Steps or Migration from the Frame clock to animate the river
+carving itself.
+
 ## Modifiers (69)
 
 **Apply Style** — applies a Stroke style to existing paths.
@@ -1034,6 +1077,19 @@ shape — edge band × light facing + corner kernels (Concave bias pools ink int
 notches) + ambient + body gradient — and rendered as stacked rotated hatch levels, so
 tone builds like layered pencil. Directionality 0 is pure ambient occlusion; shapes
 nested inside another act as holes; open paths pass through untouched.
+
+**Needle Punch** (penout) — converts lines into needle piercings for a needle
+mounted in the pen carriage (paper raised on foam): each punch is a zero-length
+path whose points carry z = *Depth* mm below the machine profile's pen-down
+contact, read by the G-code export. *Punch at* Interval walks each path every
+Interval mm (with Offset and *Punch ends*), Intersections punches every line
+crossing including self-crossings, Both combines them, Centers punches once at
+each path's centroid — chain Braille or Single Marker into it. *Spacing mod*
+varies the interval along the arc (Wave / Noise / Ramp / Jitter, up to ±100 %
+swing, floored at 0.1 mm); *Min gap* merges punches so the needle never stabs
+the same hole twice. Punches preview as round dots. Bed-Z machines only (servo
+mode ignores z), and keep it LAST in the chain — any modifier after it strips
+the z component.
 
 ## Decorators (6)
 
