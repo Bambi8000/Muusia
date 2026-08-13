@@ -57,7 +57,10 @@ text are **English**.
   MUUSIA-MAP.md (OSM map import guide: overpass-turbo workflow, sizing, queries),
   MUUSIA-PLOTTER-MECH-HANDOFF.md (X-Carve build: mechanics + ink blot tool),
   MUUSIA-MAGNET-JIG-SPEC.md (safe-areas / laser jig feature, design complete),
-  MUUSIA-NODES-SRC.md (generated here by `tools/make-src-bundle.mjs`).
+  MUUSIA-NODES-SRC.md (generated here by `tools/make-src-bundle.mjs`),
+  MUUSIA-TAGS.json (curated node tag vocabulary, ~55 tags; merged into
+  src/defs/catalog.js by make-catalog.mjs — tag a new node here in the doc
+  batch).
   MUUSIA-PORTRAIT-SPEC.md (Portrait node: face analysis + tonal rounds +
   one-line modes, design complete),
 - `klipper/` — machine-side configs at the repo root: `printer.cfg` draft for
@@ -708,6 +711,23 @@ text are **English**.
   needlepunch, numerals and river had NO NODES.md paragraph — written in
   this batch. Phases ahead: tag vocabulary + palette chips (2), visual
   thumbnail catalog (3).
+
+- **2.58** Tag vocabulary + chips (discovery phase 2 of 3). NEW DOC
+  docs/MUUSIA-TAGS.json: a curated ~55-tag vocabulary over all 237 nodes
+  (avg 3.7 tags/node, every node tagged) — built as a rule-based pass over
+  name + desc + NODES.md paragraph with the palette's cat/group taxonomy as
+  base tags, capped at 6 per node preferring rarer (more specific) tags,
+  then hand-corrected. make-catalog.mjs merges it into catalog.js (the
+  phase-2 seam shipped in 2.57), so tags score at weight 2 in the deep
+  search with zero engine changes. patch-tag-chips-v258.mjs adds a
+  module-scope CATALOG_TAGS aggregate and a browsable chips row in the
+  quick-add modal (empty query only): top 18 tags with node counts, click
+  = search that tag. Era validator extracts CATALOG_TAGS + the search
+  block verbatim from App.jsx and proves vocabulary size, count sums,
+  full node coverage and that every top-18 chip query returns its tagged
+  nodes. TAGGING RULE: every new node gets a MUUSIA-TAGS.json entry in
+  the doc batch — validate-tag-chips fails on untagged nodes. Next: the
+  visual thumbnail catalog (phase 3).
 
 ## Hard-won pitfalls (keep)
 

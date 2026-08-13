@@ -2,6 +2,9 @@ import React, { useState, useRef, useMemo, useEffect } from "react";
 import { DEFS_NODES } from "./defs/index.js";
 import { EXAMPLES } from "./examples.js";
 import { CATALOG } from "./defs/catalog.js";
+const CATALOG_TAGS = Object.entries(
+  Object.values(CATALOG).reduce((m, e) => { for (const t of e.tags || []) m[t] = (m[t] || 0) + 1; return m; }, {})
+).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 import { PENS_DEFAULT, PENS, savePens, resetPens, mulberry32, hash2, noise2, EMPTY, pathLength, resample, applyStyle, Pin, parseSVG, signedArea, SFONT, fontStrokes, isStyle } from "./defs/helpers.js";
 import DroPanel from "./dro.jsx";
 import { makeAnalyzeButton, intakeImage } from "./analyze.js";
@@ -988,7 +991,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.57"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.58"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -4072,6 +4075,16 @@ export default function App() {
                   else if (e.key === "Enter" && list[sel]) { addSelected(list[sel][0]); }
                 }}
                 style={{ width: "100%", background: T.panel2, color: T.text, border: "none", borderBottom: `1px solid ${T.line}`, padding: "8px 12px", fontSize: 13, fontFamily: mono, outline: "none", boxSizing: "border-box" }} />
+              {!terms.length && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderBottom: `1px solid ${T.line}` }}>
+                  {CATALOG_TAGS.slice(0, 18).map(([tg, c]) => (
+                    <span key={tg} onClick={() => setQuickAdd((q) => ({ ...q, query: tg, sel: 0 }))}
+                      style={{ fontSize: 9, fontFamily: mono, color: T.dim, background: T.panel2, border: `1px solid ${T.line}`, borderRadius: 9, padding: "2px 7px", cursor: "pointer", userSelect: "none" }}>
+                      {tg} <span style={{ opacity: 0.55 }}>{c}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
               <div style={{ maxHeight: 300, overflowY: "auto", padding: 6 }}>
                 {list.map(([type, d, _s, snip], i) => (
                   <div key={type} onClick={() => addSelected(type)}

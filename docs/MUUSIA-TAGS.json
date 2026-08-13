@@ -1,0 +1,1351 @@
+{
+ "aaltoilu": [
+  "deform",
+  "warp",
+  "wave"
+ ],
+ "adsr": [
+  "animation",
+  "audio",
+  "math"
+ ],
+ "aggregate": [
+  "animation",
+  "connect",
+  "physics",
+  "repeat",
+  "structural"
+ ],
+ "align": [
+  "transform"
+ ],
+ "array": [
+  "combine",
+  "grid"
+ ],
+ "arvo": [
+  "math"
+ ],
+ "asciiart": [
+  "dots",
+  "grid",
+  "image",
+  "plants",
+  "region",
+  "text"
+ ],
+ "asteroids": [
+  "retro",
+  "space"
+ ],
+ "attractor": [
+  "chaos",
+  "scientific"
+ ],
+ "barcode": [
+  "scientific"
+ ],
+ "bitcrush": [
+  "deform",
+  "grid",
+  "repeat"
+ ],
+ "blobrings": [
+  "connect",
+  "dots",
+  "organic",
+  "plants",
+  "round",
+  "scatter"
+ ],
+ "bluesprig": [
+  "nature",
+  "plants",
+  "round"
+ ],
+ "braille": [
+  "grid",
+  "round",
+  "symmetry",
+  "text"
+ ],
+ "bridges": [
+  "connect",
+  "dots",
+  "mesh",
+  "pathops",
+  "round"
+ ],
+ "brush_z": [
+  "audio",
+  "noise",
+  "penout",
+  "wave"
+ ],
+ "burr_cluster": [
+  "dots",
+  "hatch",
+  "nature",
+  "noise",
+  "pens",
+  "texture"
+ ],
+ "cables": [
+  "noise",
+  "organic"
+ ],
+ "cagewarp": [
+  "deform",
+  "grid",
+  "warp"
+ ],
+ "carve": [
+  "animation",
+  "deform"
+ ],
+ "caustics": [
+  "nature",
+  "noise",
+  "terrain",
+  "water",
+  "wave"
+ ],
+ "cellular_mosaic": [
+  "deform",
+  "grid",
+  "repeat",
+  "warp"
+ ],
+ "chop": [
+  "clip",
+  "pens"
+ ],
+ "circpack": [
+  "geometric",
+  "noise",
+  "round"
+ ],
+ "clockface": [
+  "chart",
+  "geometric",
+  "hatch",
+  "spiral",
+  "text"
+ ],
+ "clouds": [
+  "hatch",
+  "nature",
+  "round"
+ ],
+ "coil": [
+  "decoration",
+  "spiral",
+  "wave"
+ ],
+ "color_mesh": [
+  "3d",
+  "clip",
+  "geometric",
+  "hatch",
+  "mesh",
+  "region"
+ ],
+ "comets": [
+  "chaos",
+  "flow",
+  "nature",
+  "pens",
+  "scatter"
+ ],
+ "concrete": [
+  "clip",
+  "image",
+  "region",
+  "scatter",
+  "spiral",
+  "text"
+ ],
+ "container": [
+  "clip",
+  "combine",
+  "region",
+  "round",
+  "wave"
+ ],
+ "contour_field": [
+  "animation",
+  "chaos",
+  "pens",
+  "physics",
+  "scientific",
+  "terrain"
+ ],
+ "conway": [
+  "animation",
+  "dots",
+  "scientific"
+ ],
+ "copypoints": [
+  "combine"
+ ],
+ "cracked_paint": [
+  "connect",
+  "hatch",
+  "noise",
+  "organic",
+  "texture"
+ ],
+ "crop": [
+  "clip"
+ ],
+ "cull": [
+  "pathops",
+  "penout"
+ ],
+ "cycloidm": [
+  "machine",
+  "physics",
+  "plants",
+  "round"
+ ],
+ "dazzle": [
+  "fractal",
+  "geometric",
+  "hatch"
+ ],
+ "delaunay": [
+  "geometric",
+  "mesh"
+ ],
+ "diagram": [
+  "animation",
+  "chart",
+  "clip",
+  "flow",
+  "pens",
+  "structural"
+ ],
+ "diffgrowth": [
+  "animation",
+  "chaos",
+  "organic",
+  "round"
+ ],
+ "diffpens": [
+  "combine",
+  "pens"
+ ],
+ "displaceimg": [
+  "deform",
+  "flow",
+  "halftone",
+  "image",
+  "warp"
+ ],
+ "double_pendulum": [
+  "chaos",
+  "physics",
+  "scientific",
+  "spiral"
+ ],
+ "echo": [
+  "deform",
+  "pens",
+  "repeat"
+ ],
+ "empty_fill": [
+  "fill",
+  "hatch",
+  "pens",
+  "spiral",
+  "terrain",
+  "texture"
+ ],
+ "endcaps": [
+  "decoration",
+  "dots",
+  "flow",
+  "round"
+ ],
+ "eraser": [
+  "clip",
+  "plants",
+  "region",
+  "round"
+ ],
+ "explosion": [
+  "clip",
+  "region",
+  "round"
+ ],
+ "fabric": [
+  "flow",
+  "noise",
+  "organic",
+  "warp",
+  "wave",
+  "weave"
+ ],
+ "fadeout": [
+  "penout",
+  "region"
+ ],
+ "fan": [
+  "math",
+  "repeat"
+ ],
+ "fingerprint": [
+  "dots",
+  "image",
+  "organic",
+  "plants",
+  "terrain",
+  "tiling"
+ ],
+ "fit_canvas": [
+  "transform"
+ ],
+ "flash_distort": [
+  "chaos",
+  "clip",
+  "deform",
+  "hatch",
+  "region",
+  "wave"
+ ],
+ "flow": [
+  "flow",
+  "noise",
+  "organic"
+ ],
+ "flow_traces": [
+  "dots",
+  "flow",
+  "grid",
+  "round",
+  "structural",
+  "wave"
+ ],
+ "fmrose": [
+  "chaos",
+  "geometric",
+  "pens",
+  "repeat",
+  "warp"
+ ],
+ "fold": [
+  "deform",
+  "warp",
+  "wave"
+ ],
+ "followlines": [
+  "organic",
+  "wave"
+ ],
+ "fourier": [
+  "animation",
+  "audio",
+  "deform",
+  "region",
+  "round"
+ ],
+ "frame": [
+  "animation",
+  "chart",
+  "math",
+  "wave"
+ ],
+ "fresnel": [
+  "fill",
+  "region",
+  "round",
+  "warp"
+ ],
+ "fur": [
+  "decoration"
+ ],
+ "girih": [
+  "geometric",
+  "grid",
+  "tiling",
+  "weave"
+ ],
+ "glitch": [
+  "deform",
+  "warp"
+ ],
+ "glitch3d": [
+  "3d",
+  "animation",
+  "deform",
+  "repeat",
+  "warp",
+  "wave"
+ ],
+ "glitch_loom": [
+  "deform",
+  "warp",
+  "weave"
+ ],
+ "glyphtone": [
+  "dots",
+  "halftone",
+  "image",
+  "pens",
+  "scatter",
+  "text"
+ ],
+ "granulate": [
+  "deform",
+  "texture"
+ ],
+ "gravity_cascade": [
+  "chaos",
+  "physics",
+  "round",
+  "scientific",
+  "spiral",
+  "water"
+ ],
+ "grid": [
+  "geometric",
+  "grid",
+  "warp"
+ ],
+ "group": [
+  "combine",
+  "engine"
+ ],
+ "growth": [
+  "organic",
+  "round"
+ ],
+ "gull_tracks": [
+  "connect",
+  "creature",
+  "nature"
+ ],
+ "gyroid": [
+  "geometric",
+  "mesh",
+  "retro",
+  "terrain",
+  "weave"
+ ],
+ "hairs": [
+  "flow",
+  "noise",
+  "organic",
+  "physics",
+  "region",
+  "text"
+ ],
+ "halftone": [
+  "halftone",
+  "noise",
+  "scientific"
+ ],
+ "handdrawn": [
+  "deform",
+  "noise"
+ ],
+ "harmonograph": [
+  "chaos",
+  "physics",
+  "scientific",
+  "spiral",
+  "wave"
+ ],
+ "hatch": [
+  "fill",
+  "hatch",
+  "region",
+  "round"
+ ],
+ "hersheytext": [
+  "text"
+ ],
+ "himmeli": [
+  "3d",
+  "animation",
+  "structural"
+ ],
+ "hyperbolic_truchet": [
+  "connect",
+  "geometric",
+  "grid",
+  "maze",
+  "pens",
+  "tiling"
+ ],
+ "image": [
+  "dots",
+  "flow",
+  "halftone",
+  "hatch",
+  "image",
+  "terrain"
+ ],
+ "image_underlay": [
+  "image",
+  "region",
+  "text"
+ ],
+ "ink_burst": [
+  "noise",
+  "organic",
+  "round",
+  "spiral",
+  "warp"
+ ],
+ "interference": [
+  "organic",
+  "terrain",
+  "wave"
+ ],
+ "jitter": [
+  "deform",
+  "warp"
+ ],
+ "joinends": [
+  "connect",
+  "pathops"
+ ],
+ "julia": [
+  "fractal",
+  "geometric",
+  "terrain"
+ ],
+ "kaleidoscope": [
+  "clip",
+  "deform",
+  "repeat",
+  "symmetry"
+ ],
+ "kierto": [
+  "transform"
+ ],
+ "lace": [
+  "mesh",
+  "organic",
+  "plants",
+  "round",
+  "weave"
+ ],
+ "lathe": [
+  "round",
+  "structural",
+  "symmetry",
+  "wave"
+ ],
+ "lens": [
+  "deform",
+  "round",
+  "warp"
+ ],
+ "lfo": [
+  "animation",
+  "math",
+  "noise",
+  "wave"
+ ],
+ "lichen": [
+  "clip",
+  "dots",
+  "pens",
+  "round",
+  "scatter",
+  "texture"
+ ],
+ "linezones": [
+  "clip",
+  "geometric",
+  "halftone",
+  "plants",
+  "region",
+  "retro"
+ ],
+ "lissajous": [
+  "geometric",
+  "spiral",
+  "wave"
+ ],
+ "loom": [
+  "grid",
+  "mesh",
+  "retro",
+  "structural",
+  "warp",
+  "weave"
+ ],
+ "lsystem": [
+  "fractal",
+  "machine",
+  "plants",
+  "warp"
+ ],
+ "magnet": [
+  "deform"
+ ],
+ "map_import": [
+  "clip",
+  "map",
+  "structural",
+  "water"
+ ],
+ "mask": [
+  "clip",
+  "combine",
+  "region",
+  "round"
+ ],
+ "matem": [
+  "math"
+ ],
+ "mathknot": [
+  "3d",
+  "geometric",
+  "weave"
+ ],
+ "merge": [
+  "combine"
+ ],
+ "mesh": [
+  "geometric",
+  "grid",
+  "mesh"
+ ],
+ "metaballs": [
+  "organic",
+  "terrain"
+ ],
+ "mini_squares": [
+  "animation",
+  "flow",
+  "geometric",
+  "grid",
+  "noise",
+  "round"
+ ],
+ "minicanvas": [
+  "clip",
+  "combine",
+  "grid",
+  "repeat",
+  "warp"
+ ],
+ "mirror8": [
+  "repeat",
+  "round",
+  "symmetry",
+  "transform"
+ ],
+ "mm_paper": [
+  "geometric",
+  "grid",
+  "warp",
+  "wave"
+ ],
+ "moire_disc": [
+  "chaos",
+  "chart",
+  "geometric",
+  "hatch",
+  "retro",
+  "spiral"
+ ],
+ "mooncraters": [
+  "3d",
+  "mesh",
+  "nature",
+  "round",
+  "terrain",
+  "warp"
+ ],
+ "mountains": [
+  "3d",
+  "mesh",
+  "nature",
+  "terrain"
+ ],
+ "move_scale": [
+  "transform"
+ ],
+ "murmuration": [
+  "creature",
+  "nature",
+  "round"
+ ],
+ "myceliumfill": [
+  "connect",
+  "fill",
+  "mesh"
+ ],
+ "myco_net": [
+  "connect",
+  "noise",
+  "organic",
+  "plants"
+ ],
+ "nanotubes": [
+  "3d",
+  "connect",
+  "dots",
+  "grid",
+  "mesh",
+  "scientific"
+ ],
+ "needlepunch": [
+  "dots",
+  "noise",
+  "penout",
+  "round",
+  "text",
+  "wave"
+ ],
+ "negspace": [
+  "clip",
+  "combine"
+ ],
+ "nested_circles": [
+  "clip",
+  "geometric",
+  "pens",
+  "plants",
+  "round",
+  "weave"
+ ],
+ "net": [
+  "mesh",
+  "structural",
+  "warp"
+ ],
+ "network": [
+  "animation",
+  "chart",
+  "connect",
+  "physics",
+  "round",
+  "structural"
+ ],
+ "numerals": [
+  "connect",
+  "dots",
+  "repeat",
+  "text"
+ ],
+ "occlude": [
+  "3d",
+  "region"
+ ],
+ "offset": [
+  "pathops",
+  "repeat"
+ ],
+ "op_tunnel": [
+  "3d",
+  "animation",
+  "chart",
+  "geometric",
+  "hatch",
+  "retro"
+ ],
+ "orbit_scribble": [
+  "animation",
+  "dots",
+  "noise",
+  "organic",
+  "round",
+  "spiral"
+ ],
+ "organicrings": [
+  "dots",
+  "organic",
+  "plants",
+  "scatter",
+  "symmetry",
+  "weave"
+ ],
+ "origami": [
+  "structural"
+ ],
+ "origami_glitch_fold": [
+  "deform",
+  "symmetry",
+  "warp"
+ ],
+ "outline": [
+  "decoration",
+  "hatch",
+  "round"
+ ],
+ "parallel_lines": [
+  "geometric",
+  "noise",
+  "plants",
+  "round",
+  "texture"
+ ],
+ "patternfill": [
+  "dots",
+  "fill",
+  "hatch",
+  "region",
+  "scatter",
+  "texture"
+ ],
+ "pcbtracks": [
+  "dots",
+  "round",
+  "structural"
+ ],
+ "pebble": [
+  "3d",
+  "flow",
+  "mesh",
+  "nature",
+  "spiral",
+  "weave"
+ ],
+ "pencycle": [
+  "penout",
+  "pens"
+ ],
+ "pendulum": [
+  "chaos",
+  "machine",
+  "physics",
+  "wave"
+ ],
+ "perfmesh": [
+  "3d",
+  "chart",
+  "flow",
+  "geometric",
+  "mesh",
+  "terrain"
+ ],
+ "phyllo": [
+  "geometric",
+  "spiral"
+ ],
+ "pins": [
+  "chaos",
+  "geometric",
+  "grid",
+  "pens",
+  "scatter",
+  "spiral"
+ ],
+ "pointcloud": [
+  "3d",
+  "connect",
+  "dots",
+  "mesh",
+  "pens",
+  "text"
+ ],
+ "polkadots": [
+  "dots",
+  "geometric",
+  "grid",
+  "round"
+ ],
+ "portrait": [
+  "flow",
+  "halftone",
+  "image",
+  "portrait",
+  "texture"
+ ],
+ "potato": [
+  "audio",
+  "dots",
+  "nature",
+  "texture"
+ ],
+ "powerpole": [
+  "3d",
+  "mesh",
+  "round",
+  "structural"
+ ],
+ "radat": [
+  "geometric",
+  "round"
+ ],
+ "radial_burst": [
+  "animation",
+  "audio",
+  "organic",
+  "wave"
+ ],
+ "randlines": [
+  "scatter",
+  "scientific"
+ ],
+ "raydrape": [
+  "combine",
+  "water"
+ ],
+ "rectcollage": [
+  "clip",
+  "grid"
+ ],
+ "regmarks": [
+  "round",
+  "structural"
+ ],
+ "reititys": [
+  "penout"
+ ],
+ "retromesh": [
+  "chart",
+  "geometric",
+  "mesh",
+  "plants",
+  "retro",
+  "terrain"
+ ],
+ "reverse": [
+  "pathops",
+  "penout"
+ ],
+ "ribbon": [
+  "geometric",
+  "noise",
+  "round"
+ ],
+ "ripple": [
+  "deform",
+  "region",
+  "symmetry",
+  "warp",
+  "water",
+  "wave"
+ ],
+ "ripple_chain": [
+  "audio",
+  "decoration",
+  "plants",
+  "scatter",
+  "spiral",
+  "wave"
+ ],
+ "river": [
+  "animation",
+  "chart",
+  "flow",
+  "nature",
+  "physics",
+  "water"
+ ],
+ "roadmap": [
+  "fractal",
+  "hatch",
+  "map",
+  "structural",
+  "water"
+ ],
+ "roundcanvas": [
+  "clip",
+  "noise",
+  "round",
+  "warp"
+ ],
+ "ruler": [
+  "chart",
+  "round",
+  "scientific",
+  "text"
+ ],
+ "runes": [
+  "text"
+ ],
+ "sand_line_hatch": [
+  "geometric",
+  "hatch",
+  "noise",
+  "texture"
+ ],
+ "satunnainen": [
+  "math"
+ ],
+ "scan": [
+  "chart",
+  "scientific"
+ ],
+ "scatter": [
+  "clip",
+  "scatter",
+  "warp"
+ ],
+ "scribbletype": [
+  "round",
+  "spiral",
+  "text",
+  "warp",
+  "wave"
+ ],
+ "sdfcontours": [
+  "deform",
+  "region",
+  "terrain"
+ ],
+ "setpen": [
+  "penout",
+  "pens",
+  "plants"
+ ],
+ "shade": [
+  "fill",
+  "halftone",
+  "hatch",
+  "region",
+  "round"
+ ],
+ "shaper": [
+  "math"
+ ],
+ "simplify": [
+  "pathops"
+ ],
+ "singlemarker": [
+  "connect",
+  "dots",
+  "image",
+  "spiral",
+  "structural",
+  "text"
+ ],
+ "skew": [
+  "grid",
+  "text",
+  "transform"
+ ],
+ "skyline": [
+  "map",
+  "nature",
+  "texture",
+  "water"
+ ],
+ "sliderule": [
+  "animation",
+  "chart",
+  "fractal",
+  "round",
+  "scientific",
+  "text"
+ ],
+ "smear": [
+  "deform",
+  "region",
+  "texture"
+ ],
+ "smoke": [
+  "3d",
+  "animation",
+  "flow",
+  "organic",
+  "round",
+  "warp"
+ ],
+ "smoke_mesh": [
+  "3d",
+  "animation",
+  "mesh",
+  "organic",
+  "pens",
+  "wave"
+ ],
+ "smooth": [
+  "mesh",
+  "pathops",
+  "round"
+ ],
+ "solids": [
+  "3d",
+  "animation",
+  "mesh",
+  "round",
+  "space"
+ ],
+ "soundline": [
+  "audio",
+  "clip",
+  "noise",
+  "repeat",
+  "symmetry",
+  "wave"
+ ],
+ "spiro": [
+  "geometric",
+  "round"
+ ],
+ "split": [
+  "clip",
+  "combine"
+ ],
+ "splitpens": [
+  "penout",
+  "pens",
+  "plants",
+  "portrait",
+  "round"
+ ],
+ "spore_print": [
+  "nature",
+  "pens",
+  "plants",
+  "round",
+  "scatter",
+  "warp"
+ ],
+ "squiggle": [
+  "audio",
+  "deform",
+  "noise",
+  "spiral",
+  "wave"
+ ],
+ "stamp": [
+  "decoration",
+  "repeat"
+ ],
+ "starfield": [
+  "connect",
+  "noise",
+  "pens",
+  "space"
+ ],
+ "stencil": [
+  "animation",
+  "clip",
+  "combine",
+  "region"
+ ],
+ "steps": [
+  "math"
+ ],
+ "stipple": [
+  "connect",
+  "dots",
+  "grid",
+  "image",
+  "round"
+ ],
+ "stone": [
+  "3d",
+  "grid",
+  "hatch",
+  "nature",
+  "physics",
+  "scatter"
+ ],
+ "stretch": [
+  "3d",
+  "deform",
+  "texture"
+ ],
+ "subway": [
+  "dots",
+  "pens",
+  "round",
+  "structural"
+ ],
+ "superformula": [
+  "geometric",
+  "plants",
+  "round",
+  "warp"
+ ],
+ "svgimport": [
+  "text"
+ ],
+ "sweep3d": [
+  "3d",
+  "geometric",
+  "mesh",
+  "round",
+  "spiral",
+  "warp"
+ ],
+ "switch": [
+  "combine"
+ ],
+ "symmetry": [
+  "symmetry",
+  "transform"
+ ],
+ "tangle": [
+  "deform",
+  "region"
+ ],
+ "testcard": [
+  "dots",
+  "grid",
+  "hatch",
+  "pens",
+  "round",
+  "structural"
+ ],
+ "textpath": [
+  "text"
+ ],
+ "tiles": [
+  "geometric",
+  "grid",
+  "round",
+  "tiling"
+ ],
+ "tileshuffle": [
+  "clip",
+  "deform",
+  "grid",
+  "tiling"
+ ],
+ "topolar": [
+  "deform",
+  "round"
+ ],
+ "torn": [
+  "chaos",
+  "clip",
+  "connect",
+  "weave"
+ ],
+ "traceimg": [
+  "image",
+  "terrain"
+ ],
+ "travelsort": [
+  "penout"
+ ],
+ "travelstop": [
+  "penout",
+  "pens"
+ ],
+ "trimext": [
+  "pathops"
+ ],
+ "truchet": [
+  "geometric",
+  "maze",
+  "plants",
+  "round",
+  "tiling"
+ ],
+ "truchet_multi": [
+  "geometric",
+  "grid",
+  "maze",
+  "pens",
+  "tiling",
+  "weave"
+ ],
+ "trunks": [
+  "nature",
+  "plants",
+  "wave"
+ ],
+ "tubes": [
+  "3d",
+  "animation",
+  "mesh",
+  "noise",
+  "spiral",
+  "structural"
+ ],
+ "turtle": [
+  "geometric",
+  "plants",
+  "repeat"
+ ],
+ "tvnoise": [
+  "noise",
+  "round",
+  "scientific"
+ ],
+ "typegrating": [
+  "chart",
+  "clip",
+  "grid",
+  "retro",
+  "text"
+ ],
+ "tyylita": [
+  "style"
+ ],
+ "view3d": [
+  "3d",
+  "animation",
+  "deform",
+  "noise",
+  "pens"
+ ],
+ "viiva": [
+  "style"
+ ],
+ "volcano": [
+  "3d",
+  "chart",
+  "dots",
+  "geometric",
+  "mesh",
+  "terrain"
+ ],
+ "voronoi": [
+  "clip",
+  "geometric",
+  "mesh"
+ ],
+ "warp": [
+  "3d",
+  "deform",
+  "grid",
+  "warp"
+ ],
+ "water": [
+  "3d",
+  "nature",
+  "noise",
+  "water",
+  "wave"
+ ],
+ "wave_hatch": [
+  "geometric",
+  "hatch",
+  "noise",
+  "wave"
+ ],
+ "windtunnel": [
+  "combine",
+  "flow",
+  "pens",
+  "region"
+ ],
+ "wood": [
+  "nature",
+  "noise",
+  "plants",
+  "round",
+  "texture"
+ ],
+ "worm": [
+  "creature",
+  "nature",
+  "round"
+ ],
+ "woven_ribbon": [
+  "clip",
+  "grid",
+  "structural",
+  "weave"
+ ],
+ "zigzag": [
+  "audio",
+  "geometric",
+  "noise",
+  "wave"
+ ]
+}
