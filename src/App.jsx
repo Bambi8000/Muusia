@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { DEFS_NODES } from "./defs/index.js";
 import { EXAMPLES } from "./examples.js";
+import { CATALOG } from "./defs/catalog.js";
 import { PENS_DEFAULT, PENS, savePens, resetPens, mulberry32, hash2, noise2, EMPTY, pathLength, resample, applyStyle, Pin, parseSVG, signedArea, SFONT, fontStrokes, isStyle } from "./defs/helpers.js";
 import DroPanel from "./dro.jsx";
 import { makeAnalyzeButton, intakeImage } from "./analyze.js";
@@ -987,7 +988,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.56"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.57"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -2313,6 +2314,7 @@ export default function App() {
       }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d") { e.preventDefault(); duplicateSelected(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "g") { e.preventDefault(); groupSelected(); }
+      else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setQuickAdd({ cat: null, query: "", sel: 0 }); }
       else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeSelected(); }
       else if (e.key === "Escape") { setBigPreview(false); setSelIds([]); }
       else if (e.key === " ") {
@@ -3958,7 +3960,7 @@ export default function App() {
 
             {[
               ["KEYBOARD SHORTCUTS", [
-                "G / M / D / C / X \u2014 quick-add search: Generators / Modifiers / Decorators / Combiners / Math \u00B7 N \u2014 all nodes. Type to filter, \u2191\u2193 + Enter places the node.",
+                "G / M / D / C / X \u2014 quick-add search: Generators / Modifiers / Decorators / Combiners / Math \u00B7 N or Cmd/Ctrl+K \u2014 all nodes. Search digs deeper than names: descriptions and tags too (try round, mesh, ribbon). Type to filter, \u2191\u2193 + Enter places the node.",
                 "Space \u2014 toggle large preview (with route simulator).",
                 "T \u2014 tidy: arrange nodes left\u2192right by dataflow (2+ selected: only the selection).",
                 "Cmd/Ctrl+Z \u2014 undo \u00B7 Shift+Cmd/Ctrl+Z \u2014 redo.",
@@ -4010,11 +4012,45 @@ export default function App() {
 
       {/* ---------- Pikahaku (G/M/D/C/X/N) ---------- */}
       {quickAdd && (() => {
-        const qq = quickAdd.query.toLowerCase();
-        const list = Object.entries(DEFS).filter(([t, d]) =>
-          !d.hidden &&
-          (quickAdd.cat === null || d.cat === quickAdd.cat) &&
-          (d.name.toLowerCase().includes(qq) || (nodeNicks[t] || "").toLowerCase().includes(qq)));
+        const qq = quickAdd.query.toLowerCase().trim();
+        const terms = qq.split(/\s+/).filter(Boolean);
+        /* word-start match per term: "rib" hits "ribbon", "round" does not hit "background" */
+        const rescape = (w) => w.split("").map((c) => /[a-z0-9]/.test(c) ? c : "\\" + c).join("");
+        const termRes = terms.map((w) => new RegExp("(^|[^a-z0-9])" + rescape(w)));
+        /* deep search: name/nick 3, tags 2, desc + catalog paragraph 1; every word must hit (AND) */
+        const scoreOf = (t, d) => {
+          if (!terms.length) return [1, null];
+          const name = d.name.toLowerCase(), nick = (nodeNicks[t] || "").toLowerCase();
+          const ce = CATALOG[t] || {};
+          const tagStr = (ce.tags || []).join(" ");
+          const deepRaw = (d.desc || "") + " " + (ce.t || "");
+          const deep = deepRaw.toLowerCase();
+          let s = 0, firstDeep = -1;
+          for (const re of termRes) {
+            if (re.test(name) || re.test(nick)) s += 3;
+            else if (re.test(tagStr)) s += 2;
+            else {
+              const m = re.exec(deep);
+              if (!m) return [0, null];
+              s += 1;
+              if (firstDeep < 0) firstDeep = m.index + m[1].length;
+            }
+          }
+          let snip = null;
+          if (firstDeep >= 0) {
+            const a = Math.max(0, firstDeep - 24);
+            snip = (a > 0 ? "\u2026" : "") + deepRaw.slice(a, firstDeep + 46).trim() + "\u2026";
+          }
+          return [s, snip];
+        };
+        const list = Object.entries(DEFS)
+          .map(([t, d]) => {
+            if (d.hidden || (quickAdd.cat !== null && d.cat !== quickAdd.cat)) return null;
+            const [s, snip] = scoreOf(t, d);
+            return s > 0 ? [t, d, s, snip] : null;
+          })
+          .filter(Boolean)
+          .sort((a, b) => b[2] - a[2] || a[1].name.localeCompare(b[1].name));
         const sel = Math.min(quickAdd.sel, Math.max(0, list.length - 1));
         const addSelected = (type) => {
           addNode(type); /* empty-space placement, same as palette click */
@@ -4037,7 +4073,7 @@ export default function App() {
                 }}
                 style={{ width: "100%", background: T.panel2, color: T.text, border: "none", borderBottom: `1px solid ${T.line}`, padding: "8px 12px", fontSize: 13, fontFamily: mono, outline: "none", boxSizing: "border-box" }} />
               <div style={{ maxHeight: 300, overflowY: "auto", padding: 6 }}>
-                {list.map(([type, d], i) => (
+                {list.map(([type, d, _s, snip], i) => (
                   <div key={type} onClick={() => addSelected(type)}
                     onMouseEnter={() => setQuickAdd((q) => ({ ...q, sel: i }))}
                     style={{
@@ -4046,9 +4082,12 @@ export default function App() {
                       border: i === sel ? `1px solid ${T.accent}66` : "1px solid transparent",
                     }}>
                     <div style={{ width: 8, height: 8, borderRadius: 2, background: (CATS[d.cat] || {}).color || T.dim, flexShrink: 0 }} />
-                    <div style={{ flex: 1, fontSize: 12, color: T.text, fontFamily: mono }}>
-                      {d.name}
-                      {nodeNicks[type] && <span style={{ color: T.accent, marginLeft: 6, fontSize: 11 }}>· {nodeNicks[type]}</span>}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: T.text, fontFamily: mono }}>
+                        {d.name}
+                        {nodeNicks[type] && <span style={{ color: T.accent, marginLeft: 6, fontSize: 11 }}>· {nodeNicks[type]}</span>}
+                      </div>
+                      {snip && <div style={{ fontSize: 9, color: T.dim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{snip}</div>}
                     </div>
                     <div style={{ fontSize: 9, color: T.dim }}>{(CATS[d.cat] || {}).label || d.cat}</div>
                   </div>
