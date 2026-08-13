@@ -29,8 +29,8 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **231 files** (233 nodes total with
-  group + reititys; Generators 135, Modifiers 69). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **235 files** (237 nodes total with
+  group + reititys; Generators 138, Modifiers 69). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -667,6 +667,28 @@ text are **English**.
   escapee tail count, straightness window 0.2-0.85, two-tone contrast
   ratio). MUUSIA-PORTRAIT-MANUAL.md added (parameter meanings + presets).
   TWO PITFALLS FOUND: see below.
+
+- **2.56** Four nodes in one session. **Gull Tracks** (gen/creatures):
+  webbed gull footprint trails, alternating feet + toe-in, every print unique
+  via per-print rng streams; validator proves uniqueness (480/480 distinct
+  shapes) and the vary=0 identical-stamp invariant. **Ink Burst**
+  (gen/organic): decalcomania squash print - coherent-field striations with a
+  core void, Breakup lens gaps, tendrils whose stem CONTINUES into the droplet
+  spiral (one pen-down); R-clamp covers edge bulge (1.3x) and spiral extent
+  (1.8 x blob) - both found by the bounds oracle. **Ripple Chain** (dec):
+  concentric ring clusters beading along any input path, optional Amplitude
+  input samples a wired curve's deviation (Sound Line -> ring sizes; NO audio
+  parsing duplicated in the node). Post-import fix: point budget was
+  first-come-first-served and big radii blanked later paths - now shared by
+  arc length with a dry-run + even step-stretch so oversubscribed paths thin
+  uniformly; adaptive ring sampling (arc step grows with radius) halves big-
+  cluster cost. Guarded by two regression oracles (all loops decorated at max
+  radius; serpentine tail still beads). **Moire Disc** (gen/geometric): one
+  disc, nine fill contents (Rings/Spiral/Spokes/Hatch/Mesh/Hex/Grid/Random/
+  Phyllotaxis), Pitch + Angle + X/Y as the moire levers, Disorder morphs
+  order->chaos, hard invariant: content never leaks outside the disc at any
+  disorder (keeps overlaps clean). Endgame proven: Rings+Rings offset =
+  hyperbolic arcs, Hatch+Hatch at 4 deg = shadow bands.
 
 ## Hard-won pitfalls (keep)
 

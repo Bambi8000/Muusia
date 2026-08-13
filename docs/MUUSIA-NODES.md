@@ -1,13 +1,13 @@
-# MUUSIA v2.52 — Node Reference
+# MUUSIA v2.56 — Node Reference
 
-All 231 built-in nodes. Conventions used below: most generators accept a **Style**
+All 235 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (135)
+## Generators (138)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -743,6 +743,31 @@ touches or crosses (validated). Corners are exact arcs; ends get terminals
 back clear of its own terminal. Sibling of PCB Tracks — that one is octilinear
 copper with pads, this one pure orthogonal flow.
 
+**Gull Tracks** — seagull footprint trails on wet sand: seeded walks that steer
+themselves back inside the margin box, steps alternating left/right at Straddle
+width, each webbed three-toe print turned slightly inward (Toe-in) like the real
+bird. Every print is unique — Variation jitters toe angles, lengths, curvatures
+and the web attach points per print (0 = identical stamps). Web sag pulls the
+webbing toward the heel; Hind toe adds the tiny rear hallux mark. Several nodes
+at different Foot sizes reads like a whole flock came through.
+
+**Ink Burst** — a decalcomania squash print: dense radial filaments around a
+blank core void, bent together into suction channels by a coherent noise field
+and torn into lens gaps by Breakup; beyond the body, Tendrils launch outward
+with long-tail lengths (Reach), curl as they go, and each ends in an ink droplet
+drawn as the SAME continuous stroke — stem flows into an inward spiral fill, one
+pen-down per tendril. Beads dot the stems, stray blobs spatter the mid ring,
+Aspect ovals the burst, Edge roughens the outline. Loves a thick pen.
+
+**Moire Disc** — one disc filled with fine regular structure, built to be
+overlapped: Rings, Spiral (one continuous line), Spokes, Hatch, Mesh, Hex / Grid
+/ Random packed circles (optionally concentric via Circle rings) or Phyllotaxis.
+Pitch is the spacing, Angle rotates the pattern, Disorder morphs order toward
+chaos — and content never leaks outside the disc, so overlaps stay clean. Drop
+two with Pitch off by 5%, Angle off by 2-5 degrees or centers a few mm apart and
+the interference becomes moire; every knob has a value port, so Frame-driven
+moire breathes through an animation.
+
 ## Modifiers (69)
 
 **Apply Style** — applies a Stroke style to existing paths.
@@ -1010,7 +1035,7 @@ notches) + ambient + body gradient — and rendered as stacked rotated hatch lev
 tone builds like layered pencil. Directionality 0 is pure ambient occlusion; shapes
 nested inside another act as holes; open paths pass through untouched.
 
-## Decorators (5)
+## Decorators (6)
 
 **Stamp** — repeats a motif (or built-in marks; Line + Perpendicular = railway
 sleepers) along paths, with per-path variation. Takes a Motif input.
@@ -1047,7 +1072,17 @@ quantizing into blocky steps. Color split adds a displaced duplicate on another
 pen (plotter chromatic aberration). Wire Drift to Frame and the corruption
 crawls through an animation.
 
-## Combiners (14)
+**Ripple Chain** — chains of concentric ring clusters strung along the input
+path like beads. The walk stamps a cluster every 2 x radius x Spacing (1 =
+touching); size breathes via a slow Wave along the path, long-tail per-cluster
+Variation, and — when a curve is wired into the Amplitude input — an envelope
+sampled from that curve's deviation, so Sound Line's waveform drives ring sizes
+along the path. Ring gap, Hollow core, per-ring Drift, Scatter off the path and
+Satellite companion rings shape the look. The point budget is shared between
+input paths by arc length and an oversubscribed path thins evenly along its
+whole length — large radii never leave loops or tails blank.
+
+## Combiners (13)
 
 **Mask** *(deprecated — hidden from the palette since 2.40; old patches keep
 working)* — clips paths by closed mask shapes (keep inside/outside). Use
