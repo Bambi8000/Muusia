@@ -992,7 +992,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.59"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.60"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1903,6 +1903,7 @@ export default function App() {
   const [showArrows, setShowArrows] = useState(false);
   const [bigPreview, setBigPreview] = useState(false);
   const [pensOpen, setPensOpen] = useState(false);
+  const [kbOpen, setKbOpen] = useState(false); /* keyboard shortcuts popover */
   const [, setPensVer] = useState(0);
   const [gcode, setGcode] = useState(null);
 
@@ -2327,6 +2328,7 @@ export default function App() {
       }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "t") { e.preventDefault(); tidyNodes(); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "b") { e.preventDefault(); setCatalogOpen((v) => !v); }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key === "?") { e.preventDefault(); setKbOpen((v) => !v); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
         const map = { g: "gen", m: "mod", d: "dec", c: "duo", x: "math", n: null };
         const k = e.key.toLowerCase();
@@ -2962,6 +2964,47 @@ export default function App() {
           <NumBox value={canvasH} onChange={(v) => setCanvasH(Math.max(10, v))} min={10} width={56} />
           mm
         </div>
+        <button style={toolBtn(true)} onClick={() => setKbOpen((v) => !v)} title="? — keyboard shortcuts">Keys</button>
+        {kbOpen && (
+          <div onClick={() => setKbOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 400 }}>
+            <div onClick={(e) => e.stopPropagation()}
+              style={{ position: "absolute", top: 44, right: 260, width: 296, background: T.panel, border: "1px solid " + T.line, borderRadius: 7, padding: 12, boxShadow: "0 8px 30px rgba(0,0,0,0.5)" }}>
+              <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.08em", marginBottom: 8 }}>KEYBOARD SHORTCUTS</div>
+              {[
+                ["Add nodes", [
+                  ["G / M / D / C / X", "quick-add: Gen / Mod / Dec / Comb / Math"],
+                  ["N or Cmd/Ctrl+K", "quick-add: all nodes (deep search)"],
+                  ["\u2191 \u2193 + Enter", "pick and place in quick-add"],
+                  ["B", "visual node catalog"],
+                ]],
+                ["Edit", [
+                  ["Cmd/Ctrl+Z", "undo"],
+                  ["Shift+Cmd/Ctrl+Z", "redo"],
+                  ["Cmd/Ctrl+D", "duplicate selection"],
+                  ["Cmd/Ctrl+G", "group selection"],
+                  ["Delete / Backspace", "remove selection"],
+                  ["Esc", "clear selection / close preview"],
+                ]],
+                ["View", [
+                  ["Space", "big preview on/off"],
+                  ["T", "tidy nodes by dataflow"],
+                  ["?", "this list"],
+                ]],
+              ].map(([title, rows]) => (
+                <div key={title} style={{ marginBottom: 8 }}>
+                  <div style={{ fontSize: 9, color: T.accent, letterSpacing: "0.08em", marginBottom: 3, textTransform: "uppercase" }}>{title}</div>
+                  {rows.map(([k, what]) => (
+                    <div key={k} style={{ display: "flex", gap: 8, fontSize: 10, marginBottom: 2 }}>
+                      <div style={{ width: 128, color: T.text, fontFamily: mono, flexShrink: 0 }}>{k}</div>
+                      <div style={{ color: T.dim }}>{what}</div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+              <div style={{ fontSize: 9, color: T.dim, marginTop: 4 }}>Shortcuts pause while typing in a field. Wheel = zoom, drag = pan, dblclick = reset in previews.</div>
+            </div>
+          </div>
+        )}
         <button style={toolBtn(true)} onClick={() => setPensOpen((v) => !v)} title="Edit pen colors (preview / SVG)">Pens</button>
         {pensOpen && (
           <div onClick={() => setPensOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 400 }}>
@@ -3970,6 +4013,7 @@ export default function App() {
                 "G / M / D / C / X \u2014 quick-add search: Generators / Modifiers / Decorators / Combiners / Math \u00B7 N or Cmd/Ctrl+K \u2014 all nodes. Search digs deeper than names: descriptions and tags too (try round, mesh, ribbon). Type to filter, \u2191\u2193 + Enter places the node.",
                 "Space \u2014 toggle large preview (with route simulator).",
                 "T \u2014 tidy: arrange nodes left\u2192right by dataflow (2+ selected: only the selection).",
+                "B \u2014 visual node catalog (live thumbnails, tag filters, Surprise me) \u00B7 ? \u2014 keyboard shortcuts popover.",
                 "Cmd/Ctrl+Z \u2014 undo \u00B7 Shift+Cmd/Ctrl+Z \u2014 redo.",
                 "Cmd/Ctrl+D \u2014 duplicate selection \u00B7 Cmd/Ctrl+G \u2014 group selection into a subgraph.",
                 "Delete / Backspace \u2014 remove selection \u00B7 Esc \u2014 close overlays / clear selection.",

@@ -761,7 +761,17 @@ text are **English**.
   extracts fixture+computeThumb VERBATIM from the module and runs it over
   every def: no escaped exceptions, budget held, finite coords, >=85%
   live-thumbnail rate, byte-identical re-runs. Discovery series complete:
-  deep search (2.57) + tags (2.58) + visual catalog (2.59).
+  deep search (2.57) + tags (2.58) + visual catalog (2.59).deep search (2.57) + tags (2.58) + visual catalog (2.59).
+
+- **2.60** Keyboard shortcuts popover: toolbar **Keys** button (next to
+  Pens, same fixed-overlay popover pattern) and the **?** key toggle a
+  grouped two-column list of every shortcut (Add nodes / Edit / View),
+  with a footnote that shortcuts pause while typing and a wheel/drag/
+  dblclick zoom reminder. Data lives inline in the popover — when a new
+  shortcut is added to the onKey handler, add its row here in the same
+  patch. Also: `wip/` gitignored as the local staging area for
+  unapplied patch drafts (never pushed; applied one-shots still graduate
+  to tools/era/ committed).
 
 ## Hard-won pitfalls (keep)
 
