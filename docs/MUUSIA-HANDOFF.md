@@ -52,6 +52,15 @@ text are **English**.
   + tooltip, always-rendered X/Y/Z slots with tabular figures and dashes) so
   state transitions never reflow the top bar.
   Wired into App.jsx via tools/era/patch-dro.mjs.
+- `src/catalog-browser.jsx` — the visual node catalog (B / toolbar Catalog):
+  every non-hidden node as a live thumbnail (compute with default params on a
+  fixed 150×100 mm thumb canvas; paths inputs get standard fixtures — first
+  input circle+squiggle+rows, later inputs squiggle+rows so duo nodes see two
+  different sets; 6000-pt budget per thumb, lazy 3-per-tick chunks, session
+  cache). Deep search + category/tag filters + Surprise me; value/style
+  outputs and file-input nodes get typed placeholders. Self-contained module
+  (DEFS/CATALOG/PENS/theme injected as props), wired via
+  tools/era/patch-catalog-browser-v259.mjs.
 - `docs/` — MUUSIA-HANDOFF.md (this), MUUSIA-NODES.md (every node),
   MUUSIA-NODE-API.md (custom-node authoring spec, plotternode format),
   MUUSIA-MAP.md (OSM map import guide: overpass-turbo workflow, sizing, queries),
@@ -721,13 +730,38 @@ text are **English**.
   phase-2 seam shipped in 2.57), so tags score at weight 2 in the deep
   search with zero engine changes. patch-tag-chips-v258.mjs adds a
   module-scope CATALOG_TAGS aggregate and a browsable chips row in the
-  quick-add modal (empty query only): top 18 tags with node counts, click
+  quick-add modal (empty query only): the full tag cloud with node counts
+  (v258b widened it from top-18 — the rare tags are the inspiring ones), click
   = search that tag. Era validator extracts CATALOG_TAGS + the search
   block verbatim from App.jsx and proves vocabulary size, count sums,
   full node coverage and that every top-18 chip query returns its tagged
   nodes. TAGGING RULE: every new node gets a MUUSIA-TAGS.json entry in
   the doc batch — validate-tag-chips fails on untagged nodes. Next: the
-  visual thumbnail catalog (phase 3).
+  visual thumbnail catalog (phase 3).visual thumbnail catalog (phase 3).
+
+- **2.59** Visual node catalog (discovery phase 3 of 3). NEW MODULE
+  src/catalog-browser.jsx (dro.jsx pattern: self-contained, everything
+  injected as props, wired by an anchored era patch): a full-screen overlay
+  — B key or the toolbar Catalog button — rendering every non-hidden node
+  as a LIVE thumbnail: compute with default params on a fixed 150x100 mm
+  thumb ctx, exact engine call signature (ins, params, ctx, node); paths
+  inputs get standard fixtures, and the SECOND paths input gets a
+  DIFFERENT fixture than the first so duo/region nodes (Container, Wind
+  Tunnel, Occlude...) show a real interaction instead of self-erasure.
+  Dynamic ins (a function of params, e.g. Merge) are resolved before
+  wiring. 6000-pt budget per thumb, lazy 3-per-tick chunked computation
+  (the overlay opens instantly), per-session cache keyed by node — default
+  seeds make every thumbnail deterministic. Value outputs render the
+  number, style outputs a dash sample, file-input nodes a "needs a file"
+  badge; coverage 215/233 live + 9 value + 1 style + 7 file, 0 errors
+  (only negspace has no preview — it needs genuinely overlapping inputs).
+  Deep search (same scoring as quick-add), category chips, full tag-cloud
+  filter, Surprise me (adds a random node from the current filter), click
+  a card = addNode with an Added-flash, browser stays open. Era validator
+  extracts fixture+computeThumb VERBATIM from the module and runs it over
+  every def: no escaped exceptions, budget held, finite coords, >=85%
+  live-thumbnail rate, byte-identical re-runs. Discovery series complete:
+  deep search (2.57) + tags (2.58) + visual catalog (2.59).
 
 ## Hard-won pitfalls (keep)
 

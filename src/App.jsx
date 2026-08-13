@@ -8,6 +8,7 @@ const CATALOG_TAGS = Object.entries(
 import { PENS_DEFAULT, PENS, savePens, resetPens, mulberry32, hash2, noise2, EMPTY, pathLength, resample, applyStyle, Pin, parseSVG, signedArea, SFONT, fontStrokes, isStyle } from "./defs/helpers.js";
 import DroPanel from "./dro.jsx";
 import { makeAnalyzeButton, intakeImage } from "./analyze.js";
+import CatalogBrowser from "./catalog-browser.jsx";
 const AnalyzeButton = makeAnalyzeButton(React);
 
 /* ============================================================
@@ -991,7 +992,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.58"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.59"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -2325,6 +2326,7 @@ export default function App() {
         setBigPreview((v) => (v ? false : primaryPS.paths.length > 0));
       }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "t") { e.preventDefault(); tidyNodes(); }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "b") { e.preventDefault(); setCatalogOpen((v) => !v); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
         const map = { g: "gen", m: "mod", d: "dec", c: "duo", x: "math", n: null };
         const k = e.key.toLowerCase();
@@ -2429,6 +2431,7 @@ export default function App() {
   const loadRef = useRef(null);
   const [simOn, setSimOn] = useState(false);
   const [quickAdd, setQuickAdd] = useState(null); /* {cat: null|'gen'|..., query, sel} */
+  const [catalogOpen, setCatalogOpen] = useState(false); /* visual node catalog overlay */
   const [helpOpen, setHelpOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState({ geometric: true });
   const [flatAZ, setFlatAZ] = useState(false);
@@ -2877,6 +2880,7 @@ export default function App() {
         <button style={toolBtn(histLens[0] > 0)} onClick={undo} title="Undo (Cmd/Ctrl+Z)">↶</button>
         <button style={toolBtn(histLens[1] > 0)} onClick={redo} title="Redo (Cmd/Ctrl+Shift+Z)">↷</button>
         <button style={toolBtn(lvl.nodes.length > 1)} onClick={tidyNodes} title="T — arrange nodes left→right by dataflow · 2+ selected: tidy only the selection">Tidy</button>
+        <button style={toolBtn(true)} onClick={() => setCatalogOpen(true)} title="B — browse every node as a live thumbnail: deep search, category + tag filters, Surprise me">Catalog</button>
         <div style={{ width: 1, height: 18, background: T.line }} />
         <input type="text" value={projName} onChange={(e) => setProjName(e.target.value)}
           title="Project name (used for filenames)"
@@ -3972,7 +3976,7 @@ export default function App() {
                 "Shift+click \u2014 add to selection \u00B7 drag on empty canvas \u2014 rubber-band select \u00B7 double-click a group \u2014 open it.",
               ]],
               ["BASICS", [
-                "Drag nodes from the left palette to the canvas, or press G/M/D/C/X/N for quick-add search.",
+                "Drag nodes from the left palette to the canvas, or press G/M/D/C/X/N for quick-add search. B (or the Catalog button) opens the visual node catalog: every node as a live thumbnail, with deep search, tag filters and a Surprise me button.",
                 "Wire outputs (right side of a node) to inputs (left side). Blue = paths, green = numbers, yellow = stroke style.",
                 "Every numeric parameter has a green input port \u2014 wire Value, Random, Math or Frame into it to modulate.",
                 "Click a node to select: the right panel shows its live preview and parameters. Space toggles a large preview.",
@@ -4011,6 +4015,12 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ---------- Node catalog (visual browser) ---------- */}
+      {catalogOpen && (
+        <CatalogBrowser DEFS={DEFS} CATS={CATS} CATALOG={CATALOG} PENS={PENS} T={T} mono={mono} disp={disp}
+          defaults={defaults} onAdd={(t) => addNode(t)} onClose={() => setCatalogOpen(false)} />
       )}
 
       {/* ---------- Pikahaku (G/M/D/C/X/N) ---------- */}
@@ -4077,7 +4087,7 @@ export default function App() {
                 style={{ width: "100%", background: T.panel2, color: T.text, border: "none", borderBottom: `1px solid ${T.line}`, padding: "8px 12px", fontSize: 13, fontFamily: mono, outline: "none", boxSizing: "border-box" }} />
               {!terms.length && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderBottom: `1px solid ${T.line}` }}>
-                  {CATALOG_TAGS.slice(0, 18).map(([tg, c]) => (
+                  {CATALOG_TAGS.map(([tg, c]) => (
                     <span key={tg} onClick={() => setQuickAdd((q) => ({ ...q, query: tg, sel: 0 }))}
                       style={{ fontSize: 9, fontFamily: mono, color: T.dim, background: T.panel2, border: `1px solid ${T.line}`, borderRadius: 9, padding: "2px 7px", cursor: "pointer", userSelect: "none" }}>
                       {tg} <span style={{ opacity: 0.55 }}>{c}</span>
