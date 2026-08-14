@@ -1,4 +1,4 @@
-# Muusia — Custom Node API (v1.3, app v2.45)
+# Muusia — Custom Node API (v1.4, app v2.61)
 
 This document is a **complete, self-contained specification** for writing a custom node
 for Muusia, a node-graph editor for generative pen-plotter art. You can hand this
@@ -103,13 +103,13 @@ that. Prefer resolution parameters so the user can trade detail for speed.
 | `fileLabel` | string, optional | Label for the file picker button (default "Choose SVG…"). **Definition-level field** — set it next to `key`/`name`, not inside the param descriptor. |
 | `fileAccept` | string, optional | `accept` attribute for the file input, e.g. `".geojson,.json"` (default `.svg`). **Definition-level field**; a `fileAccept` placed inside the param descriptor is silently ignored. |
 | `fileBinary` | boolean, optional | Definition-level flag (v2.49). The file is read as a **dataURL** (like `fileImage`) but routed to the normal `onFile` branch, so `onFile` receives the dataURL string and can base64-decode binary formats (see Sound Line's WAV parser). Result still lands at `node.data.svg`. Set `fileAccept` too — it now wins over the `image/*` default. |
+| `fileImage` | boolean, optional | Definition-level flag. The file picker reads a **dataURL** and the engine decodes the raster itself; the button label becomes "Choose image…" automatically. The result is frozen at **`node.data.img`** = `{ w, h, g, rgb }`: `w`/`h` are the downsampled pixel dimensions (long side capped at 160 px), `g` is a `w*h` array of **darkness** 0..1 (1 = black, alpha composited over white), and `rgb` (since 2.61) is a `w*h*3` array of 0..255 channel bytes in the same pixel order, also flattened over white. Read a pixel as `img.g[y * img.w + x]` / `img.rgb[(y * img.w + x) * 3 + channel]`. **`rgb` may be absent** on photos loaded by a pre-2.61 build — always guard (`img.rgb && img.rgb.length === img.w * img.h * 3`) and fall back to `g` (see Image Rasterise, which degrades to a K-only separation). `compute` must read `node && node.data && node.data.img` and return `EMPTY` when it is missing. |
+| `faceAnalysis` | boolean, optional | Definition-level flag. File intake switches to the portrait pipeline (EXIF orientation honored, long side resized to 1280 px, re-encoded JPEG frozen at `node.data.src`) and the inspector shows an **Analyze face** button when a photo is loaded. The result is frozen to `node.data.analysis` (schema: MUUSIA-PORTRAIT-SPEC.md); a new photo invalidates it. Compute reads only frozen data. |
 
 **Pins:** create with `Pin(type, label?)` where type is `"paths"`, `"value"`, or
 `"style"`. Only equal types connect. Examples:
 `ins: [Pin("paths", "Target"), Pin("paths", "Mask")]`,
 `outs: (node) => Array.from({length: Math.round(node.params.count)}, (_, i) => Pin("paths", String(i+1)))`.
-
-| `faceAnalysis` | boolean, optional | Definition-level flag. File intake switches to the portrait pipeline (EXIF orientation honored, long side resized to 1280 px, re-encoded JPEG frozen at `node.data.src`) and the inspector shows an **Analyze face** button when a photo is loaded. The result is frozen to `node.data.analysis` (schema: MUUSIA-PORTRAIT-SPEC.md); a new photo invalidates it. Compute reads only frozen data. |
 
 ## 4. Parameter UI types
 
@@ -233,6 +233,12 @@ The definition file is plain JavaScript, so you can validate it in Node.js with 
 ten-line harness — the same practice used for every built-in node. **Keep these
 helper snippets verbatim-identical to `src/defs/helpers.js`** — a drifted or stubbed
 helper makes the harness test a different node than the app runs (v2.45 lesson):
+
+A `fileImage` node needs no browser: build a synthetic image by hand and pass it
+as the fourth `compute` argument —
+`def.compute([undefined], p, {W:297,H:210}, { data: { img: { w, h, g, rgb } } })`
+— then assert the no-image case returns `EMPTY`, that a pure-white image emits
+nothing, and that an `img` without `rgb` still renders (the pre-2.61 fallback).
 
 ```js
 const fs = require("fs");
