@@ -137,6 +137,14 @@
   "nature",
   "round"
  ],
+ "cmyk_registration": [
+  "geometric",
+  "grid",
+  "hatch",
+  "machine",
+  "round",
+  "scientific"
+ ],
  "coil": [
   "decoration",
   "spiral",
@@ -485,6 +493,13 @@
   "hatch",
   "image",
   "terrain"
+ ],
+ "image_rasterise": [
+  "dots",
+  "grid",
+  "halftone",
+  "image",
+  "spiral"
  ],
  "image_underlay": [
   "image",

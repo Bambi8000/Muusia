@@ -1,13 +1,13 @@
-# MUUSIA v2.60 — Node Reference
+# MUUSIA v2.61 — Node Reference
 
-All 235 built-in nodes. Conventions used below: most generators accept a **Style**
+All 237 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (138)
+## Generators (140)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -29,12 +29,37 @@ arrows — a long arrow means that reading is off. The *Frame* output is the ima
 outline as a closed path for region/containment masking. Uses the 2.51 bgImage
 engine seam; the photo travels inside the patch.
 
+**Image Rasterise** — true CMYK halftone separation of a loaded photo: each
+plate plots with its own pen at its own screen angle (the *Angles* select's
+Standard 15/75/0/45 is a one-click reset; Custom frees the four sliders). Dot
+styles: *Dots* (circles sized by density), *Rings*, *Spiral* (ink-coverage
+spirals) and *Dashes* (a cheap line screen for large sheets). Press-defect
+controls — *Misregistration* (seeded per-plate shift), *Plate skew*, *Dot gain*,
+*Doubling* (slur ghosts) and *Ink noise* — turn calibration into art. *Black
+(GCR)* sets how much gray moves to the K plate; *Cell* is the raster pitch
+(raise it if the point budget truncates — plates draw K first so a truncation
+eats yellow). Requires the 2.61 rgb image intake; photos loaded by older
+builds fall back to a grayscale K-only separation until re-loaded.
+
 **Growth** — differential growth: a loop that grows (random edge splits + long-edge
 splits) while short-range repulsion keeps it self-avoiding and cohesion keeps it
 smooth — the organic meander classic. Circle or canvas bounds (guide overlay),
 optional history rings every N iterations for the nested look. Point-capped.
 
 **Test Card** — calibration sheets: line weight sweep, converging line spacing, hatch density, arcs & tight circles, pen-lift dot grid, fill swatches, registration marks, speed-ramp zigzag, and a *Pen palette* drawing one labelled swatch per pen (all 12). The grid auto-shrinks its cells to fit the current canvas.
+
+**CMYK Registration** — prepress furniture as art: thirteen authentic
+registration and control marks (crosshair target, letterpress bullseye,
+GATF-style star target, Japanese tombo center/corner, Western crop marks, a
+CMYK color bar at real screen angles, slur ladder gauge, flexo eye-mark stack,
+quartered survey target, micro cross, bookbinding collation steps, graduated
+scale cross). Registration-color marks plot once per plate with seeded
+*Misregistration* (+ per-mark *Wobble*) for classic out-of-register ghosting;
+single-channel patches stay on their own plate. Mark checkboxes choose the
+population for the *Grid/Ring/Border/Scatter* layouts and filter the full
+*Press sheet* imposition arrangement; *Single* draws one mark at the canvas
+center chosen by the *Single mark* dropdown (Tombo corner and Crop marks place
+four oriented corner marks instead).
 
 **Clouds** — old-etching cumulus: each cloud is a row of overlapping lobe circles plus a few stacked on top, drawn as scalloped visible arcs. *Inner creases* lets each arc continue a little way behind its neighbour, like an engraver's line; *Hatch shading* adds horizontal rows that thin upward plus a dashed drop shadow under the flat base.
 

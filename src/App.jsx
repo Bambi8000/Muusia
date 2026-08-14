@@ -992,7 +992,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.60"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.61"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -3423,14 +3423,18 @@ export default function App() {
                                       cx2.drawImage(img, 0, 0, w, h);
                                       const d = cx2.getImageData(0, 0, w, h).data;
                                       const g = new Array(w * h);
+                                      const rgb = new Array(w * h * 3);
                                       for (let i = 0; i < w * h; i++) {
                                         /* tummuus 0..1 (1 = musta), alpha valkoiseksi */
                                         const a = d[i * 4 + 3] / 255;
                                         const lum = (0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2]) / 255;
                                         g[i] = (1 - lum) * a;
+                                        rgb[i * 3] = Math.round(d[i * 4] * a + 255 * (1 - a));
+                                        rgb[i * 3 + 1] = Math.round(d[i * 4 + 1] * a + 255 * (1 - a));
+                                        rgb[i * 3 + 2] = Math.round(d[i * 4 + 2] * a + 255 * (1 - a));
                                       }
                                       setNodesL((ns) => ns.map((n) => n.id === node.id
-                                        ? { ...n, params: { ...n.params, [pd.key]: name }, data: { ...(n.data || {}), img: { w, h, g } } }
+                                        ? { ...n, params: { ...n.params, [pd.key]: name }, data: { ...(n.data || {}), img: { w, h, g, rgb } } }
                                         : n));
                                     };
                                     img.onerror = () => {

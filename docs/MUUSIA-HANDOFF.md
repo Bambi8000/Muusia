@@ -29,8 +29,8 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **235 files** (237 nodes total with
-  group + reititys; Generators 138, Modifiers 69). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **237 files** (239 nodes total with
+  group + reititys; Generators 140, Modifiers 69). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -96,7 +96,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (231) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (237) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -772,6 +772,26 @@ text are **English**.
   patch. Also: `wip/` gitignored as the local staging area for
   unapplied patch drafts (never pushed; applied one-shots still graduate
   to tools/era/ committed).
+
+- **2.61** Two prepress nodes + an engine seam. NEW GEN **CMYK
+  Registration** (scientific): thirteen authentic print registration/control
+  marks (crosshair, bullseye, GATF star, Japanese tombo center/corner, crop,
+  color bar at real screen angles C15/M75/Y0/K45, ladder gauge, eye marks,
+  quartered target, micro cross, collation steps, scale cross), registration-
+  color marks drawn once per plate with seeded misregistration + wobble;
+  layouts Grid (default) / Single / Press sheet / Ring / Border / Scatter -
+  mark checkboxes drive the multi layouts, the Single mark dropdown drives
+  Single (no button param type exists; a Standard/Custom select is the reset
+  idiom). NEW GEN **Image Rasterise** (textimg): true CMYK halftone separation
+  of a loaded photo - per-plate screen angles (Angles select: Standard
+  15/75/0/45 = one-click reset, Custom frees the sliders), dot styles
+  Dots/Rings/Spiral/Dashes, GCR black slider, press-defect controls
+  (misregistration, plate skew, dot gain, doubling/slur ghosts, ink noise);
+  plates draw K-first so a budget truncation eats yellow, grayscale-only
+  images (older intake) fall back to a K-only separation. ENGINE
+  tools/era/patch-image-rgb.mjs (applied): the fileImage intake decode loop
+  now also stores img.rgb flattened alpha-over-white - backwards compatible,
+  every fileImage node keeps reading img.g.
 
 ## Hard-won pitfalls (keep)
 
