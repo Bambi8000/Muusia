@@ -9,6 +9,7 @@ import { PENS_DEFAULT, PENS, savePens, resetPens, mulberry32, hash2, noise2, EMP
 import DroPanel from "./dro.jsx";
 import { makeAnalyzeButton, intakeImage } from "./analyze.js";
 import CatalogBrowser from "./catalog-browser.jsx";
+import StackView from "./stack-view.jsx";
 const AnalyzeButton = makeAnalyzeButton(React);
 
 /* ============================================================
@@ -992,7 +993,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.61"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.62"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -2328,6 +2329,7 @@ export default function App() {
       }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "t") { e.preventDefault(); tidyNodes(); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "b") { e.preventDefault(); setCatalogOpen((v) => !v); }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "s") { e.preventDefault(); setStackOpen((v) => !v); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key === "?") { e.preventDefault(); setKbOpen((v) => !v); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
         const map = { g: "gen", m: "mod", d: "dec", c: "duo", x: "math", n: null };
@@ -2434,6 +2436,7 @@ export default function App() {
   const [simOn, setSimOn] = useState(false);
   const [quickAdd, setQuickAdd] = useState(null); /* {cat: null|'gen'|..., query, sel} */
   const [catalogOpen, setCatalogOpen] = useState(false); /* visual node catalog overlay */
+  const [stackOpen, setStackOpen] = useState(false); /* 3D layer stack overlay */
   const [helpOpen, setHelpOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState({ geometric: true });
   const [flatAZ, setFlatAZ] = useState(false);
@@ -2628,12 +2631,12 @@ export default function App() {
       const out = res.out[primaryNode.id];
       let ps = out && out[0] && out[0].paths ? out[0] : EMPTY;
       if (routeOpt) ps = routeOptimize(ps, preserveDir);
-      const text = kind === "svg" ? toSVG(ps, ctxF) : toGcode(ps, ctxF, prof);
+      const text = kind === "svg" ? toSVG(ps, ctxF) : kind === "dxf" ? toDXF(ps, ctxF) : toGcode(ps, ctxF, prof);
       try {
         const blob = new Blob([text], { type: kind === "svg" ? "image/svg+xml" : "text/plain" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `${projName || "patch"}-f${String(f).padStart(3, "0")}${kind === "svg" ? ".svg" : ".gcode"}`;
+        a.download = `${projName || "patch"}-f${String(f).padStart(3, "0")}${kind === "svg" ? ".svg" : kind === "dxf" ? ".dxf" : ".gcode"}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -2883,6 +2886,7 @@ export default function App() {
         <button style={toolBtn(histLens[1] > 0)} onClick={redo} title="Redo (Cmd/Ctrl+Shift+Z)">↷</button>
         <button style={toolBtn(lvl.nodes.length > 1)} onClick={tidyNodes} title="T — arrange nodes left→right by dataflow · 2+ selected: tidy only the selection">Tidy</button>
         <button style={toolBtn(true)} onClick={() => setCatalogOpen(true)} title="B — browse every node as a live thumbnail: deep search, category + tag filters, Surprise me">Catalog</button>
+        <button style={toolBtn(true)} onClick={() => setStackOpen(true)} title="S — 3D layer stack: preview frames or pens as stacked plexi/glass sheets">Stack</button>
         <div style={{ width: 1, height: 18, background: T.line }} />
         <input type="text" value={projName} onChange={(e) => setProjName(e.target.value)}
           title="Project name (used for filenames)"
@@ -2988,6 +2992,7 @@ export default function App() {
                 ["View", [
                   ["Space", "big preview on/off"],
                   ["T", "tidy nodes by dataflow"],
+                  ["S", "3D layer stack view"],
                   ["?", "this list"],
                 ]],
               ].map(([title, rows]) => (
@@ -3374,7 +3379,11 @@ export default function App() {
                               </div>
                             </div>
                           ) : (
-                            def.params.map((pd) => {
+                            def.params.filter((pd) => {
+                              if (typeof pd.showIf !== "function") return true;
+                              if (wiredParams.has(pd.key)) return true;
+                              try { return !!pd.showIf(node.params); } catch (e) { return true; }
+                            }).map((pd) => {
                               const isNum = pd.type === "slider" || pd.type === "number" || pd.type === "seed";
                               const pdE = (node.pmax && node.pmax[pd.key] != null) ? { ...pd, max: node.pmax[pd.key] } : pd;
                               return (
@@ -3413,7 +3422,7 @@ export default function App() {
                                     }
                                     const img = new Image();
                                     img.onload = () => {
-                                      const MAX = 160;
+                                      const MAX = Math.max(32, Math.min(1600, Math.round(def.imageMax || 160)));
                                       const sc = Math.min(1, MAX / Math.max(img.width, img.height));
                                       const w = Math.max(2, Math.round(img.width * sc));
                                       const h = Math.max(2, Math.round(img.height * sc));
@@ -3546,6 +3555,10 @@ export default function App() {
                 <button onClick={() => exportAllFrames("svg")} disabled={!primaryPS.paths.length}
                   style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                   SVG {"\u00D7"} {frameCount}
+                </button>
+                <button onClick={() => exportAllFrames("dxf")} disabled={!primaryPS.paths.length}
+                  style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
+                  DXF {"\u00D7"} {frameCount}
                 </button>
               </div>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
@@ -4039,7 +4052,7 @@ export default function App() {
               ["ANIMATION", [
                 "Set frame count in ANIMATE, add a Frame node (Math category), wire its outputs into any parameter.",
                 "t ramps 0\u21921 across frames; wave & ping-pong are seamless loops; frame # feeds Seeds for per-paper randomness.",
-                "\u25B6 previews the animation live. G-code \u00D7 N downloads one file per frame \u2014 plot each on its own paper, scan, assemble.",
+                "\u25B6 previews the animation live. G-code / SVG / DXF \u00D7 N downloads one file per frame \u2014 plot each on its own paper, scan, assemble.",
                 "Anything not wired to Frame is identical on every frame. Add Reg Marks for scan alignment.",
               ]],
               ["CUSTOM NODES", [
@@ -4069,6 +4082,32 @@ export default function App() {
       {catalogOpen && (
         <CatalogBrowser DEFS={DEFS} CATS={CATS} CATALOG={CATALOG} PENS={PENS} T={T} mono={mono} disp={disp}
           defaults={defaults} onAdd={(t) => addNode(t)} onClose={() => setCatalogOpen(false)} />
+      )}
+
+      {/* ---------- Stack View (3D layer stack) ---------- */}
+      {stackOpen && (
+        <StackView PENS={PENS} T={T} mono={mono} disp={disp} W={canvasW} H={canvasH}
+          frameCount={frameCount} primaryPS={primaryPS}
+          exportText={(kind, ps, ctxE) => kind === "svg" ? toSVG(ps, ctxE) : kind === "dxf" ? toDXF(ps, ctxE) : toGcode(ps, ctxE, prof)}
+          buildZip={buildZip} projName={projName} fontStrokes={fontStrokes}
+          evalFrame={(f, n) => {
+            if (!primaryNode) return EMPTY;
+            const ctxF = { W: canvasW, H: canvasH, frameIdx: f, frameCount: n };
+            let level = root, res = evalLevel(root, ctxF, null);
+            for (const gid of stack) {
+              const g = level.nodes.find((nd) => nd.id === gid);
+              if (!g || !g.data) break;
+              const gIns = g.data.bindings.map((b, k) => {
+                const e = level.edges.find((ed) => ed.to === g.id && ed.toPort === k);
+                return e ? (res.out[e.from] || [])[e.fromPort || 0] : undefined;
+              });
+              level = g.data;
+              res = evalLevel(level, ctxF, gIns);
+            }
+            const out = res.out[primaryNode.id];
+            return out && out[0] && out[0].paths ? out[0] : EMPTY;
+          }}
+          onClose={() => setStackOpen(false)} />
       )}
 
       {/* ---------- Pikahaku (G/M/D/C/X/N) ---------- */}
