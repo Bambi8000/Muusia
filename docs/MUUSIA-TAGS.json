@@ -677,6 +677,12 @@
   "terrain",
   "warp"
  ],
+ "morphlayers": [
+  "animation",
+  "combine",
+  "deform",
+  "stack"
+ ],
  "mountains": [
   "3d",
   "mesh",

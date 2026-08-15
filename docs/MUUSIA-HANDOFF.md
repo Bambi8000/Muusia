@@ -868,6 +868,38 @@ text are **English**.
   count clamp and determinism. Docs counts in this batch read from
   src/defs/nodes at patch run time, never from stale docs.
 
+- **2.64** Morph Layers node (the plexi stack family grows). NEW NODE
+  morphlayers (duo): inputs first/last, builds the in-between layers by
+  shape interpolation — Layers 2–12, Samples (per-path arc-length
+  resampling to a COMMON point count via a local resampleN, because the
+  resample helper takes a step in mm, not a count — contract read from
+  helpers.js first this time), Ease Linear/Smooth (endpoints stay exact).
+  Match modes: Split & merge (DEFAULT, added after the first lab test
+  showed nearest-centroid clumping on 3D Glitch cut lines — the fragment
+  side assigns to nearest targets and each target perimeter partitions
+  into consecutive arcs proportional to fragment lengths, ordered by
+  outline position, works both directions, degenerates to Nearest on
+  equal counts, fragment-less targets fall back to birth/death); Nearest
+  (centroid pairing + birth/death); By order (modulo index cycling). All
+  deterministic, no seed; closed 1:1 pairs align by start-index rotation
+  + direction reversal minimizing summed squared distance (kills lerp
+  twist); dead paths dropped when the bbox diagonal falls under 0.05 mm.
+  Output
+  Sheets = frame-domain (layer ctx.frameIdx only, cheap: one layer built
+  per eval, source pens kept); Output Pens = all layers at once, pen
+  (First pen + i) mod 12. tools/era/patch-stack-morph.mjs extends the
+  Stack View sheetsCount walk: a morphlayers node with Output "Sheets"
+  drives the sheet count with its Layers param (Pens mode never does).
+  Tags animation/combine/deform/stack. Validator
+  tools/validate-morphlayers.mjs (real helpers, lab/baked auto-switch,
+  paren-wrapped eval): bbox-exact endpoints, midpoint between, closed
+  handling, sample-count exactness, frame clamping, null-ctx, pen walk,
+  nearest-centroid vs input order, birth/death both directions,
+  EMPTY on missing/empty inputs, no mutation, determinism, finiteness,
+  Split & merge both directions (fragment count and cut structure kept at
+  both ends, arc lengths partition the full perimeter, mid layers free of
+  birth/death clumps), By order modulo — 42 checks.
+
 ## Hard-won pitfalls (keep)
 
 - Era-patch INSERTIONS can land inside the anchor's enclosing scope and stay

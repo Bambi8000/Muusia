@@ -1,6 +1,6 @@
-# MUUSIA v2.63 — Node Reference
+# MUUSIA v2.64 — Node Reference
 
-All 238 built-in nodes. Conventions used below: most generators accept a **Style**
+All 239 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
@@ -1163,7 +1163,7 @@ Satellite companion rings shape the look. The point budget is shared between
 input paths by arc length and an oversubscribed path thins evenly along its
 whole length — large radii never leave loops or tails blank.
 
-## Combiners (14)
+## Combiners (15)
 
 **Mask** *(deprecated — hidden from the palette since 2.40; old patches keep
 working)* — clips paths by closed mask shapes (keep inside/outside). Use
@@ -1246,6 +1246,22 @@ Stack View (S) auto-detects the node and stacks the wired inputs in 3D, and
 every per-frame export writes one file per sheet. Select Manual pins one
 sheet regardless of the frame. Each sheet keeps its full pen colors; unwired
 inputs yield an empty sheet.
+
+**Morph Layers** — in-between generator for layered plexi/glass stacks: wire
+the first and last compositions in and the node builds the missing layers by
+shape interpolation (Layers 2–12). Match picks the correspondence:
+*Split & merge* (default) is built for cut/fragmented geometry — the side
+with more paths assigns its fragments to the nearest target shapes, and each
+target's perimeter is partitioned into consecutive arcs proportional to the
+fragments' lengths, ordered by position along the outline, so glitch cuts
+morph smoothly into (and out of) whole shapes while keeping the cut
+structure; *Nearest* pairs by centroid and lets unpaired paths be born from /
+die into their own centroid (separate-blob scenes); *By order* cycles by
+index. Pairs resample to a common point count and closed 1:1 pairs align by
+start-index rotation + direction so the lerp does not twist. Output Sheets
+is frame-domain like the Sheets node (layer i on frame i, source pens kept,
+Stack View auto-detects the Layers count); Output Pens draws every layer at
+once with pen (First pen + i) mod 12. Ease Smooth slows both ends.
 
 ## Math (9)
 
