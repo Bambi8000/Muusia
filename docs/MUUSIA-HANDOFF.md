@@ -844,6 +844,30 @@ text are **English**.
   handles kind "dxf" via toDXF, a "DXF x N" button joins G-code/SVG in
   the panel, Help bullet updated (tools/era/patch-anim-dxf.mjs).
 
+- **2.63** Sheets node (phase 3 of the layered plexi/glass workflow — the
+  stack pipeline is complete). NEW NODE sheets (duo, Merge-shaped): N paths
+  inputs (count 2–12), passes through exactly ONE — the input whose index
+  equals ctx.frameIdx (clamped into the pin range) — so with ANIMATE
+  Frames = wired inputs every frame is one sheet; each sheet keeps its full
+  pen colors, unlike pens-as-sheets. Select Manual pins one sheet for
+  editing without touching ANIMATE; the ANIMATE scrubber flips sheets live
+  (frameIdx rides the main eval ctx). Unwired input → EMPTY. No randomness.
+  Tags animation/combine/stack — "stack" is a NEW vocabulary tag so the
+  deep search finds the node at tag weight for "stack" queries; the plural
+  "stacks" hits via the NODES.md paragraph at deep weight (word-start
+  matching: query must prefix-match the text, not vice versa).
+  Stack View auto-detect: tools/era/patch-stack-sheets.mjs injects a
+  sheetsCount prop (recursive graph scan incl. groups for type "sheets",
+  max distinct wired numeric toPorts — param wires "p:key" excluded);
+  when > 0 the overlay takes its sheet count from the node instead of the
+  ANIMATE frame count, labels switch frame→sheet and a hint shows the
+  wired-input count. Validator tools/validate-sheets.mjs uses the REAL
+  src/defs/helpers.js, auto-switches baked/lab, and covers pin-count
+  dynamics, frame/Manual selection, clamping both ways, null-ctx
+  tolerance, unwired→EMPTY, multi-pen passthrough without mutation,
+  count clamp and determinism. Docs counts in this batch read from
+  src/defs/nodes at patch run time, never from stale docs.
+
 ## Hard-won pitfalls (keep)
 
 - Era-patch INSERTIONS can land inside the anchor's enclosing scope and stay

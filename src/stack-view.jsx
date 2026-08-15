@@ -133,7 +133,7 @@ function drawSheet(canvas, ps, W, H, PENS, dispW, dispH) {
   return truncated;
 }
 
-export default function StackView({ PENS, T, mono, disp, W, H, frameCount, primaryPS, evalFrame, exportText, buildZip, projName, fontStrokes, onClose }) {
+export default function StackView({ PENS, T, mono, disp, W, H, frameCount, primaryPS, evalFrame, exportText, buildZip, projName, fontStrokes, sheetsCount, onClose }) {
   const [mode, setMode] = useState("frames");        /* "frames" | "pens" */
   const [frameSheets, setFrameSheets] = useState([]); /* [{ label, ps }] built lazily */
   const [gap, setGap] = useState(10);                 /* sheet spacing, mm */
@@ -158,7 +158,11 @@ export default function StackView({ PENS, T, mono, disp, W, H, frameCount, prima
   const canvasesRef = useRef(new Map());
   const [box, setBox] = useState({ w: 900, h: 640 });
 
-  const nFrames = Math.min(MAX_SHEETS, Math.max(1, frameCount || 1));
+  /* a Sheets node in the graph drives the sheet count (its wired inputs);
+     otherwise the ANIMATE frame count does */
+  const fromSheetsNode = (sheetsCount || 0) > 0;
+  const nFrames = Math.min(MAX_SHEETS, Math.max(1, (fromSheetsNode ? sheetsCount : frameCount) || 1));
+  const unit = fromSheetsNode ? "sheet" : "frame";
 
   /* --- ESC closes --- */
   useEffect(() => {
@@ -188,7 +192,7 @@ export default function StackView({ PENS, T, mono, disp, W, H, frameCount, prima
       if (!alive) return;
       let ps = { paths: [] };
       try { ps = evalFrame(f, nFrames) || { paths: [] }; } catch (err) { /* keep the overlay alive */ }
-      acc.push({ label: `frame ${f + 1}/${nFrames}`, ps });
+      acc.push({ label: `${unit} ${f + 1}/${nFrames}`, ps });
       setFrameSheets(acc.slice());
       if (f + 1 < nFrames) setTimeout(() => step(f + 1), 16);
     };
@@ -309,9 +313,13 @@ export default function StackView({ PENS, T, mono, disp, W, H, frameCount, prima
         style={{ flex: 1, background: bgCol, border: `1px solid ${T.line}`, borderRadius: 8, overflow: "hidden", cursor: dragRef.current ? "grabbing" : "grab", position: "relative" }}>
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", perspective: `${perspPx}px` }}>
           <div style={{ position: "relative", width: 0, height: 0, transformStyle: "preserve-3d", transform: `rotateX(${rot.pitch}deg) rotateY(${rot.yaw}deg)` }}>
-            {sheets.map((s, i) => hidden.has(i) ? null : (
+            {sheets.map((s, i) => (
               <div key={`${mode}-${i}`}
                 style={{
+                  /* hide via display, never unmount: an unmounted canvas
+                     comes back BLANK because the draw effect's deps don't
+                     include visibility (regression: sheet checkbox) */
+                  display: hidden.has(i) ? "none" : "block",
                   position: "absolute", left: -dispW / 2, top: -dispH / 2, width: dispW, height: dispH,
                   transform: `translateZ(${sheetZ(i, sheets.length, gap, reverse) * pxPerMm}px)`,
                   background: plexi ? "rgba(168,212,200,0.055)" : "transparent",
@@ -349,7 +357,10 @@ export default function StackView({ PENS, T, mono, disp, W, H, frameCount, prima
             <button style={{ ...btn(mode === "pens"), flex: 1 }} onClick={() => setMode("pens")}
               title="Splits the selected node's output by pen — each used pen is one sheet">Pens</button>
           </div>
-          {mode === "frames" && frameCount > MAX_SHEETS && (
+          {mode === "frames" && fromSheetsNode && (
+            <div style={{ fontSize: 9, color: T.dim, marginTop: 4 }}>sheet count from the Sheets node: {nFrames} wired input{nFrames === 1 ? "" : "s"}</div>
+          )}
+          {mode === "frames" && !fromSheetsNode && frameCount > MAX_SHEETS && (
             <div style={{ fontSize: 9, color: T.dim, marginTop: 4 }}>frame count {frameCount} capped to {MAX_SHEETS} sheets</div>
           )}
         </div>

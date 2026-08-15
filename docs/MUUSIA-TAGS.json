@@ -1022,6 +1022,11 @@
  "shaper": [
   "math"
  ],
+ "sheets": [
+  "animation",
+  "combine",
+  "stack"
+ ],
  "simplify": [
   "pathops"
  ],

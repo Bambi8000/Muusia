@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (237 files, generated)
+# MUUSIA v2.29 — Node Sources (238 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -2789,22 +2789,22 @@ export default {
   outs: [Pin("paths")],
   params: [
     { key: "layout", label: "Layout", type: "select", options: ["Grid", "Single", "Press sheet", "Ring", "Border", "Scatter"], def: "Grid" },
-    { key: "single", label: "Single mark", type: "select", options: ["Crosshair target", "Bullseye", "Star target", "Tombo center", "Tombo corner", "Crop marks", "Color bar", "Ladder gauge", "Eye marks", "Quartered target", "Micro cross", "Collation steps", "Scale cross"], def: "Crosshair target" },
-    { key: "mCross", label: "Crosshair target", type: "check", def: true },
-    { key: "mBull", label: "Bullseye", type: "check", def: true },
-    { key: "mStar", label: "Star target", type: "check", def: true },
-    { key: "mTomboC", label: "Tombo center", type: "check", def: true },
-    { key: "mTomboK", label: "Tombo corner", type: "check", def: true },
-    { key: "mCrop", label: "Crop marks", type: "check", def: true },
-    { key: "mBar", label: "Color bar", type: "check", def: true },
-    { key: "mLadder", label: "Ladder gauge", type: "check", def: true },
-    { key: "mEye", label: "Eye marks", type: "check", def: true },
-    { key: "mQuart", label: "Quartered target", type: "check", def: true },
-    { key: "mMicro", label: "Micro cross", type: "check", def: true },
-    { key: "mSteps", label: "Collation steps", type: "check", def: true },
-    { key: "mScale", label: "Scale cross", type: "check", def: true },
+    { key: "single", label: "Single mark", type: "select", options: ["Crosshair target", "Bullseye", "Star target", "Tombo center", "Tombo corner", "Crop marks", "Color bar", "Ladder gauge", "Eye marks", "Quartered target", "Micro cross", "Collation steps", "Scale cross"], def: "Crosshair target", showIf: (p) => p.layout === "Single" },
+    { key: "mCross", label: "Crosshair target", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mBull", label: "Bullseye", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mStar", label: "Star target", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mTomboC", label: "Tombo center", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mTomboK", label: "Tombo corner", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mCrop", label: "Crop marks", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mBar", label: "Color bar", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mLadder", label: "Ladder gauge", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mEye", label: "Eye marks", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mQuart", label: "Quartered target", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mMicro", label: "Micro cross", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mSteps", label: "Collation steps", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
+    { key: "mScale", label: "Scale cross", type: "check", def: true, showIf: (p) => p.layout !== "Single" },
     { key: "size", label: "Mark size", type: "slider", min: 4, max: 40, step: 0.5, def: 12 },
-    { key: "count", label: "Count", type: "slider", min: 1, max: 60, step: 1, def: 14 },
+    { key: "count", label: "Count", type: "slider", min: 1, max: 60, step: 1, def: 14, showIf: (p) => p.layout !== "Single" && p.layout !== "Press sheet" },
     { key: "margin", label: "Margin", type: "slider", min: 4, max: 60, step: 0.5, def: 16 },
     { key: "misreg", label: "Misregistration", type: "slider", min: 0, max: 8, step: 0.05, def: 0.8 },
     { key: "wobble", label: "Wobble", type: "slider", min: 0, max: 5, step: 0.05, def: 0 },
@@ -10377,7 +10377,8 @@ export default {
   cat: "gen",
   group: "textimg",
   fileImage: true,
-  desc: "Loads a photo and separates it into classic CMYK halftone screens, each plate drawn with its own pen at its own screen angle - the standard 15/75/0/45 rosette by default. Dot style picks the plotter rendering: Dots (single circles sized by density), Rings (concentric circles), Spiral (ink-coverage spirals), or Dashes (a cheap line screen, best for large sheets). Print-defect controls make it art: Misregistration shifts each plate in a seeded direction, Plate skew rotates plates slightly, Dot gain fattens every dot like an over-inked press, Doubling prints each dot twice with a ghost offset (slur), and Ink noise adds per-dot density jitter. Angles set to Standard is a one-click reset that ignores the four angle sliders; switch to Custom to steer them (equal angles on two plates = instant moire). Black (GCR) controls how much gray is pulled into the K plate. Cell is the raster pitch in mm - raise it if the point budget truncates (plates draw K first, so a truncation eats yellow, not black). Needs an app build that stores RGB in the image intake; photos loaded with an older build fall back to a grayscale K-only separation until re-loaded.",
+  imageMax: 480,
+  desc: "Loads a photo and separates it into classic CMYK halftone screens, each plate drawn with its own pen at its own screen angle - the standard 15/75/0/45 rosette by default. Dot style picks the plotter rendering: Dots (single circles sized by density), Rings (concentric circles), Spiral (ink-coverage spirals), or Dashes (a cheap line screen, best for large sheets). Print-defect controls make it art: Misregistration shifts each plate in a seeded direction, Plate skew rotates plates slightly, Dot gain fattens every dot like an over-inked press, Doubling prints each dot twice with a ghost offset (slur), and Ink noise adds per-dot density jitter. Angles set to Standard is a one-click reset that ignores the four angle sliders; switch to Custom to steer them (equal angles on two plates = instant moire). Black (GCR) controls how much gray is pulled into the K plate. Cell is the raster pitch in mm - raise it if the point budget truncates (plates draw K first, so a truncation eats yellow, not black). This node opts into a 480 px image intake (other fileImage nodes keep the 160 px default, so their output is unchanged). Needs an app build that stores RGB in the image intake; photos loaded with an older build fall back to a grayscale K-only separation until re-loaded.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
@@ -10389,10 +10390,10 @@ export default {
     { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.08 },
     { key: "black", label: "Black (GCR)", type: "slider", min: 0, max: 1, step: 0.05, def: 1 },
     { key: "angles", label: "Angles", type: "select", options: ["Standard (15/75/0/45)", "Custom"], def: "Standard (15/75/0/45)" },
-    { key: "angC", label: "Cyan angle", type: "slider", min: 0, max: 90, step: 0.5, def: 15 },
-    { key: "angM", label: "Magenta angle", type: "slider", min: 0, max: 90, step: 0.5, def: 75 },
-    { key: "angY", label: "Yellow angle", type: "slider", min: 0, max: 90, step: 0.5, def: 0 },
-    { key: "angK", label: "Black angle", type: "slider", min: 0, max: 90, step: 0.5, def: 45 },
+    { key: "angC", label: "Cyan angle", type: "slider", min: 0, max: 90, step: 0.5, def: 15, showIf: (p) => p.angles === "Custom" },
+    { key: "angM", label: "Magenta angle", type: "slider", min: 0, max: 90, step: 0.5, def: 75, showIf: (p) => p.angles === "Custom" },
+    { key: "angY", label: "Yellow angle", type: "slider", min: 0, max: 90, step: 0.5, def: 0, showIf: (p) => p.angles === "Custom" },
+    { key: "angK", label: "Black angle", type: "slider", min: 0, max: 90, step: 0.5, def: 45, showIf: (p) => p.angles === "Custom" },
     { key: "misreg", label: "Misregistration", type: "slider", min: 0, max: 8, step: 0.05, def: 0.6 },
     { key: "skew", label: "Plate skew deg", type: "slider", min: 0, max: 3, step: 0.05, def: 0 },
     { key: "dotgain", label: "Dot gain", type: "slider", min: 0.5, max: 2, step: 0.05, def: 1 },
@@ -23389,6 +23390,57 @@ export default {
       }
     }
   
+};
+```
+
+## sheets.js
+
+```js
+import { Pin, EMPTY } from "../helpers.js";
+
+export default {
+  /* Sheets — frame-domain sheet selector for layered plexi/glass pieces.
+   *
+   * Merge-shaped: N paths inputs, but instead of combining them it passes
+   * through EXACTLY ONE — the input whose index equals the current animation
+   * frame. Set ANIMATE Frames = the wired input count and every frame becomes
+   * one sheet: the ANIMATE scrubber flips through sheets in the editor, the
+   * Stack View overlay (S) shows them stacked in 3D (it auto-detects this
+   * node and takes the sheet count from the wired inputs), and every
+   * per-frame export (SVG/DXF/G-code x N, Stack View ZIP) writes one file
+   * per sheet.
+   *
+   * Select "Manual" pins the output to one sheet regardless of the frame —
+   * handy when tuning a single sheet without touching ANIMATE.
+   *
+   * Each sheet keeps its full pen colors: unlike pens-as-sheets, one sheet
+   * here can be a complete multi-pen composition. Unwired inputs yield an
+   * empty sheet. No randomness — nothing to seed.
+   */
+
+  key: "sheets",
+  name: "Sheets", cat: "duo",
+  ins: (node) => Array.from(
+    { length: (node && node.params && Math.round(node.params.count)) || 4 },
+    (_, i) => Pin("paths", "sheet " + (i + 1))
+  ),
+  outs: [Pin("paths")],
+  params: [
+    { key: "count", label: "Sheets", type: "slider", min: 2, max: 12, step: 1, def: 4 },
+    { key: "select", label: "Select", type: "select", options: ["Frame", "Manual"], def: "Frame" },
+    { key: "manual", label: "Manual sheet #", type: "slider", min: 1, max: 12, step: 1, def: 1 },
+  ],
+  compute(ins, p, ctx) {
+    const n = Math.max(2, Math.min(12, Math.round(p.count) || 4));
+    /* Frame mode follows the animation clock (and the ANIMATE scrubber in
+       the editor); Manual pins one sheet. Both clamp into the pin range. */
+    let idx = p.select === "Manual"
+      ? Math.round(p.manual) - 1
+      : ((ctx && ctx.frameIdx) || 0);
+    idx = Math.min(n - 1, Math.max(0, idx));
+    const src = ins[idx];
+    return src && src.paths ? { paths: src.paths } : EMPTY;
+  },
 };
 ```
 

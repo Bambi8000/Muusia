@@ -993,7 +993,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.62"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.63"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -4090,6 +4090,7 @@ export default function App() {
           frameCount={frameCount} primaryPS={primaryPS}
           exportText={(kind, ps, ctxE) => kind === "svg" ? toSVG(ps, ctxE) : kind === "dxf" ? toDXF(ps, ctxE) : toGcode(ps, ctxE, prof)}
           buildZip={buildZip} projName={projName} fontStrokes={fontStrokes}
+          sheetsCount={(() => { let m = 0; const walk = (g) => { for (const nd of g.nodes) { if (nd.type === "sheets") { const c = new Set(g.edges.filter((ed) => ed.to === nd.id && typeof ed.toPort === "number").map((ed) => ed.toPort)).size; if (c > m) m = c; } if (nd.type === "group" && nd.data) walk(nd.data); } }; walk(root); return m; })()}
           evalFrame={(f, n) => {
             if (!primaryNode) return EMPTY;
             const ctxF = { W: canvasW, H: canvasH, frameIdx: f, frameCount: n };

@@ -1,6 +1,6 @@
-# MUUSIA v2.61 — Node Reference
+# MUUSIA v2.63 — Node Reference
 
-All 237 built-in nodes. Conventions used below: most generators accept a **Style**
+All 238 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
@@ -1163,7 +1163,7 @@ Satellite companion rings shape the look. The point budget is shared between
 input paths by arc length and an oversubscribed path thins evenly along its
 whole length — large radii never leave loops or tails blank.
 
-## Combiners (13)
+## Combiners (14)
 
 **Mask** *(deprecated — hidden from the palette since 2.40; old patches keep
 working)* — clips paths by closed mask shapes (keep inside/outside). Use
@@ -1237,6 +1237,15 @@ to the Diff pen. Feed a sprig to Original and the same sprig through Fur to
 Modified — the sprig stays one color, the fur gets another. Exact match is fast
 for add-only modifiers; Distance match tolerates wobble and splits (Hand Drawn)
 within the tolerance.
+
+**Sheets** — frame-domain sheet selector for layered plexi/glass pieces:
+Merge-shaped inputs, but exactly ONE passes through — the input whose index
+equals the current animation frame. Set ANIMATE Frames = wired inputs and
+every frame is one sheet: the scrubber flips through sheets in the editor,
+Stack View (S) auto-detects the node and stacks the wired inputs in 3D, and
+every per-frame export writes one file per sheet. Select Manual pins one
+sheet regardless of the frame. Each sheet keeps its full pen colors; unwired
+inputs yield an empty sheet.
 
 ## Math (9)
 
