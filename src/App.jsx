@@ -28,13 +28,13 @@ const T = {
   bg: "#171A20", panel: "#1E222B", panel2: "#232834", line: "#2C3240",
   text: "#CBD1DE", dim: "#828BA0", accent: "#5B8DEF",
   paper: "#F6F2E7", paperLine: "#E4DECE", group: "#E0B341",
-  value: "#45C4A0", style: "#B07CE8",
+  value: "#45C4A0", style: "#B07CE8", terra: "#D98A5B",
 };
 
 const mono = "'IBM Plex Mono','SFMono-Regular',Consolas,monospace";
 const disp = "'Space Grotesk','Segoe UI',sans-serif";
 
-const TYPE_COLOR = { paths: T.accent, value: T.value, style: T.style };
+const TYPE_COLOR = { paths: T.accent, value: T.value, style: T.style, mesh: T.terra };
 
 /* ---------- RNG + noise ---------- */
 
@@ -434,6 +434,7 @@ function numericParams(node) {
 function defaultFor(type) {
   if (type === "value") return 0;
   if (type === "style") return SOLID_STYLE;
+  if (type === "mesh") return null;
   return EMPTY;
 }
 function evalLevel(level, ctx, boundIns) {
@@ -993,7 +994,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.65"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.66"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;

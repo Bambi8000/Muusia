@@ -113,10 +113,39 @@ but the picker itself comes from a `type: "file"` param row in `params`. Declare
 both, or the node loads nothing and gives no clue why — validators should assert
 the param exists rather than trusting the definition fields.
 
-**Pins:** create with `Pin(type, label?)` where type is `"paths"`, `"value"`, or
-`"style"`. Only equal types connect. Examples:
+**Pins:** create with `Pin(type, label?)` where type is `"paths"`, `"value"`,
+`"style"` or `"mesh"`. Only equal types connect. Examples:
 `ins: [Pin("paths", "Target"), Pin("paths", "Mask")]`,
 `outs: (node) => Array.from({length: Math.round(node.params.count)}, (_, i) => Pin("paths", String(i+1)))`.
+
+### The `"mesh"` pin (v2.66)
+
+The fourth pin type carries a triangle mesh between nodes, so a generator can
+feed a consumer directly instead of the user exporting an STL and loading it
+back. Blob Mesh produces one, Mesh Slice consumes one.
+
+The payload is a plain object and **both ends must agree on it**:
+
+```js
+{ kind: "mesh", tri: <triangle count>, v: [x,y,z, x,y,z, x,y,z, ...], dims: [dx,dy,dz] }
+```
+
+- `v` is flat, 9 numbers per triangle, `v.length === tri * 9`.
+- **Normalised at the source:** centred on the origin and scaled so the longest
+  dimension is exactly 1, with coordinates rounded to 1e-4. `dims` holds the
+  resulting proportions (its largest entry is 1). The consumer decides real-world
+  size in mm. An STL loaded from disk is normalised the same way at intake, so a
+  wired mesh and an imported file slice identically — do not skip this or the two
+  paths will disagree about scale with no visible error.
+- The mesh is **not paths**: it never reaches the canvas, the exporters or the
+  route optimiser. A node whose port 0 is a mesh will preview as blank, so put a
+  paths output first when the node should show itself (Blob Mesh outputs
+  Wireframe, Silhouette, then Mesh).
+- `defaultFor("mesh")` is `null`, so an unconnected mesh input arrives as `null`.
+  Guard with `ins[i] && ins[i].kind === "mesh"` — an EMPTY `{paths:[]}` can also
+  turn up if something else is wired in by mistake.
+- Adding a pin type means adding a `TYPE_COLOR` entry in App.jsx: the port dot
+  reads `TYPE_COLOR[pin.type]` with no fallback and renders invisible without one.
 
 ## 4. Parameter UI types
 

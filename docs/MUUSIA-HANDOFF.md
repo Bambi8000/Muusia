@@ -24,6 +24,11 @@ text are **English**.
   animation, help. Beginner examples moved to `src/examples.js` (loadExample
   injects `defaults` and honors an optional per-example `canvas:{W,H}`).
   Also hosts the two engine-bound DEFS entries: `group`, `reititys`.
+- **Pin types are a closed set of four:** `paths`, `value`, `style`, `mesh`
+  (`mesh` added 2.66). finishWire compares the type strings, so a new type
+  refuses wrong connections for free — but it also needs a `TYPE_COLOR` entry
+  (the port dot reads it with no fallback and renders invisible without one)
+  and a `defaultFor` branch. Mesh payload contract in MUUSIA-NODE-API.md.
 - `src/defs/helpers.js` — shared node helpers: `Pin, EMPTY, PENS (+PENS_DEFAULT,
   savePens, resetPens), mulberry32, hash2, noise2, resample, pathLength, applyStyle,
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
@@ -952,6 +957,45 @@ text are **English**.
   long runs arrived incomplete) with a percentage readout on the xN
   buttons, and tools/era/patch-stack-max48.mjs raises the Stack View sheet
   cap from 12 to 48.
+- **2.66** Blob Mesh + a fourth pin type (generated geometry can now
+  reach Mesh Slice without an STL round-trip). NEW PIN TYPE `mesh` via
+  tools/era/patch-mesh-pin.mjs: finishWire already compares type strings so
+  the connection rules needed nothing, but TYPE_COLOR did (the port dot reads
+  `TYPE_COLOR[pin.type]` with NO fallback, so an undocumented type renders as
+  an invisible circle) plus a `defaultFor` -> null branch. Payload
+  `{ kind:"mesh", tri, v, dims }`, flat 9-per-triangle, centred and scaled to a
+  unit longest dimension at the SOURCE so a wired mesh and an imported STL
+  slice identically. tools/era/patch-meshslice-input.mjs adds Mesh at ins
+  index 1 (after Style, so existing Style wires keep their port number); the
+  wire wins over a loaded file and unplugging falls back to it. NEW GEN
+  blobmesh (structural): body = 1-5 metaballs fused with a polynomial
+  smooth-min, surface found by marching each ray and bisecting the OUTERMOST
+  crossing — the naive inside-out bisection broke as soon as manual placement
+  put the origin outside the union, so the sampling origin is the
+  radius-weighted centroid of the ball centres. Placement Seeded or Manual
+  (X/Y/Z + size per ball, seed ignored). Profile presets or wired paths, read
+  as Cross-section (DEFAULT) or Vertical profile — the first release only had
+  the vertical reading and a wired Superformula star therefore looked ignored,
+  which is also how the second bug surfaced: the profile was mapped against a
+  guessed height (`rz * 1.05`) instead of the real one, so Ball size 120%
+  pushed the ends past the table and flattened them. Now two-pass: measure the
+  Z extent, then apply profile/taper/twist against it. Surface distortion =
+  seam-free fBm (three noise2 lookups on the direction vector, never on
+  theta/phi, which would seam at 0/2pi) + angular lobes + vertical waves.
+  Outputs Wireframe, Silhouette, Mesh in that order because the engine
+  previews port 0 and a mesh there renders blank; the silhouette is real
+  (front-face/back-face edge pairs chained), not a projected hull. Tags
+  3d/mesh/noise/organic/structural. Validator tools/validate-blobmesh.mjs
+  (113 checks): mesh contract (v.length === tri*9, unit normalisation,
+  centring, 1e-4 rounding, S*(2R-2) triangle count), sphere/oval ratios,
+  every profile option, cross-section vs vertical readings, Profile amount 0
+  proven to be a true no-op, Hourglass pinch at ball size 120%, per-ball
+  XYZ/size liveness, balls pulled fully apart, lobe/wave/noise liveness,
+  wireframe ring+meridian counts, silhouette within the outline, view angle
+  NOT affecting the mesh, budget at 128x128, extremes, and a live handshake
+  slicing the generated mesh through the baked Mesh Slice. Mesh Slice
+  validator grew to 169 (wired mesh precedence, fallback, EMPTY and garbage
+  on the pin).
 
 ## Hard-won pitfalls (keep)
 

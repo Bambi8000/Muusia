@@ -50,6 +50,13 @@
   "grid",
   "repeat"
  ],
+ "blobmesh": [
+  "3d",
+  "mesh",
+  "noise",
+  "organic",
+  "structural"
+ ],
  "blobrings": [
   "connect",
   "dots",

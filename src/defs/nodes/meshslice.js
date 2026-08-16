@@ -15,8 +15,8 @@ export default {
   fileBinary: true,
   fileLabel: "Load STL\u2026",
   fileAccept: ".stl,model/stl,application/sla,application/octet-stream",
-  desc: "Slices an imported STL mesh into flat sheet contours for building layered objects (lamps, sculptures) from cardboard or plexi. Load a binary or ASCII STL (max 120k triangles \u2014 decimate bigger meshes in Blender first); the model is centered and scaled so its longest dimension equals Size mm, rotated by Rot X/Y/Z, then cut by horizontal planes at each sheet's mid-height. Slice by Count or by real Sheet thickness. CUTTING outputs are always true scale and never fitted: Single slice, Frames (ANIMATE) (one slice per frame), Grid layout (the whole run tiled from the bed corner, columns fitted between the Bed margins, overflowing downwards when the run is long) and Grid pages (ANIMATE) (the same tiling split into canvas-sized pages, one page per frame, each labelled P n/total \u2014 set the ANIMATE frame count to the page count and use SVG \u00d7N / DXF \u00d7N to get the whole job as one zip). PREVIEW outputs are scaled to fit and marked PREVIEW NOT TO SCALE: Contact sheet shows every sheet shrunk onto one canvas so the negative primitives can be judged across the whole run without touching Size, and Isometric stack projects the real sliced geometry as a 3D stack (View angle, View elevation, Layer spacing \u00d7 for an exploded view). Preview every Nth sheet thins dense runs, and preview sampling coarsens automatically so no sheet is ever dropped. All contours overlays every contour in place, a topographic drawing. Up to 3 negative primitives (Sphere/Cube/Dodecahedron, position and size in % of Size) carve the interior; where a primitive breaks the outer surface the shell opens into a window. Rod holes adds 1\u20134 threaded-rod clearance holes (ISO medium fit) on every sheet, on a ring or placed by hand \u2014 a hole vanishes on sheets where there is no material under it, so check All contours for the common core before choosing the ring radius. Contour step is the sampling resolution in mm.",
-  ins: [Pin("style", "Style")],
+  desc: "Slices an imported STL mesh into flat sheet contours for building layered objects (lamps, sculptures) from cardboard or plexi. Wire a mesh generator such as Blob Mesh into the Mesh input, or load a binary or ASCII STL (max 120k triangles \u2014 decimate bigger meshes in Blender first); the model is centered and scaled so its longest dimension equals Size mm, rotated by Rot X/Y/Z, then cut by horizontal planes at each sheet's mid-height. Slice by Count or by real Sheet thickness. CUTTING outputs are always true scale and never fitted: Single slice, Frames (ANIMATE) (one slice per frame), Grid layout (the whole run tiled from the bed corner, columns fitted between the Bed margins, overflowing downwards when the run is long) and Grid pages (ANIMATE) (the same tiling split into canvas-sized pages, one page per frame, each labelled P n/total \u2014 set the ANIMATE frame count to the page count and use SVG \u00d7N / DXF \u00d7N to get the whole job as one zip). PREVIEW outputs are scaled to fit and marked PREVIEW NOT TO SCALE: Contact sheet shows every sheet shrunk onto one canvas so the negative primitives can be judged across the whole run without touching Size, and Isometric stack projects the real sliced geometry as a 3D stack (View angle, View elevation, Layer spacing \u00d7 for an exploded view). Preview every Nth sheet thins dense runs, and preview sampling coarsens automatically so no sheet is ever dropped. All contours overlays every contour in place, a topographic drawing. Up to 3 negative primitives (Sphere/Cube/Dodecahedron, position and size in % of Size) carve the interior; where a primitive breaks the outer surface the shell opens into a window. Rod holes adds 1\u20134 threaded-rod clearance holes (ISO medium fit) on every sheet, on a ring or placed by hand \u2014 a hole vanishes on sheets where there is no material under it, so check All contours for the common core before choosing the ring radius. Contour step is the sampling resolution in mm.",
+  ins: [Pin("style", "Style"), Pin("mesh", "Mesh")],
   outs: [Pin("paths")],
   params: [
     { key: "file", label: "STL file", type: "file", def: "" },
@@ -133,7 +133,7 @@ export default {
       const g = [];
       const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
       const size = Math.max(5, Math.min(2000, +p.size || 160));
-      const mesh = node && node.data && node.data.svg && node.data.svg.kind === "mesh" ? node.data.svg : null;
+      const mesh = ins && ins[1] && ins[1].kind === "mesh" ? ins[1] : (node && node.data && node.data.svg && node.data.svg.kind === "mesh" ? node.data.svg : null);
       let bw = size, bh = size;
       if (mesh && mesh.v && mesh.v.length >= 9) {
         const rx = ((+p.rotX || 0) * Math.PI) / 180, ry = ((+p.rotY || 0) * Math.PI) / 180, rz = ((+p.rotZ || 0) * Math.PI) / 180;
@@ -210,7 +210,7 @@ export default {
     }
   },
   compute(ins, p, ctx, node) {
-    const mesh = node && node.data && node.data.svg && node.data.svg.kind === "mesh" ? node.data.svg : null;
+    const mesh = ins && ins[1] && ins[1].kind === "mesh" ? ins[1] : (node && node.data && node.data.svg && node.data.svg.kind === "mesh" ? node.data.svg : null);
     if (!mesh || !mesh.v || mesh.v.length < 9 || mesh.v.length % 9 !== 0) return applyStyle({ paths: [] }, ins[0]);
     const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
     const size = Math.max(5, Math.min(2000, +p.size || 160));

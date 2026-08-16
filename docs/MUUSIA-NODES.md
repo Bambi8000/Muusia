@@ -1,13 +1,13 @@
-# MUUSIA v2.65 — Node Reference
+# MUUSIA v2.66 — Node Reference
 
-All 242 built-in nodes. Conventions used below: most generators accept a **Style**
+All 243 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (141)
+## Generators (142)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -220,8 +220,33 @@ feed a Ribbon or Tracks ring to get curved measuring tape.
 silhouette ("Profile"), or both. Shed shapes: *Skirt* (the ceramic high-voltage
 insulator default), round wave, sharp zigzag; view tilt; ends taper automatically.
 
+**Blob Mesh** — a procedural 3D blob built to be sliced, wired straight into
+Mesh Slice with no STL round-trip. The body is 1-5 metaballs fused by a
+smooth-min union and solved as a star-shaped radius per direction, so
+overlapping balls melt into one swollen mass instead of reading as separate
+spheres; *Blend* sets how far they melt (0 leaves a hard crease). Placement is
+*Seeded* (Spread, Size variation, shuffled by the seed) or *Manual*, which
+exposes X/Y/Z and size per ball — drag a ball outwards and the surface stretches
+into a lobe behind it, the direct way to sculpt something asymmetric. *Radius
+X/Y/Z* squashes round to oval. *Profile* reshapes further: presets (Egg, Pear,
+Hourglass, Barrel, Teardrop) or any paths wired into the **Profile** input, read
+either as a *Cross-section* (the outline becomes the horizontal shape — wire a
+Superformula star and the blob goes star-shaped in plan) or as a *Vertical
+profile* (half-width as radius per height, the Sweep 3D convention); *Profile
+amount* blends it in, and at 0 the profile does nothing at all. Surface
+distortion is three seeded layers: fBm noise along the normal, angular *Lobes*
+and *Vertical waves*, finished with *Twist* and *Taper*. Outputs **Wireframe**
+(ring/meridian cage at View angle/elevation, no hidden-line removal, every Nth
+line), **Silhouette** (the true outline — edges where a front face meets a back
+face, chained, so interior folds appear too) and **Mesh** for Mesh Slice. The
+mesh is centred and normalised exactly like an imported STL, so both sources
+slice identically. Keep Rings x Segments low while sculpting and raise it before
+slicing.
+
 **Mesh Slice** — imports an STL and cuts it into flat sheet contours for
-building a layered object (lamp, sculpture) out of cardboard or plexi. Binary
+building a layered object (lamp, sculpture) out of cardboard or plexi. Takes geometry from either
+source: a mesh wired into the **Mesh** input (Blob Mesh, or any future mesh
+generator) wins, and unplugging it falls back to the loaded file. Binary
 and ASCII STL, up to 120k triangles (decimate larger meshes first); the model
 is centred, scaled so its longest dimension is *Size*, rotated by *Rot X/Y/Z*,
 then sliced by horizontal planes at each sheet's mid-height — *Slice by* Count
