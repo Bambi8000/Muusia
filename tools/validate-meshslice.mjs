@@ -89,7 +89,7 @@ const nodeOf = (d) => ({ data: { svg: d } });
 const CTX = { W: 297, H: 210 };
 const P0 = {};
 for (const pr of def.params) P0[pr.key] = pr.def;
-const run = (over, node, ctx) => def.compute([undefined], { ...P0, ...over }, ctx === undefined ? CTX : ctx, node === undefined ? nodeOf(cubeData) : node);
+const run = (over, node, ctx) => def.compute([undefined, undefined], { ...P0, ...over }, ctx === undefined ? CTX : ctx, node === undefined ? nodeOf(cubeData) : node);
 const allPts = (r) => r.paths.flatMap((q) => q.pts);
 const totPts = (r) => r.paths.reduce((a, q) => a + q.pts.length, 0);
 const finite = (r) => allPts(r).every((q) => isFinite(q[0]) && isFinite(q[1]));
@@ -148,7 +148,7 @@ ok("frames idx 11 == single slice 12", J(fr3.paths) === J(single.paths));
 const frBig = run({ mode: "Frames (ANIMATE)", slices: 24, size: 100 }, undefined, { W: 297, H: 210, frameIdx: 999 });
 const last = run({ mode: "Single slice", slice: 24, slices: 24, size: 100 });
 ok("frameIdx clamps to last slice", J(frBig.paths) === J(last.paths));
-const frNull = def.compute([undefined], { ...P0, mode: "Frames (ANIMATE)", size: 100 }, null, nodeOf(cubeData));
+const frNull = def.compute([undefined, undefined], { ...P0, mode: "Frames (ANIMATE)", size: 100 }, null, nodeOf(cubeData));
 ok("null ctx tolerated (slice 0)", frNull.paths.length >= 1 && finite(frNull));
 
 /* ---------- 5. determinism + no mutation ---------- */
@@ -222,7 +222,7 @@ ok("gridCols live", J(cols3) !== J(cols2));
 
 /* ---------- 8b. grid pages ---------- */
 const PG = { mode: "Grid pages (ANIMATE)", slices: 50, size: 60, gridGap: 5, bedMargin: 10, gridNum: false };
-const pg = (f) => def.compute([undefined], { ...P0, ...PG }, { W: 297, H: 210, frameIdx: f }, nodeOf(cubeData));
+const pg = (f) => def.compute([undefined, undefined], { ...P0, ...PG }, { W: 297, H: 210, frameIdx: f }, nodeOf(cubeData));
 const p0 = pg(0), p1 = pg(1);
 const cellsOf = (r) => r.paths.filter((q) => q.closed).length;
 ok("pages: 297x210 bed, 60mm sheets -> 4x3 = 12 per page", cellsOf(p0) === 12);
@@ -236,7 +236,7 @@ ok("pages: frameIdx clamps past the last page", J(pg(99)) === J(pLast));
 let seen = 0;
 for (let f = 0; f < 5; f++) seen += cellsOf(pg(f));
 ok("pages: 5 pages cover all 50 sheets exactly", seen === 50);
-const pgN = def.compute([undefined], { ...P0, ...PG, gridNum: true, markPen: 2 }, { W: 297, H: 210, frameIdx: 1 }, nodeOf(cubeData));
+const pgN = def.compute([undefined, undefined], { ...P0, ...PG, gridNum: true, markPen: 2 }, { W: 297, H: 210, frameIdx: 1 }, nodeOf(cubeData));
 ok("pages: page header + sheet numbers on mark pen", pgN.paths.filter((q) => q.layer === 2).length > 12);
 const gl = run({ mode: "Grid layout", slices: 50, size: 60, gridGap: 5, bedMargin: 10, gridNum: false });
 ok("Grid layout: still emits the whole run (50)", cellsOf(gl) === 50);
@@ -302,19 +302,45 @@ const csN = run({ ...PREV, mode: "Contact sheet (preview)", gridNum: true, markP
 ok("contact sheet numbers on mark pen", csN.paths.some((q) => q.layer === 4));
 ok("preview modes stay within budget", totPts(iso) <= 120000 && totPts(cs) <= 120000);
 
+/* ---------- 8e. wired mesh input (v2.66 mesh pin) ---------- */
+const meshPin = def.ins.find((q) => q.type === "mesh");
+ok("Mesh input pin declared", !!meshPin);
+ok("Mesh pin sits at index 1 so Style keeps index 0", def.ins[0].type === "style" && def.ins[1] && def.ins[1].type === "mesh");
+const wireRun = (over, wired, node, ctx) =>
+  def.compute([undefined, wired], { ...P0, ...over }, ctx === undefined ? CTX : ctx, node === undefined ? nodeOf(cubeData) : node);
+const SING = { mode: "Single slice", slice: 12, slices: 24, size: 100 };
+const fromFile = run(SING);
+const fromWire = wireRun(SING, cubeData, { data: {} });
+ok("wired mesh slices with no file loaded", J(fromWire.paths) === J(fromFile.paths));
+const wiredBox = wireRun(SING, boxData, nodeOf(cubeData));
+ok("wired mesh WINS over a loaded file", J(wiredBox.paths) !== J(fromFile.paths));
+ok("unplugging falls back to the loaded file", J(wireRun(SING, undefined, nodeOf(cubeData)).paths) === J(fromFile.paths));
+ok("null wire (defaultFor mesh) falls back to the file", J(wireRun(SING, null, nodeOf(cubeData)).paths) === J(fromFile.paths));
+ok("EMPTY on the mesh pin is not mistaken for a mesh", J(wireRun(SING, { paths: [] }, nodeOf(cubeData)).paths) === J(fromFile.paths));
+ok("garbage on the mesh pin is ignored", J(wireRun(SING, { kind: "notmesh", v: [1, 2, 3] }, nodeOf(cubeData)).paths) === J(fromFile.paths));
+ok("wired mesh + no file + no wire -> empty", wireRun(SING, undefined, { data: {} }).paths.length === 0);
+const wiredHoles = wireRun({ ...SING, negN: 1, negS1: 50, rodHole: "M5", rodN: 4, rodR: 30 }, cubeData, { data: {} });
+ok("holes and rods work on a wired mesh", wiredHoles.paths.length > 2 && finite(wiredHoles));
+let ovOK = true;
+try {
+  const g = def.overlay({ ...P0, mode: "Grid layout" }, CTX, [undefined, cubeData], { data: {} });
+  if (!Array.isArray(g) || !g.length) ovOK = false;
+} catch (e) { ovOK = false; }
+ok("overlay reads the wired mesh too", ovOK);
+
 /* ---------- 9. budget ---------- */
-const heavy = def.compute([undefined], { ...P0, mode: "All contours", slices: 200, size: 400, step: 0.2, rodHole: "M5" }, { W: 600, H: 600 }, nodeOf(sphData));
+const heavy = def.compute([undefined, undefined], { ...P0, mode: "All contours", slices: 200, size: 400, step: 0.2, rodHole: "M5" }, { W: 600, H: 600 }, nodeOf(sphData));
 ok("200-slice sphere respects budget (" + totPts(heavy) + " pts)", totPts(heavy) <= 120000 && finite(heavy));
 
 /* ---------- 10. open (non-watertight) mesh ---------- */
 const holed = boxTris(10, 10, 10).slice(0, 11);
 const holedData = def.onFile(binSTL(holed));
-const openRes = def.compute([undefined], { ...P0, mode: "Single slice", slice: 12, slices: 24, size: 100 }, CTX, nodeOf(holedData));
+const openRes = def.compute([undefined, undefined], { ...P0, mode: "Single slice", slice: 12, slices: 24, size: 100 }, CTX, nodeOf(holedData));
 ok("non-watertight mesh: no throw, output finite", openRes.paths.length >= 1 && finite(openRes));
 
 /* ---------- 11. rotation ---------- */
-const r0 = def.compute([undefined], { ...P0, mode: "Single slice", slice: 12, slices: 24, size: 100 }, CTX, nodeOf(boxData));
-const r90 = def.compute([undefined], { ...P0, mode: "Single slice", slice: 12, slices: 24, size: 100, rotY: 90 }, CTX, nodeOf(boxData));
+const r0 = def.compute([undefined, undefined], { ...P0, mode: "Single slice", slice: 12, slices: 24, size: 100 }, CTX, nodeOf(boxData));
+const r90 = def.compute([undefined, undefined], { ...P0, mode: "Single slice", slice: 12, slices: 24, size: 100, rotY: 90 }, CTX, nodeOf(boxData));
 const w0 = bboxOf(r0.paths[0].pts), w9 = bboxOf(r90.paths[0].pts);
 ok("rotY 90 swaps box footprint (" + (w0[2] - w0[0]).toFixed(0) + " -> " + (w9[2] - w9[0]).toFixed(0) + ")", (w0[2] - w0[0]) > (w9[2] - w9[0]) + 20);
 
