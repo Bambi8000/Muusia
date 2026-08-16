@@ -106,6 +106,13 @@ that. Prefer resolution parameters so the user can trade detail for speed.
 | `fileImage` | boolean, optional | Definition-level flag. The file picker reads a **dataURL** and the engine decodes the raster itself; the button label becomes "Choose image…" automatically. The result is frozen at **`node.data.img`** = `{ w, h, g, rgb }`: `w`/`h` are the downsampled pixel dimensions (long side capped at 160 px), `g` is a `w*h` array of **darkness** 0..1 (1 = black, alpha composited over white), and `rgb` (since 2.61) is a `w*h*3` array of 0..255 channel bytes in the same pixel order, also flattened over white. Read a pixel as `img.g[y * img.w + x]` / `img.rgb[(y * img.w + x) * 3 + channel]`. **`rgb` may be absent** on photos loaded by a pre-2.61 build — always guard (`img.rgb && img.rgb.length === img.w * img.h * 3`) and fall back to `g` (see Image Rasterise, which degrades to a K-only separation). `compute` must read `node && node.data && node.data.img` and return `EMPTY` when it is missing. |
 | `faceAnalysis` | boolean, optional | Definition-level flag. File intake switches to the portrait pipeline (EXIF orientation honored, long side resized to 1280 px, re-encoded JPEG frozen at `node.data.src`) and the inspector shows an **Analyze face** button when a photo is loaded. The result is frozen to `node.data.analysis` (schema: MUUSIA-PORTRAIT-SPEC.md); a new photo invalidates it. Compute reads only frozen data. |
 
+
+**File intake needs two halves.** The definition-level fields above configure how
+a file is read (`onFile`, `fileBinary`, `fileImage`, `fileAccept`, `fileLabel`),
+but the picker itself comes from a `type: "file"` param row in `params`. Declare
+both, or the node loads nothing and gives no clue why — validators should assert
+the param exists rather than trusting the definition fields.
+
 **Pins:** create with `Pin(type, label?)` where type is `"paths"`, `"value"`, or
 `"style"`. Only equal types connect. Examples:
 `ins: [Pin("paths", "Target"), Pin("paths", "Mask")]`,
@@ -125,7 +132,7 @@ wires — you get modulation for free.
 | `check` | — | Checkbox → boolean. |
 | `pen` | — | 12 color dots → integer 0–11. |
 | `text` | — | Single-line text field. |
-| `file` | — | File picker; pair with `onFile`. |
+| `file` | — | File picker; pair with `onFile`. **This row is what renders the picker.** `onFile`, `fileBinary`, `fileAccept` and `fileLabel` are all definition-level and none of them creates a button: a node declaring every one of them but no `type: "file"` param opens an inspector with no way to load anything (v2.65 Mesh Slice reached the browser like that). |
 
 Compute must tolerate any numeric value: wires can push values outside min/max, and
 since v2.18 the user can raise any slider's max per node (**⚙ slider setup**), so your

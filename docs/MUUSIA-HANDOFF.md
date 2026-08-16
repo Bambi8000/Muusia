@@ -29,8 +29,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **237 files** (239 nodes total with
-  group + reititys; Generators 140, Modifiers 69). ESM format:
+- `src/defs/nodes/*.js` — one file per node, **240 files** (242 nodes total with
+  group + reititys, which are Combiners/Routing entries defined inline in
+  App.jsx and therefore absent from this directory — every count in
+  NODES.md includes them, so a bare `ls | wc -l` is always two short;
+  Generators 141, Modifiers 69). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -162,10 +165,16 @@ text are **English**.
   counts/paragraph anchors, HANDOFF history, NODE-API) ship as a one-shot
   script in tools/era/ (patch-docs-vXXX.mjs) with OK/MISS/SKIP reporting —
   no manual file surgery. Run once from the repo root, commit the script
-  with the docs.
-- **File delivery:** Daniel moves downloaded lab nodes to nodes-lab/ and
-  validators to tools/ himself; sessions deliver files + commands only, no
-  cp-from-Downloads sequences. Lab nodes must be plain ({...}) object
+  with the docs. Scripts must **resolve doc paths** (search for
+  MUUSIA-*.md/.json rather than assuming the repo root — they live in
+  `docs/`) and must **compute counts and versions from disk** (APP_VERSION
+  read from App.jsx, node counts from src/defs/nodes plus the inline pair);
+  a hardcoded path or version is how a doc batch either MISS-aborts or,
+  worse, files an entry under the wrong release.
+- **File delivery (revised v2.62):** Daniel downloads to ~/Downloads and the
+  session's command block does the moving — a find-based `mv` into
+  nodes-lab/, tools/ and tools/era/, chained straight into validation and
+  bake, so no step is left to hand. Lab nodes must be plain ({...}) object
   literals — bake.mjs rejects IIFEs; share compute/overlay logic via a
   this._helper method (the engine calls both as methods on the def).
 

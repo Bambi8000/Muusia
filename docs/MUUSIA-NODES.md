@@ -1,6 +1,6 @@
 # MUUSIA v2.65 — Node Reference
 
-All 240 built-in nodes. Conventions used below: most generators accept a **Style**
+All 242 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
@@ -1193,7 +1193,7 @@ Satellite companion rings shape the look. The point budget is shared between
 input paths by arc length and an oversubscribed path thins evenly along its
 whole length — large radii never leave loops or tails blank.
 
-## Combiners (15)
+## Combiners (16)
 
 **Mask** *(deprecated — hidden from the palette since 2.40; old patches keep
 working)* — clips paths by closed mask shapes (keep inside/outside). Use
