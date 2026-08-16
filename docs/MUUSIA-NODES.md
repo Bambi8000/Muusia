@@ -1,13 +1,13 @@
-# MUUSIA v2.64 — Node Reference
+# MUUSIA v2.65 — Node Reference
 
-All 239 built-in nodes. Conventions used below: most generators accept a **Style**
+All 240 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (140)
+## Generators (141)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -219,6 +219,36 @@ feed a Ribbon or Tracks ring to get curved measuring tape.
 **Lathe** — revolved profile rendered as stacked ellipses ("Rings"), a mirrored
 silhouette ("Profile"), or both. Shed shapes: *Skirt* (the ceramic high-voltage
 insulator default), round wave, sharp zigzag; view tilt; ends taper automatically.
+
+**Mesh Slice** — imports an STL and cuts it into flat sheet contours for
+building a layered object (lamp, sculpture) out of cardboard or plexi. Binary
+and ASCII STL, up to 120k triangles (decimate larger meshes first); the model
+is centred, scaled so its longest dimension is *Size*, rotated by *Rot X/Y/Z*,
+then sliced by horizontal planes at each sheet's mid-height — *Slice by* Count
+or by real *Sheet thickness*. Up to three negative primitives (Sphere, Cube,
+Dodecahedron; position and size in % of Size) carve the interior: the holes are
+cut per-plane in 2D rather than by 3D CSG, so the outer contour is clipped
+outside them and the hole contours are clipped inside the slice, and where a
+primitive breaks the surface the shell opens into a window. *Rod holes* adds
+1-4 threaded-rod clearance holes (ISO medium fit M3-M10, or Custom) on every
+sheet, evenly spaced on a ring or placed by hand — a hole disappears on sheets
+with no material under it. The workflow runs preview first, cut second. CUT
+outputs are always true scale and never fitted to the canvas: *Single slice*,
+*Frames (ANIMATE)* (one slice per frame), *Grid layout* (the run tiled from the
+bed corner, columns fitted between the *Bed margins*, overflowing downwards
+when it is long) and *Grid pages (ANIMATE)* (the same tiling split into
+canvas-sized pages, one page per frame, each labelled P n/total — set the frame
+count to the page count and export SVG xN / DXF xN for the whole job as one
+zip). PREVIEW outputs are scaled to fit and stamped PREVIEW NOT TO SCALE:
+*Contact sheet* shows every sheet shrunk onto one canvas, which is how the
+negative primitives get placed without touching Size, and *Isometric stack*
+projects the real sliced geometry as a 3D stack (*View angle*, *View
+elevation*, *Layer spacing x* for an exploded view). *Preview every Nth sheet*
+thins dense runs, and preview sampling coarsens automatically so no sheet is
+ever dropped from the overview. *All contours* overlays every contour in place,
+a topographic drawing — and the honest way to find the core where every sheet
+has material before choosing a rod ring radius. The mesh travels inside the
+patch, so decimate before loading.
 
 **Sweep 3D** — a profile repeated along a 3D path and projected flat: the
 transparent-wireframe sweep where the overlapping outlines build a moiré body

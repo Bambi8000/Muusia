@@ -137,6 +137,18 @@ ok(finiteAll(ext) && npts(ext) <= 120000, "extreme params: finite + budget held 
 const zero = run({ ...base, size: 0, count: 0, margin: 0 });
 ok(finiteAll(zero), "degenerate params do not produce NaN");
 
+const vis = (pp) => def.params.filter((q) => typeof q.showIf !== "function" || q.showIf(pp)).map((q) => q.key);
+const vGrid = vis({ ...p0, layout: "Grid" });
+const vSingle = vis({ ...p0, layout: "Single" });
+const vPress = vis({ ...p0, layout: "Press sheet" });
+ok(!vGrid.includes("single") && vGrid.includes("mCross"), "showIf: Grid hides the Single mark dropdown, keeps the checkboxes");
+ok(vSingle.includes("single") && !vSingle.includes("mCross") && !vSingle.includes("mScale"), "showIf: Single shows the dropdown, hides all 13 checkboxes");
+ok(!vSingle.includes("count") && !vPress.includes("count"), "showIf: Count hidden where the population is fixed");
+ok(vGrid.includes("count") && vis({ ...p0, layout: "Scatter" }).includes("count"), "showIf: Count visible for Grid and Scatter");
+ok(def.params.every((q) => typeof q.showIf !== "function" || q.showIf({}) !== undefined), "showIf: every predicate survives an empty params object");
+const hidden = def.params.filter((q) => typeof q.showIf === "function").map((q) => q.key);
+ok(hidden.every((k) => p0[k] !== undefined), "showIf: hidden params still carry defaults (compute never sees undefined)");
+
 if (def.overlay) {
   const g1 = def.overlay(p0, { W: 297, H: 210 });
   ok(Array.isArray(g1) && g1.length > 1 && g1[0].kind === "rect", "overlay returns margin rect + placement points (" + g1.length + " guides)");

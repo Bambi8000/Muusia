@@ -899,6 +899,50 @@ text are **English**.
   Split & merge both directions (fragment count and cut structure kept at
   both ends, arc lengths partition the full perimeter, mid layers free of
   birth/death clumps), By order modulo — 42 checks.
+- **2.65** Mesh Slice node (STL in, cut sheets out — the layered-object
+  workflow gets its own geometry source). NEW GEN meshslice (structural):
+  binary + ASCII STL intake via a `type: "file"` param with fileBinary
+  (the definition-level onFile/fileAccept/fileLabel fields do NOT render a
+  picker on their own — the param row is what creates it, caught only when
+  the node reached the browser and the inspector came up empty), 120k
+  triangle cap with a decimate message, normalised to a unit box at intake.
+  Z-plane slicing at band mid-heights, segments chained on a 0.01 mm weld
+  grid with 3x3 neighbour lookup so non-watertight AI meshes still yield
+  open runs instead of nothing. Negative primitives (Sphere/Cube/
+  Dodecahedron, 0-3) are cut per-plane in 2D, NOT by 3D CSG: the shell is
+  clipped outside the hole sections and the hole sections are clipped
+  inside the shell (even-odd point-in-polygon with a bbox pretest), runs
+  under 0.5 mm dropped as chips. Dodecahedron sections come from the 20
+  golden-ratio vertices and 30 edges via edge-plane intersections ordered
+  by atan2. Rod holes 1-4, ring (radius + angle, a single hole ignoring
+  the radius) or manual per-hole XY; a rod clips away where no material
+  sits under it. Modes: Single, Frames, All contours, Grid layout and Grid
+  pages (ANIMATE, canvas-sized pages labelled P n/total) — all true scale,
+  the grid anchored to the bed corner with columns fitted between the Bed
+  margins — plus two PREVIEW modes stamped PREVIEW NOT TO SCALE: Contact
+  sheet (whole run shrunk to fit, unscaled number gutter so labels survive
+  any shrink factor) and Isometric stack (axonometric projection of the
+  real sliced geometry, View angle/elevation/Layer spacing). Preview
+  sampling coarsens ADAPTIVELY (previewStep) because the fixed budget
+  silently truncated a 40-sheet 400 mm run at sheet 31 — a preview that
+  drops sheets is worse than a coarse one. Preview every Nth sheet thins
+  dense runs. Tags 3d/grid/mesh/stack/structural. Validator
+  tools/validate-meshslice.mjs (real helpers, lab/baked auto-switch, 158
+  checks): synthetic STLs built in code (binary cube/box/sphere, ASCII
+  tetra), parser rejections, cube slice perimeter/area/centring against
+  exact numbers, hole clipping geometry, dodecahedron section radius,
+  M4/M5 clearance diameters and ring spacing, rod-inside-void removal,
+  grid disjointness and true scale, page coverage (5 pages x 12 = 50
+  sheets exactly, frame clamping), preview fit and no-truncation at 200
+  sheets, budget, non-watertight survival, every select option, showIf
+  predicates, extremes, overlay guides in every mode, determinism and
+  non-mutation. Two engine patches shipped alongside:
+  tools/era/patch-frames-zip.mjs bundles the per-frame exports into ONE
+  zip via the existing buildZip (they used to fire N separate downloads
+  450 ms apart, which browsers throttle or block outright at 50 frames, so
+  long runs arrived incomplete) with a percentage readout on the xN
+  buttons, and tools/era/patch-stack-max48.mjs raises the Stack View sheet
+  cap from 12 to 48.
 
 ## Hard-won pitfalls (keep)
 

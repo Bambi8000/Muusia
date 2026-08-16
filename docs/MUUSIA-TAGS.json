@@ -630,6 +630,13 @@
   "grid",
   "mesh"
  ],
+ "meshslice": [
+  "3d",
+  "grid",
+  "mesh",
+  "stack",
+  "structural"
+ ],
  "metaballs": [
   "organic",
   "terrain"

@@ -126,6 +126,8 @@ ok(src.includes("forExport && mirror"), "mirror applies to export only, preview 
 ok(src.includes("padStart(2"), "sheet files numbered sheetNN");
 ok(/fontStrokes\([^)]*\)\.strokes/.test(src), "fontStrokes result accessed via .strokes ({strokes,width} object, not iterable)");
 ok(!/for \(const \w+ of fontStrokes\([^)]*\)\)/.test(src), "fontStrokes return value never iterated directly (regression: white-screen crash)");
+ok(src.includes('display: hidden.has(i) ? "none" : "block"'), "hidden sheets use display:none");
+ok(!src.includes("hidden.has(i) ? null"), "hidden sheets never unmounted (regression: canvas comes back blank)");
 
 /* --- App.jsx wiring report (informative: OK after the era patches) --- */
 const APP = "src/App.jsx";

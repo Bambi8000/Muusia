@@ -129,6 +129,15 @@ ok(finiteAll(ext) && npts(ext) <= 120000, "extreme params: finite + budget held 
 const degen = run({ ...p0, margin: 0, cell: 0.1, scale: 0.5 });
 ok(finiteAll(degen) && npts(degen) <= 120000, "degenerate params: finite + budget held (" + npts(degen) + " pts)");
 
+const vis = (pp) => def.params.filter((q) => typeof q.showIf !== "function" || q.showIf(pp)).map((q) => q.key);
+const vStd = vis({ ...p0, angles: "Standard (15/75/0/45)" });
+const vCus = vis({ ...p0, angles: "Custom" });
+ok(["angC", "angM", "angY", "angK"].every((k) => !vStd.includes(k)), "showIf: Standard hides all four angle sliders");
+ok(["angC", "angM", "angY", "angK"].every((k) => vCus.includes(k)), "showIf: Custom shows all four angle sliders");
+ok(vStd.includes("angles") && vCus.includes("angles"), "showIf: the Angles select itself is always visible");
+ok(def.params.filter((q) => typeof q.showIf === "function").every((q) => p0[q.key] !== undefined), "showIf: hidden params still carry defaults");
+ok(Number.isInteger(def.imageMax) && def.imageMax > 160 && def.imageMax <= 1600, "imageMax opt-in set to " + def.imageMax + " px (engine clamps 32..1600)");
+
 if (def.overlay) {
   const g1 = def.overlay(p0, { W: 297, H: 210 }, undefined, { data: { img: IMG } });
   ok(Array.isArray(g1) && g1.length === 2 && g1[0].kind === "rect" && g1[1].kind === "rect", "overlay: margin box + fitted image box");

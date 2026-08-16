@@ -993,7 +993,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.64"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.65"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1916,6 +1916,7 @@ export default function App() {
 
   /* --- animaatio: freimit --- */
   const [frameCount, setFrameCount] = useState(12);
+  const [animBusy, setAnimBusy] = useState(0);
   const [frameIdx, setFrameIdx] = useState(0);
   const [animPlay, setAnimPlay] = useState(false);
   useEffect(() => {
@@ -2615,6 +2616,7 @@ export default function App() {
     if (!primaryNode) return;
     const n = Math.max(1, frameCount);
     let f = 0;
+    const files = [];
     const doOne = () => {
       const ctxF = { W: megaW, H: megaH, frameIdx: f, frameCount: n };
       let level = root, res = evalLevel(root, ctxF, null);
@@ -2632,19 +2634,26 @@ export default function App() {
       let ps = out && out[0] && out[0].paths ? out[0] : EMPTY;
       if (routeOpt) ps = routeOptimize(ps, preserveDir);
       const text = kind === "svg" ? toSVG(ps, ctxF) : kind === "dxf" ? toDXF(ps, ctxF) : toGcode(ps, ctxF, prof);
+      const ext = kind === "svg" ? ".svg" : kind === "dxf" ? ".dxf" : ".gcode";
+      files.push({ name: `${projName || "patch"}-f${String(f).padStart(3, "0")}${ext}`, text });
+      f++;
+      setAnimBusy(f < n ? f / n : 0);
+      if (f < n) { setTimeout(doOne, 8); return; }
       try {
-        const blob = new Blob([text], { type: kind === "svg" ? "image/svg+xml" : "text/plain" });
+        const single = files.length === 1;
+        const blob = single
+          ? new Blob([files[0].text], { type: kind === "svg" ? "image/svg+xml" : "text/plain" })
+          : new Blob([buildZip(files)], { type: "application/zip" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `${projName || "patch"}-f${String(f).padStart(3, "0")}${kind === "svg" ? ".svg" : kind === "dxf" ? ".dxf" : ".gcode"}`;
+        a.download = single ? files[0].name : `${projName || "patch"}-frames-${kind}.zip`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(a.href), 3000);
       } catch (err) { /* hiekkalaatikko estaa lataukset */ }
-      f++;
-      if (f < n) setTimeout(doOne, 450);
     };
+    setAnimBusy(0.001);
     doOne();
   };
   const download = () => {
@@ -3550,7 +3559,7 @@ export default function App() {
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                 <button onClick={() => exportAllFrames("gcode")} disabled={!primaryPS.paths.length}
                   style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
-                  G-code {"\u00D7"} {frameCount}
+                  G-code {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
                 </button>
                 <button onClick={() => exportAllFrames("svg")} disabled={!primaryPS.paths.length}
                   style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>

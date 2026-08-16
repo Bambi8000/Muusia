@@ -7,7 +7,7 @@
  *
  * Two sheet sources:
  *   - Frames: the graph is re-evaluated per frame (same mechanism as the
- *     "all frames" export) — each frame becomes one sheet. Capped at 12.
+ *     "all frames" export) — each frame becomes one sheet. Capped at 48.
  *   - Pens:   one evaluation, split by pen index — each used pen is a sheet.
  *
  * Rendering: each sheet is drawn ONCE onto its own transparent canvas
@@ -39,7 +39,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 
-export const MAX_SHEETS = 12;          /* hard cap on stacked sheets */
+export const MAX_SHEETS = 48;          /* hard cap on stacked sheets */
 export const DRAW_BUDGET = 120000;     /* max points drawn per sheet canvas */
 
 /* @pure-begin splitByPens */
@@ -353,7 +353,7 @@ export default function StackView({ PENS, T, mono, disp, W, H, frameCount, prima
           <div style={lbl}>Sheets from</div>
           <div style={{ display: "flex", gap: 6 }}>
             <button style={{ ...btn(mode === "frames"), flex: 1 }} onClick={() => setMode("frames")}
-              title="Re-evaluates the graph per frame (ANIMATE frame count, max 12) — each frame is one sheet">Frames</button>
+              title="Re-evaluates the graph per frame (ANIMATE frame count, max 48) — each frame is one sheet">Frames</button>
             <button style={{ ...btn(mode === "pens"), flex: 1 }} onClick={() => setMode("pens")}
               title="Splits the selected node's output by pen — each used pen is one sheet">Pens</button>
           </div>
