@@ -996,6 +996,7 @@ text are **English**.
   slicing the generated mesh through the baked Mesh Slice. Mesh Slice
   validator grew to 169 (wired mesh precedence, fallback, EMPTY and garbage
   on the pin).
+- **2.67** Preview Measure tool: a Measure button in the preview panel arms click-to-place of two points on the sheet (magnet-jig style draggable handles); a dashed line with a live mm readout connects them, drag to adjust, double-click a point to remove it. Works in the small preview and the big-preview overlay; toggling Measure off clears the points. GUI-only change, no nodes or engine seams touched. (tools/era/patch-measure-tool.mjs)
 
 ## Hard-won pitfalls (keep)
 

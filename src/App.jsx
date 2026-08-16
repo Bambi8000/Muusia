@@ -994,7 +994,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.66"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.67"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1436,11 +1436,12 @@ function ZoomBox({ children, width, height }) {
     </div>
   );
 }
-function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = null, magnets = null, onMagnets = null, placing = false, bg = null }) {
+function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = null, magnets = null, onMagnets = null, placing = false, bg = null, measure = null, onMeasure = null, measuring = false }) {
   const sx = (width - pad * 2) / W, sy = (height - pad * 2) / H;
   const s = Math.min(sx, sy);
   const ox = (width - W * s) / 2, oy = (height - H * s) / 2;
   const dragRef = useRef(-1);
+  const measDragRef = useRef(-1);
   const toMM = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
     const k = r.width / width; /* CSS transform aware (ZoomBox) */
@@ -1520,20 +1521,65 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
       </g>
     );
   });
+  /* measure layer: up to two draggable points, dashed line, live mm readout */
+  const MC = "#FFC24D";
+  const msEls = [];
+  if (measure && measure.length) {
+    const P = measure.map(([x, y]) => [ox + x * s, oy + y * s]);
+    if (P.length === 2) {
+      const dmm = Math.hypot(measure[1][0] - measure[0][0], measure[1][1] - measure[0][1]);
+      msEls.push(<line key="msl" x1={P[0][0]} y1={P[0][1]} x2={P[1][0]} y2={P[1][1]}
+        stroke={MC} strokeWidth="1.4" strokeDasharray="6 4" opacity="0.95" pointerEvents="none" />);
+      const lbl = dmm.toFixed(1) + " mm";
+      const lx = (P[0][0] + P[1][0]) / 2, ly = (P[0][1] + P[1][1]) / 2;
+      msEls.push(<g key="mst" pointerEvents="none">
+        <rect x={lx - lbl.length * 3.1 - 4} y={ly - 19} width={lbl.length * 6.2 + 8} height={14} rx={3}
+          fill="rgba(13,17,23,0.85)" stroke={MC} strokeWidth="0.8" />
+        <text x={lx} y={ly - 8.5} textAnchor="middle" fontSize="10" fill={MC}
+          fontFamily="ui-monospace, monospace">{lbl}</text>
+      </g>);
+    }
+    measure.forEach(([qx, qy], i) => {
+      const px = ox + qx * s, py = oy + qy * s;
+      msEls.push(
+        <g key={"ms" + i}
+          onPointerDown={onMeasure ? (e) => {
+            e.stopPropagation();
+            measDragRef.current = i;
+            const svg = e.currentTarget.ownerSVGElement;
+            if (svg && svg.setPointerCapture) try { svg.setPointerCapture(e.pointerId); } catch (err) {}
+          } : undefined}
+          onDoubleClick={onMeasure ? (e) => { e.stopPropagation(); onMeasure(measure.filter((_, k) => k !== i)); } : undefined}
+          style={{ cursor: onMeasure ? "grab" : "default" }}
+          stroke={MC} strokeWidth="1.6" opacity="0.95">
+          <circle cx={px} cy={py} r={6.5} fill="rgba(255,194,77,0.16)" />
+          <line x1={px - 4.5} y1={py} x2={px + 4.5} y2={py} />
+          <line x1={px} y1={py - 4.5} x2={px} y2={py + 4.5} />
+        </g>
+      );
+    });
+  }
   return (
     <svg width={width} height={height}
-      style={{ display: "block", background: T.paper, borderRadius: 4, touchAction: "none", cursor: placing && onMagnets ? "crosshair" : "default" }}
-      onPointerDown={placing && onMagnets ? (e) => {
+      style={{ display: "block", background: T.paper, borderRadius: 4, touchAction: "none", cursor: (measuring && onMeasure && (measure || []).length < 2) || (placing && onMagnets) ? "crosshair" : "default" }}
+      onPointerDown={(placing && onMagnets) || (measuring && onMeasure) ? (e) => {
         const [mx, my] = toMM(e);
-        if (mx >= 0 && mx <= W && my >= 0 && my <= H) onMagnets([...(magnets || []), [q1(mx), q1(my)]]);
+        if (mx < 0 || mx > W || my < 0 || my > H) return;
+        if (measuring && onMeasure) {
+          if ((measure || []).length < 2) onMeasure([...(measure || []), [q1(mx), q1(my)]]);
+          return;
+        }
+        onMagnets([...(magnets || []), [q1(mx), q1(my)]]);
       } : undefined}
-      onPointerMove={onMagnets ? (e) => {
-        const i = dragRef.current;
-        if (i < 0) return;
+      onPointerMove={onMagnets || onMeasure ? (e) => {
+        const i = dragRef.current, j = measDragRef.current;
+        if (i < 0 && j < 0) return;
         const [mx, my] = toMM(e);
-        onMagnets(magnets.map((q, k) => k === i ? [q1(Math.min(W, Math.max(0, mx))), q1(Math.min(H, Math.max(0, my)))] : q));
+        const cx = q1(Math.min(W, Math.max(0, mx))), cy = q1(Math.min(H, Math.max(0, my)));
+        if (j >= 0 && onMeasure) { onMeasure((measure || []).map((q, k) => k === j ? [cx, cy] : q)); return; }
+        if (i >= 0 && onMagnets) onMagnets(magnets.map((q, k) => k === i ? [cx, cy] : q));
       } : undefined}
-      onPointerUp={onMagnets ? () => { dragRef.current = -1; } : undefined}>
+      onPointerUp={onMagnets || onMeasure ? () => { dragRef.current = -1; measDragRef.current = -1; } : undefined}>
       <rect x={ox} y={oy} width={W * s} height={H * s} fill="none" stroke={T.paperLine} strokeWidth="1" />
       {bg && bg.src ? (
         <image key="bg" href={bg.src}
@@ -1547,6 +1593,7 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
       {els}
       {gEls}
       {mEls}
+      {msEls}
     </svg>
   );
 }
@@ -1801,6 +1848,8 @@ export default function App() {
   const [jigMode, setJigMode] = useState("Auto"); /* Auto | Manual */
   const [manualMags, setManualMags] = useState([]); /* [[x,y] mm], mega: mega-coords */
   const [jigPlace, setJigPlace] = useState(false); /* click-to-place armed */
+  const [measureOn, setMeasureOn] = useState(false); /* preview measure tool armed */
+  const [measurePts, setMeasurePts] = useState([]); /* 0..2 points [x,y] mm, preview coords */
   const [jigGrid, setJigGrid] = useState(10);
   const [jigClear, setJigClear] = useState(12);
   const [jigMargin, setJigMargin] = useState(10);
@@ -3519,7 +3568,7 @@ export default function App() {
               <OutPreview out={primaryOut} W={megaW} H={megaH} width={316} />
             ) : (
               <ZoomBox width={316} height={316 * (megaH / megaW)}>
-                <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} bg={previewBg} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} arrows={showArrows} pad={8} />
+                <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} bg={previewBg} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} arrows={showArrows} pad={8} />
               </ZoomBox>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
@@ -3527,6 +3576,16 @@ export default function App() {
                 <input type="checkbox" checked={showArrows} onChange={(e) => setShowArrows(e.target.checked)} style={{ accentColor: T.accent }} />
                 Show direction
               </label>
+              <button onClick={() => { const nv = !measureOn; setMeasureOn(nv); if (!nv) setMeasurePts([]); }}
+                title="Measure distance on the sheet: click two points in the preview, drag to adjust, double-click a point to remove it"
+                style={{ background: measureOn ? T.accent : T.panel2, border: `1px solid ${measureOn ? T.accent : T.line}`, color: measureOn ? "#0D1117" : T.text, borderRadius: 4, fontSize: 10, padding: "2px 8px", cursor: "pointer", fontFamily: mono }}>
+                Measure
+              </button>
+              {measureOn && measurePts.length === 2 && (
+                <span style={{ fontSize: 10, color: T.accent, fontFamily: mono, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                  {Math.hypot(measurePts[1][0] - measurePts[0][0], measurePts[1][1] - measurePts[0][1]).toFixed(1)} mm
+                </span>
+              )}
               <div style={{ flex: 1 }} />
               <div style={{ fontSize: 10, color: T.dim, fontVariantNumeric: "tabular-nums", fontFamily: mono, whiteSpace: "nowrap" }}>
                 {String(stats.n).padStart(4, "\u2007")} paths · {String(stats.pts).padStart(6, "\u2007")} pts · {(stats.L / 1000).toFixed(2).padStart(6, "\u2007")} m
@@ -4239,7 +4298,7 @@ export default function App() {
                 return (
                   <ZoomBox width={bw2} height={bh2}>
                     <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={bw2} height={bh2}
-                      arrows={showArrows} pad={16} bg={previewBg} guides={primaryGuides} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} />
+                      arrows={showArrows} pad={16} bg={previewBg} guides={primaryGuides} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} />
                   </ZoomBox>
                 );
               })()
