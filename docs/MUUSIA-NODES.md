@@ -1,13 +1,13 @@
-# MUUSIA v2.66 — Node Reference
+# MUUSIA v2.69 — Node Reference
 
-All 243 built-in nodes. Conventions used below: most generators accept a **Style**
+All 246 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (142)
+## Generators (144)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -867,7 +867,7 @@ Pitch is the spacing, Angle rotates the pattern, Disorder morphs order toward
 chaos — and content never leaks outside the disc, so overlaps stay clean. Drop
 two with Pitch off by 5%, Angle off by 2-5 degrees or centers a few mm apart and
 the interference becomes moire; every knob has a value port, so Frame-driven
-moire breathes through an animation.
+moire breathes through an animation. *Sector deg* cuts the disc down to a pie slice — every content mode clips to the wedge with clean cut edges, *Sector start* turns the slice and the rim becomes the closed wedge outline (arc + both cut radii); wire the Frame clock into Sector deg and the disc fills up like a pie chart, or butt two complementary sectors with different contents into one two-fill pie.
 
 **Millimeter Paper** — technical millimeter / graph paper: a grid of Fine-step
 lines with every Nth line promoted to Medium and every Nth to Major, each level
@@ -890,6 +890,51 @@ is the erosion speed, Flow memory shifts meanders downstream, Channel width is
 the neck-cutoff distance, Confinement pulls the river back toward the valley
 axis. Wire Steps or Migration from the Frame clock to animate the river
 carving itself.
+
+**Video Test Card** — a collection of broadcast and imaging test cards redrawn
+as pen-plotter line art: *Philips circle* (the PM5544 composite — 19×14
+crosshatch, geometry circle, castellations, colour bar band, multiburst
+gratings, staircase and the two station-text boxes), *EIA 1956 resolution*
+(converging TVL wedges at the centre and in all four corners, focus circles,
+greyscale steps, stripe boxes, overscan border arrows), *Monoscope grid*,
+*Convergence crosshatch*, *Convergence dots*, *Siemens star*, *Zone plate* (true
+Fresnel spacing — ring radii follow the square root of the index, so every ring
+encloses the same area), *Multiburst sweep*, *Colour bars* (the EBU seven over
+reversed castellations, a PLUGE wedge and the white/black references),
+*Greyscale staircase*, *Overscan frames*, *Focus chart*, *Checkerboard*,
+*Line-pair ladder* and *Circle geometry*. A pen cannot lay down grey, so every
+tone is hatched: *Tone* and *Ink spacing* set the density and the greyscale
+steps ramp their hatch spacing instead of their darkness — the honest
+translation of a grey ramp. *Aspect* letterboxes the card into a true 4:3, 16:9
+or 1:1 frame, because a test card drawn at the wrong ratio tests nothing.
+Colour elements map onto the palette (bars run Gray / Ochre / Sky / Green /
+Magenta / Red / Blue, the closest analogues of the EBU order) or collapse onto
+one pen. Two knobs turn the instrument back into an image: *CRT warp* barrels or
+pincushions the card (pinned at the corners, so it never leaves the sheet) and
+*Line jitter* tears each scan line sideways with seeded noise.
+
+**Polyhedron Studio** — polyhedra rendered face by face in 3D. The catalogue is
+generated rather than tabulated: the five Platonic solids are exact and every
+Archimedean and Catalan form is derived from them by three operators the node
+implements — rectify (edge midpoints), truncate (corner cutting) and dual (polar
+reciprocal) — so Cuboctahedron is a rectified cube, Rhombicosidodecahedron a
+twice-rectified icosahedron and Rhombic triacontahedron the dual of the
+icosidodecahedron, all with planar faces. Prisms, antiprisms, pyramids and
+bipyramids take any side count; *Geodesic sphere* subdivides an icosahedron 1–4
+times onto the sphere. Each face is filled IN ITS OWN PLANE before projection,
+so the pattern rides the perspective instead of lying flat on the paper:
+*Concentric inset* nests the face into itself (pair it with *Face inset* for the
+white channel along every edge), *Face hatch*, *Spiral*, *Nested rings*,
+*Centroid fan* and *Dots*. Back faces are culled by their true normal, kept
+(*Transparent*) or thinned (*X-ray*); *Even density* divides the fill spacing by
+each face's foreshortening so a face seen almost edge-on thins out instead of
+collapsing into a solid sliver. *Stellate* raises each face on a pyramid along
+its normal — negative dimples it inward — and reshapes the real solid, so it
+reaches the Mesh output; *Explode* slides faces apart as a drawing convention
+only. Three outputs: Faces, Silhouette (the projected outline as one closed
+path, for a heavier pen or a cut line) and Mesh — the rotated, normalised
+triangle payload, so Mesh Slice cuts exactly what the screen shows. Rotations
+and Stellate are value ports.
 
 ## Modifiers (69)
 
@@ -1218,7 +1263,7 @@ Satellite companion rings shape the look. The point budget is shared between
 input paths by arc length and an oversubscribed path thins evenly along its
 whole length — large radii never leave loops or tails blank.
 
-## Combiners (16)
+## Combiners (17)
 
 **Mask** *(deprecated — hidden from the palette since 2.40; old patches keep
 working)* — clips paths by closed mask shapes (keep inside/outside). Use
@@ -1317,6 +1362,30 @@ start-index rotation + direction so the lerp does not twist. Output Sheets
 is frame-domain like the Sheets node (layer i on frame i, source pens kept,
 Stack View auto-detects the Layers count); Output Pens draws every layer at
 once with pen (First pen + i) mod 12. Ease Smooth slows both ends.
+
+**Zine** — imposition for folded booklets: wired compositions are laid onto the
+sheet in the order the FOLDS require, so the plotted sheet folds into a finished
+zine. Each input is a full-canvas composition scaled into its page panel, as in
+Mini Canvas, and the page pins appear and disappear with the Format — *8-page
+mini zine* (the classic one-sheet, one-cut zine: the top row prints upside down
+and the middle slit is drawn for you), *4-page folio*, *8-* and *16-page saddle
+stitch* (2-up per sheet side, Sheet picks the sheet of the stack) and
+*Accordion* (3–12 panels, optionally continuing on the back). Double-sided work
+runs through *Side*: plot Front, turn the paper over, switch to Back and plot
+again. The back imposition is derived, never typed — the reverse of page k is
+its own recto/verso partner and its panel mirrors according to *Flip axis*
+(Long edge keeps the artwork upright, Short edge turns it 180°) — so pages land
+back-to-back with no hand arithmetic. Registration marks print at identical
+sheet coordinates on both sides and are symmetric under both flips, so they
+overprint themselves when the sheet is turned. Because a page panel rarely has
+the sheet's proportions, *Scaling* decides who gives way: Fit letterboxes, Fill
+crops (the overlay then draws the surviving source region on the canvas),
+Stretch distorts, and Rotate 90 + Fit lands exactly on A-series page
+proportions — an A4 landscape canvas rotated is an A4 portrait page, full bleed
+and no distortion, the artwork simply reading sideways on the sheet. Trim marks,
+fold ticks or dashed fold lines, the cut slit and panel frames go on the Mark
+pen; *Page numbers* draws a numeral in each panel in that panel's own
+orientation — print once, fold it, and the imposition is proven.
 
 ## Math (9)
 

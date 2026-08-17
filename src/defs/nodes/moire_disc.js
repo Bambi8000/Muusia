@@ -5,7 +5,7 @@ export default {
   name: "Moire Disc",
   cat: "gen",
   group: "geometric",
-  desc: "One disc, filled with fine regular structure - built to be overlapped. Content picks the filling: Rings (concentric), Spiral (one continuous Archimedean line), Spokes (radial), Hatch (parallel chords), Mesh (crosshatch), Hex / Grid / Random circles (small packed circles, each optionally concentric via Circle rings), or Phyllotaxis (the sunflower lattice). Pitch is the line or lattice spacing, Angle rotates the pattern, and Disorder morphs any ordered arrangement toward chaos - positions, radii and lines wander with the seed, but the content NEVER leaks outside the disc, so overlaps stay clean. X/Y place the disc on the sheet as canvas percentages. The whole point: drop two or three of these on top of each other with a small difference - Pitch off by 5%, Angle off by 2-5 degrees, or centers a few mm apart - and the interference becomes moire. Every knob has a value port, so wire the Frame clock into Angle or X and the moire breathes. Tip: Rings vs Rings offset by half a radius is the classic pattern; Hatch vs Hatch at 3 degrees is the finest shimmer.",
+  desc: "One disc, filled with fine regular structure - built to be overlapped. Content picks the filling: Rings (concentric), Spiral (one continuous Archimedean line), Spokes (radial), Hatch (parallel chords), Mesh (crosshatch), Hex / Grid / Random circles (small packed circles, each optionally concentric via Circle rings), or Phyllotaxis (the sunflower lattice). Pitch is the line or lattice spacing, Angle rotates the pattern, and Disorder morphs any ordered arrangement toward chaos - positions, radii and lines wander with the seed, but the content NEVER leaks outside the disc, so overlaps stay clean. X/Y place the disc on the sheet as canvas percentages. The whole point: drop two or three of these on top of each other with a small difference - Pitch off by 5%, Angle off by 2-5 degrees, or centers a few mm apart - and the interference becomes moire. Every knob has a value port, so wire the Frame clock into Angle or X and the moire breathes. Tip: Rings vs Rings offset by half a radius is the classic pattern; Hatch vs Hatch at 3 degrees is the finest shimmer. Sector deg cuts the disc down to a pie slice (a cake cutter): every content mode is clipped to the wedge with clean cut edges, Sector start turns the slice around the center, and the rim becomes the closed wedge outline - wire the Frame clock into Sector deg and the disc fills up like a pie chart.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
@@ -15,6 +15,8 @@ export default {
     { key: "content", label: "Content", type: "select", options: ["Rings", "Spiral", "Spokes", "Hatch", "Mesh", "Hex circles", "Grid circles", "Random circles", "Phyllotaxis"], def: "Rings" },
     { key: "pitch", label: "Pitch mm", type: "slider", min: 0.8, max: 12, step: 0.05, def: 3 },
     { key: "angle", label: "Angle deg", type: "slider", min: 0, max: 180, step: 0.5, def: 0 },
+    { key: "sweep", label: "Sector deg", type: "slider", min: 0, max: 360, step: 0.5, def: 360 },
+    { key: "sectorStart", label: "Sector start deg", type: "slider", min: 0, max: 360, step: 0.5, def: 0, showIf: (p) => p.sweep < 360 },
     { key: "disorder", label: "Disorder", type: "slider", min: 0, max: 1, step: 0.01, def: 0 },
     { key: "csize", label: "Circle size mm", type: "slider", min: 0.4, max: 15, step: 0.1, def: 2.2 },
     { key: "crings", label: "Circle rings", type: "slider", min: 1, max: 8, step: 1, def: 1 },
@@ -24,7 +26,18 @@ export default {
   ],
   overlay(p, ctx) {
     const cx = (ctx.W * p.x) / 100, cy = (ctx.H * p.y) / 100;
-    return [{ kind: "circle", cx, cy, r: Math.max(1, p.radius) }];
+    const R = Math.max(1, p.radius);
+    const sweepDeg = Math.max(0, Math.min(360, p.sweep == null ? 360 : p.sweep));
+    if (sweepDeg >= 359.999) return [{ kind: "circle", cx, cy, r: R }];
+    const th0 = (((p.sectorStart == null ? 0 : p.sectorStart) - 90) * Math.PI) / 180;
+    const sweepR = (sweepDeg * Math.PI) / 180;
+    const pts = [[cx, cy]];
+    const n = 32;
+    for (let k = 0; k <= n; k++) {
+      const a = th0 + (k / n) * sweepR;
+      pts.push([cx + Math.cos(a) * R, cy + Math.sin(a) * R]);
+    }
+    return [{ kind: "circle", cx, cy, r: R }, { kind: "poly", pts }];
   },
   compute(ins, p, ctx) {
     const { W, H } = ctx;
@@ -40,13 +53,72 @@ export default {
     const L = Math.round(p.layer);
     const mode = p.content;
 
+    /* pie-slice sector: 360 = full disc, legacy output stays byte-identical */
+    const sweepDeg = Math.max(0, Math.min(360, p.sweep == null ? 360 : p.sweep));
+    const fullDisc = sweepDeg >= 359.999;
+    const nilDisc = sweepDeg < 0.05;
+    const th0 = (((p.sectorStart == null ? 0 : p.sectorStart) - 90) * Math.PI) / 180;
+    const sweepR = (sweepDeg * Math.PI) / 180;
+    const TAU = Math.PI * 2;
+    const inSector = (x, y) => {
+      if (fullDisc) return true;
+      if (nilDisc) return false;
+      const dx = x - cx, dy = y - cy;
+      if (dx * dx + dy * dy < 0.0025) return true; /* apex counts as inside */
+      let d = (Math.atan2(dy, dx) - th0) % TAU;
+      if (d < 0) d += TAU;
+      return d <= sweepR;
+    };
+    /* boundary point between two samples on opposite sides (bisection) */
+    const edgeCross = (A, B) => {
+      let a = A, b = B;
+      const ia = inSector(a[0], a[1]);
+      for (let i = 0; i < 18; i++) {
+        const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+        if (inSector(m[0], m[1]) === ia) a = m; else b = m;
+      }
+      return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    };
+    /* split a polyline into runs inside the wedge; closed loops re-seam at an outside point */
+    const clipWedge = (pts, closed) => {
+      if (fullDisc) return [{ pts, closed }];
+      const n = pts.length;
+      const flags = pts.map((q) => inSector(q[0], q[1]));
+      if (flags.every(Boolean)) return [{ pts, closed }];
+      if (!flags.some(Boolean)) return [];
+      let start = 0;
+      if (closed) { while (start < n && flags[start]) start++; }
+      const seq = [];
+      for (let s = 0; s < n; s++) seq.push(pts[closed ? (start + s) % n : s]);
+      if (closed) seq.push(pts[start]);
+      const runs = [];
+      let run = null;
+      for (let s = 0; s < seq.length; s++) {
+        const q = seq[s];
+        if (inSector(q[0], q[1])) {
+          if (!run) { run = []; if (s > 0) run.push(edgeCross(seq[s - 1], q)); }
+          run.push([q[0], q[1]]);
+        } else if (run) {
+          run.push(edgeCross(q, seq[s - 1]));
+          if (run.length >= 2) runs.push({ pts: run, closed: false });
+          run = null;
+        }
+      }
+      if (run && run.length >= 2) runs.push({ pts: run, closed: false });
+      return runs;
+    };
+
     const paths = [];
     const BUDGET = 110000;
     let total = 0;
     const push = (pts, closed) => {
       if (pts.length < 2 || total > BUDGET) return;
-      total += pts.length;
-      paths.push({ pts, closed: !!closed, layer: L });
+      for (const r of clipWedge(pts, closed)) {
+        if (r.pts.length < 2) continue;
+        total += r.pts.length;
+        paths.push({ pts: r.pts, closed: !!r.closed, layer: L });
+        if (total > BUDGET) break;
+      }
     };
     const circle = (x0, y0, r, closed = true) => {
       if (r < 0.25 || total > BUDGET) return;
@@ -66,7 +138,21 @@ export default {
     };
     const inDisc = (x, y, m = 0.02) => Math.hypot(x - cx, y - cy) <= R - m;
 
-    if (p.rim) circle(cx, cy, R);
+    if (p.rim) {
+      if (fullDisc) circle(cx, cy, R);
+      else if (!nilDisc && total <= BUDGET) {
+        /* wedge outline drawn directly (its points ARE the boundary - no clip) */
+        const ds = Math.min(1.2, Math.max(0.6, R / 14));
+        const n = Math.max(8, Math.ceil((R * sweepR) / ds));
+        const pts = [[cx, cy]];
+        for (let k = 0; k <= n; k++) {
+          const a = th0 + (k / n) * sweepR;
+          pts.push([cx + Math.cos(a) * R, cy + Math.sin(a) * R]);
+        }
+        total += pts.length;
+        paths.push({ pts, closed: true, layer: L });
+      }
+    }
 
     if (mode === "Rings") {
       let idx = 0;

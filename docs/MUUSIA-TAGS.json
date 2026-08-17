@@ -1387,5 +1387,27 @@
   "geometric",
   "noise",
   "wave"
+ ],
+ "zine": [
+  "clip",
+  "combine",
+  "grid",
+  "repeat",
+  "structural"
+ ],
+ "videotest": [
+  "chart",
+  "geometric",
+  "grid",
+  "halftone",
+  "retro",
+  "scientific"
+ ],
+ "polystudio": [
+  "3d",
+  "geometric",
+  "mesh",
+  "space",
+  "structural"
  ]
 }
