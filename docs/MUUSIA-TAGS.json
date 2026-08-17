@@ -123,6 +123,13 @@
   "repeat",
   "warp"
  ],
+ "chain": [
+  "3d",
+  "geometric",
+  "hatch",
+  "repeat",
+  "weave"
+ ],
  "chop": [
   "clip",
   "pens"
@@ -131,6 +138,12 @@
   "geometric",
   "noise",
   "round"
+ ],
+ "circuit": [
+  "fill",
+  "grid",
+  "scientific",
+  "structural"
  ],
  "clockface": [
   "chart",
@@ -547,6 +560,12 @@
  "kierto": [
   "transform"
  ],
+ "knottube": [
+  "3d",
+  "geometric",
+  "spiral",
+  "weave"
+ ],
  "lace": [
   "mesh",
   "organic",
@@ -885,6 +904,13 @@
   "geometric",
   "grid",
   "round"
+ ],
+ "polystudio": [
+  "3d",
+  "geometric",
+  "mesh",
+  "space",
+  "structural"
  ],
  "portrait": [
   "flow",
@@ -1316,6 +1342,14 @@
  "tyylita": [
   "style"
  ],
+ "videotest": [
+  "chart",
+  "geometric",
+  "grid",
+  "halftone",
+  "retro",
+  "scientific"
+ ],
  "view3d": [
   "3d",
   "animation",
@@ -1393,21 +1427,6 @@
   "combine",
   "grid",
   "repeat",
-  "structural"
- ],
- "videotest": [
-  "chart",
-  "geometric",
-  "grid",
-  "halftone",
-  "retro",
-  "scientific"
- ],
- "polystudio": [
-  "3d",
-  "geometric",
-  "mesh",
-  "space",
   "structural"
  ]
 }

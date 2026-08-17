@@ -1,13 +1,13 @@
-# MUUSIA v2.69 — Node Reference
+# MUUSIA v2.70 — Node Reference
 
-All 246 built-in nodes. Conventions used below: most generators accept a **Style**
+All 249 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (144)
+## Generators (147)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -935,6 +935,64 @@ only. Three outputs: Faces, Silhouette (the projected outline as one closed
 path, for a heavier pen or a cut line) and Mesh — the rotated, normalised
 triangle payload, so Mesh Slice cuts exactly what the screen shows. Rotations
 and Stellate are value ports.
+
+**Chain** — interlocking chain links drawn as flat hatched bands with real
+hidden-line removal. Each link is a closed ribbon lying in ONE plane, which is
+what makes the occlusion exact and cheap: the depth of a plane is a closed-form
+solve at any screen point, so where two links cross the one behind is cut away
+exactly and the over/under weave falls out of the geometry — there is no weaving
+bookkeeping in the node at all. *Element* picks the outline (Circle, Triangle,
+Square, Hexagon); *Corner round* is not decoration but a constraint, because the
+band is the centreline offset along its own normal and the inner edge folds over
+itself wherever the curve turns tighter than the half-width, so the rounding is
+clamped above it. *Layout* runs the chain along a line, closes it into a ring, or
+follows any paths wired into the **Spine** input. *Alternate tilt* is the
+character control: 90° gives a real chain with every second link edge-on, low
+values lay them nearly face-on as overlapping ellipses. *Link spin* turns each
+element inside its own plane and *Spin / link* adds to that per link; *Offset*
+staggers every second link sideways into a zigzag (both accumulate by index — a
+constant rotation or shift would only move the whole drawing and vanish in the
+centring). Hatch: Chevron, Chevron alternating (herringbone), Rungs, Diagonal,
+Cross. *Link size* is a true millimetre measurement — the fit shrinks and never
+grows — and *Hatch spacing* is in paper millimetres, so it survives the fit.
+At one link the chain parameters hide themselves and the node is simply a
+hatched ring or polygon band.
+
+**Circuit** — constructivist circuit compositions: solid blocks in aligned
+columns, orthogonal trace bundles between them, and a baseline the picture rests
+on. Blocks stack into *Columns* and every block in a column shares its width, so
+the stacks read as one structure. Traces leave block edges in bundles of parallel
+lines at *Bundle pitch* and turn at right angles — L routes turn once, Z twice —
+ending on another block, on the baseline, at the sheet edge, or in a short stub
+with a cross-tick. Routing is corridor-checked against the blocks with a
+clearance and a route that cannot be found is **dropped rather than drawn
+through a block**. *Crossings* either overlap plainly, as in the steel-wire
+originals, or cut *Under gaps* into the lower trace. *Frames* adds empty outlined
+rectangles as a counterweight to the black mass. A pen cannot lay solid ink, so
+block *Fill* is dense hatching (Hatch, Cross, Contour) and *Fill spacing* is in
+real paper millimetres — it sets the plotting time more than anything else here.
+*Whitespace bias* slides the block cluster sideways and leaves the other side to
+the long runs. Compare **Diagram**: that draws numbered nodes and arrowheads on a
+ring or grid; this has no arrows and no node identity, and hangs off a baseline.
+
+**Knot Tube** — a closed 3-D knot swept into a tube and drawn as counter-wound
+helices with real hidden-line removal, so the far side and everything passing
+behind is cut away and the knot reads as solid. The tube is a canal surface —
+the boundary of the union of spheres along the spine — which is what makes the
+occlusion exact: for an orthographic camera a point is hidden exactly when some
+sphere's near surface lies in front of it. *Curve* picks the spine: a p·q torus
+knot, the figure-eight knot, a Lissajous knot, or *Tangle*, a seeded sum of
+harmonics that is always smooth and always closed, so the Seed shuffles through
+endless genuine knots. *Surface* Cross winds a right- and a left-handed helix
+over each other — that is where the diamond moiré comes from — with Right and
+Left helix, Rings, Cross + rings and Longitudinals as the alternatives. Density
+comes from *Strands*, the number of parallel starts, more than from *Turns*.
+The radius is a function of arc length, clamped locally under the curvature
+radius: past it the tube's own wall folds inside its body and the drawing
+dissolves, so a tight bend quietly pinches instead. Strands passing within a
+tube diameter of each other are left to fuse, which the union of spheres renders
+correctly. *Size* is a true millimetre measurement, shrunk only if it would run
+off the sheet. Tip: wire Frame into Yaw for a spinning knot.
 
 ## Modifiers (69)
 

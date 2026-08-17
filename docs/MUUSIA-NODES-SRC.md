@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (244 files, generated)
+# MUUSIA v2.29 — Node Sources (247 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -2854,6 +2854,499 @@ export default {
 };
 ```
 
+## chain.js
+
+```js
+import { Pin, PENS, resample, applyStyle } from "../helpers.js";
+
+export default {
+  /* Chain - interlocking flat bands with exact planar hidden-line removal.
+
+     WHY FLAT BANDS. Each link is a closed ribbon lying in ONE plane, not a
+     round tube. That single fact is what makes the occlusion exact and cheap:
+     for an orthographic camera the depth of a plane is a closed-form solve at
+     any screen point, so "is this pen point behind link j" is one dot product
+     and a 2-D point-in-band test. Over/under at every crossing then falls out
+     of the geometry - there is no weaving bookkeeping anywhere in this node,
+     and a chain can never be drawn inconsistently.
+
+     THE ONE REAL CONSTRAINT. The band is built by offsetting the centerline
+     along its own normal, so the INNER offset folds over itself wherever the
+     centerline curves tighter than the band half-width. On a polygon link that
+     happens at every corner. Corner rounding is therefore not decoration: the
+     rounding radius is clamped to stay above the half-width, and the
+     half-width is clamped below the inradius. The validator proves the inner
+     edge stays simple with a segment-intersection oracle.
+
+     this._build is shared by compute and overlay so the guides cannot drift
+     from the drawing; the engine calls both as methods on this def object. */
+  key: "chain",
+  name: "Chain",
+  cat: "gen",
+  group: "geometric",
+  desc: "Interlocking chain links drawn as flat hatched bands with real hidden-line removal. Each link is a closed ribbon in its own plane, so where two links cross the one behind is cut away exactly - the over/under weave is a consequence of the geometry, never a decoration. Element picks the link outline: Circle, Triangle, Square or Hexagon, with Corner round softening the polygons (rounding is also what keeps the inner edge of a wide band from folding over itself at the corners, so it is clamped, not free). Layout runs the chain along a straight line, closes it into a ring, or follows any paths wired into the Spine input. Alternate tilt is the character control: 90 degrees gives a real chain with every second link edge-on, low values lay all the links nearly face-on so they read as overlapping ellipses. Link spin turns each element inside its own plane and Spin / link adds to that per link, so square links can alternate square-diamond-square or a hexagon chain can twist gradually along its length - a circle is rotationally symmetric so spin only shifts its hatch phase, but on the polygons it reshapes the whole silhouette. Offset slides every second link sideways within its plane, staggering the chain into a zigzag; the sign alternates because a constant offset would only translate the whole drawing and disappear in the centring. Hatch fills the band - Chevron sends a V across it (Lean sets how far the apex leans along the band), Chevron alternating flips every rung into a herringbone, plus plain Rungs, Diagonal and Cross. Overlap sets how deeply consecutive links pass through each other, Yaw and Pitch turn the whole chain in space and Rotate spins the finished drawing on the sheet. Hatch spacing drives plotting time more than any other parameter.",
+  ins: [Pin("paths", "Spine (optional)"), Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "shape", label: "Element", type: "select", options: ["Circle", "Triangle", "Square", "Hexagon"], def: "Circle" },
+    { key: "links", label: "Links", type: "slider", min: 1, max: 24, step: 1, def: 5 },
+    { key: "size", label: "Link size mm", type: "slider", min: 10, max: 140, step: 1, def: 40 },
+    { key: "band", label: "Band width %", type: "slider", min: 4, max: 60, step: 1, def: 26 },
+    { key: "round", label: "Corner round %", type: "slider", min: 0, max: 100, step: 5, def: 55, showIf: (p) => p.shape !== "Circle" },
+    { key: "layout", label: "Layout", type: "select", options: ["Line", "Ring", "Wired spine"], def: "Line", showIf: (p) => Math.round(p.links) > 1 },
+    { key: "overlap", label: "Overlap %", type: "slider", min: 0, max: 70, step: 1, def: 42, showIf: (p) => Math.round(p.links) > 1 },
+    { key: "tilt", label: "Alternate tilt °", type: "slider", min: 0, max: 90, step: 1, def: 40, showIf: (p) => Math.round(p.links) > 1 },
+    { key: "spin", label: "Link spin °", type: "slider", min: 0, max: 360, step: 1, def: 0 },
+    { key: "spinStep", label: "Spin / link °", type: "slider", min: -180, max: 180, step: 1, def: 0, showIf: (p) => Math.round(p.links) > 1 },
+    { key: "off", label: "Offset mm (alternating)", type: "slider", min: -40, max: 40, step: 0.5, def: 0, showIf: (p) => Math.round(p.links) > 1 },
+    { key: "hatch", label: "Hatch", type: "select", options: ["Chevron", "Chevron alternating", "Rungs", "Diagonal", "Cross", "None"], def: "Chevron" },
+    { key: "gap", label: "Hatch spacing mm", type: "slider", min: 0.4, max: 8, step: 0.1, def: 1.2 },
+    { key: "lean", label: "Lean mm", type: "slider", min: -12, max: 12, step: 0.25, def: 3.5, showIf: (p) => p.hatch === "Chevron" || p.hatch === "Chevron alternating" || p.hatch === "Diagonal" || p.hatch === "Cross" },
+    { key: "edges", label: "Draw band edges", type: "check", def: true },
+    { key: "hidden", label: "Hidden lines", type: "check", def: true, showIf: (p) => Math.round(p.links) > 1 },
+    { key: "yaw", label: "Yaw °", type: "slider", min: -180, max: 180, step: 1, def: 0 },
+    { key: "pitch", label: "Pitch °", type: "slider", min: -89, max: 89, step: 1, def: 18 },
+    { key: "rot", label: "Rotate °", type: "slider", min: -180, max: 180, step: 1, def: 90 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 14 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+
+  /* ---------------------------------------------------------------- build
+     Everything geometric that compute and overlay must agree on. Returns
+     view-space link frames, the unit centerline, an occlusion grid and the
+     fit transform. Never throws: a degenerate setup returns ok:false. */
+  _build(p, ctx, ins) {
+    const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+    const m = Math.max(0, Math.min(Math.min(W, H) / 2 - 5, p.margin));
+    const bw = W - 2 * m, bh = H - 2 * m;
+    if (!(bw > 8) || !(bh > 8)) return { ok: false };
+
+    const nLinks = Math.max(1, Math.min(24, Math.round(p.links) || 1));
+    const R = Math.max(1, p.size) / 2;
+
+    /* --- unit centerline: circle or rounded regular polygon, circumradius 1 --- */
+    const shape = p.shape;
+    const k = shape === "Triangle" ? 3 : shape === "Square" ? 4 : shape === "Hexagon" ? 6 : 0;
+    const rIn = k ? Math.cos(Math.PI / k) : 1;              /* inradius */
+    let hU = Math.max(0.01, Math.min(60, p.band) / 100);    /* band half-width, unit */
+    /* corner radius: user value, but never below the half-width or the inner
+       offset folds over itself at every corner */
+    let cr = k ? (Math.max(0, Math.min(100, p.round)) / 100) * rIn : Infinity;
+    if (k) {
+      hU = Math.min(hU, rIn * 0.82);
+      cr = Math.max(cr, hU * 1.25);
+      cr = Math.min(cr, rIn);
+      hU = Math.min(hU, cr * 0.8);
+    } else {
+      hU = Math.min(hU, 0.85);
+    }
+
+    const clRaw = [];
+    if (!k) {
+      const N = 512;   /* dense on purpose: see the faceting note below */
+      for (let i = 0; i < N; i++) { const a = (i / N) * Math.PI * 2; clRaw.push([Math.cos(a), Math.sin(a)]); }
+    } else {
+      const t = cr * Math.tan(Math.PI / k);                 /* along-edge setback */
+      const d = cr / Math.cos(Math.PI / k);                 /* vertex -> arc center */
+      const half = Math.PI / k;
+      for (let i = 0; i < k; i++) {
+        const a = -Math.PI / 2 + (i / k) * Math.PI * 2;     /* flat-ish bottom */
+        const vx = Math.cos(a), vy = Math.sin(a);
+        const an = -Math.PI / 2 + ((i + 1) / k) * Math.PI * 2;
+        const nx = Math.cos(an), ny = Math.sin(an);
+        const ex = nx - vx, ey = ny - vy;
+        const eL = Math.hypot(ex, ey) || 1;
+        const ux = ex / eL, uy = ey / eL;
+        /* rounded corner: the arc center sits on the vertex bisector, cr/cos(pi/k)
+           INWARD from the vertex - i.e. at radius (1 - d) from the origin. At
+           maximum rounding d reaches 1, the center lands on the origin and the
+           polygon degenerates into a circle of radius rIn, which is correct. */
+        const cx = vx * (1 - d), cy = vy * (1 - d);
+        const a0 = a - half, a1 = a + half;
+        /* Arc density is a correctness matter, not a smoothness one. Offsetting
+           inward compresses the corner arcs by (cr - hU) / cr, so a coarse arc's
+           faceting error gets amplified until it rivals the spacing between
+           offset points and the inner edge starts stepping backwards. One raw
+           sample per 0.01 unit of arc keeps that error three orders down. */
+        const steps = Math.max(6, Math.ceil((cr * (2 * Math.PI / k)) / 0.01));
+        for (let s = 0; s <= steps; s++) {
+          const aa = a0 + (a1 - a0) * (s / steps);
+          clRaw.push([cx + cr * Math.cos(aa), cy + cr * Math.sin(aa)]);
+        }
+        /* straight run to the next corner's start */
+        const sx = vx + ux * t, sy = vy + uy * t;
+        const gx = nx - ux * t, gy = ny - uy * t;
+        const segL = Math.hypot(gx - sx, gy - sy);
+        const segN = Math.max(1, Math.round(segL / 0.01));
+        for (let s = 1; s < segN; s++) clRaw.push([sx + (gx - sx) * (s / segN), sy + (gy - sy) * (s / segN)]);
+      }
+    }
+    /* Even out the raw construction. The corner arcs and the straight runs meet
+       at shared points, and at maximum rounding the straight runs collapse to
+       zero length: that leaves coincident vertices whose neighbour-difference
+       normals disagree, and the inner offset then steps BACKWARDS by a hair at
+       every corner - a hairline reversal that reads as a self-intersection and
+       would plot as a whisker. Resampling by arc length removes the duplicates
+       and gives every normal the same quality. */
+    let cl = resample(clRaw, true, 0.02);
+    while (cl.length > 8 && Math.hypot(cl[cl.length - 1][0] - cl[0][0], cl[cl.length - 1][1] - cl[0][1]) < 0.012) cl.pop();
+    const NC = cl.length;
+    if (NC < 8) return { ok: false };
+
+    /* outward normals from the closed centerline */
+    const nrm = new Array(NC);
+    for (let i = 0; i < NC; i++) {
+      const a = cl[(i - 1 + NC) % NC], b = cl[(i + 1) % NC];
+      let tx = b[0] - a[0], ty = b[1] - a[1];
+      const tl = Math.hypot(tx, ty) || 1;
+      tx /= tl; ty /= tl;
+      let nx = ty, ny = -tx;
+      if (nx * cl[i][0] + ny * cl[i][1] < 0) { nx = -nx; ny = -ny; }
+      nrm[i] = [nx, ny];
+    }
+    /* cumulative arc length, for even hatch spacing */
+    const cum = new Array(NC + 1); cum[0] = 0;
+    for (let i = 0; i < NC; i++) {
+      const a = cl[i], b = cl[(i + 1) % NC];
+      cum[i + 1] = cum[i] + Math.hypot(b[0] - a[0], b[1] - a[1]);
+    }
+    const per = cum[NC];
+
+    /* occlusion grid over unit space: boolean "within hU of the centerline" */
+    const cell = Math.max(0.03, hU);
+    const G = Math.ceil(2.6 / cell) + 1;
+    const grid = new Array(G * G);
+    const gi = (u, v) => {
+      const a = Math.floor((u + 1.3) / cell), b = Math.floor((v + 1.3) / cell);
+      return a < 0 || b < 0 || a >= G || b >= G ? -1 : b * G + a;
+    };
+    for (let i = 0; i < NC; i++) {
+      const a = cl[i], b = cl[(i + 1) % NC];
+      const x0 = Math.min(a[0], b[0]), x1 = Math.max(a[0], b[0]);
+      const y0 = Math.min(a[1], b[1]), y1 = Math.max(a[1], b[1]);
+      for (let u = x0; u <= x1 + cell; u += cell) {
+        for (let v = y0; v <= y1 + cell; v += cell) {
+          const id = gi(u, v);
+          if (id >= 0) { if (!grid[id]) grid[id] = []; if (grid[id].indexOf(i) < 0) grid[id].push(i); }
+        }
+      }
+    }
+    const nearCenterline = (u, v) => {
+      if (Math.abs(u) > 1.3 || Math.abs(v) > 1.3) return false;
+      const a0 = Math.floor((u + 1.3) / cell), b0 = Math.floor((v + 1.3) / cell);
+      const rad = 2;
+      const h2 = hU * hU;
+      for (let b = b0 - rad; b <= b0 + rad; b++) {
+        if (b < 0 || b >= G) continue;
+        for (let a = a0 - rad; a <= a0 + rad; a++) {
+          if (a < 0 || a >= G) continue;
+          const bucket = grid[b * G + a];
+          if (!bucket) continue;
+          for (const si of bucket) {
+            const s = cl[si], e = cl[(si + 1) % NC];
+            const dx = e[0] - s[0], dy = e[1] - s[1];
+            const L2 = dx * dx + dy * dy;
+            let t = L2 > 0 ? ((u - s[0]) * dx + (v - s[1]) * dy) / L2 : 0;
+            t = t < 0 ? 0 : t > 1 ? 1 : t;
+            const qx = u - (s[0] + dx * t), qy = v - (s[1] + dy * t);
+            if (qx * qx + qy * qy <= h2) return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    /* --- spine: world-space centers + a transported frame (T, A, B) --- */
+    const pitch = 2 * R * Math.max(0.12, 1 - Math.max(0, Math.min(70, p.overlap)) / 100);
+    const spine = [];
+    const src = (ins && ins[0] && ins[0].paths) ? ins[0].paths : null;
+    let wired = null;
+    if (p.layout === "Wired spine" && src && src.length) {
+      let best = null, bl = -1;
+      for (const q of src) {
+        if (!q || !q.pts || q.pts.length < 2) continue;
+        let L = 0;
+        for (let i = 1; i < q.pts.length; i++) L += Math.hypot(q.pts[i][0] - q.pts[i - 1][0], q.pts[i][1] - q.pts[i - 1][1]);
+        if (L > bl) { bl = L; best = q; }
+      }
+      if (best) wired = resample(best.pts, !!best.closed, Math.max(0.5, pitch));
+    }
+    if (wired && wired.length >= 2) {
+      const cx = wired.reduce((s, q) => s + q[0], 0) / wired.length;
+      const cy = wired.reduce((s, q) => s + q[1], 0) / wired.length;
+      for (let i = 0; i < Math.min(nLinks, wired.length); i++) spine.push([wired[i][0] - cx, -(wired[i][1] - cy), 0]);
+    } else if (p.layout === "Ring") {
+      const Rs = (nLinks * pitch) / (Math.PI * 2);
+      for (let i = 0; i < nLinks; i++) {
+        const a = (i / nLinks) * Math.PI * 2;
+        spine.push([Rs * Math.cos(a), Rs * Math.sin(a), 0]);
+      }
+    } else {
+      const span = (nLinks - 1) * pitch;
+      for (let i = 0; i < nLinks; i++) spine.push([-span / 2 + i * pitch, 0, 0]);
+    }
+    const NL = spine.length;
+    if (!NL) return { ok: false };
+
+    const tangent = (i) => {
+      const a = spine[Math.max(0, i - 1)], b = spine[Math.min(NL - 1, i + 1)];
+      let tx = b[0] - a[0], ty = b[1] - a[1], tz = b[2] - a[2];
+      const l = Math.hypot(tx, ty, tz);
+      if (l < 1e-9) return [1, 0, 0];
+      return [tx / l, ty / l, tz / l];
+    };
+
+    /* --- world -> view rotation (yaw about Y, pitch about X, roll on screen) --- */
+    const rad = Math.PI / 180;
+    const cy1 = Math.cos(p.yaw * rad), sy1 = Math.sin(p.yaw * rad);
+    const cp = Math.cos(p.pitch * rad), sp = Math.sin(p.pitch * rad);
+    const cr2 = Math.cos(p.rot * rad), sr2 = Math.sin(p.rot * rad);
+    const toView = (v) => {
+      let x = v[0] * cy1 + v[2] * sy1;
+      let z = -v[0] * sy1 + v[2] * cy1;
+      let y = v[1] * cp - z * sp;
+      z = v[1] * sp + z * cp;
+      const rx = x * cr2 - y * sr2, ry = x * sr2 + y * cr2;
+      return [rx, ry, z];
+    };
+
+    /* --- link frames in view space --- */
+    const tiltR = Math.max(0, Math.min(90, p.tilt)) * rad;
+    const links = [];
+    for (let i = 0; i < NL; i++) {
+      const T = tangent(i);
+      /* two perpendiculars to T: one in the world XY plane, one out of it */
+      let A = [-T[1], T[0], 0];
+      let al = Math.hypot(A[0], A[1], A[2]);
+      if (al < 1e-6) { A = [0, 1, 0]; al = 1; }
+      A = [A[0] / al, A[1] / al, A[2] / al];
+      const B = [T[1] * A[2] - T[2] * A[1], T[2] * A[0] - T[0] * A[2], T[0] * A[1] - T[1] * A[0]];
+      const ph = (i % 2) ? tiltR : 0;
+      const ca = Math.cos(ph), sa = Math.sin(ph);
+      const Wv = [A[0] * ca + B[0] * sa, A[1] * ca + B[1] * sa, A[2] * ca + B[2] * sa];
+      /* Offset slides the link sideways INSIDE its own plane, perpendicular to
+         the chain axis, with the sign alternating - a constant offset would
+         merely translate the whole chain and vanish in the centring. */
+      const offMM = (Number.isFinite(p.off) ? p.off : 0) * ((i % 2) ? -1 : 1);
+      const Cw = [spine[i][0] + Wv[0] * offMM, spine[i][1] + Wv[1] * offMM, spine[i][2] + Wv[2] * offMM];
+      /* link plane spanned by (T, Wv) - a chain link's plane contains the axis */
+      let Uv = toView(T), Vv = toView(Wv);
+      /* Spin turns the element within that plane. Rotating the BASIS rather
+         than the point list means the band, the hatch and the occlusion test
+         all inherit it for free - they are all expressed in (U, V). A circle is
+         rotationally symmetric, so spin only shifts its hatch phase; on the
+         polygons it is the whole point. */
+      const th = ((Number.isFinite(p.spin) ? p.spin : 0) + i * (Number.isFinite(p.spinStep) ? p.spinStep : 0)) * rad;
+      if (th) {
+        const ct = Math.cos(th), st = Math.sin(th);
+        const U2 = [Uv[0] * ct + Vv[0] * st, Uv[1] * ct + Vv[1] * st, Uv[2] * ct + Vv[2] * st];
+        const V2 = [-Uv[0] * st + Vv[0] * ct, -Uv[1] * st + Vv[1] * ct, -Uv[2] * st + Vv[2] * ct];
+        Uv = U2; Vv = V2;
+      }
+      const Cv = toView(Cw);
+      const N = [Uv[1] * Vv[2] - Uv[2] * Vv[1], Uv[2] * Vv[0] - Uv[0] * Vv[2], Uv[0] * Vv[1] - Uv[1] * Vv[0]];
+      links.push({ C: Cv, U: Uv, V: Vv, N });
+    }
+
+    /* --- fit: bbox of every projected outer edge point --- */
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const lk of links) {
+      for (let i = 0; i < NC; i += 2) {
+        const u = (cl[i][0] + nrm[i][0] * hU) * R, v = (cl[i][1] + nrm[i][1] * hU) * R;
+        const x = lk.C[0] + lk.U[0] * u + lk.V[0] * v;
+        const y = lk.C[1] + lk.U[1] * u + lk.V[1] * v;
+        if (x < x0) x0 = x; if (x > x1) x1 = x;
+        if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+    if (!isFinite(x0) || !isFinite(y0)) return { ok: false };
+    const gw = (x1 - x0) || 1, gh = (y1 - y0) || 1;
+    /* SHRINK TO FIT, never grow. Scaling up to the margin box would make "Link
+       size mm" meaningless - the drawing would fill the sheet at every size and
+       the parameter would only change how many hatch rungs got packed in, which
+       reads as a density knob, not a size knob. Clamping the scale at 1 makes
+       the millimetres real; oversized chains still get pulled back onto the
+       sheet rather than running off it. */
+    const sc = Math.min(1, Math.min(bw / gw, bh / gh));
+    const ox = m + (bw - gw * sc) / 2 - x0 * sc;
+    const oy = m + (bh - gh * sc) / 2 - y0 * sc;
+    const proj = (x, y) => [x * sc + ox, y * sc + oy];
+
+    return { ok: true, links, cl, nrm, cum, per, NC, hU, R, sc, ox, oy, proj, nearCenterline, spine, toView, m, bw, bh };
+  },
+
+  compute(ins, p, ctx) {
+    const B = this._build(p, ctx, ins);
+    if (!B || !B.ok) return applyStyle({ paths: [] }, ins[1]);
+    const { links, cl, nrm, cum, per, NC, hU, R, proj, nearCenterline } = B;
+    /* B.sc is read directly below: hatch spacing is quoted in paper mm */
+    const L = Math.max(0, Math.min(PENS.length - 1, Math.round(p.layer)));
+    const BUDGET = 110000;
+    let used = 0;
+    const paths = [];
+
+    /* ---- visibility: is this view-space point behind another link's band? ---- */
+    const doHide = p.hidden !== false && links.length > 1;
+    const visible = (P, self) => {
+      if (!doHide) return true;
+      for (let j = 0; j < links.length; j++) {
+        if (j === self) continue;               /* a plane cannot occlude itself */
+        const lk = links[j];
+        const nz = lk.N[2];
+        if (Math.abs(nz) < 1e-7) continue;      /* edge-on: occludes a zero-width sliver */
+        const t = ((lk.C[0] - P[0]) * lk.N[0] + (lk.C[1] - P[1]) * lk.N[1] + (lk.C[2] - P[2]) * lk.N[2]) / nz;
+        if (t <= 1e-6) continue;                /* that plane is behind this point */
+        const qz = P[2] + t;
+        const dx = P[0] - lk.C[0], dy = P[1] - lk.C[1], dz = qz - lk.C[2];
+        const u = (dx * lk.U[0] + dy * lk.U[1] + dz * lk.U[2]) / R;
+        const v = (dx * lk.V[0] + dy * lk.V[1] + dz * lk.V[2]) / R;
+        if (nearCenterline(u, v)) return false;
+      }
+      return true;
+    };
+
+    /* ---- clip a view-space polyline to its visible runs, cutting by bisection ---- */
+    const emit = (pts3, self, closed) => {
+      if (used >= BUDGET || pts3.length < 2) return;
+      if (!doHide) {
+        const out = pts3.map((q) => proj(q[0], q[1]));
+        used += out.length;
+        paths.push({ pts: out, closed: !!closed, layer: L });
+        return;
+      }
+      const seq = closed ? pts3.concat([pts3[0]]) : pts3;
+      const vis = seq.map((q) => visible(q, self));
+      if (vis.every(Boolean)) {
+        const out = pts3.map((q) => proj(q[0], q[1]));
+        used += out.length;
+        paths.push({ pts: out, closed: !!closed, layer: L });
+        return;
+      }
+      const cut = (a, b, aVis) => {         /* boundary point between a and b */
+        let lo = 0, hi = 1;
+        for (let it = 0; it < 8; it++) {
+          const mid = (lo + hi) / 2;
+          const q = [a[0] + (b[0] - a[0]) * mid, a[1] + (b[1] - a[1]) * mid, a[2] + (b[2] - a[2]) * mid];
+          if (visible(q, self) === aVis) lo = mid; else hi = mid;
+        }
+        const t = (lo + hi) / 2;
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+      };
+      const runs = [];
+      let run = null;
+      for (let i = 0; i < seq.length; i++) {
+        if (vis[i]) {
+          if (!run) {
+            run = [];
+            if (i > 0) run.push(cut(seq[i], seq[i - 1], true));
+          }
+          run.push(seq[i]);
+        } else if (run) {
+          run.push(cut(seq[i - 1], seq[i], true));
+          runs.push(run);
+          run = null;
+        }
+      }
+      if (run) runs.push(run);
+      /* a closed curve whose seam is visible arrives as two runs that are one */
+      if (closed && runs.length > 1 && vis[0] && vis[seq.length - 1]) {
+        const first = runs.shift();
+        runs[runs.length - 1] = runs[runs.length - 1].concat(first.slice(1));
+      }
+      for (const r of runs) {
+        if (r.length < 2 || used >= BUDGET) continue;
+        const out = r.map((q) => proj(q[0], q[1]));
+        used += out.length;
+        paths.push({ pts: out, closed: false, layer: L });
+      }
+    };
+
+    const at = (lk, u, v) => [
+      lk.C[0] + lk.U[0] * u * R + lk.V[0] * v * R,
+      lk.C[1] + lk.U[1] * u * R + lk.V[1] * v * R,
+      lk.C[2] + lk.U[2] * u * R + lk.V[2] * v * R,
+    ];
+    /* centerline point + outward normal at arc position s (0..per), wrapping */
+    const atS = (s) => {
+      let x = ((s % per) + per) % per;
+      let lo = 0, hi = NC;
+      while (lo + 1 < hi) { const mid = (lo + hi) >> 1; if (cum[mid] <= x) lo = mid; else hi = mid; }
+      const a = cl[lo], b = cl[(lo + 1) % NC];
+      const na = nrm[lo], nb = nrm[(lo + 1) % NC];
+      const seg = (cum[lo + 1] - cum[lo]) || 1;
+      const t = (x - cum[lo]) / seg;
+      return [
+        [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t],
+        [na[0] + (nb[0] - na[0]) * t, na[1] + (nb[1] - na[1]) * t],
+      ];
+    };
+
+    /* ---- band edges ---- */
+    if (p.edges !== false) {
+      for (let i = 0; i < links.length && used < BUDGET; i++) {
+        for (const sgn of [-1, 1]) {
+          const ring = [];
+          for (let c = 0; c < NC; c++) ring.push(at(links[i], cl[c][0] + nrm[c][0] * hU * sgn, cl[c][1] + nrm[c][1] * hU * sgn));
+          emit(ring, i, true);
+        }
+      }
+    }
+
+    /* ---- hatch ---- */
+    const mode = p.hatch;
+    if (mode !== "None") {
+      const perMM = per * R;
+      /* Hatch spacing and Lean are quoted in PAPER millimetres, so divide out
+         the shrink: whatever the fit does, the rungs land Gap apart in ink. */
+      const S = B.sc > 1e-6 ? B.sc : 1;
+      let gapMM = Math.max(0.35, p.gap) / S;
+      /* coarsen rather than hang: rungs x samples x links must stay in budget */
+      const SAMP = Math.max(4, Math.min(14, Math.round((2 * hU * R * S) / 1.6) + 2));
+      const est = () => (perMM / gapMM) * SAMP * links.length * (mode === "Cross" ? 2 : 1);
+      while (est() > BUDGET * 0.9 && gapMM < 40 / S) gapMM *= 1.35;
+      const nR = Math.max(3, Math.round(perMM / gapMM));
+      const leanU = ((p.lean || 0) / S) / R;   /* paper mm -> local -> unit */
+
+      for (let i = 0; i < links.length && used < BUDGET; i++) {
+        for (let r = 0; r < nR && used < BUDGET; r++) {
+          const s0 = (r / nR) * per;
+          const flip = (mode === "Chevron alternating" && (r % 2)) ? -1 : 1;
+          const arms = mode === "Cross" ? [1, -1] : [flip];
+          for (const arm of arms) {
+            const pts = [];
+            for (let q = 0; q < SAMP; q++) {
+              const w = -1 + 2 * (q / (SAMP - 1));      /* -1 inner .. +1 outer */
+              let shift = 0;
+              if (mode === "Diagonal" || mode === "Cross") shift = leanU * arm * w;
+              else if (mode === "Chevron" || mode === "Chevron alternating") shift = leanU * arm * (Math.abs(w) - 0.5) * 2;
+              const [c, n] = atS(s0 + shift);
+              pts.push(at(links[i], c[0] + n[0] * hU * w, c[1] + n[1] * hU * w));
+            }
+            emit(pts, i, false);
+          }
+        }
+      }
+    }
+
+    return applyStyle({ paths }, ins[1]);
+  },
+
+  overlay(p, ctx, ins) {
+    try {
+      const B = this && this._build ? this._build(p, ctx, ins) : null;
+      if (!B || !B.ok) return [];
+      const g = [{ kind: "rect", x: B.m, y: B.m, w: B.bw, h: B.bh }];
+      /* the actual link centres, not the raw spine: Offset moves them off the
+         axis and a guide that ignored that would lie about the drawing */
+      const sp = B.links.map((lk) => B.proj(lk.C[0], lk.C[1]));
+      if (sp.length >= 2) g.push({ kind: "poly", pts: sp });
+      for (const q of sp) g.push({ kind: "point", x: q[0], y: q[1] });
+      return g;
+    } catch (e) { return []; }
+  },
+};
+```
+
 ## chop.js
 
 ```js
@@ -2966,6 +3459,394 @@ export default {
       return applyStyle({ paths }, ins[0]);
     },
   
+};
+```
+
+## circuit.js
+
+```js
+import { Pin, PENS, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+  /* Circuit - constructivist schematic: solid blocks, orthogonal trace bundles,
+     a baseline everything rests on.
+
+     NO FIT-TO-BOX. Everything is generated directly in canvas millimetres
+     inside the margin, so Fill spacing and Bundle pitch are already paper
+     measurements and stay put when other parameters move. That is the same
+     lesson Chain paid for: a normalising fit quietly turns size controls into
+     density controls.
+
+     ROUTING IS CORRIDOR-BASED, not decorative. Every candidate segment is
+     tested against the block rectangles inflated by a clearance, and a route
+     that cannot be found is DROPPED rather than drawn through a block. The
+     alternative - drawing first and hoping - produces the one artefact that
+     destroys the schematic reading, a wire crossing a solid mass.
+
+     Compare Diagram: that node draws numbered nodes joined by arrows on a ring
+     or grid. This one has no arrowheads, no symbols and no node identity; the
+     blocks are mass, the composition hangs off a baseline, and the traces run
+     in parallel bundles. They are different pictures, not two settings of one. */
+  key: "circuit",
+  name: "Circuit",
+  cat: "gen",
+  group: "structural",
+  desc: "Constructivist circuit compositions: solid blocks in aligned columns, orthogonal trace bundles running between them, and a baseline the whole picture rests on. Blocks are stacked into Columns so they line up vertically the way a real schematic does, and every block in a column shares its width. Traces leave block edges in bundles of parallel lines at Bundle pitch and turn at right angles - L routes turn once, Z routes twice - ending on another block, on the baseline, at the sheet edge, or in a short stub. Routing is corridor-checked against the blocks with a clearance, so a bundle never crosses a solid mass; a route that cannot be found is dropped instead of drawn wrong. Crossings either overlap plainly, as in the steel-wire originals, or cut Under gaps into the lower trace. Frames adds empty outlined rectangles, the quiet counterweight to the black mass. Because a pen cannot lay down solid ink, block Fill is dense hatching - Hatch, Cross or Contour - and Fill spacing is in real paper millimetres, so it, more than anything else here, sets the plotting time. Whitespace bias slides the whole block cluster left or right and leaves the other side to the long runs, which is where the composition gets its air. Blocks and traces carry separate pens.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "blocks", label: "Blocks", type: "slider", min: 1, max: 24, step: 1, def: 9 },
+    { key: "columns", label: "Columns", type: "slider", min: 1, max: 6, step: 1, def: 3 },
+    { key: "grid", label: "Grid (cells across)", type: "slider", min: 8, max: 40, step: 1, def: 22 },
+    { key: "bwid", label: "Block width cells", type: "slider", min: 2, max: 14, step: 1, def: 5 },
+    { key: "bhgt", label: "Block height cells", type: "slider", min: 1, max: 10, step: 1, def: 3 },
+    { key: "white", label: "Whitespace bias", type: "slider", min: 0, max: 100, step: 1, def: 55 },
+    { key: "baselines", label: "Baselines", type: "slider", min: 0, max: 3, step: 1, def: 2 },
+    { key: "traces", label: "Traces", type: "slider", min: 0, max: 40, step: 1, def: 16 },
+    { key: "bundle", label: "Bundle max", type: "slider", min: 1, max: 6, step: 1, def: 3, showIf: (p) => Math.round(p.traces) > 0 },
+    { key: "bpitch", label: "Bundle pitch mm", type: "slider", min: 0.8, max: 8, step: 0.1, def: 2, showIf: (p) => Math.round(p.traces) > 0 },
+    { key: "turns", label: "Turns", type: "select", options: ["L", "Z", "Mixed"], def: "Mixed", showIf: (p) => Math.round(p.traces) > 0 },
+    { key: "cross", label: "Crossings", type: "select", options: ["Overlap", "Under gaps"], def: "Overlap", showIf: (p) => Math.round(p.traces) > 0 },
+    { key: "gapmm", label: "Under gap mm", type: "slider", min: 0.4, max: 4, step: 0.1, def: 1.2, showIf: (p) => Math.round(p.traces) > 0 && p.cross === "Under gaps" },
+    { key: "frames", label: "Frames", type: "slider", min: 0, max: 8, step: 1, def: 3 },
+    { key: "fill", label: "Block fill", type: "select", options: ["Hatch", "Cross", "Contour", "None"], def: "Hatch" },
+    { key: "fspace", label: "Fill spacing mm", type: "slider", min: 0.3, max: 4, step: 0.1, def: 0.55, showIf: (p) => p.fill !== "None" },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 14 },
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+    { key: "layer", label: "Block pen", type: "pen", def: 0 },
+    { key: "tlayer", label: "Trace pen", type: "pen", def: 0 },
+  ],
+
+  /* ------------------------------------------------------------------ build
+     Layout only: box, grid, blocks, baselines. compute draws it and overlay
+     shows it, so both must see exactly the same rectangles. */
+  _build(p, ctx) {
+    const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+    const m = Math.max(0, Math.min(Math.min(W, H) / 2 - 5, p.margin));
+    const bw = W - 2 * m, bh = H - 2 * m;
+    if (!(bw > 20) || !(bh > 20)) return { ok: false };
+
+    const G = Math.max(6, Math.min(60, Math.round(p.grid) || 22));
+    const cell = Math.min(bw, bh) / G;
+    const GX = Math.max(4, Math.floor(bw / cell));
+    const GY = Math.max(4, Math.floor(bh / cell));
+    const X = (i) => m + i * cell;
+    const Y = (j) => m + j * cell;
+
+    const rng = mulberry32(Math.round(p.seed) * 9176 + 401);
+    const nB = Math.max(1, Math.min(24, Math.round(p.blocks) || 1));
+    const nC = Math.max(1, Math.min(6, Math.round(p.columns) || 1));
+    const wid = Math.max(2, Math.min(14, Math.round(p.bwid) || 2));
+    const hgt = Math.max(1, Math.min(10, Math.round(p.bhgt) || 1));
+
+    /* baseline band at the bottom - blocks must not sit on top of it */
+    const nBase = Math.max(0, Math.min(3, Math.round(p.baselines)));
+    const baseJ = GY - 1;
+    const floorJ = nBase > 0 ? baseJ - 1 : GY;
+
+    /* Column cluster. Whitespace bias slides the cluster sideways and leaves
+       the other side open for the long runs - the composition's air. */
+    const clusterW = Math.min(GX - 2, Math.max(nC * (wid + 2), Math.round(GX * 0.42)));
+    const c0 = Math.round((GX - clusterW) * (1 - Math.max(0, Math.min(100, p.white)) / 100));
+    const colX = [];
+    for (let c = 0; c < nC; c++) {
+      const t = nC === 1 ? 0.5 : c / (nC - 1);
+      colX.push(c0 + Math.round(t * Math.max(0, clusterW - wid)));
+    }
+    /* every block in a column shares its width: that is what makes the stacks
+       read as one structure instead of scattered rectangles */
+    const colW = colX.map(() => Math.max(2, wid + (rng() < 0.45 ? Math.round((rng() - 0.5) * 4) : 0)));
+
+    const blocks = [];
+    const clash = (a) => blocks.some((b) => !(a.i1 + 1 <= b.i0 || b.i1 + 1 <= a.i0 || a.j1 + 1 <= b.j0 || b.j1 + 1 <= a.j0));
+    for (let k = 0; k < nB; k++) {
+      let placed = false;
+      for (let tryN = 0; tryN < 60 && !placed; tryN++) {
+        const c = Math.floor(rng() * nC) % nC;
+        const w = Math.min(colW[c], GX - 1);
+        const h = Math.max(1, hgt + (rng() < 0.4 ? Math.round((rng() - 0.5) * 3) : 0));
+        const i0 = Math.max(0, Math.min(GX - w - 1, colX[c]));
+        const j0 = Math.max(1, Math.min(floorJ - h - 1, 1 + Math.floor(rng() * Math.max(1, floorJ - h - 2))));
+        const a = { i0, j0, i1: i0 + w, j1: j0 + h, col: c };
+        if (a.j1 >= floorJ || a.i1 >= GX) continue;
+        if (clash(a)) continue;
+        blocks.push(a);
+        placed = true;
+      }
+    }
+    /* blocks in mm, which is what everything downstream actually uses */
+    for (const b of blocks) { b.x0 = X(b.i0); b.y0 = Y(b.j0); b.x1 = X(b.i1); b.y1 = Y(b.j1); }
+
+    return { ok: true, m, bw, bh, cell, GX, GY, X, Y, blocks, nBase, baseJ, floorJ, rng, colX, colW };
+  },
+
+  compute(ins, p, ctx) {
+    const B = this._build(p, ctx);
+    if (!B || !B.ok) return applyStyle({ paths: [] }, ins[0]);
+    const { m, bw, bh, cell, GX, GY, X, Y, blocks, nBase, baseJ } = B;
+    const LB = Math.max(0, Math.min(PENS.length - 1, Math.round(p.layer)));
+    const LT = Math.max(0, Math.min(PENS.length - 1, Math.round(p.tlayer)));
+    const BUDGET = 110000;
+    let used = 0;
+    const paths = [];
+    const push = (pts, layer, closed) => {
+      if (used >= BUDGET || pts.length < 2) return;
+      used += pts.length;
+      paths.push({ pts, closed: !!closed, layer });
+    };
+
+    /* a fresh stream for the drawing pass so layout stays stable when only
+       trace parameters move */
+    const rng = mulberry32(Math.round(p.seed) * 3313 + 77);
+
+    /* ---------------- blocks: outline plus a hatched interior ---------------- */
+    const fill = p.fill;
+    const fs = Math.max(0.25, p.fspace);
+    for (const b of blocks) {
+      push([[b.x0, b.y0], [b.x1, b.y0], [b.x1, b.y1], [b.x0, b.y1]], LB, true);
+      if (fill === "None") continue;
+      if (fill === "Contour") {
+        for (let d = fs; d < Math.min(b.x1 - b.x0, b.y1 - b.y0) / 2 - 1e-9; d += fs) {
+          push([[b.x0 + d, b.y0 + d], [b.x1 - d, b.y0 + d], [b.x1 - d, b.y1 - d], [b.x0 + d, b.y1 - d]], LB, true);
+        }
+        continue;
+      }
+      for (let x = b.x0 + fs; x < b.x1 - 1e-9; x += fs) push([[x, b.y0], [x, b.y1]], LB, false);
+      if (fill === "Cross") for (let y = b.y0 + fs; y < b.y1 - 1e-9; y += fs) push([[b.x0, y], [b.x1, y]], LB, false);
+    }
+
+    /* ---------------- baselines ---------------- */
+    for (let k = 0; k < nBase; k++) {
+      const y = Y(baseJ) + k * Math.max(0.9, cell * 0.35);
+      if (y > m + bh) break;
+      push([[m, y], [m + bw, y]], LT, false);
+    }
+
+    /* ---------------- routing ---------------- */
+    const CLEAR = cell * 0.35;
+    const segHitsBlock = (x0, y0, x1, y1) => {
+      const ax0 = Math.min(x0, x1) - 1e-9, ax1 = Math.max(x0, x1) + 1e-9;
+      const ay0 = Math.min(y0, y1) - 1e-9, ay1 = Math.max(y0, y1) + 1e-9;
+      for (const b of blocks) {
+        if (ax1 <= b.x0 - CLEAR || ax0 >= b.x1 + CLEAR) continue;
+        if (ay1 <= b.y0 - CLEAR || ay0 >= b.y1 + CLEAR) continue;
+        return true;
+      }
+      return false;
+    };
+    const routeClear = (pts, ignore) => {
+      for (let i = 1; i < pts.length; i++) {
+        const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+        const ax0 = Math.min(x0, x1) - 1e-9, ax1 = Math.max(x0, x1) + 1e-9;
+        const ay0 = Math.min(y0, y1) - 1e-9, ay1 = Math.max(y0, y1) + 1e-9;
+        for (const b of blocks) {
+          if (b === ignore) continue;
+          if (ax1 <= b.x0 - CLEAR || ax0 >= b.x1 + CLEAR) continue;
+          if (ay1 <= b.y0 - CLEAR || ay0 >= b.y1 + CLEAR) continue;
+          return false;
+        }
+      }
+      return true;
+    };
+    /* parallel copy of an axis-aligned polyline: shift every segment's own
+       constant coordinate and re-intersect at the corners */
+    const offsetOrtho = (pts, o) => {
+      if (Math.abs(o) < 1e-9) return pts.map((q) => q.slice());
+      const n = pts.length;
+      const lines = [];
+      for (let i = 1; i < n; i++) {
+        const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+        const horiz = Math.abs(y1 - y0) < Math.abs(x1 - x0);
+        const dir = horiz ? Math.sign(x1 - x0) || 1 : Math.sign(y1 - y0) || 1;
+        /* left normal of the direction */
+        lines.push(horiz ? { horiz: true, c: y0 - o * dir } : { horiz: false, c: x0 + o * dir });
+      }
+      const out = [];
+      const first = lines[0];
+      out.push(first.horiz ? [pts[0][0], first.c] : [first.c, pts[0][1]]);
+      for (let i = 1; i < lines.length; i++) {
+        const a = lines[i - 1], b = lines[i];
+        if (a.horiz === b.horiz) { out.push(out[out.length - 1].slice()); continue; }
+        out.push(a.horiz ? [b.c, a.c] : [a.c, b.c]);
+      }
+      const last = lines[lines.length - 1];
+      out.push(last.horiz ? [pts[n - 1][0], last.c] : [last.c, pts[n - 1][1]]);
+      return out;
+    };
+
+    const inBox = (x, y) => x >= m - 1e-6 && x <= m + bw + 1e-6 && y >= m - 1e-6 && y <= m + bh + 1e-6;
+    const clampBox = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+    const nT = Math.max(0, Math.min(40, Math.round(p.traces)));
+    const bmax = Math.max(1, Math.min(6, Math.round(p.bundle)));
+    const bp = Math.max(0.5, p.bpitch);
+    const routes = [];   /* {pts, } per drawn polyline, for the crossing pass */
+
+    for (let t = 0; t < nT && blocks.length && used < BUDGET; t++) {
+      const src = blocks[Math.floor(rng() * blocks.length) % blocks.length];
+      const sides = ["R", "L", "T", "B"];
+      const side = sides[Math.floor(rng() * (rng() < 0.62 ? 2 : 4)) % 4];
+      const horizOut = side === "R" || side === "L";
+      const dir = (side === "R" || side === "B") ? 1 : -1;
+      const spanLo = horizOut ? src.y0 : src.x0;
+      const spanHi = horizOut ? src.y1 : src.x1;
+      const k = 1 + Math.floor(rng() * bmax);
+      const width = (k - 1) * bp;
+      if (width > (spanHi - spanLo) - 1e-9) continue;      /* bundle wider than the edge */
+      const centre = spanLo + (spanHi - spanLo) * (0.25 + rng() * 0.5);
+      const c = clampBox(centre, spanLo + width / 2 + 0.4, spanHi - width / 2 - 0.4);
+      const start = horizOut ? [dir > 0 ? src.x1 : src.x0, c] : [c, dir > 0 ? src.y1 : src.y0];
+
+      /* candidate routes, best-effort: the first corridor-clear one wins */
+      let chosen = null;
+      const zStyle = p.turns === "Z" ? true : p.turns === "L" ? false : rng() < 0.5;
+      for (let attempt = 0; attempt < 14 && !chosen; attempt++) {
+        const run1 = cell * (1.2 + rng() * 6);
+        const a = horizOut ? [start[0] + dir * run1, start[1]] : [start[0], start[1] + dir * run1];
+        if (!inBox(a[0], a[1])) continue;
+        const kind = rng();
+        /* Draw every random displacement ONCE into a variable. Calling rng()
+           twice inside one route - once for a corner and again for the point
+           that must share its coordinate - is how the first version produced
+           diagonals in a node whose whole premise is right angles. */
+        const jog = (rng() - 0.5) * cell * 8;
+        let pts = null;
+        if (kind < 0.34) {
+          /* to another block, arriving at the middle of a facing edge */
+          const dst = blocks[Math.floor(rng() * blocks.length) % blocks.length];
+          if (dst === src) continue;
+          if (horizOut) {
+            const ty = (dst.y0 + dst.y1) / 2;
+            const tx = a[0] < (dst.x0 + dst.x1) / 2 ? dst.x0 : dst.x1;
+            pts = [start, a, [a[0], ty], [tx, ty]];
+          } else {
+            const tx = (dst.x0 + dst.x1) / 2;
+            const ty = a[1] < (dst.y0 + dst.y1) / 2 ? dst.y0 : dst.y1;
+            pts = [start, a, [tx, a[1]], [tx, ty]];
+          }
+        } else if (kind < 0.58 && nBase > 0) {
+          const ty = Y(baseJ);
+          if (horizOut) pts = [start, a, [a[0], ty]];
+          else {
+            const jx = clampBox(a[0] + jog, m, m + bw);
+            pts = [start, a, [jx, a[1]], [jx, ty]];
+          }
+        } else if (kind < 0.8) {
+          /* out to the sheet edge */
+          if (horizOut) {
+            const jy = clampBox(a[1] + jog, m, m + bh);
+            pts = [start, a, [a[0], jy], [dir > 0 ? m + bw : m, jy]];
+          } else {
+            const jx = clampBox(a[0] + jog, m, m + bw);
+            pts = [start, a, [jx, a[1]], [jx, dir > 0 ? m + bh : m]];
+          }
+        } else {
+          /* a short stub with a tick across it */
+          pts = [start, a];
+        }
+        if (!zStyle && pts.length > 3) pts = pts.slice(0, 3);
+        pts = pts.filter((q, i2, arr) => i2 === 0 || Math.hypot(q[0] - arr[i2 - 1][0], q[1] - arr[i2 - 1][1]) > 1e-7);
+        if (pts.length < 2) continue;
+        if (!pts.every((q) => inBox(q[0], q[1]))) continue;
+        if (!routeClear(pts, src)) continue;
+        chosen = pts;
+      }
+      if (!chosen) continue;   /* dropped, never drawn through a block */
+
+      for (let j = 0; j < k; j++) {
+        const o = -width / 2 + j * bp;
+        const q = offsetOrtho(chosen, o);
+        if (!q.every((v) => Number.isFinite(v[0]) && Number.isFinite(v[1]))) continue;
+        /* Reject, never clamp. Clamping x and y independently moves a corner
+           off its own axis and silently turns an orthogonal route into a
+           diagonal - the exact failure this node cannot have. */
+        if (!q.every((v) => inBox(v[0], v[1]))) continue;
+        if (!routeClear(q, src)) continue;
+        routes.push(q);
+      }
+      /* stub tick: the little cross-bar the references end short runs with */
+      if (chosen.length === 2 && rng() < 0.7) {
+        const e = chosen[chosen.length - 1];
+        const half = Math.max(1, width / 2 + bp * 0.6);
+        const tick = horizOut ? [[e[0], e[1] - half], [e[0], e[1] + half]] : [[e[0] - half, e[1]], [e[0] + half, e[1]]];
+        if (tick.every((v) => inBox(v[0], v[1]))) routes.push(tick);
+      }
+    }
+
+    /* ---------------- crossings ---------------- */
+    if (p.cross === "Under gaps" && routes.length > 1) {
+      const g = Math.max(0.2, p.gapmm) / 2;
+      const segsOf = (r) => { const s = []; for (let i = 1; i < r.length; i++) s.push([r[i - 1], r[i]]); return s; };
+      const all = routes.map(segsOf);
+      const out = [];
+      for (let ri = 0; ri < routes.length; ri++) {
+        const pieces = [];
+        for (const [a, b] of all[ri]) {
+          const horiz = Math.abs(a[1] - b[1]) < 1e-6;
+          const cuts = [];
+          for (let rj = ri + 1; rj < routes.length; rj++) {
+            for (const [c2, d2] of all[rj]) {
+              const horiz2 = Math.abs(c2[1] - d2[1]) < 1e-6;
+              if (horiz === horiz2) continue;              /* parallel: no crossing */
+              const hx = horiz ? [a, b] : [c2, d2];
+              const vy = horiz ? [c2, d2] : [a, b];
+              const yh = hx[0][1], xv = vy[0][0];
+              if (xv < Math.min(hx[0][0], hx[1][0]) - 1e-9 || xv > Math.max(hx[0][0], hx[1][0]) + 1e-9) continue;
+              if (yh < Math.min(vy[0][1], vy[1][1]) - 1e-9 || yh > Math.max(vy[0][1], vy[1][1]) + 1e-9) continue;
+              cuts.push(horiz ? xv : yh);
+            }
+          }
+          const p0 = horiz ? a[0] : a[1], p1 = horiz ? b[0] : b[1];
+          const lo = Math.min(p0, p1), hi = Math.max(p0, p1);
+          cuts.sort((u, v) => u - v);
+          let cur = lo;
+          const spans = [];
+          for (const cX of cuts) {
+            if (cX - g > cur) spans.push([cur, cX - g]);
+            cur = Math.max(cur, cX + g);
+          }
+          if (hi > cur) spans.push([cur, hi]);
+          for (const [s0, s1] of spans) {
+            if (s1 - s0 < 0.15) continue;
+            pieces.push(horiz ? [[s0, a[1]], [s1, a[1]]] : [[a[0], s0], [a[0], s1]]);
+          }
+        }
+        out.push(...pieces);
+      }
+      for (const q of out) push(q, LT, false);
+    } else {
+      for (const r of routes) push(r, LT, false);
+    }
+
+    /* ---------------- empty frames ---------------- */
+    const nF = Math.max(0, Math.min(8, Math.round(p.frames)));
+    for (let f = 0; f < nF && used < BUDGET; f++) {
+      let done = false;
+      for (let tryN = 0; tryN < 40 && !done; tryN++) {
+        const w = cell * (2 + rng() * 5), h = cell * (2 + rng() * 5);
+        const x = m + rng() * Math.max(1, bw - w), y = m + rng() * Math.max(1, bh - h);
+        const rect = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+        if (segHitsBlock(x, y, x + w, y + h)) continue;
+        push(rect, LT, true);
+        done = true;
+      }
+    }
+
+    return applyStyle({ paths }, ins[0]);
+  },
+
+  overlay(p, ctx) {
+    try {
+      const B = this && this._build ? this._build(p, ctx) : null;
+      if (!B || !B.ok) return [];
+      const g = [{ kind: "rect", x: B.m, y: B.m, w: B.bw, h: B.bh }];
+      for (const b of B.blocks.slice(0, 24)) g.push({ kind: "rect", x: b.x0, y: b.y0, w: b.x1 - b.x0, h: b.y1 - b.y0 });
+      if (B.nBase > 0) {
+        const y = B.Y(B.baseJ);
+        g.push({ kind: "poly", pts: [[B.m, y], [B.m + B.bw, y]] });
+      }
+      return g;
+    } catch (e) { return []; }
+  },
 };
 ```
 
@@ -11883,6 +12764,523 @@ export default {
       return { paths };
     },
   
+};
+```
+
+## knottube.js
+
+```js
+import { Pin, PENS, mulberry32, noise2, applyStyle } from "../helpers.js";
+
+export default {
+  /* Knot Tube - a closed 3-D knot drawn as a cross-wound tube with exact
+     hidden-line removal.
+
+     THE TUBE IS A CANAL SURFACE: the boundary of the union of spheres of
+     radius r swept along the spine. That is what makes occlusion exact rather
+     than approximate. For an orthographic camera a point is hidden exactly when
+     some sphere's near surface lies in front of it, which is one distance in
+     screen space and one square root - no z-buffer, no depth sorting, no
+     resolution to be wrong at. A 2-D hash over the spine samples keeps it cheap.
+
+     TWO CLAMPS ARE NOT OPTIONAL. The canal surface is only the boundary of the
+     union while the radius stays below the local curvature radius AND below
+     half the distance at which the spine approaches itself. Past either, the
+     tube eats itself: the occlusion test then reports surface points as hidden
+     by their own body and the drawing dissolves. Both bounds are measured from
+     the actual sampled spine and the radius is clamped to them, so a tight knot
+     simply draws a thinner tube instead of falling apart.
+
+     THE WINDING HAS TO CLOSE. A Frenet frame whips through inflection points,
+     so the frame is parallel-transported instead; transport around a closed
+     loop comes back rotated by a holonomy angle, which is measured and spread
+     evenly over the loop. With a periodic frame the helix rejoins itself iff
+     the turn count is a whole number, so it is rounded. Skip any of that and
+     the seam shows as a visible scar.
+
+     this._build is shared by compute and overlay; the engine calls both as
+     methods on this def object. */
+  key: "knottube",
+  name: "Knot Tube",
+  cat: "gen",
+  group: "geometric",
+  desc: "A closed 3-D knot swept into a tube and drawn as counter-wound helices with real hidden-line removal: the far side of the tube and everything passing behind it is cut away exactly, so the knot reads as solid. Curve picks the spine - a p·q torus knot, the figure-eight knot, a Lissajous knot, or Tangle, a seeded sum of harmonics that is always smooth and always closed, so the Seed shuffles through endless genuine knots. Surface Cross winds a right-handed and a left-handed helix over each other, which is where the diamond moiré comes from; Right and Left helix use one direction only, Rings stacks perpendicular circles, and Longitudinals runs lines along the tube. Turns sets how many times the winding wraps - high values are the dense silk look and cost the most plotting time. Strands adds parallel starts to each helix. Tube radius is clamped automatically: past the local curvature radius, or past half the distance at which the spine approaches itself, a tube would intersect its own body, so a tight knot quietly draws thinner rather than dissolving. Radius variation breathes the thickness along the length. Yaw and Pitch turn the knot - wire Frame into Yaw for a spin - and Size is a true millimetre measurement, shrunk only if it would run off the sheet.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "curve", label: "Curve", type: "select", options: ["Torus knot", "Figure-8 knot", "Lissajous", "Tangle (seeded)"], def: "Torus knot" },
+    { key: "kp", label: "p (winds around)", type: "slider", min: 2, max: 9, step: 1, def: 3, showIf: (p) => p.curve === "Torus knot" },
+    { key: "kq", label: "q (winds through)", type: "slider", min: 2, max: 9, step: 1, def: 2, showIf: (p) => p.curve === "Torus knot" },
+    { key: "nx", label: "Lissajous nx", type: "slider", min: 1, max: 9, step: 1, def: 3, showIf: (p) => p.curve === "Lissajous" },
+    { key: "ny", label: "Lissajous ny", type: "slider", min: 1, max: 9, step: 1, def: 2, showIf: (p) => p.curve === "Lissajous" },
+    { key: "nz", label: "Lissajous nz", type: "slider", min: 1, max: 9, step: 1, def: 5, showIf: (p) => p.curve === "Lissajous" },
+    { key: "harm", label: "Harmonics", type: "slider", min: 2, max: 6, step: 1, def: 4, showIf: (p) => p.curve === "Tangle (seeded)" },
+    { key: "size", label: "Size mm", type: "slider", min: 40, max: 280, step: 1, def: 165 },
+    { key: "radius", label: "Tube radius mm", type: "slider", min: 1, max: 40, step: 0.5, def: 13 },
+    { key: "rmod", label: "Radius variation", type: "slider", min: 0, max: 0.8, step: 0.05, def: 0.15 },
+    { key: "surface", label: "Surface", type: "select", options: ["Cross", "Right helix", "Left helix", "Cross + rings", "Rings", "Longitudinals"], def: "Cross" },
+    { key: "turns", label: "Turns", type: "slider", min: 1, max: 400, step: 1, def: 14, showIf: (p) => p.surface !== "Rings" && p.surface !== "Longitudinals" },
+    { key: "strands", label: "Strands", type: "slider", min: 1, max: 64, step: 1, def: 26, showIf: (p) => p.surface !== "Rings" && p.surface !== "Longitudinals" },
+    { key: "ringGap", label: "Ring spacing mm", type: "slider", min: 1, max: 20, step: 0.5, def: 4, showIf: (p) => p.surface === "Rings" || p.surface === "Cross + rings" },
+    { key: "longs", label: "Longitudinals", type: "slider", min: 3, max: 24, step: 1, def: 10, showIf: (p) => p.surface === "Longitudinals" },
+    { key: "hidden", label: "Hidden lines", type: "check", def: true },
+    { key: "yaw", label: "Yaw °", type: "slider", min: -180, max: 180, step: 1, def: 25 },
+    { key: "pitch", label: "Pitch °", type: "slider", min: -89, max: 89, step: 1, def: 20 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 5 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+
+  /* ------------------------------------------------------------------ build
+     Spine in view space, in millimetres, with a periodic frame, the clamped
+     radius and the fit transform. compute draws from it, overlay guides from
+     it, so the two can never disagree. */
+  _build(p, ctx) {
+    const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+    const m = Math.max(0, Math.min(Math.min(W, H) / 2 - 5, p.margin));
+    const bw = W - 2 * m, bh = H - 2 * m;
+    if (!(bw > 8) || !(bh > 8)) return { ok: false };
+
+    /* ---- 1. sample the closed spine in abstract coordinates ---- */
+    const N = 1400;
+    const TWO = Math.PI * 2;
+    const kind = p.curve;
+    const seed = Math.round(p.seed) || 1;
+    let coef = null;
+    if (kind === "Tangle (seeded)") {
+      const K = Math.max(2, Math.min(6, Math.round(p.harm) || 2));
+      const rng = mulberry32(seed * 7717 + 13);
+      coef = [];
+      for (let k = 1; k <= K; k++) {
+        /* 1/k^2 collapses the curve into a circle - the fundamental drowns
+           everything else and no amount of seed shuffling produces a knot.
+           1/k keeps the higher modes present enough to actually tangle, and
+           the fundamental is held back so it cannot dominate. */
+        const amp = (k === 1 ? 0.62 : 1) / k;
+        coef.push({
+          k,
+          ax: amp * (0.4 + rng()), px: rng() * TWO,
+          ay: amp * (0.4 + rng()), py: rng() * TWO,
+          az: amp * (0.4 + rng()), pz: rng() * TWO,
+        });
+      }
+    }
+    const at = (t) => {
+      if (kind === "Figure-8 knot") {
+        return [(2 + Math.cos(2 * t)) * Math.cos(3 * t), (2 + Math.cos(2 * t)) * Math.sin(3 * t), Math.sin(4 * t)];
+      }
+      if (kind === "Lissajous") {
+        const a = Math.max(1, Math.round(p.nx) || 1), b = Math.max(1, Math.round(p.ny) || 1), c = Math.max(1, Math.round(p.nz) || 1);
+        return [Math.cos(a * t + 0.7), Math.cos(b * t + 0.2), Math.cos(c * t + 1.3)];
+      }
+      if (kind === "Tangle (seeded)") {
+        let x = 0, y = 0, z = 0;
+        for (const c of coef) {
+          x += c.ax * Math.cos(c.k * t + c.px);
+          y += c.ay * Math.cos(c.k * t + c.py);
+          z += c.az * Math.cos(c.k * t + c.pz);
+        }
+        return [x, y, z];
+      }
+      const pp = Math.max(1, Math.round(p.kp) || 2), qq = Math.max(1, Math.round(p.kq) || 2);
+      const rad = 2 + Math.cos(qq * t);
+      return [rad * Math.cos(pp * t), rad * Math.sin(pp * t), -Math.sin(qq * t)];
+    };
+
+    /* ---- 2. rotate into view space (z toward the camera) ---- */
+    const rad = Math.PI / 180;
+    const cy = Math.cos(p.yaw * rad), sy = Math.sin(p.yaw * rad);
+    const cp = Math.cos(p.pitch * rad), sp = Math.sin(p.pitch * rad);
+    const toView = (v) => {
+      const x = v[0] * cy + v[2] * sy;
+      let z = -v[0] * sy + v[2] * cy;
+      const y = v[1] * cp - z * sp;
+      z = v[1] * sp + z * cp;
+      return [x, y, z];
+    };
+
+    /* Sample densely in t, then RESAMPLE BY ARC LENGTH. A Fourier or Lissajous
+       parametrisation runs at wildly varying speed, and where it crawls the
+       samples bunch up and the finite-difference curvature estimate explodes -
+       a parametrisation artefact that the radius clamp then obeys, pinching the
+       tube to nothing at a bend that is not actually sharp. Uniform arc length
+       makes curvature, the transported frame and the occluder spacing all
+       well-behaved for the same price. */
+    const RAWN = 6000;
+    const rawT = new Array(RAWN + 1);
+    for (let i = 0; i <= RAWN; i++) rawT[i] = toView(at((i / RAWN) * TWO));
+    const rawCum = new Array(RAWN + 1);
+    rawCum[0] = 0;
+    for (let i = 1; i <= RAWN; i++) {
+      const a = rawT[i - 1], b = rawT[i];
+      rawCum[i] = rawCum[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    }
+    const total = rawCum[RAWN];
+    if (!(total > 1e-9)) return { ok: false };
+    const raw = new Array(N);
+    let cursor = 0;
+    for (let i = 0; i < N; i++) {
+      const want = (i / N) * total;
+      while (cursor < RAWN - 1 && rawCum[cursor + 1] < want) cursor++;
+      const span = rawCum[cursor + 1] - rawCum[cursor];
+      const u = span > 1e-12 ? (want - rawCum[cursor]) / span : 0;
+      const a = rawT[cursor], b = rawT[cursor + 1];
+      raw[i] = [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
+    }
+
+    /* ---- 3. scale to millimetres: Size is a real measurement ---- */
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const q of raw) { if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0]; if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1]; }
+    const spanAbs = Math.max(x1 - x0, y1 - y0);
+    if (!isFinite(spanAbs) || spanAbs < 1e-9) return { ok: false };
+    const rWant = Math.max(0.4, p.radius);
+    const target = Math.max(12, Math.max(40, p.size) - 2 * rWant);
+    const s0 = target / spanAbs;
+    const P = raw.map((q) => [q[0] * s0, q[1] * s0, q[2] * s0]);
+
+    /* ---- 4. arc length ---- */
+    const seg = new Array(N);
+    let L = 0;
+    for (let i = 0; i < N; i++) {
+      const a = P[i], b = P[(i + 1) % N];
+      seg[i] = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+      L += seg[i];
+    }
+    if (!(L > 1e-6)) return { ok: false };
+    const cum = new Array(N + 1); cum[0] = 0;
+    for (let i = 0; i < N; i++) cum[i + 1] = cum[i] + seg[i];
+
+    /* unit tangents, needed by both the envelope correction and the frame */
+    const T = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const a = P[(i - 1 + N) % N], b = P[(i + 1) % N];
+      const tx = b[0] - a[0], ty = b[1] - a[1], tz = b[2] - a[2];
+      const l = Math.hypot(tx, ty, tz) || 1;
+      T[i] = [tx / l, ty / l, tz / l];
+    }
+
+    /* ---- 5. radius: clamped LOCALLY against curvature ----
+       A single tight bend must not decide the thickness of the whole tube.
+       An earlier version took the maximum curvature over the entire spine and
+       clamped globally, which crushed the Lissajous and the tighter tangles to
+       a 0.5 mm thread because of one corner. The radius is a FUNCTION of arc
+       length instead: thick where the curve is lazy, pinched only where it
+       genuinely turns hard - which is also what a real tube does.
+
+       Two conditions keep the canal surface a proper boundary. r < 1/kappa
+       locally, or the inner wall folds inside the body and every surface point
+       reports as hidden. And |dr/ds| <= 1, or the envelope tears where the
+       radius changes faster than the surface can follow; the smoothing pass
+       plus the Lipschitz sweeps enforce it with margin.
+
+       Strands passing within a tube diameter of each other are NOT clamped
+       against: the tubes fuse, the union of spheres renders that fusion
+       correctly, and a fused knot is a picture, not a fault. */
+    const kap = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const a = P[(i - 1 + N) % N], b = P[i], c = P[(i + 1) % N];
+      const ab = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+      const bc = Math.hypot(c[0] - b[0], c[1] - b[1], c[2] - b[2]);
+      const ca = Math.hypot(a[0] - c[0], a[1] - c[1], a[2] - c[2]);
+      const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+      const vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+      const cx = uy * vz - uz * vy, cyy = uz * vx - ux * vz, cz = ux * vy - uy * vx;
+      const area2 = Math.hypot(cx, cyy, cz);
+      kap[i] = (area2 < 1e-12 || ab * bc * ca < 1e-12) ? 0 : (2 * area2) / (ab * bc * ca);
+    }
+    const rmod = Math.max(0, Math.min(0.8, p.rmod));
+    let rr = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const lim = kap[i] > 1e-9 ? 0.8 / kap[i] : Infinity;
+      const f = rmod > 0 ? 1 + rmod * (noise2((cum[i] / L) * 7.3, 3.1, seed) - 0.5) * 2 : 1;
+      rr[i] = Math.max(0.02, Math.min(rWant * f, lim));
+    }
+    /* ORDER MATTERS. Smoothing can RAISE a value, so the curvature clamp has to
+       be reapplied after it; the Lipschitz sweeps only ever lower values, so
+       they can safely come last and cannot reintroduce a fold. Doing it the
+       other way round - clamp, smooth, Lipschitz, clamp - puts a fresh cliff
+       back into the radius at exactly the tight bends, which is how the first
+       version failed its own Lipschitz test.
+
+       There is also no generous floor here. Flooring the radius at a quarter of
+       a millimetre looks harmless and quietly overrides the curvature clamp
+       wherever the limit falls below it, which is precisely where a fold does
+       the most damage. */
+    const limOf = (i) => (kap[i] > 1e-9 ? 0.8 / kap[i] : Infinity);
+    for (let pass = 0; pass < 3; pass++) {
+      const t2 = new Array(N);
+      for (let i = 0; i < N; i++) {
+        t2[i] = (rr[(i - 2 + N) % N] + rr[(i - 1 + N) % N] + rr[i] + rr[(i + 1) % N] + rr[(i + 2) % N]) / 5;
+      }
+      rr = t2;
+    }
+    for (let i = 0; i < N; i++) rr[i] = Math.max(0.02, Math.min(rr[i], limOf(i)));
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 0; i < N; i++) {
+        const j = (i - 1 + N) % N;
+        rr[i] = Math.min(rr[i], rr[j] + 0.5 * seg[j]);
+      }
+      for (let i = N - 1; i >= 0; i--) {
+        const j = (i + 1) % N;
+        rr[i] = Math.min(rr[i], rr[j] + 0.5 * seg[i]);
+      }
+    }
+    let rMax = 0, rMin = Infinity, rSum = 0;
+    for (let i = 0; i < N; i++) {
+      if (rr[i] > rMax) rMax = rr[i];
+      if (rr[i] < rMin) rMin = rr[i];
+      rSum += rr[i];
+    }
+    const R = rSum / N;
+    const clamped = rMin < rWant * (1 - rmod) - 1e-6;
+
+    /* ---- 5b. the canal-surface circle is NOT the naive one ----
+       Where the radius changes along the spine, the boundary of the union of
+       spheres is not the circle of radius r in the plane perpendicular to T.
+       That circle dips inside the neighbouring spheres, the occlusion test
+       correctly calls those points hidden, and the surface comes out torn -
+       exactly the ragged shreds the tighter knots showed. The true envelope
+       circle is pulled back along the tangent by r*r' and shrunk to
+       r*sqrt(1 - r'^2). With r' small this is a small correction; where the
+       tube pinches hard it is the difference between a surface and confetti. */
+    const CC = new Array(N), CR = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const ip = (i + 1) % N, im = (i - 1 + N) % N;
+      const ds = seg[im] + seg[i];
+      const rp = ds > 1e-9 ? (rr[ip] - rr[im]) / ds : 0;
+      const rpc = Math.max(-0.95, Math.min(0.95, rp));
+      CR[i] = Math.max(0.05, rr[i] * Math.sqrt(Math.max(0, 1 - rpc * rpc)));
+      CC[i] = [P[i][0] - rr[i] * rpc * T[i][0], P[i][1] - rr[i] * rpc * T[i][1], P[i][2] - rr[i] * rpc * T[i][2]];
+    }
+
+    /* ---- 6. parallel transport, made periodic ---- */
+    const U = new Array(N), V = new Array(N);
+    /* seed the frame with any vector not parallel to T0 */
+    let u = Math.abs(T[0][0]) < 0.8 ? [1, 0, 0] : [0, 1, 0];
+    const orth = (v, t) => {
+      const d = v[0] * t[0] + v[1] * t[1] + v[2] * t[2];
+      const w = [v[0] - d * t[0], v[1] - d * t[1], v[2] - d * t[2]];
+      const l = Math.hypot(w[0], w[1], w[2]) || 1;
+      return [w[0] / l, w[1] / l, w[2] / l];
+    };
+    u = orth(u, T[0]);
+    for (let i = 0; i < N; i++) {
+      if (i > 0) u = orth(u, T[i]);      /* rotation-minimising: project, do not rebuild */
+      U[i] = u;
+      V[i] = [T[i][1] * u[2] - T[i][2] * u[1], T[i][2] * u[0] - T[i][0] * u[2], T[i][0] * u[1] - T[i][1] * u[0]];
+    }
+    /* holonomy: transporting once around the loop returns a rotated frame */
+    const uEnd = orth(U[N - 1], T[0]);
+    const hol = Math.atan2(
+      uEnd[0] * V[0][0] + uEnd[1] * V[0][1] + uEnd[2] * V[0][2],
+      uEnd[0] * U[0][0] + uEnd[1] * U[0][1] + uEnd[2] * U[0][2]
+    );
+
+    /* ---- 8. fit: shrink only, so Size stays a real measurement ---- */
+    let fx0 = Infinity, fx1 = -Infinity, fy0 = Infinity, fy1 = -Infinity;
+    for (let i = 0; i < N; i++) {
+      if (P[i][0] - rr[i] < fx0) fx0 = P[i][0] - rr[i];
+      if (P[i][0] + rr[i] > fx1) fx1 = P[i][0] + rr[i];
+      if (P[i][1] - rr[i] < fy0) fy0 = P[i][1] - rr[i];
+      if (P[i][1] + rr[i] > fy1) fy1 = P[i][1] + rr[i];
+    }
+    const gw = (fx1 - fx0) || 1, gh = (fy1 - fy0) || 1;
+    const sc = Math.min(1, Math.min(bw / gw, bh / gh));
+    const ox = m + (bw - gw * sc) / 2 - fx0 * sc;
+    const oy = m + (bh - gh * sc) / 2 - fy0 * sc;
+    const proj = (x, y) => [x * sc + ox, y * sc + oy];
+
+    /* ---- 9. screen-space hash over the spine, for the occlusion query ---- */
+    /* The occluder set is DECIMATED. The spine is sampled far finer than the
+       union of spheres needs - neighbouring spheres overlap enormously - and
+       every surplus sphere is paid for on every visibility query, which is the
+       node's whole running time. One sphere per R/6 of arc keeps the union
+       smooth and cuts the query cost several-fold. */
+    const cell = Math.max(1e-6, rMax);
+    const occStep = Math.max(1, Math.round((N * (R / 6)) / L));
+    const occ = [];
+    for (let i = 0; i < N; i += occStep) occ.push(i);
+    const grid = new Map();
+    const key = (a, b) => a + "," + b;
+    for (const i of occ) {
+      const a = Math.floor(P[i][0] / cell), b = Math.floor(P[i][1] / cell);
+      const k = key(a, b);
+      let bucket = grid.get(k);
+      if (!bucket) { bucket = []; grid.set(k, bucket); }
+      bucket.push(i);
+    }
+    const reach = Math.ceil(rMax / cell) + 1;
+    /* a point is hidden when some sphere's NEAR surface is in front of it */
+    const occluded = (x, y, z, eps) => {
+      const a0 = Math.floor(x / cell), b0 = Math.floor(y / cell);
+      for (let b = b0 - reach; b <= b0 + reach; b++) {
+        for (let a = a0 - reach; a <= a0 + reach; a++) {
+          const bucket = grid.get(key(a, b));
+          if (!bucket) continue;
+          for (const i of bucket) {
+            const dx = x - P[i][0], dy = y - P[i][1];
+            const d2 = dx * dx + dy * dy;
+            const ri = rr[i];
+            if (d2 >= ri * ri) continue;
+            if (P[i][2] + Math.sqrt(ri * ri - d2) > z + eps) return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    return { ok: true, N, P, T, U, V, rr, CC, CR, R, rMax, clamped, hol, cum, L, m, bw, bh, sc, ox, oy, proj, occluded, rWant };
+  },
+
+  compute(ins, p, ctx) {
+    const B = this._build(p, ctx);
+    if (!B || !B.ok) return applyStyle({ paths: [] }, ins[0]);
+    const { N, P, U, V, T, rr, CC, CR, hol, cum, L, proj, occluded, rMax } = B;
+    const LAY = Math.max(0, Math.min(PENS.length - 1, Math.round(p.layer)));
+    const BUDGET = 110000;
+    let used = 0;
+    const paths = [];
+    const doHide = p.hidden !== false;
+    const EPS = rMax * 0.02;
+
+    /* surface point at spine index i (fractional) and winding phase phi */
+    const surf = (fi, phi) => {
+      const i0 = Math.floor(fi) % N, i1 = (i0 + 1) % N;
+      const t = fi - Math.floor(fi);
+      const ux = U[i0][0] + (U[i1][0] - U[i0][0]) * t, uy = U[i0][1] + (U[i1][1] - U[i0][1]) * t, uz = U[i0][2] + (U[i1][2] - U[i0][2]) * t;
+      const vx = V[i0][0] + (V[i1][0] - V[i0][0]) * t, vy = V[i0][1] + (V[i1][1] - V[i0][1]) * t, vz = V[i0][2] + (V[i1][2] - V[i0][2]) * t;
+      const px = CC[i0][0] + (CC[i1][0] - CC[i0][0]) * t, py = CC[i0][1] + (CC[i1][1] - CC[i0][1]) * t, pz = CC[i0][2] + (CC[i1][2] - CC[i0][2]) * t;
+      const r = CR[i0] + (CR[i1] - CR[i0]) * t;
+      const c = Math.cos(phi), s = Math.sin(phi);
+      return [px + r * (c * ux + s * vx), py + r * (c * uy + s * vy), pz + r * (c * uz + s * vz)];
+    };
+
+    /* clip a 3-D polyline to its visible runs, cutting by bisection */
+    const emit = (pts, closed) => {
+      if (used >= BUDGET || pts.length < 2) return;
+      if (!doHide) {
+        const out = pts.map((q) => proj(q[0], q[1]));
+        used += out.length;
+        paths.push({ pts: out, closed: !!closed, layer: LAY });
+        return;
+      }
+      const seq = closed ? pts.concat([pts[0]]) : pts;
+      const vis = seq.map((q) => !occluded(q[0], q[1], q[2], EPS));
+      if (vis.every(Boolean)) {
+        const out = pts.map((q) => proj(q[0], q[1]));
+        used += out.length;
+        paths.push({ pts: out, closed: !!closed, layer: LAY });
+        return;
+      }
+      const cut = (a, b) => {
+        let lo = 0, hi = 1;
+        for (let it = 0; it < 7; it++) {
+          const mid = (lo + hi) / 2;
+          const q = [a[0] + (b[0] - a[0]) * mid, a[1] + (b[1] - a[1]) * mid, a[2] + (b[2] - a[2]) * mid];
+          if (!occluded(q[0], q[1], q[2], EPS)) lo = mid; else hi = mid;
+        }
+        const t = (lo + hi) / 2;
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+      };
+      const runs = [];
+      let run = null;
+      for (let i = 0; i < seq.length; i++) {
+        if (vis[i]) {
+          if (!run) { run = []; if (i > 0) run.push(cut(seq[i], seq[i - 1])); }
+          run.push(seq[i]);
+        } else if (run) { run.push(cut(seq[i - 1], seq[i])); runs.push(run); run = null; }
+      }
+      if (run) runs.push(run);
+      if (closed && runs.length > 1 && vis[0] && vis[seq.length - 1]) {
+        const first = runs.shift();
+        runs[runs.length - 1] = runs[runs.length - 1].concat(first.slice(1));
+      }
+      for (const r of runs) {
+        if (r.length < 2 || used >= BUDGET) continue;
+        const out = r.map((q) => proj(q[0], q[1]));
+        used += out.length;
+        paths.push({ pts: out, closed: false, layer: LAY });
+      }
+    };
+
+    const mode = p.surface;
+    const wantHelix = mode === "Cross" || mode === "Right helix" || mode === "Left helix" || mode === "Cross + rings";
+    const wantRings = mode === "Rings" || mode === "Cross + rings";
+    const wantLongs = mode === "Longitudinals";
+
+    if (wantHelix) {
+      /* Turns must be a whole number or the helix cannot rejoin itself once
+         the frame has been made periodic. */
+      let turns = Math.max(1, Math.round(p.turns) || 1);
+      let strands = Math.max(1, Math.min(64, Math.round(p.strands) || 1));
+      const dirs = mode === "Cross" || mode === "Cross + rings" ? [1, -1] : mode === "Left helix" ? [-1] : [1];
+      /* samples per turn, coarsened rather than hung */
+      let sPer = 22;
+      const est = () => turns * sPer * strands * dirs.length;
+      while (est() > BUDGET * 0.75 && sPer > 8) sPer = Math.max(8, Math.round(sPer * 0.75));
+      while (est() > BUDGET * 0.75 && strands > 2) strands = Math.max(2, Math.round(strands * 0.8));
+      while (est() > BUDGET * 0.75 && turns > 2) turns = Math.max(2, Math.round(turns * 0.8));
+      const steps = Math.max(64, turns * sPer);
+      for (const d of dirs) {
+        for (let s = 0; s < strands && used < BUDGET; s++) {
+          const phi0 = (s / strands) * Math.PI * 2;
+          const pts = [];
+          for (let k = 0; k < steps; k++) {
+            const f = k / steps;
+            /* the holonomy correction is what closes the seam */
+            const phi = phi0 + d * f * Math.PI * 2 * turns - hol * f;
+            pts.push(surf(f * N, phi));
+          }
+          emit(pts, true);
+        }
+      }
+    }
+
+    if (wantRings) {
+      const gap = Math.max(0.6, p.ringGap);
+      const nR = Math.max(2, Math.min(600, Math.round(L / gap)));
+      const seg = 26;
+      for (let k = 0; k < nR && used < BUDGET; k++) {
+        const targetS = (k / nR) * L;
+        /* find the sample at that arc length */
+        let lo = 0, hi = N;
+        while (lo + 1 < hi) { const mid = (lo + hi) >> 1; if (cum[mid] <= targetS) lo = mid; else hi = mid; }
+        const fi = lo + (cum[lo + 1] - cum[lo] > 0 ? (targetS - cum[lo]) / (cum[lo + 1] - cum[lo]) : 0);
+        const pts = [];
+        for (let j = 0; j < seg; j++) pts.push(surf(fi, (j / seg) * Math.PI * 2));
+        emit(pts, true);
+      }
+    }
+
+    if (wantLongs) {
+      const nL = Math.max(2, Math.min(24, Math.round(p.longs) || 3));
+      const steps = Math.max(240, Math.min(2400, Math.round(L / 0.8)));
+      for (let j = 0; j < nL && used < BUDGET; j++) {
+        const phi0 = (j / nL) * Math.PI * 2;
+        const pts = [];
+        for (let k = 0; k < steps; k++) {
+          const f = k / steps;
+          pts.push(surf(f * N, phi0 - hol * f));
+        }
+        emit(pts, true);
+      }
+    }
+
+    return applyStyle({ paths }, ins[0]);
+  },
+
+  overlay(p, ctx) {
+    try {
+      const B = this && this._build ? this._build(p, ctx) : null;
+      if (!B || !B.ok) return [];
+      const g = [{ kind: "rect", x: B.m, y: B.m, w: B.bw, h: B.bh }];
+      const step = Math.max(1, Math.round(B.N / 180));
+      const pts = [];
+      for (let i = 0; i < B.N; i += step) pts.push(B.proj(B.P[i][0], B.P[i][1]));
+      if (pts.length > 2) { pts.push(pts[0]); g.push({ kind: "poly", pts }); }
+      return g;
+    } catch (e) { return []; }
+  },
 };
 ```
 

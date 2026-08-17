@@ -7,6 +7,7 @@ const CATALOG_TAGS = Object.entries(
 ).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 import { PENS_DEFAULT, PENS, savePens, resetPens, mulberry32, hash2, noise2, EMPTY, pathLength, resample, applyStyle, Pin, parseSVG, signedArea, SFONT, fontStrokes, isStyle } from "./defs/helpers.js";
 import DroPanel from "./dro.jsx";
+import LiveInput from "./live-input.jsx";
 import { makeAnalyzeButton, intakeImage } from "./analyze.js";
 import CatalogBrowser from "./catalog-browser.jsx";
 import StackView from "./stack-view.jsx";
@@ -994,7 +995,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.69"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.70"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -2306,6 +2307,9 @@ export default function App() {
 
   const setParam = (id, key, val) =>
     setNodesL((ns) => ns.map((n) => (n.id === id ? { ...n, params: { ...n.params, [key]: val } } : n)));
+  /* batched sibling of setParam: a live-input frame writes every channel at once */
+  const setParamsMulti = (id, obj) =>
+    setNodesL((ns) => ns.map((n) => (n.id === id ? { ...n, params: { ...n.params, ...obj } } : n)));
 
   /* --- z-jarjestys: klikattu node nousee paallimmaiseksi (vain nakyma, ei undo-historiaa) --- */
   const [zOrder, setZOrder] = useState({});
@@ -2321,6 +2325,21 @@ export default function App() {
   useEffect(() => {
     const h = histRef.current;
     if (h.applying) { h.applying = false; prevRootRef.current = root; return; }
+    /* live input (Controller): ONE undo step per gesture. The 400 ms
+       coalescing below is far too short for a continuous stream and would
+       flush real history out of the 60-entry buffer. live-input.jsx raises
+       h.live while a gesture runs and drops it after the quiet period. */
+    if (h.live) {
+      if (!h.liveOpen && prevRootRef.current !== root) {
+        h.past.push(prevRootRef.current);
+        if (h.past.length > 60) h.past.shift();
+        h.future = [];
+        h.liveOpen = true;
+        setHistLens([h.past.length, 0]);
+      }
+      prevRootRef.current = root;
+      return;
+    }
     if (prevRootRef.current !== root) {
       const now = Date.now();
       /* niputa nopeat perakkaiset muutokset (liukurivedot) yhdeksi askeleeksi */
@@ -2934,6 +2953,7 @@ export default function App() {
           <span style={{ color: T.dim, fontWeight: 500, fontSize: 11, marginLeft: 8 }}>{"v" + APP_VERSION}</span>
         </div>
         <DroPanel url={prof.moonrakerUrl} />
+        <LiveInput nodes={lvl.nodes} selIds={selIds} setParam={setParam} setParams={setParamsMulti} histRef={histRef} overlay={bigPreview} />
         <button style={toolBtn(selIds.length > 0)} onClick={duplicateSelected} title="Cmd/Ctrl+D">Duplicate ({selIds.length})</button>
         <button style={toolBtn(selIds.length >= 2)} onClick={groupSelected} title="Cmd/Ctrl+G">Group</button>
         <button style={toolBtn(!!primaryIsGroup)} onClick={ungroupSelected}>Ungroup</button>
