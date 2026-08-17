@@ -65,9 +65,48 @@ function ctrlsHint(nodes) {
   return "nothing armed — click a Controller once, or pick one in this panel";
 }
 
+/* MUST match _layouts in the Controller node (nodes-lab/ctrl.plotternode.js
+   or src/defs/nodes/ctrl.js). validate-ctrl.mjs asserts the two are identical:
+   a silent drift here would wire a pin to the wrong control, and nothing else
+   would notice.
+
+   [param key, label, kind, gamepad index]
+   kind: "axis" = stick axis · "dpad" = [minus button, plus button] · "trigger"
+   Indices are the browser's standard mapping. Most pads normalise to it; the
+   LIVE panel prints the raw axes so a mismatch is visible, not mysterious. */
+const LAYOUTS = {
+  "Channels": null,
+  "Sticks": [["v1", "LX", "axis", 0], ["v2", "LY", "axis", 1], ["v3", "RX", "axis", 2], ["v4", "RY", "axis", 3]],
+  "D-pad + triggers": [["v1", "Pad X", "dpad", [14, 15]], ["v2", "Pad Y", "dpad", [13, 12]], ["v3", "L2", "trigger", 6], ["v4", "R2", "trigger", 7]],
+};
+
 function chanCount(node) {
   const c = Math.round((node.params && node.params.count) || 1);
   return Math.max(1, Math.min(CHAN_MAX, Number.isFinite(c) ? c || 1 : 1));
+}
+
+/* The channels a node currently carries, as {key,label,min,max,q,ks}. One list
+   drives the writes, the keyboard, the pad and the panel readout, so they
+   cannot disagree about what channel 2 is. */
+function chansOf(node) {
+  const L = LAYOUTS[(node.params && node.params.layout) || "Channels"];
+  /* one unit for everything: 0..1, quantised to the v1..v6 slider step */
+  if (L) return L.map((c) => ({ key: c[0], label: c[1], kind: c[2], idx: c[3], min: 0, max: 1, q: 0.001, ks: 0.02 }));
+  const n = chanCount(node);
+  const out = [];
+  for (let i = 0; i < n; i++) out.push({ key: "v" + (i + 1), label: "CH" + (i + 1), kind: "axis", idx: i, min: 0, max: 1, q: 0.001, ks: 0.02 });
+  return out;
+}
+
+/* A d-pad pair as a stepped nudge. Both directions act on the RISING EDGE
+   only, so holding the pad does not run the value away; press again to step
+   again. Clamped to 0..1 like every other channel. */
+function stepPad(prevMinus, prevPlus, downMinus, downPlus, cur, step) {
+  let v = Number.isFinite(cur) ? cur : 0;
+  const s = Number.isFinite(step) && step > 0 ? step : 0.05;
+  if (downPlus && !prevPlus) v += s;
+  if (downMinus && !prevMinus) v -= s;
+  return clamp01(v);
 }
 
 /* One axis sample -> the new normalised channel value.
@@ -95,10 +134,15 @@ function stepAxis(raw, cur, dz, jog, rate, dt) {
    would fight our own value and produce jitter. While a write is in flight we
    ignore the prop and only resume adopting once it has caught up — which is
    how a manual slider edit, a patch load or an undo still wins. */
-function syncState(st, params, n) {
-  for (let i = 0; i < n; i++) {
-    const raw = params["v" + (i + 1)];
-    const p = Number.isFinite(raw) ? clamp01(raw) : 0;
+function syncState(st, params, chans) {
+  /* Changing layout renames every channel, so the index-keyed mirror has to be
+     dropped or channel 2 keeps the previous layout's value. */
+  const sig = chans.map((c) => c.key).join(",");
+  if (st.sig !== sig) { st.sig = sig; st.v = []; st.w = []; st.pend = []; st.prev = []; }
+  for (let i = 0; i < chans.length; i++) {
+    const c = chans[i];
+    const raw = params[c.key];
+    const p = Number.isFinite(raw) ? Math.max(c.min, Math.min(c.max, raw)) : c.min;
     if (st.w[i] === undefined) { st.v[i] = p; st.w[i] = p; st.pend[i] = false; continue; }
     if (st.pend[i]) { if (Math.abs(p - st.w[i]) < 1e-9) st.pend[i] = false; continue; }
     if (Math.abs(p - st.w[i]) > 1e-9) { st.v[i] = p; st.w[i] = p; }
@@ -109,15 +153,16 @@ function syncState(st, params, n) {
 /* Which channels actually need writing. Returns null when nothing moved, so
    the caller can skip the setParam (and therefore a whole graph re-evaluation)
    entirely. Values are rounded to the v1..v6 slider step. */
-function planWrite(st, n, eps) {
+function planWrite(st, chans) {
   let obj = null;
-  for (let i = 0; i < n; i++) {
-    if (!Number.isFinite(st.v[i])) { st.v[i] = st.w[i] || 0; continue; }
-    if (Math.abs(st.v[i] - st.w[i]) <= eps) continue;
-    const r = Math.round(st.v[i] * 1000) / 1000;
-    if (r === st.w[i]) continue;
+  for (let i = 0; i < chans.length; i++) {
+    const c = chans[i];
+    if (!Number.isFinite(st.v[i])) { st.v[i] = Number.isFinite(st.w[i]) ? st.w[i] : c.min; continue; }
+    const q = c.q > 0 ? c.q : 0.001;
+    const r = Math.round(Math.round(st.v[i] / q) * q * 1e6) / 1e6;
+    if (Math.abs(r - st.w[i]) < q * 0.5) continue;
     if (!obj) obj = {};
-    obj["v" + (i + 1)] = r;
+    obj[c.key] = r;
     st.w[i] = r;
     st.pend[i] = true;
   }
@@ -216,10 +261,10 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
   };
 
   /* local mirror of a node's channels, reconciled with the props */
-  const stateOf = (node) => {
+  const stateOf = (node, chans) => {
     let st = R.current.st[node.id];
-    if (!st) st = R.current.st[node.id] = { v: [], w: [], pend: [] };
-    return syncState(st, node.params, chanCount(node));
+    if (!st) st = R.current.st[node.id] = { v: [], w: [], pend: [], prev: [], sig: null };
+    return syncState(st, node.params, chans);
   };
 
   /* Diagnostics. The popover shows these live, and window.MUUSIA_LIVE_DEBUG = true
@@ -233,11 +278,11 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
     d.why = why;
   };
 
-  const write = (node, st, n, immediate) => {
+  const write = (node, st, chans, immediate) => {
     const now = (typeof performance !== "undefined" ? performance.now() : Date.now());
     const last = R.current.t[node.id] || 0;
     if (!immediate && now - last < WRITE_MS) { say("throttled"); return; }
-    const obj = planWrite(st, n, EPS);
+    const obj = planWrite(st, chans);
     if (!obj) { say("nothing moved past the epsilon"); return; }
     R.current.t[node.id] = now;
     R.current.diag.writes++;
@@ -271,8 +316,7 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
       for (const node of S.nodes) {
         if (!isCtrl(node) || node.params.source !== "Gamepad" || node.params.freeze) continue;
         found++;
-        const n = chanCount(node);
-        const b = parseBind(node.params.bind, n);
+        const b = parseBind(node.params.bind, chanCount(node));
         const gp = b.pad == null ? pads.find((g) => g && g.connected !== false) : pads[b.pad];
         if (!gp) {
           say(b.pad == null
@@ -284,18 +328,39 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
         seen = gp.id;
         S.diag.pad = gp.id + " @" + gp.index + " (" + gp.axes.length + " axes)";
         S.diag.axes = Array.prototype.map.call(gp.axes, (a) => (typeof a === "number" ? a.toFixed(2) : "?")).join(" ");
-        const st = stateOf(node);
+        const chans = chansOf(node);
+        const st = stateOf(node, chans);
         const dz = (+node.params.dead || 0) / 100;
         const jog = node.params.mode === "Jog (integrate)";
         const rate = +node.params.rate;
+        const dstep = Math.max(0.001, (+node.params.dstep || 5) / 100);
         let moved = false;
-        for (let i = 0; i < n; i++) {
-          const raw = gp.axes[b.axes[i]];
-          if (typeof raw === "number" && Math.abs(raw) > dz) moved = true;
-          st.v[i] = stepAxis(raw, st.v[i], dz, jog, rate, dt);
+
+        for (let i = 0; i < chans.length; i++) {
+          const c = chans[i];
+          if (c.kind === "trigger") {
+            const btn = gp.buttons[c.idx];
+            const val = btn && typeof btn.value === "number" ? btn.value : (btn && btn.pressed ? 1 : 0);
+            if (val > 0.01) moved = true;
+            st.v[i] = clamp01(val);
+          } else if (c.kind === "dpad") {
+            const bm = gp.buttons[c.idx[0]], bp = gp.buttons[c.idx[1]];
+            const dm = !!(bm && bm.pressed), dp = !!(bp && bp.pressed);
+            if (dm || dp) moved = true;
+            const pm = !!(st.prev[i] & 1), pp = !!(st.prev[i] & 2);
+            st.v[i] = stepPad(pm, pp, dm, dp, st.v[i], dstep);
+            st.prev[i] = (dm ? 1 : 0) | (dp ? 2 : 0);
+          } else {
+            /* Channels honours the Binding field's axis list; a named stick
+               layout uses its own fixed axis, which is the whole point of it */
+            const ai = LAYOUTS[node.params.layout || "Channels"] ? c.idx : b.axes[i];
+            const raw = gp.axes[ai];
+            if (typeof raw === "number" && Math.abs(raw) > dz) moved = true;
+            st.v[i] = stepAxis(raw, st.v[i], dz, jog, rate, dt);
+          }
         }
-        if (!moved) say("pad connected, all bound axes inside the deadzone");
-        write(node, st, n, false);
+        if (!moved) say("pad connected, nothing pressed or all axes inside the deadzone");
+        write(node, st, chans, false);
       }
       if (!found) say("no Controller with Source Gamepad in this level");
       if (seen !== R.current.padSeen) { R.current.padSeen = seen; setPadName(seen); }
@@ -326,20 +391,24 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
       if (!isCtrl(node)) { say("armed node is '" + node.type + "', not a Controller"); return; }
       if (node.params.source !== "Keyboard") { say("Source is '" + node.params.source + "', not Keyboard"); return; }
       if (node.params.freeze) { say("node is frozen"); return; }
-      const n = chanCount(node);
+      const chans = chansOf(node);
+      const n = chans.length;
       e.preventDefault();
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         setChan((c) => (e.key === "ArrowRight" ? Math.min(n - 1, c + 1) : Math.max(0, c - 1)));
         say("channel switch");
         return;
       }
-      const st = stateOf(node);
+      const st = stateOf(node, chans);
       const i = Math.min(n - 1, Math.max(0, S.chan));
-      let step = KEY_STEP;
+      const c = chans[i];
+      let step = c.ks;
       if (e.shiftKey) step *= 5;
       if (e.altKey) step /= 4;
-      st.v[i] = clamp01(st.v[i] + (e.key === "ArrowUp" ? step : -step));
-      write(node, st, n, true);
+      const nv = st.v[i] + (e.key === "ArrowUp" ? step : -step);
+      /* angles wrap, everything else clamps */
+      st.v[i] = (c.max === 360) ? ((nv % 360) + 360) % 360 : Math.max(c.min, Math.min(c.max, nv));
+      write(node, st, chans, true);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -348,26 +417,29 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
 
   /* ---- XY pad: drags channels 1 and 2 of the armed Controller ---- */
 
-  const tN = target ? chanCount(target) : 0;
+  const tChans = target ? chansOf(target) : [];
+  const tN = tChans.length;
 
   const padSet = (ev, el) => {
     if (!target || target.params.freeze) return;
     const r = el.getBoundingClientRect();
     const x = clamp01((ev.clientX - r.left) / Math.max(1, r.width));
     const y = clamp01((ev.clientY - r.top) / Math.max(1, r.height));
-    const st = stateOf(target);
-    st.v[0] = x;
-    if (tN >= 2) st.v[1] = 1 - y; /* screen y is down; up should mean more */
-    write(target, st, tN, false);
+    const st = stateOf(target, tChans);
+    const span = (c, u) => c.min + u * (c.max - c.min);
+    st.v[0] = span(tChans[0], x);
+    if (tN >= 2) st.v[1] = span(tChans[1], 1 - y); /* screen y is down; up means more */
+    write(target, st, tChans, false);
   };
 
   /* ---- chip ---- */
 
   const anyCtrl = (nodes || []).some(isCtrl);
   const dot = !anyCtrl ? C.dim : !on ? C.warn : (padName || (target && target.params.source === "Keyboard")) ? C.ok : C.accent;
-  const cur = target ? Math.min(tN - 1, chan) : 0;
-  const curVal = target ? target.params["v" + (cur + 1)] : undefined;
-  const fmt = (v) => (Number.isFinite(v) ? v.toFixed(3) : "\u2014");
+  const cur = target ? Math.max(0, Math.min(tN - 1, chan)) : 0;
+  const curCh = target && tChans[cur] ? tChans[cur] : null;
+  const curVal = curCh ? target.params[curCh.key] : undefined;
+  const fmt = (v) => (Number.isFinite(v) ? (curCh && curCh.max === 360 ? v.toFixed(1) : curCh && curCh.max > 1 ? String(Math.round(v)) : v.toFixed(3)) : "\u2014");
 
   const title = !anyCtrl
     ? "No Controller node in this graph — add one from the Math category"
@@ -389,15 +461,19 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
       }}>
       <span style={{ width: 7, height: 7, borderRadius: "50%", background: dot, display: "inline-block" }} />
       <span style={{ color: C.dim }}>LIVE</span>
-      {Array.from({ length: tN }, (_, i) => (
-        <span key={i} style={{
-          fontVariantNumeric: "tabular-nums",
-          color: i === cur ? C.text : C.dim,
-          borderBottom: i === cur ? `1px solid ${C.accent}` : "1px solid transparent",
-        }}>
-          {i + 1}:{fmt(target.params["v" + (i + 1)])}
-        </span>
-      ))}
+      {tChans.map((c, i) => {
+        const raw = target.params[c.key];
+        const val = Number.isFinite(raw) ? raw : c.min;
+        return (
+          <span key={c.key} style={{
+            fontVariantNumeric: "tabular-nums",
+            color: i === cur ? C.text : C.dim,
+            borderBottom: i === cur ? `1px solid ${C.accent}` : "1px solid transparent",
+          }}>
+            {c.label}:{c.max === 360 ? val.toFixed(0) : c.max > 1 ? String(Math.round(val)) : val.toFixed(2)}
+          </span>
+        );
+      })}
       <span style={{ color: C.dim }}>{"\u2191\u2193 \u2190\u2192"}</span>
     </div>
   ) : null;
@@ -421,7 +497,7 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
           overflow: "hidden", fontVariantNumeric: "tabular-nums",
           color: target ? C.text : C.dim,
         }}>
-          <span style={{ color: C.dim }}>{target ? "CH" + (cur + 1) + " " : "" }</span>{target ? fmt(curVal) : "\u2014"}
+          <span style={{ color: C.dim }}>{curCh ? curCh.label + " " : "" }</span>{target ? fmt(curVal) : "\u2014"}
         </span>
       </div>
 
@@ -469,7 +545,7 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
           {target && (
             <>
               <div style={{ color: C.dim, marginBottom: 6 }}>
-                {target.params.source} · {tN} ch{target.params.freeze ? " · FROZEN" : ""}
+                {target.params.layout || "Channels"} · {target.params.source}{target.params.freeze ? " · FROZEN" : ""}
               </div>
 
               <div
@@ -492,26 +568,31 @@ export default function LiveInput({ nodes, selIds, setParam, setParams, histRef,
                 }} />
               </div>
 
-              {Array.from({ length: tN }, (_, i) => (
-                <div key={i}
-                  onClick={() => setChan(i)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 6, marginBottom: 3, cursor: "pointer",
-                    color: i === cur ? C.text : C.dim,
-                  }}>
-                  <span style={{ width: 26 }}>{i === cur ? "\u25B8" : " "}CH{i + 1}</span>
-                  <span style={{ flex: 1, height: 5, background: C.panel2, borderRadius: 3, overflow: "hidden" }}>
-                    <span style={{
-                      display: "block", height: "100%", borderRadius: 3,
-                      width: (clamp01(target.params["v" + (i + 1)]) * 100) + "%",
-                      background: i === cur ? C.accent : C.line,
-                    }} />
-                  </span>
-                  <span style={{ width: 38, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                    {fmt(target.params["v" + (i + 1)])}
-                  </span>
-                </div>
-              ))}
+              {tChans.map((c, i) => {
+                const raw = target.params[c.key];
+                const val = Number.isFinite(raw) ? raw : c.min;
+                const u = clamp01((val - c.min) / ((c.max - c.min) || 1));
+                return (
+                  <div key={c.key}
+                    onClick={() => setChan(i)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6, marginBottom: 3, cursor: "pointer",
+                      color: i === cur ? C.text : C.dim,
+                    }}>
+                    <span style={{ width: 54 }}>{i === cur ? "\u25B8" : " "}{c.label}</span>
+                    <span style={{ flex: 1, height: 5, background: C.panel2, borderRadius: 3, overflow: "hidden" }}>
+                      <span style={{
+                        display: "block", height: "100%", borderRadius: 3,
+                        width: (u * 100) + "%",
+                        background: i === cur ? C.accent : C.line,
+                      }} />
+                    </span>
+                    <span style={{ width: 42, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                      {c.max === 360 ? val.toFixed(1) : c.max > 1 ? String(Math.round(val)) : val.toFixed(3)}
+                    </span>
+                  </div>
+                );
+              })}
 
               <div style={{ color: C.dim, lineHeight: 1.5, marginTop: 7, borderTop: `1px solid ${C.line}`, paddingTop: 6 }}>
                 {target.params.source === "Keyboard"

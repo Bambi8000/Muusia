@@ -1,6 +1,6 @@
-# MUUSIA v2.70 — Node Reference
+# MUUSIA v2.71 — Node Reference
 
-All 249 built-in nodes. Conventions used below: most generators accept a **Style**
+All 250 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
@@ -1445,7 +1445,7 @@ fold ticks or dashed fold lines, the cut slit and panel frames go on the Mark
 pen; *Page numbers* draws a numeral in each panel in that panel's own
 orientation — print once, fold it, and the imposition is proven.
 
-## Math (9)
+## Math (10)
 
 **Frame** — the animation clock. Outputs: `t 0→1` linear ramp (last frame = 1),
 `frame #` integer, `wave loop` and `ping-pong` (seamless: frame N continues into
@@ -1534,6 +1534,36 @@ pushes intact geometry apart so the wound opens, *Ragged* roughens the edge,
 edges — raise Detail for smooth edge cuts; both are intended looks. Stack
 several Torn nodes for multiple rips; classic pairings: Loom → Torn,
 Op Tunnel → Torn.
+
+**Controller** — turns live input into graph values. *Layout* picks
+what drives the outputs. **Channels** is the generic 1-6 set nudged by the arrow
+keys or driven by gamepad axes. **Sticks** gives four pins — LX and LY from the
+left stick, RX and RY from the right — so each stick reaches two parameters at
+once. **D-pad + triggers** gives Pad X, Pad Y, L2 and R2: left and right step
+Pad X down and up by *D-pad step*, up and down do the same to Pad Y, and the two
+analog triggers land on their own pins — a stepped pair for exact increments
+beside a pressure-sensitive pair for sweeps. Both d-pad directions act on the
+rising edge, so holding the pad does not run the value away.
+
+Every channel, in every layout, is stored NORMALISED 0-1 in v1..v6 and mapped
+into *Out min*..*Out max* with optional *Snap*. That one storage model is why the
+range, the snap, the keyboard nudge and the panel readout are the same code for
+a stick axis, a d-pad step and a trigger — and why the values save with the patch
+and replay identically on export. (The inspector rows stay CH1..CH4 in the named
+layouts because parameter labels are static; the pin labels and the LIVE panel
+show the real names.)
+
+*Axis mode* Absolute maps stick position straight across the range, while Jog
+integrates deflection over time so a self-centring stick behaves like an endless
+jog wheel — push and the value travels, let go and it stays. Source **Keyboard**
+drives the ARMED Controller in any layout: ↑↓ nudge the active channel, ←→ pick
+it, Shift is coarse and Alt fine. A Controller stays armed while you go on to
+select and preview other nodes, which is necessary because the big preview only
+opens on a node that outputs paths and a Controller never can; with it open a
+compact readout mirrors the channels above the overlay. *Binding* overrides the
+pad index and, in Channels, the axis mapping; `auto` takes the first CONNECTED
+pad rather than slot 0. *Freeze* stops all live writing so a tuned value stays
+put. Wire a channel into any value port.
 
 ## Routing (1)
 

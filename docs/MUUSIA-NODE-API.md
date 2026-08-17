@@ -1,4 +1,4 @@
-# Muusia — Custom Node API (v1.4, app v2.61)
+# Muusia — Custom Node API (v1.4, app v2.71)
 
 This document is a **complete, self-contained specification** for writing a custom node
 for Muusia, a node-graph editor for generative pen-plotter art. You can hand this
@@ -146,6 +146,44 @@ The payload is a plain object and **both ends must agree on it**:
   turn up if something else is wired in by mistake.
 - Adding a pin type means adding a `TYPE_COLOR` entry in App.jsx: the port dot
   reads `TYPE_COLOR[pin.type]` with no fallback and renders invisible without one.
+
+### Live input: the Controller seam (v2.71)
+
+A node must never read a device. `ctx` is not a way round it either: exports,
+thumbnails and every animation frame re-evaluate the graph, and a value that
+differs between those runs breaks determinism silently. The rule is:
+
+> **Live input is written into PARAMETERS by the engine, never read inside
+> `compute`.**
+
+`src/live-input.jsx` listens to the keyboard and the Gamepad API and calls
+`setParam` on every Controller node in the current graph level. `compute` stays
+a pure function of `(ins, p, ctx)`; the params save with the patch, so a gesture
+is reproducible and an export replays exactly what was on screen.
+
+Three costs come with that seam, and all three are managed in the module rather
+than in the node:
+
+- **Re-evaluation.** Every param write re-runs the whole graph, so a 60 Hz input
+  stream would lock a heavy patch. Writes are capped at 20 Hz per node and
+  skipped entirely when nothing moved past the channel's quantum.
+- **Undo history.** App.jsx coalesces changes inside 400 ms, far too short for a
+  continuous stream — a long gesture would flush real history out of the
+  60-entry buffer. `histRef.current.live` marks a gesture in progress and the
+  history effect pushes ONE snapshot for it.
+- **The adoption race.** `setParam` is async, so on the frame after a write the
+  incoming props still carry the old value. Adopting it would fight your own
+  value and jitter. Each channel carries a pending flag and ignores the prop
+  until it catches up, which is also what lets a manual slider edit or an undo
+  win.
+
+Two things are worth copying if you build a similar seam. Keep ONE unit for
+every channel and let the node map it — per-control natural units force the
+output range to apply to some layouts and not others, and need a parameter per
+control. And if a table has to exist in both the node and the module, have the
+validator parse the module's copy and compare: the node decides which pin is
+which and the module decides which control writes which param, so a drift wires
+a pin to the wrong control and nothing else notices.
 
 ## 4. Parameter UI types
 

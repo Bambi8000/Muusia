@@ -226,6 +226,10 @@
  "crop": [
   "clip"
  ],
+ "ctrl": [
+  "animation",
+  "math"
+ ],
  "cull": [
   "pathops",
   "penout"

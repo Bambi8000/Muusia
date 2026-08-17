@@ -34,7 +34,7 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **247 files** (249 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **248 files** (250 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
@@ -1022,7 +1022,46 @@ text are **English**.
   confirming the failure. (tools/validate-chain.mjs, tools/validate-circuit.mjs,
   tools/validate-knottube.mjs, tools/era/patch-docs-3nodes.mjs)
 
+- **2.71** **Controller** (math) baked, plus the live-input engine seam it
+  needs. The node had existed as a lab file and been loaded through Node ⇣ for
+  several sessions, which registers it in the running session ONLY — it worked
+  throughout development and was simply missing from dist. Three layouts:
+  Channels (generic 1-6), Sticks (LX/LY/RX/RY, two channels per stick) and
+  D-pad + triggers (Pad X and Pad Y stepped by the d-pad pairs on the rising
+  edge, L2 and R2 analog on their own pins). Every channel normalised 0-1 in
+  v1..v6 and mapped through Out min..Out max, so one storage model serves every
+  layout — an intermediate design gave each control its own natural unit
+  (degrees, counts, 0/1) and had to be collapsed. Engine seam
+  `src/live-input.jsx` (era patches patch-live-input.mjs and
+  patch-live-overlay.mjs, already applied): a LIVE toolbar chip, arming
+  decoupled from selection, a readout mirrored above the big-preview overlay,
+  20 Hz write throttling and one undo snapshot per gesture. The seam's rule —
+  live input goes into parameters, never into `ctx` — is now written up in
+  NODE-API §3. Also: `bind: "auto"` picks the first CONNECTED pad rather than
+  index 0, because a Bluetooth pad that reconnects routinely lands on index 1-3
+  and pinning slot 0 made a working controller look dead.
+  (tools/validate-ctrl.mjs, tools/validate-live-input.mjs,
+  tools/era/patch-docs-ctrl.mjs)
+
 ## Hard-won pitfalls (keep)
+- A LAB FILE IS NOT IN THE BUILD. Node ⇣ registers a custom node in the running
+  session only, so a node developed that way works perfectly for weeks and is
+  absent from `dist` — no validator can catch it, because the node is fine. Bake
+  before shipping, and grep the built `dist/index.html` for the node KEY as part
+  of the release check, not just for the version string.
+- When one table has to live in two files, make a validator PARSE the second
+  copy and compare it to the first. Controller's layout table sits in the node
+  (which pin is which) and in src/live-input.jsx (which control writes which
+  param); a drift between them wires a pin to the wrong control while every
+  other test stays green. Mutation-test the comparison itself, or you have only
+  added a check that always passes.
+- Giving each value its own natural unit sounds tidier than one shared unit and
+  is usually the opposite. Controller briefly stored degrees, press counts and
+  0/1 in separate per-control parameters, which forced Out min..Out max to apply
+  to some layouts and not others and needed a parameter per control. Collapsing
+  everything to normalised 0-1, mapped once by compute, removed a third of the
+  node and made the range, the snap, the keyboard nudge and the panel readout
+  one code path.
 - A NORMALISING FIT silently converts a size control into a density
   control. Chain fitted its drawing to the margin box, so Link size never
   changed the drawing at all — it only changed how many hatch rungs were packed

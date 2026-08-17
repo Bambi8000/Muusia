@@ -3,6 +3,12 @@
    The first output line says [lab] or [baked] - READ IT. Baked wins when
    src/defs/nodes/ctrl.js exists, so bake before validating a reopened lab file.
 
+   The load-bearing check here is LAYOUT AGREEMENT: the node's _layouts table
+   and the copy inside src/live-input.jsx must be byte-identical, because the
+   node decides which pin is which and the module decides which control writes
+   which param. Drift between them wires a pin to the wrong button, and nothing
+   else in the suite would notice.
+
    Controller is a VALUE node: it emits numbers, not paths, so the usual
    bounds / pen-layer / point-budget checks do not apply. What matters here
    instead is the purity split - v1..v6 and the range params must move the
@@ -46,6 +52,54 @@ ok(Array.isArray(def.ins) && def.ins.length === 0, "no data inputs");
 ok(typeof def.outs === "function", "outs is a function (dynamic channel count)");
 ok(typeof def.desc === "string" && def.desc.length > 80, "has a description");
 
+/* ---------------------------------------------------------------- LAYOUTS */
+const LAY = def._layouts;
+ok(LAY && typeof LAY === "object", "the node ships a _layouts table");
+ok(LAY.Channels === null, "Channels is the dynamic layout");
+const PADLAYS = Object.keys(LAY).filter((k) => LAY[k]);
+ok(PADLAYS.length === 2, "two pad layouts: " + PADLAYS.join(", "));
+{
+  const opts = def.params.find((q) => q.key === "layout").options;
+  ok(opts.length === Object.keys(LAY).length && opts.every((o) => o in LAY),
+    "every Layout option has a table entry and vice versa");
+  ok(opts[0] === "Channels", "Channels is first, and stays the default, so existing patches keep their pins");
+  ok(def.params.find((q) => q.key === "layout").def === "Channels", "Channels is the default layout");
+  for (const n of PADLAYS) {
+    ok(LAY[n].length === 4, n + " is four channels wide (a constant card height)");
+    ok(LAY[n].map((c) => c[0]).join(",") === "v1,v2,v3,v4",
+      n + " stores into v1..v4 - one normalised storage model for every layout");
+    for (const c of LAY[n]) {
+      const pd = def.params.find((q) => q.key === c[0]);
+      ok(!!pd, n + ": '" + c[0] + "' has a matching parameter");
+      if (pd) ok(pd.min === 0 && pd.max === 1, n + ": '" + c[0] + "' is a 0..1 channel");
+      ok(["axis", "dpad", "trigger"].includes(c[2]), n + ": '" + c[1] + "' has a known control kind");
+    }
+  }
+  ok(LAY.Sticks.map((c) => c[1]).join(",") === "LX,LY,RX,RY", "each stick reaches two channels");
+  ok(LAY["D-pad + triggers"].map((c) => c[1]).join(",") === "Pad X,Pad Y,L2,R2",
+    "the d-pad pairs and both triggers share one layout");
+}
+
+/* the engine module keeps its own copy - it MUST be the same table */
+{
+  const modPath = resolve("src/live-input.jsx");
+  if (!existsSync(modPath)) ok(false, "src/live-input.jsx not found - the node is useless without its engine seam");
+  else {
+    const msrc = readFileSync(modPath, "utf8");
+    const m = msrc.match(/const LAYOUTS = (\{[\s\S]*?\n\};)/);
+    ok(!!m, "found the LAYOUTS table in src/live-input.jsx");
+    if (m) {
+      let modLay = null;
+      try { modLay = new Function("return " + m[1].replace(/;\s*$/, "")) (); } catch (e) { modLay = null; }
+      ok(!!modLay, "the module's LAYOUTS table parses");
+      if (modLay) {
+        ok(JSON.stringify(modLay) === JSON.stringify(LAY),
+          "the node and src/live-input.jsx agree on the layout table exactly");
+      }
+    }
+  }
+}
+
 /* --- descriptor field names are engine contract, not convention --- */
 for (const pd of def.params) {
   if (pd.type === "select") ok(Array.isArray(pd.options) && pd.options.length > 0,
@@ -76,6 +130,15 @@ for (let n = 1; n <= 6; n++) {
 ok(def.outs({ params: { ...p0, count: 0 } }).length === 1, "count 0 clamps to 1 pin");
 ok(def.outs({ params: { ...p0, count: 99 } }).length === 6, "count 99 clamps to 6 pins");
 ok(def.outs({}).length === 1, "outs() survives a node with no params");
+for (const n of PADLAYS) {
+  const pins = def.outs({ params: { ...p0, layout: n } });
+  ok(pins.length === 4, n + ": outs() declares four pins");
+  ok(pins.every((q) => q.type === "value"), n + ": all pins are value pins");
+  ok(pins.map((q) => q.label).join(",") === LAY[n].map((c) => c[1]).join(","), n + ": pin labels come from the table");
+  const vals = arr({ layout: n });
+  ok(vals.length === 4 && vals.every(Number.isFinite), n + ": compute returns four finite values");
+}
+ok(def.outs({ params: { ...p0, layout: "Nonsense" } }).length >= 1, "an unknown layout falls back to Channels pins");
 
 /* --- values are finite, in range, never -0 --- */
 const inRange = (vals, lo, hi) => vals.every((v) => Number.isFinite(v) && v >= Math.min(lo, hi) - 1e-9 && v <= Math.max(lo, hi) + 1e-9);
@@ -105,9 +168,39 @@ for (const s of [0.1, 0.5, 1, 3, 7]) {
     "snap " + s + " lands on the grid or on a clamped end");
 }
 
+/* --------------------------------------------------- PAD LAYOUT SEMANTICS */
+{
+  const at = (patch, i) => arr(patch)[i];
+  /* one storage model means the output range applies everywhere - the whole
+     point of dropping per-control units */
+  for (const n of PADLAYS) {
+    ok(arr({ layout: n }).length === 4, n + ": four values out");
+    ok(at({ layout: n, v1: 0, min: -50, max: 50 }, 0) === -50, n + ": channel 0 maps to Out min");
+    ok(at({ layout: n, v1: 1, min: -50, max: 50 }, 0) === 50, n + ": channel 1 maps to Out max");
+    ok(at({ layout: n, v1: 0.5, min: 0, max: 10 }, 0) === 5, n + ": a centred channel lands mid-range");
+    ok(at({ layout: n, v1: 5 }, 0) === p0.max, n + ": an out-of-range param clamps");
+    ok(at({ layout: n, v1: -5 }, 0) === p0.min, n + ": a negative param clamps");
+    ok(Number.isFinite(at({ layout: n, v1: NaN }, 0)), n + ": a NaN param stays finite");
+    ok(at({ layout: n, v1: 0.37, min: 0, max: 10, snap: 2 }, 0) === 4, n + ": Snap applies in pad layouts too");
+    /* every channel moves exactly its own pin */
+    for (let i = 0; i < 4; i++) {
+      const key = LAY[n][i][0];
+      const base2 = arr({ layout: n });
+      const bumped = arr({ layout: n, [key]: 0.77 });
+      let moved = 0;
+      for (let j = 0; j < 4; j++) if (bumped[j] !== base2[j]) moved++;
+      ok(moved === 1, n + ": '" + LAY[n][i][1] + "' moves exactly one pin");
+    }
+  }
+  /* count is a Channels-only control and must not resize a pad layout */
+  for (const n of PADLAYS) ok(arr({ layout: n, count: 6 }).length === 4, n + ": Channels count does not resize it");
+  ok(arr({ layout: "Channels", count: 6 }).length === 6, "Channels still resizes with count");
+}
+
 /* --- compute params must be live --- */
 const base = JSON.stringify(run());
 const live = (patch, label) => ok(JSON.stringify(run(patch)) !== base, "param live: " + label);
+live({ layout: "Sticks" }, "layout");
 live({ v1: 0.9 }, "v1");
 live({ v2: 0.9 }, "v2");
 live({ count: 4 }, "count");
@@ -128,6 +221,7 @@ inert({ rate: 3.5 }, "rate");
 inert({ dead: 40 }, "dead");
 inert({ bind: "pad:1 axis:2-5" }, "bind");
 inert({ freeze: true }, "freeze");
+inert({ dstep: 20 }, "dstep (the d-pad step is applied in the engine)");
 
 /* --- every select option computes --- */
 for (const pd of def.params.filter((q) => q.type === "select")) {

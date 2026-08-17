@@ -40,14 +40,14 @@ ok(!/Math\.random\(/.test(code), "pure block is deterministic");
 const CONSTS = "const NODE_KEY = \"ctrl\"; const CHAN_MAX = 6;\n";
 let M;
 try {
-  M = new Function(CONSTS + block + "\nreturn { clamp01, isCtrl, chanCount, stepAxis, syncState, planWrite, parseBind };")();
+  M = new Function(CONSTS + block + "\nreturn { clamp01, isCtrl, chanCount, chansOf, stepPad, stepAxis, syncState, planWrite, parseBind, LAYOUTS };")();
   ok(true, "pure block evaluates");
 } catch (e) {
   ok(false, "pure block evaluates (" + e.message + ")");
   console.log("\n" + fails + " FAILURE(S)");
   process.exit(1);
 }
-const { clamp01, isCtrl, chanCount, stepAxis, syncState, planWrite, parseBind } = M;
+const { clamp01, isCtrl, chanCount, chansOf, stepPad, stepAxis, syncState, planWrite, parseBind, LAYOUTS } = M;
 
 /* --- clamp01 --- */
 ok(clamp01(-3) === 0 && clamp01(3) === 1 && clamp01(0.4) === 0.4, "clamp01 bounds to 0..1");
@@ -106,67 +106,113 @@ ok(chanCount({ params: {} }) === 1, "chanCount with no count param = 1");
    re-evaluation. The async gap between setParam and the props catching up is
    simulated explicitly, because that gap is where jitter would live. */
 {
-  const fresh = () => ({ v: [], w: [], pend: [] });
+  const fresh = () => ({ v: [], w: [], pend: [], prev: [], sig: null });
+  const CH = chansOf({ params: { layout: "Channels", count: 2 } });
   const P = (o) => Object.assign({ v1: 0.5, v2: 0.5 }, o);
 
-  let st = syncState(fresh(), P(), 2);
+  let st = syncState(fresh(), P(), CH);
   ok(st.v[0] === 0.5 && st.w[0] === 0.5, "first sync adopts the params");
-  ok(planWrite(st, 2, 0.0005) === null, "an unmoved channel plans no write (no re-evaluation)");
+  ok(planWrite(st, CH) === null, "an unmoved channel plans no write (no re-evaluation)");
 
   st.v[0] = 0.5 + 0.0001;
-  ok(planWrite(st, 2, 0.0005) === null, "a sub-epsilon nudge plans no write");
+  ok(planWrite(st, CH) === null, "a sub-quantum nudge plans no write");
 
   st.v[0] = 0.62;
-  const plan = planWrite(st, 2, 0.0005);
+  const plan = planWrite(st, CH);
   ok(plan && plan.v1 === 0.62 && plan.v2 === undefined, "only the moved channel is written");
   ok(st.pend[0] === true && st.pend[1] === false, "the written channel is marked pending");
 
   /* the frame after the write: props have NOT caught up yet */
-  syncState(st, P({ v1: 0.5 }), 2);
+  syncState(st, P({ v1: 0.5 }), CH);
   ok(st.v[0] === 0.62, "stale props during a pending write do not claw the value back");
-  /* now they catch up */
-  syncState(st, P({ v1: 0.62 }), 2);
+  syncState(st, P({ v1: 0.62 }), CH);
   ok(st.pend[0] === false, "pending clears once the props catch up");
   ok(st.v[0] === 0.62, "value survives the round trip");
 
-  /* a manual slider edit (or undo) after that must win */
-  syncState(st, P({ v1: 0.1 }), 2);
+  syncState(st, P({ v1: 0.1 }), CH);
   ok(st.v[0] === 0.1, "a manual edit is adopted once nothing is in flight");
 
-  /* rounding matches the slider step, and a value that rounds to the same
-     place is not written twice */
-  st = syncState(fresh(), P({ v1: 0 }), 1);
+  /* quantisation is per channel, not a global 0.001 */
+  const ONE = chansOf({ params: { layout: "Channels", count: 1 } });
+  st = syncState(fresh(), P({ v1: 0 }), ONE);
   st.v[0] = 0.12344;
-  const r1 = planWrite(st, 1, 0.0005);
-  ok(r1 && r1.v1 === 0.123, "written values are rounded to the 0.001 slider step");
-  st.v[0] = 0.12351;
-  ok(planWrite(st, 1, 0.0005).v1 === 0.124, "a change past the step writes the next step");
-  /* the round-guard is a second line of defence: with the shipped EPS it
-     coincides with the rounding half-width, so exercise it with a finer one */
-  st.v[0] = 0.1235;
-  planWrite(st, 1, 0.0005);
-  st.v[0] = 0.12362;
-  ok(planWrite(st, 1, 0.00001) === null, "a change that rounds to the same step is not rewritten");
+  const r1 = planWrite(st, ONE);
+  ok(r1 && Math.abs(r1.v1 - 0.123) < 1e-9, "channels quantise to their 0.001 step");
+  const STK = chansOf({ params: { layout: "Sticks" } });
+  let sa = syncState(fresh(), { v1: 0, v2: 0, v3: 0, v4: 0 }, STK);
+  sa.v[0] = 0.73456;
+  const ra = planWrite(sa, STK);
+  ok(ra && Math.abs(ra.v1 - 0.735) < 1e-9, "a stick channel quantises to the same 0.001 step");
 
   /* hostile local state must not escape into a param */
-  st = syncState(fresh(), P({ v1: 0.5 }), 1);
+  st = syncState(fresh(), P({ v1: 0.5 }), ONE);
   st.v[0] = NaN;
-  ok(planWrite(st, 1, 0.0005) === null, "a NaN local value is never written");
+  ok(planWrite(st, ONE) === null, "a NaN local value is never written");
   ok(Number.isFinite(st.v[0]), "a NaN local value is repaired from the last write");
 
-  /* params arriving broken (older patch, wire pushing out of range) */
-  st = syncState(fresh(), { v1: NaN }, 1);
-  ok(st.v[0] === 0 && st.w[0] === 0, "a NaN param syncs to 0");
-  st = syncState(fresh(), { v1: 7 }, 1);
+  st = syncState(fresh(), { v1: NaN }, ONE);
+  ok(st.v[0] === 0 && st.w[0] === 0, "a NaN param syncs to the channel minimum");
+  st = syncState(fresh(), { v1: 7 }, ONE);
   ok(st.v[0] === 1, "an out-of-range param is clamped on adoption");
 
-  /* widening the channel count mid-session must initialise the new channels */
-  st = syncState(fresh(), P(), 2);
-  syncState(st, Object.assign(P(), { v3: 0.8, v4: 0.2 }), 4);
-  ok(st.v[2] === 0.8 && st.v[3] === 0.2, "new channels initialise from their params");
+  /* CHANGING LAYOUT renames every channel, so the index-keyed mirror must be
+     dropped - otherwise channel 2 keeps the previous layout's value */
+  let sw = syncState(fresh(), P({ v1: 0.9, v2: 0.1 }), CH);
+  ok(sw.v[0] === 0.9, "channels layout adopted");
+  const DP = chansOf({ params: { layout: "D-pad + triggers" } });
+  sw = syncState(sw, { v1: 0.42, v2: 0.07, v3: 0, v4: 0 }, DP);
+  ok(sw.v[0] === 0.42 && sw.v[1] === 0.07, "switching layout re-seeds the mirror from the params");
+  ok(sw.sig === "v1,v2,v3,v4", "the mirror records which channel set it holds");
 }
 
-/* --- binding parser --- */
+/* --- layouts and the d-pad stepper --- */
+{
+  ok(LAYOUTS.Channels === null, "the Channels layout is the dynamic one");
+  const names = Object.keys(LAYOUTS).filter((k) => LAYOUTS[k]);
+  ok(names.length === 2, "two pad layouts (" + names.join(", ") + ")");
+  for (const n of names) {
+    ok(LAYOUTS[n].length === 4, n + " is exactly four channels wide (the card height must not move)");
+    ok(LAYOUTS[n].every((c) => typeof c[0] === "string" && typeof c[1] === "string"
+      && ["axis", "dpad", "trigger"].includes(c[2])), n + " channel tuples are well formed");
+    ok(LAYOUTS[n].map((c) => c[0]).join(",") === "v1,v2,v3,v4",
+      n + " stores into v1..v4 (one storage model for every layout)");
+  }
+  const dp = LAYOUTS["D-pad + triggers"];
+  ok(Array.isArray(dp[0][3]) && dp[0][3].length === 2, "a dpad channel names a [minus, plus] button pair");
+  ok(dp[0][3][0] === 14 && dp[0][3][1] === 15, "Pad X is left(-) and right(+)");
+  ok(dp[1][3][0] === 13 && dp[1][3][1] === 12, "Pad Y is down(-) and up(+), so up increases");
+  ok(dp[2][2] === "trigger" && dp[3][2] === "trigger", "L2 and R2 are triggers, each on its own channel");
+  const idx = [dp[0][3], dp[1][3]].flat().concat([dp[2][3], dp[3][3]]);
+  ok(new Set(idx).size === idx.length, "no gamepad button is claimed twice");
+  const ax = LAYOUTS.Sticks.map((c) => c[3]);
+  ok(ax.join(",") === "0,1,2,3", "the sticks take axes 0..3 - two channels per stick");
+
+  /* chansOf */
+  ok(chansOf({ params: { layout: "Channels", count: 4 } }).length === 4, "chansOf follows count in Channels");
+  ok(chansOf({ params: {} }).length === 1, "chansOf defaults to Channels with one channel");
+  ok(chansOf({ params: { layout: "Sticks" } }).map((c) => c.label).join(",") === "LX,LY,RX,RY", "chansOf returns the pin labels in order");
+  ok(chansOf({ params: { layout: "Nonsense" } }).length >= 1, "an unknown layout falls back to Channels");
+  ok(chansOf({ params: { layout: "Sticks" } }).every((c) => c.min === 0 && c.max === 1),
+    "every channel is normalised 0..1 whatever the layout");
+
+  /* the d-pad stepper acts on the rising edge and clamps */
+  ok(Math.abs(stepPad(false, false, false, true, 0.5, 0.05) - 0.55) < 1e-9, "a right press steps up");
+  ok(Math.abs(stepPad(false, false, true, false, 0.5, 0.05) - 0.45) < 1e-9, "a left press steps down");
+  ok(stepPad(false, true, false, true, 0.5, 0.05) === 0.5, "holding does not run the value away");
+  ok(stepPad(true, false, true, false, 0.5, 0.05) === 0.5, "holding minus does not run either");
+  ok(stepPad(false, false, false, false, 0.5, 0.05) === 0.5, "nothing pressed, nothing moves");
+  ok(stepPad(false, false, true, true, 0.5, 0.05) === 0.5, "both directions at once cancel out");
+  ok(stepPad(false, false, false, true, 0.98, 0.05) === 1, "stepping up clamps at 1");
+  ok(stepPad(false, false, true, false, 0.02, 0.05) === 0, "stepping down clamps at 0");
+  ok(Number.isFinite(stepPad(false, false, false, true, NaN, NaN)), "NaN state and step stay finite");
+  {
+    let v = 0;
+    for (let i = 0; i < 25; i++) v = stepPad(false, false, false, true, v, 0.05);
+    ok(v === 1, "twenty presses at 5% cross the range and stop");
+  }
+}
+
+/* --- binding parser --- *//* --- binding parser --- *//* --- binding parser --- */
 {
   const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   ok(eq(parseBind("auto", 3), { pad: null, axes: [0, 1, 2] }), "bind 'auto' = first connected pad, axes 0..n-1");
