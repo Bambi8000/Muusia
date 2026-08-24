@@ -59,16 +59,26 @@ Working language: Finnish in chat, English in all code/GUI/docs.
 
   | Display | CLK (BCM / phys / color) | DIO (BCM / phys / color) |
   |---|---|---|
-  | X | GPIO5 / 29 / white | GPIO6 / 31 / orange |
+  | X | GPIO5 / 29 / orange | GPIO6 / 31 / black |
   | Y | GPIO13 / 33 / white | GPIO19 / 35 / orange |
-  | Z | GPIO26 / 37 / orange | GPIO16 / 36 / black |
+  | Z | GPIO20 / 38 / white | GPIO21 / 40 / brown |
 
   Power pair: red + white (red = 3V3, white = GND — confirm at hookup).
-  Open item: `DIGIT_MAP` — 6-digit TM1637 boards often cross-wire the two
-  3-digit groups ("123456" renders "321654"); verify with
+  Resolved at hookup (2026-08-24): the boards are cross-wired, so
+  `DIGIT_MAP = [2, 1, 0, 5, 4, 3]`. The Z display stayed dark on the original
+  GPIO26/16 pair even after swapping CLK/DIO (module and wiring were fine —
+  it worked on X's pins), so Z moved to GPIO20/21. `dro.service` also needs
+  `WorkingDirectory` set: lgpio writes its `.lgd-nfy*` files to CWD, which is
+  `/` for a systemd unit, and the service crash-loops without it.
+
+  The displays read `motion_report.live_position` converted to work
+  coordinates (the gcode_move offset is subtracted), so they follow the
+  toolhead as it actually moves rather than jumping to the queued target.
+  Re-verify any wiring change with
   `python3 ~/dro-service/dro_tm1637.py --test` (stop `dro.service` first,
-  both claim the same GPIO lines) and fix the map in BOTH the Pi copy and
-  `klipper/dro/`. The service shows `------` while Moonraker is unreachable.
+  both claim the same GPIO lines) and fix values in BOTH the Pi copy and
+  `klipper/dro/`. The service shows `------` while Moonraker is unreachable
+  or the machine is unhomed.
 
 The pen tool is **not a router** — this is a pen/brush plotter. Loads are light;
 the design concern is precision and repeatability, not cutting force.
