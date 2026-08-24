@@ -40,12 +40,12 @@ GPIOCHIP = 0            # main GPIO block on the Pi 4
 DISPLAYS = {
     "x": {"clk": 5,  "dio": 6},    # phys 29 / 31
     "y": {"clk": 13, "dio": 19},   # phys 33 / 35
-    "z": {"clk": 26, "dio": 16},   # phys 37 / 36
+    "z": {"clk": 20, "dio": 21},   # phys 38 / 40
 }
 
 # Physical digit position i shows logical digit DIGIT_MAP[i] (0 = leftmost).
 # Straight boards: [0,1,2,3,4,5]. Cross-wired 6-digit boards: [2,1,0,5,4,3].
-DIGIT_MAP = [0, 1, 2, 3, 4, 5]
+DIGIT_MAP = [2, 1, 0, 5, 4, 3]
 
 # --------------------------------------------------------------------------
 # TM1637 driver (bit-banged over lgpio)
