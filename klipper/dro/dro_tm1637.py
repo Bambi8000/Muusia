@@ -146,15 +146,28 @@ def fmt(v):
 # Moonraker
 # --------------------------------------------------------------------------
 
-QUERY = MOONRAKER + "/printer/objects/query?gcode_move=gcode_position"
+QUERY = (MOONRAKER + "/printer/objects/query"
+         "?motion_report=live_position&gcode_move=gcode_position,position")
 
 
 def read_position():
-    """Returns [x, y, z, e] work coordinates, or None on any failure."""
+    """Returns [x, y, z] live work coordinates, or None on any failure.
+
+    live_position is where the toolhead actually is right now (it advances as
+    the steppers step), but it is expressed in machine coordinates. The
+    commanded pair from gcode_move gives the offset currently in force
+    (G92 base + SET_GCODE_OFFSET, i.e. Z_ZERO_HERE); subtracting it lands the
+    reading back in work coordinates - the same origin Mainsail shows, but
+    following real motion instead of the queued target.
+    """
     try:
         with urllib.request.urlopen(QUERY, timeout=1.0) as r:
             data = json.load(r)
-        return data["result"]["status"]["gcode_move"]["gcode_position"]
+        st = data["result"]["status"]
+        live = st["motion_report"]["live_position"]
+        gm = st["gcode_move"]
+        off = [gm["position"][i] - gm["gcode_position"][i] for i in range(3)]
+        return [live[i] - off[i] for i in range(3)]
     except Exception:
         return None
 

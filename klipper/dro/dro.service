@@ -6,6 +6,7 @@ Wants=moonraker.service
 [Service]
 Type=simple
 User=nakit
+WorkingDirectory=/home/nakit/dro-service
 ExecStart=/usr/bin/python3 /home/nakit/dro-service/dro_tm1637.py
 Restart=always
 RestartSec=3
