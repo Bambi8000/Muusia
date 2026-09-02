@@ -40,9 +40,20 @@ Working language: Finnish in chat, English in all code/GUI/docs.
   ID is in printer.cfg, Klipper reports ready. `klipper/printer.cfg` draft exists:
   official BTT pin map, slots S1=X, S2=Y-left, S3=Y-right, S4=Z, S5=brush
   (stubbed). Dual-Y homes as a pair against the single Y switch (a second
-  switch on STOP2 or sensorless DIAG = future auto-square); no Z switch →
-  `[homing_override]` virtual zero (jog Z to working height, G28 declares it
-  Z=0; `Z_ZERO_HERE` re-declares after pen/paper changes). Pen servo macros
+  switch on STOP2 or sensorless DIAG = future auto-square). Z has a real NC
+  switch on MIN3 (`^PF1`) at the TOP of travel, added 2026-08-24: machine Z
+  runs 0 (bottom of travel) .. 75 (switch). `[homing_override]` homes Z first
+  — upward, which also lifts the pen clear of the paper — then X, then Y, so
+  homing is safe with a pen resting on the sheet. Work zero (pen contact
+  height) is still a gcode offset from `Z_ZERO_HERE`, re-declared after
+  pen/paper changes. The homing parameters are tight for measured reasons:
+  only 2 mm from the trigger point to the mechanical end (hence
+  `homing_speed: 5`, `second_homing_speed: 2`) and the lever stays depressed
+  for 3–6 mm of downward travel (hence `homing_retract_dist: 10` — a shorter
+  retract would start the second approach with the endstop still triggered).
+  A jammed Z carriage will mimic a dead motor: it buzzes, Klipper still logs
+  the steps, and the DRO advances while nothing moves — check that the screw
+  turns by hand before suspecting the driver. Pen servo macros
   PEN_UP / PEN_DOWN / PEN_RELEASE live only in printer.cfg so exported G-code
   stays hardware-agnostic. Muusia side: read-only **Moonraker DRO**
   (`src/dro.jsx`) shows live position over the websocket — LAN/local only;
@@ -327,8 +338,11 @@ paper placement is entirely a machine-side operation now.
    below the block top — pressing it with the block in place drives the pen
    into the block.)
 4. Upload the exported file to Mainsail → print. The file's `G28 X Y` re-homes
-   XY only (a bare `G28` would trip homing_override and re-zero Z at pen-up
-   height — the file must NEVER carry a bare G28), CLEAR_PAUSE resets stale
+   XY only, which remains the exporter default. Since the real Z switch was
+   added a bare `G28` is no longer destructive — it homes Z upward against the
+   switch and the `Z_ZERO_HERE` gcode offset persists — but the exporter has
+   not been changed and this has not been verified on a live job, so treat
+   `G28 X Y` as the contract for now. CLEAR_PAUSE resets stale
    pause state, CANVAS_CHECK traces the job bounds (pen up), the job pauses
    with the Continue/Abort prompt, Continue plots, and the Telegram bot
    delivers a timelapse video at the end.
