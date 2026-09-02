@@ -3,16 +3,23 @@
 Self-contained context for continuing the build in a new chat. Axis commissioning DONE (2026-08-11): Kraken
 flashed and connected, X/Y endstops wired (NC), all four steppers wired and
 verified (directions, rotation_distance, travel X=793 Y=813, first homing OK).
-Workflow commissioning DONE (2026-08-12): the S0017M servo is bench-tested on
-the Kraken SERVO header (PE7, loose on the desk — no holder yet), the full
-Muusia → Mainsail → plot chain is proven in an air run (canvas check frames
-the job, pauses with a Continue/Abort prompt, then plots), the paper-setup
-macros (PAPER_ZERO / Z_PAPER_BLOCK) are in printer.cfg, and per-print
-timelapse video lands in Telegram automatically. Details + hard-won pitfalls
-in section 8 (session log). A makeshift marker taped to Z still plots via
-PEN_UP/PEN_DOWN as Z moves. Next tasks: **first ink test + calibration
-figure**, then **design the pen holder / carriage** and revert the makeshift
-pen macros when the servo moves onto it.
+Workflow commissioning DONE (2026-08-12): the full Muusia → Mainsail → plot
+chain is proven in an air run (canvas check frames the job, pauses with a
+Continue/Abort prompt, then plots), the paper-setup macros (PAPER_ZERO /
+Z_PAPER_BLOCK) are in printer.cfg, and per-print timelapse video lands in
+Telegram automatically. Z endstop + servo DONE (2026-08-24): a real NC switch
+sits on MIN3 (`^PF1`) at the top of Z travel (machine Z 0..75; homing order is
+Z first, then X, then Y, so homing is safe with a pen resting on the sheet),
+and the S0017M is mounted on the finished pen holder with tuned angles — down
+80, up 135, `initial_angle: 135` so the pen is up after every restart.
+PEN_UP / PEN_DOWN are `SET_SERVO` again with a `G4 P250` dwell so the servo
+arrives before the stroke starts; the makeshift Z-move versions are gone.
+Division of labour from here: **Z sets the coarse paper contact height**
+(jog + `Z_ZERO_HERE`), **the servo does the per-stroke lift**. Details +
+hard-won pitfalls in section 8 (session log). Next task: **first plot with the
+real pen — the calibration figure** (100 mm square + diagonals + circle +
+registration marks), which checks dimensional accuracy, corner registration,
+servo timing and pen pressure on one sheet.
 
 Working language: Finnish in chat, English in all code/GUI/docs.
 
@@ -409,6 +416,34 @@ down.
   update can demand an MCU reflash; the Kraken flashes via SD card).
 
 ---
+
+- **A temporary macro that moves Z + an automatic timeout = a 70 mm plunge.**
+  While there was no Z switch, PEN_UP was a stand-in `G1 Z5` (absolute), which
+  was correct when Z=0 meant paper contact. Adding the real endstop changed
+  the meaning of Z=5 to "5 mm off the bottom of travel", and
+  `[idle_timeout] gcode: PEN_UP / M84` then drove Z from the homed 75 down to
+  5 by itself after 30 min of idling — pen straight into the sheet, then M84
+  dropped the homing so the evidence was gone. Lesson: when a macro is a
+  stand-in for missing hardware, audit **every** automatic caller of it
+  (idle_timeout, start/end G-code, homing_override) before changing the
+  coordinate system underneath it.
+- **A jammed Z carriage is indistinguishable from a dead driver over the
+  wire.** A tight carriage buzzed, refused to move, and Klipper cheerfully
+  logged the steps — `DUMP_TMC` was clean (`GSTAT: 00000000`, no open-load,
+  `LOST_STEPS: 0`, MSCNT advancing) and the DRO counted up to a position the
+  machine never reached. Always check the screw turns by hand (`M84` first)
+  before suspecting electronics.
+- **Servos are open loop — there is no way to read the current angle.** With
+  the servo already bolted to the holder and its position unknown, the safe
+  order is: `PEN_RELEASE` (kill the pulse so it stops fighting whatever it is
+  jammed against), `G28 Z` to park the pen 75 mm up where it cannot reach
+  anything, remove the pen from the holder, then step 5° at a time with
+  `G4 P800` dwells to find which way the angle grows. Consecutive `SET_SERVO`
+  lines pasted as a block execute in milliseconds and look like nothing
+  happened — the dwells are what make the test observable. Avoid 0° / 180°:
+  the configured pulse range is wider than most servos' real travel, so the
+  ends can stall the gears. If the working range lands near an end, move the
+  horn a tooth on the spline instead of stretching the config.
 
 ## 9. Related project docs (software side — not needed for mechanics)
 - MUUSIA-MAGNET-JIG-SPEC.md — the Safe Areas / laser magnet-jig software feature.
