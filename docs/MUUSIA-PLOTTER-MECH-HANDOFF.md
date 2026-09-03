@@ -338,12 +338,18 @@ paper placement is entirely a machine-side operation now.
    that is the job's (0,0) → **PAPER_ZERO** (KlipperScreen/Mainsail macro
    button; `SET_GCODE_OFFSET` from the jogged position — survives `G28 X Y`,
    cleared by **PAPER_ZERO_CLEAR** or FIRMWARE_RESTART).
-3. Pen in → 9 mm setup block ON the paper → jog Z down (pen-down pose) until
-   the tip touches the block top → **Z_PAPER_BLOCK** (declares that height as
-   Z=9, so Z0 = paper surface — no marks on the paper; block height is
-   `variable_block_h`) → **REMOVE THE BLOCK** → PEN_UP. (PEN_UP goes to Z5,
-   below the block top — pressing it with the block in place drives the pen
-   into the block.)
+3. Pen in → 8 mm setup block ON the paper → jog Z down (pen-down pose) until
+   the tip touches the block top → **Z_PAPER_BLOCK** (a `SET_GCODE_OFFSET` for
+   Z, the same primitive PAPER_ZERO uses for XY: that height becomes work Z=8
+   so work Z0 = the paper surface, with no marks on the paper; machine
+   coordinates and the Z switch stay untouched, block height lives in
+   `variable_block_h`) → **REMOVE THE BLOCK** → lower Z to plotting height:
+   `G90` + `G1 Z0 F300` puts the tip exactly at paper level in the pen-down
+   pose. If lines come out faint or broken, step down 0.1–0.5 mm — work Z
+   goes slightly negative, which is fine because machine Z stays positive
+   (this is the felt-tip preload finding). Z then stays put for the whole
+   job; the servo does every lift. `PAPER_ZERO_CLEAR` now clears the Z offset
+   too.
 4. Upload the exported file to Mainsail → print. The file's `G28 X Y` re-homes
    XY only, which remains the exporter default. Since the real Z switch was
    added a bare `G28` is no longer destructive — it homes Z upward against the
