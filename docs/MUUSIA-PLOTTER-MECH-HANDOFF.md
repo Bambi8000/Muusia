@@ -34,12 +34,17 @@ Working language: Finnish in chat, English in all code/GUI/docs.
 - **Steppers:** NEMA 23, model **SM57HT51-2804AF** (Smart Automation) — 57 mm
   frame, 51 mm length, 1.8°, **2.8 A/phase**, 4-wire bipolar, 1/4" shaft, ~0.99 Nm.
   4 on the frame (X, Y1, Y2, Z) + 1 planned for brush rotation.
-- **Control board:** BTT Kraken v1.1 (8× onboard TMC2160, SPI, up to 60 V) — ordered.
+- **Control board:** BTT Kraken v1.1 (8× onboard TMC2160, SPI, up to 60 V) — in service since 2026-08-11.
   Port budget: X, Y1, Y2, Z, brush rotation, ink pump, nozzle sweep = 7 of 8.
 - **Host:** Raspberry Pi 4.
 - **PSU:** Meishile S-500-24 (24 V, 21 A, 500 W) enclosed switching supply from
-  parts bin — correct type for motors. Run steppers at moderate current
-  (~1.3–1.8 A RMS), not full 2.8 A. Verify 230 V mains selector + test before use.
+  parts bin — correct type for motors. Verify 230 V mains selector + test
+  before use. **Current: X/Y/Y1 run at 2.0 A RMS** (measured working value,
+  2026-09-04). The earlier "moderate 1.3–1.8 A" guidance was wrong for this
+  frame: at 1.4 A — half the motor's 2.8 A rating — the gantry lost steps on
+  every long travel move. At 2.0 A a 23 m plot ran clean with no `ot`/`otpw`
+  in `DRV_STATUS`, so there is thermal headroom. Z stays at 1.4 A; it is
+  slow, lightly loaded and has never missed.
 - **Software:** Klipper + Moonraker + Mainsail + KlipperScreen + Crowsnest (BRIO webcam, 1080p15) + moonraker-timelapse + Telegram bot **installed
   and running** on the Pi (hostname `viivain`, 192.168.0.57; via KIAUH,
   Jul 2026). Kraken firmware v0.13.0 flashed (STM32H723, 128KiB bootloader,
@@ -451,6 +456,87 @@ down.
   ends can stall the gears. If the working range lands near an end, move the
   horn a tooth on the spline instead of stretching the config.
 
-## 9. Related project docs (software side — not needed for mechanics)
+## 9. Session log 2026-09-04 — the lost-steps hunt (read this before tuning motion)
+
+The first long plots (23 m, 60 paths, 16 min) failed the same way every run:
+somewhere mid-job the machine chattered, then everything after that point was
+drawn shifted, and the pen ended up dragging across the Z reference block.
+The cause was **motor current too low**, but it took a long detour to get
+there — so the elimination order matters more than the answer.
+
+**The one measurement that splits the problem in two.** Run `GET_POSITION`
+while the fault is live (pause the job, don't home — homing destroys the
+evidence) and compare three things: the `stepper` line (Klipper's machine
+position), `gcode base` (the active offsets), and where the carriage
+physically is.
+
+- `gcode base` changed from what PLOT_START set → **software**: something
+  wiped or stacked an offset mid-job.
+- `gcode base` unchanged but `stepper` disagrees with the physical carriage →
+  **mechanical/dynamic**: steps were lost. Klipper has no idea and the logs
+  stay clean, because sending pulses that the motor fails to follow is not an
+  error condition.
+
+In the failing run `gcode base` read X42 Y20 Z11 — exactly what PLOT_START
+set — while the carriage sat ~25 mm further out in X than Klipper believed.
+That settled it: lost steps, and the shortfall pointed along the direction of
+travel, i.e. the carriage never completed the big moves toward low
+coordinates.
+
+**Do not trust `LOST_STEPS` in `DUMP_TMC`.** It read `00000000` through every
+failed plot. It reflects stallGuard bookkeeping, not "the motor failed to keep
+up", and it is meaningless without the stallGuard/coolStep registers
+configured. `GSTAT` was clean too.
+
+**False leads, and why each was wrong** (all cost real time):
+
+- *Timelapse park moving the head.* `timelapse.cfg` really does contain
+  `SET_GCODE_OFFSET X=0 Y=0`, which would wipe PAPER_ZERO — but it sits
+  inside the park branch, `variable_park: {'enable': False}`, and Mainsail's
+  Timelapse was `Enabled: off` anyway. A `grep -c TIMELAPSE_TAKE_FRAME` on
+  klippy.log returned 210 and looked damning; those were config-dump lines,
+  not executed commands. **klippy.log does not log executed G-code**, so
+  grepping it cannot prove a command did or did not run.
+- *Collision with the Z block.* Plausible on paper (the block is 100×100 mm at
+  the machine origin, the paper origin was X42 Y20 inside its footprint), and
+  there were pen marks on the block — but those were a *consequence*: once the
+  coordinate frame had shifted, the pen was driven over the block. The
+  carriage never actually struck it.
+- *The G-code file.* Analysed in full: longest pen-down segment 7.94 mm, no
+  jumps, no `G92`/`SET_KINEMATIC_POSITION`/`SET_GCODE_OFFSET`, all coordinates
+  in range. The unwanted straight lines on paper were not in the file.
+- *Paper movement.* The sheet was held by magnets and did not move.
+- *`max_accel` too high.* 1500 was genuinely wrong for this gantry and was
+  lowered to 500, but the fault survived the change — which was the clue that
+  it was a torque limit, not an acceleration limit.
+
+**The tell that identifies it as current, not speed.** The failure landed on
+the same paths every run: the ones entered by a ~286 mm travel hop from the
+far right of the canvas to the bottom-left corner. Long moves are the ones
+that reach full velocity and therefore demand the most from the motors when
+decelerating; short moves never get there. When the fault persisted at 50 mm/s
+travel and 500 mm/s² accel, speed was no longer a credible explanation.
+
+**Motion settings that produce clean plots** (2026-09-04):
+
+| Setting | Value | Where |
+|---|---|---|
+| `run_current` X/Y/Y1 | **2.0 A** | printer.cfg `[tmc5160 stepper_*]` |
+| `run_current` Z | 1.4 A | printer.cfg |
+| `stealthchop_threshold` X/Y/Y1 | **0** (spreadCycle) | printer.cfg — stealthChop dropped steps on short fast pen-lift moves |
+| `stealthchop_threshold` Z | 999999 (stealth) | printer.cfg — quiet, and Z is slow |
+| `max_accel` | 500 | printer.cfg `[printer]` |
+| `max_velocity` | 60 | printer.cfg `[printer]` |
+| `max_z_velocity` | 5 | printer.cfg — ACME screw resonates audibly above ~5 mm/s |
+| `max_z_accel` | 60 | printer.cfg |
+| Draw F | 1800 | Muusia profile |
+| Travel F | 3000 | Muusia profile |
+
+Room to move: current has thermal headroom to ~2.2 A if a heavier tool needs
+it, and `max_velocity`/`max_accel` can be raised stepwise now that the torque
+floor is fixed — raise one at a time and re-run a long-travel job, because
+short test moves will not reproduce the failure.
+
+## 10. Related project docs (software side — not needed for mechanics)
 - MUUSIA-MAGNET-JIG-SPEC.md — the Safe Areas / laser magnet-jig software feature.
 - MUUSIA-HANDOFF.md — the Muusia app (node-graph editor) architecture.
