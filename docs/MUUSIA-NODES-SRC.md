@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (248 files, generated)
+# MUUSIA v2.29 — Node Sources (252 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -6938,6 +6938,107 @@ export default {
     }
 
     return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
+## dice_pips.js
+
+```js
+import { Pin, applyStyle } from "../helpers.js";
+
+export default {
+  key: "dice_pips",
+  name: "Dice Pips",
+  cat: "gen",
+  group: "geometric",
+  desc: "Draws classic dice-pip numbers. Single makes one face; Sequence accepts values such as 1-6, 0 2 4 6 8, or 987 and lays them out as a centered grid that shrinks to fit the sheet. Values 1-6 use standard die faces; 0 and 7-9 use conventional domino-style extensions on the same 3×3 grid. Choose pips only or add a square, rounded-square, or circular frame. Rings and Spiral fill modes make solid-looking plotter dots; set Fill pitch to suit the pen.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "mode", label: "Mode", type: "select", options: ["Single", "Sequence"], def: "Sequence" },
+    { key: "value", label: "Value", type: "slider", min: 0, max: 9, step: 1, def: 5, showIf: (p) => p.mode === "Single" },
+    { key: "values", label: "Values", type: "text", def: "1-6", showIf: (p) => p.mode === "Sequence" },
+    { key: "columns", label: "Columns", type: "slider", min: 1, max: 9, step: 1, def: 3, showIf: (p) => p.mode === "Sequence" },
+    { key: "size", label: "Face size mm", type: "slider", min: 5, max: 180, step: 1, def: 38 },
+    { key: "gap", label: "Grid gap mm", type: "slider", min: 0, max: 50, step: 1, def: 8, showIf: (p) => p.mode === "Sequence" },
+    { key: "centerX", label: "Center X %", type: "slider", min: 0, max: 100, step: 1, def: 50, showIf: (p) => p.mode === "Single" },
+    { key: "centerY", label: "Center Y %", type: "slider", min: 0, max: 100, step: 1, def: 50, showIf: (p) => p.mode === "Single" },
+    { key: "frame", label: "Frame", type: "select", options: ["None", "Square", "Rounded square", "Circle"], def: "Rounded square" },
+    { key: "roundness", label: "Corner radius %", type: "slider", min: 0, max: 45, step: 1, def: 18, showIf: (p) => p.frame === "Rounded square" },
+    { key: "pipSize", label: "Pip diameter %", type: "slider", min: 4, max: 28, step: 1, def: 16 },
+    { key: "fill", label: "Pip fill", type: "select", options: ["Outline", "Rings", "Spiral"], def: "Rings" },
+    { key: "fillPitch", label: "Fill pitch mm", type: "slider", min: 0.15, max: 2, step: 0.05, def: 0.45, showIf: (p) => p.fill !== "Outline" },
+    { key: "pen", label: "Pip pen", type: "pen", def: 0 },
+    { key: "framePen", label: "Frame pen", type: "pen", def: 0, showIf: (p) => p.frame !== "None" },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+  ],
+  compute(ins, p, ctx) {
+    const W=Math.max(1,Number(ctx.W)||210),H=Math.max(1,Number(ctx.H)||297);
+    const pipPen=Math.max(0,Math.min(11,Math.round(Number(p.pen)||0)));
+    const framePen=Math.max(0,Math.min(11,Math.round(Number(p.framePen)||0)));
+    const margin=Math.max(0,Number(p.margin)||0),paths=[];
+    const push=(pts,closed,layer)=>{if(pts&&pts.length>1&&pts.every(q=>Number.isFinite(q[0])&&Number.isFinite(q[1])))paths.push({pts,closed:!!closed,layer});};
+    const circle=(cx,cy,r,layer)=>{if(!(r>0))return;const n=Math.max(18,Math.min(120,Math.ceil(Math.PI*2*r/.7))),pts=[];for(let i=0;i<n;i++){const a=Math.PI*2*i/n;pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}push(pts,true,layer);};
+    const roundedRect=(cx,cy,s,r,layer)=>{const half=s/2,rr=Math.max(0,Math.min(half,r));if(rr<.01){push([[cx-half,cy-half],[cx+half,cy-half],[cx+half,cy+half],[cx-half,cy+half]],true,layer);return;}const pts=[],corners=[[cx+half-rr,cy-half+rr,-Math.PI/2,0],[cx+half-rr,cy+half-rr,0,Math.PI/2],[cx-half+rr,cy+half-rr,Math.PI/2,Math.PI],[cx-half+rr,cy-half+rr,Math.PI,Math.PI*1.5]];for(const [x,y,a0,a1] of corners)for(let i=0;i<=8;i++){const a=a0+(a1-a0)*i/8;pts.push([x+Math.cos(a)*rr,y+Math.sin(a)*rr]);}push(pts,true,layer);};
+    const pip=(cx,cy,r)=>{
+      const fill=String(p.fill||"Rings"),pitch=Math.max(.12,Number(p.fillPitch)||.45);
+      if(fill==="Outline"){circle(cx,cy,r,pipPen);return;}
+      if(fill==="Rings"){
+        for(let rr=r;rr>pitch*.35;rr-=pitch)circle(cx,cy,rr,pipPen);
+        const q=Math.min(r,pitch*.38);push([[cx-q,cy],[cx+q,cy]],false,pipPen);return;
+      }
+      const pts=[],turns=Math.max(1.25,r/Math.max(.12,pitch)),steps=Math.max(28,Math.min(400,Math.ceil(turns*28)));
+      for(let i=0;i<=steps;i++){const t=i/steps,a=Math.PI*2*turns*t,rr=r*(1-t);pts.push([cx+Math.cos(a)*rr,cy+Math.sin(a)*rr]);}
+      push(pts,false,pipPen);
+    };
+    const PATTERNS={
+      0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],
+      6:[0,2,3,5,6,8],7:[0,2,3,4,5,6,8],8:[0,1,2,3,5,6,7,8],9:[0,1,2,3,4,5,6,7,8]
+    };
+    const drawFace=(value,cx,cy,s)=>{
+      const frame=String(p.frame||"Rounded square");
+      if(frame==="Square")roundedRect(cx,cy,s,0,framePen);
+      else if(frame==="Rounded square")roundedRect(cx,cy,s,s*Math.max(0,Math.min(45,Number(p.roundness)||0))/100,framePen);
+      else if(frame==="Circle")circle(cx,cy,s/2,framePen);
+      const positions=[[-1,-1],[0,-1],[1,-1],[-1,0],[0,0],[1,0],[-1,1],[0,1],[1,1]],off=s*.27,r=s*Math.max(4,Math.min(28,Number(p.pipSize)||16))/200;
+      for(const index of PATTERNS[value]||[]){const q=positions[index];pip(cx+q[0]*off,cy+q[1]*off,r);}
+    };
+    const parseValues=(raw)=>{
+      const src=String(raw||""),out=[],re=/([0-9])\s*-\s*([0-9])|([0-9])/g;let m;
+      while((m=re.exec(src))&&out.length<81){if(m[3]!==undefined)out.push(Number(m[3]));else{const a=Number(m[1]),b=Number(m[2]),step=a<=b?1:-1;for(let v=a;;v+=step){out.push(v);if(v===b||out.length>=81)break;}}}
+      return out.length?out:[1,2,3,4,5,6];
+    };
+    if(p.mode==="Single"){
+      const maxS=Math.max(1,Math.min(W-2*margin,H-2*margin)),s=Math.max(1,Math.min(Number(p.size)||38,maxS));
+      const half=s/2,xMin=margin+half,xMax=W-margin-half,yMin=margin+half,yMax=H-margin-half;
+      const rawX=W*Math.max(0,Math.min(100,Number(p.centerX)||0))/100,rawY=H*Math.max(0,Math.min(100,Number(p.centerY)||0))/100;
+      const cx=xMax>=xMin?Math.max(xMin,Math.min(xMax,rawX)):W/2,cy=yMax>=yMin?Math.max(yMin,Math.min(yMax,rawY)):H/2;
+      drawFace(Math.max(0,Math.min(9,Math.round(Number(p.value)||0))),cx,cy,s);
+    }else{
+      const values=parseValues(p.values),cols=Math.max(1,Math.min(values.length,Math.round(Number(p.columns)||1))),rows=Math.ceil(values.length/cols);
+      const requestedS=Math.max(1,Number(p.size)||38),requestedGap=Math.max(0,Number(p.gap)||0),gridW=cols*requestedS+(cols-1)*requestedGap,gridH=rows*requestedS+(rows-1)*requestedGap;
+      const availW=Math.max(1,W-2*margin),availH=Math.max(1,H-2*margin),fit=Math.max(.001,Math.min(1,availW/gridW,availH/gridH)),s=requestedS*fit,gap=requestedGap*fit;
+      const actualW=cols*s+(cols-1)*gap,actualH=rows*s+(rows-1)*gap,x0=(W-actualW)/2+s/2,y0=(H-actualH)/2+s/2;
+      values.forEach((value,i)=>drawFace(value,x0+(i%cols)*(s+gap),y0+Math.floor(i/cols)*(s+gap),s));
+    }
+    return applyStyle({paths},ins[0]);
+  },
+  overlay(p,ctx){
+    try{
+      const W=Math.max(1,Number(ctx.W)||210),H=Math.max(1,Number(ctx.H)||297),margin=Math.max(0,Number(p.margin)||0);
+      if(p.mode==="Single"){
+        const s=Math.max(1,Math.min(Number(p.size)||38,W-2*margin,H-2*margin)),half=s/2,xMin=margin+half,xMax=W-margin-half,yMin=margin+half,yMax=H-margin-half;
+        const rawX=W*Math.max(0,Math.min(100,Number(p.centerX)||0))/100,rawY=H*Math.max(0,Math.min(100,Number(p.centerY)||0))/100,cx=xMax>=xMin?Math.max(xMin,Math.min(xMax,rawX)):W/2,cy=yMax>=yMin?Math.max(yMin,Math.min(yMax,rawY)):H/2;
+        return[{kind:"rect",x:cx-half,y:cy-half,w:s,h:s}];
+      }
+      const values=[],re=/([0-9])\s*-\s*([0-9])|([0-9])/g,src=String(p.values||"" );let match;
+      while((match=re.exec(src))&&values.length<81){if(match[3]!==undefined)values.push(Number(match[3]));else{const a=Number(match[1]),b=Number(match[2]),step=a<=b?1:-1;for(let v=a;;v+=step){values.push(v);if(v===b||values.length>=81)break;}}}
+      const count=values.length||6,cols=Math.max(1,Math.min(count,Math.round(Number(p.columns)||1))),rows=Math.ceil(count/cols),requestedS=Math.max(1,Number(p.size)||38),requestedGap=Math.max(0,Number(p.gap)||0);
+      const gridW=cols*requestedS+(cols-1)*requestedGap,gridH=rows*requestedS+(rows-1)*requestedGap,availW=Math.max(1,W-2*margin),availH=Math.max(1,H-2*margin),fit=Math.max(.001,Math.min(1,availW/gridW,availH/gridH));
+      const actualW=gridW*fit,actualH=gridH*fit;
+      return[{kind:"rect",x:(W-actualW)/2,y:(H-actualH)/2,w:actualW,h:actualH}];
+    }catch(e){return[];}
   },
 };
 ```
@@ -25900,6 +26001,114 @@ export default {
 };
 ```
 
+## sand_painting.js
+
+```js
+import { Pin, mulberry32, noise2, applyStyle } from "../helpers.js";
+
+export default {
+  key: "sand_painting",
+  name: "Sand Painting",
+  cat: "gen",
+  group: "organic",
+  desc: "Japanese dry-garden inspired raked sand. Open rake draws calm parallel furrows; Flow around stones bends them around seeded rocks; Island rings makes nested contours around each rock; Spiral rake draws one continuous basin; Mixed garden combines flowing furrows with cleared ring islands. Rake spacing controls the physical distance between grooves, Detail controls curve sampling, and the node automatically coarsens extreme settings to stay inside the plotter point budget. Sand and stones can use separate pens.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "pattern", label: "Pattern", type: "select", options: ["Open rake", "Flow around stones", "Island rings", "Spiral rake", "Mixed garden"], def: "Mixed garden" },
+    { key: "spacing", label: "Rake spacing mm", type: "slider", min: 0.5, max: 10, step: 0.1, def: 2.2 },
+    { key: "direction", label: "Direction°", type: "slider", min: 0, max: 180, step: 1, def: 0, showIf: (p) => p.pattern !== "Island rings" && p.pattern !== "Spiral rake" },
+    { key: "wave", label: "Wave mm", type: "slider", min: 0, max: 15, step: 0.1, def: 1.4, showIf: (p) => p.pattern === "Open rake" || p.pattern === "Flow around stones" || p.pattern === "Mixed garden" },
+    { key: "wavelength", label: "Wavelength mm", type: "slider", min: 8, max: 160, step: 1, def: 48, showIf: (p) => p.pattern === "Open rake" || p.pattern === "Flow around stones" || p.pattern === "Mixed garden" },
+    { key: "flow", label: "Stone flow", type: "slider", min: 0, max: 2, step: 0.05, def: 0.9, showIf: (p) => p.pattern === "Flow around stones" || p.pattern === "Mixed garden" },
+    { key: "jitter", label: "Hand rake mm", type: "slider", min: 0, max: 3, step: 0.05, def: 0.25 },
+    { key: "detail", label: "Detail mm", type: "slider", min: 0.3, max: 4, step: 0.1, def: 1 },
+    { key: "stoneCount", label: "Stones", type: "slider", min: 0, max: 12, step: 1, def: 5 },
+    { key: "stoneSize", label: "Stone size mm", type: "slider", min: 3, max: 45, step: 1, def: 15 },
+    { key: "stoneVariation", label: "Stone size variation %", type: "slider", min: 0, max: 100, step: 1, def: 45 },
+    { key: "stoneIrregular", label: "Stone irregularity %", type: "slider", min: 0, max: 100, step: 1, def: 35 },
+    { key: "stoneContours", label: "Stone contour lines", type: "slider", min: 0, max: 6, step: 1, def: 2 },
+    { key: "rings", label: "Island rings", type: "slider", min: 1, max: 14, step: 1, def: 5, showIf: (p) => p.pattern === "Island rings" || p.pattern === "Mixed garden" },
+    { key: "ringGap", label: "Ring gap mm", type: "slider", min: 0.5, max: 8, step: 0.1, def: 2.2, showIf: (p) => p.pattern === "Island rings" || p.pattern === "Mixed garden" },
+    { key: "spiralCenterX", label: "Spiral center X %", type: "slider", min: 0, max: 100, step: 1, def: 50, showIf: (p) => p.pattern === "Spiral rake" },
+    { key: "spiralCenterY", label: "Spiral center Y %", type: "slider", min: 0, max: 100, step: 1, def: 50, showIf: (p) => p.pattern === "Spiral rake" },
+    { key: "seed", label: "Seed", type: "seed", def: 108 },
+    { key: "sandPen", label: "Sand pen", type: "pen", def: 0 },
+    { key: "stonePen", label: "Stone pen", type: "pen", def: 1 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
+  ],
+  compute(ins, p, ctx) {
+    const W=Math.max(1,Number(ctx.W)||210),H=Math.max(1,Number(ctx.H)||297),paths=[];
+    const sandPen=Math.max(0,Math.min(11,Math.round(Number(p.sandPen)||0))),stonePen=Math.max(0,Math.min(11,Math.round(Number(p.stonePen)||0)));
+    const margin=Math.max(0,Math.min(Math.min(W,H)/2-.1,Number(p.margin)||0)),seed=Math.round(Number(p.seed)||0),rng=mulberry32(seed);
+    const pattern=String(p.pattern||"Mixed garden"),spacing=Math.max(.2,Number(p.spacing)||2.2),detail=Math.max(.2,Number(p.detail)||1);
+    const push=(pts,closed,layer)=>{if(pts&&pts.length>1&&pts.every(q=>Number.isFinite(q[0])&&Number.isFinite(q[1])))paths.push({pts,closed:!!closed,layer});};
+    const insidePage=(x,y)=>x>=margin&&x<=W-margin&&y>=margin&&y<=H-margin;
+    const emitPage=(pts,closed,layer)=>{
+      if(closed&&pts.length>2&&pts.every(q=>insidePage(q[0],q[1]))){push(pts,true,layer);return;}
+      let seg=[];for(const q of pts){if(insidePage(q[0],q[1]))seg.push(q);else{if(seg.length>1)push(seg,false,layer);seg=[];}}if(seg.length>1)push(seg,false,layer);
+    };
+    const count=Math.max(0,Math.min(12,Math.round(Number(p.stoneCount)||0))),baseSize=Math.max(2,Number(p.stoneSize)||15),variation=Math.max(0,Math.min(100,Number(p.stoneVariation)||0))/100,irregular=Math.max(0,Math.min(100,Number(p.stoneIrregular)||0))/100;
+    const stones=[],maxRx=Math.max(1,(W-2*margin)*.23),maxRy=Math.max(1,(H-2*margin)*.18);
+    for(let attempt=0;attempt<700&&stones.length<count;attempt++){
+      let rx=baseSize*(.72+rng()*.48)*(1+(rng()-.5)*variation),ry=rx*(.52+rng()*.32);rx=Math.max(1,Math.min(rx,maxRx));ry=Math.max(1,Math.min(ry,maxRy));
+      const xmin=margin+rx,xmax=W-margin-rx,ymin=margin+ry,ymax=H-margin-ry;
+      const x=xmax>xmin?xmin+rng()*(xmax-xmin):W/2,y=ymax>ymin?ymin+rng()*(ymax-ymin):H/2;
+      let ok=true;for(const q of stones){const dx=x-q.x,dy=y-q.y,minD=rx+q.rx+spacing*1.5;if(dx*dx+dy*dy<minD*minD){ok=false;break;}}
+      if(ok)stones.push({x,y,rx,ry,rot:(rng()-.5)*1.1,phase:rng()*Math.PI*2,phase2:rng()*Math.PI*2});
+    }
+    const stonePoint=(s,expand,a,shrink)=>{
+      const k=shrink===undefined?1:shrink,rough=1+irregular*k*(.075*Math.sin(a*3+s.phase)+.045*Math.sin(a*5+s.phase2)+.025*Math.sin(a*7-s.phase));
+      const ex=Math.max(.2,s.rx*k+expand),ey=Math.max(.2,s.ry*k+expand),lx=Math.cos(a)*ex*rough,ly=Math.sin(a)*ey*rough,c=Math.cos(s.rot),sn=Math.sin(s.rot);
+      return[s.x+lx*c-ly*sn,s.y+lx*sn+ly*c];
+    };
+    const insideStone=(x,y,s,expand)=>{const dx=x-s.x,dy=y-s.y,c=Math.cos(s.rot),sn=Math.sin(s.rot),lx=dx*c+dy*sn,ly=-dx*sn+dy*c,rx=Math.max(.2,s.rx+expand),ry=Math.max(.2,s.ry+expand);return lx*lx/(rx*rx)+ly*ly/(ry*ry)<1;};
+    const drawStone=(s)=>{
+      const contours=Math.max(0,Math.min(6,Math.round(Number(p.stoneContours)||0))),n=Math.max(32,Math.min(130,Math.ceil(Math.PI*2*Math.max(s.rx,s.ry)/detail)));
+      for(let k=0;k<contours;k++){const shrink=Math.max(.38,1-k*.13),pts=[];for(let i=0;i<n;i++)pts.push(stonePoint(s,0,Math.PI*2*i/n,shrink));emitPage(pts,true,stonePen);}
+    };
+    const ringCount=Math.max(1,Math.min(14,Math.round(Number(p.rings)||5))),ringGap=Math.max(.3,Number(p.ringGap)||2.2);
+    const drawRings=(s)=>{
+      for(let k=1;k<=ringCount;k++){const n=Math.max(42,Math.min(180,Math.ceil(Math.PI*2*(Math.max(s.rx,s.ry)+k*ringGap)/detail))),pts=[];for(let i=0;i<n;i++)pts.push(stonePoint(s,k*ringGap,Math.PI*2*i/n,1));emitPage(pts,true,sandPen);}
+    };
+    const dir=Math.max(0,Math.min(180,Number(p.direction)||0))*Math.PI/180,ca=Math.cos(dir),sa=Math.sin(dir),extent=Math.hypot(W,H)/2+spacing*3;
+    const toPage=(u,v)=>[W/2+u*ca-v*sa,H/2+u*sa+v*ca],toLocal=(x,y)=>{const dx=x-W/2,dy=y-H/2;return[dx*ca+dy*sa,-dx*sa+dy*ca];};
+    const localStones=stones.map(s=>{const q=toLocal(s.x,s.y);return{...s,u:q[0],v:q[1]};});
+    const drawField=()=>{
+      const lines=Math.max(1,Math.ceil(extent*2/spacing)),rawPer=Math.max(2,Math.ceil(extent*2/detail)),estimate=lines*rawPer,adaptive=estimate>82000?estimate/82000:1,step=detail*adaptive;
+      const wave=Math.max(0,Number(p.wave)||0),wavelength=Math.max(1,Number(p.wavelength)||48),flow=Math.max(0,Math.min(2,Number(p.flow)||0)),jitter=Math.max(0,Number(p.jitter)||0);
+      const deflect=pattern==="Flow around stones"||pattern==="Mixed garden",halo=pattern==="Mixed garden"?ringCount*ringGap+spacing*.45:0;
+      for(let li=0;li<lines;li++){
+        const v0=-extent+li*spacing,phase=(li%5)*.37;let pts=[];
+        for(let u=-extent;u<=extent+1e-6;u+=step){
+          let v=v0+wave*Math.sin((u/wavelength)*Math.PI*2+phase);
+          v+=(noise2((u+2000)*.018,(v0+2000)*.018,seed)-.5)*jitter*2;
+          if(deflect)for(const s of localStones){const du=(u-s.u)/(s.rx*1.8+spacing),dv=(v0-s.v)/(s.ry*1.9+spacing),fall=Math.exp(-(du*du*1.15+dv*dv*1.5));v+=(v0>=s.v?1:-1)*flow*s.ry*.92*fall;}
+          const q=toPage(u,v);let blocked=!insidePage(q[0],q[1]);if(!blocked)for(const s of stones)if(insideStone(q[0],q[1],s,halo)){blocked=true;break;}
+          if(blocked){if(pts.length>1)push(pts,false,sandPen);pts=[];}else pts.push(q);
+        }
+        if(pts.length>1)push(pts,false,sandPen);
+      }
+    };
+    const drawSpiral=()=>{
+      const cx=W*Math.max(0,Math.min(100,Number(p.spiralCenterX)||0))/100,cy=H*Math.max(0,Math.min(100,Number(p.spiralCenterY)||0))/100;
+      const corners=[[margin,margin],[W-margin,margin],[W-margin,H-margin],[margin,H-margin]],rMax=Math.max(...corners.map(q=>Math.hypot(q[0]-cx,q[1]-cy)))+spacing;
+      const turns=Math.max(1,rMax/spacing),approxLength=Math.PI*rMax*rMax/spacing,N=Math.max(80,Math.min(82000,Math.ceil(approxLength/detail))),jitter=Math.max(0,Number(p.jitter)||0);let seg=[];
+      for(let i=0;i<=N;i++){const t=i/N,a=Math.PI*2*turns*t,r=rMax*t+(noise2(Math.cos(a)*.8+10,Math.sin(a)*.8+10,seed)-.5)*jitter,q=[cx+Math.cos(a)*r,cy+Math.sin(a)*r];let blocked=!insidePage(q[0],q[1]);if(!blocked)for(const s of stones)if(insideStone(q[0],q[1],s,0)){blocked=true;break;}if(blocked){if(seg.length>1)push(seg,false,sandPen);seg=[];}else seg.push(q);}
+      if(seg.length>1)push(seg,false,sandPen);
+    };
+    if(pattern==="Open rake"||pattern==="Flow around stones"||pattern==="Mixed garden")drawField();
+    if(pattern==="Spiral rake")drawSpiral();
+    if(pattern==="Island rings"||pattern==="Mixed garden")for(const s of stones)drawRings(s);
+    for(const s of stones)drawStone(s);
+    return applyStyle({paths},ins[0]);
+  },
+  overlay(p,ctx){
+    try{const W=Math.max(1,Number(ctx.W)||210),H=Math.max(1,Number(ctx.H)||297),m=Math.max(0,Math.min(Math.min(W,H)/2-.1,Number(p.margin)||0)),out=[{kind:"rect",x:m,y:m,w:Math.max(0,W-2*m),h:Math.max(0,H-2*m)}];if(p.pattern==="Spiral rake")out.push({kind:"point",x:W*Math.max(0,Math.min(100,Number(p.spiralCenterX)||0))/100,y:H*Math.max(0,Math.min(100,Number(p.spiralCenterY)||0))/100});return out;}catch(e){return[];}
+  },
+};
+```
+
 ## satunnainen.js
 
 ```js
@@ -27040,6 +27249,248 @@ export default {
     idx = Math.min(n - 1, Math.max(0, idx));
     const src = ins[idx];
     return src && src.paths ? { paths: src.paths } : EMPTY;
+  },
+};
+```
+
+## signature.js
+
+```js
+import { Pin, mulberry32, noise2, resample, applyStyle, SFONT } from "../helpers.js";
+
+export default {
+  key: "signature",
+  name: "Signature",
+  cat: "gen",
+  group: "textimg",
+  desc: "The artist's mark for a finished plot: name, date and edition number set in the single-stroke font, anchored to a sheet corner so it lands in the same place on every print. Signature text, Date and the Edition selector (n/N, No. n, n of N) are three independent fields; Layout either runs them together on one line with the chosen Separator, splits name from the rest on two lines, or stacks all three. Font is the hand of the mark: Plain is the bare font, Italic leans it, Hand redraws every stroke with seeded tremor plus per-letter tilt, size and baseline drift so it reads as written rather than plotted (Tremor sets how much, Seed picks a different hand). Anchor places the block against a corner at Margin distance with Nudge X/Y for the final millimetres, or Custom for a free position; Rotate turns the whole block, Slant shears the letters. Rule adds an Underline, a Box or Brackets around the block. Keep it on its own pen and plot it last so the mark goes on with a finer nib.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "text", label: "Signature text", type: "text", def: "VIIVAIN/DR" },
+    { key: "date", label: "Date", type: "text", def: "2026" },
+    { key: "edMode", label: "Edition", type: "select", options: ["None", "n/N", "No. n", "n of N"], def: "n/N" },
+    { key: "num", label: "Copy no.", type: "slider", min: 1, max: 500, step: 1, def: 1, showIf: (p) => p.edMode !== "None" },
+    { key: "total", label: "Edition size", type: "slider", min: 1, max: 500, step: 1, def: 25, showIf: (p) => p.edMode === "n/N" || p.edMode === "n of N" },
+    { key: "font", label: "Font", type: "select", options: ["Plain", "Italic", "Hand"], def: "Plain" },
+    { key: "layout", label: "Layout", type: "select", options: ["One line", "Two lines", "Stacked"], def: "One line" },
+    { key: "sep", label: "Separator", type: "select", options: ["Dash", "Slash", "Dot", "Space"], def: "Dash" },
+    { key: "size", label: "Size mm (cap height)", type: "slider", min: 1.5, max: 40, step: 0.5, def: 4 },
+    { key: "track", label: "Tracking %", type: "slider", min: 50, max: 250, step: 1, def: 88 },
+    { key: "lineh", label: "Line height %", type: "slider", min: 90, max: 300, step: 1, def: 170, showIf: (p) => p.layout !== "One line" },
+    { key: "align", label: "Align", type: "select", options: ["Left", "Center", "Right"], def: "Right", showIf: (p) => p.layout !== "One line" },
+    { key: "slant", label: "Slant deg", type: "slider", min: -30, max: 30, step: 1, def: 0 },
+    { key: "tremor", label: "Tremor", type: "slider", min: 0, max: 1, step: 0.05, def: 0.4, showIf: (p) => p.font === "Hand" },
+    { key: "anchor", label: "Anchor", type: "select", options: ["Bottom right", "Bottom center", "Bottom left", "Top left", "Top right", "Center", "Custom"], def: "Bottom right" },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 80, step: 0.5, def: 12 },
+    { key: "px", label: "Pos X mm", type: "slider", min: 0, max: 400, step: 1, def: 20, showIf: (p) => p.anchor === "Custom" },
+    { key: "py", label: "Pos Y mm", type: "slider", min: 0, max: 400, step: 1, def: 40, showIf: (p) => p.anchor === "Custom" },
+    { key: "offX", label: "Nudge X mm", type: "slider", min: -80, max: 80, step: 0.5, def: 0 },
+    { key: "offY", label: "Nudge Y mm", type: "slider", min: -80, max: 80, step: 0.5, def: 0 },
+    { key: "rot", label: "Rotate deg", type: "slider", min: -180, max: 180, step: 1, def: 0 },
+    { key: "rule", label: "Rule", type: "select", options: ["None", "Underline", "Box", "Bracket"], def: "None" },
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+
+  /* Shared layout: text assembly, metrics and block placement.
+     compute() and overlay() both call this so the guide always matches the ink. */
+  _layout(p, ctx) {
+    const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+    const size = Math.max(0.2, Number(p.size) || 0.2);
+    const sc = size / 10;
+    const tr = Math.max(0.05, (Number(p.track) || 100) / 100);
+    const SEP = { Dash: " - ", Slash: " / ", Dot: " . ", Space: "   " };
+    const sep = SEP[p.sep] || " - ";
+
+    const nm = String(p.text == null ? "" : p.text).toUpperCase();
+    const dt = String(p.date == null ? "" : p.date).toUpperCase();
+    const n = Math.max(1, Math.round(Number(p.num) || 1));
+    const N = Math.max(1, Math.round(Number(p.total) || 1));
+    let ed = "";
+    if (p.edMode === "n/N") ed = n + "/" + N;
+    else if (p.edMode === "No. n") ed = "NO. " + n;
+    else if (p.edMode === "n of N") ed = n + " OF " + N;
+
+    const parts = [nm, dt, ed].filter((s) => s.replace(/\s+/g, "").length > 0);
+    let lines;
+    if (!parts.length) lines = [];
+    else if (p.layout === "Stacked") lines = parts.slice();
+    else if (p.layout === "Two lines") lines = [parts[0], parts.slice(1).join(sep)].filter((s) => s.length > 0);
+    else lines = [parts.join(sep)];
+
+    const adv = (ch) => ((SFONT[ch] || SFONT[" "]).w + 2) * sc * tr;
+    const lineW = (s) => {
+      let w = 0;
+      for (const ch of s) w += adv(ch);
+      return Math.max(0, w - 2 * sc * tr);
+    };
+    const widths = lines.map(lineW);
+
+    const baseSlant = p.font === "Italic" ? 12 : p.font === "Hand" ? 3 : 0;
+    const tanS = Math.tan(((Number(p.slant) || 0) + baseSlant) * Math.PI / 180);
+    const shear = Math.abs(tanS) * size;
+
+    const lineStep = size * Math.max(0.5, (Number(p.lineh) || 170) / 100);
+    const blockW = Math.max(0.1, (widths.length ? Math.max.apply(null, widths) : 0) + shear);
+    const blockH = Math.max(0.1, size + Math.max(0, lines.length - 1) * lineStep);
+
+    const m = Math.max(0, Number(p.margin) || 0);
+    let ox = 0, oy = 0;
+    switch (p.anchor) {
+      case "Bottom left": ox = m; oy = H - m - blockH; break;
+      case "Bottom center": ox = (W - blockW) / 2; oy = H - m - blockH; break;
+      case "Top left": ox = m; oy = m; break;
+      case "Top right": ox = W - m - blockW; oy = m; break;
+      case "Center": ox = (W - blockW) / 2; oy = (H - blockH) / 2; break;
+      case "Custom": ox = Number(p.px) || 0; oy = Number(p.py) || 0; break;
+      default: ox = W - m - blockW; oy = H - m - blockH; break;
+    }
+    ox += Number(p.offX) || 0;
+    oy += Number(p.offY) || 0;
+
+    const rad = (Number(p.rot) || 0) * Math.PI / 180;
+    return {
+      lines, widths, size, sc, tr, tanS, shear, lineStep, blockW, blockH, ox, oy,
+      cx: ox + blockW / 2, cy: oy + blockH / 2, ca: Math.cos(rad), sa: Math.sin(rad),
+    };
+  },
+
+  compute(ins, p, ctx) {
+    const L = this && this._layout ? this._layout(p, ctx) : null;
+    if (!L || !L.lines.length) return applyStyle({ paths: [] }, ins[0]);
+
+    const { lines, widths, size, sc, tr, tanS, lineStep, blockW, ox, oy, cx, cy, ca, sa } = L;
+    const layer = Math.max(0, Math.min(11, Math.round(Number(p.layer) || 0)));
+    const hand = p.font === "Hand";
+    const T = hand ? Math.max(0, Math.min(1, Number(p.tremor) || 0)) : 0;
+    const rng = mulberry32(Math.round(Number(p.seed) || 0) * 1013 + 7);
+    const nSeed = Math.round(Number(p.seed) || 0) * 31 + 5;
+    const step = Math.max(0.3, size / 9);
+    const amp = 0.16 * size * T;
+    const nf = 3.4 / size;
+    const out = [];
+    let budget = 60000;
+
+    /* seeded hand wobble: densify, displace by noise, then average the corners
+       round the way a moving nib does. Used for the glyph strokes and, at a
+       lower amount, for the rule so a hand-set mark is not framed by a ruler. */
+    const wobble = (pts, loop, mult) => {
+      if (!hand || T <= 0 || pts.length < 2) return pts;
+      const a = amp * mult;
+      let q = resample(pts, loop, step).map(([qx, qy]) => [
+        qx + (noise2(qx * nf, qy * nf, nSeed) - 0.5) * a,
+        qy + (noise2(qx * nf + 37.1, qy * nf - 19.7, nSeed) - 0.5) * a,
+      ]);
+      const wgt = 0.5 * T;
+      for (let pass = 0; pass < 3; pass++) {
+        const prev = q, n2 = prev.length;
+        if (n2 < 3) break;
+        const nx = prev.map((v) => [v[0], v[1]]);
+        for (let i = 0; i < n2; i++) {
+          if (!loop && (i === 0 || i === n2 - 1)) continue;
+          const a2 = prev[(i - 1 + n2) % n2], b2 = prev[i], c2 = prev[(i + 1) % n2];
+          nx[i] = [b2[0] + ((a2[0] + c2[0]) / 2 - b2[0]) * wgt, b2[1] + ((a2[1] + c2[1]) / 2 - b2[1]) * wgt];
+        }
+        q = nx;
+      }
+      return q;
+    };
+
+    const align = p.layout === "One line" ? "Left" : p.align;
+
+    for (let li = 0; li < lines.length; li++) {
+      const line = lines[li];
+      const lw = widths[li];
+      const yTop = oy + li * lineStep;
+      let x = ox + (align === "Center" ? (blockW - lw) / 2 : align === "Right" ? blockW - lw : 0);
+
+      let ci = -1;
+      for (const ch of line) {
+        ci++;
+        const g = SFONT[ch] || SFONT[" "];
+        let jx = 0, jy = 0, jc = 1, js = 0, jsc = 1;
+        if (hand) {
+          jx = (rng() - 0.5) * 0.16 * size * T;
+          jy = (rng() - 0.5) * 0.20 * size * T + (noise2(ci * 0.55, li * 4.3, nSeed) - 0.5) * 0.30 * size * T;
+          const ja = (rng() - 0.5) * 0.20 * T;
+          jc = Math.cos(ja); js = Math.sin(ja);
+          jsc = 1 + (rng() - 0.5) * 0.14 * T;
+        }
+
+        for (const stroke of g.s) {
+          if (!stroke || stroke.length < 2) continue;
+          const a = stroke[0], b = stroke[stroke.length - 1];
+          const loop = stroke.length > 3 && Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6;
+          const src = loop ? stroke.slice(0, stroke.length - 1) : stroke;
+
+          let pts = src.map(([gx, gy]) => {
+            let px = gx * sc, py = gy * sc;
+            px += (size - py) * tanS;
+            if (hand) {
+              const rx = px * jsc, ry = (py - size) * jsc;
+              px = rx * jc - ry * js + jx;
+              py = ry * jc + rx * js + size + jy;
+            }
+            return [x + px, yTop + py];
+          });
+
+          pts = wobble(pts, loop, 1);
+          if (pts.length < 2) continue;
+          if (budget - pts.length < 0) { budget = -1; break; }
+          budget -= pts.length;
+          out.push({ pts, closed: loop });
+        }
+        if (budget < 0) break;
+        x += ((g.w + 2) * sc * tr);
+      }
+      if (budget < 0) break;
+    }
+
+    /* rule / frame around the nominal block */
+    const bw = blockW, bh = L.blockH;
+    const pad = 0.5 * size;
+    if (p.rule === "Underline") {
+      const y = oy + bh + 0.45 * size;
+      out.push({ pts: wobble([[ox, y], [ox + bw, y]], false, 0.55), closed: false });
+    } else if (p.rule === "Box") {
+      out.push({
+        pts: wobble([[ox - pad, oy - pad], [ox + bw + pad, oy - pad], [ox + bw + pad, oy + bh + pad], [ox - pad, oy + bh + pad]], true, 0.55),
+        closed: true,
+      });
+    } else if (p.rule === "Bracket") {
+      const t = Math.max(0.3, 0.35 * size);
+      out.push({ pts: wobble([[ox - pad + t, oy - pad], [ox - pad, oy - pad], [ox - pad, oy + bh + pad], [ox - pad + t, oy + bh + pad]], false, 0.55), closed: false });
+      out.push({ pts: wobble([[ox + bw + pad - t, oy - pad], [ox + bw + pad, oy - pad], [ox + bw + pad, oy + bh + pad], [ox + bw + pad - t, oy + bh + pad]], false, 0.55), closed: false });
+    }
+
+    const paths = out.map((q) => ({
+      pts: q.pts.map(([qx, qy]) => {
+        const dx = qx - cx, dy = qy - cy;
+        return [cx + dx * ca - dy * sa, cy + dx * sa + dy * ca];
+      }),
+      closed: q.closed,
+      layer,
+    }));
+
+    return applyStyle({ paths }, ins[0]);
+  },
+
+  overlay(p, ctx) {
+    try {
+      const L = this && this._layout ? this._layout(p, ctx) : null;
+      if (!L || !L.lines.length) return [];
+      const { ox, oy, blockW, blockH, cx, cy, ca, sa } = L;
+      const R = (x, y) => {
+        const dx = x - cx, dy = y - cy;
+        return [cx + dx * ca - dy * sa, cy + dx * sa + dy * ca];
+      };
+      const c = [R(ox, oy), R(ox + blockW, oy), R(ox + blockW, oy + blockH), R(ox, oy + blockH)];
+      const guides = [{ kind: "poly", pts: c.concat([c[0]]) }];
+      const bl = R(ox, oy + L.size);
+      guides.push({ kind: "point", x: bl[0], y: bl[1] });
+      return guides;
+    } catch (e) { return []; }
   },
 };
 ```
@@ -33171,6 +33622,107 @@ export default {
       return { kind: "style", mode: p.mode, dash: p.dash, gap: p.gap, vary: p.vary, phase: p.phase, seed: p.seed };
     },
   
+};
+```
+
+## vision_chart.js
+
+```js
+import { Pin, mulberry32, applyStyle, fontStrokes } from "../helpers.js";
+
+export default {
+  key: "vision_chart",
+  name: "Vision Chart",
+  cat: "gen",
+  group: "scientific",
+  desc: "Plotter-native vision chart studio: geometrically scaled Landolt C and equal-arm Tumbling E logMAR charts, Chinese 5-mark and Golovin-Sivtsev inspired layouts, and a seeded two-pen pseudoisochromatic artwork whose hidden number is packed with its own finer dots so it reads as a figure rather than a smudge. Distance, logMAR and Scale set physical optotype size and every row is geometrically scaled by the logMAR step; the default 2.5 m suits an A4 sheet, and 5 m fills it with the largest rows only. Ink pitch should match the pen. Artistic/educational output only — not a certified medical test.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "chart", label: "Chart", type: "select", options: ["Landolt C — ISO/logMAR", "Tumbling E — logMAR", "China GB/T E — 5-mark", "Golovin–Sivtsev", "Pseudoisochromatic art"], def: "Landolt C — ISO/logMAR" },
+    { key: "rows", label: "Rows", type: "slider", min: 2, max: 14, step: 1, def: 11, showIf: (p) => p.chart !== "Pseudoisochromatic art" },
+    { key: "distance", label: "Distance m", type: "slider", min: 0.3, max: 8, step: 0.1, def: 2.5, showIf: (p) => p.chart !== "Pseudoisochromatic art" },
+    { key: "topLogmar", label: "Top logMAR", type: "slider", min: 0, max: 1.5, step: 0.1, def: 0.7, showIf: (p) => p.chart === "Landolt C — ISO/logMAR" || p.chart === "Tumbling E — logMAR" },
+    { key: "scale", label: "Scale %", type: "slider", min: 10, max: 200, step: 1, def: 100 },
+    { key: "spacing", label: "Spacing × size", type: "slider", min: 0.2, max: 2, step: 0.05, def: 1, showIf: (p) => p.chart !== "Pseudoisochromatic art" },
+    { key: "inkPitch", label: "Ink pitch mm", type: "slider", min: 0.15, max: 2, step: 0.05, def: 0.45, showIf: (p) => ["Tumbling E — logMAR","China GB/T E — 5-mark","Golovin–Sivtsev"].includes(p.chart) },
+    { key: "labels", label: "Scale labels", type: "check", def: true, showIf: (p) => p.chart !== "Pseudoisochromatic art" },
+    { key: "size", label: "Figure size mm", type: "slider", min: 30, max: 260, step: 1, def: 140, showIf: (p) => p.chart === "Pseudoisochromatic art" },
+    { key: "target", label: "Hidden number", type: "text", def: "26", showIf: (p) => p.chart === "Pseudoisochromatic art" },
+    { key: "dots", label: "Ground dots", type: "slider", min: 40, max: 700, step: 10, def: 300, showIf: (p) => p.chart === "Pseudoisochromatic art" },
+    { key: "dotMin", label: "Min dot mm", type: "slider", min: 0.5, max: 5, step: 0.1, def: 1.2, showIf: (p) => p.chart === "Pseudoisochromatic art" },
+    { key: "dotMax", label: "Max dot mm", type: "slider", min: 1, max: 9, step: 0.1, def: 3.4, showIf: (p) => p.chart === "Pseudoisochromatic art" },
+    { key: "seed", label: "Seed", type: "seed", def: 1843 },
+    { key: "pen", label: "Main pen", type: "pen", def: 0 },
+    { key: "secondPen", label: "Second pen", type: "pen", def: 1, showIf: (p) => p.chart === "Pseudoisochromatic art" || p.chart === "Golovin–Sivtsev" },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 50, step: 1, def: 12 },
+  ],
+  compute(ins, p, ctx) {
+    const W=Math.max(1,Number(ctx.W)||210), H=Math.max(1,Number(ctx.H)||297);
+    const main=Math.max(0,Math.min(11,Math.round(Number(p.pen)||0))), second=Math.max(0,Math.min(11,Math.round(Number(p.secondPen)||0)));
+    const margin=Math.max(0,Number(p.margin)||0), scale=Math.max(.01,Number(p.scale)||100)/100;
+    const paths=[], rng=mulberry32(Math.round(Number(p.seed)||0));
+    const push=(pts,closed,layer)=>{if(pts&&pts.length>1&&pts.every(q=>Number.isFinite(q[0])&&Number.isFinite(q[1])))paths.push({pts,closed:!!closed,layer:layer===undefined?main:layer});};
+    const line=(x1,y1,x2,y2,layer)=>push([[x1,y1],[x2,y2]],false,layer);
+    const circle=(cx,cy,r,layer,n)=>{if(!(r>0))return;const pts=[],N=Math.max(16,Math.min(180,n||Math.ceil(r*3)));for(let i=0;i<N;i++){const a=Math.PI*2*i/N;pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}push(pts,true,layer);};
+    const arc=(cx,cy,r,a0,a1,layer)=>{const N=Math.max(8,Math.min(160,Math.ceil(r*Math.abs(a1-a0)/.8))),pts=[];for(let i=0;i<=N;i++){const a=a0+(a1-a0)*i/N;pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}push(pts,false,layer);};
+    const FONT={"0":"111101101101111","1":"010110010010111","2":"111001111100111","3":"111001111001111","4":"101101111001001","5":"111100111001111","6":"111100111101111","7":"111001010010010","8":"111101111101111","9":"111101111001111","-":"000000111000000",".":"000000000000010"};
+    const text=(str,x,y,h,layer)=>{const fs=fontStrokes(String(str),Math.max(1.8,h),1);for(const st of fs.strokes){if(st.length<2)continue;push(st.map(([sx,sy])=>[x+sx,y+sy]),false,layer);}};
+    const drawLandolt=(cx,cy,d,dir,layer)=>{const outer=d/2,inner=outer*.6,mid=dir*Math.PI/4,pitch=Math.max(.18,Math.min(d/10,Number(p.inkPitch)||.45));const steps=Math.max(1,Math.round((outer-inner)/pitch));for(let i=0;i<=steps;i++){const r=inner+(outer-inner)*i/steps,hg=Math.asin(Math.min(.99,(d/10)/Math.max(r,d/10)));arc(cx,cy,r,mid+hg,mid+Math.PI*2-hg,layer);}};
+    const drawE=(cx,cy,d,turns,layer)=>{
+      /* Viisi täsmällistä moduuliriviä: 0/2/4 ovat koko leveät sakarat,
+         1/3 pelkkä varsi. Jokainen moduuli saa aina vähintään yhden vedon,
+         joten skaala tai hatch-väli ei voi pudottaa sakaraa pois. */
+      const a=turns*Math.PI/2,ca=Math.cos(a),sa=Math.sin(a),cell=d/5;
+      const pitch=Math.max(.15,Math.min(cell*.8,Number(p.inkPitch)||.45));
+      for(let row=0;row<5;row++){
+        const y0=-d/2+row*cell,y1=y0+cell,ys=[];
+        const nY=Math.max(1,Math.round(cell/pitch));
+        for(let i=row===0?0:1;i<=nY;i++)ys.push(y0+cell*i/nY);
+        if(!ys.length)ys.push((y0+y1)/2);
+        const x1=-d/2,x2=row%2===0?d/2:x1+cell;
+        for(const yy of ys)push([[cx+x1*ca-yy*sa,cy+x1*sa+yy*ca],[cx+x2*ca-yy*sa,cy+x2*sa+yy*ca]],false,layer);
+      }
+    };
+    const CYR={"Ш":["10101","10101","10101","10101","11111"],"Б":["11111","10000","11110","10001","11110"],"М":["10001","11011","10101","10001","10001"],"Н":["10001","10001","11111","10001","10001"],"К":["10001","10010","11100","10010","10001"],"Ы":["10001","10001","11101","10101","11101"],"И":["10001","10011","10101","11001","10001"]};
+    const drawBitmap=(glyph,cx,cy,d,layer)=>{const rows=CYR[glyph]||CYR["Ш"],cell=d/5,pitch=Math.max(.15,Math.min(cell,Number(p.inkPitch)||.45));const nB=Math.max(1,Math.round(cell/pitch));for(let r=0;r<5;r++)for(let bi=r===0?0:1;bi<=nB;bi++){const sy=cell*bi/nB;let c=0;while(c<5){while(c<5&&rows[r][c]!=="1")c++;const c0=c;while(c<5&&rows[r][c]==="1")c++;if(c>c0)line(cx-d/2+c0*cell,cy-d/2+r*cell+sy,cx-d/2+c*cell,cy-d/2+r*cell+sy,layer);}}};
+    const requestedChart=String(p.chart||"Landolt C — ISO/logMAR");
+    const chart=["Landolt C — ISO/logMAR","Tumbling E — logMAR","China GB/T E — 5-mark","Golovin–Sivtsev","Pseudoisochromatic art"].includes(requestedChart)?requestedChart:"Landolt C — ISO/logMAR";
+    if(chart==="Pseudoisochromatic art"){
+      const d=Math.max(20,Math.min((Number(p.size)||140)*scale,W-2*margin,H-2*margin)),R=d/2,wanted=Math.max(10,Math.min(900,Math.round(Number(p.dots)||260))),rMin=Math.max(.25,Number(p.dotMin)||1.2)*scale,rMax=Math.max(rMin,Number(p.dotMax)||3.4)*scale;
+      const raw=String(p.target||"26").replace(/[^0-9]/g,"").slice(0,3)||"26",digitW=d*.21,digitH=d*.42,totalW=raw.length*digitW,dx0=W/2-totalW/2;
+      const bear=.11;const inTarget=(x,y)=>{const q=Math.floor((x-dx0)/digitW);if(q<0||q>=raw.length)return false;const bits=FONT[raw[q]],u0=(x-(dx0+q*digitW))/digitW,v=(y-(H/2-digitH/2))/digitH;if(!bits||u0<bear||u0>1-bear||v<0||v>=1)return false;const u=(u0-bear)/(1-2*bear);return bits[Math.min(4,Math.floor(v*5))*3+Math.min(2,Math.floor(u*3))]==="1";};
+      const dots=[];
+      const fits=(x,y,rad)=>{for(const q of dots){const gx=x-q.x,gy=y-q.y;if(gx*gx+gy*gy<(rad+q.r+.35)*(rad+q.r+.35))return false;}return true;};
+      /* An Ishihara plate reads because the figure is PACKED, not because random
+         ground dots happen to land on it. Phase 1 saturates the numeral with its
+         own smaller dots; phase 2 fills the rest of the disc around them. */
+      const figMax=rMin+(rMax-rMin)*.45,fy0=H/2-digitH/2,fy1=H/2+digitH/2;
+      for(let tries=0;tries<wanted*120&&dots.length<wanted*2;tries++){
+        const x=dx0+rng()*totalW,y=fy0+rng()*(fy1-fy0),rad=rMin+(figMax-rMin)*rng();
+        if(!inTarget(x,y))continue;
+        if(Math.hypot(x-W/2,y-H/2)>R-rad-.4)continue;
+        if(fits(x,y,rad))dots.push({x,y,r:rad});
+      }
+      const figCount=dots.length,groundTarget=figCount+wanted;
+      for(let tries=0;tries<wanted*90&&dots.length<groundTarget;tries++){
+        const a=rng()*Math.PI*2,rr=Math.sqrt(rng())*(R-rMax),x=W/2+Math.cos(a)*rr,y=H/2+Math.sin(a)*rr,rad=rMin+(rMax-rMin)*rng();
+        if(fits(x,y,rad))dots.push({x,y,r:rad});
+      }
+      for(const q of dots){const ly=inTarget(q.x,q.y)?second:main;circle(q.x,q.y,q.r,ly);if(q.r>2.2*rMin)circle(q.x,q.y,q.r*.55,ly);}
+      circle(W/2,H/2,R);
+    }else{
+      const rows=Math.max(2,Math.min(14,Math.round(Number(p.rows)||11))),distance=Math.max(.1,Number(p.distance)||5),unit=2*distance*1000*Math.tan((2.5/60)*Math.PI/180)*scale,gapK=Math.max(.1,Number(p.spacing)||1),labelW=p.labels?22:2,availW=Math.max(5,W-2*margin-labelW*2);
+      const specs=[];if(chart==="Golovin–Sivtsev"){const V=[.1,.2,.3,.4,.5,.6,.7,.8,.9,1,1.5,2];for(let i=0;i<Math.min(rows,V.length);i++)specs.push({v:V[i],log:-Math.log10(V[i])});}else if(chart==="China GB/T E — 5-mark"){for(let i=0;i<rows;i++){const mark=4+i*.1;specs.push({mark,log:5-mark,v:Math.pow(10,mark-5)});}}else{const top=Math.max(-.3,Math.min(2,Number(p.topLogmar)||0));for(let i=0;i<rows;i++){const log=top-i*.1;specs.push({log,v:Math.pow(10,-log)});}}
+      const sizes=specs.map(s=>unit*Math.pow(10,s.log)),rowGaps=sizes.map(s=>Math.max(3,s*.28)),totalH=sizes.reduce((a,b)=>a+b,0)+rowGaps.slice(0,-1).reduce((a,b)=>a+b,0);let y=Math.max(margin,(H-totalH)/2),seq=0;
+      for(let ri=0;ri<specs.length;ri++){const sp=specs[ri],d=sizes[ri],cell=d*(1+gapK),count=Math.max(1,Math.min(5,Math.floor((availW+d*gapK)/cell)));if(d>availW)continue;if(y+d>H-margin)break;const rowW=count*d+(count-1)*d*gapK,xStart=W/2-rowW/2;
+        if(p.labels){const lab=chart==="China GB/T E — 5-mark"?Number(sp.mark).toFixed(1):sp.log.toFixed(1);text(lab,margin,y+d*.34,Math.min(4.5,d*.28),main);text(Number(sp.v).toFixed(sp.v<1?2:1),W-margin-18,y+d*.34,Math.min(4.5,d*.28),main);}
+        for(let j=0;j<count;j++){const cx=xStart+j*cell+d/2,cy=y+d/2;if(chart==="Landolt C — ISO/logMAR")drawLandolt(cx,cy,d,(Math.floor(rng()*8)+seq)%8,main);else if(chart==="Tumbling E — logMAR"||chart==="China GB/T E — 5-mark")drawE(cx,cy,d,(Math.floor(rng()*4)+seq)%4,main);else if(chart==="Golovin–Sivtsev"){if(j%2===0)drawBitmap(["Ш","Б","М","Н","К","Ы","И"][(ri+j)%7],cx,cy,d,main);else drawLandolt(cx,cy,d,(ri+j*2)%8,second);}seq++;}y+=d+(rowGaps[ri]||0);
+      }
+    }
+    return applyStyle({paths},ins[0]);
+  },
+  overlay(p,ctx){try{const m=Math.max(0,Number(p.margin)||0),W=Math.max(1,Number(ctx.W)||210),H=Math.max(1,Number(ctx.H)||297);if(p.chart==="Pseudoisochromatic art"){const d=Math.max(10,Math.min((Number(p.size)||140)*Math.max(.01,Number(p.scale)||100)/100,W-2*m,H-2*m));return[{kind:"circle",cx:W/2,cy:H/2,r:d/2}];}return[{kind:"rect",x:m,y:m,w:Math.max(0,W-2*m),h:Math.max(0,H-2*m)}];}catch(e){return[];}},
 };
 ```
 

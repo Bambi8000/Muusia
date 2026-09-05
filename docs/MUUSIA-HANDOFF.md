@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **248 files** (250 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **252 files** (254 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 147, Modifiers 69). ESM format:
+  Generators 151, Modifiers 69). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (237) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (252) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1042,6 +1042,34 @@ text are **English**.
   and pinning slot 0 made a working controller look dead.
   (tools/validate-ctrl.mjs, tools/validate-live-input.mjs,
   tools/era/patch-docs-ctrl.mjs)
+- **2.72** four generators baked out of nodes-lab. **Signature**
+  (gen/textimg) sets name, date and edition number in the single-stroke font and
+  anchors the block to a sheet corner; the Hand font is seeded tremor plus
+  per-letter tilt and baseline drift with three averaging passes for nib inertia,
+  and the rule runs through the same wobble at 0.55x so a hand-set mark is not
+  framed by a ruler. **Dice Pips** (gen/geometric) draws die faces 0-9 from a
+  range or digit string with Rings/Spiral pip fills. **Sand Painting**
+  (gen/organic) rakes a dry garden around seeded stones. **Vision Chart**
+  (gen/scientific) builds Landolt C, Tumbling E, Chinese 5-mark,
+  Golovin-Sivtsev and pseudoisochromatic charts at true optotype size.
+  Three real bugs were found by the validators rather than by eye, and all
+  three were invisible in the preview: Sand Painting's size-variation and
+  irregularity sliders were dead (`Math.min(1, x) / 100` clamps to 1 before
+  dividing, so every value above 1 % meant 1 % — the stones were always clean
+  ellipses); Vision Chart's hatch loops stopped short of the nominal radius by
+  up to one ink pitch, which is 8.5 % of the diameter on the smallest optotypes
+  and broke the 10^0.1 row scaling that is the whole point of a logMAR chart;
+  and the pseudoisochromatic plate sampled its figure with the same uniform
+  dart-throwing as the ground, so the hidden number never resolved at any
+  density. The figure is now packed in its own phase with finer dots and an
+  11 % side bearing between digits. Vision Chart's scale labels moved from a
+  3x5 dot matrix to `fontStrokes` (697 -> 361 paths and actually legible) and
+  the default viewing distance dropped 5 m -> 2.5 m, the one value that fills
+  A4 for all four charts. The node was renamed from the lab key
+  `vision_chart_lab` before baking, since keys freeze at bake.
+  (tools/validate-signature.mjs, tools/validate-dice_pips.mjs,
+  tools/validate-sand_painting.mjs, tools/validate-vision_chart.mjs,
+  tools/era/patch-docs-v272.mjs)
 
 ## Hard-won pitfalls (keep)
 - A LAB FILE IS NOT IN THE BUILD. Node ⇣ registers a custom node in the running

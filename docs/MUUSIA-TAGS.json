@@ -257,6 +257,12 @@
   "pens",
   "structural"
  ],
+ "dice_pips": [
+  "dots",
+  "fill",
+  "geometric",
+  "grid"
+ ],
  "diffgrowth": [
   "animation",
   "chaos",
@@ -1033,6 +1039,12 @@
   "noise",
   "texture"
  ],
+ "sand_painting": [
+  "flow",
+  "nature",
+  "organic",
+  "texture"
+ ],
  "satunnainen": [
   "math"
  ],
@@ -1076,6 +1088,10 @@
   "animation",
   "combine",
   "stack"
+ ],
+ "signature": [
+  "decoration",
+  "text"
  ],
  "simplify": [
   "pathops"
@@ -1363,6 +1379,12 @@
  ],
  "viiva": [
   "style"
+ ],
+ "vision_chart": [
+  "chart",
+  "dots",
+  "scientific",
+  "text"
  ],
  "volcano": [
   "3d",

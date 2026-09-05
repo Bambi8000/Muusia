@@ -1,13 +1,13 @@
-# MUUSIA v2.71 — Node Reference
+# MUUSIA v2.72 — Node Reference
 
-All 250 built-in nodes. Conventions used below: most generators accept a **Style**
+All 254 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (147)
+## Generators (151)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -993,6 +993,45 @@ dissolves, so a tight bend quietly pinches instead. Strands passing within a
 tube diameter of each other are left to fuse, which the union of spheres renders
 correctly. *Size* is a true millimetre measurement, shrunk only if it would run
 off the sheet. Tip: wire Frame into Yaw for a spinning knot.
+
+**Signature** — the artist's mark for a finished plot: signature text, date and
+edition number in the single-stroke font, anchored to a sheet corner so it lands
+in the same place on every print. *Layout* runs the three fields together on one
+line with the chosen *Separator*, splits the name off on two lines, or stacks all
+three; *Edition* formats the copy number as n/N, No. n or n of N. *Font* is the
+hand: Plain is the bare font, Italic leans it, and Hand redraws every stroke with
+seeded tremor plus per-letter tilt, size and baseline drift, rounding the corners
+the way a moving nib does — *Tremor* sets how much, *Seed* picks a different hand,
+and the *Rule* (Underline, Box, Brackets) goes through the same hand so a written
+mark is not framed by a ruler. *Anchor* places the block against a corner at
+*Margin* distance with Nudge X/Y for the last millimetres, or Custom for a free
+position. Plot it last on a finer pen.
+
+**Dice Pips** — classic dice faces. *Single* draws one face; *Sequence* reads
+values such as `1-6`, `0 2 4 6 8` or `987` and lays them out as a centred grid
+that shrinks to fit the sheet. Values 1-6 are the standard die faces, 0 and 7-9
+conventional domino-style extensions on the same 3x3 grid. Pips only, or a square,
+rounded-square or circular frame on its own pen. *Rings* and *Spiral* fill turn
+each pip into a solid plotter dot — set *Fill pitch* to suit the nib.
+
+**Sand Painting** — a raked dry garden. *Open rake* draws calm parallel furrows;
+*Flow around stones* bends them around seeded rocks; *Island rings* lays nested
+contours around each stone; *Spiral rake* is one continuous basin; *Mixed garden*
+combines flowing furrows with cleared ring islands. The sand is cleared wherever a
+stone stands, so the rake never crosses a rock. *Rake spacing* is the physical
+distance between grooves and *Detail* the curve sampling — extreme settings coarsen
+themselves to hold the point budget. Stone size variation and irregularity turn the
+ellipses into real lumps; sand and stones take separate pens.
+
+**Vision Chart** — a plotter-native eye-chart studio: geometrically scaled Landolt C
+and equal-arm Tumbling E logMAR charts, Chinese 5-mark and Golovin-Sivtsev layouts,
+and a seeded two-pen pseudoisochromatic plate whose hidden number is packed with its
+own finer dots so it reads as a figure rather than a smudge. *Distance*, *Top logMAR*
+and *Scale* set true optotype size — every row is scaled by the logMAR step and the
+outermost stroke lands exactly on the nominal diameter, so the chart is dimensionally
+honest; the 2.5 m default suits an A4 sheet and 5 m fills it with the largest rows
+only. *Ink pitch* should match the pen. Artistic and educational output — not a
+certified medical test.
 
 ## Modifiers (69)
 
