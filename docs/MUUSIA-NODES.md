@@ -1,13 +1,13 @@
-# MUUSIA v2.72 — Node Reference
+# MUUSIA v2.74 — Node Reference
 
-All 254 built-in nodes. Conventions used below: most generators accept a **Style**
+All 255 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (151)
+## Generators (152)
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
@@ -1032,6 +1032,21 @@ outermost stroke lands exactly on the nominal diameter, so the chart is dimensio
 honest; the 2.5 m default suits an A4 sheet and 5 m fills it with the largest rows
 only. *Ink pitch* should match the pen. Artistic and educational output — not a
 certified medical test.
+
+**Calibration Sheet** — a test sheet for measuring the machine rather than the
+pen: a square of exactly *Size* mm with both diagonals, corner registration
+crosses, a tick ruler along two edges, and the same square traced *Repeat
+passes* times, each pass starting from a different corner and alternating
+direction so backlash shows as a doubled line. Measure the sides for step
+calibration, the two diagonals against each other for gantry squareness, and
+the repeats for backlash. Unlike Test Card this node **never scales to fit** —
+a millimetre on the sheet is a millimetre, and a square that does not fit the
+canvas is refused with a printed warning instead of quietly shrunk. *Origin
+cross* draws an identical cross as the first and last stroke of the file: if
+the two do not land on top of each other the machine lost steps during the
+plot, which needs *Optimize route* switched off, since a nearest-neighbour sort
+sees two identical crosses as zero travel and plots them back to back. The
+square is on its own pen, every mark and label on a second.
 
 ## Modifiers (69)
 

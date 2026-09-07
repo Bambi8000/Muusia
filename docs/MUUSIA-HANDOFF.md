@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **252 files** (254 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **253 files** (255 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 151, Modifiers 69). ESM format:
+  Generators 152, Modifiers 69). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (252) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (253) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1070,6 +1070,32 @@ text are **English**.
   (tools/validate-signature.mjs, tools/validate-dice_pips.mjs,
   tools/validate-sand_painting.mjs, tools/validate-vision_chart.mjs,
   tools/era/patch-docs-v272.mjs)
+- **2.73** two exporter changes driven by a real plot going wrong. A
+  **pre-flight bounds guard** now scans the finished G-code for moves outside
+  the machine work area and, if it finds any, splices a `; !! OUT OF BOUNDS`
+  block plus an M117 above the first command. The magnet-jig exporter had a
+  per-move check all along; the plot exporter only warned when the whole canvas
+  was oversized, so a label overhanging by 4 mm shipped silently and was found
+  on paper. Scanning the emitted lines rather than the path data means
+  start/end G-code and macro-driven moves are covered too. Note it cannot see a
+  runtime `SET_GCODE_OFFSET`, so an origin set by PLOT_START shifts the real
+  extent. Second, an opt-in **pen colour announcement**: with *Announce pen
+  colour* on, each pen change emits `RESPOND PREFIX=tgalarm MSG="Pen n: Name"`
+  before the pause, which moonraker-telegram-bot forwards to the phone with a
+  notification. Opt-in because RESPOND aborts a print on a Klipper without
+  `[respond]`. (tools/era/patch-export-guard-tgpen.mjs)
+
+- **2.74** **Calibration Sheet** (gen/structural) baked: an exact-size
+  square with diagonals, corner crosses, a tick ruler, repeat passes that
+  alternate direction, and an origin cross drawn first and last as a step-loss
+  detector. The node refuses to scale — the validator proves side lengths to
+  1e-9 mm and renders the same params on four canvas sizes to assert the
+  geometry is byte-identical, so a fit transform added later turns the suite
+  red. Two bugs were caught by writing that suite: a label on a narrow square
+  overhung the footprint (now shrunk to the square's width), and a large
+  *Cross size* pushed the origin cross to a negative coordinate that Klipper
+  would refuse (now clamped to the sheet).
+  (tools/validate-calib_sheet.mjs, tools/era/patch-docs-v274.mjs)
 
 ## Hard-won pitfalls (keep)
 - A LAB FILE IS NOT IN THE BUILD. Node ⇣ registers a custom node in the running

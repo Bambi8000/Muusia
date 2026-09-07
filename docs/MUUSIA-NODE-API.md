@@ -1,4 +1,4 @@
-# Muusia — Custom Node API (v1.4, app v2.72)
+# Muusia — Custom Node API (v1.4, app v2.74)
 
 This document is a **complete, self-contained specification** for writing a custom node
 for Muusia, a node-graph editor for generative pen-plotter art. You can hand this
