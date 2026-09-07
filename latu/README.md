@@ -12,6 +12,8 @@ maintenance, dose, air, rotation and laser), and proportional continuous feed.
 M3 adds feed-accurate playback with a draggable timeline, 1–100× speed,
 pause chapter markers, completed/remaining toolpath rendering, live tool
 position, optional text following, and per-pen time totals.
+The canvas also provides wheel-to-cursor and explicit +/-/Fit zoom controls,
+plus a drag measurement tool reporting distance and machine-coordinate deltas.
 
 From the repository root:
 

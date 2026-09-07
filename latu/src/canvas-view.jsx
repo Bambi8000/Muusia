@@ -39,7 +39,7 @@ function fitView(doc, width, height) {
   return { scale, ox: (width - spanX * scale) / 2 - b.minX * scale, oy: (height - spanY * scale) / 2 - b.minY * scale };
 }
 
-export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selectedLine, selectedStrokeIds, selectedPoint, boxSelecting, drawing, draftPoints, playback, onAddPoint, onInsertPoint, onHoverLine, onSelectLine, onSelectStrokes, onTranslate, onMovePoint, onCursor }) {
+export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selectedLine, selectedStrokeIds, selectedPoint, boxSelecting, drawing, measuring, draftPoints, playback, onAddPoint, onInsertPoint, onHoverLine, onSelectLine, onSelectStrokes, onTranslate, onMovePoint, onCursor }) {
   const wrapRef = useRef(null);
   const staticRef = useRef(null);
   const overlayRef = useRef(null);
@@ -48,6 +48,7 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
   const dragRef = useRef(null);
   const [dragOffset, setDragOffset] = useState(null);
   const [boxRect, setBoxRect] = useState(null);
+  const [measurement, setMeasurement] = useState(null);
   const index = useMemo(() => buildIndex(doc), [doc]);
   const playbackActive = !!playback?.active;
 
@@ -61,6 +62,7 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
   }, []);
 
   useEffect(() => { setView(fitView(doc, size.width, size.height)); }, [doc, size.width, size.height]);
+  useEffect(() => { if (!measuring) setMeasurement(null); }, [measuring]);
 
   useEffect(() => {
     const canvas = staticRef.current;
@@ -149,6 +151,21 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
       ctx.fillRect(Math.min(boxRect[0], boxRect[2]), Math.min(boxRect[1], boxRect[3]), Math.abs(boxRect[2] - boxRect[0]), Math.abs(boxRect[3] - boxRect[1]));
       ctx.strokeRect(Math.min(boxRect[0], boxRect[2]), Math.min(boxRect[1], boxRect[3]), Math.abs(boxRect[2] - boxRect[0]), Math.abs(boxRect[3] - boxRect[1])); ctx.setLineDash([]);
     }
+    if (measuring && measurement) {
+      const a = toScreen(measurement.a), b = toScreen(measurement.b);
+      const dx = measurement.b[0] - measurement.a[0], dy = measurement.b[1] - measurement.a[1];
+      const distance = Math.hypot(dx, dy);
+      ctx.save(); ctx.strokeStyle = "#67e8f9"; ctx.fillStyle = "#67e8f9"; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]);
+      for (const point of [a, b]) { ctx.beginPath(); ctx.arc(point[0], point[1], 4, 0, Math.PI * 2); ctx.fill(); }
+      const label = `${distance.toFixed(2)} mm   ΔX ${dx.toFixed(2)}   ΔY ${dy.toFixed(2)}`;
+      ctx.font = "600 11px SFMono-Regular, Consolas, monospace"; const width = ctx.measureText(label).width + 14;
+      const x = Math.max(width / 2 + 5, Math.min(size.width - width / 2 - 5, (a[0] + b[0]) / 2));
+      const y = Math.max(14, Math.min(size.height - 14, (a[1] + b[1]) / 2 - 14));
+      ctx.fillStyle = "rgba(12, 20, 25, .94)"; ctx.strokeStyle = "#3e7881"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(x - width / 2, y - 11, width, 22, 4); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#a5f3fc"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, x, y); ctx.restore();
+    }
     const line = selectedLine ?? hoveredLine;
     const segment = line == null ? null : index.segments.find((item) => item.line === line);
     if (segment && !selectedStrokeIds.includes(segment.stroke.id)) {
@@ -158,7 +175,7 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
     }
     const event = line == null ? null : doc.events.find((item) => line >= item.lineStart && line <= item.lineEnd);
     if (event) { const p = toScreen([event.x, event.y]); ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p[0], p[1], 12, 0, Math.PI * 2); ctx.stroke(); }
-  }, [hoveredLine, selectedLine, selectedStrokeIds, selectedPoint, dragOffset, draftPoints, boxRect, doc, index, view, size, toScreen, playback, playbackActive]);
+  }, [hoveredLine, selectedLine, selectedStrokeIds, selectedPoint, dragOffset, draftPoints, boxRect, measurement, measuring, doc, index, view, size, toScreen, playback, playbackActive]);
 
   const pointerPoint = (event) => {
     const rect = overlayRef.current.getBoundingClientRect();
@@ -188,13 +205,16 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
     overlayRef.current.setPointerCapture(event.pointerId);
     const screen = pointerPoint(event); const hit = pick(screen);
     const pointSelected = hit?.stroke && selectedPoint?.strokeId === hit.stroke.id && selectedPoint.pointIndex === hit.pointIndex;
-    dragRef.current = { start: screen, worldStart: toWorld(screen), view, moved: false, mode: drawing ? "draw" : boxSelecting ? "box" : pointSelected ? "pointMove" : hit?.stroke && selectedStrokeIds.includes(hit.stroke.id) ? "move" : "pan", hit };
+    const worldStart = toWorld(screen);
+    if (measuring) setMeasurement({ a: worldStart, b: worldStart });
+    dragRef.current = { start: screen, worldStart, view, moved: false, mode: measuring ? "measure" : drawing ? "draw" : boxSelecting ? "box" : pointSelected ? "pointMove" : hit?.stroke && selectedStrokeIds.includes(hit.stroke.id) ? "move" : "pan", hit };
   };
   const onPointerMove = (event) => {
     const point = pointerPoint(event); const world = toWorld(point); onCursor(world);
     if (dragRef.current && event.buttons) {
       const dx = point[0] - dragRef.current.start[0], rawDy = point[1] - dragRef.current.start[1];
       if (Math.hypot(dx, rawDy) > 3) dragRef.current.moved = true;
+      if (dragRef.current.mode === "measure") { setMeasurement({ a: dragRef.current.worldStart, b: world }); return; }
       if (dragRef.current.mode === "draw") return;
       if (dragRef.current.mode === "box") { setBoxRect([dragRef.current.start[0], dragRef.current.start[1], point[0], point[1]]); return; }
       if (dragRef.current.mode === "move" || dragRef.current.mode === "pointMove") {
@@ -208,6 +228,7 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
   };
   const onPointerUp = (event) => {
     const drag = dragRef.current; dragRef.current = null;
+    if (drag?.mode === "measure") { setMeasurement({ a: drag.worldStart, b: toWorld(pointerPoint(event)) }); return; }
     if (drag?.mode === "draw") { if (!drag.moved) onAddPoint(toWorld(pointerPoint(event))); return; }
     if (drag?.mode === "box") {
       const end = pointerPoint(event), a = toWorld(drag.start), b = toWorld(end);
@@ -231,15 +252,22 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
     setView({ scale, ox: point[0] - before[0] * scale, oy: screenY - before[1] * scale });
   };
 
+  const zoomAtCenter = (factor) => {
+    const point = [size.width / 2, size.height / 2], before = toWorld(point);
+    const scale = Math.max(.1, Math.min(64, view.scale * factor));
+    const screenY = yUp ? size.height - point[1] : point[1];
+    setView({ scale, ox: point[0] - before[0] * scale, oy: screenY - before[1] * scale });
+  };
+
   const onDoubleClick = (event) => {
-    if (drawing) return;
+    if (drawing || measuring) return;
     const screen = pointerPoint(event), hit = pick(screen);
     if (hit?.stroke) onInsertPoint(hit.stroke.id, hit.line, toWorld(screen));
     else setView(fitView(doc, size.width, size.height));
   };
-  return <div className={`canvas-view${drawing ? " drawing" : ""}`} ref={wrapRef} onDoubleClick={onDoubleClick}>
+  return <div className={`canvas-view${drawing ? " drawing" : ""}${measuring ? " measuring" : ""}`} ref={wrapRef} onDoubleClick={onDoubleClick}>
     <canvas ref={staticRef} />
     <canvas ref={overlayRef} className="overlay" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={() => { onHoverLine(null); onCursor(null); }} onWheel={onWheel} />
-    <div className="zoom-badge">{view.scale.toFixed(view.scale < 10 ? 1 : 0)} px/mm</div>
+    <div className="canvas-controls"><button aria-label="Zoom out" title="Zoom out" onClick={() => zoomAtCenter(1 / 1.5)}>−</button><span>{view.scale.toFixed(view.scale < 10 ? 1 : 0)} px/mm</span><button aria-label="Zoom in" title="Zoom in" onClick={() => zoomAtCenter(1.5)}>＋</button><button title="Fit drawing" onClick={() => setView(fitView(doc, size.width, size.height))}>Fit</button></div>
   </div>;
 }

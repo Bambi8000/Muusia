@@ -55,6 +55,7 @@ export default function App() {
   const [autoFollow, setAutoFollow] = useState(true);
   const [penMode, setPenMode] = useState(false);
   const [boxMode, setBoxMode] = useState(false);
+  const [measureMode, setMeasureMode] = useState(false);
   const [draftPoints, setDraftPoints] = useState([]);
   const [scaleOptions, setScaleOptions] = useState({ mode: "factor", sx: 1, sy: 1, uniform: true, angle: 0, width: 297, height: 420, margin: 0, preserveAspect: true, anchor: "center", customX: 0, customY: 0 });
   const inputRef = useRef(null);
@@ -198,7 +199,7 @@ export default function App() {
     if (!next.some((profile) => profile.id === activeProfileId)) chooseProfile(next[0].id);
   };
   const safety = useMemo(() => auditDocument(doc), [doc]);
-  const visualLocked = doc.warnings.unsafeModal || playbackOpen;
+  const visualLocked = doc.warnings.unsafeModal || playbackOpen || measureMode;
   const commitDraft = () => {
     if (draftPoints.length < 2) { setDraftPoints([]); setPenMode(false); return; }
     const sectionId = selectedStrokeIds.length ? doc.strokes[selectedStrokeIds[0]]?.sectionId : doc.sections[0]?.id;
@@ -224,7 +225,7 @@ export default function App() {
       if (command && event.key.toLowerCase() === "z") { event.preventDefault(); if (event.shiftKey) redo(); else undo(); }
       else if (command && event.key.toLowerCase() === "a") { event.preventDefault(); setSelectedStrokeIds(doc.strokes.map((stroke) => stroke.id)); setSelectedEventIds([]); }
       else if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); runDelete(); }
-      else if (event.key === "Escape") { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoint(null); setSelectedLine(null); setDraftPoints([]); setPenMode(false); }
+      else if (event.key === "Escape") { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoint(null); setSelectedLine(null); setDraftPoints([]); setPenMode(false); setBoxMode(false); setMeasureMode(false); }
       else if (event.key === "Enter" && penMode) { event.preventDefault(); commitDraft(); }
       else if (selectedStrokeIds.length && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
         event.preventDefault(); const step = event.shiftKey ? 1 : .1;
@@ -271,8 +272,9 @@ export default function App() {
         <button onClick={() => selectedStrokeIds.length === 1 && applySource(splitStroke(doc, selectedStrokeIds[0], selectedLine), "Split stroke", false)} disabled={visualLocked || selectedStrokeIds.length !== 1}>Split</button>
         <button onClick={runJoin} disabled={visualLocked || selectedStrokeIds.length !== 2}>Join</button>
         <button onClick={runOptimize} disabled={visualLocked || doc.strokes.length < 2}>Optimize</button>
-        <button className={boxMode ? "on" : ""} onClick={() => { setBoxMode((value) => !value); setPenMode(false); setDraftPoints([]); }} disabled={visualLocked}>Box select</button>
-        <button className={penMode ? "on" : ""} onClick={() => { setPenMode((value) => !value); setBoxMode(false); setDraftPoints([]); }} disabled={visualLocked}>Pen tool</button>
+        <button className={boxMode ? "on" : ""} onClick={() => { setBoxMode((value) => !value); setPenMode(false); setMeasureMode(false); setDraftPoints([]); }} disabled={visualLocked}>Box select</button>
+        <button className={penMode ? "on" : ""} onClick={() => { setPenMode((value) => !value); setBoxMode(false); setMeasureMode(false); setDraftPoints([]); }} disabled={visualLocked}>Pen tool</button>
+        <button className={measureMode ? "on" : ""} onClick={() => { setMeasureMode((value) => !value); setBoxMode(false); setPenMode(false); setDraftPoints([]); }} disabled={paneMode === "text"}>Measure</button>
         <button onClick={() => setEventsOpen(true)} disabled={visualLocked}>＋ Event</button>
         <button onClick={() => setScaleOpen(true)} disabled={visualLocked || !doc.strokes.length}>Scale / Fit</button>
         <button onClick={fitWorkArea} disabled={visualLocked || !doc.strokes.length}>Fit work area</button>
@@ -283,7 +285,7 @@ export default function App() {
         <span className="separator" />
         <button className={paneMode === "canvas" ? "on" : ""} onClick={() => changeMode("canvas")}>Canvas</button>
         <button className={paneMode === "text" ? "on" : ""} onClick={() => changeMode("text")}>Text</button>
-        <button className={playbackOpen ? "on" : ""} onClick={() => { const next = !playbackOpen; setPlaybackOpen(next); setPlaying(false); setBoxMode(false); setPenMode(false); }}>Playback</button>
+        <button className={playbackOpen ? "on" : ""} onClick={() => { const next = !playbackOpen; setPlaybackOpen(next); setPlaying(false); setBoxMode(false); setPenMode(false); setMeasureMode(false); }}>Playback</button>
       </div>
       <div className="file-meta"><strong>{dirty ? "● " : ""}{name}</strong><small>{doc.meta.machineName || "Generic G-code"}</small></div>
       <input ref={inputRef} type="file" accept=".gcode,.gc,.nc,text/plain" hidden onChange={(event) => event.target.files[0] && loadFile(event.target.files[0])} />
@@ -294,9 +296,10 @@ export default function App() {
     }} onPointerUp={() => { dividerDrag.current = false; }}>
       {paneMode !== "text" && <Outline doc={doc} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} onSelectLine={selectLine} onReorder={(next) => applySource(next, "Reordered strokes", false)} />}
       {paneMode !== "text" && <section className="canvas-pane" style={paneMode === "split" ? { width: `calc(${split}% - 96px)` } : undefined}>
-        <CanvasView doc={doc} showTravels={showTravels} yUp={yUp} hoveredLine={hoveredLine} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} selectedPoint={selectedPoint} boxSelecting={boxMode} drawing={penMode} draftPoints={draftPoints} playback={playbackOpen ? { active: true, time: playbackTime, timeline, sample: playbackSample } : null} onAddPoint={(point) => setDraftPoints((points) => [...points, point])} onInsertPoint={(strokeId, line, point) => !visualLocked && applySource(insertPoint(doc, strokeId, line, point), "Inserted point")} onHoverLine={setHoveredLine} onSelectLine={selectLine} onSelectStrokes={(ids, additive) => { setSelectedPoint(null); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); }} onTranslate={(dx, dy) => !visualLocked && runMove(dx, dy)} onMovePoint={(dx, dy) => !visualLocked && runMove(dx, dy)} onCursor={setCursor} />
+        <CanvasView doc={doc} showTravels={showTravels} yUp={yUp} hoveredLine={hoveredLine} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} selectedPoint={selectedPoint} boxSelecting={boxMode} drawing={penMode} measuring={measureMode} draftPoints={draftPoints} playback={playbackOpen ? { active: true, time: playbackTime, timeline, sample: playbackSample } : null} onAddPoint={(point) => setDraftPoints((points) => [...points, point])} onInsertPoint={(strokeId, line, point) => !visualLocked && applySource(insertPoint(doc, strokeId, line, point), "Inserted point")} onHoverLine={setHoveredLine} onSelectLine={selectLine} onSelectStrokes={(ids, additive) => { setSelectedPoint(null); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); }} onTranslate={(dx, dy) => !visualLocked && runMove(dx, dy)} onMovePoint={(dx, dy) => !visualLocked && runMove(dx, dy)} onCursor={setCursor} />
         {boxMode && <div className="canvas-hint">Drag a box around strokes · Shift adds</div>}
         {penMode && <div className="canvas-hint">Click points · Enter to finish · Esc to cancel <strong>{draftPoints.length} pts</strong></div>}
+        {measureMode && <div className="canvas-hint">Drag between two points to measure · Esc exits</div>}
         {!!safety.length && <div className="safety-panel">{safety.map((warning) => <div key={warning.kind}>⚠ {warning.message}</div>)}</div>}
       </section>}
       {paneMode === "split" && <div className="divider" onPointerDown={(event) => { dividerDrag.current = true; event.currentTarget.setPointerCapture(event.pointerId); }} />}
