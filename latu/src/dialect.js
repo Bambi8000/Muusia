@@ -1,5 +1,5 @@
 export const PEN_COLORS = [
-  "#17191d", "#ef4444", "#f59e0b", "#eab308", "#22c55e", "#14b8a6",
+  "#d6d9de", "#ef4444", "#f59e0b", "#eab308", "#22c55e", "#14b8a6",
   "#0ea5e9", "#3b82f6", "#a855f7", "#ec4899", "#92400e", "#64748b",
 ];
 
@@ -50,6 +50,7 @@ export function eventLabel(kind) {
     rotation: "Brush rotation",
     pin: "Pin event",
     dose: "Ink dose",
+    air: "Air pulse",
     "canvas-check": "Canvas check",
     pause: "Pause",
   })[kind] || "Event";

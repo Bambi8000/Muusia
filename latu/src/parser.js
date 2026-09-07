@@ -56,7 +56,7 @@ function parseLine(line, meta, profile) {
     return { kind: "other", command, params, comment };
   }
   if (command === "G4" || command === "G04") return { kind: "dwell", ms: params.P ?? ((params.S ?? 0) * 1000), params, comment };
-  if (command === "G90" || command === "G91" || command === "G20" || command === "G21") return { kind: "modal", command, comment };
+  if (command === "G90" || command === "G91" || command === "G20" || command === "G21" || command === "M82" || command === "M83") return { kind: "modal", command, comment };
   if (command === "SET_SERVO") return { kind: "servo", servo: args.SERVO, angle: Number(args.ANGLE), args, comment };
 
   const pauseCommands = new Set(["M0", "M00", "M1", "M01", "PAUSE", String(profile?.pauseCmd || "").trim().toUpperCase()]);
@@ -67,7 +67,7 @@ function parseLine(line, meta, profile) {
     if (command === "SET_PIN") eventKind = "pin";
     if (command === "CANVAS_CHECK") eventKind = "canvas-check";
     if (command === "INK_DOSE") eventKind = "dose";
-    if (command === "AIR_PULSE") eventKind = "pin";
+    if (command === "AIR_PULSE") eventKind = "air";
     return { kind: "macro", macro: command, eventKind, args, comment };
   }
   return { kind: "other", command, params, args, comment };
@@ -229,15 +229,34 @@ export function parseGcode(source, profile = {}) {
   });
   finishStroke();
 
+  for (const stroke of strokes) {
+    stroke.approachLine = stroke.pointLines[0];
+    stroke.blockStart = stroke.approachLine;
+    stroke.blockEnd = stroke.lineEnd;
+    let sawLift = false;
+    for (let i = stroke.lineEnd + 1; i < lines.length; i += 1) {
+      const op = lines[i].op;
+      if (!sawLift && ((op.kind === "servo" || op.kind === "zmove") && op.stateAfter !== "down" || op.kind === "macro" && op.macro === "PEN_UP")) {
+        sawLift = true; stroke.blockEnd = i; continue;
+      }
+      if (sawLift && op.kind === "dwell") { stroke.blockEnd = i; continue; }
+      break;
+    }
+  }
+
   const unknownCount = lines.filter((line) => line.op.kind === "other").length;
   const unsafeModal = lines.some((line) => line.op.kind === "modal" && (line.op.command === "G91" || line.op.command === "G20"));
-  const boundsPts = strokes.flatMap((stroke) => stroke.pts);
-  const bounds = boundsPts.length ? {
-    minX: Math.min(...boundsPts.map((point) => point[0])), minY: Math.min(...boundsPts.map((point) => point[1])),
-    maxX: Math.max(...boundsPts.map((point) => point[0])), maxY: Math.max(...boundsPts.map((point) => point[1])),
-  } : null;
+  let bounds = null;
+  for (const stroke of strokes) for (const point of stroke.pts) {
+    if (!bounds) bounds = { minX: point[0], minY: point[1], maxX: point[0], maxY: point[1] };
+    else {
+      bounds.minX = Math.min(bounds.minX, point[0]); bounds.minY = Math.min(bounds.minY, point[1]);
+      bounds.maxX = Math.max(bounds.maxX, point[0]); bounds.maxY = Math.max(bounds.maxY, point[1]);
+    }
+  }
   return {
     source, lines, meta, strokes, travels, events, sections: sections.filter(Boolean), blocks, bounds,
+    modal: { absolute, millimeters },
     warnings: { unknownCount, unsafeModal, inferredZ: meta.zMode === "bed" && !profile.penUp ? inferredZ : null },
     stats: { drawLength, travelLength, drawMinutes, travelMinutes, dwellMs, totalMinutes: drawMinutes + travelMinutes + dwellMs / 60000 },
   };

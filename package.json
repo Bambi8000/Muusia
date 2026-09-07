@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:latu": "vite --config latu/vite.config.js",
     "build": "vite build",
+    "build:latu": "vite build --config latu/vite.config.js",
+    "test:latu": "node --test latu/tests/*.test.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
   },
