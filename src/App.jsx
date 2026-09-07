@@ -995,7 +995,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.72"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.73"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1124,6 +1124,8 @@ function toGcode(ps, ctx, prof) {
   for (const L of layers) {
     if (!first) {
       penUpFull();
+      /* the phone needs the colour; the comment below is only ever read on screen */
+      if (prof.tgPen) lines.push(`RESPOND PREFIX=tgalarm MSG="Pen ${L % PENS.length}: ${PENS[L % PENS.length].name}"`);
       lines.push(`${prof.pauseCmd || "M0"} ; CHANGE PEN -> ${L % PENS.length}: ${PENS[L % PENS.length].name}`);
       if (prof.dipOn) { dip(); drawn = 0; }
     } else lines.push(`; Pen ${L % PENS.length}: ${PENS[L % PENS.length].name}`);
@@ -1175,6 +1177,31 @@ function toGcode(ps, ctx, prof) {
   }
   penUpFull();
   for (const l of String(prof.endG || "").split("\n")) if (l.trim()) lines.push(l);
+  /* Pre-flight bounds guard. Scanning the finished lines rather than the path
+     data means start/end G-code and macro-driven moves are covered too. Klipper
+     would reject these anyway, but mid-plot rather than before the pen moves. */
+  {
+    const bad = [];
+    for (let i = 0; i < lines.length; i++) {
+      const code = String(lines[i]).split(";")[0];
+      if (!/^G[0-3]\b/.test(code.trim())) continue;
+      const mx = code.match(/(?:^|\s)X(-?\d+(?:\.\d+)?)/);
+      const my = code.match(/(?:^|\s)Y(-?\d+(?:\.\d+)?)/);
+      if (mx) { const v = parseFloat(mx[1]); if (v < 0 || v > prof.workW) bad.push(`line ${i + 1}: X${f2(v)} outside 0..${prof.workW}`); }
+      if (my) { const v = parseFloat(my[1]); if (v < 0 || v > prof.workH) bad.push(`line ${i + 1}: Y${f2(v)} outside 0..${prof.workH}`); }
+    }
+    if (bad.length) {
+      const at = Math.max(0, lines.findIndex((l) => !String(l).startsWith(";")));
+      const moves = new Set(bad.map((b) => b.split(":")[0])).size;
+      const block = [
+        `; !! OUT OF BOUNDS \u2014 ${moves} move(s), ${bad.length} coordinate(s) outside the ${prof.workW} x ${prof.workH} mm work area`,
+        ...bad.slice(0, 8).map((b) => "; !!   " + b),
+      ];
+      if (bad.length > 8) block.push(`; !!   ... and ${bad.length - 8} more`);
+      block.push(`M117 OUT OF BOUNDS - ${moves} moves off the bed`);
+      lines.splice(at, 0, ...block);
+    }
+  }
   lines.push("; done");
   return lines.join("\n");
 }
@@ -1867,7 +1894,7 @@ export default function App() {
   const megaH = megaOn ? (megaRoll ? rollLen : (megaMode === "Gap" ? megaR * canvasH + (megaR - 1) * megaSeam : megaR * canvasH - (megaR - 1) * megaSeam)) : canvasH;
   const DEFAULT_MACHINE = {
     name: "A — Servo Z (multi-tip brush)",
-    workW: 330, workH: 240, originX: 0, originY: 0, flipY: false, pauseCmd: "M0",
+    workW: 330, workH: 240, originX: 0, originY: 0, flipY: false, pauseCmd: "M0", tgPen: false,
     startG: "G21 ; mm\nG90 ; absolute\nG28 ; home",
     endG: "G0 X0 Y0",
     zMode: "servo", servoName: "pen", servoUp: 90, servoDown: 35,
@@ -3719,6 +3746,10 @@ export default function App() {
                   <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Pause command</div>
                   <input type="text" value={prof.pauseCmd} onChange={(e) => setProf((pr) => ({ ...pr, pauseCmd: e.target.value }))}
                     style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                  <div style={{ fontSize: 10, color: T.dim, flex: 1 }}>Announce pen colour (Telegram tgalarm)</div>
+                  <input type="checkbox" checked={!!prof.tgPen} onChange={(e) => setProf((pr) => ({ ...pr, tgPen: e.target.checked }))} style={{ accentColor: T.accent }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Moonraker WS URL</div>
