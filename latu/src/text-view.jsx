@@ -60,7 +60,7 @@ function classifyRaw(text) {
   return "other";
 }
 
-export default function TextView({ value, parsed, hoveredLine, selectedLine, playbackLine, autoFollow, onHoverLine, onSelectLine, onChange }) {
+export default function TextView({ value, parsed, hoveredLine, selectedLine, playbackLine, autoFollow, searchCommand, onHoverLine, onSelectLine, onChange }) {
   const hostRef = useRef(null);
   const viewRef = useRef(null);
   const initialValue = useRef(value);
@@ -130,6 +130,49 @@ export default function TextView({ value, parsed, hoveredLine, selectedLine, pla
       view.dispatch({ effects: EditorView.scrollIntoView(line.from, { y: "center" }) });
     }
   }, [hoveredLine, selectedLine, playbackLine, autoFollow]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || !searchCommand?.query) return;
+    const query = searchCommand.caseSensitive ? searchCommand.query : searchCommand.query.toLocaleLowerCase();
+    const currentText = view.state.doc.toString();
+    const haystack = searchCommand.caseSensitive ? currentText : currentText.toLocaleLowerCase();
+    const selection = view.state.selection.main;
+    const selectMatch = (from) => {
+      if (from < 0) return false;
+      view.dispatch({ selection: { anchor: from, head: from + searchCommand.query.length }, effects: EditorView.scrollIntoView(from, { y: "center" }) });
+      view.focus();
+      return true;
+    };
+    const findFrom = (start, backwards = false) => {
+      if (backwards) {
+        const before = haystack.lastIndexOf(query, Math.max(0, start - 1));
+        return before >= 0 ? before : haystack.lastIndexOf(query);
+      }
+      const after = haystack.indexOf(query, start);
+      return after >= 0 ? after : haystack.indexOf(query);
+    };
+    if (searchCommand.action === "all") {
+      const changes = [];
+      let from = 0;
+      while (from <= haystack.length - query.length) {
+        const at = haystack.indexOf(query, from);
+        if (at < 0) break;
+        changes.push({ from: at, to: at + searchCommand.query.length, insert: searchCommand.replacement });
+        from = at + Math.max(1, searchCommand.query.length);
+      }
+      if (changes.length) view.dispatch({ changes });
+      return;
+    }
+    if (searchCommand.action === "replace") {
+      const selected = haystack.slice(selection.from, selection.to);
+      if (selected === query) {
+        view.dispatch({ changes: { from: selection.from, to: selection.to, insert: searchCommand.replacement }, selection: { anchor: selection.from, head: selection.from + searchCommand.replacement.length } });
+        return;
+      }
+    }
+    selectMatch(findFrom(searchCommand.action === "previous" ? selection.from : selection.to, searchCommand.action === "previous"));
+  }, [searchCommand]);
 
   return <div className="text-view" ref={hostRef} aria-label="G-code editor" />;
 }

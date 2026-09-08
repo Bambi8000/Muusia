@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { addStroke, auditDocument, copyStrokes, deletePoint, deleteSelection, finalizeForSave, insertMidpoint, joinAdjacentStrokes, movePoint, optimizeRoute, pasteAfterSelection, reverseStrokes, rotateStrokes, scaleStrokes, splitStroke, translateStrokes } from "../src/model.js";
+import { addStroke, auditDocument, combineGcodeSources, copyStrokes, deletePoint, deleteSelection, finalizeForSave, insertMidpoint, joinAdjacentStrokes, movePoint, movePoints, moveStrokesToSection, optimizeRoute, pasteAfterSelection, resizeCanvas, reverseStrokes, rotateStrokes, scaleStrokes, splitStroke, translateStrokes } from "../src/model.js";
 import { parseGcode } from "../src/parser.js";
 
 const fixture = await readFile(new URL("./fixtures/servo-z.gcode", import.meta.url), "utf8");
@@ -109,4 +109,44 @@ test("point move and deletion relink a stroke", () => {
   assert.deepEqual(moved.strokes[0].pts[1].slice(0, 2), [32, 23]);
   const deleted = parseGcode(deletePoint(moved, 0, 1));
   assert.equal(deleted.strokes[0].pts.length, before.strokes[0].pts.length - 1);
+});
+
+test("multiple selected points move together", () => {
+  const before = parseGcode(fixture);
+  const after = parseGcode(movePoints(before, [{ strokeId: 0, pointIndex: 0 }, { strokeId: 0, pointIndex: 2 }], 3, -4));
+  assert.deepEqual(after.strokes[0].pts.map((point) => point.slice(0, 2)), [[13, 16], [30, 20], [33, 36]]);
+});
+
+test("join honors two explicitly selected endpoints", () => {
+  const source = `; Z mode: SERVO "pen" — up 135° / down 80° (bed-Z untouched)\nSET_SERVO SERVO=pen ANGLE=135\nG0 X0 Y0\nSET_SERVO SERVO=pen ANGLE=80\nG1 X10 Y0\nSET_SERVO SERVO=pen ANGLE=135\nG0 X20 Y0\nSET_SERVO SERVO=pen ANGLE=80\nG1 X10 Y0\nSET_SERVO SERVO=pen ANGLE=135\n`;
+  const before = parseGcode(source);
+  const result = joinAdjacentStrokes(before, [0, 1], 1, [{ strokeId: 0, pointIndex: 1 }, { strokeId: 1, pointIndex: 1 }]);
+  assert.equal(result.error, null);
+  assert.deepEqual(parseGcode(result.source).strokes[0].pts.map((point) => point[0]), [0, 10, 20]);
+});
+
+test("selected strokes can move under another pen section", () => {
+  const before = parseGcode(fixture);
+  const result = moveStrokesToSection(before, [0], before.sections[1].id);
+  assert.equal(result.error, null);
+  const after = parseGcode(result.source);
+  assert.equal(after.strokes.length, before.strokes.length);
+  assert.equal(after.sections[1].strokeIds.length, 2);
+});
+
+test("combining G-code imports strokes into matching pens", () => {
+  const base = parseGcode(fixture);
+  const result = combineGcodeSources(base, [{ source: fixture }]);
+  assert.equal(result.importedStrokes, 2);
+  assert.equal(parseGcode(result.source).strokes.length, 4);
+});
+
+test("canvas resize updates metadata and can scale artwork", () => {
+  const before = parseGcode(fixture);
+  const result = resizeCanvas(before, { width: before.meta.canvasW * 2, height: before.meta.canvasH * 2, originX: 5, originY: 6, scaleArtwork: true });
+  assert.equal(result.error, null);
+  const after = parseGcode(result.source);
+  assert.equal(after.meta.canvasW, before.meta.canvasW * 2);
+  assert.equal(after.meta.canvasH, before.meta.canvasH * 2);
+  assert.deepEqual(after.strokes[0].pts[0].slice(0, 2), [25, 46]);
 });

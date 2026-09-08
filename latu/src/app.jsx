@@ -4,7 +4,7 @@ import { emitGcode } from "./emitter.js";
 import Outline from "./outline.jsx";
 import { parseGcode } from "./parser.js";
 import TextView from "./text-view.jsx";
-import { addStroke, auditDocument, copyStrokes, deletePoint, deleteSelection, finalizeForSave, insertMidpoint, insertPoint, joinAdjacentStrokes, movePoint, optimizeRoute, pasteAfterSelection, reverseStrokes, rotateStrokes, scaleStrokes, splitStroke, translateStrokes } from "./model.js";
+import { addStroke, auditDocument, combineGcodeSources, copyStrokes, deletePoint, deleteSelection, finalizeForSave, insertMidpoint, insertPoint, joinAdjacentStrokes, movePoints, moveStrokesToSection, optimizeRoute, pasteAfterSelection, resizeCanvas, reverseStrokes, rotateStrokes, scaleStrokes, splitStroke, translateStrokes } from "./model.js";
 import EventsPalette from "./events-palette.jsx";
 import { applyContinuousFeed, insertEvent, removeContinuousFeed } from "./events.js";
 import ProfileManager from "./profile-manager.jsx";
@@ -17,6 +17,11 @@ const EMPTY = `; LATU\n; Open a Muusia .gcode file to inspect its toolpath.\n`;
 function rememberedProfileId(fallback) {
   try { return localStorage.getItem("latu-active-machine") || fallback; }
   catch { return fallback; }
+}
+
+function rememberedPenWidths() {
+  try { return JSON.parse(localStorage.getItem("latu-pen-widths") || "{}"); }
+  catch { return {}; }
 }
 
 function formatLength(mm) {
@@ -36,13 +41,13 @@ export default function App() {
   const [selectedLine, setSelectedLine] = useState(null);
   const [cursor, setCursor] = useState(null);
   const [showTravels, setShowTravels] = useState(true);
-  const [yUp, setYUp] = useState(false);
+  const [yUp, setYUp] = useState(true);
   const [paneMode, setPaneMode] = useState("split");
   const [split, setSplit] = useState(56);
   const [dirty, setDirty] = useState(false);
   const [selectedStrokeIds, setSelectedStrokeIds] = useState([]);
   const [selectedEventIds, setSelectedEventIds] = useState([]);
-  const [selectedPoint, setSelectedPoint] = useState(null);
+  const [selectedPoints, setSelectedPoints] = useState([]);
   const [message, setMessage] = useState("");
   const [move, setMove] = useState({ x: 0, y: 0 });
   const [scaleOpen, setScaleOpen] = useState(false);
@@ -52,13 +57,21 @@ export default function App() {
   const [playing, setPlaying] = useState(false);
   const [playbackTime, setPlaybackTime] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(10);
+  const [penWidths, setPenWidths] = useState(rememberedPenWidths);
   const [autoFollow, setAutoFollow] = useState(true);
   const [penMode, setPenMode] = useState(false);
   const [boxMode, setBoxMode] = useState(false);
   const [measureMode, setMeasureMode] = useState(false);
+  const [canvasOpen, setCanvasOpen] = useState(false);
+  const [canvasOptions, setCanvasOptions] = useState({ width: 297, height: 420, originX: 0, originY: 0, scaleArtwork: false });
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState({ query: "", replacement: "", caseSensitive: false });
+  const [searchCommand, setSearchCommand] = useState(null);
+  const [viewResetKey, setViewResetKey] = useState(0);
   const [draftPoints, setDraftPoints] = useState([]);
   const [scaleOptions, setScaleOptions] = useState({ mode: "factor", sx: 1, sy: 1, uniform: true, angle: 0, width: 297, height: 420, margin: 0, preserveAspect: true, anchor: "center", customX: 0, customY: 0 });
   const inputRef = useRef(null);
+  const combineInputRef = useRef(null);
   const fileHandleRef = useRef(null);
   const parseTimer = useRef(null);
   const dividerDrag = useRef(false);
@@ -69,6 +82,7 @@ export default function App() {
 
   useEffect(() => () => clearTimeout(parseTimer.current), []);
   useEffect(() => { saveProfiles(profiles); }, [profiles]);
+  useEffect(() => { try { localStorage.setItem("latu-pen-widths", JSON.stringify(penWidths)); } catch { /* Widths remain active for this session. */ } }, [penWidths]);
   useEffect(() => { try { localStorage.setItem("latu-active-machine", activeProfile.id); } catch { /* Profile remains active for this session. */ } setDoc(parseGcode(sourceRef.current, activeProfile)); }, [activeProfile]);
   const parseText = (text, markDirty = true) => {
     if (markDirty && text !== source) {
@@ -86,7 +100,7 @@ export default function App() {
     setActiveProfileId(matchingProfile.id);
     setSource(text); setDoc(parseGcode(text, matchingProfile)); setName(filename || "untitled.gcode");
     setDirty(false); setSelectedLine(null); setHoveredLine(null); fileHandleRef.current = handle;
-    setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoint(null); historyRef.current = { past: [], future: [] };
+    setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); setViewResetKey((value) => value + 1); historyRef.current = { past: [], future: [] };
   };
   loadTextRef.current = loadText;
   const applySource = (next, label = "Edit", preserveSelection = true) => {
@@ -95,7 +109,7 @@ export default function App() {
     if (historyRef.current.past.length > 100) historyRef.current.past.shift();
     const parsed = parseGcode(next, activeProfile);
     setSource(next); setDoc(parsed); setDirty(true); setMessage(label);
-    if (!preserveSelection) { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoint(null); setSelectedLine(null); }
+    if (!preserveSelection) { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); setSelectedLine(null); }
   };
   const undo = () => {
     const previous = historyRef.current.past.pop(); if (previous == null) return;
@@ -107,15 +121,32 @@ export default function App() {
   };
   const selectLine = (line, options = {}) => {
     setSelectedLine(line);
-    if (line == null) { if (!options.additive) { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoint(null); } return; }
+    if (line == null) { if (!options.additive) { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); } return; }
     const stroke = options.point ? doc.strokes[options.point.strokeId] : doc.strokes.find((item) => line >= item.lineStart && line <= item.lineEnd);
     const event = doc.events.find((item) => line >= item.lineStart && line <= item.lineEnd);
-    if (stroke) { setSelectedStrokeIds((ids) => options.additive ? (ids.includes(stroke.id) ? ids.filter((id) => id !== stroke.id) : [...ids, stroke.id]) : [stroke.id]); setSelectedPoint(options.point || null); }
+    if (stroke && options.point) {
+      setSelectedPoints((points) => {
+        const exists = points.some((point) => point.strokeId === options.point.strokeId && point.pointIndex === options.point.pointIndex);
+        const next = options.additive ? (exists ? points.filter((point) => point.strokeId !== options.point.strokeId || point.pointIndex !== options.point.pointIndex) : [...points, options.point]) : [options.point];
+        setSelectedStrokeIds([...new Set(next.map((point) => point.strokeId))]);
+        return next;
+      });
+    } else if (stroke) { setSelectedStrokeIds((ids) => options.additive ? (ids.includes(stroke.id) ? ids.filter((id) => id !== stroke.id) : [...ids, stroke.id]) : [stroke.id]); setSelectedPoints([]); }
     else if (!options.additive) setSelectedStrokeIds([]);
     if (event) setSelectedEventIds((ids) => options.additive ? (ids.includes(event.id) ? ids.filter((id) => id !== event.id) : [...ids, event.id]) : [event.id]);
     else if (!options.additive) setSelectedEventIds([]);
   };
   const loadFile = async (file, handle = null) => loadText(await file.text(), file.name, handle);
+
+  const combineFiles = async (files) => {
+    const items = await Promise.all([...files].map(async (file) => ({ name: file.name, source: await file.text() })));
+    if (!items.length) return;
+    const result = combineGcodeSources(doc, items, activeProfile);
+    applySource(result.source, `Combined ${items.length} file${items.length === 1 ? "" : "s"} · ${result.importedStrokes} strokes`, false);
+    if (doc.strokes.length === 0 && items[0]?.name) setName(items.length === 1 ? items[0].name : "combined.gcode");
+    else if (items.length) setName("combined.gcode");
+    setViewResetKey((value) => value + 1);
+  };
 
   const openFile = async () => {
     if (window.showOpenFilePicker) {
@@ -126,6 +157,17 @@ export default function App() {
       } catch (error) { if (error.name === "AbortError") return; }
     }
     inputRef.current.click();
+  };
+  const openCombine = async () => {
+    if (window.showOpenFilePicker) {
+      try {
+        const handles = await window.showOpenFilePicker({ multiple: true, types: [{ description: "G-code", accept: { "text/plain": [".gcode", ".gc", ".nc"] } }] });
+        const files = await Promise.all(handles.map((handle) => handle.getFile()));
+        await combineFiles(files);
+        return;
+      } catch (error) { if (error.name === "AbortError") return; }
+    }
+    combineInputRef.current.click();
   };
   const download = (text, filename) => {
     const url = URL.createObjectURL(new Blob([text], { type: "text/x-gcode" }));
@@ -164,7 +206,11 @@ export default function App() {
   };
   const changeMode = (mode) => setPaneMode((current) => current === mode ? "split" : mode);
   const selectedOrAll = selectedStrokeIds.length ? selectedStrokeIds : doc.strokes.map((stroke) => stroke.id);
-  const runDelete = () => applySource(selectedPoint ? deletePoint(doc, selectedPoint.strokeId, selectedPoint.pointIndex) : deleteSelection(doc, selectedStrokeIds, selectedEventIds), selectedPoint ? "Deleted point" : "Deleted selection", false);
+  const runDelete = () => {
+    if (selectedPoints.length > 1) { setMessage("Select one point at a time to delete it"); return; }
+    const point = selectedPoints[0];
+    applySource(point ? deletePoint(doc, point.strokeId, point.pointIndex) : deleteSelection(doc, selectedStrokeIds, selectedEventIds), point ? "Deleted point" : "Deleted selection", false);
+  };
   const runCopy = async () => {
     const fragment = copyStrokes(doc, selectedStrokeIds); if (!fragment) return;
     clipboardRef.current = fragment; setMessage(`Copied ${selectedStrokeIds.length} stroke${selectedStrokeIds.length === 1 ? "" : "s"}`);
@@ -177,9 +223,10 @@ export default function App() {
   };
   const runMove = (dx = Number(move.x), dy = Number(move.y)) => {
     if (!selectedStrokeIds.length || (!dx && !dy)) return;
-    applySource(selectedPoint ? movePoint(doc, selectedPoint.strokeId, selectedPoint.pointIndex, dx, dy) : translateStrokes(doc, selectedStrokeIds, dx, dy), `Moved ${selectedPoint ? "point" : "selection"} ${dx}, ${dy} mm`); setMove({ x: 0, y: 0 });
+    applySource(selectedPoints.length ? movePoints(doc, selectedPoints, dx, dy) : translateStrokes(doc, selectedStrokeIds, dx, dy), `Moved ${selectedPoints.length ? `${selectedPoints.length} point${selectedPoints.length === 1 ? "" : "s"}` : "selection"} ${dx}, ${dy} mm`); setMove({ x: 0, y: 0 });
   };
-  const runJoin = () => { const result = joinAdjacentStrokes(doc, selectedStrokeIds); if (result.error) setMessage(result.error); else applySource(result.source, "Joined strokes", false); };
+  const runJoin = () => { const result = joinAdjacentStrokes(doc, selectedStrokeIds, 1, selectedPoints); if (result.error) setMessage(result.error); else applySource(result.source, "Joined selected endpoints", false); };
+  const runMoveToSection = (sectionId) => { const result = moveStrokesToSection(doc, selectedStrokeIds, sectionId); if (result.error) setMessage(result.error); else applySource(result.source, "Moved strokes under selected pen", false); };
   const runOptimize = () => { const result = optimizeRoute(doc, selectedOrAll); if (result.error) setMessage(result.error); else applySource(result.source, "Optimized route", false); };
   const runScale = () => {
     if (scaleOptions.mode === "rotate") applySource(rotateStrokes(doc, selectedOrAll, scaleOptions.angle, scaleOptions.anchor === "custom" ? [Number(scaleOptions.customX), Number(scaleOptions.customY)] : null), `Rotated ${scaleOptions.angle}°`, false);
@@ -190,6 +237,9 @@ export default function App() {
     const result = scaleStrokes(doc, doc.strokes.map((stroke) => stroke.id), { mode: "fit", width: activeProfile.workW, height: activeProfile.workH, margin: 5, preserveAspect: true, anchor: "origin" });
     applySource(result.source, `Fit to ${activeProfile.workW} × ${activeProfile.workH} mm work area`, false);
   };
+  const openCanvasResize = () => { setCanvasOptions({ width: doc.meta.canvasW || 297, height: doc.meta.canvasH || 420, originX: doc.meta.originX || 0, originY: doc.meta.originY || 0, scaleArtwork: false }); setCanvasOpen(true); };
+  const runCanvasResize = () => { const result = resizeCanvas(doc, canvasOptions); if (result.error) setMessage(result.error); else { applySource(result.source, `Canvas ${canvasOptions.width} × ${canvasOptions.height} mm`, false); setCanvasOpen(false); setViewResetKey((value) => value + 1); } };
+  const runSearch = (action) => setSearchCommand({ ...search, action, id: Date.now() + Math.random() });
   const runInsertEvent = (options) => { applySource(insertEvent(doc, activeProfile, { ...options, lineIndex: selectedLine }), `Inserted ${options.kind}`, false); setEventsOpen(false); };
   const runContinuous = (rate) => { applySource(applyContinuousFeed(doc, selectedStrokeIds, Number(rate)), `Continuous feed ${rate} µl/mm`); setEventsOpen(false); };
   const runRemoveContinuous = () => { applySource(removeContinuousFeed(doc, selectedStrokeIds), "Removed continuous feed"); setEventsOpen(false); };
@@ -225,11 +275,11 @@ export default function App() {
       if (command && event.key.toLowerCase() === "z") { event.preventDefault(); if (event.shiftKey) redo(); else undo(); }
       else if (command && event.key.toLowerCase() === "a") { event.preventDefault(); setSelectedStrokeIds(doc.strokes.map((stroke) => stroke.id)); setSelectedEventIds([]); }
       else if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); runDelete(); }
-      else if (event.key === "Escape") { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoint(null); setSelectedLine(null); setDraftPoints([]); setPenMode(false); setBoxMode(false); setMeasureMode(false); }
+      else if (event.key === "Escape") { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); setSelectedLine(null); setDraftPoints([]); setPenMode(false); setBoxMode(false); setMeasureMode(false); }
       else if (event.key === "Enter" && penMode) { event.preventDefault(); commitDraft(); }
       else if (selectedStrokeIds.length && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
         event.preventDefault(); const step = event.shiftKey ? 1 : .1;
-        runMove(event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0, event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0);
+        runMove(event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0, event.key === "ArrowUp" ? (yUp ? step : -step) : event.key === "ArrowDown" ? (yUp ? -step : step) : 0);
       }
     };
     window.addEventListener("keydown", handler); return () => window.removeEventListener("keydown", handler);
@@ -251,11 +301,13 @@ export default function App() {
     return () => cancelAnimationFrame(frame);
   }, [playing, playbackSpeed, timeline.total]);
 
-  return <div className={`app${playbackOpen ? " playback-shown" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const file = event.dataTransfer.files[0]; if (file) loadFile(file); }}>
+  return <div className={`app${playbackOpen ? " playback-shown" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const files = event.dataTransfer.files; if (files.length > 1) combineFiles(files); else if (files[0]) loadFile(files[0]); }}>
     <header className="topbar">
       <div className="brand"><span className="brand-mark">L</span><div><strong>LATU</strong><small>G-code reader</small></div></div>
       <div className="toolbar">
         <button className="primary" onClick={openFile}>Open</button>
+        <div className="file-chip" title={name}><small>FILE</small><strong>{dirty ? "● " : ""}{name}</strong></div>
+        <button onClick={openCombine}>Combine…</button>
         <button onClick={() => save(false)}>Save</button>
         <button onClick={() => save(true)}>Save as</button>
         <select className="profile-select" aria-label="Machine profile" value={activeProfile.id} onChange={(event) => chooseProfile(event.target.value)}>{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select>
@@ -270,25 +322,31 @@ export default function App() {
         <button onClick={() => selectedStrokeIds.length && applySource(reverseStrokes(doc, selectedStrokeIds), "Reversed strokes") } disabled={visualLocked || !selectedStrokeIds.length}>Reverse</button>
         <button onClick={() => selectedStrokeIds.length === 1 && applySource(insertMidpoint(doc, selectedStrokeIds[0], selectedLine), "Inserted midpoint") } disabled={visualLocked || selectedStrokeIds.length !== 1}>+ Point</button>
         <button onClick={() => selectedStrokeIds.length === 1 && applySource(splitStroke(doc, selectedStrokeIds[0], selectedLine), "Split stroke", false)} disabled={visualLocked || selectedStrokeIds.length !== 1}>Split</button>
-        <button onClick={runJoin} disabled={visualLocked || selectedStrokeIds.length !== 2}>Join</button>
+        <button title="Select two endpoints with Shift-click, then Join" onClick={runJoin} disabled={visualLocked || selectedStrokeIds.length !== 2 || selectedPoints.length > 0 && selectedPoints.length !== 2}>Join endpoints</button>
         <button onClick={runOptimize} disabled={visualLocked || doc.strokes.length < 2}>Optimize</button>
+        <select className="pen-target" aria-label="Move selected strokes to pen" value="" onChange={(event) => { if (event.target.value !== "") runMoveToSection(event.target.value); }} disabled={visualLocked || !selectedStrokeIds.length}>
+          <option value="">Move to pen…</option>{doc.sections.map((section) => <option key={section.id} value={section.id}>{section.penIndex}: {section.name}</option>)}
+        </select>
         <button className={boxMode ? "on" : ""} onClick={() => { setBoxMode((value) => !value); setPenMode(false); setMeasureMode(false); setDraftPoints([]); }} disabled={visualLocked}>Box select</button>
         <button className={penMode ? "on" : ""} onClick={() => { setPenMode((value) => !value); setBoxMode(false); setMeasureMode(false); setDraftPoints([]); }} disabled={visualLocked}>Pen tool</button>
         <button className={measureMode ? "on" : ""} onClick={() => { setMeasureMode((value) => !value); setBoxMode(false); setPenMode(false); setDraftPoints([]); }} disabled={paneMode === "text"}>Measure</button>
         <button onClick={() => setEventsOpen(true)} disabled={visualLocked}>＋ Event</button>
         <button onClick={() => setScaleOpen(true)} disabled={visualLocked || !doc.strokes.length}>Scale / Fit</button>
         <button onClick={fitWorkArea} disabled={visualLocked || !doc.strokes.length}>Fit work area</button>
-        <span className="move-fields"><input aria-label="Move X" title="ΔX mm" type="number" step="0.1" value={move.x} onChange={(event) => setMove((value) => ({ ...value, x: event.target.value }))} /><input aria-label="Move Y" title="ΔY mm" type="number" step="0.1" value={move.y} onChange={(event) => setMove((value) => ({ ...value, y: event.target.value }))} /><button onClick={() => runMove()} disabled={visualLocked || !selectedStrokeIds.length}>Move</button></span>
+        <button onClick={openCanvasResize}>Canvas size</button>
+        <span className="move-fields"><label title="Horizontal move in millimetres"><b>X</b><input aria-label="Move X" type="number" step="0.1" value={move.x} onChange={(event) => setMove((value) => ({ ...value, x: event.target.value }))} /></label><label title="Vertical move in millimetres; positive Y moves up"><b>Y</b><input aria-label="Move Y" type="number" step="0.1" value={move.y} onChange={(event) => setMove((value) => ({ ...value, y: event.target.value }))} /></label><button onClick={() => runMove()} disabled={visualLocked || !selectedStrokeIds.length}>Move</button></span>
         <span className="separator" />
         <button className={showTravels ? "on" : ""} onClick={() => setShowTravels((value) => !value)}>Travels</button>
-        <button className={yUp ? "on" : ""} onClick={() => setYUp((value) => !value)}>Y axis ↑</button>
+        <button className={yUp ? "on" : ""} onClick={() => setYUp((value) => !value)}>Y+ ↑</button>
         <span className="separator" />
         <button className={paneMode === "canvas" ? "on" : ""} onClick={() => changeMode("canvas")}>Canvas</button>
         <button className={paneMode === "text" ? "on" : ""} onClick={() => changeMode("text")}>Text</button>
+        <button className={searchOpen ? "on" : ""} title="G-code text is directly editable" onClick={() => { setSearchOpen((value) => !value); if (paneMode === "canvas") setPaneMode("split"); }}>Find / Replace</button>
         <button className={playbackOpen ? "on" : ""} onClick={() => { const next = !playbackOpen; setPlaybackOpen(next); setPlaying(false); setBoxMode(false); setPenMode(false); setMeasureMode(false); }}>Playback</button>
       </div>
-      <div className="file-meta"><strong>{dirty ? "● " : ""}{name}</strong><small>{doc.meta.machineName || "Generic G-code"}</small></div>
+      <div className="file-meta"><strong>{doc.meta.machineName || "Generic G-code"}</strong><small>{doc.meta.canvasW ? `${doc.meta.canvasW} × ${doc.meta.canvasH} mm` : "Canvas size not set"}</small></div>
       <input ref={inputRef} type="file" accept=".gcode,.gc,.nc,text/plain" hidden onChange={(event) => event.target.files[0] && loadFile(event.target.files[0])} />
+      <input ref={combineInputRef} type="file" accept=".gcode,.gc,.nc,text/plain" multiple hidden onChange={(event) => { if (event.target.files.length) combineFiles(event.target.files); event.target.value = ""; }} />
     </header>
     <main className={`workspace mode-${paneMode}`} onPointerMove={(event) => {
       if (!dividerDrag.current) return;
@@ -296,22 +354,24 @@ export default function App() {
     }} onPointerUp={() => { dividerDrag.current = false; }}>
       {paneMode !== "text" && <Outline doc={doc} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} onSelectLine={selectLine} onReorder={(next) => applySource(next, "Reordered strokes", false)} />}
       {paneMode !== "text" && <section className="canvas-pane" style={paneMode === "split" ? { width: `calc(${split}% - 96px)` } : undefined}>
-        <CanvasView doc={doc} showTravels={showTravels} yUp={yUp} hoveredLine={hoveredLine} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} selectedPoint={selectedPoint} boxSelecting={boxMode} drawing={penMode} measuring={measureMode} draftPoints={draftPoints} playback={playbackOpen ? { active: true, time: playbackTime, timeline, sample: playbackSample } : null} onAddPoint={(point) => setDraftPoints((points) => [...points, point])} onInsertPoint={(strokeId, line, point) => !visualLocked && applySource(insertPoint(doc, strokeId, line, point), "Inserted point")} onHoverLine={setHoveredLine} onSelectLine={selectLine} onSelectStrokes={(ids, additive) => { setSelectedPoint(null); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); }} onTranslate={(dx, dy) => !visualLocked && runMove(dx, dy)} onMovePoint={(dx, dy) => !visualLocked && runMove(dx, dy)} onCursor={setCursor} />
+        <CanvasView doc={doc} viewResetKey={viewResetKey} showTravels={showTravels} yUp={yUp} hoveredLine={hoveredLine} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} selectedPoints={selectedPoints} boxSelecting={boxMode} drawing={penMode} measuring={measureMode} draftPoints={draftPoints} playback={playbackOpen ? { active: true, time: playbackTime, timeline, sample: playbackSample, penWidths } : null} onAddPoint={(point) => setDraftPoints((points) => [...points, point])} onInsertPoint={(strokeId, line, point) => !visualLocked && applySource(insertPoint(doc, strokeId, line, point), "Inserted point")} onHoverLine={setHoveredLine} onSelectLine={selectLine} onSelectStrokes={(ids, additive) => { setSelectedPoints([]); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); }} onTranslate={(dx, dy) => !visualLocked && runMove(dx, dy)} onMovePoints={(dx, dy) => !visualLocked && runMove(dx, dy)} onCursor={setCursor} />
         {boxMode && <div className="canvas-hint">Drag a box around strokes · Shift adds</div>}
         {penMode && <div className="canvas-hint">Click points · Enter to finish · Esc to cancel <strong>{draftPoints.length} pts</strong></div>}
         {measureMode && <div className="canvas-hint">Drag between two points to measure · Esc exits</div>}
+        {!measureMode && selectedPoints.length > 1 && <div className="canvas-hint">{selectedPoints.length} points selected · drag a white point to move all · Join uses two endpoints</div>}
         {!!safety.length && <div className="safety-panel">{safety.map((warning) => <div key={warning.kind}>⚠ {warning.message}</div>)}</div>}
       </section>}
       {paneMode === "split" && <div className="divider" onPointerDown={(event) => { dividerDrag.current = true; event.currentTarget.setPointerCapture(event.pointerId); }} />}
-      {paneMode !== "canvas" && <section className="text-pane">
-        <TextView value={source} parsed={doc} hoveredLine={hoveredLine} selectedLine={selectedLine} playbackLine={playbackOpen ? playbackSample.lineIndex : null} autoFollow={playbackOpen && autoFollow} onHoverLine={setHoveredLine} onSelectLine={selectLine} onChange={parseText} />
+      {paneMode !== "canvas" && <section className={`text-pane${searchOpen ? " search-shown" : ""}`}>
+        {searchOpen && <div className="find-bar"><input aria-label="Find" placeholder="Find, e.g. PAUSE" value={search.query} onChange={(event) => setSearch((value) => ({ ...value, query: event.target.value }))} onKeyDown={(event) => event.key === "Enter" && runSearch(event.shiftKey ? "previous" : "next")} autoFocus /><input aria-label="Replace" placeholder="Replace, e.g. M0" value={search.replacement} onChange={(event) => setSearch((value) => ({ ...value, replacement: event.target.value }))} /><button onClick={() => runSearch("previous")} disabled={!search.query}>↑</button><button onClick={() => runSearch("next")} disabled={!search.query}>↓</button><button onClick={() => runSearch("replace")} disabled={!search.query}>Replace</button><button onClick={() => runSearch("all")} disabled={!search.query}>All</button><label><input type="checkbox" checked={search.caseSensitive} onChange={(event) => setSearch((value) => ({ ...value, caseSensitive: event.target.checked }))} /> Aa</label><button onClick={() => setSearchOpen(false)}>×</button></div>}
+        <TextView value={source} parsed={doc} hoveredLine={hoveredLine} selectedLine={selectedLine} playbackLine={playbackOpen ? playbackSample.lineIndex : null} autoFollow={playbackOpen && autoFollow} searchCommand={searchCommand} onHoverLine={setHoveredLine} onSelectLine={selectLine} onChange={parseText} />
       </section>}
     </main>
-    {playbackOpen && <PlaybackPanel timeline={timeline} time={playbackTime} playing={playing} speed={playbackSpeed} autoFollow={autoFollow} onTime={seekPlayback} onPlaying={changePlaying} onSpeed={setPlaybackSpeed} onAutoFollow={setAutoFollow} onClose={() => { setPlaybackOpen(false); setPlaying(false); }} onChapter={(chapter) => { seekPlayback(chapter.time); setSelectedLine(chapter.lineIndex); }} />}
+    {playbackOpen && <PlaybackPanel timeline={timeline} time={playbackTime} playing={playing} speed={playbackSpeed} autoFollow={autoFollow} penWidths={penWidths} onPenWidth={(penIndex, width) => setPenWidths((values) => ({ ...values, [penIndex]: Math.max(.05, Math.min(20, Number(width) || .3)) }))} onTime={seekPlayback} onPlaying={changePlaying} onSpeed={setPlaybackSpeed} onAutoFollow={setAutoFollow} onClose={() => { setPlaybackOpen(false); setPlaying(false); }} onChapter={(chapter) => { seekPlayback(chapter.time); setSelectedLine(chapter.lineIndex); }} />}
     <footer className="statusbar">
       <span>{stats.join(" · ")}</span>
       <span>{safety.length ? `⚠ ${safety.length} safety warning${safety.length === 1 ? "" : "s"}` : "Dialect OK"}</span>
-      <span>{message || (selectedPoint ? `Point ${selectedPoint.pointIndex + 1} selected` : selectedStrokeIds.length ? `${selectedStrokeIds.length} stroke${selectedStrokeIds.length === 1 ? "" : "s"} selected` : selectedLine == null ? "No selection" : `Line ${selectedLine + 1}`)} · {cursor ? `X ${cursor[0].toFixed(2)}  Y ${cursor[1].toFixed(2)} mm` : "—"}</span>
+      <span>{message || (selectedPoints.length ? `${selectedPoints.length} point${selectedPoints.length === 1 ? "" : "s"} selected` : selectedStrokeIds.length ? `${selectedStrokeIds.length} stroke${selectedStrokeIds.length === 1 ? "" : "s"} selected` : selectedLine == null ? "No selection" : `Line ${selectedLine + 1}`)} · {cursor ? `X ${cursor[0].toFixed(2)}  Y ${cursor[1].toFixed(2)} mm` : "—"}</span>
     </footer>
     {scaleOpen && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setScaleOpen(false)}><div className="dialog">
       <h2>Scale / Fit</h2><p>{selectedStrokeIds.length ? `${selectedStrokeIds.length} selected strokes` : "Whole drawing"}</p>
@@ -322,6 +382,13 @@ export default function App() {
       <label>Anchor<select value={scaleOptions.anchor} onChange={(event) => setScaleOptions((value) => ({ ...value, anchor: event.target.value }))}><option value="center">Drawing center</option><option value="origin">Drawing origin</option><option value="custom">Custom point</option></select></label>
       {scaleOptions.anchor === "custom" && <div className="field-row custom-anchor"><label>Anchor X<input type="number" value={scaleOptions.customX} onChange={(event) => setScaleOptions((value) => ({ ...value, customX: event.target.value }))} /></label><label>Anchor Y<input type="number" value={scaleOptions.customY} onChange={(event) => setScaleOptions((value) => ({ ...value, customY: event.target.value }))} /></label></div>}
       <div className="dialog-actions"><button onClick={() => setScaleOpen(false)}>Cancel</button><button className="primary" onClick={runScale}>Apply</button></div>
+    </div></div>}
+    {canvasOpen && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setCanvasOpen(false)}><div className="dialog">
+      <h2>Canvas size</h2><p>Change the canvas boundary. G-code coordinates stay unchanged unless you scale the artwork.</p>
+      <div className="field-row"><label>Width mm<input type="number" min="0.01" value={canvasOptions.width} onChange={(event) => setCanvasOptions((value) => ({ ...value, width: event.target.value }))} /></label><label>Height mm<input type="number" min="0.01" value={canvasOptions.height} onChange={(event) => setCanvasOptions((value) => ({ ...value, height: event.target.value }))} /></label></div>
+      <div className="field-row custom-anchor"><label>Origin X<input type="number" value={canvasOptions.originX} onChange={(event) => setCanvasOptions((value) => ({ ...value, originX: event.target.value }))} /></label><label>Origin Y<input type="number" value={canvasOptions.originY} onChange={(event) => setCanvasOptions((value) => ({ ...value, originY: event.target.value }))} /></label></div>
+      <label className="check"><input type="checkbox" checked={canvasOptions.scaleArtwork} onChange={(event) => setCanvasOptions((value) => ({ ...value, scaleArtwork: event.target.checked }))} /> Scale all artwork to the new canvas size</label>
+      <div className="dialog-actions"><button onClick={() => setCanvasOpen(false)}>Cancel</button><button className="primary" onClick={runCanvasResize}>Apply</button></div>
     </div></div>}
     {eventsOpen && <EventsPalette profile={activeProfile} selectedCount={selectedStrokeIds.length} onClose={() => setEventsOpen(false)} onInsert={runInsertEvent} onContinuous={runContinuous} onRemoveContinuous={runRemoveContinuous} />}
     {profilesOpen && <ProfileManager profiles={profiles} activeId={activeProfile.id} onChange={updateProfiles} onActivate={(id) => { chooseProfile(id); setProfilesOpen(false); }} onClose={() => setProfilesOpen(false)} onExport={(single) => download(JSON.stringify(single ? { app: "latu-machine", v: 1, prof: single } : { app: "latu-machines", v: 1, machines: profiles }, null, 2), single ? `${single.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.json` : "latu-machines.json")} />}

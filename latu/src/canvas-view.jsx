@@ -39,17 +39,19 @@ function fitView(doc, width, height) {
   return { scale, ox: (width - spanX * scale) / 2 - b.minX * scale, oy: (height - spanY * scale) / 2 - b.minY * scale };
 }
 
-export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selectedLine, selectedStrokeIds, selectedPoint, boxSelecting, drawing, measuring, draftPoints, playback, onAddPoint, onInsertPoint, onHoverLine, onSelectLine, onSelectStrokes, onTranslate, onMovePoint, onCursor }) {
+export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hoveredLine, selectedLine, selectedStrokeIds, selectedPoints, boxSelecting, drawing, measuring, draftPoints, playback, onAddPoint, onInsertPoint, onHoverLine, onSelectLine, onSelectStrokes, onTranslate, onMovePoints, onCursor }) {
   const wrapRef = useRef(null);
   const staticRef = useRef(null);
   const overlayRef = useRef(null);
-  const [size, setSize] = useState({ width: 800, height: 600 });
+  const [size, setSize] = useState({ width: 0, height: 0 });
   const [view, setView] = useState(() => fitView(doc, 800, 600));
+  const fittedKeyRef = useRef(null);
   const dragRef = useRef(null);
   const [dragOffset, setDragOffset] = useState(null);
   const [boxRect, setBoxRect] = useState(null);
   const [measurement, setMeasurement] = useState(null);
   const index = useMemo(() => buildIndex(doc), [doc]);
+  const selectedPointKeys = useMemo(() => new Set(selectedPoints.map((point) => `${point.strokeId}:${point.pointIndex}`)), [selectedPoints]);
   const playbackActive = !!playback?.active;
 
   const toScreen = useCallback((point) => [view.ox + point[0] * view.scale, yUp ? size.height - (view.oy + point[1] * view.scale) : view.oy + point[1] * view.scale], [view, yUp, size.height]);
@@ -61,7 +63,11 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => { setView(fitView(doc, size.width, size.height)); }, [doc, size.width, size.height]);
+  useEffect(() => {
+    if (!size.width || !size.height || fittedKeyRef.current === viewResetKey) return;
+    fittedKeyRef.current = viewResetKey;
+    setView(fitView(doc, size.width, size.height));
+  }, [doc, size.width, size.height, viewResetKey]);
   useEffect(() => { if (!measuring) setMeasurement(null); }, [measuring]);
 
   useEffect(() => {
@@ -84,11 +90,11 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
       for (const travel of doc.travels) { const a = toScreen(travel.from), b = toScreen(travel.to); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
       ctx.stroke();
     }
-    ctx.setLineDash([]); ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.lineWidth = 1.4;
+    ctx.setLineDash([]); ctx.lineCap = "round"; ctx.lineJoin = "round";
     ctx.globalAlpha = playbackActive ? .16 : 1;
     for (const stroke of doc.strokes) {
       if (stroke.pts.length < 2) continue;
-      ctx.strokeStyle = stroke.color; ctx.beginPath();
+      ctx.strokeStyle = stroke.color; ctx.lineWidth = playbackActive ? Math.max(1, (Number(playback.penWidths?.[stroke.penIndex]) || .3) * view.scale) : 1.4; ctx.beginPath();
       const start = toScreen(stroke.pts[0]); ctx.moveTo(start[0], start[1]);
       for (let i = 1; i < stroke.pts.length; i += 1) { const point = toScreen(stroke.pts[i]); ctx.lineTo(point[0], point[1]); }
       ctx.stroke();
@@ -101,7 +107,7 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
       ctx.beginPath(); ctx.arc(point[0], point[1], 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       ctx.fillStyle = "#f4b860"; ctx.fillText(event.kind === "dip" ? "•" : "Ⅱ", point[0], point[1]);
     }
-  }, [doc, showTravels, view, size, toScreen, playbackActive]);
+  }, [doc, showTravels, view, size, toScreen, playback, playbackActive]);
 
   useEffect(() => {
     const canvas = overlayRef.current;
@@ -110,13 +116,13 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, size.width, size.height);
     if (playbackActive) {
-      ctx.lineWidth = 1.8; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
       for (const step of playback.timeline.steps) {
         if (step.kind !== "draw" || step.start >= playback.time) continue;
         const progress = step.duration ? Math.min(1, (playback.time - step.start) / step.duration) : 1;
         const end = [step.from[0] + (step.to[0] - step.from[0]) * progress, step.from[1] + (step.to[1] - step.from[1]) * progress];
         const a = toScreen(step.from), b = toScreen(end);
-        ctx.strokeStyle = step.color; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+        ctx.strokeStyle = step.color; ctx.lineWidth = Math.max(1, (Number(playback.penWidths?.[step.penIndex]) || .3) * view.scale); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
       }
       const tool = playback.sample?.position;
       if (tool && Number.isFinite(tool[0]) && Number.isFinite(tool[1])) {
@@ -129,16 +135,16 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
       const stroke = doc.strokes[strokeId]; if (!stroke) continue;
       ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath();
       stroke.pts.forEach((rawPoint, pointIndex) => {
-        const movingPoint = dragOffset && selectedPoint?.strokeId === strokeId && selectedPoint.pointIndex === pointIndex;
-        const movingStroke = dragOffset && !selectedPoint;
+        const movingPoint = dragOffset && selectedPointKeys.has(`${strokeId}:${pointIndex}`);
+        const movingStroke = dragOffset && !selectedPoints.length;
         const point = movingPoint || movingStroke ? [rawPoint[0] + dragOffset[0], rawPoint[1] + dragOffset[1]] : rawPoint;
         const screen = toScreen(point); if (!pointIndex) ctx.moveTo(screen[0], screen[1]); else ctx.lineTo(screen[0], screen[1]);
       }); ctx.stroke();
-      if (view.scale >= 1.5 || selectedPoint) for (let pointIndex = 0; pointIndex < stroke.pts.length; pointIndex += 1) {
-        const rawPoint = stroke.pts[pointIndex]; const moving = dragOffset && selectedPoint?.strokeId === strokeId && selectedPoint.pointIndex === pointIndex;
+      if (view.scale >= 1.5 || selectedPoints.length) for (let pointIndex = 0; pointIndex < stroke.pts.length; pointIndex += 1) {
+        const rawPoint = stroke.pts[pointIndex]; const isSelected = selectedPointKeys.has(`${strokeId}:${pointIndex}`); const moving = dragOffset && isSelected;
         const screen = toScreen(moving ? [rawPoint[0] + dragOffset[0], rawPoint[1] + dragOffset[1]] : rawPoint);
-        ctx.fillStyle = selectedPoint?.strokeId === strokeId && selectedPoint.pointIndex === pointIndex ? "#fff" : "#fbbf24";
-        ctx.beginPath(); ctx.arc(screen[0], screen[1], selectedPoint?.strokeId === strokeId && selectedPoint.pointIndex === pointIndex ? 5 : 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = isSelected ? "#fff" : "#fbbf24";
+        ctx.beginPath(); ctx.arc(screen[0], screen[1], isSelected ? 5 : 3, 0, Math.PI * 2); ctx.fill();
       }
     }
     if (draftPoints.length) {
@@ -175,7 +181,7 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
     }
     const event = line == null ? null : doc.events.find((item) => line >= item.lineStart && line <= item.lineEnd);
     if (event) { const p = toScreen([event.x, event.y]); ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p[0], p[1], 12, 0, Math.PI * 2); ctx.stroke(); }
-  }, [hoveredLine, selectedLine, selectedStrokeIds, selectedPoint, dragOffset, draftPoints, boxRect, measurement, measuring, doc, index, view, size, toScreen, playback, playbackActive]);
+  }, [hoveredLine, selectedLine, selectedStrokeIds, selectedPoints, selectedPointKeys, dragOffset, draftPoints, boxRect, measurement, measuring, doc, index, view, size, toScreen, playback, playbackActive]);
 
   const pointerPoint = (event) => {
     const rect = overlayRef.current.getBoundingClientRect();
@@ -204,10 +210,10 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
   const onPointerDown = (event) => {
     overlayRef.current.setPointerCapture(event.pointerId);
     const screen = pointerPoint(event); const hit = pick(screen);
-    const pointSelected = hit?.stroke && selectedPoint?.strokeId === hit.stroke.id && selectedPoint.pointIndex === hit.pointIndex;
+    const pointSelected = hit?.stroke && selectedPointKeys.has(`${hit.stroke.id}:${hit.pointIndex}`);
     const worldStart = toWorld(screen);
     if (measuring) setMeasurement({ a: worldStart, b: worldStart });
-    dragRef.current = { start: screen, worldStart, view, moved: false, mode: measuring ? "measure" : drawing ? "draw" : boxSelecting ? "box" : pointSelected ? "pointMove" : hit?.stroke && selectedStrokeIds.includes(hit.stroke.id) ? "move" : "pan", hit };
+    dragRef.current = { start: screen, worldStart, view, moved: false, mode: measuring ? "measure" : drawing ? "draw" : boxSelecting ? "box" : pointSelected ? "pointsMove" : hit?.stroke && selectedStrokeIds.includes(hit.stroke.id) ? "move" : "pan", hit };
   };
   const onPointerMove = (event) => {
     const point = pointerPoint(event); const world = toWorld(point); onCursor(world);
@@ -217,7 +223,7 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
       if (dragRef.current.mode === "measure") { setMeasurement({ a: dragRef.current.worldStart, b: world }); return; }
       if (dragRef.current.mode === "draw") return;
       if (dragRef.current.mode === "box") { setBoxRect([dragRef.current.start[0], dragRef.current.start[1], point[0], point[1]]); return; }
-      if (dragRef.current.mode === "move" || dragRef.current.mode === "pointMove") {
+      if (dragRef.current.mode === "move" || dragRef.current.mode === "pointsMove") {
         const current = toWorld(point); setDragOffset([current[0] - dragRef.current.worldStart[0], current[1] - dragRef.current.worldStart[1]]); return;
       }
       const dy = yUp ? -rawDy : rawDy;
@@ -236,10 +242,10 @@ export default function CanvasView({ doc, showTravels, yUp, hoveredLine, selecte
       const ids = doc.strokes.filter((stroke) => stroke.pts.some((point) => point[0] >= minX && point[0] <= maxX && point[1] >= minY && point[1] <= maxY)).map((stroke) => stroke.id);
       onSelectStrokes(ids, event.shiftKey); setBoxRect(null); return;
     }
-    if ((drag?.mode === "move" || drag?.mode === "pointMove") && drag.moved && dragOffset) {
+    if ((drag?.mode === "move" || drag?.mode === "pointsMove") && drag.moved && dragOffset) {
       const step = event.shiftKey ? 1 : .1;
       const dx = Math.round(dragOffset[0] / step) * step, dy = Math.round(dragOffset[1] / step) * step;
-      if (drag.mode === "pointMove") onMovePoint(dx, dy); else onTranslate(dx, dy);
+      if (drag.mode === "pointsMove") onMovePoints(dx, dy); else onTranslate(dx, dy);
       setDragOffset(null); return;
     }
     setDragOffset(null);

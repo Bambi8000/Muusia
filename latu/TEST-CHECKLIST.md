@@ -15,7 +15,10 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 ## Tiedostot ja round trip
 
 - [ ] `Open` avaa `.gcode`-tiedoston ja näyttää oikean tiedostonimen.
+- [ ] Tiedostonimi näkyy heti `Open`-painikkeen vieressä `FILE`-kentässä; piste nimen edessä kertoo tallentamattomista muutoksista.
 - [ ] Tiedoston voi pudottaa ikkunaan drag-and-dropilla.
+- [ ] `Combine…` tuo yhden tai useita G-codeja nykyiseen dokumenttiin ja säilyttää vetojen määrän.
+- [ ] Usean tiedoston vedot liittyvät samaa kynänumeroa käyttävään osioon; uusi kynänumero luo uuden pen change -osion.
 - [ ] Servo-fixture näyttää 51 vetoa ja kaksi kynäosiota (Black ja Magenta).
 - [ ] Bed-Z-fixture tunnistuu bed-Z-ohjelmaksi ja paine-Z säilyy pisteissä.
 - [ ] Tuntemattomat rivit näkyvät varoitettuina mutta säilyvät tekstissä.
@@ -29,12 +32,13 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 
 - [ ] Vedot näkyvät kynäväreillä ja travel-liikkeet katkoviivoina.
 - [ ] `Travels` piilottaa ja palauttaa travel-liikkeet.
-- [ ] `Y axis ↑` kääntää näkymän muuttamatta G-codea.
+- [ ] `Y+ ↑` on oletuksena päällä ja näyttää positiivisen Y-suunnan ylöspäin muuttamatta G-codea.
 - [ ] Hiiren rulla zoomaa osoittimen kohdalta.
 - [ ] `−` pienentää zoomia näkymän keskeltä.
 - [ ] `＋` suurentaa zoomia näkymän keskeltä.
 - [ ] `Fit` sovittaa koko piirroksen näkyviin.
 - [ ] Zoomilukema päivittyy ja pysyy välillä 0,1–64 px/mm.
+- [ ] Pisteen tai vedon siirto zoomattuna ei enää aja automaattista `Fit`-toimintoa: zoom ja panorointi säilyvät.
 - [ ] Tavallinen veto tyhjällä alueella panoroi näkymää.
 - [ ] Kaksoisklikkaus tyhjällä alueella sovittaa piirroksen näkymään.
 - [ ] Canvasin hover korostaa vastaavan G-code-rivin.
@@ -59,15 +63,20 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] Yhden vedon ja usean vedon valinta toimii; Shift lisää/poistaa valinnasta.
 - [ ] `Box select` valitsee laatikon sisällä olevat vedot.
 - [ ] Vedon ja yksittäisen pisteen raahaus päivittää G-code-koordinaatit.
+- [ ] Shift-klikkaus valitsee useita pisteitä; valitut pisteet näkyvät valkoisina.
+- [ ] Kun useita pisteitä on valittu, yhden valkoisen pisteen raahaus siirtää kaikkia valittuja pisteitä yhdessä.
 - [ ] Nuolinäppäin siirtää valintaa 0,1 mm; Shift 1 mm.
-- [ ] Numeerinen Move siirtää valintaa annetun X/Y-määrän.
+- [ ] Numeerinen Move näyttää pienet X/Y-tunnukset ja siirtää valintaa annetun määrän.
+- [ ] Kun `Y+ ↑` on päällä, positiivinen numeerinen Y-arvo ja ylänuoli siirtävät valintaa näytöllä ylöspäin.
 - [ ] Delete poistaa valitun pisteen, vedon tai tapahtuman turvallisena kokonaisuutena.
 - [ ] Copy/Paste monistaa valitut kokonaiset vedot.
 - [ ] Reverse vaihtaa vedon suunnan muuttamatta geometriaa.
 - [ ] `+ Point` lisää keskipisteen oikeaan segmenttiin.
 - [ ] Segmentin kaksoisklikkaus lisää pisteen täsmälliseen kohtaan.
 - [ ] Split jakaa vedon ja lisää tarvittavan nosto/travel/lasku-rakenteen.
-- [ ] Join yhdistää kaksi vierekkäistä vetoa lähimmistä päistä.
+- [ ] Join: valitse Shift-klikkauksella yksi päätepiste kummastakin vierekkäisestä vedosta ja paina `Join endpoints`.
+- [ ] Join käyttää juuri valittuja päätepisteitä ja kertoo, jos pisteet eivät ole päätepisteitä, vedot eivät ole vierekkäisiä tai väli on yli 1 mm.
+- [ ] Valittu veto voidaan siirtää `Move to pen…` -valinnalla toisen kynän alle; geometria ei muutu.
 - [ ] Outline-raahaus järjestää vetoja vain saman kynäosion sisällä.
 - [ ] Optimize lyhentää tai säilyttää travel-matkan eikä muuta vetojen määrää.
 - [ ] Pen tool luo uuden vedon ja Enter päättää sen; Esc peruu.
@@ -81,6 +90,8 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] Rotate kiertää valinnan piirroksen keskipisteen ympäri.
 - [ ] Custom anchor käyttää annettua konekoordinaattia.
 - [ ] Fit work area sijoittaa koko piirroksen profiilin työalueelle 5 mm marginaalilla.
+- [ ] `Canvas size` muuttaa canvasin leveyden, korkeuden ja origon muuttamatta oletuksena G-code-koordinaatteja.
+- [ ] `Scale all artwork` skaalaa koko piirroksen uuden canvas-koon ja origon mukaiseksi.
 - [ ] Työalueen ulkopuolinen piste tuottaa bounds-varoituksen.
 - [ ] G91- tai G20-tiedosto muuttuu turvallisesti vain katseltavaksi.
 - [ ] Epätasapainoinen dip/maintenance-lohko tuottaa varoituksen.
@@ -133,12 +144,23 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] Chapter-merkin painaminen hyppää taukoon ja oikealle tekstiriville.
 - [ ] Follow text vierittää aktiivista G-code-riviä; `Follow text` -valinnan poistaminen pysäyttää seurannan.
 - [ ] Kynäkohtaiset draw/travel/wait/total-ajat näkyvät ja summa vastaavaa kokonaisaikaa.
+- [ ] Jokaiselle playbackissa käytetylle kynälle voi antaa viivanpaksuuden millimetreinä.
+- [ ] Kynän viivanpaksuus näkyy sekä valmiissa että jäljellä olevassa playback-radassa ja säilyy sivun uudelleenlatauksessa.
 - [ ] Toisto päättyy kokonaisaikaan eikä jatku sen yli.
+
+## G-code-tekstin muokkaus ja haku
+
+- [ ] G-code-rivejä ja numeerisia arvoja voi muokata suoraan Text-näkymässä; canvas päivittyy viiveen jälkeen.
+- [ ] `Find / Replace` avaa hakurivin myös Canvas-only-tilasta.
+- [ ] Find löytää seuraavan osuman Enterillä/alasnuolella ja edellisen Shift+Enterillä/ylänuolella.
+- [ ] Replace korvaa valitun osuman ja All korvaa kaikki osumat, esimerkiksi `PAUSE` → `M0`.
+- [ ] `Aa` tekee hausta kirjainkoon huomioivan.
+- [ ] Find/Replace-muutokset kuuluvat Undo/Redo-historiaan.
 
 ## Pitkä tiedosto ja selainkäytös
 
 - [ ] 51 vedon fixture zoomaa, mittaa, valitsee ja toistaa ilman näkyvää nykimistä.
-- [ ] Selainikkunan koon muuttaminen sovittaa canvasin ilman vääristymää.
+- [ ] Selainikkunan tai Canvas/Text-jakajan koon muuttaminen muuttaa canvas-elementin kokoa ilman vääristymää ja säilyttää zoomin.
 - [ ] Canvas/Text/Split-vaihdot eivät hävitä valintaa tai muokkauksia.
 - [ ] Sivun reload palauttaa profiilit ja snippetit mutta ei keskeneräistä tiedostoa.
 - [ ] Sivulla ei ole testin jälkeen console error -viestejä.

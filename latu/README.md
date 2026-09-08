@@ -14,6 +14,11 @@ pause chapter markers, completed/remaining toolpath rendering, live tool
 position, optional text following, and per-pen time totals.
 The canvas also provides wheel-to-cursor and explicit +/-/Fit zoom controls,
 plus a drag measurement tool reporting distance and machine-coordinate deltas.
+The current editor also keeps the canvas viewport stable while geometry changes,
+defaults to positive Y pointing up, supports multi-point moves and explicit
+endpoint joins, moves strokes between pen sections, combines G-code files,
+resizes canvas metadata, provides visible Find/Replace fields for the directly
+editable G-code, and previews a persistent per-pen line width during playback.
 
 From the repository root:
 
