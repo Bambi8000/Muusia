@@ -18,7 +18,10 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] Tiedostonimi näkyy heti `Open`-painikkeen vieressä `FILE`-kentässä; piste nimen edessä kertoo tallentamattomista muutoksista.
 - [ ] Tiedoston voi pudottaa ikkunaan drag-and-dropilla.
 - [ ] `Combine…` tuo yhden tai useita G-codeja nykyiseen dokumenttiin ja säilyttää vetojen määrän.
-- [ ] Usean tiedoston vedot liittyvät samaa kynänumeroa käyttävään osioon; uusi kynänumero luo uuden pen change -osion.
+- [ ] Yhdistetyssä dokumentissa jokainen lähdetiedosto näkyy omana nimettynä `FILE GROUPS` -ryhmänään.
+- [ ] Ryhmä säilyy yhtenäisenä G-codessa: eri tiedostojen vedot eivät lomitu keskenään, mutta tiedoston sisäiset pen change -vaihdot säilyvät.
+- [ ] Ryhmärivin valitseminen valitsee tiedoston kaikki vedot kaikista kynäosioista.
+- [ ] Ryhmää voi raahata canvaksella tai siirtää numeerisilla X/Y-arvoilla yhtenä kokonaisuutena esimerkiksi neljän kuvan A3-asettelua varten.
 - [ ] Servo-fixture näyttää 51 vetoa ja kaksi kynäosiota (Black ja Magenta).
 - [ ] Bed-Z-fixture tunnistuu bed-Z-ohjelmaksi ja paine-Z säilyy pisteissä.
 - [ ] Tuntemattomat rivit näkyvät varoitettuina mutta säilyvät tekstissä.
@@ -75,7 +78,8 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] Segmentin kaksoisklikkaus lisää pisteen täsmälliseen kohtaan.
 - [ ] Split jakaa vedon ja lisää tarvittavan nosto/travel/lasku-rakenteen.
 - [ ] Join: valitse Shift-klikkauksella yksi päätepiste kummastakin vierekkäisestä vedosta ja paina `Join endpoints`.
-- [ ] Join käyttää juuri valittuja päätepisteitä ja kertoo, jos pisteet eivät ole päätepisteitä, vedot eivät ole vierekkäisiä tai väli on yli 1 mm.
+- [ ] Join käyttää juuri valittuja päätepisteitä ja kertoo, jos pisteet eivät ole päätepisteitä tai vedot eivät ole vierekkäisiä.
+- [ ] Kauempana olevien päätepisteiden Join onnistuu ja lisää niiden välille näkyvän piirrettävän yhdyssegmentin.
 - [ ] Valittu veto voidaan siirtää `Move to pen…` -valinnalla toisen kynän alle; geometria ei muutu.
 - [ ] Outline-raahaus järjestää vetoja vain saman kynäosion sisällä.
 - [ ] Optimize lyhentää tai säilyttää travel-matkan eikä muuta vetojen määrää.
@@ -146,7 +150,15 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] Kynäkohtaiset draw/travel/wait/total-ajat näkyvät ja summa vastaavaa kokonaisaikaa.
 - [ ] Jokaiselle playbackissa käytetylle kynälle voi antaa viivanpaksuuden millimetreinä.
 - [ ] Kynän viivanpaksuus näkyy sekä valmiissa että jäljellä olevassa playback-radassa ja säilyy sivun uudelleenlatauksessa.
+- [ ] Playbackin `Paper color` vaihtaa esikatselun taustavärin ja säilyy sivun uudelleenlatauksessa.
 - [ ] Toisto päättyy kokonaisaikaan eikä jatku sen yli.
+
+## Värit ja käyttöliittymä
+
+- [ ] Työkalupalkki näkyy kahtena erillisenä rivinä ja kumpaakin riviä voi vierittää vaakasuunnassa pienessä ikkunassa.
+- [ ] `Pen colors` näyttää jokaisen käytetyn kynän ja valmiin väripaletin.
+- [ ] Palettivärin tai vapaan värivalitsimen valinta päivittää canvasin, outlinen ja playbackin.
+- [ ] Kynäväri säilyy tallennetussa G-codessa `LATU PEN COLOR` -metatietona ja palautuu uudelleen avattaessa.
 
 ## G-code-tekstin muokkaus ja haku
 

@@ -1,7 +1,15 @@
 import { reorderSection } from "./model.js";
 
-export default function Outline({ doc, selectedLine, selectedStrokeIds, onSelectLine, onReorder }) {
+export default function Outline({ doc, selectedLine, selectedStrokeIds, onSelectLine, onSelectGroup, onReorder }) {
   return <aside className="outline">
+    {!!doc.groups?.length && <>
+      <div className="rail-title">FILE GROUPS</div>
+      <div className="group-list">{doc.groups.map((group) => {
+        const selected = group.strokeIds.length > 0 && group.strokeIds.every((id) => selectedStrokeIds.includes(id));
+        const pens = new Set(group.strokeIds.map((id) => doc.strokes[id]?.penIndex).filter((value) => value != null));
+        return <button key={group.id} className={`group-row${selected ? " active" : ""}`} onClick={(event) => onSelectGroup(group.strokeIds, event.shiftKey)} title="Select and move this imported file as one group"><span>▣</span><strong>{group.name}</strong><small>{group.strokeIds.length} strokes · {pens.size} pens</small></button>;
+      })}</div>
+    </>}
     <div className="rail-title">PROGRAM</div>
     {doc.sections.map((section) => {
       const items = [

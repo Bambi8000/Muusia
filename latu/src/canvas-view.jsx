@@ -76,7 +76,7 @@ export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hovere
     canvas.width = Math.max(1, Math.round(size.width * dpr)); canvas.height = Math.max(1, Math.round(size.height * dpr));
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, size.width, size.height);
-    ctx.fillStyle = "#11161b"; ctx.fillRect(0, 0, size.width, size.height);
+    ctx.fillStyle = playbackActive ? playback.paperColor || "#f5f1e8" : "#11161b"; ctx.fillRect(0, 0, size.width, size.height);
     const rect = (x, y, w, h, color, dash = []) => {
       const a = toScreen([x, y]), b = toScreen([x + w, y + h]);
       ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.setLineDash(dash);

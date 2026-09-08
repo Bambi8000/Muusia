@@ -35,7 +35,8 @@ function parseHeader(raw, meta) {
     Object.assign(meta, { penDelayDown: Number(match[1]), penDelayUp: Number(match[2]) });
   }
   if ((match = raw.match(/^;\s*Pen\s+(\d+)\s*:\s*(.+?)\s*$/i))) meta.penNames[Number(match[1])] = match[2];
-  return /^;\s*(?:Muusia|Machine:|Canvas |Draw |Z mode:|Z-hop travel lift:|Pen settle:|Pen \d+:)/i.test(raw);
+  if ((match = raw.match(/^;\s*LATU PEN COLOR\s+(\d+)\s+(#[0-9a-f]{6})\s*$/i))) meta.penColors[Number(match[1])] = match[2].toLowerCase();
+  return /^;\s*(?:Muusia|Machine:|Canvas |Draw |Z mode:|Z-hop travel lift:|Pen settle:|Pen \d+:|LATU PEN COLOR)/i.test(raw);
 }
 
 function parseLine(line, meta, profile) {
@@ -114,7 +115,7 @@ function buildBlocks(lines) {
 }
 
 export function parseGcode(source, profile = {}) {
-  const meta = { penNames: {} };
+  const meta = { penNames: {}, penColors: {} };
   const lines = physicalLines(source);
   for (const line of lines) line.op = parseLine(line, meta, profile);
   const inferredZ = [...new Set(lines.filter((line) => line.op.kind === "zmove").map((line) => line.op.params.Z))].sort((a, b) => a - b);
@@ -126,9 +127,11 @@ export function parseGcode(source, profile = {}) {
   let x = 0, y = 0, z = null, feed = null, positionLine = null;
   let penIndex = 0;
   let sectionId = 0;
+  let currentGroupId = null, currentGroupName = null;
   let activeStroke = null;
   let drawLength = 0, travelLength = 0, drawMinutes = 0, travelMinutes = 0, dwellMs = 0;
-  const strokes = [], travels = [], events = [], sections = [];
+  const strokes = [], travels = [], events = [], sections = [], groups = [];
+  const groupsById = new Map();
   const blocks = buildBlocks(lines);
   const blockAt = new Map();
   for (const block of blocks) for (let i = block.lineStart; i <= block.lineEnd; i += 1) blockAt.set(i, block);
@@ -145,6 +148,11 @@ export function parseGcode(source, profile = {}) {
       activeStroke.id = strokes.length;
       strokes.push(activeStroke);
       section().strokeIds.push(activeStroke.id);
+      if (activeStroke.groupId != null) {
+        let group = groupsById.get(activeStroke.groupId);
+        if (!group) { group = { id: activeStroke.groupId, name: activeStroke.groupName || activeStroke.groupId, strokeIds: [] }; groupsById.set(activeStroke.groupId, group); groups.push(group); }
+        group.strokeIds.push(activeStroke.id);
+      }
     }
     activeStroke = null;
   };
@@ -161,6 +169,10 @@ export function parseGcode(source, profile = {}) {
 
   lines.forEach((line, lineIndex) => {
     const op = line.op;
+    const groupBegin = line.raw.match(/^;\s*LATU GROUP\s+(\S+)\s+BEGIN(?:\s+(.*?))?\s*$/i);
+    const groupEnd = line.raw.match(/^;\s*LATU GROUP\s+(\S+)\s+END\s*$/i);
+    if (groupBegin) { finishStroke(); currentGroupId = groupBegin[1]; currentGroupName = groupBegin[2] || groupBegin[1]; }
+    if (groupEnd) finishStroke();
     op.lineIndex = lineIndex;
     op.stateBefore = penState;
     op.xBefore = x; op.yBefore = y;
@@ -190,7 +202,7 @@ export function parseGcode(source, profile = {}) {
       op.motionKind = drawing ? "draw" : "travel";
       op.x = nx; op.y = ny; op.z = nz; op.feed = nextFeed;
       if (drawing) {
-        if (!activeStroke) activeStroke = { lineStart: lineIndex, lineEnd: lineIndex, pts: [[x, y, z]], pointLines: [positionLine ?? lineIndex], penIndex, sectionId, color: PEN_COLORS[penIndex % PEN_COLORS.length] };
+        if (!activeStroke) activeStroke = { lineStart: lineIndex, lineEnd: lineIndex, pts: [[x, y, z]], pointLines: [positionLine ?? lineIndex], penIndex, sectionId, groupId: currentGroupId, groupName: currentGroupName, color: meta.penColors[penIndex] || PEN_COLORS[penIndex % PEN_COLORS.length] };
         activeStroke.pts.push([nx, ny, nz]);
         activeStroke.pointLines.push(lineIndex);
         activeStroke.lineEnd = lineIndex;
@@ -226,6 +238,7 @@ export function parseGcode(source, profile = {}) {
     const block = blockAt.get(lineIndex);
     if (block && lineIndex === block.lineStart) addEvent(block.kind, block.lineStart, block.lineEnd);
     op.stateAfter = penState;
+    if (groupEnd && currentGroupId === groupEnd[1]) { currentGroupId = null; currentGroupName = null; }
   });
   finishStroke();
 
@@ -255,7 +268,7 @@ export function parseGcode(source, profile = {}) {
     }
   }
   return {
-    source, lines, meta, strokes, travels, events, sections: sections.filter(Boolean), blocks, bounds,
+    source, lines, meta, strokes, travels, events, sections: sections.filter(Boolean), groups, blocks, bounds,
     modal: { absolute, millimeters },
     warnings: { unknownCount, unsafeModal, inferredZ: meta.zMode === "bed" && !profile.penUp ? inferredZ : null },
     stats: { drawLength, travelLength, drawMinutes, travelMinutes, dwellMs, totalMinutes: drawMinutes + travelMinutes + dwellMs / 60000 },

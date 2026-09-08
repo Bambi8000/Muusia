@@ -29,10 +29,11 @@ export function buildTimeline(doc, profile = {}) {
     const duration = Math.max(0, Number(step.duration) || 0);
     const section = sectionsByLine[step.lineIndex] || { penIndex: 0 };
     const penIndex = section.penIndex ?? 0;
-    const item = { ...step, penIndex, color: PEN_COLORS[penIndex % PEN_COLORS.length], start: time, end: time + duration, duration };
+    const color = doc.meta.penColors?.[penIndex] || PEN_COLORS[penIndex % PEN_COLORS.length];
+    const item = { ...step, penIndex, color, start: time, end: time + duration, duration };
     steps.push(item);
     time = item.end;
-    const totals = perPen.get(penIndex) || { penIndex, name: penName(doc, penIndex), color: PEN_COLORS[penIndex % PEN_COLORS.length], draw: 0, travel: 0, dwell: 0, settle: 0, other: 0, total: 0 };
+    const totals = perPen.get(penIndex) || { penIndex, name: penName(doc, penIndex), color, draw: 0, travel: 0, dwell: 0, settle: 0, other: 0, total: 0 };
     const bucket = Object.hasOwn(totals, item.kind) ? item.kind : "other";
     totals[bucket] += duration; totals.total += duration; perPen.set(penIndex, totals);
   };

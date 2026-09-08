@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { addStroke, auditDocument, combineGcodeSources, copyStrokes, deletePoint, deleteSelection, finalizeForSave, insertMidpoint, joinAdjacentStrokes, movePoint, movePoints, moveStrokesToSection, optimizeRoute, pasteAfterSelection, resizeCanvas, reverseStrokes, rotateStrokes, scaleStrokes, splitStroke, translateStrokes } from "../src/model.js";
+import { addStroke, auditDocument, combineGcodeSources, copyStrokes, deletePoint, deleteSelection, finalizeForSave, insertMidpoint, joinAdjacentStrokes, movePoint, movePoints, moveStrokesToSection, optimizeRoute, pasteAfterSelection, resizeCanvas, reverseStrokes, rotateStrokes, scaleStrokes, splitStroke, translateStrokes, updatePenColor } from "../src/model.js";
 import { parseGcode } from "../src/parser.js";
 
 const fixture = await readFile(new URL("./fixtures/servo-z.gcode", import.meta.url), "utf8");
@@ -134,11 +134,40 @@ test("selected strokes can move under another pen section", () => {
   assert.equal(after.sections[1].strokeIds.length, 2);
 });
 
-test("combining G-code imports strokes into matching pens", () => {
+test("combining G-code keeps every source file as one multi-pen group", () => {
   const base = parseGcode(fixture);
-  const result = combineGcodeSources(base, [{ source: fixture }]);
+  const result = combineGcodeSources(base, [{ name: "second.gcode", source: fixture }], {}, "first.gcode");
   assert.equal(result.importedStrokes, 2);
-  assert.equal(parseGcode(result.source).strokes.length, 4);
+  const combined = parseGcode(result.source);
+  assert.equal(combined.strokes.length, 4);
+  assert.deepEqual(combined.groups.map((group) => [group.name, group.strokeIds.length]), [["first.gcode", 2], ["second.gcode", 2]]);
+  assert.deepEqual(combined.groups[1].strokeIds.map((id) => combined.strokes[id].penIndex), [0, 7]);
+});
+
+test("join can connect endpoints farther than one millimetre apart", () => {
+  const source = `; Z mode: SERVO "pen" — up 135° / down 80° (bed-Z untouched)\nSET_SERVO SERVO=pen ANGLE=135\nG0 X0 Y0\nSET_SERVO SERVO=pen ANGLE=80\nG1 X10 Y0\nSET_SERVO SERVO=pen ANGLE=135\nG0 X30 Y0\nSET_SERVO SERVO=pen ANGLE=80\nG1 X40 Y0\nSET_SERVO SERVO=pen ANGLE=135\n`;
+  const before = parseGcode(source);
+  const result = joinAdjacentStrokes(before, [0, 1], Infinity, [{ strokeId: 0, pointIndex: 1 }, { strokeId: 1, pointIndex: 0 }]);
+  assert.equal(result.error, null);
+  assert.equal(result.distance, 20);
+  assert.deepEqual(parseGcode(result.source).strokes[0].pts.map((point) => point[0]), [0, 10, 30, 40]);
+});
+
+test("join brings non-adjacent selected strokes together within a pen section", () => {
+  const source = `; Z mode: SERVO "pen" — up 135° / down 80° (bed-Z untouched)\nSET_SERVO SERVO=pen ANGLE=135\nG0 X0 Y0\nSET_SERVO SERVO=pen ANGLE=80\nG1 X10 Y0\nSET_SERVO SERVO=pen ANGLE=135\nG0 X50 Y0\nSET_SERVO SERVO=pen ANGLE=80\nG1 X60 Y0\nSET_SERVO SERVO=pen ANGLE=135\nG0 X20 Y0\nSET_SERVO SERVO=pen ANGLE=80\nG1 X30 Y0\nSET_SERVO SERVO=pen ANGLE=135\n`;
+  const before = parseGcode(source);
+  const result = joinAdjacentStrokes(before, [0, 2], Infinity, [{ strokeId: 0, pointIndex: 1 }, { strokeId: 2, pointIndex: 0 }]);
+  assert.equal(result.error, null);
+  const after = parseGcode(result.source);
+  assert.equal(after.strokes.length, 2);
+  assert.deepEqual(after.strokes[0].pts.map((point) => point[0]), [0, 10, 20, 30]);
+  assert.deepEqual(after.strokes[1].pts.map((point) => point[0]), [50, 60]);
+});
+
+test("pen palette color is stored in G-code metadata", () => {
+  const recolored = parseGcode(updatePenColor(parseGcode(fixture), 1, "#22c55e"));
+  assert.equal(recolored.meta.penColors[1], "#22c55e");
+  assert.ok(recolored.strokes.filter((stroke) => stroke.penIndex === 1).every((stroke) => stroke.color === "#22c55e"));
 });
 
 test("canvas resize updates metadata and can scale artwork", () => {

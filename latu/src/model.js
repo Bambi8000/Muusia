@@ -223,12 +223,26 @@ export function splitStroke(doc, strokeId, lineIndex) {
   return finish(lines);
 }
 
-export function joinAdjacentStrokes(doc, strokeIds, tolerance = 1, selectedEndpoints = []) {
+export function joinAdjacentStrokes(doc, strokeIds, tolerance = Infinity, selectedEndpoints = []) {
   if (strokeIds.length !== 2) return { source: doc.source, error: "Select exactly two strokes." };
   let [a, b] = strokeIds.map((id) => doc.strokes[id]).sort((x, y) => x.blockStart - y.blockStart);
   if (!a || !b || a.sectionId !== b.sectionId) return { source: doc.source, error: "Strokes must be in the same section." };
+  if ((a.groupId || b.groupId) && a.groupId !== b.groupId) return { source: doc.source, error: "Join stays inside one file group." };
   const between = doc.lines.slice(a.blockEnd + 1, b.blockStart).filter((line) => line.raw.trim());
-  if (between.length) return { source: doc.source, error: "Only adjacent strokes can be joined safely." };
+  if (between.length) {
+    const section = doc.sections.find((item) => item.id === a.sectionId);
+    const order = section?.strokeIds.map((id) => doc.strokes[id]).filter(Boolean).sort((x, y) => x.blockStart - y.blockStart).map((stroke) => stroke.id) || [];
+    const ai = order.indexOf(a.id), bi = order.indexOf(b.id);
+    if (ai >= 0 && bi > ai + 1) {
+      order.splice(bi, 1); order.splice(ai + 1, 0, b.id);
+      const reordered = parseGcode(reorderSection(doc, a.sectionId, order));
+      const nextSection = reordered.sections.find((item) => item.id === a.sectionId);
+      const nextA = nextSection?.strokeIds[ai], nextB = nextSection?.strokeIds[ai + 1];
+      const mappedEndpoints = selectedEndpoints.map((point) => ({ ...point, strokeId: point.strokeId === a.id ? nextA : point.strokeId === b.id ? nextB : point.strokeId }));
+      return joinAdjacentStrokes(reordered, [nextA, nextB], tolerance, mappedEndpoints);
+    }
+    return { source: doc.source, error: "An event between the strokes prevents a safe join." };
+  }
   const distance = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
   let best;
   if (selectedEndpoints.length === 2) {
@@ -249,12 +263,16 @@ export function joinAdjacentStrokes(doc, strokeIds, tolerance = 1, selectedEndpo
     ].sort((x, y) => x.distance - y.distance);
     best = choices[0];
   }
-  if (best.distance > tolerance) return { source: doc.source, error: `Closest endpoints are ${best.distance.toFixed(2)} mm apart.` };
+  if (Number.isFinite(tolerance) && best.distance > tolerance) return { source: doc.source, error: `Selected endpoints are ${best.distance.toFixed(2)} mm apart.` };
   const working = best.reverse.length ? parseGcode(reverseStrokes(doc, best.reverse)) : doc;
   [a, b] = [working.strokes[a.id], working.strokes[b.id]];
   const lines = cloneLines(working);
-  lines.splice(a.lineEnd + 1, b.lineStart - a.lineEnd - 1);
-  return { source: finish(lines), error: null };
+  let connectorRaw = lines[b.approachLine].raw.replace(/^(\s*)G0?0\b/i, "$1G1");
+  const drawFeed = lines[b.lineStart]?.op?.feed;
+  if (Number.isFinite(drawFeed) && /\bF\s*=?\s*[-+]?\d/i.test(connectorRaw)) connectorRaw = replaceWord(connectorRaw, "F", drawFeed);
+  const connector = best.distance > 0.0001 ? [{ ...lines[b.approachLine], raw: connectorRaw, dirty: true }] : [];
+  lines.splice(a.lineEnd + 1, b.lineStart - a.lineEnd - 1, ...connector);
+  return { source: finish(lines), error: null, distance: best.distance };
 }
 
 export function moveStrokesToSection(doc, strokeIds, targetSectionId) {
@@ -287,36 +305,68 @@ export function moveStrokesToSection(doc, strokeIds, targetSectionId) {
   return { source: finish(lines), error: null };
 }
 
-export function combineGcodeSources(baseDoc, sources, profile = {}) {
+export function combineGcodeSources(baseDoc, sources, profile = {}, baseName = "Current drawing") {
+  const marker = /^;\s*LATU GROUP\s+\S+\s+(?:BEGIN|END)\b/i;
+  const withoutGroupMarkers = (doc) => finish(cloneLines(doc).filter((line) => !marker.test(line.raw)));
+  const wrapWholeDrawing = (doc, id, name) => {
+    if (!doc.strokes.length) return doc.source;
+    const lines = cloneLines(doc);
+    const first = Math.min(...doc.strokes.map((stroke) => stroke.blockStart));
+    const last = Math.max(...doc.strokes.map((stroke) => stroke.blockEnd));
+    const ending = lines[0]?.ending || "\n";
+    lines.splice(last + 1, 0, { raw: `; LATU GROUP ${id} END`, ending, dirty: true, op: null });
+    lines.splice(first, 0, { raw: `; LATU GROUP ${id} BEGIN ${name}`, ending, dirty: true, op: null });
+    return finish(lines);
+  };
   let working = baseDoc;
   let queue = sources.map((item) => typeof item === "string" ? { source: item } : item).filter((item) => item?.source);
   let importedStrokes = 0;
   if (!working.strokes.length && queue.length) {
-    working = parseGcode(queue.shift().source, profile);
+    const first = queue.shift();
+    working = parseGcode(withoutGroupMarkers(parseGcode(first.source, profile)), profile);
+    working = parseGcode(wrapWholeDrawing(working, "group-1", first.name || "Imported file 1"), profile);
     importedStrokes += working.strokes.length;
+  } else if (working.strokes.length && !working.groups.length) {
+    working = parseGcode(wrapWholeDrawing(working, "group-1", baseName), profile);
   }
   for (const item of queue) {
     const incoming = parseGcode(item.source, profile);
-    for (const incomingSection of incoming.sections.filter((section) => section.strokeIds.length)) {
-      const fragment = copyStrokes(incoming, incomingSection.strokeIds);
-      if (!fragment) continue;
-      working = parseGcode(working.source, profile);
-      const target = working.sections.find((section) => section.penIndex === incomingSection.penIndex && section.strokeIds.length);
-      const lines = cloneLines(working);
-      const fragmentLines = parseGcode(fragment, profile).lines.map((line) => ({ ...line, ending: lines[0]?.ending || "\n", dirty: true }));
-      if (target) {
-        const at = Math.max(...target.strokeIds.map((id) => working.strokes[id].blockEnd)) + 1;
-        lines.splice(at, 0, ...fragmentLines);
-      } else {
-        const at = working.strokes.length ? Math.max(...working.strokes.map((stroke) => stroke.blockEnd)) + 1 : lines.length;
-        const pause = profile.pauseCmd || "M0";
-        lines.splice(at, 0, { raw: `${pause} ; CHANGE PEN -> ${incomingSection.penIndex}: ${incomingSection.name}`, ending: lines[0]?.ending || "\n", dirty: true, op: null }, ...fragmentLines);
-      }
-      importedStrokes += incomingSection.strokeIds.length;
-      working = parseGcode(finish(lines), profile);
-    }
+    if (!incoming.strokes.length) continue;
+    const first = Math.min(...incoming.strokes.map((stroke) => stroke.blockStart));
+    const last = Math.max(...incoming.strokes.map((stroke) => stroke.blockEnd));
+    const lines = cloneLines(working);
+    const ending = lines[0]?.ending || "\n";
+    let groupNumber = working.groups.length + 1;
+    while (working.groups.some((group) => group.id === `group-${groupNumber}`)) groupNumber += 1;
+    const groupId = `group-${groupNumber}`;
+    const groupName = item.name || `Imported file ${groupNumber}`;
+    const fragment = incoming.lines.slice(first, last + 1).filter((line) => !marker.test(line.raw)).map((line) => ({ ...line, ending, dirty: true }));
+    const firstStroke = incoming.strokes[0];
+    const currentPen = working.sections.at(-1)?.penIndex;
+    const penChange = currentPen === firstStroke.penIndex ? [] : [{ raw: `${profile.pauseCmd || "M0"} ; CHANGE PEN -> ${firstStroke.penIndex}: ${incoming.sections.find((section) => section.id === firstStroke.sectionId)?.name || `Pen ${firstStroke.penIndex}`}`, ending, dirty: true, op: null }];
+    let at = working.strokes.length ? Math.max(...working.strokes.map((stroke) => stroke.blockEnd)) + 1 : lines.length;
+    while (/^;\s*LATU GROUP\s+\S+\s+END\b/i.test(lines[at]?.raw || "")) at += 1;
+    lines.splice(at, 0,
+      { raw: `; LATU GROUP ${groupId} BEGIN ${groupName}`, ending, dirty: true, op: null },
+      ...penChange, ...fragment,
+      { raw: `; LATU GROUP ${groupId} END`, ending, dirty: true, op: null });
+    importedStrokes += incoming.strokes.length;
+    working = parseGcode(finish(lines), profile);
   }
   return { source: working.source, importedStrokes };
+}
+
+export function updatePenColor(doc, penIndex, color) {
+  const normalized = /^#[0-9a-f]{6}$/i.test(color) ? color.toLowerCase() : "#111111";
+  const lines = cloneLines(doc);
+  const existing = lines.find((line) => new RegExp(`^;\\s*LATU PEN COLOR\\s+${Number(penIndex)}\\s+`, "i").test(line.raw));
+  if (existing) existing.raw = `; LATU PEN COLOR ${Number(penIndex)} ${normalized}`;
+  else {
+    const ending = lines[0]?.ending || "\n";
+    const headerEnd = lines.findIndex((line) => !line.raw.trim().startsWith(";"));
+    lines.splice(headerEnd < 0 ? lines.length : headerEnd, 0, { raw: `; LATU PEN COLOR ${Number(penIndex)} ${normalized}`, ending, dirty: true, op: null });
+  }
+  return finish(lines);
 }
 
 export function resizeCanvas(doc, options) {

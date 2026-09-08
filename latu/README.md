@@ -19,6 +19,11 @@ defaults to positive Y pointing up, supports multi-point moves and explicit
 endpoint joins, moves strokes between pen sections, combines G-code files,
 resizes canvas metadata, provides visible Find/Replace fields for the directly
 editable G-code, and previews a persistent per-pen line width during playback.
+Combined source files are now kept as named, movable file groups rather than
+interleaved by pen. Pen display colors can be picked from a palette and stored
+in LATU metadata, while playback exposes both paper color and clearly labelled
+per-pen widths. The toolbar uses two independently scrollable rows, and endpoint
+joining can add an explicit drawn connector over longer gaps.
 
 From the repository root:
 
