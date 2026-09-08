@@ -894,6 +894,10 @@
   "mesh",
   "terrain"
  ],
+ "photo_trace": [
+  "image",
+  "region"
+ ],
  "phyllo": [
   "geometric",
   "spiral"

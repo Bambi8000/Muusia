@@ -1,13 +1,28 @@
-# MUUSIA v2.74 — Node Reference
+# MUUSIA v2.75 — Node Reference
 
-All 255 built-in nodes. Conventions used below: most generators accept a **Style**
+All 256 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (152)
+## Generators (153)
+
+**Photo Trace** — recovers a real object's outline at true physical size and
+position from a photo. Print `public/markers/muusia-markers-a4.png` (or `-a3`)
+at 100% scale — the bar on the sheet must measure exactly 100.0 mm — lay the
+object on the sheet, photograph it from as overhead as possible and load the
+photo. The four 15 mm corner markers (the hollow one is the orientation anchor,
+so any camera rotation works) fix a pixel→millimetre perspective homography; the
+largest dark shape inside them is contour-traced into one closed path.
+*Threshold* and *Invert* set the dark cutoff, *Simplify* (RDP) and *Smooth*
+(Chaikin) clean the contour, *Grow* offsets it outward in mm for glue clearance
+(negative shrinks), *Rotate* matches how the printed sheet lies on the plotter
+bed, and *As photographed* keeps the outline exactly where the object lay — plot
+around the blank spot, then glue the object back in. Chain into Wind Tunnel's
+Obstacle or Container. The sheet plane is perspective-corrected but object
+height adds a small safe-side parallax, so tall objects trace slightly large.
 
 **Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
 *Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
