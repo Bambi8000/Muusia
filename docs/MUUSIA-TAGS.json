@@ -407,6 +407,12 @@
  "fur": [
   "decoration"
  ],
+ "galaxy": [
+  "3d",
+  "dots",
+  "scatter",
+  "space"
+ ],
  "girih": [
   "geometric",
   "grid",
@@ -1451,10 +1457,21 @@
   "structural",
   "weave"
  ],
+ "zen_garden": [
+  "combine",
+  "nature",
+  "region",
+  "texture"
+ ],
  "zigzag": [
   "audio",
   "geometric",
   "noise",
+  "wave"
+ ],
+ "zigzag_path": [
+  "deform",
+  "texture",
   "wave"
  ],
  "zine": [

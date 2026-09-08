@@ -1,13 +1,26 @@
-# MUUSIA v2.75 — Node Reference
+# MUUSIA v2.76 — Node Reference
 
-All 256 built-in nodes. Conventions used below: most generators accept a **Style**
+All 259 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (153)
+## Generators (154)
+
+**Galaxy** — a spiral galaxy as a rotatable 3D point cloud, deterministic from
+Seed. *Stars* sets the dot count, *Arms* and *Twist* wind logarithmic spiral
+arms with *Arm spread* scatter, *Bulge %* / *Bulge size* fill the core with a
+3D gaussian ball, *Thickness* sets the disc depth and *Halo %* sprinkles a
+sparse spherical halo. Three pens make it multicoloured: Core pen (bulge +
+halo), Arm pen (disc), and *Sparkle %* of arm stars on Sparkle pen slightly
+enlarged — young clusters along the arms; *Core glow* enlarges dots toward the
+centre. Yaw / Pitch rotate in 3D (pitch 90 face-on, 0 edge-on), Perspective
+foreshortens, and scaling is rotation-invariant, so wiring the animation Frame
+into Yaw orbits the galaxy without size jumps. *Dot shape*: Circle (small
+ring), Dash (a stroke streaking along the galactic rotation — star-trail
+look) or Point (0.1 mm pen poke).
 
 **Photo Trace** — recovers a real object's outline at true physical size and
 position from a photo. Print `public/markers/muusia-markers-a4.png` (or `-a3`)
@@ -1063,7 +1076,18 @@ plot, which needs *Optimize route* switched off, since a nearest-neighbour sort
 sees two identical crosses as zero travel and plots them back to back. The
 square is on its own pen, every mark and label on a second.
 
-## Modifiers (69)
+## Modifiers (70)
+
+**Zigzag Path** — redraws every input path as a patterned stroke following
+the original line. Mode: *Zigzag* (sharp triangle wave, apex points inserted
+analytically so corners stay exact), *Sine* (smooth wave) or *Coil* (dense
+serpentine — perpendicular runs joined by rounded U-turns, pitch = half the
+Wavelength). *Amplitude* is the half-width; *Vary amp* and *Vary wavelength*
+drift the pattern smoothly over the *Vary length* scale via seeded noise —
+hand movement, not per-vertex jitter. *Fade mm* ramps open strokes smoothly
+in and out at both ends (in Coil the runs shrink toward the tips); closed
+paths snap to whole periods and the drift wraps seamlessly. Each path keeps
+its own pen.
 
 **Apply Style** — applies a Stroke style to existing paths.
 
@@ -1390,7 +1414,20 @@ Satellite companion rings shape the look. The point budget is shared between
 input paths by arc length and an oversubscribed path thins evenly along its
 whole length — large radii never leave loops or tails blank.
 
-## Combiners (17)
+## Combiners (18)
+
+**Zen Garden** — karesansui raked gravel around the closed shapes wired into
+Stones (one Photo Trace outline, several via Merge, or any closed shapes).
+Each stone sits in a pool of offset rings (*Rings*, starting at *Clearance*,
+traced from an exact euclidean distance field), and the background rake
+grooves end cleanly where they meet the outermost ring. Rake: *Straight*
+(Direction), *Waves* (sine meander), *Circular* (rings from the canvas
+centre), *Rings only* (rings expanding until they fill the sheet). *Spacing*
+is the groove pitch; *Tines* splits every groove into a comb of parallel
+lines with *Tine gap* between them, like the teeth of a real rake. *Wobble*
+adds seeded hand-raked imperfection, *Detail* is the field grid cell in mm.
+Lines never enter a stone or its clearance. *Keep stones* passes the
+outlines through on Stone pen.
 
 **Mask** *(deprecated — hidden from the palette since 2.40; old patches keep
 working)* — clips paths by closed mask shapes (keep inside/outside). Use

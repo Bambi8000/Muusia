@@ -1111,6 +1111,22 @@ text are **English**.
   imageMax 1200 (engine allows up to 1600), ~14 ms/compute at full
   resolution. Intended chain: Photo Trace → Wind Tunnel Obstacle — plot the
   flow around the blank spot, then glue the object into it.
+- **2.76** three nodes baked. **Zen Garden** (duo): karesansui raked gravel —
+  exact euclidean distance field (Felzenszwalb 2-pass EDT, boundary-sampled
+  seeds, scanline sign) puts a pool of offset rings around every Stones
+  shape and clips the background rake (straight/waves/circular marching-
+  squares iso-lines, Tines comb groups) to end at the pool via bilinear
+  field interpolation; validator proves ring radii, exact far-field
+  straightness (0.000 mm residual) and that no groove enters clearance.
+  **Galaxy** (gen/scientific): procedural spiral-galaxy point cloud (disc +
+  log-spiral arms + gaussian bulge + halo), three-pen colouring, tangential
+  Dash star-trails, rotation-invariant scaling for Frame-driven orbits;
+  validator uses de-rotated m-fold angular concentration as the arm oracle.
+  **Zigzag Path** (mod/deform): input paths redrawn as zigzag / sine /
+  serpentine coil with integrated-phase wavelength drift for organic
+  variation; sine oracle exact to 1e-4 mm, zigzag apexes analytic, closed
+  paths snap to whole periods. Marker-sheet chain: Photo Trace stones →
+  Zen Garden → Zigzag Path rings for rippling gravel.
 
 ## Hard-won pitfalls (keep)
 - A LAB FILE IS NOT IN THE BUILD. Node ⇣ registers a custom node in the running

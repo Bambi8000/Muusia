@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (254 files, generated)
+# MUUSIA v2.29 — Node Sources (257 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -9737,6 +9737,166 @@ export default {
       return { paths };
     },
   
+};
+```
+
+## galaxy.js
+
+```js
+import { Pin, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+  /* Galaxy — a procedural spiral galaxy as a rotatable 3D point cloud.
+     Deterministic from Seed: an exponential disc winds Arms logarithmic
+     spiral arms (Twist turns, Arm spread scatter), a 3D gaussian bulge sits
+     in the core, a sparse spherical halo surrounds it, and the thin disc has
+     a gaussian Thickness. Dots are plotted as small rings (Point Cloud
+     convention) with three pens: Core pen for bulge + halo, Arm pen for the
+     disc, Sparkle pen for a Sparkle % of arm stars (young clusters, drawn
+     slightly larger). Yaw / Pitch rotate the world, Perspective foreshortens,
+     and scaling is rotation-invariant (bounding sphere), so wiring the
+     animation Frame into Yaw orbits the galaxy without size jumps. */
+  key: "galaxy",
+  name: "Galaxy",
+  cat: "gen",
+  group: "scientific",
+  desc: "A spiral galaxy as a rotatable 3D point cloud, deterministic from Seed. Stars sets the dot count, Arms and Twist wind the logarithmic spiral arms, Arm spread scatters stars around them, Bulge % and Bulge size fill the core with a 3D gaussian ball, Thickness sets the disc's vertical depth and Halo % sprinkles a sparse spherical halo. Three pens make it multicoloured: Core pen draws the bulge and halo, Arm pen the disc stars, and Sparkle % of arm stars land on Sparkle pen slightly enlarged - young star clusters along the arms. Core glow enlarges dots toward the centre. Yaw and Pitch rotate the whole galaxy in 3D (pitch 90 is face-on, 0 is edge-on), Perspective adds depth foreshortening, and the size is rotation-invariant, so wire the animation Frame into Yaw and the galaxy orbits smoothly. Dot shape picks the plotted mark: Circle (small ring sized by Dot mm), Dash (a short stroke streaking along the galactic rotation - star-trail look), or Point (a minimal 0.1 mm pen poke).",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "stars", label: "Stars", type: "slider", min: 200, max: 4000, step: 50, def: 1400 },
+    { key: "arms", label: "Arms", type: "slider", min: 2, max: 6, step: 1, def: 3 },
+    { key: "twist", label: "Twist", type: "slider", min: 0.5, max: 4, step: 0.1, def: 2.2 },
+    { key: "armw", label: "Arm spread", type: "slider", min: 0.05, max: 0.6, step: 0.01, def: 0.18 },
+    { key: "bulge", label: "Bulge %", type: "slider", min: 0, max: 60, step: 1, def: 25 },
+    { key: "bulger", label: "Bulge size %", type: "slider", min: 5, max: 40, step: 1, def: 16 },
+    { key: "flat", label: "Thickness %", type: "slider", min: 1, max: 40, step: 1, def: 6 },
+    { key: "halo", label: "Halo %", type: "slider", min: 0, max: 15, step: 1, def: 4 },
+    { key: "yaw", label: "Yaw \u00b0", type: "slider", min: 0, max: 360, step: 1, def: 30 },
+    { key: "pitch", label: "Pitch \u00b0", type: "slider", min: -90, max: 90, step: 1, def: 55 },
+    { key: "persp", label: "Perspective", type: "slider", min: 0, max: 1, step: 0.05, def: 0.15 },
+    { key: "size", label: "Size %", type: "slider", min: 20, max: 120, step: 1, def: 85 },
+    { key: "dot", label: "Dot mm", type: "slider", min: 0.3, max: 3, step: 0.1, def: 0.6 },
+    { key: "shape", label: "Dot shape", type: "select", options: ["Circle", "Dash", "Point"], def: "Circle" },
+    { key: "grow", label: "Core glow", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5 },
+    { key: "sparkle", label: "Sparkle %", type: "slider", min: 0, max: 40, step: 1, def: 12 },
+    { key: "corepen", label: "Core pen", type: "pen", def: 1 },
+    { key: "armpen", label: "Arm pen", type: "pen", def: 0 },
+    { key: "sparklepen", label: "Sparkle pen", type: "pen", def: 2 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 42 },
+  ],
+  compute(ins, p, ctx) {
+    const st = ins[0];
+    const m = Math.max(0, p.margin);
+    const W = ctx.W, Hh = ctx.H;
+    const bw = W - 2 * m, bh = Hh - 2 * m;
+    if (bw < 4 || bh < 4) return applyStyle({ paths: [] }, st);
+    const rng = mulberry32(p.seed);
+    const gauss = () => {
+      const u1 = Math.max(1e-12, rng()), u2 = rng();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    };
+
+    /* ---- generate stars in unit galaxy space (radius <= ~1.15) ---- */
+    const nStars = Math.round(p.stars);
+    const nBulge = Math.round((nStars * p.bulge) / 100);
+    const nHalo = Math.round((nStars * p.halo) / 100);
+    const nDisc = Math.max(0, nStars - nBulge - nHalo);
+    const bulgeR = p.bulger / 100;
+    const zSig = p.flat / 100;
+    const arms = Math.round(p.arms);
+    const pts = []; /* [x, y, z, kind, rn] kind: 0 core, 1 arm, 2 sparkle */
+    for (let i = 0; i < nBulge; i++) {
+      const x = gauss() * bulgeR, y = gauss() * bulgeR, z = gauss() * bulgeR * 0.8;
+      const rr = Math.hypot(x, y, z);
+      if (rr > bulgeR * 2.5) { i--; continue; }
+      pts.push([x, y, z, 0, rr]);
+    }
+    for (let i = 0; i < nDisc; i++) {
+      const rn = Math.pow(rng(), 0.55);
+      const arm = Math.floor(rng() * arms);
+      const base = (arm / arms) * 2 * Math.PI;
+      const wind = p.twist * 2 * Math.PI * Math.sqrt(rn);
+      const scatter = gauss() * p.armw * (0.5 + rn);
+      const th = base + wind + scatter;
+      const rr = rn * (1 + gauss() * 0.04);
+      const x = rr * Math.cos(th), y = rr * Math.sin(th);
+      const z = gauss() * zSig * (0.4 + 0.6 * (1 - rn));
+      const kind = rng() * 100 < p.sparkle ? 2 : 1;
+      pts.push([x, y, z, kind, rn]);
+    }
+    for (let i = 0; i < nHalo; i++) {
+      const th = rng() * 2 * Math.PI, ph = Math.acos(2 * rng() - 1);
+      const rr = 0.35 + 0.8 * Math.pow(rng(), 0.7);
+      pts.push([rr * Math.sin(ph) * Math.cos(th), rr * Math.sin(ph) * Math.sin(th), rr * Math.cos(ph), 0, rr]);
+    }
+    if (!pts.length) return applyStyle({ paths: [] }, st);
+
+    /* ---- rotate (yaw around z in-plane, pitch tilts the disc), project ---- */
+    const ya = (p.yaw * Math.PI) / 180, pa = (p.pitch * Math.PI) / 180;
+    const cy = Math.cos(ya), sy = Math.sin(ya), cp = Math.cos(pa), sp = Math.sin(pa);
+    let sphere = 0;
+    for (const q of pts) { const r2 = q[0] * q[0] + q[1] * q[1] + q[2] * q[2]; if (r2 > sphere) sphere = r2; }
+    sphere = Math.sqrt(sphere) || 1;
+    const rot = pts.map(([x0, y0, z0, kind, rn]) => {
+      const rx = x0 * cy - y0 * sy, ry = x0 * sy + y0 * cy;
+      const ry2 = ry * cp - z0 * sp, rz = ry * sp + z0 * cp;
+      /* orbital tangent (-y, x, 0) through the same rotation, projected:
+         Dash strokes streak along the galactic rotation */
+      const tl = Math.hypot(x0, y0);
+      let tsx = 1, tsy = 0;
+      if (tl > 1e-9) {
+        const txw = -y0 / tl, tyw = x0 / tl;
+        const trx = txw * cy - tyw * sy, tryy = txw * sy + tyw * cy;
+        const trz = tryy * sp;
+        const sl = Math.hypot(trx, -trz);
+        if (sl > 1e-6) { tsx = trx / sl; tsy = -trz / sl; }
+      }
+      return [rx, ry2, rz, kind, rn, tsx, tsy];
+    });
+    let dLo = Infinity, dHi = -Infinity;
+    for (const q of rot) { if (q[1] < dLo) dLo = q[1]; if (q[1] > dHi) dHi = q[1]; }
+    const dRange = dHi - dLo || 1;
+    const sc = (Math.min(bw, bh) / 2) * Math.max(0.05, p.size / 100) / sphere;
+    const cx = W / 2, cyc = Hh / 2;
+
+    /* ---- dots as small rings, pens by kind ---- */
+    const BUDGET = 110000;
+    let total = 0;
+    const paths = [];
+    const penOf = [Math.round(p.corepen), Math.round(p.armpen), Math.round(p.sparklepen)];
+    for (const [x, d, z, kind, rn, tsx, tsy] of rot) {
+      const dn = (d - dLo) / dRange;
+      const ps = 1 / (1 + p.persp * dn * 1.4);
+      const sx = x * ps * sc + cx, sy2 = -z * ps * sc + cyc;
+      let r = (p.dot / 2) * (1 + p.grow * 1.6 * Math.exp(-rn / 0.3)) * (0.8 + 0.4 * rng());
+      if (kind === 2) r *= 1.35;
+      r = Math.max(0.15, r * ps);
+      const rc = p.shape === "Point" ? 0.15 : r;
+      if (sx < m + rc || sx > W - m - rc || sy2 < m + rc || sy2 > Hh - m - rc) continue;
+      if (p.shape === "Dash") {
+        if (total + 2 > BUDGET) break;
+        paths.push({ pts: [[sx - tsx * r, sy2 - tsy * r], [sx + tsx * r, sy2 + tsy * r]], closed: false, layer: penOf[kind] });
+        total += 2;
+      } else if (p.shape === "Point") {
+        if (total + 2 > BUDGET) break;
+        paths.push({ pts: [[sx, sy2], [sx + 0.1, sy2]], closed: false, layer: penOf[kind] });
+        total += 2;
+      } else {
+        const segs = r * 2 >= 1 ? 8 : 5;
+        if (total + segs > BUDGET) break;
+        const ring = [];
+        for (let k2 = 0; k2 < segs; k2++) {
+          const a = (k2 / segs) * Math.PI * 2;
+          ring.push([sx + Math.cos(a) * r, sy2 + Math.sin(a) * r]);
+        }
+        paths.push({ pts: ring, closed: true, layer: penOf[kind] });
+        total += segs;
+      }
+    }
+    return applyStyle({ paths }, st);
+  },
 };
 ```
 
@@ -35536,6 +35696,340 @@ export default {
 };
 ```
 
+## zen_garden.js
+
+```js
+import { Pin, noise2, applyStyle } from "../helpers.js";
+
+export default {
+  /* Zen Garden — karesansui raked gravel. An exact euclidean distance field
+     is computed from the closed shapes wired into Stones (Felzenszwalb 2-pass
+     EDT over a mm grid, boundary-sampled seeds, signed by scanline fill).
+     Each stone sits in a pool of Rings offset rings (iso-lines of the stone
+     distance at clearance + k*spacing), and the background rake (straight /
+     waves / circular iso-lines at the same spacing) is clipped to end cleanly
+     at the pool boundary via bilinear field interpolation — the authentic
+     look where rake grooves butt against the ring halo. Tines draws each
+     groove as a comb of parallel lines like a real rake's teeth. Wobble is
+     the only seeded term. No line ever enters a stone or its clearance. */
+  key: "zen_garden",
+  name: "Zen Garden",
+  cat: "duo",
+  desc: "Karesansui raked gravel around the closed shapes wired into Stones (one Photo Trace outline, several via Merge, or any closed shapes). Each stone sits in a pool of offset rings (Rings sets how many, starting at Clearance), and the background rake grooves end cleanly where they meet the outermost ring - the classic raked-gravel look. Rake: Straight (Direction), Waves (sine meander, Wave amp/len), Circular (rings from the canvas centre), Rings only (nothing but rings, expanding until they fill the sheet). Spacing is the groove pitch; Tines splits every groove into a comb of parallel lines with Tine gap between them, like the teeth of a real rake. Wobble adds seeded hand-raked imperfection. Detail is the field grid cell in mm - lower is crisper and slower. Keep stones passes the stone outlines through on Stone pen. Lines never enter a stone. Tip: Photo Trace stones with As photographed keep true position, so the raked field is plotted around the real objects.",
+  ins: [Pin("paths", "Stones"), Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "rake", label: "Rake", type: "select", options: ["Straight", "Waves", "Circular", "Rings only"], def: "Straight" },
+    { key: "dir", label: "Direction \u00b0", type: "slider", min: 0, max: 180, step: 1, def: 0, showIf: (p) => p.rake === "Straight" || p.rake === "Waves" },
+    { key: "spacing", label: "Spacing mm", type: "slider", min: 0.8, max: 8, step: 0.1, def: 1.6 },
+    { key: "tines", label: "Tines", type: "slider", min: 1, max: 4, step: 1, def: 1 },
+    { key: "tinegap", label: "Tine gap mm", type: "slider", min: 0.4, max: 2, step: 0.1, def: 0.7, showIf: (p) => p.tines > 1 },
+    { key: "clearance", label: "Clearance mm", type: "slider", min: 0, max: 12, step: 0.5, def: 2 },
+    { key: "rings", label: "Rings", type: "slider", min: 1, max: 20, step: 1, def: 5, showIf: (p) => p.rake !== "Rings only" },
+    { key: "wamp", label: "Wave amp mm", type: "slider", min: 0, max: 20, step: 0.5, def: 6, showIf: (p) => p.rake === "Waves" },
+    { key: "wlen", label: "Wave len mm", type: "slider", min: 10, max: 200, step: 5, def: 60, showIf: (p) => p.rake === "Waves" },
+    { key: "wobble", label: "Wobble", type: "slider", min: 0, max: 1, step: 0.05, def: 0.3 },
+    { key: "detail", label: "Detail mm", type: "slider", min: 0.6, max: 3, step: 0.1, def: 1.2 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+    { key: "keep", label: "Keep stones", type: "check", def: true },
+    { key: "stonepen", label: "Stone pen", type: "pen", def: 1 },
+    { key: "layer", label: "Rake pen", type: "pen", def: 0 },
+  ],
+  overlay(p, ctx) {
+    const m = Math.max(0, p.margin);
+    return [{ kind: "rect", x: m, y: m, w: Math.max(1, ctx.W - 2 * m), h: Math.max(1, ctx.H - 2 * m) }];
+  },
+  compute(ins, p, ctx) {
+    const stonesIn = ins[0], st = ins[1];
+    const m = Math.max(0, p.margin);
+    const W = ctx.W, Hh = ctx.H;
+    const bw = W - 2 * m, bh = Hh - 2 * m;
+    if (bw < 4 || bh < 4) return applyStyle({ paths: [] }, st);
+    const stones = (stonesIn && stonesIn.paths ? stonesIn.paths : []).filter(
+      (q) => q.closed && q.pts.length >= 3);
+    const out = [];
+    const L = Math.round(p.layer);
+    const BUDGET = 110000;
+    let budget = BUDGET;
+
+    /* ---- grid ---- */
+    const cell = Math.max(0.6, p.detail);
+    const nx = Math.max(4, Math.floor(bw / cell) + 2);
+    const ny = Math.max(4, Math.floor(bh / cell) + 2);
+    const gx = (i) => m + (i * bw) / (nx - 1);
+    const gy = (j) => m + (j * bh) / (ny - 1);
+    const sxm = bw / (nx - 1), sym = bh / (ny - 1);
+    const N = nx * ny;
+
+    /* ---- signed distance to stones: EDT of boundary samples + scanline sign ---- */
+    const INF = 1e18;
+    const f = new Float64Array(N).fill(INF); /* squared mm distance seeds */
+    const inside = new Uint8Array(N);
+    for (const s of stones) {
+      /* boundary samples at ~cell/2 step seed the EDT with exact offsets */
+      const pts = s.pts;
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i], b2 = pts[(i + 1) % pts.length];
+        const seg = Math.hypot(b2[0] - a[0], b2[1] - a[1]);
+        const steps = Math.max(1, Math.ceil(seg / (cell * 0.5)));
+        for (let k2 = 0; k2 < steps; k2++) {
+          const t = k2 / steps;
+          const px = a[0] + (b2[0] - a[0]) * t, py = a[1] + (b2[1] - a[1]) * t;
+          const gi = Math.round((px - m) / sxm), gj = Math.round((py - m) / sym);
+          if (gi < 0 || gj < 0 || gi >= nx || gj >= ny) continue;
+          const dx = px - gx(gi), dy = py - gy(gj);
+          const d2 = dx * dx + dy * dy;
+          const idx = gj * nx + gi;
+          if (d2 < f[idx]) f[idx] = d2;
+        }
+      }
+      /* scanline fill for the inside flag */
+      let y0 = Infinity, y1 = -Infinity;
+      for (const q of pts) { if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1]; }
+      const j0 = Math.max(0, Math.ceil((y0 - m) / sym)), j1 = Math.min(ny - 1, Math.floor((y1 - m) / sym));
+      for (let j = j0; j <= j1; j++) {
+        const yy = gy(j);
+        const xs = [];
+        for (let i = 0; i < pts.length; i++) {
+          const a = pts[i], b2 = pts[(i + 1) % pts.length];
+          if ((a[1] > yy) !== (b2[1] > yy)) xs.push(a[0] + ((yy - a[1]) / (b2[1] - a[1])) * (b2[0] - a[0]));
+        }
+        xs.sort((u, v) => u - v);
+        for (let k2 = 0; k2 + 1 < xs.length; k2 += 2) {
+          const i0 = Math.max(0, Math.ceil((xs[k2] - m) / sxm)), i1 = Math.min(nx - 1, Math.floor((xs[k2 + 1] - m) / sxm));
+          for (let i = i0; i <= i1; i++) inside[j * nx + i] = 1;
+        }
+      }
+    }
+    /* Felzenszwalb 1D squared-distance transform, applied along rows then columns */
+    const dt1 = (src, dst, n, stride, off, step2) => {
+      const v = new Int32Array(n), z = new Float64Array(n + 1);
+      let k2 = 0;
+      v[0] = 0; z[0] = -INF; z[1] = INF;
+      for (let q = 1; q < n; q++) {
+        const fq = src[off + q * stride];
+        let s2;
+        while (true) {
+          const vk = v[k2], fvk = src[off + vk * stride];
+          s2 = (fq + q * q * step2 - (fvk + vk * vk * step2)) / (2 * step2 * (q - vk));
+          if (s2 <= z[k2]) { k2--; if (k2 < 0) { k2 = 0; v[0] = q; z[0] = -INF; z[1] = INF; break; } }
+          else break;
+        }
+        if (v[k2] !== q) { k2++; v[k2] = q; z[k2] = s2; z[k2 + 1] = INF; }
+      }
+      k2 = 0;
+      for (let q = 0; q < n; q++) {
+        while (z[k2 + 1] < q) k2++;
+        const vk = v[k2];
+        dst[off + q * stride] = (q - vk) * (q - vk) * step2 + src[off + vk * stride];
+      }
+    };
+    const tmp = new Float64Array(N);
+    for (let j = 0; j < ny; j++) dt1(f, tmp, nx, 1, j * nx, sxm * sxm);
+    for (let i = 0; i < nx; i++) dt1(tmp, f, ny, nx, i, sym * sym);
+    const hasStones = stones.length > 0;
+
+    /* ---- fields: signed stone distance dS, background rake bg ---- */
+    const cl = Math.max(0, p.clearance);
+    const a = ((p.dir + 90) * Math.PI) / 180;
+    const nX = Math.cos(a), nY = Math.sin(a);
+    const tX = Math.cos((p.dir * Math.PI) / 180), tY = Math.sin((p.dir * Math.PI) / 180);
+    const cxm = W / 2, cym = Hh / 2;
+    const wob = p.wobble * p.spacing * 0.9;
+    const ringsOnly = p.rake === "Rings only";
+    const DS = new Float64Array(N);
+    const BG = ringsOnly ? null : new Float64Array(N);
+    let dMax = 0, bgLo = Infinity, bgHi = -Infinity;
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+      const idx = j * nx + i;
+      const x = gx(i), y = gy(j);
+      const nz = wob > 0 ? wob * (noise2(x / 14, y / 14, p.seed) * 2 - 1) : 0;
+      const dS = (inside[idx] ? -1 : 1) * Math.sqrt(f[idx]) + nz;
+      DS[idx] = dS;
+      if (dS > dMax) dMax = dS;
+      if (!ringsOnly) {
+        let bg;
+        if (p.rake === "Straight") bg = (x - cxm) * nX + (y - cym) * nY;
+        else if (p.rake === "Waves") bg = (x - cxm) * nX + (y - cym) * nY + p.wamp * Math.sin((2 * Math.PI * ((x - cxm) * tX + (y - cym) * tY)) / Math.max(5, p.wlen));
+        else bg = Math.hypot(x - cxm, y - cym);
+        bg += nz;
+        BG[idx] = bg;
+        if (bg < bgLo) bgLo = bg;
+        if (bg > bgHi) bgHi = bg;
+      }
+    }
+
+    /* ---- levels: groups at k*spacing, tines within each group ---- */
+    const s = Math.max(0.5, p.spacing);
+    const tines = Math.max(1, Math.round(p.tines));
+    const tg = Math.min(p.tinegap, tines > 1 ? (s * 0.8) / (tines - 1) : p.tinegap);
+    const tineW = (tines - 1) * tg;
+    if (!hasStones && ringsOnly) return applyStyle({ paths: [] }, st);
+    const ringsN = !hasStones ? 0 : ringsOnly ? Math.max(1, Math.ceil((dMax - cl) / s) + 1) : Math.max(1, Math.round(p.rings));
+    const rOuter = cl + (ringsN - 1) * s + tineW + s * 0.5;
+    const ringLevels = [];
+    for (let k2 = 0; k2 < ringsN && ringLevels.length < 4000; k2++) for (let t2 = 0; t2 < tines; t2++) {
+      const lv = cl + k2 * s + t2 * tg;
+      if (lv <= dMax) ringLevels.push(lv);
+    }
+    const rakeLevels = [];
+    if (!ringsOnly) {
+      for (let k2 = Math.floor(bgLo / s); k2 * s <= bgHi + tineW; k2++) {
+        for (let t2 = 0; t2 < tines; t2++) {
+          const lv = k2 * s + t2 * tg;
+          if (lv >= bgLo - s && lv <= bgHi + s) rakeLevels.push(lv);
+        }
+      }
+    }
+
+    /* ---- marching squares with segment chaining ---- */
+    const qk = (x, y) => (Math.round(x * 64) * 131071 + Math.round(y * 64));
+    const march = (FLD, lv) => {
+      const segs = [];
+      for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) {
+        const i00 = j * nx + i, i10 = i00 + 1, i01 = i00 + nx, i11 = i01 + 1;
+        if (hasStones && (inside[i00] || inside[i10] || inside[i01] || inside[i11])) continue;
+        const v00 = FLD[i00], v10 = FLD[i10], v01 = FLD[i01], v11 = FLD[i11];
+        let code = 0;
+        if (v00 > lv) code |= 1;
+        if (v10 > lv) code |= 2;
+        if (v11 > lv) code |= 4;
+        if (v01 > lv) code |= 8;
+        if (code === 0 || code === 15) continue;
+        const x0 = gx(i), x1 = gx(i + 1), y0 = gy(j), y1 = gy(j + 1);
+        const ixT = [x0 + ((lv - v00) / (v10 - v00)) * (x1 - x0), y0];
+        const ixB = [x0 + ((lv - v01) / (v11 - v01)) * (x1 - x0), y1];
+        const ixL = [x0, y0 + ((lv - v00) / (v01 - v00)) * (y1 - y0)];
+        const ixR = [x1, y0 + ((lv - v10) / (v11 - v10)) * (y1 - y0)];
+        const EMIT = (A2, B2) => segs.push([A2, B2]);
+        switch (code) {
+          case 1: case 14: EMIT(ixL, ixT); break;
+          case 2: case 13: EMIT(ixT, ixR); break;
+          case 3: case 12: EMIT(ixL, ixR); break;
+          case 4: case 11: EMIT(ixR, ixB); break;
+          case 6: case 9: EMIT(ixT, ixB); break;
+          case 7: case 8: EMIT(ixL, ixB); break;
+          case 5: EMIT(ixL, ixT); EMIT(ixR, ixB); break;
+          case 10: EMIT(ixT, ixR); EMIT(ixL, ixB); break;
+        }
+      }
+      const paths = [];
+      if (!segs.length) return paths;
+      const byEnd = new Map();
+      const addEnd = (key, rec) => {
+        let arr = byEnd.get(key);
+        if (!arr) { arr = []; byEnd.set(key, arr); }
+        arr.push(rec);
+      };
+      segs.forEach((sg, si) => {
+        addEnd(qk(sg[0][0], sg[0][1]), [si, 0]);
+        addEnd(qk(sg[1][0], sg[1][1]), [si, 1]);
+      });
+      const usedSeg = new Uint8Array(segs.length);
+      for (let si = 0; si < segs.length; si++) {
+        if (usedSeg[si]) continue;
+        usedSeg[si] = 1;
+        const chain = [segs[si][0], segs[si][1]];
+        for (const dir2 of [1, 0]) {
+          while (true) {
+            const tip = dir2 ? chain[chain.length - 1] : chain[0];
+            const cands = byEnd.get(qk(tip[0], tip[1])) || [];
+            let next = null;
+            for (const [sj, endj] of cands) {
+              if (!usedSeg[sj]) { next = [sj, endj]; break; }
+            }
+            if (!next) break;
+            usedSeg[next[0]] = 1;
+            const other = segs[next[0]][1 - next[1]];
+            if (dir2) chain.push(other); else chain.unshift(other);
+          }
+        }
+        const closed = Math.hypot(chain[0][0] - chain[chain.length - 1][0], chain[0][1] - chain[chain.length - 1][1]) < 1e-6;
+        if (closed && chain.length > 3) chain.pop();
+        let len2 = 0;
+        for (let ci = 1; ci < chain.length; ci++) len2 += Math.hypot(chain[ci][0] - chain[ci - 1][0], chain[ci][1] - chain[ci - 1][1]);
+        if (chain.length >= 2 && len2 > 0.05) paths.push({ pts: chain, closed });
+      }
+      return paths;
+    };
+
+    /* bilinear stone-distance sample for clipping rake at the pool edge */
+    const dsAt = (x, y) => {
+      let u = (x - m) / sxm, v = (y - m) / sym;
+      u = Math.max(0, Math.min(nx - 1.001, u));
+      v = Math.max(0, Math.min(ny - 1.001, v));
+      const i = Math.floor(u), j = Math.floor(v);
+      const fu = u - i, fv = v - j;
+      const idx = j * nx + i;
+      return DS[idx] * (1 - fu) * (1 - fv) + DS[idx + 1] * fu * (1 - fv) +
+        DS[idx + nx] * (1 - fu) * fv + DS[idx + nx + 1] * fu * fv;
+    };
+
+    /* rings */
+    for (const lv of ringLevels) {
+      if (budget <= 0) break;
+      for (const q of march(DS, lv)) {
+        if (budget <= 0) break;
+        budget -= q.pts.length;
+        if (budget < 0) break;
+        out.push({ pts: q.pts, closed: q.closed, layer: L });
+      }
+    }
+    /* rake, clipped to end at the ring pool boundary */
+    for (const lv of rakeLevels) {
+      if (budget <= 0) break;
+      for (const q of march(BG, lv)) {
+        if (budget <= 0) break;
+        const pts = q.closed ? [...q.pts, q.pts[0]] : q.pts;
+        const vals = hasStones ? pts.map((pt) => dsAt(pt[0], pt[1]) - rOuter) : null;
+        if (!hasStones) {
+          budget -= q.pts.length;
+          if (budget < 0) break;
+          out.push({ pts: q.pts, closed: q.closed, layer: L });
+          continue;
+        }
+        let run = [];
+        const flush = () => {
+          if (run.length >= 2) {
+            budget -= run.length;
+            if (budget >= 0) out.push({ pts: run, closed: false, layer: L });
+          }
+          run = [];
+        };
+        for (let i = 0; i < pts.length; i++) {
+          const keepPt = vals[i] >= 0;
+          if (i > 0) {
+            const kPrev = vals[i - 1] >= 0;
+            if (kPrev !== keepPt) {
+              const t2 = vals[i - 1] / (vals[i - 1] - vals[i]);
+              const xc = pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t2;
+              const yc = pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t2;
+              if (keepPt) run.push([xc, yc]);
+              else { run.push([xc, yc]); flush(); }
+            }
+          }
+          if (keepPt) run.push(pts[i]);
+          if (budget < 0) break;
+        }
+        if (run.length >= 2 && q.closed && vals[0] >= 0 && vals.every((v2) => v2 >= 0)) {
+          run.pop();
+          budget -= run.length;
+          if (budget >= 0) out.push({ pts: run, closed: true, layer: L });
+        } else flush();
+        if (budget < 0) break;
+      }
+    }
+
+    /* ---- keep stones ---- */
+    if (p.keep) {
+      for (const s2 of stones) out.push({ pts: s2.pts.map((q) => [q[0], q[1]]), closed: true, layer: Math.round(p.stonepen) });
+    }
+    return applyStyle({ paths: out }, st);
+  },
+};
+```
+
 ## zigzag.js
 
 ```js
@@ -35647,6 +36141,221 @@ export default {
       paths.push({ pts, closed: false, layer: L });
     }
     return applyStyle({ paths }, ins[1]);
+  },
+};
+```
+
+## zigzag_path.js
+
+```js
+import { Pin, noise2, resample, pathLength } from "../helpers.js";
+
+export default {
+  /* Zigzag Path — a deform modifier that redraws every input path as a
+     zigzag, sine or serpentine coil stroke following the original spine.
+     The wave rides an integrated phase (so Vary wavelength stretches and
+     squeezes periods smoothly via seeded noise along the arc length, never
+     jumping), Vary amp breathes the width the same way, and Fade mm ramps
+     open strokes smoothly in and out at both ends - in Coil the runs shrink
+     toward the tips. On closed paths the drift is sampled on a noise-space
+     circle so it wraps without a seam. Zigzag apex points
+     are inserted analytically at exact phase crossings so the corners stay
+     sharp regardless of sampling. Coil builds perpendicular runs joined by
+     semicircular U-turns (pitch = half the wavelength), like a tight
+     serpentine fill along the line. Closed paths snap to whole periods so
+     the pattern wraps seamlessly. Output inherits each path's pen. */
+  key: "zigzag_path",
+  name: "Zigzag Path",
+  cat: "mod",
+  group: "deform",
+  desc: "Redraws every input path as a patterned stroke that follows the original line. Mode: Zigzag (sharp triangle wave, apexes exact), Sine (smooth wave) or Coil (dense serpentine - straight perpendicular runs joined by rounded U-turns, pitch = half the Wavelength). Amplitude is the half-width in mm. Vary amp and Vary wavelength add seeded organic drift, smoothly along the line over the Vary length scale - never per-vertex jitter, so the result reads as hand movement rather than noise. Phase shifts the pattern along the path, Fade mm ramps open strokes smoothly in and out at both ends (in Coil the runs shrink toward the tips), and closed paths snap to whole periods with seamlessly wrapping drift - no seam, no jump. Each path keeps its own pen; Keep source draws the original spine too. Chain tip: Grid or Parallel Lines through Coil gives dense woven fills; Zen Garden rings through Zigzag turn into rippling gravel.",
+  ins: [Pin("paths")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "mode", label: "Mode", type: "select", options: ["Zigzag", "Sine", "Coil"], def: "Zigzag" },
+    { key: "wl", label: "Wavelength mm", type: "slider", min: 1, max: 30, step: 0.5, def: 5 },
+    { key: "amp", label: "Amplitude mm", type: "slider", min: 0.5, max: 20, step: 0.25, def: 4 },
+    { key: "varyamp", label: "Vary amp", type: "slider", min: 0, max: 1, step: 0.05, def: 0.25 },
+    { key: "varywl", label: "Vary wavelength", type: "slider", min: 0, max: 1, step: 0.05, def: 0.25 },
+    { key: "varylen", label: "Vary length mm", type: "slider", min: 5, max: 150, step: 5, def: 40 },
+    { key: "phase", label: "Phase", type: "slider", min: 0, max: 1, step: 0.01, def: 0 },
+    { key: "fade", label: "Fade mm", type: "slider", min: 0, max: 40, step: 1, def: 8 },
+    { key: "keepsrc", label: "Keep source", type: "check", def: false },
+    { key: "seed", label: "Seed", type: "seed", def: 5 },
+  ],
+  compute(ins, p, ctx) {
+    const src = ins[0] && ins[0].paths ? ins[0].paths : [];
+    const out = [];
+    const BUDGET = 110000;
+    let budget = BUDGET;
+    const wl = Math.max(1, p.wl);
+
+    src.forEach((path, pi) => {
+      if (budget <= 0) return;
+      if (path.pts.length < 2) { out.push({ pts: path.pts.map((q) => q.slice()), closed: path.closed, layer: path.layer }); return; }
+      const L = pathLength(path.pts, path.closed);
+      if (L < 0.5) { out.push({ pts: path.pts.map((q) => q.slice()), closed: path.closed, layer: path.layer }); return; }
+      const step = Math.max(0.3, Math.min(1, wl / 12));
+      const pts = resample(path.pts, path.closed, step);
+      const n = pts.length;
+      if (n < 3) { out.push({ pts: path.pts.map((q) => q.slice()), closed: path.closed, layer: path.layer }); return; }
+      /* arc positions + unit normals per sample */
+      const S = new Float64Array(n);
+      for (let i = 1; i < n; i++) S[i] = S[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+      const Ltot = path.closed ? S[n - 1] + Math.hypot(pts[0][0] - pts[n - 1][0], pts[0][1] - pts[n - 1][1]) : S[n - 1];
+      if (Ltot < 0.5) { out.push({ pts: path.pts.map((q) => q.slice()), closed: path.closed, layer: path.layer }); return; }
+      const NX = new Float64Array(n), NY = new Float64Array(n);
+      for (let i = 0; i < n; i++) {
+        const a = pts[path.closed ? (i - 1 + n) % n : Math.max(0, i - 1)];
+        const b2 = pts[path.closed ? (i + 1) % n : Math.min(n - 1, i + 1)];
+        const tx = b2[0] - a[0], ty = b2[1] - a[1];
+        const tl = Math.hypot(tx, ty) || 1;
+        NX[i] = -ty / tl; NY[i] = tx / tl;
+      }
+      /* organic drift: open paths sample noise along the arc, closed paths
+         sample it on a circle in noise space so the drift wraps seamlessly */
+      const loopQ = Ltot / (2 * Math.PI * Math.max(5, p.varylen));
+      const drift = (sm, row) => {
+        if (!path.closed) return noise2(sm / p.varylen, row, p.seed) * 2 - 1;
+        const u = (2 * Math.PI * sm) / Ltot;
+        return noise2(100 + Math.cos(u) * loopQ, row + Math.sin(u) * loopQ, p.seed) * 2 - 1;
+      };
+      /* smoothstep fade envelope at open-path ends */
+      const env = (sv) => {
+        if (path.closed || p.fade <= 0) return 1;
+        const e = (d2) => { const u = Math.max(0, Math.min(1, d2 / p.fade)); return u * u * (3 - 2 * u); };
+        return e(sv) * e(Ltot - sv);
+      };
+      /* integrated phase with smooth wavelength drift, amp envelope */
+      const PH = new Float64Array(n);
+      const AM = new Float64Array(n);
+      let ph = 0;
+      for (let i = 0; i < n; i++) {
+        if (i > 0) {
+          const sm = (S[i] + S[i - 1]) / 2;
+          const wloc = wl * (1 + p.varywl * 0.55 * drift(sm, pi * 7.31 + 11));
+          ph += (S[i] - S[i - 1]) / Math.max(0.5, wloc);
+        }
+        PH[i] = ph;
+        const a = 1 + p.varyamp * 0.8 * drift(S[i], pi * 3.17 + 5);
+        AM[i] = Math.max(0, p.amp * a * env(S[i]));
+      }
+      /* closed paths: snap to whole periods for a seamless wrap */
+      let phEnd = PH[n - 1];
+      if (path.closed) {
+        const wrap = phEnd + (Ltot - S[n - 1]) / wl;
+        const snap = Math.max(1, Math.round(wrap)) / (wrap || 1);
+        for (let i = 0; i < n; i++) PH[i] *= snap;
+        phEnd = PH[n - 1];
+      }
+      const P = p.phase;
+      const emit = (arr, closed) => {
+        if (arr.length < 2) return;
+        budget -= arr.length;
+        if (budget < 0) return;
+        out.push({ pts: arr, closed, layer: path.layer });
+      };
+
+      if (p.mode === "Sine" || p.mode === "Zigzag") {
+        const zig = p.mode === "Zigzag";
+        const wave = (u) => {
+          if (!zig) return Math.sin(2 * Math.PI * u);
+          const f = u - Math.floor(u);
+          return f < 0.25 ? f * 4 : f < 0.75 ? 2 - f * 4 : f * 4 - 4;
+        };
+        const o = [];
+        let apex = Math.floor(PH[0] + P + 0.25) + 0.25; /* next apex phase (zigzag) */
+        for (let i = 0; i < n; i++) {
+          if (zig && i > 0) {
+            /* insert exact apex points where the phase crosses k+-0.25 */
+            while (apex <= PH[i] + P) {
+              if (apex > PH[i - 1] + P) {
+                const t = (apex - (PH[i - 1] + P)) / ((PH[i] + P) - (PH[i - 1] + P) || 1);
+                const ax = pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t;
+                const ay = pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t;
+                const nx2 = NX[i - 1] + (NX[i] - NX[i - 1]) * t, ny2 = NY[i - 1] + (NY[i] - NY[i - 1]) * t;
+                const am = AM[i - 1] + (AM[i] - AM[i - 1]) * t;
+                const w2 = wave(apex);
+                o.push([ax + nx2 * am * w2, ay + ny2 * am * w2]);
+              }
+              apex += 0.5;
+            }
+          }
+          const w2 = wave(PH[i] + P);
+          const px2 = pts[i][0] + NX[i] * AM[i] * w2, py2 = pts[i][1] + NY[i] * AM[i] * w2;
+          const lp = o[o.length - 1];
+          if (!lp || Math.abs(lp[0] - px2) > 1e-9 || Math.abs(lp[1] - py2) > 1e-9) o.push([px2, py2]);
+        }
+        emit(o, path.closed);
+      } else {
+        /* Coil: perpendicular runs at every half period, semicircular caps */
+        const at = (s) => {
+          const sc = Math.max(0, Math.min(S[n - 1], s));
+          let lo = 0, hi = n - 1;
+          while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (S[mid] <= sc) lo = mid; else hi = mid; }
+          const t = (sc - S[lo]) / (S[hi] - S[lo] || 1);
+          return [
+            pts[lo][0] + (pts[hi][0] - pts[lo][0]) * t,
+            pts[lo][1] + (pts[hi][1] - pts[lo][1]) * t,
+            NX[lo] + (NX[hi] - NX[lo]) * t,
+            NY[lo] + (NY[hi] - NY[lo]) * t,
+          ];
+        };
+        const ampAt = (s) => {
+          const a = 1 + p.varyamp * 0.8 * drift(s, pi * 3.17 + 5);
+          return Math.max(0.08, p.amp * a * env(s));
+        };
+        /* run positions: phase crossings of k*0.5 (integrated => vary-wl drifts the pitch) */
+        const runs = [];
+        let k2 = Math.ceil((PH[0] + P) * 2) / 2;
+        for (let i = 1; i < n && runs.length < 4000; i++) {
+          while (k2 <= PH[i] + P) {
+            if (k2 > PH[i - 1] + P) {
+              const t = (k2 - (PH[i - 1] + P)) / ((PH[i] + P) - (PH[i - 1] + P) || 1);
+              runs.push(S[i - 1] + (S[i] - S[i - 1]) * t);
+            }
+            k2 += 0.5;
+          }
+        }
+        if (runs.length >= 2) {
+          const o = [];
+          const put = (s, off) => {
+            const [x, y, nx2, ny2] = at(s);
+            o.push([x + nx2 * off, y + ny2 * off]);
+          };
+          for (let ri = 0; ri < runs.length; ri++) {
+            const sA = runs[ri];
+            const up = ri % 2 === 0 ? 1 : -1;
+            const A = ampAt(sA);
+            const d = ri + 1 < runs.length ? runs[ri + 1] - sA : 0;
+            const r = Math.min(d / 2, A * 0.6);
+            put(sA, -up * A);
+            put(sA, up * (A - (ri + 1 < runs.length ? r : 0)));
+            if (ri + 1 < runs.length && r > 0.05) {
+              const B = ampAt(runs[ri + 1]);
+              const r2 = Math.min(d / 2, B * 0.6);
+              const capSegs = 7;
+              for (let cs = 1; cs < capSegs; cs++) {
+                const a = (cs / capSegs) * Math.PI;
+                const t = cs / capSegs;
+                const rr = r + (r2 - r) * t;
+                const hh = (A - r) + ((B - r2) - (A - r)) * t;
+                put(sA + d / 2 - Math.cos(a) * (d / 2), up * (hh + Math.sin(a) * rr));
+              }
+            }
+            if (budget - o.length < 0) break;
+          }
+          emit(o, false);
+        } else {
+          out.push({ pts: path.pts.map((q) => q.slice()), closed: path.closed, layer: path.layer });
+        }
+      }
+      if (p.keepsrc && budget > 0) {
+        budget -= path.pts.length;
+        if (budget >= 0) out.push({ pts: path.pts.map((q) => q.slice()), closed: path.closed, layer: path.layer });
+      }
+    });
+    return { paths: out };
   },
 };
 ```
