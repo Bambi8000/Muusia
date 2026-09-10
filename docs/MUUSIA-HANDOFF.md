@@ -212,6 +212,21 @@ text are **English**.
   zooms to cursor (1–16×), drag pans (magnet handles keep their own drag: pan
   ignores mousedown on circle/text), dblclick resets. The pop-out window zooms by
   width % with cursor-anchored scroll compensation + grab-drag pan.
+- **Focus mode (v2.78, F):** the canvas narrows to a one-card strip (the
+  selected node auto-scrolled into it, fully live: sliders, files, gear
+  setup, promoted group params) and a large preview panel fills the rest.
+  Two roles: EDIT (the node in the strip) and WATCH (the preview source).
+  L / Lock watch pins WATCH so arrows only move EDIT — watch a Merge while
+  tuning its inputs. ←/→ walk first-input upstream / first-consumer
+  downstream, ↑/↓ cycle sibling inputs of the same consumer (fallback: all
+  nodes in level order); only data edges count, param wires are not
+  navigation. Guides button toggles overlay guides (drawn only when
+  EDIT = WATCH). Right panel hidden while focused; Esc/F exits. Space fix
+  shipped alongside: `primary` falls back to the last selected node
+  (existence-checked per level) so Space always opens a preview, and the
+  keydown guard passes Space through from focused range sliders with
+  preventDefault — the browser default (page scroll) was the "canvas jumps
+  to the bottom" bug.
 - **Paper presets:** toolbar select (A5/A4/A3/A2 × wide/tall) sets canvas W×H;
   NumBoxes remain for custom sizes.
 - **Node card header:** ? help · ⚙ slider setup · **D duplicate (that node)** ·
@@ -1154,6 +1169,35 @@ text are **English**.
   sizes, multi-clump attractors (wire Clump at to place them), Tighten and
   Clump pen core split; validators prove the clump ink fraction (0.03→0.80)
   and log-radius spread growth.
+
+- **2.78** **Focus mode** (engine, era patch patch-focus-mode.mjs): F
+  narrows the canvas to a one-card strip + big WATCH preview beside it;
+  EDIT/WATCH roles with L lock; arrow-key wire-graph navigation (←/→
+  stream, ↑/↓ siblings); Guides overlay toggle; Simulate + direction +
+  stats in the panel; right panel hidden while focused. Space-preview
+  fixes: last-selected fallback for `primary`, and Space from a focused
+  range slider no longer scrolls the canvas (guard passes it through with
+  preventDefault).
+
+- **2.79** drag release fix (era patch patch-drag-release.mjs): node
+  drag / pending wire state was cleared only by mouseup on the canvas area
+  div — releasing over the palette, panels, focus preview or outside the
+  window left the node following the mouse ("stuck hand"). Now window-level
+  mouseup + blur clear the state anywhere (bubble phase, so port finishWire
+  still wins), and onAreaMouseMove drops stale state whenever the primary
+  button is up (e.buttons guard).
+
+- **2.80** range-slider key passthrough (era patch
+  patch-range-keys.mjs): the focus-mode keydown guard let only Space
+  through from a focused range input, so F did nothing right after a
+  fader drag. Space, F, L and Escape now pass through; arrows stay native
+  (slider value), Delete and letter shortcuts stay blocked from sliders.
+
+- **2.81** range arrow passthrough (era patch patch-range-arrows.mjs):
+  in focus mode arrow keys pass through from focused range sliders and
+  always navigate nodes (the branch blurs the stale slider focus first).
+  Intentional tradeoff: no arrow-key slider fine-tune while focus mode is
+  on; outside focus mode slider arrows stay native.
 
 ## Hard-won pitfalls (keep)
 - A LAB FILE IS NOT IN THE BUILD. Node ⇣ registers a custom node in the running

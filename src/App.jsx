@@ -1025,7 +1025,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.77"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.81"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -2013,14 +2013,20 @@ export default function App() {
   const [bigPreview, setBigPreview] = useState(false);
   const [pensOpen, setPensOpen] = useState(false);
   const [kbOpen, setKbOpen] = useState(false); /* keyboard shortcuts popover */
+  const [focusOn, setFocusOn] = useState(false);        /* Focus mode (F): node strip + big preview */
+  const [focusWatch, setFocusWatch] = useState(null);   /* locked WATCH node id; null = follow EDIT */
+  const [focusGuides, setFocusGuides] = useState(true); /* overlay guides toggle in focus preview */
+  const [lastSel, setLastSel] = useState(null);         /* last selected node id: preview fallback */
   const [, setPensVer] = useState(0);
   const [gcode, setGcode] = useState(null);
 
   const lvl = levelOf(root, stack);
-  const primary = selIds.length ? selIds[selIds.length - 1] : null;
+  const primary = selIds.length ? selIds[selIds.length - 1]
+    : (lastSel != null && lvl.nodes.some((n) => n.id === lastSel) ? lastSel : null);
   const setLevel = (fn) => setRoot((r) => updateAt(r, stack, fn));
   const setNodesL = (up) => setLevel((l) => ({ nodes: typeof up === "function" ? up(l.nodes) : up }));
   const setEdgesL = (up) => setLevel((l) => ({ edges: typeof up === "function" ? up(l.edges) : up }));
+  useEffect(() => { if (selIds.length) setLastSel(selIds[selIds.length - 1]); }, [selIds]);
 
   /* --- animaatio: freimit --- */
   const [frameCount, setFrameCount] = useState(12);
@@ -2114,6 +2120,10 @@ export default function App() {
     e.preventDefault();
   };
   const onAreaMouseMove = (e) => {
+    if (!(e.buttons & 1) && (drag.current || pending.current)) {
+      drag.current = null; pending.current = null; setPendingWire(null);
+      return;
+    }
     if (drag.current) {
       const [mx, my] = areaXY(e);
       const map = Object.fromEntries(drag.current.ids.map((d) => [d.id, d]));
@@ -2131,6 +2141,19 @@ export default function App() {
     }
   };
   const onAreaMouseUp = () => { drag.current = null; pending.current = null; setPendingWire(null); };
+  /* Release anywhere: mouseup used to be handled only on the area div, so
+     releasing over the palette / panels / outside the window left
+     drag.current set and the node followed the mouse on re-entry. Bubble
+     phase: port finishWire handlers run before this, wiring unaffected. */
+  useEffect(() => {
+    const upAnywhere = () => { drag.current = null; pending.current = null; setPendingWire(null); };
+    window.addEventListener("mouseup", upAnywhere);
+    window.addEventListener("blur", upAnywhere);
+    return () => {
+      window.removeEventListener("mouseup", upAnywhere);
+      window.removeEventListener("blur", upAnywhere);
+    };
+  }, []);
   const onAreaClick = (e) => { if (e.target === e.currentTarget || e.target.tagName === "svg") setSelIds([]); };
 
   const startWire = (e, fromId, fromPort, type) => {
@@ -2436,11 +2459,53 @@ export default function App() {
     setHistLens([h.past.length, h.future.length]);
   };
 
+  /* --- Focus mode (F): EDIT node docked left, big WATCH preview beside it.
+     Arrow navigation over the wire graph: left/right = first-input upstream /
+     first-consumer downstream, up/down = sibling inputs of the same consumer
+     (fallback: cycle all nodes in level order). Only data edges (numeric
+     toPort) count — param wires are not navigation. --- */
+  const focusNav = (key) => {
+    if (primary == null) return;
+    const dataEdges = lvl.edges.filter((e) => typeof e.toPort === "number");
+    const go = (id) => { if (id != null && lvl.nodes.some((n) => n.id === id)) setSelIds([id]); };
+    if (key === "ArrowLeft") {
+      const ins = dataEdges.filter((e) => e.to === primary).sort((a, b) => a.toPort - b.toPort);
+      if (ins.length) go(ins[0].from);
+    } else if (key === "ArrowRight") {
+      const outs = dataEdges.filter((e) => e.from === primary);
+      if (outs.length) go(outs[0].to);
+    } else {
+      const dir = key === "ArrowDown" ? 1 : -1;
+      const consumer = dataEdges.find((e) => e.from === primary);
+      if (consumer) {
+        const sibs = [...new Set(dataEdges.filter((e) => e.to === consumer.to).sort((a, b) => a.toPort - b.toPort).map((e) => e.from))];
+        if (sibs.length > 1) {
+          const i = sibs.indexOf(primary);
+          go(sibs[(i + dir + sibs.length) % sibs.length]);
+          return;
+        }
+      }
+      const ids = lvl.nodes.map((n) => n.id);
+      const i = ids.indexOf(primary);
+      if (ids.length > 1 && i >= 0) go(ids[(i + dir + ids.length) % ids.length]);
+    }
+  };
+  useEffect(() => {
+    if (!focusOn || primary == null || !areaRef.current) return;
+    const fn = lvl.nodes.find((x) => x.id === primary);
+    if (!fn) return;
+    areaRef.current.scrollLeft = Math.max(0, fn.x * zoom - 20);
+    areaRef.current.scrollTop = Math.max(0, fn.y * zoom - 20);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusOn, primary, zoom]);
+
   /* --- nappaimisto --- */
   useEffect(() => {
     const onKey = (e) => {
       const tag = (e.target.tagName || "").toLowerCase();
-      if (tag === "input" || tag === "textarea" || tag === "select") return;
+      const ityp = tag === "input" ? (e.target.type || "").toLowerCase() : "";
+      if (tag === "input" && ityp === "range") { const rk = e.key.toLowerCase(); const rArrow = focusOn && e.key.startsWith("Arrow"); if (rk !== " " && rk !== "f" && rk !== "l" && rk !== "escape" && !rArrow) return; }
+      else if (tag === "input" || tag === "textarea" || tag === "select") return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
         e.preventDefault();
         if (e.shiftKey) redo(); else undo();
@@ -2449,10 +2514,24 @@ export default function App() {
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "g") { e.preventDefault(); groupSelected(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setQuickAdd({ cat: null, query: "", sel: 0 }); }
       else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeSelected(); }
-      else if (e.key === "Escape") { setBigPreview(false); setSelIds([]); }
+      else if (e.key === "Escape") { if (focusOn) { setFocusOn(false); setFocusWatch(null); } else { setBigPreview(false); setSelIds([]); } }
       else if (e.key === " ") {
         e.preventDefault();
-        setBigPreview((v) => (v ? false : primaryPS.paths.length > 0));
+        if (!focusOn) setBigPreview((v) => (v ? false : primaryPS.paths.length > 0));
+      }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        if (focusOn) { setFocusOn(false); setFocusWatch(null); }
+        else if (primary != null) { setBigPreview(false); setFocusOn(true); setFocusWatch(null); }
+      }
+      else if (focusOn && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "l") {
+        e.preventDefault();
+        setFocusWatch((w) => (w != null ? null : primary));
+      }
+      else if (focusOn && (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown")) {
+        e.preventDefault();
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+        focusNav(e.key);
       }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "t") { e.preventDefault(); tidyNodes(); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "b") { e.preventDefault(); setCatalogOpen((v) => !v); }
@@ -3127,6 +3206,10 @@ export default function App() {
                 ]],
                 ["View", [
                   ["Space", "big preview on/off"],
+                  ["F", "focus mode: node docked left + big preview"],
+                  ["\u2190 \u2192", "focus: edit upstream / downstream"],
+                  ["\u2191 \u2193", "focus: cycle sibling inputs"],
+                  ["L", "focus: lock/unlock watched node"],
                   ["T", "tidy nodes by dataflow"],
                   ["S", "3D layer stack view"],
                   ["?", "this list"],
@@ -3271,7 +3354,7 @@ export default function App() {
               addNodeAt(type, x - NODE_W / 2, y - 14);
             }
           }}
-          style={{ flex: 1, overflow: "auto", position: "relative", backgroundColor: T.bg }}>
+          style={{ flex: focusOn ? "0 0 " + Math.round((NODE_W + 56) * zoom) + "px" : 1, overflow: "auto", position: "relative", backgroundColor: T.bg }}>
           <div style={{ width: AREA_W * zoom, height: AREA_H * zoom, position: "relative" }}>
             <div style={{
               width: AREA_W, height: AREA_H, position: "absolute", transformOrigin: "0 0", transform: `scale(${zoom})`,
@@ -3622,8 +3705,68 @@ export default function App() {
           </div>
         </div>
 
+        {/* ---------- Focus mode: iso WATCH-preview (F) ---------- */}
+        {focusOn && (() => {
+          const watchId = focusWatch != null && lvl.nodes.some((n) => n.id === focusWatch) ? focusWatch : primary;
+          const locked = focusWatch != null;
+          const wNode = lvl.nodes.find((n) => n.id === watchId);
+          const wOut = watchId != null ? results[watchId] : null;
+          const wPS = wOut && wOut[0] && wOut[0].paths ? wOut[0] : EMPTY;
+          const wStats = totalStats(wPS);
+          const nameOf = (n) => n ? (n.type === "group" ? "Group " + n.id : (DEFS[n.type] ? DEFS[n.type].name : n.type)) : "\u2014";
+          const guides = focusGuides && watchId === primary ? primaryGuides : null;
+          const stripW = Math.round((NODE_W + 56) * zoom);
+          const availW = Math.max(220, window.innerWidth - 168 - stripW - 64);
+          const availH = Math.max(220, window.innerHeight - 190);
+          const fw = Math.min(availW, availH * (canvasW / canvasH));
+          const fh = Math.min(availH, availW * (canvasH / canvasW));
+          return (
+            <div style={{ flex: 1, minWidth: 0, borderLeft: "1px solid " + T.line, background: T.panel, display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 12px", borderBottom: "1px solid " + T.line, fontSize: 10, color: T.dim, letterSpacing: "0.08em" }}>
+                <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  FOCUS {"\u2014"} edit <span style={{ color: T.accent }}>{nameOf(primaryNode)}</span>
+                  {" \u00B7 watch "}<span style={{ color: locked ? T.group : T.accent }}>{nameOf(wNode)}{locked ? " \uD83D\uDD12" : ""}</span>
+                </div>
+                <div style={{ flex: 1 }} />
+                <button style={toolBtn(locked)} onClick={() => setFocusWatch((w) => (w != null ? null : primary))}
+                  title="L \u2014 lock the watched node: arrows then change only the edited node">
+                  {locked ? "Unlock watch" : "Lock watch"}
+                </button>
+                <button style={toolBtn(focusGuides)} onClick={() => setFocusGuides((v) => !v)}
+                  title="Overlay guides on/off in the preview (drawn when edit = watch)">
+                  Guides
+                </button>
+                <button style={toolBtn(true)} onClick={() => { setFocusOn(false); setFocusWatch(null); }} title="Esc / F">Close</button>
+              </div>
+              <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 8, overflow: "hidden" }}>
+                {wOut && !wPS.paths.length && (isStyle(wOut[0]) || typeof wOut[0] === "number") ? (
+                  <OutPreview out={wOut} W={megaW} H={megaH} width={Math.min(420, fw)} />
+                ) : simOn ? (
+                  <SimView ps={routeOpt ? routeOptimize(wPS, preserveDir) : wPS} W={megaW} H={megaH} width={fw} height={fh} />
+                ) : (
+                  <ZoomBox width={fw} height={fh}>
+                    <PathsSVG ps={wPS} W={megaW} H={megaH} width={fw} height={fh} arrows={showArrows} pad={12} bg={previewBg} guides={guides} />
+                  </ZoomBox>
+                )}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 12px", borderTop: "1px solid " + T.line, fontSize: 10, color: T.dim }}>
+                <button style={toolBtn(simOn)} onClick={() => setSimOn((v) => !v)}>{simOn ? "\u25FC Simulate" : "\u25B6 Simulate"}</button>
+                <label style={{ display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }}>
+                  <input type="checkbox" checked={showArrows} onChange={(e) => setShowArrows(e.target.checked)} style={{ accentColor: T.accent }} />
+                  Show direction
+                </label>
+                <div style={{ flex: 1 }} />
+                <div style={{ fontVariantNumeric: "tabular-nums", fontFamily: mono, whiteSpace: "nowrap" }}>
+                  {String(wStats.n).padStart(4, "\u2007") + " paths \u00B7 " + String(wStats.pts).padStart(6, "\u2007") + " pts \u00B7 " + (wStats.L / 1000).toFixed(2).padStart(6, "\u2007") + " m"}
+                </div>
+                <div style={{ whiteSpace: "nowrap" }}>{"\u2190\u2192 stream \u00B7 \u2191\u2193 siblings \u00B7 L lock \u00B7 Esc close"}</div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* ---------- Tarkastelupaneeli ---------- */}
-        <div style={{ width: 340, borderLeft: `1px solid ${T.line}`, background: T.panel, display: "flex", flexDirection: "column", flexShrink: 0, overflowY: "auto" }}>
+        <div style={{ width: 340, borderLeft: `1px solid ${T.line}`, background: T.panel, display: focusOn ? "none" : "flex", flexDirection: "column", flexShrink: 0, overflowY: "auto" }}>
           <div style={{ padding: 12, borderBottom: `1px solid ${T.line}` }}>
             <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.08em", marginBottom: 6, display: "flex", alignItems: "center" }}>
               <div style={{ flex: 1 }}>
@@ -4179,6 +4322,7 @@ export default function App() {
               ["KEYBOARD SHORTCUTS", [
                 "G / M / D / C / X \u2014 quick-add search: Generators / Modifiers / Decorators / Combiners / Math \u00B7 N or Cmd/Ctrl+K \u2014 all nodes. Search digs deeper than names: descriptions and tags too (try round, mesh, ribbon). Type to filter, \u2191\u2193 + Enter places the node.",
                 "Space \u2014 toggle large preview (with route simulator).",
+                "F \u2014 focus mode: the selected node docks left as a live card and a large preview fills the rest. \u2190/\u2192 walk the wire chain, \u2191/\u2193 hop between sibling inputs, L locks the watched node so you can edit one node while watching another (e.g. tune a Merge input while watching the Merge).",
                 "T \u2014 tidy: arrange nodes left\u2192right by dataflow (2+ selected: only the selection).",
                 "B \u2014 visual node catalog (live thumbnails, tag filters, Surprise me) \u00B7 ? \u2014 keyboard shortcuts popover.",
                 "Cmd/Ctrl+Z \u2014 undo \u00B7 Shift+Cmd/Ctrl+Z \u2014 redo.",
