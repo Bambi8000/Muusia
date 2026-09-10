@@ -50,6 +50,14 @@
  "barcode": [
   "scientific"
  ],
+ "bg_fill": [
+  "fill",
+  "flow",
+  "geometric",
+  "hatch",
+  "region",
+  "texture"
+ ],
  "bitcrush": [
   "deform",
   "grid",

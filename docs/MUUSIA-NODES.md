@@ -1,13 +1,13 @@
-# MUUSIA v2.77 — Node Reference
+# MUUSIA v2.82 — Node Reference
 
-All 264 built-in nodes. Conventions used below: most generators accept a **Style**
+All 265 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (156)
+## Generators (157)
 
 **TV Antennas** — the analog-era rooftop antenna forest planted along a wired
 *Roofline* path (a Base Y baseline when unwired; the node only ADDS ink, so
@@ -1106,6 +1106,24 @@ the two do not land on top of each other the machine lost steps during the
 plot, which needs *Optimize route* switched off, since a nearest-neighbour sort
 sees two identical crosses as zero travel and plots them back to back. The
 square is on its own pen, every mark and label on a second.
+
+**BG Fill** — seven full-sheet background fills in one node, picked with *Mode*.
+*Drape*: concentric fur-stroke arc bands folded by sharp creases like hanging
+fabric. *Magnet*: iron-filing dashes tracing a two-pole field, *Attract* or
+*Repel*. *Grain*: dense woodgrain lines that part around voids — seeded blobs,
+an optional *Crack*, or whatever is wired. *Scales*: staggered fish-scale rows
+as a rain of vertical dashes (lovely with a light pen on dark paper). *Torn*:
+fine strokes fanning off a diagonal spine into a wobbly rip lens — wire a path
+into Void and IT becomes the rip, rays leaving it *From center* or
+*Perpendicular* (open lines ray both sides). *Pleat*: vertical lines pinched
+into a diamond pleat grid like folded wallpaper. *Circles*: greedy largest-first
+circle packing, tangent at *Gap* 0 for the Apollonian look; *Rings* fills every
+circle with concentric rings at *Line pitch*. The Void input works in every mode
+with Negative Space semantics: closed interiors cut out, and every wired line —
+open or closed — carves a *Void clearance* band, so a Ribbon clears its own
+channel; in Grain the flow also bends around wired shapes like riverbanks.
+*Line pitch* is the master density. Tip: two BG Fills on different pens with
+different modes make an instant layered backdrop.
 
 ## Modifiers (70)
 

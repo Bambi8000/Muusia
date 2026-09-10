@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **253 files** (255 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **263 files** (265 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 152, Modifiers 69). ESM format:
+  Generators 157, Modifiers 70). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -1200,6 +1200,28 @@ text are **English**.
   always navigate nodes (the branch blurs the stale slider focus first).
   Intentional tradeoff: no arrow-key slider fine-tune while focus mode is
   on; outside focus mode slider arrows stay native.
+
+- **2.82** **BG Fill** (gen/geometric) baked: seven background fills under
+  one Mode select — Drape (fur-stroke arc bands folded by sharp creases),
+  Magnet (iron-filing dipole dashes, Attract/Repel), Grain (woodgrain flow
+  parting around voids, optional Crack), Scales (fish-scale dash rain), Torn
+  (strokes fanning off a spine into a wobbly rip lens), Pleat (triangle-wave
+  diamond pleats, amplitude clamped below the line-crossing bound k < cw/4)
+  and Circles (greedy largest-first packing with occupancy-grid dart pruning;
+  Rings fills each circle at Line pitch, big-first emission so a budget cut
+  eats small circles). Void input = Negative Space semantics: closed
+  interiors cut AND every wired line (open or closed) carves a Void clearance
+  band via bucketed segment distance; the band uses RAW input points when
+  affordable — resampling shaved sharp star corners ~1 mm, caught by the
+  validator's exact-edge test. Grain deflects around open lines with a
+  VECTOR-SUM push over nearby segments so a ribbon's opposite banks cancel
+  inside the corridor — nearest-seg push shoved lines across into the far
+  bank's cut zone. Torn with a wired path makes IT the rip: rays From center
+  or Perpendicular (±3-sample smoothed tangents), open polylines ray both
+  sides, box entry/exit binary-refined; unwired keeps the lens fallback.
+  tools/validate-bg_fill.mjs: 207 checks — per-mode invariants, clearance
+  violations by segment distance, mutation smoke on the void oracle,
+  Rings + min-pitch budget.
 
 ## Hard-won pitfalls (keep)
 
