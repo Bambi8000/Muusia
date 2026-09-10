@@ -128,7 +128,9 @@ text are **English**.
   which serves **only the built `dist/`** — repo `docs/` is never online.
   Anything that must be reachable on Pages goes in `public/` (Vite copies it
   verbatim into dist, e.g. `public/sim/` → /Muusia/sim/). CDN lags ~10 min; `curl -s <url> | wc -c` +
-  version grep distinguishes broken deploy from cache.
+  version grep distinguishes broken deploy from cache. Sentinel greps on
+  `dist/index.html` must target string literals (GUI text, node keys) —
+  minification renames identifiers, so variable/function names grep 0.
 - zsh does not accept `#` comments in pasted commands.
 - `.gitignore` covers `src/App.jsx.bak-*` (surgery-era backups).
 - Hard-removal policy: nodes/params may be removed or change defaults between
@@ -1200,6 +1202,13 @@ text are **English**.
   on; outside focus mode slider arrows stay native.
 
 ## Hard-won pitfalls (keep)
+
+- SENTINELS IN dist MUST BE STRING LITERALS. Vite minification renames every
+  local identifier, so `grep -c someVarName dist/index.html` returns 0 even
+  when the feature is in the build (v2.81: `rArrow` greppd 0, feature was
+  fine). Grep dist for GUI text or another string literal ("Unlock watch",
+  a node key, a param label); identifiers are only valid sentinels against
+  `src/`.
 - A LAB FILE IS NOT IN THE BUILD. Node ⇣ registers a custom node in the running
   session only, so a node developed that way works perfectly for weeks and is
   absent from `dist` — no validator can catch it, because the node is fine. Bake
