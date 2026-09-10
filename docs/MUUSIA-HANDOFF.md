@@ -1128,6 +1128,33 @@ text are **English**.
   paths snap to whole periods. Marker-sheet chain: Photo Trace stones →
   Zen Garden → Zigzag Path rings for rippling gravel.
 
+- **2.77** the animation batch: five nodes baked plus an engine seam.
+  **frameFan seam v2** in evalLevel: a def with `frameFan: true` re-evaluates
+  the level once per output frame (ctx.frameIdx 0..N-1, frameCount = N,
+  ctx._ff recursion guard) and fans the collected input out as its own
+  outputs; `frameFan` as a function (node, merged) => N instead hands the N
+  collected frames to compute AS the ins array (returning 0 opts out).
+  Applied era patches: patch-frame-fan2.mjs (installs clean or upgrades v1,
+  extract-and-run proves both forms), patch-frame-rot.mjs (Frame node fifth
+  output `rot °` = tl·360, old outputs byte-identical), patch-galaxy-
+  colors.mjs (Galaxy Colors Extended: Halo pen, dithered Inner disc split,
+  HII knots ×1.5 — Classic proven byte-identical pre/post across a sweep).
+  **Frame Grid** (duo): flipbook imposition with photo_trace-language plotted
+  markers; Animate fill = the whole animation through one input, overflow
+  pages to sheets (outer frameIdx = sheet, P n/N tag, global numbers);
+  Inputs and Clock fills for manual workflows; one shared canvas→cell scale
+  preserves frame registration. **Frame Split** (duo): ink-length /
+  path-count chopper — exact arc cuts, z interpolation, build-up / windows,
+  ease, reverse. **Collect Frames** (duo): the generic frame fan-out on the
+  seam. **TV Antennas** (gen/structural): mast-as-unit rooftop forest —
+  stacked heads with per-head type / size / boom tilt / foreshortening,
+  Panel and FM-star types, parapet dish clusters, struts, inter-mast cables,
+  retry-shrink at canvas edges. **Snarled Line** (gen/organic): coil-memory
+  strand physics with a coil/run phase machine, Loop vary log-spread loop
+  sizes, multi-clump attractors (wire Clump at to place them), Tighten and
+  Clump pen core split; validators prove the clump ink fraction (0.03→0.80)
+  and log-radius spread growth.
+
 ## Hard-won pitfalls (keep)
 - A LAB FILE IS NOT IN THE BUILD. Node ⇣ registers a custom node in the running
   session only, so a node developed that way works perfectly for weeks and is

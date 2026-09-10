@@ -473,6 +473,36 @@ function evalLevel(level, ctx, boundIns) {
       if (node.type === "group") {
         const inner = evalLevel(node.data, ctx, ins);
         outs = [inner.out[node.data.outputId] ? inner.out[node.data.outputId][0] : EMPTY];
+      } else if (DEFS[node.type] && DEFS[node.type].frameFan && !ctx._ff) {
+        /* frameFan seam v2: re-evaluate the level once per animation frame
+           and collect this node's input across the runs. frameFan: true
+           fans the frames out as the node's own outputs (Collect Frames);
+           frameFan as a function (node, params) => N hands the N collected
+           frames to compute as the ins array (Frame Grid Animate) —
+           returning 0 opts out for the current parameter state. */
+        const ff = DEFS[node.type].frameFan;
+        const nF = typeof ff === "function"
+          ? Math.max(0, Math.min(64, Math.round(ff(node, merged) || 0)))
+          : outSpec.length;
+        if (!nF) {
+          const r = DEFS[node.type].compute(ins, merged, ctx, node);
+          outs = outSpec.length > 1 ? (Array.isArray(r) ? r : [r]) : [r];
+        } else {
+          const eF = level.edges.find((ed) => ed.to === id && ed.toPort === 0);
+          const frames = [];
+          for (let f = 0; f < nF; f++) {
+            if (!eF) { frames.push(EMPTY); continue; }
+            const sub = evalLevel(level, { ...ctx, frameIdx: f, frameCount: nF, _ff: true }, boundIns);
+            const v = (sub.out[eF.from] || [])[eF.fromPort || 0];
+            frames.push(v && v.paths ? v : EMPTY);
+          }
+          if (typeof ff === "function") {
+            const r = DEFS[node.type].compute(frames, merged, ctx, node);
+            outs = outSpec.length > 1 ? (Array.isArray(r) ? r : [r]) : [r];
+          } else {
+            outs = frames;
+          }
+        }
       } else {
         const r = DEFS[node.type].compute(ins, merged, ctx, node);
         outs = outSpec.length > 1 ? (Array.isArray(r) ? r : [r]) : [r];
@@ -995,7 +1025,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.76"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.77"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;

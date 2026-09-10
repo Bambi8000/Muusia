@@ -8,14 +8,16 @@ export default {
      a gaussian Thickness. Dots are plotted as small rings (Point Cloud
      convention) with three pens: Core pen for bulge + halo, Arm pen for the
      disc, Sparkle pen for a Sparkle % of arm stars (young clusters, drawn
-     slightly larger). Yaw / Pitch rotate the world, Perspective foreshortens,
+     slightly larger). Colors "Extended" splits halo / inner disc / HII
+     regions onto three more pens - six pens in one galaxy; Classic stays
+     byte-identical to the original three-pen output. Yaw / Pitch rotate the world, Perspective foreshortens,
      and scaling is rotation-invariant (bounding sphere), so wiring the
      animation Frame into Yaw orbits the galaxy without size jumps. */
   key: "galaxy",
   name: "Galaxy",
   cat: "gen",
   group: "scientific",
-  desc: "A spiral galaxy as a rotatable 3D point cloud, deterministic from Seed. Stars sets the dot count, Arms and Twist wind the logarithmic spiral arms, Arm spread scatters stars around them, Bulge % and Bulge size fill the core with a 3D gaussian ball, Thickness sets the disc's vertical depth and Halo % sprinkles a sparse spherical halo. Three pens make it multicoloured: Core pen draws the bulge and halo, Arm pen the disc stars, and Sparkle % of arm stars land on Sparkle pen slightly enlarged - young star clusters along the arms. Core glow enlarges dots toward the centre. Yaw and Pitch rotate the whole galaxy in 3D (pitch 90 is face-on, 0 is edge-on), Perspective adds depth foreshortening, and the size is rotation-invariant, so wire the animation Frame into Yaw and the galaxy orbits smoothly. Dot shape picks the plotted mark: Circle (small ring sized by Dot mm), Dash (a short stroke streaking along the galactic rotation - star-trail look), or Point (a minimal 0.1 mm pen poke).",
+  desc: "A spiral galaxy as a rotatable 3D point cloud, deterministic from Seed. Stars sets the dot count, Arms and Twist wind the logarithmic spiral arms, Arm spread scatters stars around them, Bulge % and Bulge size fill the core with a 3D gaussian ball, Thickness sets the disc's vertical depth and Halo % sprinkles a sparse spherical halo. Three pens make it multicoloured: Core pen draws the bulge and halo, Arm pen the disc stars, and Sparkle % of arm stars land on Sparkle pen slightly enlarged - young star clusters along the arms. Core glow enlarges dots toward the centre. Yaw and Pitch rotate the whole galaxy in 3D (pitch 90 is face-on, 0 is edge-on), Perspective adds depth foreshortening, and the size is rotation-invariant, so wire the animation Frame into Yaw and the galaxy orbits smoothly. Dot shape picks the plotted mark: Circle (small ring sized by Dot mm), Dash (a short stroke streaking along the galactic rotation - star-trail look), or Point (a minimal 0.1 mm pen poke). Colors Extended unlocks three more pens: Halo pen separates the spherical halo from the bulge, Inner disc % with Inner disc pen splits the disc into an inner (older, yellower) and outer population across a dithered blend zone, and HII regions % re-tags arm stars as star-forming knots on HII pen, drawn 1.5x - six pens in one galaxy. Classic (3 pens) keeps the original output byte-identical.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
@@ -38,6 +40,12 @@ export default {
     { key: "corepen", label: "Core pen", type: "pen", def: 1 },
     { key: "armpen", label: "Arm pen", type: "pen", def: 0 },
     { key: "sparklepen", label: "Sparkle pen", type: "pen", def: 2 },
+    { key: "colors", label: "Colors", type: "select", options: ["Classic (3 pens)", "Extended"], def: "Classic (3 pens)" },
+    { key: "halopen", label: "Halo pen", type: "pen", def: 9, showIf: (p) => p.colors === "Extended" },
+    { key: "blend", label: "Inner disc %", type: "slider", min: 0, max: 100, step: 1, def: 45, showIf: (p) => p.colors === "Extended" },
+    { key: "armpen2", label: "Inner disc pen", type: "pen", def: 10, showIf: (p) => p.colors === "Extended" },
+    { key: "hii", label: "HII regions %", type: "slider", min: 0, max: 20, step: 1, def: 7, showIf: (p) => p.colors === "Extended" },
+    { key: "hiipen", label: "HII pen", type: "pen", def: 7, showIf: (p) => p.colors === "Extended" },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
     { key: "seed", label: "Seed", type: "seed", def: 42 },
   ],
@@ -48,6 +56,7 @@ export default {
     const bw = W - 2 * m, bh = Hh - 2 * m;
     if (bw < 4 || bh < 4) return applyStyle({ paths: [] }, st);
     const rng = mulberry32(p.seed);
+    const EXT = p.colors === "Extended";
     const gauss = () => {
       const u1 = Math.max(1e-12, rng()), u2 = rng();
       return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
@@ -78,13 +87,18 @@ export default {
       const rr = rn * (1 + gauss() * 0.04);
       const x = rr * Math.cos(th), y = rr * Math.sin(th);
       const z = gauss() * zSig * (0.4 + 0.6 * (1 - rn));
-      const kind = rng() * 100 < p.sparkle ? 2 : 1;
+      let kind = rng() * 100 < p.sparkle ? 2 : 1;
+      /* Extended populations: HII knots, then the inner/outer disc split
+         (dithered boundary) - extra rng() draws only in Extended, so the
+         Classic stream never moves */
+      if (EXT && kind === 1 && rng() * 100 < p.hii) kind = 3;
+      if (EXT && kind === 1 && p.blend > 0 && rn + (rng() - 0.5) * 0.16 < p.blend / 100) kind = 4;
       pts.push([x, y, z, kind, rn]);
     }
     for (let i = 0; i < nHalo; i++) {
       const th = rng() * 2 * Math.PI, ph = Math.acos(2 * rng() - 1);
       const rr = 0.35 + 0.8 * Math.pow(rng(), 0.7);
-      pts.push([rr * Math.sin(ph) * Math.cos(th), rr * Math.sin(ph) * Math.sin(th), rr * Math.cos(ph), 0, rr]);
+      pts.push([rr * Math.sin(ph) * Math.cos(th), rr * Math.sin(ph) * Math.sin(th), rr * Math.cos(ph), EXT ? 5 : 0, rr]);
     }
     if (!pts.length) return applyStyle({ paths: [] }, st);
 
@@ -120,13 +134,16 @@ export default {
     const BUDGET = 110000;
     let total = 0;
     const paths = [];
-    const penOf = [Math.round(p.corepen), Math.round(p.armpen), Math.round(p.sparklepen)];
+    const penOf = [Math.round(p.corepen), Math.round(p.armpen), Math.round(p.sparklepen),
+      Math.round(p.hiipen == null ? 7 : p.hiipen), Math.round(p.armpen2 == null ? 10 : p.armpen2),
+      Math.round(p.halopen == null ? 9 : p.halopen)];
     for (const [x, d, z, kind, rn, tsx, tsy] of rot) {
       const dn = (d - dLo) / dRange;
       const ps = 1 / (1 + p.persp * dn * 1.4);
       const sx = x * ps * sc + cx, sy2 = -z * ps * sc + cyc;
       let r = (p.dot / 2) * (1 + p.grow * 1.6 * Math.exp(-rn / 0.3)) * (0.8 + 0.4 * rng());
       if (kind === 2) r *= 1.35;
+      if (kind === 3) r *= 1.5;
       r = Math.max(0.15, r * ps);
       const rc = p.shape === "Point" ? 0.15 : r;
       if (sx < m + rc || sx > W - m - rc || sy2 < m + rc || sy2 > Hh - m - rc) continue;

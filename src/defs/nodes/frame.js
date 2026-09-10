@@ -3,7 +3,7 @@ import { Pin } from "../helpers.js";
 export default {
   key: "frame",
     name: "Frame", cat: "math", ins: [],
-    outs: [Pin("value", "t 0\u21921"), Pin("value", "frame #"), Pin("value", "wave loop"), Pin("value", "ping-pong")],
+    outs: [Pin("value", "t 0\u21921"), Pin("value", "frame #"), Pin("value", "wave loop"), Pin("value", "ping-pong"), Pin("value", "rot °")],
     params: [],
     compute(ins, p, ctx) {
       /* animaatioaika: t = lineaarinen ramppi (viim. freimi = 1),
@@ -14,7 +14,7 @@ export default {
       const tl = i / n;
       const wave = 0.5 - 0.5 * Math.cos(tl * Math.PI * 2);
       const pp = tl < 0.5 ? tl * 2 : 2 - tl * 2;
-      return [t, i, wave, pp];
+      return [t, i, wave, pp, tl * 360];
     },
   
 };

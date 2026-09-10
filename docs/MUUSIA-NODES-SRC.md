@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (257 files, generated)
+# MUUSIA v2.29 — Node Sources (262 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -233,6 +233,317 @@ export default {
       return { paths };
     }
   
+};
+```
+
+## antenna.js
+
+```js
+import { Pin, mulberry32, resample, applyStyle } from "../helpers.js";
+
+export default {
+  /* TV Antennas — the Mediterranean rooftop forest: tall thin masts carrying
+   * SEVERAL different antennas stacked at heights, planted along a wired
+   * Roofline path (or a baseline when unwired).
+   *
+   * The mast is the unit, not the antenna. Each mast draws 1..Heads heads at
+   * descending heights, and every head rolls its own type, size, boom tilt
+   * and a foreshortening factor (elements 30-100% length, as if seen from a
+   * different angle) — so no two antennas are copies. Vary drives the
+   * diversity: mast heights spread 0.5x-2.2x, sizes and angles scatter.
+   *
+   * Head types, from the real hardware: Yagi (longest reflector at the back,
+   * folded-dipole loop, directors shrinking toward the front), Log-periodic
+   * (geometric ladder, swept forward), VHF/UHF combo (long back elements,
+   * corner-reflector V, tight UHF run), Panel (mesh grid with X-brace and
+   * rungs — the classic UHF panel), FM star (radial-spoke turnstile on the
+   * mast top), Dish (offset ellipse rim, feed arm, LNB blob). In Mixed, a
+   * share of sites become DISH CLUSTERS on short stubs at parapet level
+   * while the masts tower above — the skyline in every Rome photo.
+   *
+   * Braces "Struts" leans 1-2 single diagonal poles against the mast
+   * (asymmetric, like the photos); "Guys" ties a symmetric wire pair.
+   * Cables hangs catenaries between neighbouring mast tops and drops some
+   * to the roof. Style "Cartoon" adds Wonk: bowed booms, jittered element
+   * lengths, dot-capped tips, double-line masts, jaunty leans.
+   *
+   * Orientation "Up" keeps masts vertical whatever the roof slope (what
+   * gravity does); Aim "Same way" points the neighbourhood at one
+   * transmitter. A mast whose ink would leave the canvas retries at 0.72x
+   * and 0.5x height before being skipped, so tall skylines stay dense and
+   * edges stay clean. Roofline paths pass through untouched — this node
+   * only ADDS ink; Merge it with the roofline branch.
+   */
+
+  key: "antenna",
+  name: "TV Antennas",
+  cat: "gen",
+  group: "structural",
+  desc: "The analog-era rooftop antenna forest planted along a wired Roofline path (baseline when unwired). Masts carry 1..Heads stacked heads and every head rolls its own type, size, boom tilt and element foreshortening, so no two antennas are copies; Vary spreads mast heights 0.5x-2.2x. Types: Yagi, Log-periodic, VHF/UHF combo, mesh Panel with X-brace, radial FM star, satellite Dish - and Mixed turns a share of sites into parapet-level dish clusters under towering masts. Braces lean diagonal struts or tie guy wires, Cables hangs catenaries between mast tops, Cartoon's Wonk bows booms and caps tips with dots. Oversized masts retry shorter before skipping, keeping edges clean.",
+  ins: [Pin("paths", "Roofline"), Pin("style", "Style")],
+  outs: [Pin("paths")],
+
+  params: [
+    { key: "type", label: "Type", type: "select", options: ["Mixed", "Yagi", "Log-periodic", "VHF/UHF combo", "Panel", "FM star", "Dish"], def: "Mixed" },
+    { key: "style", label: "Style", type: "select", options: ["Accurate", "Cartoon"], def: "Accurate" },
+    { key: "wonk", label: "Wonk", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5, showIf: (p) => p.style === "Cartoon" },
+    { key: "spacing", label: "Spacing mm", type: "slider", min: 12, max: 120, step: 1, def: 34 },
+    { key: "density", label: "Density %", type: "slider", min: 10, max: 100, step: 1, def: 90 },
+    { key: "mast", label: "Mast mm", type: "slider", min: 8, max: 90, step: 0.5, def: 44 },
+    { key: "heads", label: "Heads / mast", type: "slider", min: 1, max: 4, step: 1, def: 3 },
+    { key: "vary", label: "Vary", type: "slider", min: 0, max: 1, step: 0.05, def: 0.7 },
+    { key: "size", label: "Size mm", type: "slider", min: 6, max: 50, step: 0.5, def: 20 },
+    { key: "elems", label: "Elements", type: "slider", min: 2, max: 10, step: 1, def: 6, showIf: (p) => p.type !== "Dish" && p.type !== "Panel" && p.type !== "FM star" },
+    { key: "tilt", label: "Tilt \u00b0", type: "slider", min: -25, max: 25, step: 1, def: 0 },
+    { key: "orient", label: "Orientation", type: "select", options: ["Up", "Path normal"], def: "Up" },
+    { key: "aim", label: "Aim", type: "select", options: ["Same way", "Random"], def: "Same way" },
+    { key: "braces", label: "Braces", type: "select", options: ["Off", "Struts", "Guys"], def: "Struts" },
+    { key: "cables", label: "Cables", type: "select", options: ["Off", "On"], def: "On" },
+    { key: "baseY", label: "Base Y % (unwired)", type: "slider", min: 10, max: 95, step: 1, def: 70 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+  ],
+
+  compute(ins, p, ctx) {
+    const W = Math.max(1, Number(ctx && ctx.W) || 420), Hh = Math.max(1, Number(ctx && ctx.H) || 297);
+    const pen = Math.max(0, Math.min(11, Math.round(Number(p.layer) || 0)));
+    const rng = mulberry32(p.seed);
+    const cr = mulberry32((p.seed ^ 0x9e3779b9) >>> 0); /* cable stream */
+    const cartoon = p.style === "Cartoon";
+    const w = cartoon ? Math.max(0, Math.min(1, Number(p.wonk) || 0)) : 0;
+    const v = Math.max(0, Math.min(1, Number(p.vary) == null ? 0.7 : Number(p.vary)));
+    const HEADPOOL = ["Yagi", "Log-periodic", "VHF/UHF combo", "Panel", "FM star"];
+    const globalAim = rng() < 0.5 ? -1 : 1;
+
+    const src = ins[0];
+    const wired = src && src.paths && src.paths.length;
+    const yb = (Hh * Math.max(10, Math.min(95, Number(p.baseY) || 70))) / 100;
+    const lines = wired
+      ? src.paths.filter((q) => q.pts && q.pts.length > 1)
+      : [{ pts: [[12, yb], [W - 12, yb]], closed: false }];
+    const step = Math.max(4, Number(p.spacing) || 34);
+
+    const BUDGET = 110000;
+    let total = 0;
+    const paths = [];
+    const emit = (pts, closed) => {
+      if (total + pts.length > BUDGET) return false;
+      total += pts.length;
+      paths.push({ pts, closed: !!closed, layer: pen });
+      return true;
+    };
+    const inCanvas = (pts) => pts.every(([x, y]) => x >= 0 && x <= W && y >= 0 && y <= Hh);
+
+    for (const path of lines) {
+      const rpts = resample(path.pts, !!path.closed, step);
+      const tops = [], anchors = []; /* for cables, world coords */
+
+      for (let si = 0; si < rpts.length; si++) {
+        if (!wired && si === 0) continue;
+        if (rng() * 100 > p.density) continue;
+        const siteSeed = Math.floor(rng() * 2147483647);
+
+        /* local frame: origin at the anchor, +y up, +x forward (aim) */
+        const a0 = rpts[Math.max(0, si - 1)], a1 = rpts[Math.min(rpts.length - 1, si + 1)];
+        let ux = 0, uy = -1;
+        if (p.orient === "Path normal") {
+          const tx = a1[0] - a0[0], ty = a1[1] - a0[1], tl = Math.hypot(tx, ty);
+          if (tl > 1e-9) { ux = ty / tl; uy = -tx / tl; if (uy > 0) { ux = -ux; uy = -uy; } }
+        }
+
+        /* build at shrinking scales until the ink fits the canvas */
+        for (const sc of [1, 0.72, 0.5]) {
+          const sr = mulberry32(siteSeed);
+          const buf = [];
+          const seg = (pts, closed) => buf.push({ pts, closed: !!closed });
+
+          const lean = (p.tilt * Math.PI) / 180 +
+            (cartoon ? (sr() - 0.5) * 2 * 0.26 * w : (sr() - 0.5) * 0.07 * v);
+          const cl = Math.cos(lean), sl = Math.sin(lean);
+          const Ux = ux * cl - uy * sl, Uy = ux * sl + uy * cl;
+          const Rx = -Uy, Ry = Ux;
+          const aim = p.aim === "Random" ? (sr() < 0.5 ? -1 : 1) : globalAim;
+          const P = (lx, ly) => [rpts[si][0] + Rx * lx * aim + Ux * ly, rpts[si][1] + Ry * lx * aim + Uy * ly];
+
+          const dishClusterSite = p.type === "Mixed" && sr() < 0.24;
+          const hu = sr();
+          const mastH = dishClusterSite || p.type === "Dish"
+            ? Math.max(3, p.mast * sc * (0.16 + 0.14 * sr()))
+            : Math.max(4, p.mast * sc * (1 + v * (0.5 + 1.7 * hu * hu - 1)));
+
+          /* mast (cartoon: double line) */
+          seg([[0, 0], [0, mastH]], false);
+          if (cartoon) seg([[0.7, 0], [0.7, mastH * 0.97]], false);
+
+          /* one antenna head at height hy: own tilt, size, foreshortening */
+          const head = (t, hy, L, nE) => {
+            const bt = (sr() - 0.5) * 2 * 0.30 * (0.15 + 0.85 * v) + (cartoon ? (sr() - 0.5) * 0.3 * w : 0);
+            const cb = Math.cos(bt), sb = Math.sin(bt);
+            const fore = 1 - 0.68 * v * sr(); /* element foreshortening */
+            const hp = (hx, hyRel) => [hx * cb - hyRel * sb, hy + hyRel * cb + hx * sb];
+            const hseg = (pts, closed) => seg(pts.map(([hx, hyRel]) => hp(hx, hyRel)), closed);
+            const bow = cartoon ? (sr() - 0.5) * 2 * 0.14 * w * L : 0;
+            const boomY = (bx) => -bow * Math.sin((Math.PI * (bx + L * 0.35)) / L);
+            const boom = (x0, x1) => {
+              const n = bow ? 7 : 1, pts2 = [];
+              for (let k = 0; k <= n; k++) { const bx = x0 + ((x1 - x0) * k) / n; pts2.push([bx, boomY(bx)]); }
+              hseg(pts2, false);
+            };
+            const elem = (bx, half, sweep) => {
+              const len = half * fore * (1 + (cartoon ? (sr() - 0.5) * 0.5 * w : 0));
+              const ang = (sweep || 0) + (cartoon ? (sr() - 0.5) * 0.42 * w : 0);
+              const dx = Math.sin(ang), dy = Math.cos(ang), by = boomY(bx);
+              hseg([[bx - dx * len, by - dy * len], [bx + dx * len, by + dy * len]], false);
+              if (cartoon && w > 0.15) {
+                for (const s of [-1, 1]) {
+                  const c0 = hp(bx + s * dx * len, by + s * dy * len), r = 0.55, ring = [];
+                  for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; ring.push([c0[0] + Math.cos(a) * r, c0[1] + Math.sin(a) * r]); }
+                  seg(ring, true);
+                }
+              }
+            };
+
+            if (t === "Yagi") {
+              const back = -L * 0.35, front = L * 0.65;
+              boom(back, front);
+              elem(back, L * 0.30);
+              const dd = back + L * 0.18, dh = L * 0.27 * fore, dwd = Math.max(0.7, L * 0.03);
+              hseg([[dd - dwd / 2, boomY(dd) - dh], [dd + dwd / 2, boomY(dd) - dh],
+                    [dd + dwd / 2, boomY(dd) + dh], [dd - dwd / 2, boomY(dd) + dh]], true);
+              for (let k = 0; k < nE; k++) elem(dd + ((front - dd) * (k + 1)) / nE, L * 0.26 * Math.pow(0.94, k + 1));
+            } else if (t === "Log-periodic") {
+              const back = -L * 0.3, front = L * 0.7, tau = 0.82;
+              boom(back, front);
+              for (let k = 0; k < nE; k++) {
+                const f = (1 - Math.pow(tau, k + 1)) / (1 - Math.pow(tau, nE));
+                elem(back + (front - back) * f, L * 0.30 * Math.pow(tau, k), 0.35);
+              }
+            } else if (t === "VHF/UHF combo") {
+              const back = -L * 0.4, front = L * 0.6, jx = L * 0.12;
+              boom(back, front);
+              for (let k = 0; k < 3; k++) elem(back + k * L * 0.16, L * 0.30 * Math.pow(0.9, k));
+              const vy = L * 0.16 * fore;
+              hseg([[jx - vy * 0.7, boomY(jx) - vy], [jx, boomY(jx)], [jx - vy * 0.7, boomY(jx) + vy]], false);
+              const nu = Math.max(3, nE);
+              for (let k = 0; k < nu; k++) elem(jx + L * 0.07 + (k * (front - jx - L * 0.07)) / nu, L * 0.09);
+            } else if (t === "Panel") {
+              const gw = L * 0.20 * (0.5 + 0.5 * fore), gh = L * 0.32;
+              hseg([[0, 0], [gw * 0.5, 0]], false); /* standoff */
+              const x0 = gw * 0.5;
+              hseg([[x0, -gh], [x0 + 2 * gw, -gh], [x0 + 2 * gw, gh], [x0, gh]], true);
+              hseg([[x0, -gh], [x0 + 2 * gw, gh]], false);
+              hseg([[x0, gh], [x0 + 2 * gw, -gh]], false);
+              for (let k = 1; k <= 3; k++) { const gy = -gh + (2 * gh * k) / 4; hseg([[x0, gy], [x0 + 2 * gw, gy]], false); }
+            } else if (t === "FM star") {
+              const R = L * 0.34, r0 = R * 0.14, ring = [];
+              for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; ring.push([Math.cos(a) * r0, Math.sin(a) * r0]); }
+              hseg(ring, true);
+              const nS = 10;
+              for (let k = 0; k < nS; k++) {
+                const a = (k / nS) * Math.PI * 2 + 0.2;
+                hseg([[Math.cos(a) * r0, Math.sin(a) * r0], [Math.cos(a) * R * (0.7 + 0.3 * fore), Math.sin(a) * R]], false);
+              }
+            } else if (t === "Dish") {
+              const el = 0.35 + 0.4 * sr() + (cartoon ? (sr() - 0.5) * 0.5 * w : 0);
+              const dxb = Math.cos(el), dyb = Math.sin(el);
+              const mxa = -dyb, mya = dxb;
+              const a2 = L * 0.42, b2 = a2 * (cartoon ? 0.55 : 0.22 + 0.2 * sr());
+              const C = [L * 0.06, 0];
+              const rim = (scale) => {
+                const ring = [];
+                for (let k = 0; k < 36; k++) {
+                  const a = (k / 36) * Math.PI * 2;
+                  ring.push([C[0] + (mxa * Math.cos(a) * a2 + dxb * Math.sin(a) * b2) * scale,
+                             C[1] + (mya * Math.cos(a) * a2 + dyb * Math.sin(a) * b2) * scale]);
+                }
+                return ring;
+              };
+              hseg(rim(1), true);
+              if (!cartoon) hseg(rim(0.8), true);
+              const lo = [C[0] - mxa * a2 * 0.86, C[1] - mya * a2 * 0.86];
+              const fp = [C[0] + dxb * a2 * 1.05, C[1] + dyb * a2 * 1.05];
+              hseg([lo, [lo[0] + dxb * a2 * 0.55, lo[1] + dyb * a2 * 0.55], fp], false);
+              const blob = [];
+              for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; blob.push([fp[0] + Math.cos(a) * (cartoon ? 1.4 : 0.9), fp[1] + Math.sin(a) * (cartoon ? 1.4 : 0.9)]); }
+              hseg(blob, true);
+            }
+          };
+
+          if (dishClusterSite || p.type === "Dish") {
+            const nD = dishClusterSite && sr() < 0.4 ? 2 : 1;
+            for (let d = 0; d < nD; d++) {
+              const hy = mastH * (1 - d * 0.15);
+              head("Dish", hy, Math.max(4, p.size * sc * (0.9 + 0.5 * sr())), 0);
+            }
+          } else {
+            const nH = 1 + Math.floor(sr() * Math.max(1, Math.round(p.heads)));
+            let hy = mastH;
+            for (let hI = 0; hI < nH && hy > mastH * 0.24; hI++) {
+              const t = p.type === "Mixed" ? HEADPOOL[Math.floor(sr() * HEADPOOL.length)] : p.type;
+              const L = Math.max(4, p.size * sc * (1 + (sr() - 0.5) * 1.0 * v) * Math.pow(0.85, hI));
+              head(t, hy, L, Math.max(2, Math.min(10, Math.round(p.elems) || 6)));
+              hy -= mastH * (0.26 + 0.16 * sr());
+            }
+            if (p.braces === "Struts") {
+              const nB = 1 + (sr() < 0.5 ? 1 : 0);
+              for (let b = 0; b < nB; b++) {
+                const by = mastH * (0.5 + 0.28 * sr());
+                const bx = (sr() < 0.5 ? -1 : 1) * mastH * (0.14 + 0.22 * sr());
+                seg([[0, by], [bx, 0]], false);
+              }
+            } else if (p.braces === "Guys") {
+              const gy = mastH * 0.75, gs = mastH * 0.5;
+              seg([[0, gy], [-gs, 0]], false);
+              seg([[0, gy], [gs, 0]], false);
+            }
+          }
+
+          const world = buf.map((q) => ({ pts: q.pts.map(([lx, ly]) => P(lx, ly)), closed: q.closed }));
+          if (world.every((q) => inCanvas(q.pts))) {
+            let ok2 = true;
+            for (const q of world) if (!emit(q.pts, q.closed)) { ok2 = false; break; }
+            if (ok2) { tops.push(P(0, mastH)); anchors.push([rpts[si][0], rpts[si][1]]); }
+            if (!ok2) return applyStyle({ paths }, ins[1]);
+            break;
+          }
+        }
+      }
+
+      /* cables: catenaries between neighbouring mast tops, some drop to roof */
+      if (p.cables === "On") {
+        for (let k = 0; k + 1 < tops.length; k++) {
+          const roll = cr();
+          const t1 = tops[k];
+          /* top-to-top only between roughly level neighbours; otherwise the
+             cable is a feedline dropping to the roof (the photo look) */
+          const level = Math.abs(tops[k + 1][1] - t1[1]) <
+            0.35 * Math.hypot(tops[k + 1][0] - t1[0], tops[k + 1][1] - t1[1]);
+          const t2 = roll < 0.35 && level ? tops[k + 1] : roll < 0.7 ? anchors[k + 1] : null;
+          if (!t2) continue;
+          const d = Math.hypot(t2[0] - t1[0], t2[1] - t1[1]);
+          if (d < 3 || d > 110) continue;
+          const sag = 0.8 + d * 0.035 * (0.6 + 0.8 * cr());
+          const pts2 = [];
+          for (let q = 0; q <= 10; q++) {
+            const u = q / 10;
+            pts2.push([t1[0] + (t2[0] - t1[0]) * u, t1[1] + (t2[1] - t1[1]) * u + sag * Math.sin(Math.PI * u)]);
+          }
+          if (inCanvas(pts2)) { if (!emit(pts2, false)) return applyStyle({ paths }, ins[1]); }
+        }
+      }
+    }
+    return applyStyle({ paths }, ins[1]);
+  },
+
+  overlay(p, ctx, ins) {
+    try {
+      const wired = ins && ins[0] && ins[0].paths && ins[0].paths.length;
+      if (wired) return [];
+      const W = (ctx && ctx.W) || 420, Hh = (ctx && ctx.H) || 297;
+      const yb = (Hh * Math.max(10, Math.min(95, Number(p.baseY) || 70))) / 100;
+      return [{ kind: "poly", pts: [[12, yb], [W - 12, yb]] }];
+    } catch (e) { return []; }
+  },
 };
 ```
 
@@ -4779,6 +5090,68 @@ export default {
       return { paths };
     },
   
+};
+```
+
+## collect_frames.js
+
+```js
+import { Pin } from "../helpers.js";
+
+export default {
+  /* Collect Frames — the animation fan-out: wire in a Frame-clock-animated
+   * branch and every animation frame comes out as its own output, ready to
+   * plug straight into Frame Grid's input pins (or Sheets, or per-frame
+   * restyling branches).
+   *
+   * This node needs the engine's frameFan seam (tools/era/patch-frame-fan.mjs):
+   * when the engine reaches a frameFan node it re-evaluates the level once
+   * per output with ctx.frameIdx = 0..N-1 and ctx.frameCount = N, and
+   * collects this node's input across those runs. The Frames count on THIS
+   * node therefore defines the animation's frame domain — the upstream
+   * Frame node sees frameCount = N here regardless of the ANIMATE panel,
+   * so the fan is complete and seamless whatever the panel is set to.
+   *
+   * Costs and bounds, stated honestly: every evaluation of a patch that
+   * contains this node runs the level N extra times, so a heavy generator
+   * behind a 16-frame collector multiplies its cost by 17 on every param
+   * tweak. Inside a Group the level's own upstream animates but the group's
+   * BOUND inputs arrive frozen at the outer frame; chained collectors do
+   * not nest (the inner one yields empty frames during collection) — one
+   * collector per dependency chain.
+   *
+   * Without the seam (validators, older builds, and the engine's own inner
+   * collection passes) compute falls back to routing the single current
+   * frame to its own output and leaving the rest empty.
+   *
+   * Pure per evaluation, no randomness — nothing to seed.
+   */
+
+  key: "collect_frames",
+  name: "Collect Frames",
+  cat: "duo",
+  frameFan: true,
+  desc: "Fans a Frame-clock-animated input out into one output per animation frame: the engine re-evaluates the upstream once per frame (frameIdx 0..N-1, frameCount = N) and each result gets its own pin, ready for Frame Grid. The Frames count here defines the animation's frame domain. Evaluation cost multiplies by the frame count.",
+
+  ins: [Pin("paths", "animated")],
+  outs: (node) => {
+    const n = Math.max(2, Math.min(16, Math.round((node && node.params && node.params.count) || 6)));
+    return Array.from({ length: n }, (_, i) => Pin("paths", "frame " + (i + 1)));
+  },
+
+  params: [
+    { key: "count", label: "Frames", type: "slider", min: 2, max: 16, step: 1, def: 6 },
+  ],
+
+  compute(ins, p, ctx) {
+    /* Fallback only — the frameFan engine seam computes the real outputs.
+       Here the one frame this evaluation can see lands in its own output. */
+    const n = Math.max(2, Math.min(16, Math.round(Number(p.count) || 6)));
+    const idx = Math.min(n - 1, Math.max(0, (ctx && ctx.frameIdx) || 0));
+    const src = ins[0];
+    return Array.from({ length: n }, (_, k) =>
+      k === idx && src && src.paths ? { paths: src.paths } : { paths: [] });
+  },
 };
 ```
 
@@ -9570,7 +9943,7 @@ import { Pin } from "../helpers.js";
 export default {
   key: "frame",
     name: "Frame", cat: "math", ins: [],
-    outs: [Pin("value", "t 0\u21921"), Pin("value", "frame #"), Pin("value", "wave loop"), Pin("value", "ping-pong")],
+    outs: [Pin("value", "t 0\u21921"), Pin("value", "frame #"), Pin("value", "wave loop"), Pin("value", "ping-pong"), Pin("value", "rot °")],
     params: [],
     compute(ins, p, ctx) {
       /* animaatioaika: t = lineaarinen ramppi (viim. freimi = 1),
@@ -9581,9 +9954,496 @@ export default {
       const tl = i / n;
       const wave = 0.5 - 0.5 * Math.cos(tl * Math.PI * 2);
       const pp = tl < 0.5 ? tl * 2 : 2 - tl * 2;
-      return [t, i, wave, pp];
+      return [t, i, wave, pp, tl * 360];
     },
   
+};
+```
+
+## frame_grid.js
+
+```js
+import { Pin, fontStrokes } from "../helpers.js";
+
+export default {
+  /* Frame Grid — animation frame imposition: lays animation frames into a
+   * grid on one sheet, with camera fiducial markers for automated frame
+   * extraction.
+   *
+   * Fill modes:
+   *   - "Animate" (default): ONE input carrying the whole animation. The
+   *     engine's frameFan seam (v2) re-evaluates the upstream once per
+   *     frame (frameIdx 0..Total-1, frameCount = Total) and hands the
+   *     collected frames to this node — Total frames on THIS node defines
+   *     the animation's frame domain. Frames beyond one sheet's cells flow
+   *     onto the next sheet: the OUTER ctx.frameIdx is the SHEET index
+   *     (the Mesh Slice "Grid pages" idiom), so set ANIMATE Frames =
+   *     ceil(Total / cells), scrub to flip sheets, and every per-frame
+   *     export writes one complete sheet. Frame numbers run globally and a
+   *     "P n/N" page tag lands bottom-right when there is more than one
+   *     sheet. Evaluation cost multiplies by Total on every tweak.
+   *   - "Inputs": Sheets-shaped — N paths inputs (2..16), input i lands in
+   *     cell i. One export, one plot: the whole flipbook sheet in one job.
+   *   - "Clock": a single input; its content lands in cell ctx.frameIdx
+   *     (clamped). Set ANIMATE Frames = cell count and every per-frame
+   *     export writes one cell; the files merge into the full sheet (same
+   *     origin, disjoint cells). "Static parts" chooses whether markers /
+   *     cell frames / numbers repeat in every per-frame file or appear only
+   *     in frame 1's file.
+   *
+   * Geometry: every input is designed at full canvas size; the node maps
+   * the WHOLE canvas rectangle into each cell with ONE uniform scale shared
+   * by all cells (shrink, center, letterbox). This preserves frame-to-frame
+   * registration — the property an animation lives on. "Fit each" instead
+   * fits each input's own bounding box into its cell (contact-sheet use;
+   * breaks registration, so it is not the default).
+   *
+   * Markers use the photo_trace marker language, plotted: four hatch-filled
+   * squares whose CENTERS sit exactly 20 mm from the sheet corners, the
+   * top-left one carrying a white center hole (diameter 0.4 x size) as the
+   * orientation anchor. A frame-extraction tool can therefore reuse the
+   * photo_trace 4-point DLT homography and marker detector unchanged.
+   *
+   * Content keeps its pen layers and any z component; chrome (markers,
+   * cell frames, numbers, label) draws on its own pen. Chrome is emitted
+   * FIRST so a point-budget truncation eats late cells, never the markers.
+   * Unwired input = empty cell. No randomness — nothing to seed.
+   */
+
+  key: "frame_grid",
+  name: "Frame Grid",
+  cat: "duo",
+  desc: "Animation frame imposition: lays frames into a grid with photo_trace-compatible fiducial markers for camera frame extraction. Animate mode takes the whole animation through ONE input via the frameFan engine seam and pages overflow frames onto further sheets (outer frameIdx = sheet, P n/N tag, global numbering; evaluation cost multiplies by Total frames). Inputs mode gives one pin per cell; Clock mode places a single input into cell frameIdx for per-frame export merging. Canvas maps into every cell with one shared scale so frames stay registered.",
+
+  ins: (node) => {
+    const p = node && node.params;
+    const fill = (p && p.fill) || "Animate";
+    if (fill === "Animate") return [Pin("paths", "animation")];
+    if (fill === "Clock") return [Pin("paths", "frames")];
+    const n = Math.max(2, Math.min(16, Math.round((p && p.count) || 6)));
+    return Array.from({ length: n }, (_, i) => Pin("paths", "frame " + (i + 1)));
+  },
+
+  /* frameFan seam v2 hook: in Animate mode the engine collects this many
+     frames of input 0 and passes them to compute as the ins array;
+     returning 0 opts out (Inputs / Clock evaluate normally). */
+  frameFan(node, merged) {
+    const p = merged || (node && node.params) || {};
+    if (((p.fill) || "Animate") !== "Animate") return 0;
+    return Math.max(1, Math.min(64, Math.round(Number(p.total) || 12)));
+  },
+  outs: [Pin("paths")],
+
+  params: [
+    { key: "fill", label: "Fill", type: "select", options: ["Animate", "Inputs", "Clock"], def: "Animate" },
+    { key: "total", label: "Total frames", type: "slider", min: 1, max: 64, step: 1, def: 12, showIf: (p) => p.fill === "Animate" },
+    { key: "count", label: "Frames", type: "slider", min: 2, max: 16, step: 1, def: 6, showIf: (p) => p.fill === "Inputs" },
+    { key: "layout", label: "Layout", type: "select", options: ["3\u00d72 \u00b7 6", "4\u00d73 \u00b7 12", "2\u00d72 \u00b7 4", "3\u00d73 \u00b7 9", "4\u00d74 \u00b7 16", "Custom"], def: "3\u00d72 \u00b7 6" },
+    { key: "cols", label: "Columns", type: "slider", min: 1, max: 6, step: 1, def: 3, showIf: (p) => p.layout === "Custom" },
+    { key: "rows", label: "Rows", type: "slider", min: 1, max: 6, step: 1, def: 2, showIf: (p) => p.layout === "Custom" },
+    { key: "order", label: "Order", type: "select", options: ["Row-major", "Column-major", "Boustrophedon"], def: "Row-major" },
+    { key: "scale", label: "Cell scale", type: "select", options: ["Map canvas", "Fit each"], def: "Map canvas" },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 30 },
+    { key: "gap", label: "Gap mm", type: "slider", min: 0, max: 20, step: 0.5, def: 8 },
+    { key: "marks", label: "Markers", type: "select", options: ["On", "Off"], def: "On" },
+    { key: "markSize", label: "Marker mm", type: "slider", min: 8, max: 15, step: 0.5, def: 15, showIf: (p) => p.marks === "On" },
+    { key: "cellFrames", label: "Cell frames", type: "select", options: ["Off", "On"], def: "Off" },
+    { key: "numbers", label: "Frame numbers", type: "select", options: ["Off", "On"], def: "Off" },
+    { key: "labelText", label: "Label", type: "text", def: "" },
+    { key: "chrome", label: "Static parts", type: "select", options: ["Every frame", "First frame only"], def: "Every frame", showIf: (p) => p.fill === "Clock" },
+    { key: "penMark", label: "Marker pen", type: "pen", def: 0 },
+  ],
+
+  /* Shared layout: grid geometry, cell order and marker placement.
+     compute() and overlay() both call this so the guides always match the ink
+     (the Signature _layout pattern — the engine calls both as def methods). */
+  _layout(p, ctx) {
+    const W = (ctx && ctx.W) || 420, H = (ctx && ctx.H) || 297;
+    const GRIDS = {
+      "3\u00d72 \u00b7 6": [3, 2], "4\u00d73 \u00b7 12": [4, 3], "2\u00d72 \u00b7 4": [2, 2],
+      "3\u00d73 \u00b7 9": [3, 3], "4\u00d74 \u00b7 16": [4, 4],
+    };
+    let cols, rows;
+    if (p.layout === "Custom") {
+      cols = Math.max(1, Math.min(6, Math.round(Number(p.cols) || 1)));
+      rows = Math.max(1, Math.min(6, Math.round(Number(p.rows) || 1)));
+    } else {
+      const g = GRIDS[p.layout] || [3, 2];
+      cols = g[0]; rows = g[1];
+    }
+    const m = Math.max(0, Number(p.margin) || 0);
+    const gap = Math.max(0, Number(p.gap) || 0);
+    const iw = W - 2 * m, ih = H - 2 * m;
+    const cw = (iw - (cols - 1) * gap) / cols;
+    const ch = (ih - (rows - 1) * gap) / rows;
+
+    /* cell rects in reading positions (row-major grid walk) */
+    const rects = [];
+    if (cw > 1 && ch > 1) {
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        rects.push({ x: m + c * (cw + gap), y: m + r * (ch + gap), w: cw, h: ch, c, r });
+      }
+    }
+
+    /* frame index -> cell rect, per traversal order */
+    const cells = [];
+    if (rects.length) {
+      if (p.order === "Column-major") {
+        for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) cells.push(rects[r * cols + c]);
+      } else if (p.order === "Boustrophedon") {
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cc = r % 2 === 0 ? c : cols - 1 - c;
+            cells.push(rects[r * cols + cc]);
+          }
+        }
+      } else {
+        for (const q of rects) cells.push(q);
+      }
+    }
+
+    /* markers: photo_trace language — centers exactly 20 mm from the sheet
+       corners, top-left carries the orientation hole (dia 0.4 x size) */
+    const INSET = 20;
+    const ms = Math.max(2, Math.min(15, Number(p.markSize) || 15));
+    const markers = [
+      { cx: INSET, cy: INSET, hole: true },
+      { cx: W - INSET, cy: INSET, hole: false },
+      { cx: W - INSET, cy: H - INSET, hole: false },
+      { cx: INSET, cy: H - INSET, hole: false },
+    ];
+
+    /* one uniform canvas->cell scale, shared by all cells */
+    const s = cw > 1 && ch > 1 ? Math.min(cw / W, ch / H) : 0;
+    return { W, H, cols, rows, cw, ch, cells, markers, ms, s };
+  },
+
+  compute(ins, p, ctx, node) {
+    const L = this._layout(p, ctx);
+    const pen = Math.max(0, Math.min(11, Math.round(Number(p.penMark) || 0)));
+    const fill = p.fill || "Animate";
+    const clock = fill === "Clock";
+    const anim = fill === "Animate";
+    const fIdx = (ctx && ctx.frameIdx) || 0;
+    /* Animate paging: outer frameIdx = sheet index */
+    const cellsN = L.cells.length;
+    const total = anim ? Math.max(1, Math.min(64, Math.round(Number(p.total) || 12))) : 0;
+    const pages = anim && cellsN ? Math.max(1, Math.ceil(total / cellsN)) : 1;
+    const page = anim ? Math.min(pages - 1, Math.max(0, fIdx)) : 0;
+    const BUDGET = 110000;
+    let used = 0;
+    const paths = [];
+    const push = (pts, closed, layer) => {
+      if (used + pts.length > BUDGET) return false;
+      used += pts.length;
+      paths.push({ pts, closed, layer });
+      return true;
+    };
+
+    /* ---- chrome first: markers, cell frames, numbers, label ----
+       Animate draws full chrome on every sheet (each is a physical page) */
+    const chromeOn = anim || !clock || p.chrome !== "First frame only" || fIdx === 0;
+
+    if (chromeOn && p.marks === "On") {
+      const h = L.ms / 2, PITCH = 0.6;
+      for (const mk of L.markers) {
+        push([[mk.cx - h, mk.cy - h], [mk.cx + h, mk.cy - h], [mk.cx + h, mk.cy + h], [mk.cx - h, mk.cy + h]], true, pen);
+        const r = mk.hole ? 0.2 * L.ms : 0;
+        const nL = Math.floor((L.ms - 0.6) / PITCH);
+        for (let i = 0; i <= nL; i++) {
+          const y = mk.cy - h + 0.3 + i * PITCH;
+          if (y > mk.cy + h - 0.29) break;
+          const flip = i % 2 === 1;
+          const dy = y - mk.cy;
+          if (r > 0 && Math.abs(dy) < r) {
+            const dx = Math.sqrt(r * r - dy * dy);
+            const a = [[mk.cx - h, y], [mk.cx - dx, y]];
+            const b = [[mk.cx + dx, y], [mk.cx + h, y]];
+            if (a[1][0] - a[0][0] > 0.2) push(flip ? [a[1], a[0]] : a, false, pen);
+            if (b[1][0] - b[0][0] > 0.2) push(flip ? [b[1], b[0]] : b, false, pen);
+          } else {
+            const ln = [[mk.cx - h, y], [mk.cx + h, y]];
+            push(flip ? [ln[1], ln[0]] : ln, false, pen);
+          }
+        }
+        if (r > 0) {
+          const c = [];
+          for (let k = 0; k <= 32; k++) {
+            const a = (k / 32) * Math.PI * 2;
+            c.push([mk.cx + r * Math.cos(a), mk.cy + r * Math.sin(a)]);
+          }
+          c.pop();
+          push(c, true, pen);
+        }
+      }
+    }
+
+    if (chromeOn && p.cellFrames === "On") {
+      for (const q of L.cells) {
+        push([[q.x, q.y], [q.x + q.w, q.y], [q.x + q.w, q.y + q.h], [q.x, q.y + q.h]], true, pen);
+      }
+    }
+
+    if (chromeOn && p.numbers === "On") {
+      const SZ = 3;
+      L.cells.forEach((q, i) => {
+        /* Animate: global frame numbers, only under occupied cells */
+        const gi = anim ? page * cellsN + i : i;
+        if (anim && gi >= total) return;
+        const fs = fontStrokes(String(gi + 1), SZ);
+        const tx = q.x + q.w / 2 - fs.width / 2;
+        const ty = q.y + q.h + 1.2;
+        if (ty + SZ > L.H - 0.5) return;
+        for (const st of fs.strokes) push(st.map(([x, y]) => [tx + x, ty + y]), false, pen);
+      });
+    }
+
+    if (chromeOn) {
+      const txt = String(p.labelText == null ? "" : p.labelText).trim();
+      if (txt) {
+        const SZ = 4;
+        const fs = fontStrokes(txt.toUpperCase(), SZ);
+        const tx = L.W / 2 - fs.width / 2;
+        const ty = L.H - 14;
+        if (ty >= 0 && ty + SZ <= L.H - 0.5) {
+          for (const st of fs.strokes) push(st.map(([x, y]) => [tx + x, ty + y]), false, pen);
+        }
+      }
+      /* Animate multi-sheet: "P n/N" page tag bottom-right, clear of the
+         BR marker (physical sheets read their own order) */
+      if (anim && pages > 1) {
+        const SZ = 4;
+        const fs = fontStrokes("P " + (page + 1) + "/" + pages, SZ);
+        const tx = L.W - 30 - fs.width;
+        const ty = L.H - 14;
+        if (tx >= 0 && ty >= 0 && ty + SZ <= L.H - 0.5) {
+          for (const st of fs.strokes) push(st.map(([x, y]) => [tx + x, ty + y]), false, pen);
+        }
+      }
+    }
+
+    /* ---- content: one uniform map per cell ---- */
+    const place = (src, q) => {
+      if (!src || !src.paths || !src.paths.length || !q || L.s <= 0) return;
+      let s, ox, oy;
+      if (p.scale === "Fit each") {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const pa of src.paths) for (const pt of pa.pts) {
+          if (pt[0] < x0) x0 = pt[0]; if (pt[0] > x1) x1 = pt[0];
+          if (pt[1] < y0) y0 = pt[1]; if (pt[1] > y1) y1 = pt[1];
+        }
+        const bw = Math.max(1e-6, x1 - x0), bh = Math.max(1e-6, y1 - y0);
+        s = Math.min(q.w / bw, q.h / bh);
+        ox = q.x + (q.w - bw * s) / 2 - x0 * s;
+        oy = q.y + (q.h - bh * s) / 2 - y0 * s;
+      } else {
+        s = L.s;
+        ox = q.x + (q.w - L.W * s) / 2;
+        oy = q.y + (q.h - L.H * s) / 2;
+      }
+      for (const pa of src.paths) {
+        const pts = pa.pts.map((pt) =>
+          pt.length > 2 ? [ox + pt[0] * s, oy + pt[1] * s, pt[2]] : [ox + pt[0] * s, oy + pt[1] * s]);
+        if (!push(pts, !!pa.closed, pa.layer)) return;
+      }
+    };
+
+    if (anim) {
+      /* the engine's frameFan seam passes the collected frames AS the ins
+         array; without the seam ins holds whatever single frame was wired */
+      for (let i = 0; i < cellsN; i++) {
+        const gi = page * cellsN + i;
+        if (gi < total) place(ins[gi], L.cells[i]);
+      }
+    } else if (clock) {
+      const n = L.cells.length;
+      if (n) place(ins[0], L.cells[Math.min(n - 1, Math.max(0, fIdx))]);
+    } else {
+      const n = Math.max(2, Math.min(16, Math.round(Number(p.count) || 6)));
+      for (let i = 0; i < n && i < L.cells.length; i++) place(ins[i], L.cells[i]);
+    }
+
+    return { paths };
+  },
+
+  overlay(p, ctx) {
+    const g = [];
+    try {
+      const L = this._layout(p, ctx);
+      for (const q of L.cells) g.push({ kind: "rect", x: q.x, y: q.y, w: q.w, h: q.h });
+      if (p.marks === "On") {
+        const h = L.ms / 2;
+        for (const mk of L.markers) {
+          g.push({ kind: "rect", x: mk.cx - h, y: mk.cy - h, w: L.ms, h: L.ms });
+          if (mk.hole) g.push({ kind: "circle", cx: mk.cx, cy: mk.cy, r: 0.2 * L.ms });
+        }
+      }
+    } catch (e) { /* an overlay must never throw */ }
+    return g.slice(0, 60);
+  },
+};
+```
+
+## frame_split.js
+
+```js
+import { Pin } from "../helpers.js";
+
+export default {
+  /* Frame Split — chops ONE drawing into animation frames: a single paths
+   * input fans out to N outputs (frame 1..N) ready to wire straight into
+   * Frame Grid's input pins.
+   *
+   * Split by:
+   *   - "Ink length": the drawing's total drawn length divides into N spans
+   *     and paths are CUT mid-stroke at the exact arc position (a z
+   *     component interpolates through the cut). This is the progressive-
+   *     reveal split — the flipbook shows the plotter drawing the piece.
+   *   - "Path count": whole paths in draw order, chunked into N groups —
+   *     no cutting, geometry passes through as copies.
+   *
+   * Frames are:
+   *   - "Build-up" (default): frame i contains everything from the start up
+   *     to boundary i; the last frame is the complete drawing.
+   *   - "Windows": frame i contains only its own span.
+   *
+   * Ease reshapes the boundary spacing (Linear / Ease in-out / in / out) so
+   * the reveal can accelerate or settle; Direction "Reverse" splits from
+   * the end — a Build-up in Reverse is the drawing un-drawing itself.
+   *
+   * A closed path stays closed only once it is entirely inside a frame;
+   * a partial cut of it emits as an open run along its perimeter. Pen
+   * layers pass through. Pure and deterministic — nothing to seed.
+   */
+
+  key: "frame_split",
+  name: "Frame Split",
+  cat: "duo",
+  desc: "Chops one drawing into animation frames: N outputs that wire straight into Frame Grid. Split by exact ink length (paths cut mid-stroke, z interpolated) or by whole paths in draw order; frames build up cumulatively or hold disjoint windows; easing curves the boundary spacing and Reverse un-draws.",
+
+  ins: [Pin("paths")],
+  outs: (node) => {
+    const n = Math.max(2, Math.min(16, Math.round((node && node.params && node.params.count) || 6)));
+    return Array.from({ length: n }, (_, i) => Pin("paths", "frame " + (i + 1)));
+  },
+
+  params: [
+    { key: "count", label: "Frames", type: "slider", min: 2, max: 16, step: 1, def: 6 },
+    { key: "by", label: "Split by", type: "select", options: ["Ink length", "Path count"], def: "Ink length" },
+    { key: "mode", label: "Frames are", type: "select", options: ["Build-up", "Windows"], def: "Build-up" },
+    { key: "ease", label: "Ease", type: "select", options: ["Linear", "Ease in-out", "Ease in", "Ease out"], def: "Linear" },
+    { key: "dir", label: "Direction", type: "select", options: ["Forward", "Reverse"], def: "Forward" },
+  ],
+
+  compute(ins, p, ctx, node) {
+    const n = Math.max(2, Math.min(16, Math.round(Number(p.count) || 6)));
+    const src = ins[0];
+    if (!src || !src.paths || !src.paths.length) {
+      return Array.from({ length: n }, () => ({ paths: [] }));
+    }
+
+    /* working copy in split order: Reverse walks the drawing from its end,
+       so both the path list and every polyline flip */
+    let works = src.paths.map((pa) => ({
+      pts: pa.pts.map((pt) => pt.slice()),
+      closed: !!pa.closed,
+      layer: pa.layer,
+    }));
+    if (p.dir === "Reverse") {
+      works = works.slice().reverse();
+      for (const w of works) w.pts = w.pts.slice().reverse();
+    }
+
+    const EASE = {
+      "Ease in-out": (u) => 0.5 - 0.5 * Math.cos(u * Math.PI),
+      "Ease in": (u) => u * u,
+      "Ease out": (u) => 1 - (1 - u) * (1 - u),
+    };
+    const ez = EASE[p.ease] || ((u) => u);
+    /* boundary k sits at eased fraction of the whole; b[0]=0, b[n]=1 exactly */
+    const bounds = Array.from({ length: n + 1 }, (_, k) =>
+      k === 0 ? 0 : k === n ? 1 : ez(k / n));
+
+    const outs = [];
+
+    if (p.by === "Path count") {
+      const P = works.length;
+      const idx = bounds.map((u) => Math.max(0, Math.min(P, Math.round(u * P))));
+      for (let k = 1; k <= n; k++) {
+        const a = p.mode === "Windows" ? idx[k - 1] : 0;
+        const b = idx[k];
+        outs.push({ paths: works.slice(a, b).map((w) => ({
+          pts: w.pts.map((pt) => pt.slice()), closed: w.closed, layer: w.layer })) });
+      }
+      return outs;
+    }
+
+    /* --- ink length: effective polyline of a closed path includes the
+       closing segment; cuts interpolate every point component --- */
+    const polys = works.map((w) => {
+      const eff = w.closed && w.pts.length > 1 ? w.pts.concat([w.pts[0]]) : w.pts;
+      const cum = [0];
+      for (let i = 1; i < eff.length; i++) {
+        cum.push(cum[i - 1] + Math.hypot(eff[i][0] - eff[i - 1][0], eff[i][1] - eff[i - 1][1]));
+      }
+      return { w, eff, cum, L: cum[cum.length - 1] };
+    });
+    const totalL = polys.reduce((a, q) => a + q.L, 0);
+    if (!(totalL > 1e-9)) {
+      /* nothing measurable to split: everything lands in frame 1 / every build-up frame */
+      return Array.from({ length: n }, (_, k) => (p.mode === "Windows" && k > 0
+        ? { paths: [] }
+        : { paths: works.map((w) => ({ pts: w.pts.map((pt) => pt.slice()), closed: w.closed, layer: w.layer })) }));
+    }
+
+    const lerpPt = (a, b, t) => {
+      const q = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      if (a.length > 2 || b.length > 2) {
+        const az = a.length > 2 ? a[2] : 0, bz = b.length > 2 ? b[2] : 0;
+        q.push(az + (bz - az) * t);
+      }
+      return q;
+    };
+    /* sub-polyline of one poly between local distances a..b */
+    const cutPoly = (q, a, b) => {
+      const { eff, cum } = q;
+      const pts = [];
+      for (let i = 0; i < eff.length - 1; i++) {
+        const s0 = cum[i], s1 = cum[i + 1];
+        if (s1 <= a + 1e-9 || s0 >= b - 1e-9) continue;
+        const seg = s1 - s0 || 1;
+        const t0 = Math.max(0, (a - s0) / seg), t1 = Math.min(1, (b - s0) / seg);
+        const p0 = lerpPt(eff[i], eff[i + 1], t0);
+        if (!pts.length) pts.push(p0);
+        pts.push(lerpPt(eff[i], eff[i + 1], t1));
+      }
+      return pts;
+    };
+    const extract = (d0, d1) => {
+      const paths = [];
+      let cum = 0;
+      for (const q of polys) {
+        const a = Math.max(0, d0 - cum), b = Math.min(q.L, d1 - cum);
+        cum += q.L;
+        if (!(b - a > 1e-9)) continue;
+        const whole = a <= 1e-9 && b >= q.L - 1e-9;
+        if (whole) {
+          paths.push({ pts: q.w.pts.map((pt) => pt.slice()), closed: q.w.closed, layer: q.w.layer });
+        } else {
+          const pts = cutPoly(q, a, b);
+          if (pts.length > 1) paths.push({ pts, closed: false, layer: q.w.layer });
+        }
+      }
+      return paths;
+    };
+
+    for (let k = 1; k <= n; k++) {
+      const d0 = (p.mode === "Windows" ? bounds[k - 1] : 0) * totalL;
+      const d1 = bounds[k] * totalL;
+      outs.push({ paths: extract(d0, d1) });
+    }
+    return outs;
+  },
 };
 ```
 
@@ -9753,14 +10613,16 @@ export default {
      a gaussian Thickness. Dots are plotted as small rings (Point Cloud
      convention) with three pens: Core pen for bulge + halo, Arm pen for the
      disc, Sparkle pen for a Sparkle % of arm stars (young clusters, drawn
-     slightly larger). Yaw / Pitch rotate the world, Perspective foreshortens,
+     slightly larger). Colors "Extended" splits halo / inner disc / HII
+     regions onto three more pens - six pens in one galaxy; Classic stays
+     byte-identical to the original three-pen output. Yaw / Pitch rotate the world, Perspective foreshortens,
      and scaling is rotation-invariant (bounding sphere), so wiring the
      animation Frame into Yaw orbits the galaxy without size jumps. */
   key: "galaxy",
   name: "Galaxy",
   cat: "gen",
   group: "scientific",
-  desc: "A spiral galaxy as a rotatable 3D point cloud, deterministic from Seed. Stars sets the dot count, Arms and Twist wind the logarithmic spiral arms, Arm spread scatters stars around them, Bulge % and Bulge size fill the core with a 3D gaussian ball, Thickness sets the disc's vertical depth and Halo % sprinkles a sparse spherical halo. Three pens make it multicoloured: Core pen draws the bulge and halo, Arm pen the disc stars, and Sparkle % of arm stars land on Sparkle pen slightly enlarged - young star clusters along the arms. Core glow enlarges dots toward the centre. Yaw and Pitch rotate the whole galaxy in 3D (pitch 90 is face-on, 0 is edge-on), Perspective adds depth foreshortening, and the size is rotation-invariant, so wire the animation Frame into Yaw and the galaxy orbits smoothly. Dot shape picks the plotted mark: Circle (small ring sized by Dot mm), Dash (a short stroke streaking along the galactic rotation - star-trail look), or Point (a minimal 0.1 mm pen poke).",
+  desc: "A spiral galaxy as a rotatable 3D point cloud, deterministic from Seed. Stars sets the dot count, Arms and Twist wind the logarithmic spiral arms, Arm spread scatters stars around them, Bulge % and Bulge size fill the core with a 3D gaussian ball, Thickness sets the disc's vertical depth and Halo % sprinkles a sparse spherical halo. Three pens make it multicoloured: Core pen draws the bulge and halo, Arm pen the disc stars, and Sparkle % of arm stars land on Sparkle pen slightly enlarged - young star clusters along the arms. Core glow enlarges dots toward the centre. Yaw and Pitch rotate the whole galaxy in 3D (pitch 90 is face-on, 0 is edge-on), Perspective adds depth foreshortening, and the size is rotation-invariant, so wire the animation Frame into Yaw and the galaxy orbits smoothly. Dot shape picks the plotted mark: Circle (small ring sized by Dot mm), Dash (a short stroke streaking along the galactic rotation - star-trail look), or Point (a minimal 0.1 mm pen poke). Colors Extended unlocks three more pens: Halo pen separates the spherical halo from the bulge, Inner disc % with Inner disc pen splits the disc into an inner (older, yellower) and outer population across a dithered blend zone, and HII regions % re-tags arm stars as star-forming knots on HII pen, drawn 1.5x - six pens in one galaxy. Classic (3 pens) keeps the original output byte-identical.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
@@ -9783,6 +10645,12 @@ export default {
     { key: "corepen", label: "Core pen", type: "pen", def: 1 },
     { key: "armpen", label: "Arm pen", type: "pen", def: 0 },
     { key: "sparklepen", label: "Sparkle pen", type: "pen", def: 2 },
+    { key: "colors", label: "Colors", type: "select", options: ["Classic (3 pens)", "Extended"], def: "Classic (3 pens)" },
+    { key: "halopen", label: "Halo pen", type: "pen", def: 9, showIf: (p) => p.colors === "Extended" },
+    { key: "blend", label: "Inner disc %", type: "slider", min: 0, max: 100, step: 1, def: 45, showIf: (p) => p.colors === "Extended" },
+    { key: "armpen2", label: "Inner disc pen", type: "pen", def: 10, showIf: (p) => p.colors === "Extended" },
+    { key: "hii", label: "HII regions %", type: "slider", min: 0, max: 20, step: 1, def: 7, showIf: (p) => p.colors === "Extended" },
+    { key: "hiipen", label: "HII pen", type: "pen", def: 7, showIf: (p) => p.colors === "Extended" },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
     { key: "seed", label: "Seed", type: "seed", def: 42 },
   ],
@@ -9793,6 +10661,7 @@ export default {
     const bw = W - 2 * m, bh = Hh - 2 * m;
     if (bw < 4 || bh < 4) return applyStyle({ paths: [] }, st);
     const rng = mulberry32(p.seed);
+    const EXT = p.colors === "Extended";
     const gauss = () => {
       const u1 = Math.max(1e-12, rng()), u2 = rng();
       return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
@@ -9823,13 +10692,18 @@ export default {
       const rr = rn * (1 + gauss() * 0.04);
       const x = rr * Math.cos(th), y = rr * Math.sin(th);
       const z = gauss() * zSig * (0.4 + 0.6 * (1 - rn));
-      const kind = rng() * 100 < p.sparkle ? 2 : 1;
+      let kind = rng() * 100 < p.sparkle ? 2 : 1;
+      /* Extended populations: HII knots, then the inner/outer disc split
+         (dithered boundary) - extra rng() draws only in Extended, so the
+         Classic stream never moves */
+      if (EXT && kind === 1 && rng() * 100 < p.hii) kind = 3;
+      if (EXT && kind === 1 && p.blend > 0 && rn + (rng() - 0.5) * 0.16 < p.blend / 100) kind = 4;
       pts.push([x, y, z, kind, rn]);
     }
     for (let i = 0; i < nHalo; i++) {
       const th = rng() * 2 * Math.PI, ph = Math.acos(2 * rng() - 1);
       const rr = 0.35 + 0.8 * Math.pow(rng(), 0.7);
-      pts.push([rr * Math.sin(ph) * Math.cos(th), rr * Math.sin(ph) * Math.sin(th), rr * Math.cos(ph), 0, rr]);
+      pts.push([rr * Math.sin(ph) * Math.cos(th), rr * Math.sin(ph) * Math.sin(th), rr * Math.cos(ph), EXT ? 5 : 0, rr]);
     }
     if (!pts.length) return applyStyle({ paths: [] }, st);
 
@@ -9865,13 +10739,16 @@ export default {
     const BUDGET = 110000;
     let total = 0;
     const paths = [];
-    const penOf = [Math.round(p.corepen), Math.round(p.armpen), Math.round(p.sparklepen)];
+    const penOf = [Math.round(p.corepen), Math.round(p.armpen), Math.round(p.sparklepen),
+      Math.round(p.hiipen == null ? 7 : p.hiipen), Math.round(p.armpen2 == null ? 10 : p.armpen2),
+      Math.round(p.halopen == null ? 9 : p.halopen)];
     for (const [x, d, z, kind, rn, tsx, tsy] of rot) {
       const dn = (d - dLo) / dRange;
       const ps = 1 / (1 + p.persp * dn * 1.4);
       const sx = x * ps * sc + cx, sy2 = -z * ps * sc + cyc;
       let r = (p.dot / 2) * (1 + p.grow * 1.6 * Math.exp(-rn / 0.3)) * (0.8 + 0.4 * rng());
       if (kind === 2) r *= 1.35;
+      if (kind === 3) r *= 1.5;
       r = Math.max(0.15, r * ps);
       const rc = p.shape === "Point" ? 0.15 : r;
       if (sx < m + rc || sx > W - m - rc || sy2 < m + rc || sy2 > Hh - m - rc) continue;
@@ -29207,6 +30084,245 @@ export default {
       return { paths };
     },
   
+};
+```
+
+## snarl.js
+
+```js
+import { Pin, mulberry32, resample, applyStyle } from "../helpers.js";
+
+export default {
+  /* Snarled Line — a tangle of fishing line: long continuous strands with
+   * COIL MEMORY, drifting into adjustable clumps.
+   *
+   * Each strand is one stroke integrated with curvature physics: the
+   * curvature relaxes toward the spool's preferred loop (2 / Coil mm, so
+   * loops come out the same familiar size — line remembers its reel),
+   * Memory sets how firmly it returns, Mess shakes it and occasionally
+   * flips the coiling handedness into figure-eights. Soft walls steer
+   * strands back from the margin so the tangle never leaves the sheet.
+   *
+   * Clumping is the control surface: Clumps seeded attractor centers (or
+   * wire any path into "Clump at" and the centers sit on ITS points —
+   * vertices when few, resampled when many, capped at 12), Clumping pulls
+   * wandering strands in, Clump size sets the dense zone and Tighten
+   * shrinks the loop radius inside it — the yellow-core-in-green-halo look
+   * of line snarled in water. Clump pen splits the in-zone segments onto
+   * their own pen for exactly that two-color plot.
+   *
+   * Start chooses where strands enter: from the Edges (drifting in like
+   * the photo), inside the Clumps, or Random. Deterministic per seed; the
+   * overlay shows the live clump circles.
+   */
+
+  key: "snarl",
+  name: "Snarled Line",
+  cat: "gen",
+  group: "organic",
+  desc: "A tangle of fishing line: long continuous strands with coil memory - curvature relaxes toward the spool loop (Coil mm), Memory sets how firmly, Mess shakes it and flips handedness into figure-eights. Clumping pulls strands into seeded attractor centers (or wire a path into Clump at to place them), Clump size sets the dense zone, Tighten shrinks loops inside it, and Clump pen splits in-zone segments onto their own pen for the yellow-core-in-green-halo look. Strands start from the edges, the clumps or anywhere; soft walls keep the tangle on the sheet.",
+  ins: [Pin("paths", "Clump at"), Pin("style", "Style")],
+  outs: [Pin("paths")],
+
+  params: [
+    { key: "strands", label: "Strands", type: "slider", min: 1, max: 40, step: 1, def: 10 },
+    { key: "length", label: "Strand mm", type: "slider", min: 100, max: 3000, step: 10, def: 900 },
+    { key: "coil", label: "Coil mm", type: "slider", min: 4, max: 60, step: 0.5, def: 26 },
+    { key: "memory", label: "Memory", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+    { key: "mess", label: "Mess", type: "slider", min: 0, max: 1, step: 0.05, def: 0.45 },
+    { key: "loopvary", label: "Loop vary", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5 },
+    { key: "clumps", label: "Clumps", type: "slider", min: 0, max: 6, step: 1, def: 1 },
+    { key: "clumping", label: "Clumping", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+    { key: "clumpsize", label: "Clump size mm", type: "slider", min: 10, max: 120, step: 1, def: 45 },
+    { key: "tighten", label: "Tighten", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+    { key: "start", label: "Start", type: "select", options: ["Edges", "Clumps", "Random"], def: "Edges" },
+    { key: "clumppen", label: "Clump pen", type: "select", options: ["Off", "On"], def: "Off" },
+    { key: "cpen", label: "Core pen", type: "pen", def: 4, showIf: (p) => p.clumppen === "On" },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 30, step: 1, def: 8 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+  ],
+
+  /* clump centers: wired path points (vertices when few, resampled when
+     many, cap 12) or seeded positions — compute and overlay share this */
+  _centers(p, ctx, ins) {
+    const W = Math.max(1, Number(ctx && ctx.W) || 420), Hh = Math.max(1, Number(ctx && ctx.H) || 297);
+    const src = ins && ins[0];
+    if (src && src.paths && src.paths.length) {
+      let pts = [];
+      for (const q of src.paths) if (q.pts && q.pts.length) pts = pts.concat(q.pts);
+      if (pts.length > 12) {
+        pts = [];
+        for (const q of src.paths) {
+          if (!q.pts || q.pts.length < 2) { if (q.pts && q.pts.length) pts.push(q.pts[0]); continue; }
+          pts = pts.concat(resample(q.pts, !!q.closed, Math.max(30, Number(p.clumpsize) || 45)));
+        }
+      }
+      return pts.slice(0, 12).map(([x, y]) => [x, y]);
+    }
+    const n = Math.max(0, Math.min(6, Math.round(Number(p.clumps) || 0)));
+    const cr = mulberry32(((p.seed | 0) ^ 0x51ab51ab) >>> 0);
+    const cs = [];
+    for (let k = 0; k < n; k++) cs.push([W * (0.22 + 0.56 * cr()), Hh * (0.22 + 0.56 * cr())]);
+    return cs;
+  },
+
+  compute(ins, p, ctx) {
+    const W = Math.max(1, Number(ctx && ctx.W) || 420), Hh = Math.max(1, Number(ctx && ctx.H) || 297);
+    const pen = Math.max(0, Math.min(11, Math.round(Number(p.layer) || 0)));
+    const cpen = Math.max(0, Math.min(11, Math.round(Number(p.cpen) == null ? 4 : Number(p.cpen))));
+    const twoPen = p.clumppen === "On";
+    const rng = mulberry32(p.seed);
+    const m = Math.max(0, Math.min(Math.min(W, Hh) * 0.4, Number(p.margin) || 0));
+    const x0 = m, x1 = W - m, y0 = m, y1 = Hh - m;
+    const centers = this._centers(p, ctx, ins);
+    const R = Math.max(4, Number(p.clumpsize) || 45);
+    const kPref = 2 / Math.max(4, Number(p.coil) || 16);
+    const mem = Math.max(0, Math.min(1, Number(p.memory) || 0));
+    const mess = Math.max(0, Math.min(1, Number(p.mess) || 0));
+    const pull = Math.max(0, Math.min(1, Number(p.clumping) || 0));
+    const tight = Math.max(0, Math.min(1, Number(p.tighten) || 0));
+    const lv = Math.max(0, Math.min(1, Number(p.loopvary) == null ? 0.5 : Number(p.loopvary)));
+    const ds = 0.9;
+    const BUDGET = 110000;
+    let total = 0;
+    const paths = [];
+    const wrap = (a) => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+
+    const nS = Math.max(1, Math.min(40, Math.round(Number(p.strands) || 10)));
+    const steps = Math.round(Math.max(100, Number(p.length) || 900) / ds);
+
+    for (let s = 0; s < nS; s++) {
+      /* start pose */
+      let px, py, th;
+      if (p.start === "Clumps" && centers.length) {
+        const c = centers[Math.floor(rng() * centers.length)];
+        const a = rng() * Math.PI * 2, rr = R * 0.4 * Math.sqrt(rng());
+        px = c[0] + Math.cos(a) * rr; py = c[1] + Math.sin(a) * rr;
+        th = rng() * Math.PI * 2;
+      } else if (p.start === "Random" || !((x1 - x0) > 4 && (y1 - y0) > 4)) {
+        px = x0 + (x1 - x0) * rng(); py = y0 + (y1 - y0) * rng();
+        th = rng() * Math.PI * 2;
+      } else {
+        const side = Math.floor(rng() * 4), u = rng();
+        if (side === 0) { px = x0 + (x1 - x0) * u; py = y0 + 0.5; }
+        else if (side === 1) { px = x0 + (x1 - x0) * u; py = y1 - 0.5; }
+        else if (side === 2) { px = x0 + 0.5; py = y0 + (y1 - y0) * u; }
+        else { px = x1 - 0.5; py = y0 + (y1 - y0) * u; }
+        th = Math.atan2(Hh / 2 - py, W / 2 - px) + (rng() - 0.5) * 1.2;
+      }
+      px = Math.min(x1, Math.max(x0, px)); py = Math.min(y1, Math.max(y0, py));
+      let h = rng() < 0.5 ? -1 : 1;
+      let k = h * kPref * (0.4 + 0.6 * rng());
+      /* phase machine: real line alternates coiling with straight-ish runs —
+         loops cluster, then the strand sweeps a long lazy arc to the next
+         cluster (the photo look) */
+      let coiling = rng() < 0.6;
+      /* Loop vary: every coiling phase rolls its own loop size from a
+         log-spread around Coil mm - no two loops need match */
+      let kScale = Math.exp((rng() - 0.5) * 2 * 1.5 * lv);
+      let phaseLeft = coiling
+        ? (0.8 + 1.6 * rng()) * Math.PI * (2 / (kPref * kScale))
+        : (18 + 70 * rng());
+
+      let seg = [[px, py]];
+      let segIn = null;
+      const flushSeg = () => {
+        if (seg.length > 1) {
+          if (total + seg.length > BUDGET) return false;
+          total += seg.length;
+          paths.push({ pts: seg, closed: false, layer: twoPen && segIn ? cpen : pen });
+        }
+        return true;
+      };
+
+      for (let i = 0; i < steps; i++) {
+        /* nearest clump */
+        let cd = Infinity, cc = null;
+        for (const c of centers) {
+          const d = Math.hypot(c[0] - px, c[1] - py);
+          if (d < cd) { cd = d; cc = c; }
+        }
+        const inClump = cc && cd < R;
+
+        /* phase machine tick */
+        phaseLeft -= ds;
+        if (phaseLeft <= 0) {
+          coiling = !coiling;
+          if (coiling) {
+            if (rng() < 0.35) h = -h;
+            kScale = Math.exp((rng() - 0.5) * 2 * 1.5 * lv);
+            /* snap most of the way to the new loop so it establishes
+               within the phase instead of smearing through transitions */
+            k = h * kPref * kScale * 0.7 + k * 0.3;
+          }
+          phaseLeft = coiling
+            ? (0.8 + 1.6 * rng()) * Math.PI * (2 / (kPref * kScale))
+            : (18 + 70 * rng());
+        }
+
+        /* coil memory toward the phase's preferred curvature: full loop
+           when coiling, a gentle arc on the runs; Tighten shrinks in-clump
+           loops and shortens the runs there */
+        const runK = 0.12 + (inClump ? tight * 0.25 : 0);
+        const kp = h * kPref * (coiling ? kScale * (inClump ? 1 + tight * 2.2 : 1) : runK);
+        k += (kp - k) * mem * 0.08;
+        k += (rng() - 0.5) * mess * 0.055;
+        if (rng() < mess * 0.004) h = -h;
+
+        /* clump attraction: steer toward the center; keep a floor inside so
+           strands cross the core instead of orbiting a donut, and mostly on
+           the runs so coils stay round */
+        if (cc && pull > 0 && cd < R * 3.4) {
+          const da = wrap(Math.atan2(cc[1] - py, cc[0] - px) - th);
+          const fall = cd > R ? 1 : 0.35 + 0.65 * (cd / R);
+          k += Math.max(-0.5, Math.min(0.5, da)) * pull * (coiling ? 0.02 : 0.07) * fall;
+        }
+        /* inside the clump the runs shorten so loops pile up */
+        if (inClump && !coiling && tight > 0 && phaseLeft > 12) phaseLeft = 12;
+
+        /* soft wall: steer back inside near the margin */
+        const wd = Math.min(px - x0, x1 - px, py - y0, y1 - py);
+        if (wd < 14) {
+          const da = wrap(Math.atan2(Hh / 2 - py, W / 2 - px) - th);
+          k += Math.max(-0.6, Math.min(0.6, da)) * (1 - wd / 14) * 0.22;
+          /* don't let a coil park against the wall: force a run to sweep away */
+          if (wd < 8 && coiling) { coiling = false; phaseLeft = Math.max(phaseLeft, 30); }
+        }
+
+        th += k * ds;
+        let nx = px + Math.cos(th) * ds, ny = py + Math.sin(th) * ds;
+        if (nx < x0 || nx > x1 || ny < y0 || ny > y1) {
+          /* hard turn: face the canvas center and step again */
+          th = Math.atan2(Hh / 2 - py, W / 2 - px) + (rng() - 0.5) * 0.6;
+          k = h * kPref;
+          nx = Math.min(x1, Math.max(x0, px + Math.cos(th) * ds));
+          ny = Math.min(y1, Math.max(y0, py + Math.sin(th) * ds));
+        }
+        px = nx; py = ny;
+
+        if (twoPen) {
+          if (segIn === null) segIn = inClump;
+          if (inClump !== segIn) {
+            if (!flushSeg()) return applyStyle({ paths }, ins[1]);
+            seg = [seg.length ? seg[seg.length - 1] : [px, py]];
+            segIn = inClump;
+          }
+        }
+        seg.push([px, py]);
+      }
+      if (!flushSeg()) return applyStyle({ paths }, ins[1]);
+    }
+    return applyStyle({ paths }, ins[1]);
+  },
+
+  overlay(p, ctx, ins) {
+    try {
+      const cs = this._centers(p, ctx, ins);
+      const R = Math.max(4, Number(p.clumpsize) || 45);
+      return cs.slice(0, 12).map(([cx, cy]) => ({ kind: "circle", cx, cy, r: R }));
+    } catch (e) { return []; }
+  },
 };
 ```
 

@@ -1,13 +1,40 @@
-# MUUSIA v2.76 — Node Reference
+# MUUSIA v2.77 — Node Reference
 
-All 259 built-in nodes. Conventions used below: most generators accept a **Style**
+All 264 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (154)
+## Generators (156)
+
+**TV Antennas** — the analog-era rooftop antenna forest planted along a wired
+*Roofline* path (a Base Y baseline when unwired; the node only ADDS ink, so
+Merge the roofline alongside). The mast is the unit: each carries 1..*Heads*
+stacked heads and every head rolls its own type, size, boom tilt and element
+foreshortening — no two antennas are copies; *Vary* spreads mast heights
+0.5–2.2×. Types: Yagi (folded dipole, shrinking directors), forward-swept
+Log-periodic, VHF/UHF combo fishbone, mesh Panel with X-brace, radial FM star,
+offset satellite Dish with LNB arm — and Mixed turns a share of sites into
+parapet-level dish clusters under the masts. Braces lean diagonal struts (or
+guy wires), Cables hangs catenaries between level mast tops and drops
+feedlines to the roof; Cartoon's *Wonk* bows booms, jitters elements, caps
+tips with dots and doubles the masts. Orientation Up keeps masts vertical on
+sloped roofs, Aim Same way points the whole neighbourhood at one transmitter.
+Oversized masts retry at 0.72× / 0.5× before skipping, keeping edges clean.
+
+**Snarled Line** — a tangle of fishing line: each strand is one continuous
+stroke with coil memory — curvature relaxes toward the spool loop (*Coil mm*,
+*Memory* sets how firmly), a phase machine alternates loop clusters with long
+lazy runs, *Mess* shakes headings and flips handedness into figure-eights, and
+*Loop vary* rolls every coiling phase its own loop size from a log-spread so
+no two loops need match. *Clumping* pulls strands into attractor centers
+(seeded *Clumps*, or wire a path into *Clump at* to place them — the overlay
+shows the circles), *Clump size* sets the dense zone, *Tighten* shrinks loops
+inside it and *Clump pen* splits in-zone segments onto their own pen — the
+dense-core-in-a-halo look. Strands start from the Edges, the Clumps or
+Random; soft walls keep the tangle on the sheet.
 
 **Galaxy** — a spiral galaxy as a rotatable 3D point cloud, deterministic from
 Seed. *Stars* sets the dot count, *Arms* and *Twist* wind logarithmic spiral
@@ -16,7 +43,11 @@ arms with *Arm spread* scatter, *Bulge %* / *Bulge size* fill the core with a
 sparse spherical halo. Three pens make it multicoloured: Core pen (bulge +
 halo), Arm pen (disc), and *Sparkle %* of arm stars on Sparkle pen slightly
 enlarged — young clusters along the arms; *Core glow* enlarges dots toward the
-centre. Yaw / Pitch rotate in 3D (pitch 90 face-on, 0 edge-on), Perspective
+centre. *Colors* Extended adds three more pens — Halo pen separates the halo from
+the bulge, *Inner disc %* + Inner disc pen split the disc across a dithered
+blend zone, and *HII regions %* re-tags arm stars as star-forming knots on
+HII pen drawn 1.5× — six pens in one galaxy, while Classic (3 pens) keeps
+the original output byte-identical. Yaw / Pitch rotate in 3D (pitch 90 face-on, 0 edge-on), Perspective
 foreshortens, and scaling is rotation-invariant, so wiring the animation Frame
 into Yaw orbits the galaxy without size jumps. *Dot shape*: Circle (small
 ring), Dash (a stroke streaking along the galactic rotation — star-trail
@@ -1414,7 +1445,39 @@ Satellite companion rings shape the look. The point budget is shared between
 input paths by arc length and an oversubscribed path thins evenly along its
 whole length — large radii never leave loops or tails blank.
 
-## Combiners (18)
+## Combiners (21)
+
+**Frame Grid** — animation frame imposition: frames land in a grid on one
+sheet with photo_trace-compatible fiducial markers (hatch-filled squares,
+centers exactly 20 mm from the corners, top-left orientation hole) so a
+camera pipeline can homography the frames back out. Fill *Animate* (default)
+takes the WHOLE animation through one input via the frameFan engine seam:
+*Total frames* defines the frame domain (the upstream Frame node sees
+frameCount = Total), and overflow pages onto further sheets — the outer
+ANIMATE frame is the SHEET index, so set panel Frames = ceil(Total / cells);
+per-frame export writes one file per sheet, numbering runs globally and a
+P n/N tag lands bottom-right. Fill *Inputs* gives one pin per cell
+(Sheets-shaped, one plot); *Clock* places a single input into cell frameIdx
+for per-frame export merging. The whole canvas maps into every cell with ONE
+shared scale so frames stay registered; *Fit each* is the contact-sheet
+alternative. Cell frames, frame numbers, a Label line and a marker pen
+complete the sheet. Evaluation cost multiplies by Total in Animate.
+
+**Frame Split** — chops ONE drawing into animation frames: N outputs that
+wire straight into Frame Grid. Split by exact *Ink length* (paths cut
+mid-stroke at the arc position, a z component interpolates through) or by
+whole *Path count* in draw order; frames *Build-up* cumulatively (the plot
+draws itself — the last frame is the whole piece) or hold disjoint
+*Windows*; *Ease* curves the boundary spacing and *Reverse* un-draws from
+the end. A closed path stays closed only once fully inside a frame.
+
+**Collect Frames** — the animation fan-out: wire a Frame-clock-animated
+branch in and every animation frame comes out as its own output (the engine
+frameFan seam re-evaluates the level once per frame with frameIdx 0..N-1 and
+frameCount = N — the *Frames* count here defines the frame domain, whatever
+the ANIMATE panel says). Evaluation cost multiplies by the frame count; one
+collector per dependency chain, and inside a Group the group's bound inputs
+arrive frozen at the outer frame.
 
 **Zen Garden** — karesansui raked gravel around the closed shapes wired into
 Stones (one Photo Trace outline, several via Merge, or any closed shapes).
@@ -1555,7 +1618,10 @@ orientation — print once, fold it, and the imposition is proven.
 
 **Frame** — the animation clock. Outputs: `t 0→1` linear ramp (last frame = 1),
 `frame #` integer, `wave loop` and `ping-pong` (seamless: frame N continues into
-frame 0). Reads the ANIMATE panel's frame state.
+frame 0). Reads the ANIMATE panel's frame state — or a frameFan collector's frame
+domain when one drives the graph. A fifth output `rot °` gives a
+loop-seamless rotation in degrees, (frame / frameCount) · 360, for wiring
+straight into Rotate inputs.
 
 **Value** — a constant number.
 

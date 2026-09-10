@@ -19,6 +19,11 @@
  "align": [
   "transform"
  ],
+ "antenna": [
+  "structural",
+  "retro",
+  "repeat"
+ ],
  "array": [
   "combine",
   "grid"
@@ -174,6 +179,11 @@
   "decoration",
   "spiral",
   "wave"
+ ],
+ "collect_frames": [
+  "animation",
+  "combine",
+  "stack"
  ],
  "color_mesh": [
   "3d",
@@ -397,6 +407,17 @@
   "chart",
   "math",
   "wave"
+ ],
+ "frame_grid": [
+  "animation",
+  "combine",
+  "grid",
+  "machine"
+ ],
+ "frame_split": [
+  "animation",
+  "combine",
+  "pathops"
  ],
  "fresnel": [
   "fill",
@@ -1163,6 +1184,11 @@
   "mesh",
   "pathops",
   "round"
+ ],
+ "snarl": [
+  "organic",
+  "chaos",
+  "flow"
  ],
  "solids": [
   "3d",
