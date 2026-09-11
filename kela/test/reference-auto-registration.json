@@ -1,0 +1,39 @@
+{
+  "photo": "animtest.jpeg",
+  "width": 3024,
+  "height": 4032,
+  "workingWidth": 1500,
+  "workingHeight": 2000,
+  "coordinateSpace": "EXIF-oriented original bitmap pixels, x right, y down",
+  "markerOrder": [
+    "TL (hole)",
+    "TR",
+    "BR",
+    "BL"
+  ],
+  "points": [
+    {
+      "x": 521.0606818909318,
+      "y": 3512.691918791501
+    },
+    {
+      "x": 505.91365487986144,
+      "y": 528.4060280406106
+    },
+    {
+      "x": 2451.6049190774183,
+      "y": 519.1433231865748
+    },
+    {
+      "x": 2442.919214026794,
+      "y": 3522.390957673943
+    }
+  ],
+  "differenceFromManualMm": [
+    0.808480516659204,
+    0.1280578682930651,
+    0.4139075630883768,
+    0.25939692993075275
+  ],
+  "method": "Automatic detection in the production single-file build, verified in browser on 2026-09-11. Differences are relative to approximate manual placement, not absolute ground truth."
+}

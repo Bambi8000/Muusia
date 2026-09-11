@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "vite",
     "dev:latu": "vite --config latu/vite.config.js",
+    "dev:kela": "vite --config kela/vite.config.js --host 127.0.0.1",
     "build": "vite build",
     "build:latu": "vite build --config latu/vite.config.js",
+    "build:kela": "vite build --config kela/vite.config.js",
+    "test:kela": "node --test kela/test/*.test.mjs",
+    "check:kela": "tsc -p kela/tsconfig.json && oxlint kela/src kela/test kela/vite.config.js",
     "test:latu": "node --test latu/tests/*.test.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
@@ -18,14 +22,19 @@
     "@codemirror/state": "^6.7.4",
     "@codemirror/view": "^6.43.11",
     "codemirror": "^6.0.2",
+    "fflate": "^0.8.3",
+    "gifenc": "^1.0.3",
+    "mp4-muxer": "^5.2.2",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "webm-muxer": "^5.1.4"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "oxlint": "^1.71.0",
+    "typescript": "^7.0.2",
     "vite": "^8.1.1",
     "vite-plugin-singlefile": "^2.3.3"
   }

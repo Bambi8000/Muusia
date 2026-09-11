@@ -1,0 +1,14 @@
+{
+  "photo": "animtest.jpeg",
+  "coordinateSpace": "EXIF-oriented original bitmap pixels, x right, y down",
+  "width": 3024,
+  "height": 4032,
+  "markerOrder": ["TL (hole)", "TR", "BR", "BL"],
+  "points": [
+    { "x": 514.08, "y": 3518.655 },
+    { "x": 507.36, "y": 528.255 },
+    { "x": 2449.44, "y": 514.815 },
+    { "x": 2442.7, "y": 3525.4 }
+  ],
+  "method": "Manual center placement in the Kela browser UI on 2026-09-11; all twelve windows visually checked. Approximate baseline, not subpixel ground truth."
+}
