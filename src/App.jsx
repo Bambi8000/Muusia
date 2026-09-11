@@ -1025,7 +1025,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.82"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.83"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1954,6 +1954,22 @@ export default function App() {
     try { localStorage.setItem("muusia-nicks", JSON.stringify(n)); } catch (e) {}
     return n;
   });
+  const [nodeFavs, setNodeFavs] = useState(() => {
+    try { const a = JSON.parse(localStorage.getItem("muusia-favs") || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+  }); /* favorite node TYPE keys in user pick order, user-level */
+  const toggleFav = (type) => setNodeFavs((a) => {
+    const n = a.includes(type) ? a.filter((t) => t !== type) : [...a, type];
+    try { localStorage.setItem("muusia-favs", JSON.stringify(n)); } catch (e) {}
+    return n;
+  });
+  const [nodeUse, setNodeUse] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("muusia-use") || "{}") || {}; } catch (e) { return {}; }
+  }); /* per node TYPE add counter, user-level */
+  const bumpUse = (type) => setNodeUse((m) => {
+    const n = { ...m, [type]: (m[type] || 0) + 1 };
+    try { localStorage.setItem("muusia-use", JSON.stringify(n)); } catch (e) {}
+    return n;
+  });
   const [machineIdx, setMachineIdx] = useState(0);
   const prof = machines[Math.min(machineIdx, machines.length - 1)];
   const setProf = (fn) => setMachines((ms) => ms.map((m, i) =>
@@ -2291,6 +2307,7 @@ export default function App() {
   };
 
   const addNodeAt = (type, x, y) => {
+    bumpUse(type);
     const id = NEXT_ID++;
     setNodesL((ns) => [...ns, { id, type, x: Math.max(0, x), y: Math.max(0, y), params: defaults(type) }]);
     setSelIds([id]);
@@ -2535,6 +2552,7 @@ export default function App() {
       }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "t") { e.preventDefault(); tidyNodes(); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "b") { e.preventDefault(); setCatalogOpen((v) => !v); }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "a") { e.preventDefault(); setQuickAdd({ cat: null, fav: true, query: "", sel: 0 }); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "s") { e.preventDefault(); setStackOpen((v) => !v); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key === "?") { e.preventDefault(); setKbOpen((v) => !v); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -3194,6 +3212,7 @@ export default function App() {
                   ["G / M / D / C / X", "quick-add: Gen / Mod / Dec / Comb / Math"],
                   ["N or Cmd/Ctrl+K", "quick-add: all nodes (deep search)"],
                   ["\u2191 \u2193 + Enter", "pick and place in quick-add"],
+                  ["A", "favorites + most used (\u2606/\u2605, Tab)"],
                   ["B", "visual node catalog"],
                 ]],
                 ["Edit", [
@@ -4324,14 +4343,14 @@ export default function App() {
                 "Space \u2014 toggle large preview (with route simulator).",
                 "F \u2014 focus mode: the selected node docks left as a live card and a large preview fills the rest. \u2190/\u2192 walk the wire chain, \u2191/\u2193 hop between sibling inputs, L locks the watched node so you can edit one node while watching another (e.g. tune a Merge input while watching the Merge).",
                 "T \u2014 tidy: arrange nodes left\u2192right by dataflow (2+ selected: only the selection).",
-                "B \u2014 visual node catalog (live thumbnails, tag filters, Surprise me) \u00B7 ? \u2014 keyboard shortcuts popover.",
+                "B \u2014 visual node catalog (live thumbnails, tag filters, Surprise me) \u00B7 A \u2014 favorites: starred nodes + Most used (\u2606/\u2605 on quick-add rows and catalog cards, Tab toggles the highlighted row) \u00B7 ? \u2014 keyboard shortcuts popover.",
                 "Cmd/Ctrl+Z \u2014 undo \u00B7 Shift+Cmd/Ctrl+Z \u2014 redo.",
                 "Cmd/Ctrl+D \u2014 duplicate selection \u00B7 Cmd/Ctrl+G \u2014 group selection into a subgraph.",
                 "Delete / Backspace \u2014 remove selection \u00B7 Esc \u2014 close overlays / clear selection.",
                 "Shift+click \u2014 add to selection \u00B7 drag on empty canvas \u2014 rubber-band select \u00B7 double-click a group \u2014 open it.",
               ]],
               ["BASICS", [
-                "Drag nodes from the left palette to the canvas, or press G/M/D/C/X/N for quick-add search. B (or the Catalog button) opens the visual node catalog: every node as a live thumbnail, with deep search, tag filters and a Surprise me button.",
+                "Drag nodes from the left palette to the canvas, or press G/M/D/C/X/N for quick-add search, A for your starred favorites. B (or the Catalog button) opens the visual node catalog: every node as a live thumbnail, with deep search, tag filters and a Surprise me button.",
                 "Wire outputs (right side of a node) to inputs (left side). Blue = paths, green = numbers, yellow = stroke style.",
                 "Every numeric parameter has a green input port \u2014 wire Value, Random, Math or Frame into it to modulate.",
                 "Click a node to select: the right panel shows its live preview and parameters. Space toggles a large preview.",
@@ -4375,7 +4394,7 @@ export default function App() {
       {/* ---------- Node catalog (visual browser) ---------- */}
       {catalogOpen && (
         <CatalogBrowser DEFS={DEFS} CATS={CATS} CATALOG={CATALOG} PENS={PENS} T={T} mono={mono} disp={disp}
-          defaults={defaults} onAdd={(t) => addNode(t)} onClose={() => setCatalogOpen(false)} />
+          defaults={defaults} nodeFavs={nodeFavs} toggleFav={toggleFav} onAdd={(t) => addNode(t)} onClose={() => setCatalogOpen(false)} />
       )}
 
       {/* ---------- Stack View (3D layer stack) ---------- */}
@@ -4438,7 +4457,8 @@ export default function App() {
           }
           return [s, snip];
         };
-        const list = Object.entries(DEFS)
+        const favSet = new Set(nodeFavs);
+        const baseList = Object.entries(DEFS)
           .map(([t, d]) => {
             if (d.hidden || (quickAdd.cat !== null && d.cat !== quickAdd.cat)) return null;
             const [s, snip] = scoreOf(t, d);
@@ -4446,12 +4466,29 @@ export default function App() {
           })
           .filter(Boolean)
           .sort((a, b) => b[2] - a[2] || a[1].name.localeCompare(b[1].name));
+        let list = baseList;
+        if (quickAdd.fav) {
+          if (!terms.length) {
+            const favRows = nodeFavs.filter((t) => DEFS[t] && !DEFS[t].hidden).map((t) => [t, DEFS[t], 1, null, null]);
+            const used = Object.entries(nodeUse)
+              .filter(([t, c]) => c >= 2 && !favSet.has(t) && DEFS[t] && !DEFS[t].hidden)
+              .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+              .slice(0, 8)
+              .map(([t]) => [t, DEFS[t], 1, null, "MOST USED"]);
+            list = [...favRows, ...used];
+          } else {
+            list = [
+              ...baseList.filter(([t]) => favSet.has(t)),
+              ...baseList.filter(([t]) => !favSet.has(t)).map((r) => [r[0], r[1], r[2], r[3], "ALL NODES"]),
+            ];
+          }
+        }
         const sel = Math.min(quickAdd.sel, Math.max(0, list.length - 1));
         const addSelected = (type) => {
           addNode(type); /* empty-space placement, same as palette click */
           setQuickAdd(null);
         };
-        const catLabel = quickAdd.cat === null ? "All nodes" : (CATS[quickAdd.cat] ? CATS[quickAdd.cat].label : quickAdd.cat);
+        const catLabel = quickAdd.fav ? "Favorites" : quickAdd.cat === null ? "All nodes" : (CATS[quickAdd.cat] ? CATS[quickAdd.cat].label : quickAdd.cat);
         return (
           <div onClick={() => setQuickAdd(null)}
             style={{ position: "fixed", inset: 0, background: "rgba(10,12,16,0.5)", zIndex: 95, display: "flex", justifyContent: "center", alignItems: "flex-start", paddingTop: "18vh" }}>
@@ -4465,9 +4502,10 @@ export default function App() {
                   else if (e.key === "ArrowDown") { e.preventDefault(); setQuickAdd((q) => ({ ...q, sel: Math.min(list.length - 1, q.sel + 1) })); }
                   else if (e.key === "ArrowUp") { e.preventDefault(); setQuickAdd((q) => ({ ...q, sel: Math.max(0, q.sel - 1) })); }
                   else if (e.key === "Enter" && list[sel]) { addSelected(list[sel][0]); }
+                  else if (e.key === "Tab" && list[sel]) { e.preventDefault(); toggleFav(list[sel][0]); }
                 }}
                 style={{ width: "100%", background: T.panel2, color: T.text, border: "none", borderBottom: `1px solid ${T.line}`, padding: "8px 12px", fontSize: 13, fontFamily: mono, outline: "none", boxSizing: "border-box" }} />
-              {!terms.length && (
+              {!terms.length && !quickAdd.fav && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderBottom: `1px solid ${T.line}` }}>
                   {CATALOG_TAGS.map(([tg, c]) => (
                     <span key={tg} onClick={() => setQuickAdd((q) => ({ ...q, query: tg, sel: 0 }))}
@@ -4478,8 +4516,12 @@ export default function App() {
                 </div>
               )}
               <div style={{ maxHeight: 300, overflowY: "auto", padding: 6 }}>
-                {list.map(([type, d, _s, snip], i) => (
-                  <div key={type} onClick={() => addSelected(type)}
+                {list.map(([type, d, _s, snip, sec], i) => (
+                  <React.Fragment key={type}>
+                    {sec && sec !== (list[i - 1] || [])[4] && (
+                      <div style={{ padding: "6px 8px 1px", fontSize: 8, color: T.dim, letterSpacing: "0.12em" }}>{sec}</div>
+                    )}
+                    <div onClick={() => addSelected(type)}
                     onMouseEnter={() => setQuickAdd((q) => ({ ...q, sel: i }))}
                     style={{
                       display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", borderRadius: 4, cursor: "pointer",
@@ -4495,9 +4537,15 @@ export default function App() {
                       {snip && <div style={{ fontSize: 9, color: T.dim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{snip}</div>}
                     </div>
                     <div style={{ fontSize: 9, color: T.dim }}>{(CATS[d.cat] || {}).label || d.cat}</div>
-                  </div>
+                      <span onClick={(e) => { e.stopPropagation(); toggleFav(type); }}
+                        title={favSet.has(type) ? "Remove from favorites (Tab)" : "Add to favorites (Tab)"}
+                        style={{ fontSize: 14, lineHeight: 1, cursor: "pointer", color: favSet.has(type) ? T.accent : T.dim, padding: "0 2px", flexShrink: 0, userSelect: "none" }}>
+                        {favSet.has(type) ? "\u2605" : "\u2606"}
+                      </span>
+                    </div>
+                  </React.Fragment>
                 ))}
-                {!list.length && <div style={{ padding: 10, fontSize: 11, color: T.dim }}>No matches</div>}
+                {!list.length && <div style={{ padding: 10, fontSize: 11, color: T.dim }}>{quickAdd.fav && !terms.length ? "No favorites yet \u2014 star nodes with \u2606 in any quick-add list or on catalog cards, or type to search all nodes." : "No matches"}</div>}
               </div>
             </div>
           </div>

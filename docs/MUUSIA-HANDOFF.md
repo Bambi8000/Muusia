@@ -1223,6 +1223,19 @@ text are **English**.
   violations by segment distance, mutation smoke on the void oracle,
   Rings + min-pitch budget.
 
+- **2.83** Favorites + Most used (UI only, no engine changes). **A** opens
+  the quick-add in Favorites mode: starred nodes in pick order, then a Most
+  used list (top 8 by lifetime add count, count >= 2, unstarred only);
+  typing searches favorites first with the full catalog below an ALL NODES
+  divider, so stars can be added and removed without leaving the popup.
+  Every quick-add row (G/M/D/C/X/N/A) and every catalog card gets a
+  ☆/★ toggle; Tab stars the highlighted quick-add row. User-level
+  localStorage: `muusia-favs` (ordered key array) + `muusia-use` (counter
+  map) — same pattern and origin-specificity caveat as `muusia-nicks`.
+  The counter bumps in addNodeAt, the single add funnel, so palette drag,
+  quick-add, catalog click and Surprise me all count. Shipped as
+  tools/era/patch-favorites.mjs.
+
 ## Hard-won pitfalls (keep)
 
 - SENTINELS IN dist MUST BE STRING LITERALS. Vite minification renames every

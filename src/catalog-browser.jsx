@@ -103,7 +103,7 @@ function ThumbSVG({ thumb, PENS, T }) {
   );
 }
 
-export default function CatalogBrowser({ DEFS, CATS, CATALOG, PENS, T, mono, disp, defaults, onAdd, onClose }) {
+export default function CatalogBrowser({ DEFS, CATS, CATALOG, PENS, T, mono, disp, defaults, nodeFavs, toggleFav, onAdd, onClose }) {
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState(null);
   const [tag, setTag] = useState(null);
@@ -228,6 +228,11 @@ export default function CatalogBrowser({ DEFS, CATS, CATALOG, PENS, T, mono, dis
                   {added === type ? "Added ✓" : d.name}
                 </div>
                 <div style={{ fontSize: 8, color: T.dim }}>{d.group || d.cat}</div>
+                <span onClick={(e) => { e.stopPropagation(); toggleFav && toggleFav(type); }}
+                  title={(nodeFavs || []).includes(type) ? "Remove from favorites" : "Add to favorites"}
+                  style={{ fontSize: 13, lineHeight: 1, cursor: "pointer", color: (nodeFavs || []).includes(type) ? T.accent : T.dim, userSelect: "none", alignSelf: "center", flexShrink: 0 }}>
+                  {(nodeFavs || []).includes(type) ? "\u2605" : "\u2606"}
+                </span>
               </div>
             </div>
           ))}
