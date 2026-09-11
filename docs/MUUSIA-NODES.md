@@ -1,13 +1,13 @@
-# MUUSIA v2.82 — Node Reference
+# MUUSIA v2.84 — Node Reference
 
-All 265 built-in nodes. Conventions used below: most generators accept a **Style**
+All 266 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (157)
+## Generators (158)
 
 **TV Antennas** — the analog-era rooftop antenna forest planted along a wired
 *Roofline* path (a Base Y baseline when unwired; the node only ADDS ink, so
@@ -442,6 +442,23 @@ clip onto the available length; *Speed mm/s* plays at a fixed rate and *Loop*
 repeats a too-short clip (off: the line goes quiet when the sound ends).
 Start/Segment slice the clip; Smooth tames noise. Needs the v2.49 fileBinary
 engine intake.
+
+**G-code In** — imports G-code back onto the canvas — the return leg of the
+Muusia → Latu → Muusia roundtrip, and a general importer for foreign plotter
+G-code. With everything on Auto, Muusia's own output returns 1:1: the header
+comment gives canvas/origin/Y-flip for an exact inverse transform, CHANGE PEN
+comments map to pen layers, closed paths are reconstructed, drawing order is
+preserved and Brush Z immersion returns to the points' third component (*Brush
+Z: Keep/Ignore*). *Pen detect*: Auto reads SET_SERVO angles or standalone bed-Z
+moves in context (contact after a travel, lift after drawing — z-hop travels
+stay lifted); *G0 travel / G1 draw* and *Z threshold* cover foreign files.
+*Layers*: Auto (pen comments), Split at pauses, or Single pen. *Coordinates*:
+Auto (header), As written, or Flip Y (content-box mirror for Y-up foreign
+files). *Placement*: True scale with Offset X/Y nudges, or Fit to margin.
+Understands G90/G91, G20/G21 and G2/G3 arcs (IJ and R forms, tessellated at
+~0.5 mm); dips, maintenance blocks, Latu's INK_DOSE/AIR_PULSE/E words and other
+macros pass through as non-motion. Simplify drops points closer than the given
+pitch. Deterministic — no seed.
 
 **Import SVG** — load an SVG file's paths onto the canvas (no text/CSS support).
 

@@ -1236,6 +1236,20 @@ text are **English**.
   quick-add, catalog click and Surprise me all count. Shipped as
   tools/era/patch-favorites.mjs.
 
+- **2.84** **G-code In** (gen/textimg) baked: imports G-code back as paths —
+  the Muusia→Latu→Muusia return leg. Auto inverts the Muusia header transform
+  (canvas/origin/flipY) for a 1:1 roundtrip, maps CHANGE PEN comments to pen
+  layers, reconstructs closed paths and Brush Z immersion, and classifies
+  standalone bed-Z moves contextually (contact after travel, lift after draw,
+  value fallback for foreign G1 travels) so z-hop and brush-pressure Z coexist;
+  servo mode via SET_SERVO angles. Dip/maintenance blocks skipped via their
+  comment markers (maintenance M0 is NOT a split point); Latu additions
+  (INK_DOSE/AIR_PULSE/M83 E words) transparent. Foreign dialects: G0/G1 and
+  Z-threshold pen detect, G90/G91, G20/G21, G2/G3 arcs (IJ+R, ~0.5 mm
+  tessellation), Flip Y over content bbox, Fit to margin. Validator: 73 checks
+  incl. a mutation-tested roundtrip oracle at 0.006 mm against a toGcode
+  mini-port (bed-Z + z-hop + brush Z, servo, maintenance, dip, Latu fixtures).
+
 ## Hard-won pitfalls (keep)
 
 - SENTINELS IN dist MUST BE STRING LITERALS. Vite minification renames every

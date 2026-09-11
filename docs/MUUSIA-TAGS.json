@@ -442,6 +442,11 @@
   "scatter",
   "space"
  ],
+ "gcode_in": [
+  "machine",
+  "penout",
+  "pens"
+ ],
  "girih": [
   "geometric",
   "grid",
