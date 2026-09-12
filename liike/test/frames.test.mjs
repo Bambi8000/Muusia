@@ -75,3 +75,13 @@ test('incomplete, invalid or still-detecting sheets cannot create a partial anim
   assert.throws(() => planFrames(settings, [one, { ...two, detection: { status: 'running' } }], 1080), /wait for marker detection/);
   assert.throws(() => planFrames(settings, [one, { ...two, points: [{ x: -1, y: 20 }, ...two.points.slice(1)] }], 1080), /inside the photo/);
 });
+
+test('unregistered extras are ignored until included by frame count or photo order', () => {
+  const settings = { ...REFERENCE_SETTINGS };
+  const one = photo('one', settings), extra = { ...photo('extra', settings), points: [null, null, null, null] };
+  const plans = planFrames(settings, [one, extra], 1080);
+  assert.deepEqual(plans.map(plan => plan.photoId), ['one']);
+  assert.equal(plans[0].frames.length, 12);
+  assert.throws(() => planFrames({ ...settings, total: 24 }, [one, extra], 1080), /Sheet 2: place all four/);
+  assert.throws(() => planFrames(settings, [extra, one], 1080), /Sheet 1: place all four/);
+});

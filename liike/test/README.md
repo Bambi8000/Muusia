@@ -155,6 +155,23 @@ lighting gradients, color cast, noise and small pen gaps; direct translated
 sampling with preserved dimensions and pixel detail; and rejection of blank,
 multiple, edge-clipped or unsafe crops. All 49 tests pass.
 
+### Manual registration access (2026-09-12)
+
+The reported disabled Review markers button was caused by an extra photo,
+not the detection result. `photos-ui.test.mjs` renders the real React screens
+through Vite SSR to cover failed detection with two photos for one sheet,
+incomplete photo sets, no photo/loading guards and the extra-photo registration
+screen. The extraction regression confirms unregistered extras remain excluded
+until frame count or photo order includes them. All 54 tests pass.
+
+The production build was checked with two copies of `animtest.jpeg`, A4 and
+an intentionally wrong 8 mm marker size to make both detections fail. Review
+markers remains enabled; the second photo's Place markers manually button
+opens that exact extra photo. All four centers can be placed and refined,
+the extra-photo preview renders without out-of-range frame windows, and
+positions survive switching photos. At 390 px both manual buttons remain
+enabled without horizontal overflow. No browser errors or warnings appeared.
+
 SHA-256 (original bytes):
 
 - `animtest.jpeg`: `90a3f095a5b758d967ecfabf5a790281256dcf3762fccd65536696bef4a9c1c2`

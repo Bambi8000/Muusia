@@ -64,7 +64,7 @@ export default function RegistrationStep({ photo, settings, sheet, setPoints, de
   }
   const selected = photo.points[active];
   const layout = buildLayout(settings);
-  const frames = framesOnSheet(settings, sheet);
+  const frames = sheet < layout.sheets ? framesOnSheet(settings, sheet) : [];
   const radius = photo.width * .018;
   const loupeSide = photo.width * .14;
   const currentPreview = rendered?.key === key ? rendered.url : null;
@@ -126,7 +126,7 @@ export default function RegistrationStep({ photo, settings, sheet, setPoints, de
         {registration.error || renderError ? <p className="error" role="alert">{registration.error || renderError}</p> : currentPreview && registration.h ? <div className="rectified-stage"><svg viewBox={`0 0 ${settings.W} ${settings.H}`} className="rectified-sheet" role="img" aria-label={`Rectified sheet ${sheet + 1} with ${frames.length} frame windows`}><image href={currentPreview} width={settings.W} height={settings.H} />
           {showGuides && <>{layout.cells.map(({ index, cell }) => <rect key={index} {...rProps(cell)} className="cell-guide" />)}{frames.map(f => <g key={f.frame}><rect {...rProps(f.window)} className="photo-window" />{(settings.crop === 'Full cell' || settings.pad > 0) && <rect {...rProps(f.crop)} className="crop-guide" />}<text x={f.window.x + 1.5} y={f.window.y + 5} fontSize={4} fill="#365b26" stroke="#fff" paintOrder="stroke" strokeWidth={.7}>{f.frame + 1}</text></g>)}</>}
         </svg></div> : <div className="preview-placeholder" role="status"><span aria-hidden="true">⌗</span><h2>{count === 4 ? 'Updating preview…' : `${count} of 4 markers placed`}</h2><p>The straightened sheet appears once all four centers are placed.</p></div>}
-        <p className="hint preview-note">Check that every drawing sits inside its green frame window. Dashed lines show full cells. The photo supplies the artwork; the sheet settings supply the geometry.</p>
+        <p className="hint preview-note">{frames.length ? 'Check that every drawing sits inside its green frame window. Dashed lines show full cells. The photo supplies the artwork; the sheet settings supply the geometry.' : 'This extra photo has no frame windows yet. Increase Total frames in Sheet or reorder the photos to include it in the sequence.'}</p>
         {registration.h && <p className="hint">The hole should be at the top-left here. If the orientation is wrong, check which marker you labeled TL.</p>}
         <div className="reference registration-note"><div><strong>Always check the result</strong><p>Drag or place markers manually if detection is uncertain. All positions stay available for this session. Original resolution is kept for frame extraction.</p></div></div>
       </section>

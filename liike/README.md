@@ -53,7 +53,9 @@ See [KELA-HANDOFF.md](./KELA-HANDOFF.md) for the supplied project specification.
 1. Match Sheet settings to the plot, or choose **Use reference sheet** for
    `animtest.jpeg`.
 2. Choose **Add photos**, select the JPEG, wait for detection, then choose
-   **Review markers**.
+   **Review markers**. If detection fails, choose **Place markers manually**
+   on the desired photo to open it directly. Missing or extra photos do not
+   block registration of photos already loaded.
 3. Check the detected centers. If detection needs help, tap the center of the
    marker with the white hole (TL), then continue clockwise around the photo:
    TR, BR, BL. These labels refer to the physical sheet, not the photo's screen
@@ -65,6 +67,11 @@ See [KELA-HANDOFF.md](./KELA-HANDOFF.md) for the supplied project specification.
 5. Check the straightened preview: the hole belongs at top-left and each
    drawing belongs inside its green window. Toggle guides for an unobstructed
    look. Select each photographed sheet to register multi-sheet sequences.
+
+Register includes all loaded photos, including extras. Extra photos can be
+registered in advance, but have no frame windows and are excluded from the
+sequence until **Total frames** requires them or they are moved earlier in
+Photos. The app keeps this distinction visible without blocking manual work.
 
 Use **Detect markers** to try again after correcting sheet dimensions or
 marker size. Failed or ambiguous detection preserves existing positions;
@@ -242,7 +249,8 @@ browser checks and the outstanding on-disk download verification.
   generated lighting/casts, ink preservation, exclusion of artwork from the
   paper estimate, consistent color across photos, control defaults and limits,
   unsupported references and matching crop/full-sheet processing. The suite
-  currently has 49 tests, including export timelines, timing, palettes, GIF
+  currently has 54 tests, including manual registration access after failed
+  detection with missing/extra photos, plus export timelines, timing, palettes, GIF
   structure, video capability fallback, ZIP contents and final-frame duration.
 - `npm run build:liike`: standalone single-file build.
 

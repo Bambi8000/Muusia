@@ -71,6 +71,8 @@ export default function App() {
   const crop = layout?.cells[0]?.crop;
   const outside = layout?.cells.some(({ crop: q }) => q.x < 0 || q.y < 0 || q.x + q.w > settings.W + 1e-9 || q.y + q.h > settings.H + 1e-9);
   const availablePhotos = library.photos.slice(0, layout?.sheets ?? 0);
+  const registrationPhotoIndex = Math.max(0, Math.min(photoIndex, library.photos.length - 1));
+  const registrationPhoto = library.photos[registrationPhotoIndex];
   const selectedPhotoIndex = Math.max(0, Math.min(photoIndex, availablePhotos.length - 1));
   const selectedPhoto = availablePhotos[selectedPhotoIndex];
   let readiness = issues[0] ?? '';
@@ -104,7 +106,7 @@ export default function App() {
 
   return <main>
     <header><a className="wordmark" href="./">Liike<span>↗</span></a><span className="tagline">From paper to motion</span></header>
-    <nav aria-label="Workflow"><ol className="steps">{['Sheet', 'Photos', 'Register', 'Adjust', 'Sequence', 'Export'].map((name, i) => <li key={name} aria-current={i === step ? 'step' : undefined}><button onClick={() => setStep(i)} disabled={library.busy || (i > 0 && !layout) || ((i === 2 || i === 3) && !selectedPhoto)}><span className="step-number">{i + 1}</span>{name}</button></li>)}</ol></nav>
+    <nav aria-label="Workflow"><ol className="steps">{['Sheet', 'Photos', 'Register', 'Adjust', 'Sequence', 'Export'].map((name, i) => <li key={name} aria-current={i === step ? 'step' : undefined}><button onClick={() => setStep(i)} disabled={library.busy || (i > 0 && !layout) || (i === 2 && !registrationPhoto) || (i === 3 && !selectedPhoto)}><span className="step-number">{i + 1}</span>{name}</button></li>)}</ol></nav>
     {step === 0 && <>
     <section className="intro"><div><p className="eyebrow">01 / Set up your sheet</p><h1>Start with <em>the paper.</em></h1><p>Match the Frame Grid settings you plotted. Every frame will share the same crop and scale.</p></div><button className="secondary" onClick={() => reset()}>Muusia defaults ↺</button></section>
     <div className="workspace">
@@ -150,12 +152,13 @@ export default function App() {
     </div>
     <div className="step-actions"><p className="hint">{library.photos.length ? 'Your photos and marker positions stay available when you change sheet settings.' : 'Ready to add the photographed sheets.'}</p><button className="primary" disabled={!layout} onClick={() => setStep(1)}>Add photos →</button></div>
     </>}
-    {step === 1 && layout && <PhotosStep library={library} sheets={layout.sheets} settings={settings} onBack={() => setStep(0)} onRegister={() => setStep(2)} />}
-    {step === 2 && layout && selectedPhoto && <>
-      <section className="intro"><div><p className="eyebrow">03 / Register the sheet</p><h1>Find <em>the corners.</em></h1><p>Match the markers in your photo to the sheet. Begin with the marker that has a white hole.</p></div><label className="field"><span>Photographed sheet</span><select value={selectedPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{availablePhotos.map((photo, i) => <option key={photo.id} value={i}>Sheet {i + 1} · {photo.name}</option>)}</select></label></section>
+    {step === 1 && layout && <PhotosStep library={library} sheets={layout.sheets} settings={settings} onBack={() => setStep(0)} onRegister={index => { setPhotoIndex(index); setStep(2); }} />}
+    {step === 2 && layout && registrationPhoto && <>
+      <section className="intro"><div><p className="eyebrow">03 / Register the sheet</p><h1>Find <em>the corners.</em></h1><p>Match the markers in your photo to the sheet. Begin with the marker that has a white hole.</p></div><label className="field"><span>Photographed sheet</span><select value={registrationPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{library.photos.map((photo, i) => <option key={photo.id} value={i}>Sheet {i + 1} · {photo.name}{i >= layout.sheets ? ' · extra photo' : ''}</option>)}</select></label></section>
       {availablePhotos.length < layout.sheets && <p className="warning">{layout.sheets - availablePhotos.length} more photos needed. You can register these sheets now and add the rest in Photos.</p>}
-      <RegistrationStep key={selectedPhoto.id} photo={selectedPhoto} settings={settings} sheet={selectedPhotoIndex} setPoints={library.setPoints} detect={library.detect} undoDetection={library.undoDetection} />
-      <div className="step-actions"><button className="secondary" onClick={() => setStep(1)}>← Photos</button>{selectedPhotoIndex + 1 < availablePhotos.length ? <button className="primary" onClick={() => setPhotoIndex(selectedPhotoIndex + 1)}>Next sheet →</button> : <button className="primary" onClick={() => setStep(3)}>Adjust paper & tones →</button>}</div>
+      {registrationPhotoIndex >= layout.sheets && <p className="warning">This extra photo can be registered now, but is not used in the sequence yet. Increase Total frames in Sheet or move this photo earlier in Photos to include it.</p>}
+      <RegistrationStep key={registrationPhoto.id} photo={registrationPhoto} settings={settings} sheet={registrationPhotoIndex} setPoints={library.setPoints} detect={library.detect} undoDetection={library.undoDetection} />
+      <div className="step-actions"><button className="secondary" onClick={() => setStep(1)}>← Photos</button>{registrationPhotoIndex + 1 < library.photos.length ? <button className="primary" onClick={() => setPhotoIndex(registrationPhotoIndex + 1)}>Next sheet →</button> : <button className="primary" onClick={() => { setPhotoIndex(selectedPhotoIndex); setStep(3); }}>Adjust paper & tones →</button>}</div>
     </>}
     {step === 3 && layout && selectedPhoto && <>
       <section className="intro"><div><p className="eyebrow">04 / Adjust the paper</p><h1>Let the drawing <em>shine.</em></h1><p>Even out the lighting and give the whole animation a consistent look.</p></div><label className="field"><span>Photographed sheet</span><select value={selectedPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{availablePhotos.map((photo, i) => <option key={photo.id} value={i}>Sheet {i + 1} · {photo.name}</option>)}</select></label></section>
