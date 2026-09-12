@@ -44,7 +44,7 @@ self.onmessage = async (event: MessageEvent<{ bitmap: ImageBitmap; plan: SheetPl
       thumbnailContext.drawImage(canvas, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
       const image = await canvas.convertToBlob({ type: 'image/png' });
       const thumbnail = await thumbnailCanvas.convertToBlob({ type: 'image/jpeg', quality: .9 });
-      const warning = !model.supported && (adjustments.flatten || adjustments.whiteBalance) ? `Sheet ${spec.sheet + 1}: ${model.note}` : undefined;
+      const warning = !model.supported && (adjustments.flatten || adjustments.whiteBalance || adjustments.autoAdjust) ? `Sheet ${spec.sheet + 1}: ${model.note}` : undefined;
       self.postMessage({ type: 'frame', spec, image, thumbnail, warning } satisfies ExtractionMessage);
       canvas.width = canvas.height = thumbnailCanvas.width = thumbnailCanvas.height = 1;
     }

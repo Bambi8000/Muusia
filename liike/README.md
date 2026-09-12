@@ -95,6 +95,13 @@ Select the photographed sheet and a source frame or Whole sheet. Switch
 between **Original** and **Adjusted** to compare; on phones the preview stays
 visible above the controls while scrolling.
 
+- **Auto adjust**, off by default, combines paper flattening, white balance
+  and automatic contrast. It estimates one black/white range for each entire
+  photograph, using ink across all cells and the blank paper references.
+  It lightens paper residue and strengthens ink without adjusting frames
+  separately. While enabled, it includes Paper flatten and Auto white balance;
+  turning it off restores their earlier selections. Shared tone sliders still
+  work after the automatic correction. Compare faint strokes with Original.
 - **Paper flatten**, on by default, estimates smooth illumination across the
   sheet, evens it out and lifts paper brightness. It retains the paper's cast
   when white balance is off.
@@ -104,6 +111,11 @@ visible above the controls while scrolling.
 - **Black point**, **White point**, **Gamma** and **Saturation** apply equally
   to every frame on every sheet. Defaults are 0, 255, 1 and 100%. Higher gamma
   brightens midtones; lower gamma darkens them.
+- **Sharpen**, off by default, defines soft edges with adjustable strength
+  from 0–100% (40% when first enabled). It works on brightness, leaves
+  low-contrast paper grain alone and limits new light/dark halos. Its radius
+  follows sheet millimeters, with pixel limits for small/large outputs.
+  No frame is shifted or blended with another frame.
 - **Ink threshold** makes a two-tone black/white result after the other tone
   operations. It is off by default. Raising **Ink cutoff** retains lighter
   strokes; compare with Original to check fine lines.
@@ -111,15 +123,23 @@ visible above the controls while scrolling.
 The paper model uses a 540 px rectified working image. It samples blank
 margins and gaps outside full cells, excluding marker squares and sheet
 edges. Bright quantiles in local tiles suppress small marks; a quadratic RGB
-surface models smooth lighting. Artwork inside cells never determines paper
-levels. The model is independent of frame selection, crop, order, output size
+surface models smooth lighting. Artwork inside cells never determines the
+paper lighting estimate; Auto adjust analyzes it separately for contrast.
+The model is independent of frame selection, crop, order, output size
 and global sliders, so each photographed sheet has one consistent correction.
 Preview and extraction estimate it from the same working pixels. The live
 crop preview has a 640 px long side; final crops still use the original photo.
 
 If too little blank paper is available, the app reports that automatic
-correction was skipped for that sheet; manual tone controls still apply.
+correction was skipped for that sheet; manual tones and sharpening still apply.
 This smooth model does not reconstruct clipped highlights or sharp shadows.
+Auto adjust can remove faint paper residue, but may also lighten intentional
+pale strokes. Sharpen improves mild softness; neither option reconstructs
+missing focus detail or reliably removes a distinct photographed double line.
+Both options use the same processing in the preview and extracted frames,
+which supply GIF, video and PNG exports. Ink threshold runs last, preserving
+strictly black/white output. Changing either option invalidates old crops;
+choose **Build sequence** or **Extract frames** to render the latest settings.
 **Reset adjustments** restores defaults. Original photos are never modified.
 **Build sequence** renders the current look, keeping completed frames when
 their inputs have not changed.
@@ -249,7 +269,9 @@ browser checks and the outstanding on-disk download verification.
   generated lighting/casts, ink preservation, exclusion of artwork from the
   paper estimate, consistent color across photos, control defaults and limits,
   unsupported references and matching crop/full-sheet processing. The suite
-  currently has 54 tests, including manual registration access after failed
+  currently has 59 tests, including bounded automatic contrast, light-residue
+  cleanup, sharpening against an independent soft-edge target, noise/halo
+  limits, consistent physical radius, and manual registration access after failed
   detection with missing/extra photos, plus export timelines, timing, palettes, GIF
   structure, video capability fallback, ZIP contents and final-frame duration.
 - `npm run build:liike`: standalone single-file build.

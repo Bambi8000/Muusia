@@ -172,6 +172,32 @@ the extra-photo preview renders without out-of-range frame windows, and
 positions survive switching photos. At 390 px both manual buttons remain
 enabled without horizontal overflow. No browser errors or warnings appeared.
 
+### Sharpen and Auto adjust (2026-09-12)
+
+Five new regressions cover bounded whole-photo contrast estimates independent
+of frame order/crop/count, light paper cleanup and retained mid-tone ink,
+unsupported references and binary threshold output, sharpening against an
+independent soft edge without displacement/overshoot, unchanged low-contrast
+grain, and comparable physical edge width at preview/export resolutions.
+The full suite has 59 passing tests. Existing paper-model isolation checks
+still exclude artwork from illumination fitting; the separate automatic
+contrast estimate intentionally reads ink across the complete sheet.
+
+The production browser was checked with the original reference JPEG: both
+options start off, Auto adjust includes the two paper controls, Sharpen starts
+at 40%, strength/Original/Adjusted/frame selection and Reset work, and the
+390 px layout has no horizontal overflow. Both enabled produce twelve
+1080×764 frames and a playable 94 KB GIF. Changing Sharpen invalidates the old
+frames and blocks their export until re-extraction. No browser errors or
+warnings appeared. Export encoders continue to consume the processed PNG
+crops, so the image treatment is shared by GIF, video and PNG ZIP.
+
+A separate diagnostic on Daniel's supplied frame screenshot showed cleaner
+paper and more distinct lines with Auto adjust and 40% Sharpen. This used the
+cropped screenshot with an assumed physical size, not the original full-sheet
+photograph; it does not establish the cause or removal of a distinct double
+edge. No supplied image was changed or added as a published fixture.
+
 SHA-256 (original bytes):
 
 - `animtest.jpeg`: `90a3f095a5b758d967ecfabf5a790281256dcf3762fccd65536696bef4a9c1c2`

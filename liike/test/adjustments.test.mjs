@@ -54,7 +54,9 @@ test('reference estimation ignores artwork inside full cells and is independent 
   }
   const model = estimatePaper(source, source, h, settings);
   const other = estimatePaper(altered, altered, h, { ...settings, crop: 'Full cell', pad: 35, order: 'Column-major', total: 13 });
-  assert.deepEqual(model, other);
+  const { autoLevels: _auto, ...paperModel } = model;
+  const { autoLevels: _otherAuto, ...otherPaperModel } = other;
+  assert.deepEqual(paperModel, otherPaperModel);
 });
 
 test('each photo gets its own lighting model but identical frame colors receive identical global controls', () => {
@@ -113,4 +115,33 @@ test('crop preview and full-sheet correction agree at the same physical sample p
   const outside = { x: -50, y: -50, w: 5, h: 5 };
   const blank = sampleRect(source, source, h, outside, 2, 2);
   assert.ok(adjustRaster(blank, outside, model, DEFAULT_ADJUSTMENTS).data.every(v => v === 255));
+});
+
+test('auto adjust estimates one bounded contrast setting for all cells and cleans light paper residue', () => {
+  const source = litSheet(), model = estimatePaper(source, source, h, settings);
+  assert.ok(model.autoLevels.black >= 0 && model.autoLevels.black <= 60);
+  assert.ok(model.autoLevels.white >= 215 && model.autoLevels.white <= 245);
+  assert.deepEqual(model.autoLevels, estimatePaper(source, source, h, { ...settings, total: 24, crop: 'Full cell', pad: 20, order: 'Column-major' }).autoLevels);
+  const options = { ...DEFAULT_ADJUSTMENTS, autoAdjust: true };
+  // A neutral sheet isolates contrast from the lighting correction already tested.
+  const neutral = { ...model, paper: [245, 245, 245], coefficients: [[245, 0, 0, 0, 0, 0], [245, 0, 0, 0, 0, 0], [245, 0, 0, 0, 0, 0]] };
+  const crop = { x: 40, y: 40, w: 10, h: 10 };
+  const raster = { width: 4, height: 1, data: new Uint8ClampedArray([65, 65, 65, 255, 170, 170, 170, 255, 240, 240, 240, 255, 245, 245, 245, 255]) };
+  const output = adjustRaster(raster, crop, neutral, options);
+  assert.ok(output.data[0] < 65, 'ink contrast did not improve');
+  assert.ok(output.data[4] > 0 && output.data[4] < 255, 'mid-tone line was erased');
+  assert.equal(output.data[8], 255, 'light paper residue remains');
+  assert.equal(output.data[12], 255);
+  assert.deepEqual(output.data, adjustRaster(raster, { ...crop, x: 180, y: 120 }, neutral, options).data, 'identical ink received different per-frame tones');
+  assert.deepEqual(output.data, adjustRaster(raster, crop, neutral, { ...options, flatten: false, whiteBalance: false }).data, 'auto adjust must include lighting and white balance');
+});
+
+test('unsupported paper skips auto adjustment; sharpening and final two-tone output remain available', () => {
+  const source = litSheet(), unsupported = estimatePaper(source, source, h, { ...settings, margin: 0, gap: 0 });
+  const crop = { x: 40, y: 40, w: 10, h: 10 }, sampled = sampleRect(source, source, h, crop, 100, 100);
+  assert.deepEqual(adjustRaster(sampled, crop, unsupported, { ...DEFAULT_ADJUSTMENTS, autoAdjust: true }).data, sampled.data);
+  const result = adjustRaster(sampled, crop, unsupported, { ...DEFAULT_ADJUSTMENTS, autoAdjust: true, sharpenEnabled: true, thresholdEnabled: true });
+  assert.ok(result.data.every(value => value === 0 || value === 255));
+  assert.deepEqual(adjustRaster(sampled, crop, unsupported, { ...DEFAULT_ADJUSTMENTS, sharpenEnabled: true, sharpen: 0 }).data, sampled.data);
+  assert.throws(() => adjustRaster(sampled, crop, unsupported, { ...DEFAULT_ADJUSTMENTS, sharpen: 101 }), /adjustment/);
 });
