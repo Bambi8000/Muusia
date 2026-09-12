@@ -1,5 +1,11 @@
 # KELA — HANDOFF
 
+Current naming (2026-09-12): the app is **Liike**, the source directory is
+`liike/`, the generated app is `public/liike/index.html`, and npm scripts use
+`:liike`. The Pages address is `/Muusia/liike/`; the old `/Muusia/kela/` path
+has no redirect. The original specification and dated history below retain
+the former Kela name and paths as historical context.
+
 Working title **Kela** ("reel"). A browser tool that turns a photograph of a
 plotted Muusia **Frame Grid** sheet into an animation. Companion to Muusia
 (authoring) and Latu (G-code); closes the loop: patch → plot → photograph →
@@ -293,3 +299,4 @@ history section.
 - 2026-09-11 — Renamed the app to Liike at Daniel's request: visible name, page title, export filenames and manifest app name updated; repository directory, commands and URL path remain `kela`.
 - 2026-09-11 — Reproduced reference-photo wobble before export despite correct SVG frame windows; added optional Sequence position stabilization using one isolated drawing's hull area center and translated direct-photo sampling, preserving size/rotation and all export paths; ambiguous crops stop extraction, all 49 tests pass. The exact physical source of the photo's residual distortion remains uncertain.
 - 2026-09-11 — Daniel approved the initial GitHub release: M0–M6, the Liike name and optional position stabilization are bundled into one initial release commit, with the generated single-file app included in the existing Pages build at `/Muusia/kela/`. The milestones above describe local implementation stages, not separate Git commits; M7 remains future work.
+- 2026-09-12 — Renamed the source and generated app directories to `liike`, updated npm scripts and current documentation, and moved the Pages address to `/Muusia/liike/` at Daniel's request. The old `kela` directory is removed with no redirect.

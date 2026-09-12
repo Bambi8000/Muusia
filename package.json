@@ -6,12 +6,12 @@
   "scripts": {
     "dev": "vite",
     "dev:latu": "vite --config latu/vite.config.js",
-    "dev:kela": "vite --config kela/vite.config.js --host 127.0.0.1",
+    "dev:liike": "vite --config liike/vite.config.js --host 127.0.0.1",
     "build": "vite build",
     "build:latu": "vite build --config latu/vite.config.js",
-    "build:kela": "vite build --config kela/vite.config.js",
-    "test:kela": "node --test kela/test/*.test.mjs",
-    "check:kela": "tsc -p kela/tsconfig.json && oxlint kela/src kela/test kela/vite.config.js",
+    "build:liike": "vite build --config liike/vite.config.js",
+    "test:liike": "node --test liike/test/*.test.mjs",
+    "check:liike": "tsc -p liike/tsconfig.json && oxlint liike/src liike/test liike/vite.config.js",
     "test:latu": "node --test latu/tests/*.test.mjs",
     "lint": "oxlint",
     "preview": "vite preview"

@@ -56,8 +56,8 @@ Browser checks also cover rerunning detection, undoing successful placement,
 preserving manual positions after a failed attempt with incompatible marker
 settings, and a 390 px viewport without horizontal overflow.
 
-Run `node --test kela/test/detection.test.mjs` from the repository root for
-the synthetic detection oracle (also included in `npm run test:kela`).
+Run `node --test liike/test/detection.test.mjs` from the repository root for
+the synthetic detection oracle (also included in `npm run test:liike`).
 `synthetic-photo.mjs` rasterizes the real Muusia SVG, including its hatched
 markers and twelve drawings, and applies a separately implemented camera
 transform. The tests cover 0°, 90°, 180°, 270° and 35° rotations, perspective,

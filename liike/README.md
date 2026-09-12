@@ -3,17 +3,17 @@
 A browser companion to Muusia: photograph a plotted Frame Grid and turn it
 into an animation. The image pipeline runs entirely on the device.
 The app is named Liike; its repository directory, build scripts and URL path
-remain `kela`.
+use `liike`.
 
-GitHub Pages: [Open Liike](https://bambi8000.github.io/Muusia/kela/).
+GitHub Pages: [Open Liike](https://bambi8000.github.io/Muusia/liike/).
 
 ## Development
 
 Use Node 22.18+ (or Node 24+) for the TypeScript tests.
-From the repository root, run `npm ci`, then `npm run dev:kela`.
-Run `npm run build:kela` to generate `public/kela/index.html`, following
+From the repository root, run `npm ci`, then `npm run dev:liike`.
+Run `npm run build:liike` to generate `public/liike/index.html`, following
 Latu's single-file Vite build. Run the root `npm run build` afterwards to
-include Liike in the Pages artifact at `dist/kela/index.html`.
+include Liike in the Pages artifact at `dist/liike/index.html`.
 
 ## Status
 
@@ -223,8 +223,8 @@ browser checks and the outstanding on-disk download verification.
 
 ## Verification
 
-- `npm run check:kela`: strict TypeScript checking and the repository linter.
-- `npm run test:kela`: layout oracles, parity with Muusia's actual Frame Grid
+- `npm run check:liike`: strict TypeScript checking and the repository linter.
+- `npm run test:liike`: layout oracles, parity with Muusia's actual Frame Grid
   node across paper sizes/layouts/orders, partial sheets, crop/padding,
   marker positions, invalid geometry and reference SVG compatibility. Also
   exercises perspective recovery, all four rotations, inverse mapping,
@@ -244,7 +244,7 @@ browser checks and the outstanding on-disk download verification.
   unsupported references and matching crop/full-sheet processing. The suite
   currently has 49 tests, including export timelines, timing, palettes, GIF
   structure, video capability fallback, ZIP contents and final-frame duration.
-- `npm run build:kela`: standalone single-file build.
+- `npm run build:liike`: standalone single-file build.
 
 Layout rectangles use sheet mm, origin top-left, y down. Cell indices always
 refer to reading positions; `frameToCell` applies the chosen traversal.

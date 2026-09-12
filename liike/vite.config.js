@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [react(), viteSingleFile()],
   build: {
     target: "esnext",
-    outDir: "../public/kela",
+    outDir: "../public/liike",
     emptyOutDir: true,
     assetsInlineLimit: 100000000,
     cssCodeSplit: false,
