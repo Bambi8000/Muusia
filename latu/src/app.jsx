@@ -341,12 +341,12 @@ export default function App() {
         </select>
         </div>
         <div className="toolbar-row">
+        <button className={`playback-toggle${playbackOpen ? " on" : ""}`} aria-pressed={playbackOpen} onClick={() => { const next = !playbackOpen; setPlaybackOpen(next); setPlaying(false); setBoxMode(false); setPenMode(false); setMeasureMode(false); }}><span aria-hidden="true">▶</span> Playback</button>
         <button className={boxMode ? "on" : ""} onClick={() => { setBoxMode((value) => !value); setPenMode(false); setMeasureMode(false); setDraftPoints([]); }} disabled={visualLocked}>Box select</button>
         <button className={penMode ? "on" : ""} onClick={() => { setPenMode((value) => !value); setBoxMode(false); setMeasureMode(false); setDraftPoints([]); }} disabled={visualLocked}>Pen tool</button>
         <button className={measureMode ? "on" : ""} onClick={() => { setMeasureMode((value) => !value); setBoxMode(false); setPenMode(false); setDraftPoints([]); }} disabled={paneMode === "text"}>Measure</button>
         <button onClick={() => setEventsOpen(true)} disabled={visualLocked}>＋ Event</button>
         <button onClick={() => setColorsOpen(true)} disabled={!doc.strokes.length}>Pen colors</button>
-        <button className={playbackOpen ? "on" : ""} onClick={() => { const next = !playbackOpen; setPlaybackOpen(next); setPlaying(false); setBoxMode(false); setPenMode(false); setMeasureMode(false); }}>Playback</button>
         <button onClick={() => setScaleOpen(true)} disabled={visualLocked || !doc.strokes.length}>Scale / Fit</button>
         <button onClick={fitWorkArea} disabled={visualLocked || !doc.strokes.length}>Fit work area</button>
         <button onClick={openCanvasResize}>Canvas size</button>
