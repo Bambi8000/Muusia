@@ -1,6 +1,6 @@
-# MUUSIA v2.84 — Node Reference
+# MUUSIA v2.85 — Node Reference
 
-All 266 built-in nodes. Conventions used below: most generators accept a **Style**
+All 267 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
@@ -1142,7 +1142,7 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (70)
+## Modifiers (71)
 
 **Zigzag Path** — redraws every input path as a patterned stroke following
 the original line. Mode: *Zigzag* (sharp triangle wave, apex points inserted
@@ -1432,6 +1432,26 @@ swing, floored at 0.1 mm); *Min gap* merges punches so the needle never stabs
 the same hole twice. Punches preview as round dots. Bed-Z machines only (servo
 mode ignores z), and keep it LAST in the chain — any modifier after it strips
 the z component.
+
+**Ink Relief** — finds the places where the pen inks the same spot over and
+over and thins them out, leaving the rest of the drawing alone. Two kinds of
+pile-up get detected. *Corners*: nested rings from Offset or Morph Layers all
+turn at the same vertex, the pen decelerates to a near stop each time and a
+ballpoint leaves a glossy bead — **Round** replaces the corner with a fillet so
+the pen never stops, **Fan** pushes the stacked corners outward along the spike
+by rank, **Notch** cuts a gap so no ink reaches the corner at all. *Overlaps*:
+where a shape pinches, dozens of rings collapse onto the same straight run and
+one line gets drawn thirty times — **Spread** offsets each run perpendicular by
+rank so a black bar becomes a band of separate lines, **Thin** keeps every Nth
+pass and cuts the run out of the others, **Taper** cuts most from the middle of
+the stack and nothing from the outermost, hollowing the bar while keeping its
+silhouette. Relief scales with how crowded each pile is (*Min passes*, *Full
+strength at*), so a stack of thirty gets the full *Amount* and a stack of six
+barely any. *Target* Both runs the corner pass first and looks for overlaps in
+its result, which is stronger than either alone because the edges feeding a
+spike are themselves near-parallel. *Show hotspots* draws each pile on its own
+pen — circles for corners, a line along the run for overlaps — which is the
+fastest way to check detection before committing a sheet.
 
 ## Decorators (6)
 

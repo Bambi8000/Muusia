@@ -588,6 +588,10 @@
   "spiral",
   "warp"
  ],
+ "ink_relief": [
+  "deform",
+  "texture"
+ ],
  "interference": [
   "organic",
   "terrain",

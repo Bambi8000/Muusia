@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **263 files** (265 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **265 files** (267 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 157, Modifiers 70). ESM format:
+  Generators 158, Modifiers 71). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (253) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (265) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1249,6 +1249,32 @@ text are **English**.
   tessellation), Flip Y over content bbox, Fit to margin. Validator: 73 checks
   incl. a mutation-tested roundtrip oracle at 0.006 mm against a toGcode
   mini-port (bed-Z + z-hop + brush Z, servo, maintenance, dip, Latu fixtures).
+- **2.85** **Ink Relief** (mod/deform) baked, from a photograph of a
+  plot where the ballpoint had beaded into a glossy bead at every spike and a
+  solid black bar down a pinched waist. Two detectors, six reliefs: corners
+  (Round, Fan, Notch) and overlapping runs (Spread, Thin, Taper), both gated on
+  how many passes crowd the same place and both scaling relief with that count.
+  The validator measures ink rather than shape — a node that only moved points
+  around would pass a geometry test and still bead — by building a 28-ring
+  spike stack and a 26-pass neck and asserting how much path length survives
+  inside a small disc: Round 28 %, Fan 11 % at 6 mm, Notch 0 %, Thin 46 %,
+  Taper 23 %. Spread needs its own oracle because it does not remove ink at
+  all, it widens the band, so that test asserts band width instead: 1.25 mm to
+  6.49 mm, monotonic in Amount. Two false positives are tested for explicitly:
+  thirty lines crossing at a point are not an overlap, and a shape with no
+  pile-up comes through byte-identical. Writing those tests turned up that a
+  spike stack genuinely contains overlaps as well, since the edges feeding the
+  tip run near-parallel, so Target Both is stronger than either pass alone.
+  Also in this release: **Potato** now defaults to clean blobs — Eyes was
+  defaulting to "Arcs (eyes)", so every freshly dropped node arrived textured
+  (9 paths become 72) — and *Eyes per potato* gained a showIf so it stops
+  sitting in the inspector doing nothing. Saved patches write every parameter
+  explicitly, so existing work keeps whatever it had; only new nodes change.
+  The first attempt at that patch reported a false SKIP, because its guard
+  searched the whole file for `p.eyes !== "None"` and the compute body already
+  contained that string — guards have to test the param line, not the file.
+  (tools/validate-ink_relief.mjs, tools/era/patch-potato-clean.mjs,
+  tools/era/patch-docs-v275.mjs)
 
 ## Hard-won pitfalls (keep)
 
