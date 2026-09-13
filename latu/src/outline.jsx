@@ -1,7 +1,7 @@
 import { reorderSection } from "./model.js";
 
 export default function Outline({ doc, selectedLine, selectedStrokeIds, onSelectLine, onSelectGroup, onReorder }) {
-  return <aside className="outline">
+  return <nav className="outline" aria-label="File groups and program">
     {!!doc.groups?.length && <>
       <div className="rail-title">FILE GROUPS</div>
       <div className="group-list">{doc.groups.map((group) => {
@@ -34,5 +34,5 @@ export default function Outline({ doc, selectedLine, selectedStrokeIds, onSelect
         </button>)}
       </details>;
     })}
-  </aside>;
+  </nav>;
 }

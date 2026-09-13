@@ -15,7 +15,7 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 ## Tiedostot ja round trip
 
 - [ ] `Open` avaa `.gcode`-tiedoston ja näyttää oikean tiedostonimen.
-- [ ] Tiedostonimi näkyy heti `Open`-painikkeen vieressä `FILE`-kentässä; piste nimen edessä kertoo tallentamattomista muutoksista.
+- [ ] Tiedostonimi näkyy isompana yläpalkissa LATU-logon vieressä; `Unsaved changes` kertoo tallentamattomista muutoksista.
 - [ ] Tiedoston voi pudottaa ikkunaan drag-and-dropilla.
 - [ ] `Combine…` tuo yhden tai useita G-codeja nykyiseen dokumenttiin ja säilyttää vetojen määrän.
 - [ ] Yhdistetyssä dokumentissa jokainen lähdetiedosto näkyy omana nimettynä `FILE GROUPS` -ryhmänään.
@@ -25,7 +25,7 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] Servo-fixture näyttää 51 vetoa ja kaksi kynäosiota (Black ja Magenta).
 - [ ] Bed-Z-fixture tunnistuu bed-Z-ohjelmaksi ja paine-Z säilyy pisteissä.
 - [ ] Tuntemattomat rivit näkyvät varoitettuina mutta säilyvät tekstissä.
-- [ ] Muokkaamattoman tiedoston `Save as` on tavutasolla alkuperäisen kaltainen.
+- [ ] Muokkaamattoman tiedoston `Save as…` (Save-painikkeen nuolivalikossa) on tavutasolla alkuperäisen kaltainen.
 - [ ] Muokatun tiedoston tallennus lisää vain yhden `edited with LATU` -merkinnän.
 - [ ] Tallennus päivittää draw/travel/aika-otsikkotiedot.
 - [ ] Tallennus lisää tai päivittää `; LATU profile: <name>` -rivin.
@@ -34,8 +34,8 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 ## Canvas ja navigointi
 
 - [ ] Vedot näkyvät kynäväreillä ja travel-liikkeet katkoviivoina.
-- [ ] `Travels` piilottaa ja palauttaa travel-liikkeet.
-- [ ] `Y+ ↑` on oletuksena päällä ja näyttää positiivisen Y-suunnan ylöspäin muuttamatta G-codea.
+- [ ] `View settings` → `Show travel moves` piilottaa ja palauttaa travel-liikkeet.
+- [ ] `View settings` → `Y+ points up` on oletuksena päällä ja näyttää positiivisen Y-suunnan ylöspäin muuttamatta G-codea.
 - [ ] Hiiren rulla zoomaa osoittimen kohdalta.
 - [ ] `−` pienentää zoomia näkymän keskeltä.
 - [ ] `＋` suurentaa zoomia näkymän keskeltä.
@@ -80,10 +80,10 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] Join: valitse Shift-klikkauksella yksi päätepiste kummastakin vierekkäisestä vedosta ja paina `Join endpoints`.
 - [ ] Join käyttää juuri valittuja päätepisteitä ja kertoo, jos pisteet eivät ole päätepisteitä tai vedot eivät ole vierekkäisiä.
 - [ ] Kauempana olevien päätepisteiden Join onnistuu ja lisää niiden välille näkyvän piirrettävän yhdyssegmentin.
-- [ ] Valittu veto voidaan siirtää `Move to pen…` -valinnalla toisen kynän alle; geometria ei muutu.
+- [ ] Valittu veto voidaan siirtää Selection-paneelin `Move strokes to pen` -valinnalla toisen kynän alle; geometria ei muutu.
 - [ ] Outline-raahaus järjestää vetoja vain saman kynäosion sisällä.
 - [ ] Optimize lyhentää tai säilyttää travel-matkan eikä muuta vetojen määrää.
-- [ ] Pen tool luo uuden vedon ja Enter päättää sen; Esc peruu.
+- [ ] `Draw` luo uuden vedon ja Enter päättää sen; Esc peruu.
 - [ ] Undo/Redo palauttaa canvas- ja tekstimuokkaukset oikeassa järjestyksessä.
 
 ## Skaalaus ja turvallisuus
@@ -155,15 +155,27 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 
 ## Värit ja käyttöliittymä
 
-- [ ] Työkalupalkki näkyy kahtena erillisenä rivinä ja kumpaakin riviä voi vierittää vaakasuunnassa pienessä ikkunassa.
-- [ ] `Pen colors` näyttää jokaisen käytetyn kynän ja valmiin väripaletin.
+- [ ] Ylimmässä palkissa ovat tiedostonimi, Open, Combine, Save ja muita suurempi vihreä Playback-painike.
+- [ ] Piirtotyökalut ovat omassa ryhmässään; Canvas / Split view / G-code ovat erilliset näkymävalinnat.
+- [ ] Työkalut rivittyvät kapeammassa ikkunassa; toimintoja ei tarvitse etsiä vaakavierityksen takaa.
+- [ ] Selection-paneeli näyttää tyhjän valinnan ohjeet; vedon valinta tuo näkyviin siirron, muokkaustoiminnot ja kynän vaihdon.
+- [ ] Numeerinen siirto toimii sekä `Apply move` -painikkeella että X/Y-kentän Enterillä.
+- [ ] Kahden vedon valinta tuo näkyviin Join endpoints -painikkeen ja päätepisteiden valintaohjeen.
+- [ ] `Clear` tyhjentää valinnan, ja harvemmin tarvittavat muokkauspainikkeet poistuvat näkyvistä.
+- [ ] Mittauksesta voi vaihtaa suoraan Select-, Box select- tai Draw-työkaluun.
+- [ ] `Document`-valikosta löytyvät Canvas size, Pen colors, Scale / Fit, Fit work area, Optimize ja koneprofiilit.
+- [ ] Valikot toimivat Tab- ja Enter-näppäimillä, sulkeutuvat Escillä sekä ulkopuolelle klikatessa, eikä useita valikoita jää päällekkäin auki.
+- [ ] `View settings` → `Selection & layers panel` piilottaa ja palauttaa sivupaneelin.
+- [ ] Jakajaa voi siirtää hiirellä sekä näppäimistön nuolilla, kun jakaja on valittu Tabilla.
+- [ ] Playbackissa sivupaneeli opastaa kynäpaksuusasetuksiin; sulkeminen palauttaa valinnan muokkaustyökalut.
+- [ ] `Document` → `Pen colors…` näyttää jokaisen käytetyn kynän ja valmiin väripaletin.
 - [ ] Palettivärin tai vapaan värivalitsimen valinta päivittää canvasin, outlinen ja playbackin.
 - [ ] Kynäväri säilyy tallennetussa G-codessa `LATU PEN COLOR` -metatietona ja palautuu uudelleen avattaessa.
 
 ## G-code-tekstin muokkaus ja haku
 
-- [ ] G-code-rivejä ja numeerisia arvoja voi muokata suoraan Text-näkymässä; canvas päivittyy viiveen jälkeen.
-- [ ] `Find / Replace` avaa hakurivin myös Canvas-only-tilasta.
+- [ ] G-code-rivejä ja numeerisia arvoja voi muokata suoraan G-code-näkymässä; canvas päivittyy viiveen jälkeen.
+- [ ] G-code-paneelin `Find / Replace` avaa hakurivin; Canvas-only-tilassa se löytyy `View settings` -valikosta ja avaa samalla Split view -näkymän.
 - [ ] Find löytää seuraavan osuman Enterillä/alasnuolella ja edellisen Shift+Enterillä/ylänuolella.
 - [ ] Replace korvaa valitun osuman ja All korvaa kaikki osumat, esimerkiksi `PAUSE` → `M0`.
 - [ ] `Aa` tekee hausta kirjainkoon huomioivan.

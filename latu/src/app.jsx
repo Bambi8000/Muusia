@@ -11,6 +11,7 @@ import ProfileManager from "./profile-manager.jsx";
 import { loadProfiles, profileForDocument, saveProfiles } from "./profile.js";
 import PlaybackPanel from "./playback-panel.jsx";
 import { buildTimeline, sampleTimeline } from "./sim.js";
+import { ActionMenu, Icon, SelectionInspector } from "./editor-controls.jsx";
 
 const EMPTY = `; LATU\n; Open a Muusia .gcode file to inspect its toolpath.\n`;
 
@@ -50,6 +51,7 @@ export default function App() {
   const [showTravels, setShowTravels] = useState(true);
   const [yUp, setYUp] = useState(true);
   const [paneMode, setPaneMode] = useState("split");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [split, setSplit] = useState(56);
   const [dirty, setDirty] = useState(false);
   const [selectedStrokeIds, setSelectedStrokeIds] = useState([]);
@@ -142,7 +144,7 @@ export default function App() {
         return next;
       });
     } else if (stroke) { setSelectedStrokeIds((ids) => options.additive ? (ids.includes(stroke.id) ? ids.filter((id) => id !== stroke.id) : [...ids, stroke.id]) : [stroke.id]); setSelectedPoints([]); }
-    else if (!options.additive) setSelectedStrokeIds([]);
+    else if (!options.additive) { setSelectedStrokeIds([]); setSelectedPoints([]); }
     if (event) setSelectedEventIds((ids) => options.additive ? (ids.includes(event.id) ? ids.filter((id) => id !== event.id) : [...ids, event.id]) : [event.id]);
     else if (!options.additive) setSelectedEventIds([]);
   };
@@ -214,7 +216,6 @@ export default function App() {
     if (next && playbackTimeRef.current >= timeline.total) seekPlayback(0);
     setPlaying(next && timeline.total > 0);
   };
-  const changeMode = (mode) => setPaneMode((current) => current === mode ? "split" : mode);
   const selectedOrAll = selectedStrokeIds.length ? selectedStrokeIds : doc.strokes.map((stroke) => stroke.id);
   const runDelete = () => {
     if (selectedPoints.length > 1) { setMessage("Select one point at a time to delete it"); return; }
@@ -261,6 +262,11 @@ export default function App() {
   const safety = useMemo(() => auditDocument(doc), [doc]);
   const usedPens = useMemo(() => [...new Map(doc.sections.map((section) => [section.penIndex, { penIndex: section.penIndex, name: section.name, color: doc.meta.penColors?.[section.penIndex] || doc.strokes.find((stroke) => stroke.penIndex === section.penIndex)?.color || COLOR_PALETTE[section.penIndex % COLOR_PALETTE.length] }])).values()], [doc]);
   const visualLocked = doc.warnings.unsafeModal || playbackOpen || measureMode;
+  const clearSelection = () => { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); setSelectedLine(null); };
+  const chooseTool = (tool) => {
+    setBoxMode(tool === "box"); setPenMode(tool === "pen"); setMeasureMode(tool === "measure"); setDraftPoints([]);
+    if (paneMode === "text") setPaneMode("split");
+  };
   const commitDraft = () => {
     if (draftPoints.length < 2) { setDraftPoints([]); setPenMode(false); return; }
     const sectionId = selectedStrokeIds.length ? doc.strokes[selectedStrokeIds[0]]?.sectionId : doc.sections[0]?.id;
@@ -284,11 +290,11 @@ export default function App() {
       if (event.target.closest?.(".cm-editor, input, textarea, select, [contenteditable=true]")) return;
       const command = event.metaKey || event.ctrlKey;
       if (command && event.key.toLowerCase() === "z") { event.preventDefault(); if (event.shiftKey) redo(); else undo(); }
-      else if (command && event.key.toLowerCase() === "a") { event.preventDefault(); setSelectedStrokeIds(doc.strokes.map((stroke) => stroke.id)); setSelectedEventIds([]); }
-      else if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); runDelete(); }
+      else if (command && event.key.toLowerCase() === "a") { event.preventDefault(); setSelectedStrokeIds(doc.strokes.map((stroke) => stroke.id)); setSelectedEventIds([]); setSelectedPoints([]); }
+      else if (!visualLocked && (event.key === "Delete" || event.key === "Backspace")) { event.preventDefault(); runDelete(); }
       else if (event.key === "Escape") { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); setSelectedLine(null); setDraftPoints([]); setPenMode(false); setBoxMode(false); setMeasureMode(false); }
       else if (event.key === "Enter" && penMode) { event.preventDefault(); commitDraft(); }
-      else if (selectedStrokeIds.length && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      else if (!visualLocked && selectedStrokeIds.length && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
         event.preventDefault(); const step = event.shiftKey ? 1 : .1;
         runMove(event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0, event.key === "ArrowUp" ? (yUp ? step : -step) : event.key === "ArrowDown" ? (yUp ? -step : step) : 0);
       }
@@ -313,75 +319,86 @@ export default function App() {
   }, [playing, playbackSpeed, timeline.total]);
 
   return <div className={`app${playbackOpen ? " playback-shown" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const files = event.dataTransfer.files; if (files.length > 1) combineFiles(files); else if (files[0]) loadFile(files[0]); }}>
-    <header className="topbar">
-      <div className="brand"><span className="brand-mark">L</span><div><strong>LATU</strong><small>G-code reader</small></div></div>
-      <div className="toolbar">
-        <div className="toolbar-row">
-        <button className="primary" onClick={openFile}>Open</button>
-        <div className="file-chip" title={name}><small>FILE</small><strong>{dirty ? "● " : ""}{name}</strong></div>
-        <button onClick={openCombine}>Combine…</button>
-        <button onClick={() => save(false)}>Save</button>
-        <button onClick={() => save(true)}>Save as</button>
-        <select className="profile-select" aria-label="Machine profile" value={activeProfile.id} onChange={(event) => chooseProfile(event.target.value)}>{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select>
-        <button onClick={() => setProfilesOpen(true)}>Profiles</button>
-        <span className="separator" />
-        <button onClick={undo} disabled={!historyRef.current.past.length}>Undo</button>
-        <button onClick={redo} disabled={!historyRef.current.future.length}>Redo</button>
-        <span className="separator" />
-        <button onClick={runDelete} disabled={visualLocked || !selectedStrokeIds.length && !selectedEventIds.length}>Delete</button>
-        <button onClick={runCopy} disabled={!selectedStrokeIds.length}>Copy</button>
-        <button onClick={runPaste} disabled={visualLocked}>Paste</button>
-        <button onClick={() => selectedStrokeIds.length && applySource(reverseStrokes(doc, selectedStrokeIds), "Reversed strokes") } disabled={visualLocked || !selectedStrokeIds.length}>Reverse</button>
-        <button onClick={() => selectedStrokeIds.length === 1 && applySource(insertMidpoint(doc, selectedStrokeIds[0], selectedLine), "Inserted midpoint") } disabled={visualLocked || selectedStrokeIds.length !== 1}>+ Point</button>
-        <button onClick={() => selectedStrokeIds.length === 1 && applySource(splitStroke(doc, selectedStrokeIds[0], selectedLine), "Split stroke", false)} disabled={visualLocked || selectedStrokeIds.length !== 1}>Split</button>
-        <button title="Select two endpoints with Shift-click, then Join" onClick={runJoin} disabled={visualLocked || selectedStrokeIds.length !== 2 || selectedPoints.length > 0 && selectedPoints.length !== 2}>Join endpoints</button>
-        <button onClick={runOptimize} disabled={visualLocked || doc.strokes.length < 2}>Optimize</button>
-        <select className="pen-target" aria-label="Move selected strokes to pen" value="" onChange={(event) => { if (event.target.value !== "") runMoveToSection(event.target.value); }} disabled={visualLocked || !selectedStrokeIds.length}>
-          <option value="">Move to pen…</option>{doc.sections.map((section) => <option key={section.id} value={section.id}>{section.penIndex}: {section.name}</option>)}
-        </select>
+    <header className="editor-header">
+      <div className="document-bar">
+        <div className="brand"><span className="brand-mark">L</span><div><strong>LATU</strong><small>G-code editor</small></div></div>
+        <div className="document-title" title={name}><strong>{name}</strong><small className={dirty ? "unsaved" : ""}>{dirty ? "● Unsaved changes" : "G-code document"}<span> · {doc.meta.canvasW ? `${doc.meta.canvasW} × ${doc.meta.canvasH} mm` : "Canvas size not set"}</span></small></div>
+        <div className="file-actions">
+          <button className="quiet" onClick={openFile}><Icon name="open" /> Open</button>
+          <button className="quiet" onClick={openCombine}><Icon name="combine" /> Combine…</button>
+          <div className="save-actions"><button className="primary" onClick={() => save(false)}><Icon name="save" /> Save</button><ActionMenu label="Save options" compact><button onClick={() => save(true)}>Save as…</button></ActionMenu></div>
         </div>
-        <div className="toolbar-row">
-        <button className={`playback-toggle${playbackOpen ? " on" : ""}`} aria-pressed={playbackOpen} onClick={() => { const next = !playbackOpen; setPlaybackOpen(next); setPlaying(false); setBoxMode(false); setPenMode(false); setMeasureMode(false); }}><span aria-hidden="true">▶</span> Playback</button>
-        <button className={boxMode ? "on" : ""} onClick={() => { setBoxMode((value) => !value); setPenMode(false); setMeasureMode(false); setDraftPoints([]); }} disabled={visualLocked}>Box select</button>
-        <button className={penMode ? "on" : ""} onClick={() => { setPenMode((value) => !value); setBoxMode(false); setMeasureMode(false); setDraftPoints([]); }} disabled={visualLocked}>Pen tool</button>
-        <button className={measureMode ? "on" : ""} onClick={() => { setMeasureMode((value) => !value); setBoxMode(false); setPenMode(false); setDraftPoints([]); }} disabled={paneMode === "text"}>Measure</button>
-        <button onClick={() => setEventsOpen(true)} disabled={visualLocked}>＋ Event</button>
-        <button onClick={() => setColorsOpen(true)} disabled={!doc.strokes.length}>Pen colors</button>
-        <button onClick={() => setScaleOpen(true)} disabled={visualLocked || !doc.strokes.length}>Scale / Fit</button>
-        <button onClick={fitWorkArea} disabled={visualLocked || !doc.strokes.length}>Fit work area</button>
-        <button onClick={openCanvasResize}>Canvas size</button>
-        <span className="move-fields"><label title="Horizontal move in millimetres"><b>X</b><input aria-label="Move X" type="number" step="0.1" value={move.x} onChange={(event) => setMove((value) => ({ ...value, x: event.target.value }))} /></label><label title="Vertical move in millimetres; positive Y moves up"><b>Y</b><input aria-label="Move Y" type="number" step="0.1" value={move.y} onChange={(event) => setMove((value) => ({ ...value, y: event.target.value }))} /></label><button onClick={() => runMove()} disabled={visualLocked || !selectedStrokeIds.length}>Move</button></span>
-        <span className="separator" />
-        <button className={showTravels ? "on" : ""} onClick={() => setShowTravels((value) => !value)}>Travels</button>
-        <button className={yUp ? "on" : ""} onClick={() => setYUp((value) => !value)}>Y+ ↑</button>
-        <span className="separator" />
-        <button className={paneMode === "canvas" ? "on" : ""} onClick={() => changeMode("canvas")}>Canvas</button>
-        <button className={paneMode === "text" ? "on" : ""} onClick={() => changeMode("text")}>Text</button>
-        <button className={searchOpen ? "on" : ""} title="G-code text is directly editable" onClick={() => { setSearchOpen((value) => !value); if (paneMode === "canvas") setPaneMode("split"); }}>Find / Replace</button>
+        <button className={`playback-toggle${playbackOpen ? " on" : ""}`} aria-pressed={playbackOpen} onClick={() => { const next = !playbackOpen; setPlaybackOpen(next); setPlaying(false); chooseTool("select"); }}><span aria-hidden="true">▶</span> Playback</button>
+      </div>
+      <div className="tool-bar">
+        <div className="history-actions" aria-label="Edit history">
+          <button className="icon-button quiet" aria-label="Undo" title="Undo · ⌘Z / Ctrl+Z" onClick={undo} disabled={!historyRef.current.past.length}><Icon name="undo" /></button>
+          <button className="icon-button quiet" aria-label="Redo" title="Redo · ⇧⌘Z / Ctrl+Shift+Z" onClick={redo} disabled={!historyRef.current.future.length}><Icon name="redo" /></button>
+        </div>
+        <div className="tool-group" role="group" aria-label="Canvas tools">
+          <span className="tool-label">TOOLS</span>
+          <button className={!boxMode && !penMode && !measureMode ? "on" : "quiet"} aria-pressed={!boxMode && !penMode && !measureMode} onClick={() => chooseTool("select")}><Icon name="select" /> Select</button>
+          <button className={boxMode ? "on" : "quiet"} aria-pressed={boxMode} onClick={() => chooseTool(boxMode ? "select" : "box")} disabled={doc.warnings.unsafeModal || playbackOpen}><Icon name="box" /> Box select</button>
+          <button className={penMode ? "on" : "quiet"} aria-pressed={penMode} onClick={() => chooseTool(penMode ? "select" : "pen")} disabled={doc.warnings.unsafeModal || playbackOpen}><Icon name="pen" /> Draw</button>
+          <button className={measureMode ? "on" : "quiet"} aria-pressed={measureMode} onClick={() => chooseTool(measureMode ? "select" : "measure")} disabled={playbackOpen}><Icon name="measure" /> Measure</button>
+          <button className="quiet" onClick={() => setEventsOpen(true)} disabled={visualLocked}><Icon name="plus" /> Event</button>
+        </div>
+        <ActionMenu label="Document" icon="page">
+          <div className="menu-heading">Canvas & drawing</div>
+          <button onClick={openCanvasResize}>Canvas size…</button>
+          <button onClick={() => setColorsOpen(true)} disabled={!doc.strokes.length}>Pen colors…</button>
+          <button onClick={() => setScaleOpen(true)} disabled={visualLocked || !doc.strokes.length}>Scale / Fit {selectedStrokeIds.length ? "selection" : "drawing"}…</button>
+          <button onClick={fitWorkArea} disabled={visualLocked || !doc.strokes.length}>Fit whole drawing to work area</button>
+          <button onClick={runOptimize} disabled={visualLocked || doc.strokes.length < 2}>Optimize {selectedStrokeIds.length ? "selection" : "drawing"}</button>
+          <div className="menu-heading">Machine</div>
+          <label className="menu-field">Profile<select aria-label="Machine profile" value={activeProfile.id} onChange={(event) => chooseProfile(event.target.value)}>{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
+          <button onClick={() => setProfilesOpen(true)}>Manage profiles…</button>
+        </ActionMenu>
+        <div className="view-actions">
+          <div className="view-switch" role="group" aria-label="Editor layout">{[["canvas", "Canvas"], ["split", "Split view"], ["text", "G-code"]].map(([mode, label]) => <button key={mode} className={paneMode === mode ? "on" : ""} aria-pressed={paneMode === mode} onClick={() => setPaneMode(mode)}>{label}</button>)}</div>
+          <ActionMenu label="View settings" icon="settings" compact>
+            <div className="menu-heading">View settings</div>
+            <button onClick={() => { setSearchOpen(true); if (paneMode === "canvas") setPaneMode("split"); }}>Find / Replace…</button>
+            <label className="menu-check"><input type="checkbox" checked={showTravels} onChange={(event) => setShowTravels(event.target.checked)} /> Show travel moves</label>
+            <label className="menu-check"><input type="checkbox" checked={yUp} onChange={(event) => setYUp(event.target.checked)} /> Y+ points up</label>
+            <label className="menu-check"><input type="checkbox" checked={sidebarOpen} onChange={(event) => setSidebarOpen(event.target.checked)} /> Selection & layers panel</label>
+          </ActionMenu>
         </div>
       </div>
-      <div className="file-meta"><strong>{doc.meta.machineName || "Generic G-code"}</strong><small>{doc.meta.canvasW ? `${doc.meta.canvasW} × ${doc.meta.canvasH} mm` : "Canvas size not set"}</small></div>
       <input ref={inputRef} type="file" accept=".gcode,.gc,.nc,text/plain" hidden onChange={(event) => event.target.files[0] && loadFile(event.target.files[0])} />
       <input ref={combineInputRef} type="file" accept=".gcode,.gc,.nc,text/plain" multiple hidden onChange={(event) => { if (event.target.files.length) combineFiles(event.target.files); event.target.value = ""; }} />
     </header>
-    <main className={`workspace mode-${paneMode}`} onPointerMove={(event) => {
+    <main className={`workspace mode-${paneMode}`}>
+      {paneMode !== "text" && sidebarOpen && <aside className="editor-sidebar">
+        {playbackOpen ? <section className="selection-inspector"><div className="inspector-heading"><h2>Playback preview</h2></div><p className="selection-empty">Pen widths and paper color are below the canvas.</p><p className="selection-tip">Close Playback to return to editing. Your selection stays in place.</p></section> : <SelectionInspector strokes={selectedStrokeIds.length} points={selectedPoints.length} events={selectedEventIds.length} sections={doc.sections} locked={visualLocked} move={move} onMoveChange={setMove} actions={{
+          clear: clearSelection, move: runMove, scale: () => setScaleOpen(true), reverse: () => applySource(reverseStrokes(doc, selectedStrokeIds), "Reversed strokes"),
+          insert: () => applySource(insertMidpoint(doc, selectedStrokeIds[0], selectedLine), "Inserted midpoint"), split: () => applySource(splitStroke(doc, selectedStrokeIds[0], selectedLine), "Split stroke", false),
+          optimize: runOptimize, join: runJoin, pen: runMoveToSection, copy: runCopy, paste: runPaste, delete: runDelete, yUp,
+        }} />}
+        <Outline doc={doc} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} onSelectLine={selectLine} onSelectGroup={(ids, additive) => { setSelectedPoints([]); setSelectedEventIds([]); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); setMessage(`Selected file group · ${ids.length} strokes`); }} onReorder={(next) => !visualLocked && applySource(next, "Reordered strokes", false)} />
+      </aside>}
+      <div className="editor-panes" onPointerMove={(event) => {
       if (!dividerDrag.current) return;
       const rect = event.currentTarget.getBoundingClientRect(); setSplit(Math.max(25, Math.min(75, ((event.clientX - rect.left) / rect.width) * 100)));
-    }} onPointerUp={() => { dividerDrag.current = false; }}>
-      {paneMode !== "text" && <Outline doc={doc} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} onSelectLine={selectLine} onSelectGroup={(ids, additive) => { setSelectedPoints([]); setSelectedEventIds([]); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); setMessage(`Selected file group · ${ids.length} strokes`); }} onReorder={(next) => applySource(next, "Reordered strokes", false)} />}
-      {paneMode !== "text" && <section className="canvas-pane" style={paneMode === "split" ? { width: `calc(${split}% - 96px)` } : undefined}>
+    }} onPointerUp={() => { dividerDrag.current = false; }} onPointerCancel={() => { dividerDrag.current = false; }}>
+      {paneMode !== "text" && <section className="canvas-pane" style={paneMode === "split" ? { width: `${split}%` } : undefined}>
+        <div className="pane-heading"><strong>{playbackOpen ? "Playback preview" : "Canvas"}</strong><button className="quiet" onClick={openCanvasResize}>{doc.meta.canvasW ? `${doc.meta.canvasW} × ${doc.meta.canvasH} mm` : "Set canvas size…"}</button></div>
+        <div className="canvas-content">
         <CanvasView doc={doc} viewResetKey={viewResetKey} showTravels={showTravels} yUp={yUp} hoveredLine={hoveredLine} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} selectedPoints={selectedPoints} boxSelecting={boxMode} drawing={penMode} measuring={measureMode} draftPoints={draftPoints} playback={playbackOpen ? { active: true, time: playbackTime, timeline, sample: playbackSample, penWidths, paperColor } : null} onAddPoint={(point) => setDraftPoints((points) => [...points, point])} onInsertPoint={(strokeId, line, point) => !visualLocked && applySource(insertPoint(doc, strokeId, line, point), "Inserted point")} onHoverLine={setHoveredLine} onSelectLine={selectLine} onSelectStrokes={(ids, additive) => { setSelectedPoints([]); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); }} onTranslate={(dx, dy) => !visualLocked && runMove(dx, dy)} onMovePoints={(dx, dy) => !visualLocked && runMove(dx, dy)} onCursor={setCursor} />
         {boxMode && <div className="canvas-hint">Drag a box around strokes · Shift adds</div>}
         {penMode && <div className="canvas-hint">Click points · Enter to finish · Esc to cancel <strong>{draftPoints.length} pts</strong></div>}
         {measureMode && <div className="canvas-hint">Drag between two points to measure · Esc exits</div>}
         {!measureMode && selectedPoints.length > 1 && <div className="canvas-hint">{selectedPoints.length} points selected · drag a white point to move all · Join uses two endpoints</div>}
         {!!safety.length && <div className="safety-panel">{safety.map((warning) => <div key={warning.kind}>⚠ {warning.message}</div>)}</div>}
+        </div>
       </section>}
-      {paneMode === "split" && <div className="divider" onPointerDown={(event) => { dividerDrag.current = true; event.currentTarget.setPointerCapture(event.pointerId); }} />}
+      {paneMode === "split" && <div className="divider" role="separator" aria-label="Resize canvas and G-code panels" aria-orientation="vertical" aria-valuenow={Math.round(split)} aria-valuemin={25} aria-valuemax={75} tabIndex={0} onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); event.stopPropagation(); setSplit((value) => Math.max(25, Math.min(75, value + (event.key === "ArrowRight" ? 5 : -5)))); } }} onPointerDown={(event) => { dividerDrag.current = true; event.currentTarget.setPointerCapture(event.pointerId); }} />}
       {paneMode !== "canvas" && <section className={`text-pane${searchOpen ? " search-shown" : ""}`}>
-        {searchOpen && <div className="find-bar"><input aria-label="Find" placeholder="Find, e.g. PAUSE" value={search.query} onChange={(event) => setSearch((value) => ({ ...value, query: event.target.value }))} onKeyDown={(event) => event.key === "Enter" && runSearch(event.shiftKey ? "previous" : "next")} autoFocus /><input aria-label="Replace" placeholder="Replace, e.g. M0" value={search.replacement} onChange={(event) => setSearch((value) => ({ ...value, replacement: event.target.value }))} /><button onClick={() => runSearch("previous")} disabled={!search.query}>↑</button><button onClick={() => runSearch("next")} disabled={!search.query}>↓</button><button onClick={() => runSearch("replace")} disabled={!search.query}>Replace</button><button onClick={() => runSearch("all")} disabled={!search.query}>All</button><label><input type="checkbox" checked={search.caseSensitive} onChange={(event) => setSearch((value) => ({ ...value, caseSensitive: event.target.checked }))} /> Aa</label><button onClick={() => setSearchOpen(false)}>×</button></div>}
+        <div className="pane-heading"><strong>G-code <span>Editable</span></strong><button className={searchOpen ? "on" : "quiet"} onClick={() => setSearchOpen((value) => !value)} aria-pressed={searchOpen}><Icon name="search" /> Find / Replace</button></div>
+        {searchOpen && <div className="find-bar"><input aria-label="Find" placeholder="Find, e.g. PAUSE" value={search.query} onChange={(event) => setSearch((value) => ({ ...value, query: event.target.value }))} onKeyDown={(event) => event.key === "Enter" && runSearch(event.shiftKey ? "previous" : "next")} autoFocus /><input aria-label="Replace" placeholder="Replace, e.g. M0" value={search.replacement} onChange={(event) => setSearch((value) => ({ ...value, replacement: event.target.value }))} /><button aria-label="Previous match" onClick={() => runSearch("previous")} disabled={!search.query}>↑</button><button aria-label="Next match" onClick={() => runSearch("next")} disabled={!search.query}>↓</button><button onClick={() => runSearch("replace")} disabled={!search.query}>Replace</button><button onClick={() => runSearch("all")} disabled={!search.query}>All</button><label><input type="checkbox" checked={search.caseSensitive} onChange={(event) => setSearch((value) => ({ ...value, caseSensitive: event.target.checked }))} /> Aa</label><button aria-label="Close search" onClick={() => setSearchOpen(false)}>×</button></div>}
         <TextView value={source} parsed={doc} hoveredLine={hoveredLine} selectedLine={selectedLine} playbackLine={playbackOpen ? playbackSample.lineIndex : null} autoFollow={playbackOpen && autoFollow} searchCommand={searchCommand} onHoverLine={setHoveredLine} onSelectLine={selectLine} onChange={parseText} />
       </section>}
+      </div>
     </main>
     {playbackOpen && <PlaybackPanel timeline={timeline} time={playbackTime} playing={playing} speed={playbackSpeed} autoFollow={autoFollow} penWidths={penWidths} paperColor={paperColor} onPaperColor={setPaperColor} onPenWidth={(penIndex, width) => setPenWidths((values) => ({ ...values, [penIndex]: Math.max(.05, Math.min(20, Number(width) || .3)) }))} onTime={seekPlayback} onPlaying={changePlaying} onSpeed={setPlaybackSpeed} onAutoFollow={setAutoFollow} onClose={() => { setPlaybackOpen(false); setPlaying(false); }} onChapter={(chapter) => { seekPlayback(chapter.time); setSelectedLine(chapter.lineIndex); }} />}
     <footer className="statusbar">
