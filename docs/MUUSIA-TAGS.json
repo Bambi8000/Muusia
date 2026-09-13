@@ -50,6 +50,12 @@
  "barcode": [
   "scientific"
  ],
+ "belt": [
+  "connect",
+  "geometric",
+  "machine",
+  "scatter"
+ ],
  "bg_fill": [
   "fill",
   "flow",
@@ -788,6 +794,13 @@
   "creature",
   "nature",
   "round"
+ ],
+ "mushroom": [
+  "3d",
+  "mesh",
+  "nature",
+  "organic",
+  "plants"
  ],
  "myceliumfill": [
   "connect",

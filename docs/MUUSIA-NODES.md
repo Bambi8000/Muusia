@@ -1,13 +1,13 @@
-# MUUSIA v2.85 — Node Reference
+# MUUSIA v2.86 — Node Reference
 
-All 267 built-in nodes. Conventions used below: most generators accept a **Style**
+All 269 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (158)
+## Generators (160)
 
 **TV Antennas** — the analog-era rooftop antenna forest planted along a wired
 *Roofline* path (a Base Y baseline when unwired; the node only ADDS ink, so
@@ -237,6 +237,26 @@ and stochastic rule choice.
 previous tip; *Coupling* modulates an arm's frequency by the previous arm's angle
 (real interaction: 0 = pure epicycles, high = chaos); rotating table; exponential
 damping. One continuous stroke.
+
+**Belt Drive** — a tape threading between pulley circles like film through
+rollers, built from exact directed-circle tangents: *Weave* Alternate crosses
+the belt between pulleys (the serpentine look), Same side hugs them all one
+way, Random mixes per pulley. Pulleys are generated inside the *Margin* or
+wired in — every closed path becomes a pulley (centroid + mean radius; Polka
+Dots and Circle Pack work directly) — and *Loose pulleys* scatters extras the
+belt ignores. *Order* picks the visiting sequence, *Loop* closes the circuit,
+an open belt curls *End wrap* degrees around its end pulleys. The tape never
+cuts through a pulley: a straight run that would hit one deflects around it
+like tape pressing on a roller, and where a wide belt would pinch through
+itself at a tight wrap, *Auto idlers* inserts a small guide roller — every
+candidate fix is measured and reverted unless it genuinely helps. *Belt
+width* 0 is a single line; wider belts render as Edges or Ribbon (outline
+plus rail lines at *Fill pitch*, a closed capsule on an open belt). *Gap*
+lifts the belt off the pulley edge and a wide belt rides half its width
+further out so the inner edge clears by exactly Gap. *Pulley draw* adds
+outlines plus Rings or Spiral fills on a seeded *Filled %*. The **Empty**
+output carries every unfilled pulley circle as clean closed regions for a
+fill node, untouched by Style; Show tape / Show pulleys plot each part alone.
 
 **Cycloid Machine** — simulation of the classic wooden drawing machine: two cranks,
 two linkage rods, the pen at the rods' circle-intersection, paper on a slowly
@@ -501,6 +521,25 @@ trails whose point order equals flight direction.
 sheet into convex patches; each patch gets hatching at a quantized clashing angle
 (never repeating its neighbor), with blank, cross-hatch and wavy patch styles, and
 optional bold outlines. Serpentine stripe order.
+
+**Mushroom** — seven Finnish forest species as true 3D revolution models
+drawn from any camera angle: *Yaw* spins, *Pitch* tilts from side profile (0)
+to straight overhead (90). Chanterelle and Funnel chanterelle are wavy
+funnels with forking decurrent false gills that run down the stem; Black
+trumpet a deep ragged horn with sparse wrinkles; Gomphidius a slick cone cap
+with thick sparse gills; Bolete a barrel stem with net reticulation and a
+contour-arc bun cap (no gills); Fly agaric the classic dome with white warts,
+ring and bulbous base; Sheep polypore a lumpy bracket with wobbly contours —
+Mix rolls a species per copy. Gills are traced on the actual 3D surface with
+arc-length forking (*Gill spacing*) and visibility comes from one
+surface-normal test, so funnels show their inner wall and full rim when you
+look in and capped species hide their gills from above. *Chaos* is the
+organic-disorder master: multi-octave lobed rims, folds that twist with
+height, trunk sway, wandering gills with seeded breaks and loose interstitial
+dashes. *Count* scatters seeded copies with spin, lean and size jitter —
+instant shirt-print sheets — and *Cap texture* Stipple dusts the cap top with
+dots for the classic top-view print. The **Mesh** output carries the FIRST
+mushroom as a watertight normalized mesh for Mesh Slice.
 
 **Root Web** — hyphal growth: queued tips step through noise-steered incremental
 turns and split into binary branches at a seeded rate; edge and point budgets end

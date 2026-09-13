@@ -1276,6 +1276,14 @@ text are **English**.
   (tools/validate-ink_relief.mjs, tools/era/patch-potato-clean.mjs,
   tools/era/patch-docs-v275.mjs)
 
+- **2.86** **Belt Drive** (gen/machines) + **Mushroom** (gen/nature) baked.
+  Belt: directed-circle tangent serpentine, roller-collision deflection,
+  measured auto-idler pinch fix (never-worse guarantee), Ribbon rails,
+  Empty-regions second output. Mushroom: 7 species as 3D revolution models
+  (Yaw/Pitch camera), surface-traced forking decurrent gills, one-normal
+  visibility, funnel rims always full closed loops, Chaos disorder layer,
+  watertight normalized Mesh output (count-invariant first copy).
+
 ## Hard-won pitfalls (keep)
 
 - SENTINELS IN dist MUST BE STRING LITERALS. Vite minification renames every

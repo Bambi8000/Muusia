@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (265 files, generated)
+# MUUSIA v2.29 — Node Sources (267 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -962,6 +962,509 @@ export default {
       return applyStyle({ paths }, ins[0]);
     },
   
+};
+```
+
+## belt.js
+
+```js
+import { Pin, mulberry32, hash2, resample, applyStyle } from "../helpers.js";
+
+export default {
+  /* Belt Drive - a tape/belt threading between pulley circles like film
+     through rollers. Directed-circle tangent geometry: each pulley has a
+     wrap direction (spin); same spins between neighbours -> external
+     tangent, opposite spins -> crossing internal tangent. Pulleys come
+     from the optional Pulleys input (closed paths approximated as circles)
+     or are generated with a seed. */
+  key: "belt",
+  name: "Belt Drive",
+  cat: "gen",
+  group: "machines",
+  desc: "A tape threading between pulley circles like film through rollers, built from exact circle tangents: Weave Alternate crosses the belt between pulleys (the serpentine look), Same side hugs them all one way, Random mixes per pulley (seeded). Pulleys are generated inside the Margin, or wire closed paths into Pulleys and each becomes a pulley (centroid + mean radius; Polka Dots and Circle Pack work directly, non-circular shapes are approximated as circles). Order picks the visiting sequence, Loop closes the circuit, and an open belt curls End wrap degrees around its end pulleys. Belt width 0 draws a single line; wider belts render as Edges (two offset lines) or Ribbon (a filled tape: outline plus parallel rail lines at Fill pitch across the width - a closed capsule on an open belt). Gap lifts the belt off the pulley edge, and a wide belt rides half its width further out so the inner edge clears the pulley by Gap. The tape never cuts through a pulley: a straight run that would hit one (loose ones included) deflects around it like tape pressing on a roller. Where a wide belt would pinch through itself at a tight wrap, Auto idlers inserts a small guide roller behind the crossing that steers the belt clear, exactly like the idler pulleys in real machines. Show tape and Show pulleys plot each part alone for separate passes. Pulley draw adds outlines plus Rings or Spiral fills on a seeded Filled % of pulleys; Loose pulleys scatters extra circles that the belt ignores. The Empty output carries every pulley circle that got no built-in fill - all of them when Pulley draw is Outline or None, unfilled ones under Rings/Spiral, auto idlers included - as clean closed regions on the Pulley pen, untouched by the Style input: wire it straight into a region-filling node and Merge the result on top. Tip: Ribbon + large width turns the belt itself into a shape for BG Fill's Void input.",
+  ins: [Pin("style", "Style"), Pin("paths", "Pulleys")],
+  outs: [Pin("paths", "Out"), Pin("paths", "Empty")],
+  params: [
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+    { key: "count", label: "Pulleys", type: "slider", min: 2, max: 24, step: 1, def: 7 },
+    { key: "rmin", label: "Min radius", type: "slider", min: 2, max: 40, step: 0.5, def: 6 },
+    { key: "rmax", label: "Max radius", type: "slider", min: 2, max: 60, step: 0.5, def: 18 },
+    { key: "loose", label: "Loose pulleys", type: "slider", min: 0, max: 20, step: 1, def: 3 },
+    { key: "margin", label: "Margin", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+    { key: "order", label: "Order", type: "select", options: ["Chain", "Source order", "Random"], def: "Chain" },
+    { key: "weave", label: "Weave", type: "select", options: ["Alternate", "Same side", "Random"], def: "Alternate" },
+    { key: "loop", label: "Loop", type: "check", def: true },
+    { key: "endwrap", label: "End wrap deg", type: "slider", min: 0, max: 330, step: 5, def: 150, showIf: (p) => !p.loop },
+    { key: "showtape", label: "Show tape", type: "check", def: true },
+    { key: "width", label: "Belt width", type: "slider", min: 0, max: 24, step: 0.5, def: 0, showIf: (p) => p.showtape },
+    { key: "brender", label: "Belt render", type: "select", options: ["Centerline", "Edges", "Ribbon"], def: "Edges", showIf: (p) => p.showtape && p.width > 0 },
+    { key: "gap", label: "Gap", type: "slider", min: 0, max: 15, step: 0.5, def: 0, showIf: (p) => p.showtape },
+    { key: "idlers", label: "Auto idlers", type: "check", def: true, showIf: (p) => p.showtape && p.width > 0 },
+    { key: "showpul", label: "Show pulleys", type: "check", def: true },
+    { key: "pdraw", label: "Pulley draw", type: "select", options: ["Outline", "Rings", "Spiral", "None"], def: "Rings", showIf: (p) => p.showpul },
+    { key: "fillfrac", label: "Filled %", type: "slider", min: 0, max: 100, step: 5, def: 55, showIf: (p) => p.showpul && (p.pdraw === "Rings" || p.pdraw === "Spiral") },
+    { key: "pitch", label: "Fill pitch", type: "slider", min: 0.4, max: 5, step: 0.1, def: 1, showIf: (p) => (p.showpul && (p.pdraw === "Rings" || p.pdraw === "Spiral")) || (p.showtape && p.width > 0 && p.brender === "Ribbon") },
+    { key: "lpen", label: "Belt pen", type: "pen", def: 0, showIf: (p) => p.showtape },
+    { key: "ppen", label: "Pulley pen", type: "pen", def: 0, showIf: (p) => p.showpul },
+  ],
+
+  /* Shared layout: pulley circles + visit route + spins. Called as a
+     method from both compute and overlay (the verified-safe pattern);
+     overlay additionally guards the binding. */
+  _layout(ins, p, ctx) {
+    const W = ctx.W, H = ctx.H;
+    const margin = Math.max(0, p.margin);
+    const gap = Math.max(0, p.gap);
+    const width = Math.max(0, p.width);
+    const pulleys = [];
+    const src = ins && ins[1];
+    const wired = !!(src && src.paths && src.paths.length);
+
+    if (wired) {
+      for (const path of src.paths) {
+        if (pulleys.length >= 64) break;
+        if (!path || !path.pts || path.pts.length < 3 || !path.closed) continue;
+        const pts = resample(path.pts, true, 2);
+        if (pts.length < 3) continue;
+        let cx = 0, cy = 0;
+        for (const q of pts) { cx += q[0]; cy += q[1]; }
+        cx /= pts.length; cy /= pts.length;
+        let r = 0;
+        for (const q of pts) r += Math.hypot(q[0] - cx, q[1] - cy);
+        r /= pts.length;
+        if (!Number.isFinite(cx) || !Number.isFinite(cy) || !Number.isFinite(r) || r < 0.8) continue;
+        pulleys.push({ x: cx, y: cy, r, onBelt: true });
+      }
+    } else {
+      const rng = mulberry32((p.seed >>> 0) * 7919 + 13);
+      let rmin = Math.max(0.8, Math.min(p.rmin, p.rmax));
+      let rmax = Math.max(0.8, Math.max(p.rmin, p.rmax));
+      const nBelt = Math.max(0, Math.min(64, Math.round(p.count)));
+      const nLoose = Math.max(0, Math.min(64, Math.round(p.loose)));
+      const clear = Math.max(2, width + 2 * gap + 3);
+      for (let i = 0; i < nBelt + nLoose; i++) {
+        let placed = null;
+        for (let t = 0; t < 240 && !placed; t++) {
+          const shrink = 1 - 0.6 * (t / 240);
+          const r = rmin + rng() * (rmax - rmin) * shrink;
+          const spanX = W - 2 * (margin + r), spanY = H - 2 * (margin + r);
+          const jx = rng(), jy = rng();
+          if (spanX <= 0 || spanY <= 0) continue;
+          const x = margin + r + jx * spanX;
+          const y = margin + r + jy * spanY;
+          let ok = true;
+          for (const q of pulleys) {
+            if (Math.hypot(q.x - x, q.y - y) < q.r + r + clear) { ok = false; break; }
+          }
+          if (ok) placed = { x, y, r, onBelt: i < nBelt };
+        }
+        if (placed) pulleys.push(placed);
+      }
+    }
+
+    /* visit order over on-belt pulleys */
+    const beltIdx = [];
+    for (let i = 0; i < pulleys.length; i++) if (pulleys[i].onBelt) beltIdx.push(i);
+    let route = beltIdx.slice();
+    if (p.order === "Random") {
+      const rr = mulberry32((p.seed >>> 0) * 613 + 29);
+      for (let i = route.length - 1; i > 0; i--) {
+        const j = Math.floor(rr() * (i + 1));
+        const t = route[i]; route[i] = route[j]; route[j] = t;
+      }
+    } else if (p.order === "Chain" && route.length > 2) {
+      const rr = mulberry32((p.seed >>> 0) * 331 + 71);
+      const left = route.slice();
+      const out = [left.splice(Math.floor(rr() * left.length), 1)[0]];
+      while (left.length) {
+        const c = pulleys[out[out.length - 1]];
+        let bi = 0, bd = Infinity;
+        for (let i = 0; i < left.length; i++) {
+          const q = pulleys[left[i]];
+          const d = Math.hypot(q.x - c.x, q.y - c.y);
+          if (d < bd) { bd = d; bi = i; }
+        }
+        out.push(left.splice(bi, 1)[0]);
+      }
+      route = out;
+    }
+
+    /* spins along the route */
+    const rs = mulberry32((p.seed >>> 0) * 953 + 5);
+    const spins = route.map((_, j) => {
+      if (p.weave === "Same side") return 1;
+      if (p.weave === "Random") return rs() < 0.5 ? 1 : -1;
+      return j % 2 === 0 ? 1 : -1;
+    });
+    return { pulleys, route, spins, gap, width };
+  },
+
+  overlay(p, ctx, ins, node) {
+    const guides = [{ kind: "rect", x: p.margin, y: p.margin, w: ctx.W - 2 * p.margin, h: ctx.H - 2 * p.margin }];
+    try {
+      if (typeof this._layout !== "function") return guides;
+      const L = this._layout(ins, p, ctx);
+      let n = 0;
+      for (const q of L.pulleys) {
+        if (n++ >= 64) break;
+        guides.push({ kind: "circle", cx: q.x, cy: q.y, r: q.r + L.gap });
+      }
+    } catch (e) { /* an overlay must never throw */ }
+    return guides;
+  },
+
+  compute(ins, p, ctx, node) {
+    const L = this._layout(ins, p, ctx);
+    const pulleys = L.pulleys, gap = L.gap, width = L.width;
+    const lpen = Math.max(0, Math.min(11, Math.round(p.lpen)));
+    const ppen = Math.max(0, Math.min(11, Math.round(p.ppen)));
+    const TAU = Math.PI * 2;
+    const mod = (a, b) => ((a % b) + b) % b;
+    const BUDGET = 110000;
+    let used = 0;
+    const paths = [];
+    const push = (pts, closed, layer) => {
+      if (pts.length < 2 || used > BUDGET) return;
+      used += pts.length;
+      paths.push({ pts, closed, layer });
+    };
+
+    /* --- build the belt route with validity fallbacks ---
+       the belt centerline rides half its width off the gap ring so the
+       inner edge of a wide belt clears the pulley by exactly Gap */
+    const halfw = width / 2;
+    const eff = (i) => pulleys[i].r + gap + halfw;
+    const tang = (i, si, j, sj) => {
+      const a = pulleys[i], b = pulleys[j];
+      const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+      if (d < 1e-4) return null;
+      const R1 = si * eff(i), R2 = sj * eff(j);
+      const k = (R1 - R2) / d;
+      if (k * k > 0.9998) return null;
+      const ux = dx / d, uy = dy / d, q = Math.sqrt(Math.max(0, 1 - k * k));
+      const nx = k * ux + q * uy, ny = k * uy - q * ux;
+      return { ax: a.x + R1 * nx, ay: a.y + R1 * ny, bx: b.x + R2 * nx, by: b.y + R2 * ny };
+    };
+
+    let chain = [];
+    {
+      const route = L.route, spins = L.spins;
+      for (let j = 0; j < route.length; j++) {
+        if (chain.length === 0) { chain.push({ i: route[j], s: spins[j] }); continue; }
+        const prev = chain[chain.length - 1];
+        let s = spins[j];
+        if (!tang(prev.i, prev.s, route[j], s)) s = prev.s;
+        if (!tang(prev.i, prev.s, route[j], s)) continue;
+        chain.push({ i: route[j], s });
+      }
+      if (p.loop) {
+        while (chain.length > 2 && !tang(chain[chain.length - 1].i, chain[chain.length - 1].s, chain[0].i, chain[0].s)) {
+          const last = chain[chain.length - 1];
+          const flipped = -last.s;
+          const inOk = tang(chain[chain.length - 2].i, chain[chain.length - 2].s, last.i, flipped);
+          const outOk = tang(last.i, flipped, chain[0].i, chain[0].s);
+          if (inOk && outOk) { last.s = flipped; break; }
+          chain.pop();
+        }
+        if (chain.length === 2 && !tang(chain[1].i, chain[1].s, chain[0].i, chain[0].s)) {
+          chain[1].s = chain[0].s;
+        }
+      }
+    }
+
+    /* --- roller collision: a tangent run may not cut through any pulley;
+       deflect around the obstacle on the side the line already passes,
+       exactly like tape pressing against an intervening roller --- */
+    const segDist = (x, y, ax, ay, bx, by) => {
+      const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
+      let t = L2 > 0 ? ((x - ax) * dx + (y - ay) * dy) / L2 : 0;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(x - (ax + dx * t), y - (ay + dy * t));
+    };
+    const resolveCollisions = () => {
+      const skip = {};
+      let guard = 0;
+      while (chain.length >= 2 && guard++ < 80) {
+        const segN = (p.loop && chain.length >= 2) ? chain.length : chain.length - 1;
+        let inserted = false;
+        for (let j = 0; j < segN && !inserted; j++) {
+          const a = chain[j], b = chain[(j + 1) % chain.length];
+          const t = tang(a.i, a.s, b.i, b.s);
+          if (!t) continue;
+          const dxs = t.bx - t.ax, dys = t.by - t.ay, Ls = Math.hypot(dxs, dys);
+          if (Ls < 1e-6) continue;
+          let best = -1, bestT = Infinity, bestS = 1;
+          for (let k = 0; k < pulleys.length; k++) {
+            if (k === a.i || k === b.i) continue;
+            if (skip[a.i + "_" + b.i + "_" + k]) continue;
+            const c = pulleys[k];
+            if (segDist(c.x, c.y, t.ax, t.ay, t.bx, t.by) < eff(k) - 0.01) {
+              const tt = ((c.x - t.ax) * dxs + (c.y - t.ay) * dys) / (Ls * Ls);
+              if (tt < bestT) {
+                bestT = tt;
+                best = k;
+                bestS = (dxs * (c.y - t.ay) - dys * (c.x - t.ax)) >= 0 ? 1 : -1;
+              }
+            }
+          }
+          if (best < 0) continue;
+          const sA = bestS, sB = -bestS;
+          if (tang(a.i, a.s, best, sA) && tang(best, sA, b.i, b.s)) {
+            chain.splice(j + 1, 0, { i: best, s: sA });
+          } else if (tang(a.i, a.s, best, sB) && tang(best, sB, b.i, b.s)) {
+            chain.splice(j + 1, 0, { i: best, s: sB });
+          } else {
+            skip[a.i + "_" + b.i + "_" + best] = 1;
+          }
+          inserted = true;
+        }
+        if (!inserted) break;
+      }
+    };
+    resolveCollisions();
+
+    /* --- pinch fix: when the incoming and outgoing runs of one wrap
+       cross at an ACUTE angle, a wide belt overlaps itself in a long
+       sliver. Try a small idler roller in the fork (like real machines),
+       fall back to flipping the wrap side; every candidate is measured
+       and reverted unless it strictly reduces the pinch count, so the
+       fix can never make things worse --- */
+    if (width > 0 && p.idlers !== false && chain.length >= 2) {
+      const segCross = (ax, ay, bx, by, cx2, cy2, dx2, dy2) => {
+        const d1x = bx - ax, d1y = by - ay, d2x = dx2 - cx2, d2y = dy2 - cy2;
+        const den = d1x * d2y - d1y * d2x;
+        if (Math.abs(den) < 1e-9) return null;
+        const t = ((cx2 - ax) * d2y - (cy2 - ay) * d2x) / den;
+        const u = ((cx2 - ax) * d1y - (cy2 - ay) * d1x) / den;
+        if (t < 0.02 || t > 0.98 || u < 0.02 || u > 0.98) return null;
+        return [ax + d1x * t, ay + d1y * t];
+      };
+      const buildT = () => {
+        const segN = (p.loop && chain.length >= 2) ? chain.length : chain.length - 1;
+        const T = [];
+        for (let j2 = 0; j2 < segN; j2++) {
+          const a = chain[j2], b = chain[(j2 + 1) % chain.length];
+          const t = tang(a.i, a.s, b.i, b.s);
+          if (!t) return null;
+          T.push(t);
+        }
+        return T;
+      };
+      const COSTHR = Math.cos((30 * Math.PI) / 180);
+      const pinchList = () => {
+        const T = buildT();
+        if (!T) return null;
+        const segN = T.length;
+        const out = [];
+        for (let m = 0; m < chain.length; m++) {
+          if (pulleys[chain[m].i].idler) continue;
+          const tout = m < segN ? T[m] : null;
+          const tin = m > 0 ? T[m - 1] : (p.loop ? T[segN - 1] : null);
+          if (!tin || !tout) continue;
+          const X = segCross(tin.ax, tin.ay, tin.bx, tin.by, tout.ax, tout.ay, tout.bx, tout.by);
+          if (!X) continue;
+          const v1x = tin.bx - tin.ax, v1y = tin.by - tin.ay;
+          const v2x = tout.bx - tout.ax, v2y = tout.by - tout.ay;
+          const co = Math.abs(v1x * v2x + v1y * v2y) / ((Math.hypot(v1x, v1y) * Math.hypot(v2x, v2y)) || 1);
+          if (co > COSTHR) out.push({ m, X });
+        }
+        return out;
+      };
+      const iR = Math.min(8, Math.max(2.5, halfw + 1.5));
+      const unfix = {};
+      let fixes = 0;
+      while (fixes < 6) {
+        const list = pinchList();
+        if (!list) break;
+        const job = list.find((q) => !unfix[chain[q.m].i]);
+        if (!job) break;
+        const before = list.length;
+        const pid = chain[job.m].i;
+        const snapC = chain.map((c) => ({ i: c.i, s: c.s }));
+        const snapN = pulleys.length;
+        const restore = () => {
+          chain.length = 0;
+          for (const c of snapC) chain.push({ i: c.i, s: c.s });
+          pulleys.length = snapN;
+        };
+        const better = () => {
+          const l2 = pinchList();
+          return l2 && l2.length < before;
+        };
+        /* candidate 1: idler roller in the fork past the crossing */
+        {
+          const P = pulleys[pid];
+          const dx = job.X[0] - P.x, dy = job.X[1] - P.y, dl = Math.hypot(dx, dy) || 1;
+          let cx = 0, cy = 0, ok2 = false;
+          for (let push = 0; push < 5 && !ok2; push++) {
+            const dist = dl + iR + gap + halfw + 0.8 + push * 3;
+            cx = P.x + (dx / dl) * dist; cy = P.y + (dy / dl) * dist;
+            ok2 = pulleys.every((q) => Math.hypot(q.x - cx, q.y - cy) >= q.r + iR + 0.5);
+          }
+          if (ok2) {
+            pulleys.push({ x: cx, y: cy, r: iR, onBelt: false, idler: true });
+            chain.splice(job.m + 1, 0, { i: pulleys.length - 1, s: -chain[job.m].s });
+            resolveCollisions();
+            if (better()) { fixes++; continue; }
+            restore();
+          }
+        }
+        /* candidate 2: wrap the pulley from the other side */
+        {
+          const at = chain.findIndex((c, idx) => c.i === pid && idx === job.m);
+          if (at >= 0) {
+            chain[at].s = -chain[at].s;
+            resolveCollisions();
+            if (better()) { fixes++; continue; }
+            restore();
+          }
+        }
+        unfix[pid] = 1;
+      }
+    }
+
+    /* --- belt as primitives: tangent lines + arcs --- */
+    const prims = [];
+    const closedBelt = !!p.loop && chain.length >= 2;
+    if (chain.length >= 2) {
+      const segN = closedBelt ? chain.length : chain.length - 1;
+      const tangents = [];
+      for (let j = 0; j < segN; j++) {
+        const a = chain[j], b = chain[(j + 1) % chain.length];
+        tangents.push(tang(a.i, a.s, b.i, b.s));
+      }
+      if (!tangents.some((t) => !t)) {
+        const ang = (i, x, y) => Math.atan2(y - pulleys[i].y, x - pulleys[i].x);
+        const wrap = (Math.max(0, Math.min(350, p.endwrap)) * Math.PI) / 180;
+        for (let j = 0; j < segN; j++) {
+          const a = chain[j], t = tangents[j];
+          if (j === 0 && !closedBelt) {
+            if (wrap > 0.001) {
+              const aD = ang(a.i, t.ax, t.ay);
+              prims.push({ type: "arc", i: a.i, a0: aD - a.s * wrap, sweep: a.s * wrap });
+            }
+          } else {
+            const tPrev = tangents[mod(j - 1, segN)];
+            const aA = ang(a.i, tPrev.bx, tPrev.by);
+            const aD = ang(a.i, t.ax, t.ay);
+            const sw = a.s > 0 ? mod(aD - aA, TAU) : mod(aA - aD, TAU);
+            prims.push({ type: "arc", i: a.i, a0: aA, sweep: a.s * sw });
+          }
+          prims.push({ type: "line", x0: t.ax, y0: t.ay, x1: t.bx, y1: t.by });
+        }
+        if (!closedBelt && wrap > 0.001) {
+          const last = chain[chain.length - 1], tPrev = tangents[segN - 1];
+          const aA = ang(last.i, tPrev.bx, tPrev.by);
+          prims.push({ type: "arc", i: last.i, a0: aA, sweep: last.s * wrap });
+        }
+      }
+    }
+
+    /* --- emit belt polyline(s) at offset e from the centerline --- */
+    const emit = (e) => {
+      const pts = [];
+      const add = (x, y) => {
+        const q = pts[pts.length - 1];
+        if (q && Math.abs(q[0] - x) < 1e-4 && Math.abs(q[1] - y) < 1e-4) return;
+        pts.push([x, y]);
+      };
+      for (const pr of prims) {
+        if (pr.type === "line") {
+          const dx = pr.x1 - pr.x0, dy = pr.y1 - pr.y0, d = Math.hypot(dx, dy);
+          if (d < 1e-6) continue;
+          const ox = (dy / d) * e, oy = (-dx / d) * e;
+          add(pr.x0 + ox, pr.y0 + oy);
+          add(pr.x1 + ox, pr.y1 + oy);
+        } else {
+          const c = pulleys[pr.i];
+          const spin = pr.sweep >= 0 ? 1 : -1;
+          const R = Math.max(0.05, eff(pr.i) + e * spin);
+          const sw = Math.abs(pr.sweep);
+          const n = Math.max(2, Math.ceil((R * sw) / 0.8));
+          for (let k = 0; k <= n; k++) {
+            const a = pr.a0 + pr.sweep * (k / n);
+            add(c.x + Math.cos(a) * R, c.y + Math.sin(a) * R);
+          }
+        }
+      }
+      if (closedBelt && pts.length > 2) {
+        const f = pts[0], l = pts[pts.length - 1];
+        if (Math.abs(f[0] - l[0]) < 1e-4 && Math.abs(f[1] - l[1]) < 1e-4) pts.pop();
+      }
+      return pts;
+    };
+
+    if (prims.length && p.showtape !== false) {
+      const mode = width > 0 ? p.brender : "Centerline";
+      if (mode === "Centerline") {
+        push(emit(0), closedBelt, lpen);
+      } else if (mode === "Edges") {
+        push(emit(halfw), closedBelt, lpen);
+        push(emit(-halfw), closedBelt, lpen);
+      } else {
+        /* Ribbon: a filled tape - outline plus parallel rail lines
+           across the width at Fill pitch spacing */
+        if (closedBelt) {
+          push(emit(halfw), true, lpen);
+          push(emit(-halfw), true, lpen);
+        } else {
+          const a = emit(halfw), b = emit(-halfw).reverse();
+          push(a.concat(b), true, lpen);
+        }
+        const rp = Math.max(0.4, p.pitch);
+        for (let e = -halfw + rp; e < halfw - rp * 0.45; e += rp) {
+          push(emit(e), closedBelt, lpen);
+        }
+      }
+    }
+
+    /* --- pulleys: outlines and seeded fills --- */
+    const circle = (cx, cy, r) => {
+      const n = Math.max(16, Math.ceil((TAU * r) / 1));
+      const pts = [];
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * TAU;
+        pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+      }
+      return pts;
+    };
+    const frac = Math.max(0, Math.min(100, p.fillfrac)) / 100;
+    const isFilled = (i) => !pulleys[i].idler && (p.pdraw === "Rings" || p.pdraw === "Spiral") && hash2(i, 17, (p.seed >>> 0) * 31 + 7) < frac;
+    if (p.showpul !== false && p.pdraw !== "None") {
+      const pitch = Math.max(0.3, p.pitch);
+      for (let i = 0; i < pulleys.length; i++) {
+        const q = pulleys[i];
+        push(circle(q.x, q.y, q.r), true, ppen);
+        if (!isFilled(i)) continue;
+        if (p.pdraw === "Rings") {
+          for (let r = q.r - pitch; r > pitch * 0.4; r -= pitch) push(circle(q.x, q.y, r), true, ppen);
+        } else {
+          const pts = [];
+          let a = 0, r = q.r;
+          while (r > 0.3 && pts.length < 20000) {
+            pts.push([q.x + Math.cos(a) * r, q.y + Math.sin(a) * r]);
+            const da = Math.max(0.02, 0.8 / Math.max(0.5, r));
+            a += da;
+            r = q.r - (pitch * a) / TAU;
+          }
+          push(pts, false, ppen);
+        }
+        if (used > BUDGET) break;
+      }
+    }
+
+    /* --- Empty output: every pulley circle without a built-in fill,
+       as clean closed regions for downstream fill nodes (no Style) --- */
+    const paths2 = [];
+    for (let i = 0; i < pulleys.length; i++) {
+      if (isFilled(i) || used > BUDGET) continue;
+      const q = pulleys[i];
+      const pts = circle(q.x, q.y, q.r);
+      used += pts.length;
+      paths2.push({ pts, closed: true, layer: ppen });
+    }
+    return [applyStyle({ paths }, ins[0]), { paths: paths2 }];
+  },
 };
 ```
 
@@ -20171,6 +20674,581 @@ export default {
       return applyStyle({ paths }, ins[0]);
     },
   
+};
+```
+
+## mushroom.js
+
+```js
+import { Pin, mulberry32, hash2, noise2, applyStyle } from "../helpers.js";
+
+export default {
+  /* Mushroom - seven Finnish forest species as parametric 3D revolution
+     models with angular noise modulation, drawn as line art from any
+     camera angle (Yaw + Pitch, 0 = side profile, 90 = straight down).
+     Gills are traced on the actual 3D surface with arc-length forking;
+     visibility comes from one surface-normal depth test. The Mesh output
+     carries the first mushroom as a watertight normalized mesh. */
+  key: "mushroom",
+  name: "Mushroom",
+  cat: "gen",
+  group: "nature",
+  desc: "Forest mushrooms as true 3D models seen from any angle: Yaw spins them, Pitch tilts the camera from side profile (0) to straight overhead (90). Species: Chanterelle (wavy funnel, forking false gills), Funnel chanterelle (small cap, long slender stem), Black trumpet (deep ragged horn, sparse wrinkles), Gomphidius (slick cone cap, thick sparse decurrent gills), Bolete (barrel stem with net reticulation, bun cap with contour arcs, no gills), Fly agaric (dome cap with white warts, ring on the stem, bulbous base) and Sheep polypore (lumpy asymmetric bracket with wobbly contours). Mix picks a species per copy. Count scatters seeded copies in the margin with per-copy size, spin and lean - instant shirt-print sheets. Gill spacing sets the fork density at the rim, Waviness ruffles the edges, Stem curve bends the stalks. Cap texture Stipple dusts the cap top with dots (the classic top-view print look). Outlines toggles the silhouette and rim so gills and textures can be plotted alone. The Mesh output carries the FIRST mushroom as a watertight normalized mesh for Mesh Slice; the Style input touches only the paths.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths", "Out"), Pin("mesh", "Mesh")],
+  params: [
+    { key: "species", label: "Species", type: "select", options: ["Chanterelle", "Funnel chanterelle", "Black trumpet", "Gomphidius", "Bolete", "Fly agaric", "Sheep polypore", "Mix"], def: "Chanterelle" },
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+    { key: "count", label: "Count", type: "slider", min: 1, max: 12, step: 1, def: 1 },
+    { key: "size", label: "Size", type: "slider", min: 20, max: 140, step: 1, def: 80 },
+    { key: "sizevar", label: "Size variation", type: "slider", min: 0, max: 0.6, step: 0.05, def: 0.25, showIf: (p) => p.count > 1 },
+    { key: "yaw", label: "Yaw deg", type: "slider", min: 0, max: 360, step: 1, def: 20 },
+    { key: "pitch", label: "Pitch deg", type: "slider", min: 0, max: 90, step: 1, def: 12 },
+    { key: "anglejit", label: "Spin jitter", type: "slider", min: 0, max: 180, step: 5, def: 60, showIf: (p) => p.count > 1 },
+    { key: "leanjit", label: "Lean jitter", type: "slider", min: 0, max: 40, step: 1, def: 12 },
+    { key: "gillsp", label: "Gill spacing", type: "slider", min: 1, max: 8, step: 0.1, def: 2.6 },
+    { key: "wavy", label: "Waviness", type: "slider", min: 0, max: 1, step: 0.05, def: 0.55 },
+    { key: "chaos", label: "Chaos", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+    { key: "stemcurve", label: "Stem curve", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35 },
+    { key: "captex", label: "Cap texture", type: "select", options: ["None", "Stipple"], def: "None" },
+    { key: "outlines", label: "Outlines", type: "check", def: true },
+    { key: "margin", label: "Margin", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+    { key: "pen", label: "Pen", type: "pen", def: 0 },
+  ],
+
+  /* Placement + per-copy pose, shared by compute and overlay. */
+  _layout(ins, p, ctx) {
+    const W = ctx.W, H = ctx.H;
+    const margin = Math.max(0, p.margin);
+    const n = Math.max(1, Math.min(24, Math.round(p.count)));
+    const SPECIES = ["Chanterelle", "Funnel chanterelle", "Black trumpet", "Gomphidius", "Bolete", "Fly agaric", "Sheep polypore"];
+    const copies = [];
+    for (let i = 0; i < n; i++) {
+      const rng = mulberry32((p.seed >>> 0) * 7919 + i * 613 + 17);
+      const jSize = (rng() * 2 - 1); /* always drawn so copy streams are count-invariant */
+      const size = Math.max(8, p.size * (1 + (n > 1 ? jSize * p.sizevar : 0)));
+      const sp = p.species === "Mix" ? SPECIES[Math.floor(rng() * SPECIES.length) % SPECIES.length] : p.species;
+      const jYaw = (rng() * 2 - 1);
+      const yaw = ((p.yaw + (n > 1 ? jYaw * p.anglejit : 0)) * Math.PI) / 180;
+      const lean = (((rng() * 2 - 1) * p.leanjit) * Math.PI) / 180;
+      const rad = size * 0.55;
+      let x = W / 2, y = H / 2, placed = false;
+      if (n === 1) {
+        placed = true;
+      } else {
+        for (let t = 0; t < 200 && !placed; t++) {
+          const sx = W - 2 * margin - 2 * rad * 0.8, sy = H - 2 * margin - 2 * rad * 0.8;
+          const jx = rng(), jy = rng();
+          if (sx <= 0 || sy <= 0) break;
+          const cx = margin + rad * 0.8 + jx * sx;
+          const cy = margin + rad * 0.8 + jy * sy;
+          let ok = true;
+          for (const q of copies) {
+            if (Math.hypot(q.x - cx, q.y - cy) < (q.rad + rad) * 0.72) { ok = false; break; }
+          }
+          if (ok) { x = cx; y = cy; placed = true; }
+        }
+      }
+      if (!placed) continue;
+      copies.push({ x, y, size, rad, sp, yaw, lean, ci: i });
+    }
+    return { copies };
+  },
+
+  overlay(p, ctx, ins, node) {
+    const guides = [{ kind: "rect", x: p.margin, y: p.margin, w: ctx.W - 2 * p.margin, h: ctx.H - 2 * p.margin }];
+    try {
+      if (typeof this._layout !== "function") return guides;
+      const L = this._layout(ins, p, ctx);
+      for (const c of L.copies.slice(0, 24)) guides.push({ kind: "circle", cx: c.x, cy: c.y, r: c.rad });
+    } catch (e) { /* never throw */ }
+    return guides;
+  },
+
+  compute(ins, p, ctx, node) {
+    const pen = Math.max(0, Math.min(11, Math.round(p.pen)));
+    const TAU = Math.PI * 2;
+    const BUDGET = 110000;
+    let used = 0;
+    const paths = [];
+    const push = (pts, closed) => {
+      if (pts.length < 2 || used > BUDGET) return;
+      used += pts.length;
+      paths.push({ pts, closed, layer: pen });
+    };
+    const phi = (Math.max(0, Math.min(90, p.pitch)) * Math.PI) / 180;
+    const cph = Math.cos(phi), sph = Math.sin(phi);
+    const wavy = Math.max(0, Math.min(1.5, p.wavy));
+    const chaos = Math.max(0, Math.min(1.5, p.chaos === undefined ? 0.6 : p.chaos));
+    const gillsp = Math.max(0.6, p.gillsp);
+
+    const L = this._layout(ins, p, ctx);
+    let meshOut = null;
+
+    /* species profile: parametric outer polyline from base to apex, plus
+       gill support span and feature switches. All in unit height. */
+    const model = (sp, rng) => {
+      const pts = [];  /* [r, z, wamp] outer profile, base -> rim/apex */
+      const put = (r, z, w) => pts.push([r, z, w]);
+      const M = {
+        prof: pts, gillT: null, gillFork: true, gillMul: 1,
+        rim: -1, capTop: null, warts: false, ring: 0, net: false,
+        contours: null, lumpy: 0, wfreq: 1.8, zflut: 0, inner: null, bulb: 0,
+      };
+      if (sp === "Chanterelle") {
+        put(0.09, 0, 0); put(0.07, 0.18, 0); put(0.09, 0.34, 0.1);
+        put(0.16, 0.52, 0.3); put(0.3, 0.72, 0.6); put(0.44, 0.88, 0.9); put(0.52, 1, 1);
+        M.rim = pts.length - 1; M.gillT = [0.6, M.rim]; M.zflut = 0.07; M.wfreq = 1.8; M.funnel = 1;
+        M.inner = [[0.4, 0.94], [0.2, 0.82], [0.06, 0.7], [0, 0.66]];
+      } else if (sp === "Funnel chanterelle") {
+        put(0.05, 0, 0); put(0.042, 0.3, 0); put(0.045, 0.55, 0);
+        put(0.1, 0.72, 0.25); put(0.24, 0.88, 0.7); put(0.38, 1, 1);
+        M.rim = pts.length - 1; M.gillT = [2.2, M.rim]; M.zflut = 0.05; M.wfreq = 2.1; M.gillMul = 1.35; M.funnel = 1;
+        M.inner = [[0.26, 0.93], [0.1, 0.8], [0, 0.75]];
+      } else if (sp === "Black trumpet") {
+        put(0.05, 0, 0); put(0.05, 0.12, 0.05); put(0.09, 0.34, 0.25);
+        put(0.17, 0.58, 0.55); put(0.28, 0.8, 0.9); put(0.38, 1, 1.25);
+        M.rim = pts.length - 1; M.gillT = [0.5, M.rim]; M.gillFork = false; M.gillMul = 2.6;
+        M.zflut = 0.09; M.wfreq = 2.6; M.funnel = 1;
+        M.inner = [[0.28, 0.9], [0.12, 0.55], [0.03, 0.2], [0, 0.15]];
+      } else if (sp === "Gomphidius") {
+        put(0.11, 0, 0); put(0.09, 0.3, 0); put(0.1, 0.55, 0);
+        put(0.42, 0.78, 0.2);
+        M.rim = pts.length - 1; M.gillT = [2, M.rim]; M.gillMul = 2.2; M.wfreq = 1.4;
+        put(0.3, 0.9, 0.1); put(0.12, 0.98, 0); put(0, 1, 0);
+        M.contours = [0.88, 0.95];
+      } else if (sp === "Bolete") {
+        put(0.14, 0, 0); put(0.18, 0.18, 0); put(0.16, 0.4, 0); put(0.12, 0.55, 0);
+        put(0.5, 0.68, 0.12);
+        M.rim = pts.length - 1; M.net = [0.25, 0.55]; M.wfreq = 1.1;
+        put(0.46, 0.85, 0.08); put(0.28, 0.97, 0); put(0, 1, 0);
+        M.contours = [0.74, 0.82, 0.9, 0.96];
+      } else if (sp === "Fly agaric") {
+        put(0.12, 0, 0); put(0.08, 0.12, 0); put(0.065, 0.35, 0); put(0.06, 0.58, 0);
+        put(0.55, 0.7, 0.1);
+        M.rim = pts.length - 1; M.gillT = [3, M.rim]; M.gillMul = 1; M.ring = 0.5; M.bulb = 1;
+        M.wfreq = 1.3;
+        put(0.48, 0.85, 0.06); put(0.26, 0.97, 0); put(0, 1, 0);
+        M.warts = true; M.contours = null;
+      } else { /* Sheep polypore */
+        put(0.13, 0, 0); put(0.12, 0.2, 0); put(0.13, 0.38, 0);
+        put(0.5, 0.55, 0.3);
+        M.rim = pts.length - 1; M.lumpy = 1; M.wfreq = 1.1;
+        put(0.44, 0.72, 0.35); put(0.24, 0.85, 0.3); put(0, 0.9, 0.2);
+        M.contours = [0.62, 0.7, 0.78, 0.85];
+      }
+      return M;
+    };
+
+    /* densify a parametric profile and return samples with tangents */
+    const densify = (prof) => {
+      const out = [];
+      for (let i = 0; i < prof.length - 1; i++) {
+        const a = prof[i], b = prof[i + 1];
+        const seg = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        const n = Math.max(2, Math.ceil(seg / 0.025));
+        for (let k = (i === 0 ? 0 : 1); k <= n; k++) {
+          const t = k / n;
+          out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, i + t]);
+        }
+      }
+      for (let i = 0; i < out.length; i++) {
+        const a = out[Math.max(0, i - 1)], b = out[Math.min(out.length - 1, i + 1)];
+        const dr = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dr, dz) || 1;
+        out[i].push(dz / l, -dr / l); /* outward 2d normal (nr, nz) */
+      }
+      return out;
+    };
+
+    for (const c of L.copies) {
+      const rng = mulberry32((p.seed >>> 0) * 7919 + c.ci * 613 + 991);
+      const M = model(c.sp, rng);
+      const S = c.size;
+      const kSeed = (p.seed >>> 0) * 101 + c.ci * 37 + 5;
+      const cy0 = Math.cos(c.yaw), sy0 = Math.sin(c.yaw);
+      const cl = Math.cos(c.lean), sl = Math.sin(c.lean);
+      const bendA = rng() * TAU;
+      const bendM = p.stemcurve * 0.16 * (0.4 + rng() * 0.6);
+      const bx = Math.cos(bendA) * bendM, by = Math.sin(bendA) * bendM;
+      const dprof = densify(M.prof);
+      const zTop = M.prof[M.prof.length - 1][1];
+
+      const asymDir = rng() * TAU;
+      const wmod = (alpha, wamp, extraSeed, z) => {
+        const fs = M.wfreq;
+        const zz = (z || 0) * 1.4; /* folds twist as they descend */
+        const n1 = noise2(Math.cos(alpha) * fs + 9.7 + zz, Math.sin(alpha) * fs + 3.1 + zz * 0.7, kSeed + (extraSeed || 0));
+        const n2 = noise2(Math.cos(alpha) * fs * 2.6 + 31.2, Math.sin(alpha) * fs * 2.6 + 17.5, kSeed + 3);
+        const lobe = noise2(Math.cos(alpha) * 0.85 + 50.3, Math.sin(alpha) * 0.85 + 60.1, kSeed + 7);
+        const asym = Math.cos(alpha - asymDir);
+        return 1 + wavy * wamp * ((n1 - 0.5) * 0.9 + chaos * (n2 - 0.5) * 0.65)
+                 + chaos * wamp * ((lobe - 0.5) * 0.85 + asym * 0.22);
+      };
+      const lump = (alpha, z) => M.lumpy
+        ? (noise2(Math.cos(alpha) * 1.6 + z * 2.2, Math.sin(alpha) * 1.6 + 4.4, kSeed + 71) - 0.5) * 0.22 * M.lumpy
+        : 0;
+
+      /* surface point at profile sample q, world angle alpha */
+      const sway = (z) => chaos * 0.045 * (noise2(z * 2.3 + 5.5, 7.7, kSeed + 19) - 0.5) * 2;
+      const sway2 = (z) => chaos * 0.045 * (noise2(z * 2.3 + 15.1, 3.3, kSeed + 23) - 0.5) * 2;
+      const surf = (q, alpha) => {
+        const r = q[0] * wmod(alpha, q[2], 0, q[1]) + ((q[2] > 0.05 || M.lumpy) ? lump(alpha, q[1]) * q[0] * 2 * (0.7 + chaos) : 0);
+        const zf = M.zflut
+          ? wavy * M.zflut * (1 + chaos * 0.8) * q[2] * ((noise2(Math.cos(alpha) * M.wfreq + 21.3, Math.sin(alpha) * M.wfreq + 8.8, kSeed + 13) - 0.5) * 2
+            + chaos * (noise2(Math.cos(alpha) * M.wfreq * 2.4 + 41.9, Math.sin(alpha) * M.wfreq * 2.4 + 33.4, kSeed + 17) - 0.5))
+          : 0;
+        const z = q[1] + zf + (M.lumpy ? lump(alpha, q[1] + 3) * 0.4 : 0);
+        const bend = z * z;
+        return [r * Math.cos(alpha) + bx * bend + sway(z), r * Math.sin(alpha) + by * bend + sway2(z), z];
+      };
+      const proj = (P) => {
+        const x1 = P[0] * cy0 - P[1] * sy0;
+        const y1 = P[0] * sy0 + P[1] * cy0;
+        const u = x1 * S;
+        const v = (y1 * sph - P[2] * cph) * S;
+        return [c.x + u * cl - v * sl, c.y + (u * sl + v * cl) + S * 0.48];
+      };
+      const depthN = (alpha, nr, nz) => Math.sin(alpha + c.yaw) * nr * cph + nz * sph;
+
+      /* --- silhouette profiles at screen-extreme angles --- */
+      if (p.outlines !== false) {
+        /* profile curves are silhouettes only where the surface normal is
+           near-perpendicular to the view: |nz|*sin(pitch) small; without
+           this the profile draws a chord across the cap from above */
+        for (const aScr of [0, Math.PI]) {
+          const alpha = aScr - c.yaw;
+          let seg = [];
+          for (const q of dprof) {
+            if (Math.abs(q[5]) * sph < 0.42) seg.push(proj(surf(q, alpha)));
+            else if (seg.length) { if (seg.length > 1) push(seg, false); seg = []; }
+          }
+          if (seg.length > 1) push(seg, false);
+        }
+        /* rim sweep: a funnel rim is an open bowl edge - nothing ever
+           occludes it, so draw the full closed loop; a domed cap hides
+           its far rim behind the dome, so cull by the edge normal */
+        const rimQ = dprof.filter((q) => Math.abs(q[3] - M.rim) < 0.02);
+        const rq = rimQ.length ? rimQ[0] : dprof[dprof.length - 1];
+        const NA = Math.max(48, Math.ceil((rq[0] * S * TAU) / 1));
+        if (M.funnel) {
+          const loop = [];
+          for (let k = 0; k < NA; k++) loop.push(proj(surf(rq, (k / NA) * TAU)));
+          push(loop, true);
+        } else {
+          let seg = [];
+          for (let k = 0; k <= NA; k++) {
+            const alpha = (k / NA) * TAU;
+            if (depthN(alpha, 0.88, 0.48) > -0.06) seg.push(proj(surf(rq, alpha)));
+            else if (seg.length) { push(seg, false); seg = []; }
+          }
+          if (seg.length) push(seg, false);
+        }
+        /* inner cavity of funnels: 1-2 throat rings when looking in */
+        if (M.inner && sph > 0.3) {
+          for (let ri = 0; ri < Math.min(2, M.inner.length); ri++) {
+            const q = M.inner[ri];
+            if (q[0] < 0.03) continue;
+            const iq = [q[0], q[1], 0.25, 0, -0.8, 0.6];
+            let seg2 = [];
+            const NA2 = Math.max(24, Math.ceil((q[0] * S * TAU) / 1.2));
+            for (let k = 0; k <= NA2; k++) {
+              const alpha = (k / NA2) * TAU;
+              if (depthN(alpha, -0.8, 0.6) > 0.03) seg2.push(proj(surf(iq, alpha)));
+              else if (seg2.length) { if (seg2.length > 1) push(seg2, false); seg2 = []; }
+            }
+            if (seg2.length > 1) push(seg2, false);
+          }
+        }
+      }
+
+      /* --- gills on the actual wall, arc-length forking --- */
+      if (M.gillT) {
+        const [g0i, g1i] = M.gillT;
+        const gspan = dprof.filter((q) => q[3] >= g0i && q[3] <= g1i);
+        if (gspan.length > 3) {
+          const rq = gspan[gspan.length - 1];
+          const edgeR = rq[0] * S;
+          const NG = Math.max(6, Math.round((TAU * edgeR) / (gillsp * M.gillMul)));
+          const baseA = rng() * TAU;
+          const gillBias = M.funnel ? -0.04 - Math.min(0.4, sph * 0.55) : -0.04;
+          const gillsOn = M.funnel || cph > 0.45;
+          for (let g = 0; g < NG && gillsOn; g++) {
+            const alpha0 = baseA + (g / NG) * TAU + (rng() - 0.5) * ((0.35 + chaos * 1.3) / NG) * TAU;
+            /* fork level: how deep toward the stem this gill reaches */
+            let lvl = 0, gg = g;
+            while (M.gillFork && gg % 2 === 1 && lvl < 4) { lvl++; gg = (gg - 1) / 2; }
+            let reach = M.gillFork ? Math.min(1, 0.26 + lvl * 0.26) : 1;
+            reach *= 1 - chaos * 0.3 * hash2(g, 5, kSeed + 61);
+            const i0 = Math.round((gspan.length - 1) * (1 - reach));
+            const pts = [];
+            let gapUntil = -1;
+            for (let i = i0; i < gspan.length; i++) {
+              const q = gspan[i];
+              const tt = (i - i0) / Math.max(1, gspan.length - 1 - i0);
+              const dsc = M.gillFork ? 1 : 0.35;
+              const drift = ((noise2(tt * 2.2 + g * 0.7, g * 1.3, kSeed + 29) - 0.5) * 0.12 * (1 + chaos * 1.5) * (1 - tt * 0.4)
+                + chaos * (noise2(tt * 7.5 + g * 1.9, g * 0.4, kSeed + 31) - 0.5) * 0.045) * dsc;
+              const alpha = alpha0 + drift;
+              /* stochastic breaks: worn hand-drawn gill texture */
+              if (i > gapUntil && chaos > 0 && hash2(g, i, kSeed + 67) < chaos * 0.02) {
+                gapUntil = i + 2 + Math.floor(hash2(g, i, kSeed + 71) * 4);
+              }
+              const d = depthN(alpha, q[4], q[5]);
+              if (d > gillBias && i > gapUntil) pts.push(proj(surf(q, alpha)));
+              else { if (pts.length > 1) push(pts.splice(0), false); else pts.length = 0; }
+              if (used > BUDGET) break;
+            }
+            if (pts.length > 1) push(pts, false);
+            if (used > BUDGET) break;
+          }
+          /* interstitial dashes between gills - the loose tick marks of a
+             hand-drawn hymenium */
+          if (gillsOn && chaos > 0.05) {
+            const ND = Math.round(NG * chaos * 0.55);
+            for (let k2 = 0; k2 < ND; k2++) {
+              const alpha0 = rng() * TAU;
+              const t0 = 0.25 + rng() * 0.65;
+              const i0 = Math.round((gspan.length - 1) * t0);
+              const len = 2 + Math.floor(rng() * Math.min(8, gspan.length - i0 - 1));
+              const pts = [];
+              for (let i = i0; i < Math.min(gspan.length, i0 + len); i++) {
+                const q = gspan[i];
+                if (depthN(alpha0, q[4], q[5]) > gillBias) pts.push(proj(surf(q, alpha0)));
+              }
+              if (pts.length > 1) push(pts, false);
+              if (used > BUDGET) break;
+            }
+          }
+        }
+      }
+
+      /* --- funnel inner wall: ridge lines from the rim down the throat,
+         culled by the inner-surface normal so the back side reads when
+         looking into the funnel --- */
+      if (M.funnel && M.inner && sph > 0.28 && M.gillT) {
+        /* densified inner polyline from rim to throat with 2d normals */
+        const rimP = M.prof[M.rim];
+        const chainI = [[rimP[0], rimP[1], rimP[2]]].concat(M.inner.map((q) => [q[0], q[1], 0.25]));
+        const di = [];
+        for (let i = 0; i < chainI.length - 1; i++) {
+          const a = chainI[i], b = chainI[i + 1];
+          const nseg = Math.max(2, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.03));
+          for (let k = (i === 0 ? 0 : 1); k <= nseg; k++) {
+            const t = k / nseg;
+            di.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]);
+          }
+        }
+        for (let i = 0; i < di.length; i++) {
+          const a = di[Math.max(0, i - 1)], b = di[Math.min(di.length - 1, i + 1)];
+          const dr = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dr, dz) || 1;
+          let nr = dz / l, nz = -dr / l;
+          if (nr > 0) { nr = -nr; nz = -nz; } /* inner surface faces the axis */
+          di[i].push(0, nr, nz);
+        }
+        const rimR = rimP[0] * S;
+        const NI = Math.max(7, Math.round((TAU * rimR) / (gillsp * M.gillMul * 3.4)));
+        const baseA2 = mulberry32(kSeed + 57)() * TAU;
+        for (let g = 0; g < NI; g++) {
+          const alpha0 = baseA2 + (g / NI) * TAU;
+          const pts = [];
+          const skip = Math.floor(di.length * 0.14);
+          let gapU = -1;
+          for (let i = skip; i < di.length; i++) {
+            const q = di[i];
+            if (q[0] < 0.06) break;
+            const drift = (noise2(i * 0.08 + g * 0.9, g * 0.6, kSeed + 43) - 0.5) * 0.1 * (1 + chaos * 1.5);
+            const alpha = alpha0 + drift;
+            if (i > gapU && hash2(g, i, kSeed + 83) < chaos * 0.015) gapU = i + 2 + Math.floor(hash2(g, i, kSeed + 87) * 5);
+            if (depthN(alpha, q[4], q[5]) > 0.18 && i > gapU) pts.push(proj(surf(q, alpha)));
+            else { if (pts.length > 3) push(pts.splice(0), false); else pts.length = 0; }
+            if (used > BUDGET) break;
+          }
+          if (pts.length > 3) push(pts, false);
+          if (used > BUDGET) break;
+        }
+      }
+
+      /* --- cap contours (bolete, polypore) --- */
+      if (M.contours) {
+        for (const zc of M.contours) {
+          /* find profile sample nearest this z on the cap top side */
+          let best = dprof[M.rim ? Math.min(dprof.length - 1, 0) : 0], bd = Infinity;
+          for (const q of dprof) {
+            if (q[3] < M.rim) continue;
+            const d = Math.abs(q[1] - zc);
+            if (d < bd) { bd = d; best = q; }
+          }
+          let seg = [];
+          const NA = Math.max(40, Math.ceil((best[0] * S * TAU) / 1.2));
+          for (let k = 0; k <= NA; k++) {
+            const alpha = (k / NA) * TAU;
+            if (depthN(alpha, best[4], best[5]) > 0.03) seg.push(proj(surf(best, alpha)));
+            else if (seg.length) { push(seg, false); seg = []; }
+          }
+          if (seg.length) push(seg, false);
+          if (used > BUDGET) break;
+        }
+      }
+
+      /* --- fly agaric: warts + ring + bulb --- */
+      if (M.warts) {
+        const NW = 26;
+        for (let w = 0; w < NW; w++) {
+          const ti = M.rim + 0.15 + rng() * (dprof[dprof.length - 1][3] - M.rim - 0.35);
+          let best = dprof[dprof.length - 2], bd = Infinity;
+          for (const q of dprof) { const d = Math.abs(q[3] - ti); if (d < bd) { bd = d; best = q; } }
+          const alpha = rng() * TAU;
+          if (depthN(alpha, best[4], best[5]) < 0.08) continue;
+          const cw = surf(best, alpha);
+          const pw = proj(cw);
+          const wr = S * (0.012 + rng() * 0.014);
+          const dots = [];
+          for (let k = 0; k < 7; k++) {
+            const a = (k / 7) * TAU;
+            dots.push([pw[0] + Math.cos(a) * wr, pw[1] + Math.sin(a) * wr * (0.55 + 0.45 * sph)]);
+          }
+          push(dots, true);
+        }
+      }
+      if (M.ring > 0 && p.outlines !== false && cph > 0.45) {
+        const zr = M.ring;
+        let best = dprof[0], bd = Infinity;
+        for (const q of dprof) { if (q[3] > M.rim) continue; const d = Math.abs(q[1] - zr); if (d < bd) { bd = d; best = q; } }
+        for (const [mul, dz] of [[2.6, 0], [2.1, -0.045]]) {
+          const ringQ = [best[0] * mul, best[1] + dz, 0.05, best[3], 0.5, -0.85];
+          let seg = [];
+          for (let k = 0; k <= 48; k++) {
+            const alpha = (k / 48) * TAU;
+            if (depthN(alpha, 0.5, -0.55) > -0.05) seg.push(proj(surf(ringQ, alpha)));
+            else if (seg.length) { push(seg, false); seg = []; }
+          }
+          if (seg.length) push(seg, false);
+        }
+      }
+
+      /* --- bolete stem reticulation --- */
+      if (M.net && cph > 0.45) {
+        const [z0, z1] = M.net;
+        for (let fam = -1; fam <= 1; fam += 2) {
+          for (let k = 0; k < 8; k++) {
+            const pts = [];
+            let a0 = (k / 8) * TAU;
+            for (let t = 0; t <= 12; t++) {
+              const z = z0 + ((z1 - z0) * t) / 12;
+              let best = dprof[0], bd = Infinity;
+              for (const q of dprof) { if (q[3] > M.rim) continue; const d = Math.abs(q[1] - z); if (d < bd) { bd = d; best = q; } }
+              const alpha = a0 + fam * (t / 12) * 1.6;
+              if (depthN(alpha, 1, 0) > 0.05) pts.push(proj(surf(best, alpha)));
+              else if (pts.length > 1) { push(pts.splice(0), false); }
+              else pts.length = 0;
+            }
+            if (pts.length > 1) push(pts, false);
+          }
+        }
+      }
+
+      /* --- stipple cap texture --- */
+      if (p.captex === "Stipple") {
+        const NP = Math.min(900, Math.round((S * S) / 14));
+        const tEnd = dprof[dprof.length - 1][3];
+        const tLo = M.funnel ? Math.max(0, M.rim - 1.6) : M.rim;
+        const tHi = M.funnel ? M.rim : tEnd;
+        for (let k = 0; k < NP; k++) {
+          const ti = tLo + rng() * Math.max(0.01, tHi - tLo);
+          let best = dprof[dprof.length - 2], bd = Infinity;
+          for (const q of dprof) { const d = Math.abs(q[3] - ti); if (d < bd) { bd = d; best = q; } }
+          const alpha = rng() * TAU;
+          const bias = M.funnel ? -0.05 - sph * 0.5 : 0.05;
+          if (depthN(alpha, best[4], best[5]) < bias) continue;
+          if (rng() > 0.35 + best[0]) continue; /* area weighting */
+          const pw = proj(surf(best, alpha));
+          const wr = S * 0.004 * (0.6 + rng());
+          const dots = [];
+          for (let d2 = 0; d2 < 5; d2++) {
+            const a = (d2 / 5) * TAU;
+            dots.push([pw[0] + Math.cos(a) * wr, pw[1] + Math.sin(a) * wr]);
+          }
+          push(dots, true);
+          if (used > BUDGET) break;
+        }
+        /* funnels: stipple the inner cap too - the dense center ring of
+           the classic top-view print */
+        if (M.funnel && M.inner && sph > 0.25) {
+          const NI = Math.min(700, Math.round((S * S) / 16));
+          for (let k = 0; k < NI; k++) {
+            const seg = Math.min(M.inner.length - 2, Math.floor(rng() * (M.inner.length - 1)));
+            const t = rng();
+            const a2 = M.inner[seg], b2 = M.inner[seg + 1];
+            const rr = a2[0] + (b2[0] - a2[0]) * t;
+            const zz = a2[1] + (b2[1] - a2[1]) * t;
+            if (rr < 0.02) continue;
+            if (rng() > 0.25 + rr * 2) continue;
+            const alpha = rng() * TAU;
+            if (depthN(alpha, -0.5, 0.85) < 0.05) continue;
+            const pw = proj(surf([rr, zz, 0.15], alpha));
+            const wr = S * 0.0038 * (0.6 + rng());
+            const dots = [];
+            for (let d2 = 0; d2 < 5; d2++) {
+              const a = (d2 / 5) * TAU;
+              dots.push([pw[0] + Math.cos(a) * wr, pw[1] + Math.sin(a) * wr]);
+            }
+            push(dots, true);
+            if (used > BUDGET) break;
+          }
+        }
+      }
+
+      /* --- mesh from the first copy: revolve the closed profile --- */
+      if (!meshOut) {
+        const closed = [[0, 0, 0]].concat(M.prof.map((q) => q.slice(0, 3)));
+        if (M.inner) {
+          for (const q of M.inner) closed.push([q[0], q[1], 0.25]);
+        }
+        const last = closed[closed.length - 1];
+        if (last[0] > 1e-4) closed.push([0, last[1], 0]);
+        /* densify so sliced contours are smooth */
+        const dcl = [];
+        for (let i = 0; i < closed.length - 1; i++) {
+          const a = closed[i], b = closed[i + 1];
+          const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.045));
+          for (let k = (i === 0 ? 0 : 1); k <= n; k++) {
+            const t = k / n;
+            dcl.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]);
+          }
+        }
+        closed.length = 0;
+        for (const q of dcl) closed.push(q);
+        const NAm = 40;
+        const V = [];
+        const P3 = (qi, k) => {
+          const alpha = (k / NAm) * TAU;
+          const q = closed[qi];
+          const r = q[0] * wmod(alpha, q[2], 0, q[1]) + ((q[2] > 0.05 || M.lumpy) ? lump(alpha, q[1]) * q[0] * 2 * (0.7 + chaos) : 0);
+          const z = q[1];
+          const bend = z * z;
+          return [r * Math.cos(alpha) + bx * bend + sway(z), r * Math.sin(alpha) + by * bend + sway2(z), z];
+        };
+        for (let qi = 0; qi < closed.length - 1; qi++) {
+          for (let k = 0; k < NAm; k++) {
+            const a = P3(qi, k), b = P3(qi + 1, k), cc = P3(qi + 1, k + 1), d = P3(qi, k + 1);
+            V.push(a, b, cc, a, cc, d);
+          }
+        }
+        /* normalize: center bbox, longest dim = 1 */
+        let mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+        for (const v of V) for (let i = 0; i < 3; i++) { mn[i] = Math.min(mn[i], v[i]); mx[i] = Math.max(mx[i], v[i]); }
+        const ext = [mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]];
+        const big = Math.max(ext[0], ext[1], ext[2]) || 1;
+        const ctr = [(mn[0] + mx[0]) / 2, (mn[1] + mx[1]) / 2, (mn[2] + mx[2]) / 2];
+        const flat = [];
+        for (const v of V) for (let i = 0; i < 3; i++) flat.push(Math.round(((v[i] - ctr[i]) / big) * 1e4) / 1e4);
+        meshOut = { kind: "mesh", tri: V.length / 3, v: flat, dims: [Math.round((ext[0] / big) * 1e4) / 1e4, Math.round((ext[1] / big) * 1e4) / 1e4, Math.round((ext[2] / big) * 1e4) / 1e4] };
+      }
+      if (used > BUDGET) break;
+    }
+
+    return [applyStyle({ paths }, ins[0]), meshOut];
+  },
 };
 ```
 
