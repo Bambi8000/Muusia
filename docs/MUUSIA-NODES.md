@@ -1,6 +1,6 @@
-# MUUSIA v2.86 — Node Reference
+# MUUSIA v2.87 — Node Reference
 
-All 269 built-in nodes. Conventions used below: most generators accept a **Style**
+All 270 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
@@ -1181,7 +1181,7 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (71)
+## Modifiers (72)
 
 **Zigzag Path** — redraws every input path as a patterned stroke following
 the original line. Mode: *Zigzag* (sharp triangle wave, apex points inserted
@@ -1243,6 +1243,18 @@ centre, or a custom point.
 
 **Fit to Canvas** — scales and centres content into the margins: contain, stretch,
 fit-width or fit-height. The "fix my composition" node.
+
+**Shuffle Seams** — moves the start point of every closed path so pen-down
+seams stop lining up: concentric Rings fills otherwise plot a visible seam
+column where every circle starts and ends. *Golden spiral* steps each seam by
+the golden angle so no two ever align (the right choice for nested rings and
+needs no seed), *Random* scatters them with the *Seed*, *Fixed step* rotates
+each successive path by *Step* degrees. The cut lands at an exact arc-length
+position — a new point is interpolated, z plunge values included — so the
+geometry is untouched, only the draw order around the loop changes. *Overlap*
+makes each path run past its seam by that many millimetres and emits it as an
+open path, hiding the pen dot under fresh ink (0 keeps paths closed; try
+0.8–1.5 mm for gel pens on dark paper). Open paths pass through untouched.
 
 **Reverse** — flips path direction: all, every 2nd (manual boustrophedon), or
 random. Because direction is data.

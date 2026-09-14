@@ -1284,6 +1284,12 @@ text are **English**.
   visibility, funnel rims always full closed loops, Chaos disorder layer,
   watertight normalized Mesh output (count-invariant first copy).
 
+- **2.87** new **Shuffle Seams** modifier (mod/pathops): rotates every
+  closed path's start point (Golden spiral / Random / Fixed step) via exact
+  arc-length cut with z interpolation so nested-ring pen-down seams never
+  line up; optional Overlap mm runs past the seam as an open path to hide
+  the pen dot. Born from the first Belt Drive plot on Viivain.
+
 ## Hard-won pitfalls (keep)
 
 - SENTINELS IN dist MUST BE STRING LITERALS. Vite minification renames every
