@@ -30,9 +30,12 @@ export async function loadPhoto(file: File): Promise<Photo> {
     canvas.height = Math.max(1, Math.round(bitmap.height * scale));
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) throw new Error('Image processing is unavailable in this browser.');
-    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     const working = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // Keep alpha in the analysis source: light/dark paper is chosen later and
+    // must match full-resolution extraction. Only the photo thumbnail is white-backed.
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('Photo preview could not be created.')), 'image/jpeg', .92));
     return { id: crypto.randomUUID(), name: file.name, width: bitmap.width, height: bitmap.height, bitmap, working, url: URL.createObjectURL(blob), points: emptyPoints() };
   } catch (error) { bitmap.close(); throw error; }

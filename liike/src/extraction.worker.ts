@@ -5,6 +5,7 @@ import type { Adjustments } from './adjustments';
 import type { SheetSettings } from './layout';
 import type { Raster } from './sampling';
 import { drawingPosition, centeredCrop } from './stabilization';
+import { paperBackground } from './paper';
 
 export type ExtractionMessage = { type: 'frame'; spec: FrameSpec; image: Blob; thumbnail: Blob; warning?: string } | { type: 'done' } | { type: 'error'; message: string };
 
@@ -24,13 +25,13 @@ self.onmessage = async (event: MessageEvent<{ bitmap: ImageBitmap; plan: SheetPl
       if (stabilize) {
         // The estimate is independent of the chosen output resolution.
         const scale = 480 / Math.max(spec.crop.w, spec.crop.h);
-        const preview = sampleRect(source, source, plan.h, spec.crop, Math.max(1, Math.round(spec.crop.w * scale)), Math.max(1, Math.round(spec.crop.h * scale)));
-        const position = drawingPosition(preview), crop = position && centeredCrop(spec.crop, position);
+        const preview = sampleRect(source, source, plan.h, spec.crop, Math.max(1, Math.round(spec.crop.w * scale)), Math.max(1, Math.round(spec.crop.h * scale)), paperBackground(settings.paperTone));
+        const position = drawingPosition(preview, settings.paperTone), crop = position && centeredCrop(spec.crop, position);
         if (!crop) throw new Error(`Source frame ${spec.frame + 1}: could not safely center one isolated drawing. Turn off Stabilize position to keep the plotted motion, or check the crop and photograph.`);
         spec = { ...planned, crop, stabilized: true };
       }
       // No downscaled or rectified sheet sits between the original and the crop.
-      const sampled = sampleRect(source, source, plan.h, spec.crop, spec.width, spec.height);
+      const sampled = sampleRect(source, source, plan.h, spec.crop, spec.width, spec.height, paperBackground(settings.paperTone));
       const raster = adjustRaster(sampled, spec.crop, model, adjustments);
       const canvas = new OffscreenCanvas(spec.width, spec.height);
       const context = canvas.getContext('2d');

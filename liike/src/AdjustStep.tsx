@@ -7,12 +7,14 @@ import type { Quad } from './homography';
 import { DEFAULT_ADJUSTMENTS } from './adjustments';
 import type { Adjustments } from './adjustments';
 import { useAdjustmentPreview } from './useAdjustmentPreview';
+import type { PaperTone } from './paper';
 
-type Props = { photo: Photo; settings: SheetSettings; sheet: number; adjustments: Adjustments; setAdjustments: (a: Adjustments) => void; readiness: string; onBack: () => void; onSequence: () => void };
+type Props = { photo: Photo; settings: SheetSettings; sheet: number; adjustments: Adjustments; setAdjustments: (a: Adjustments) => void; setPaperTone: (tone: PaperTone) => void; readiness: string; onBack: () => void; onSequence: () => void };
 
-export default function AdjustStep({ photo, settings, sheet, adjustments, setAdjustments, readiness, onBack, onSequence }: Props) {
+export default function AdjustStep({ photo, settings, sheet, adjustments, setAdjustments, setPaperTone, readiness, onBack, onSequence }: Props) {
   const [selected, setSelected] = useState(0);
   const [original, setOriginal] = useState(false);
+  const dark = settings.paperTone === 'dark';
   const frames = framesOnSheet(settings, sheet);
   const frame = frames[Math.max(0, Math.min(selected, frames.length - 1))]!;
   const rect = selected === -1 ? { x: 0, y: 0, w: settings.W, h: settings.H } : frame.crop;
@@ -30,19 +32,20 @@ export default function AdjustStep({ photo, settings, sheet, adjustments, setAdj
     <div className="workspace adjust-workspace">
       <section className="settings" aria-label="Color adjustments">
         <fieldset><legend><span>01</span> Paper & light</legend>
-          <label className="checkbox"><input type="checkbox" checked={adjustments.autoAdjust} onChange={e => update({ autoAdjust: e.target.checked })} />Auto adjust</label><p className="hint">Clean the paper, balance color and strengthen ink contrast. One automatic setting per photo, shared by all its frames. Check faint strokes with Original.</p>
-          <label className="checkbox"><input type="checkbox" checked={adjustments.autoAdjust || adjustments.flatten} disabled={adjustments.autoAdjust} onChange={e => update({ flatten: e.target.checked })} />Paper flatten</label><p className="hint">Even out smooth shadows and brighten the paper.</p>
-          <label className="checkbox"><input type="checkbox" checked={adjustments.autoAdjust || adjustments.whiteBalance} disabled={adjustments.autoAdjust} onChange={e => update({ whiteBalance: e.target.checked })} />Auto white balance</label><p className="hint">Remove the lighting's color cast using blank paper.</p>
+          <label className="field"><span>Paper color</span><select value={settings.paperTone ?? 'light'} onChange={e => setPaperTone(e.target.value as PaperTone)}><option value="light">White / light</option><option value="dark">Black / dark</option></select></label>
+          <label className="checkbox"><input type="checkbox" checked={adjustments.autoAdjust} onChange={e => update({ autoAdjust: e.target.checked })} />Auto adjust</label><p className="hint">{dark ? 'Deepen the black background and lift bright ink, keeping its color.' : 'Clean the paper, balance color and strengthen ink contrast.'} One automatic setting per photo, shared by all its frames. Check faint strokes with Original.</p>
+          <label className="checkbox"><input type="checkbox" checked={adjustments.autoAdjust || adjustments.flatten} disabled={adjustments.autoAdjust} onChange={e => update({ flatten: e.target.checked })} />Paper flatten</label><p className="hint">{dark ? 'Reduce smooth glare and color cast in the dark background.' : 'Even out smooth shadows and brighten the paper.'}</p>
+          <label className="checkbox"><input type="checkbox" checked={!dark && (adjustments.autoAdjust || adjustments.whiteBalance)} disabled={dark || adjustments.autoAdjust} onChange={e => update({ whiteBalance: e.target.checked })} />Auto white balance</label><p className="hint">{dark ? 'Black paper is not a white-balance reference. Paper flatten corrects the background without whitening colored ink.' : "Remove the lighting's color cast using blank paper."}</p>
         </fieldset>
         <fieldset><legend><span>02</span> Shared tones</legend>{slider('black', 'Black point', 0, 120)}{slider('white', 'White point', 135, 255)}{slider('gamma', 'Gamma', .3, 3, .05)}{slider('saturation', 'Saturation', 0, 200, 1, '%')}
           <p className="hint">These settings apply equally to every frame on every sheet.</p>
         </fieldset>
         <fieldset><legend><span>03</span> Detail</legend><label className="checkbox"><input type="checkbox" checked={adjustments.sharpenEnabled} onChange={e => update({ sharpenEnabled: e.target.checked })} />Sharpen</label>{slider('sharpen', 'Sharpen strength', 0, 100, 1, '%')}<p className="hint">Define soft edges while limiting halos and paper grain. Strong double lines or camera blur may remain.</p></fieldset>
-        <fieldset><legend><span>04</span> Two-tone ink</legend><label className="checkbox"><input type="checkbox" checked={adjustments.thresholdEnabled} onChange={e => update({ thresholdEnabled: e.target.checked })} />Ink threshold</label>{slider('threshold', 'Ink cutoff', 0, 255)}<p className="hint">Make a black-and-white image. Raise the cutoff to keep lighter pen strokes.</p></fieldset>
+        <fieldset><legend><span>04</span> Two-tone ink</legend><label className="checkbox"><input type="checkbox" checked={adjustments.thresholdEnabled} onChange={e => update({ thresholdEnabled: e.target.checked })} />Ink threshold</label>{slider('threshold', 'Ink cutoff', 0, 255)}<p className="hint">{dark ? 'Make white ink on black paper. Lower the cutoff to keep dimmer strokes. Leave off to retain ink colors.' : 'Make a black-and-white image. Raise the cutoff to keep lighter pen strokes.'}</p></fieldset>
         <button className="secondary adjustment-reset" onClick={() => setAdjustments({ ...DEFAULT_ADJUSTMENTS })}>Reset adjustments</button>
       </section>
       <section className="adjust-preview" aria-label="Adjustment preview">
-        <div className="preview-heading"><div><p className="eyebrow">Before & after</p><h2>Keep the ink. Lift the paper.</h2></div></div>
+        <div className="preview-heading"><div><p className="eyebrow">Before & after</p><h2>{dark ? 'Bright ink. Deep black.' : 'Keep the ink. Lift the paper.'}</h2></div></div>
         <div className="adjust-preview-controls"><label className="field"><span>Preview area</span><select value={selected === -1 ? -1 : Math.min(selected, frames.length - 1)} onChange={e => setSelected(Number(e.target.value))}><option value={-1}>Whole sheet</option>{frames.map((f, i) => <option key={f.frame} value={i}>Source frame {f.frame + 1}</option>)}</select></label><div className="comparison-toggle" role="group" aria-label="Compare adjustments"><button className={!original ? 'selected' : ''} aria-pressed={!original} onClick={() => setOriginal(false)}>Adjusted</button><button className={original ? 'selected' : ''} aria-pressed={original} onClick={() => setOriginal(true)}>Original</button></div></div>
         {registration.error || error ? <p className="error" role="alert">{registration.error || error}</p> : preview ? <div className="adjust-image-stage" aria-busy={busy}>
           <img src={original ? preview.before : preview.after} width={preview.width} height={preview.height} alt={`${original ? 'Original' : 'Adjusted'} ${selected === -1 ? 'sheet' : `source frame ${frame.frame + 1}`}`} />

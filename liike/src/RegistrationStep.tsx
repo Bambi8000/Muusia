@@ -8,6 +8,7 @@ import { sampleRect } from './sampling';
 import { emptyPoints } from './photos';
 import type { Photo, MarkerPoints } from './photos';
 import { detectionSettingsKey } from './detection-client';
+import { paperBackground } from './paper';
 
 const NAMES = ['Top-left · hole', 'Top-right', 'Bottom-right', 'Bottom-left'];
 const SHORT = ['TL', 'TR', 'BR', 'BL'];
@@ -30,7 +31,7 @@ export default function RegistrationStep({ photo, settings, sheet, setPoints, de
     try { return { h: registrationTransform(settings.W, settings.H, photo.points as Quad), error: '' }; }
     catch (error) { return { h: null, error: error instanceof Error ? error.message : 'Check the marker positions.' }; }
   }, [photo.points, settings.W, settings.H]);
-  const key = JSON.stringify([photo.id, settings.W, settings.H, photo.points]);
+  const key = JSON.stringify([photo.id, settings.W, settings.H, settings.paperTone, photo.points]);
   useEffect(() => {
     setRenderError('');
     if (!registration.h) return;
@@ -38,7 +39,7 @@ export default function RegistrationStep({ photo, settings, sheet, setPoints, de
     const timer = window.setTimeout(() => {
       try {
         const factor = 900 / Math.max(settings.W, settings.H);
-        const raster = sampleRect(photo.working, { width: photo.width, height: photo.height }, h, { x: 0, y: 0, w: settings.W, h: settings.H }, Math.max(1, Math.round(settings.W * factor)), Math.max(1, Math.round(settings.H * factor)));
+        const raster = sampleRect(photo.working, { width: photo.width, height: photo.height }, h, { x: 0, y: 0, w: settings.W, h: settings.H }, Math.max(1, Math.round(settings.W * factor)), Math.max(1, Math.round(settings.H * factor)), paperBackground(settings.paperTone));
         const canvas = document.createElement('canvas'); canvas.width = raster.width; canvas.height = raster.height;
         const context = canvas.getContext('2d');
         if (!context) throw new Error('Preview is unavailable in this browser.');
@@ -48,7 +49,7 @@ export default function RegistrationStep({ photo, settings, sheet, setPoints, de
       } catch (error) { setRenderError(error instanceof Error ? error.message : 'Could not create the preview.'); }
     }, 90);
     return () => clearTimeout(timer);
-  }, [key, registration.h, photo.working, photo.width, photo.height, settings.W, settings.H]);
+  }, [key, registration.h, photo.working, photo.width, photo.height, settings.W, settings.H, settings.paperTone]);
 
   function place(index: number, p: Point) {
     const next = [...pointsRef.current] as MarkerPoints;
@@ -70,9 +71,9 @@ export default function RegistrationStep({ photo, settings, sheet, setPoints, de
   const currentPreview = rendered?.key === key ? rendered.url : null;
   const rProps = (q: { x: number; y: number; w: number; h: number }) => ({ x: q.x, y: q.y, width: q.w, height: q.h });
   return <>
-    <div className="detection-bar"><div><strong>{photo.detection?.status === 'found' ? 'Markers found automatically' : photo.detection?.status === 'running' ? 'Finding the corner markers…' : 'Automatic marker detection'}</strong><p role="status">{photo.detection?.settingsKey && photo.detection.settingsKey !== detectionSettingsKey(settings) ? 'Sheet dimensions or marker size changed. Check the positions or run detection again.' : photo.detection?.message ?? 'Find all four markers, then check the frame windows below.'}</p></div><div className="detection-actions"><button className="secondary" disabled={photo.detection?.status === 'running'} onClick={() => { void detect(photo.id, settings); }}>Detect markers</button>{photo.previousPoints && <button className="secondary" onClick={() => undoDetection(photo.id)}>Undo auto placement</button>}</div></div>
+    <div className="detection-bar"><div><strong>{photo.detection?.status === 'found' ? 'Markers found automatically' : photo.detection?.status === 'running' ? 'Finding the corner markers…' : 'Automatic marker detection'}</strong><p role="status">{photo.detection?.settingsKey && photo.detection.settingsKey !== detectionSettingsKey(settings) ? 'Sheet dimensions, marker size or paper color changed. Check the positions or run detection again.' : photo.detection?.message ?? 'Find all four markers, then check the frame windows below.'}</p></div><div className="detection-actions"><button className="secondary" disabled={photo.detection?.status === 'running'} onClick={() => { void detect(photo.id, settings); }}>Detect markers</button>{photo.previousPoints && <button className="secondary" onClick={() => undoDetection(photo.id)}>Undo auto placement</button>}</div></div>
     <div className="marker-steps" aria-label="Select marker">{NAMES.map((name, i) => <button key={name} aria-pressed={active === i} className={active === i ? 'selected' : ''} onClick={() => setActive(i)}><span style={{ background: COLORS[i] }}>{i + 1}</span><strong>{name}</strong><small>{photo.points[i] ? 'Placed' : 'Tap to place'}</small></button>)}</div>
-    <p className="placement-hint" role="status">{count < 4 ? `Select ${NAMES[active]!.toLowerCase()} and tap its center in the photo. Start at the white hole, then go clockwise.` : 'All four markers placed. Drag a handle or select a marker and fine-tune its center.'}</p>
+    <p className="placement-hint" role="status">{count < 4 ? `Select ${NAMES[active]!.toLowerCase()} and tap its center in the photo. Start at the marker with the hole, then go clockwise.` : 'All four markers placed. Drag a handle or select a marker and fine-tune its center.'}</p>
     <div className="registration-grid">
       <section aria-label="Original photo" className="registration-panel">
         <div className="preview-heading"><div><p className="eyebrow">Original photograph</p><h2>Place the four centers</h2></div><label className="field zoom-field"><span>Zoom</span><select value={zoom} onChange={e => setZoom(Number(e.target.value))}><option value={1}>Fit</option><option value={2}>2×</option><option value={3}>3×</option></select></label></div>

@@ -1,8 +1,10 @@
 import { project, solveHomography } from './homography.ts';
 import type { Point, Quad } from './homography';
 import type { Raster } from './sampling';
+import { analysisLight } from './paper.ts';
+import type { PaperTone } from './paper';
 
-export type DetectionSettings = { W: number; H: number; markSize: number };
+export type DetectionSettings = { W: number; H: number; markSize: number; paperTone?: PaperTone };
 export type DetectionResult = {
   status: 'found' | 'not-found' | 'ambiguous' | 'mirrored';
   points: Quad | null;
@@ -134,7 +136,7 @@ export function detectMarkers(raster: Raster, settings: DetectionSettings): Dete
   const failure = (message: string, status: DetectionResult['status'] = 'not-found', candidates = 0): DetectionResult => ({ status, points: null, message, candidates });
   if (w < 80 || h < 80 || data.length !== w * h * 4 || ![settings.W, settings.H, settings.markSize].every(Number.isFinite) || settings.W <= 40 || settings.H <= 40 || settings.markSize <= 0) return failure('Check the photo and sheet settings, or place the four markers manually.');
   const gray = new Float32Array(w * h);
-  for (let i = 0; i < gray.length; i++) gray[i] = (data[i * 4]! * .299 + data[i * 4 + 1]! * .587 + data[i * 4 + 2]! * .114) * data[i * 4 + 3]! / 255 + 255 - data[i * 4 + 3]!;
+  for (let i = 0; i < gray.length; i++) gray[i] = analysisLight(data[i * 4]!, data[i * 4 + 1]!, data[i * 4 + 2]!, data[i * 4 + 3]!, settings.paperTone);
   const blurRadius = Math.max(1, Math.round(Math.max(w, h) / 600));
   const blurred = boxMean(gray, w, h, blurRadius);
   const local = boxMean(blurred, w, h, Math.max(12, Math.round(Math.max(w, h) / 30)));
@@ -164,9 +166,9 @@ export function detectMarkers(raster: Raster, settings: DetectionSettings): Dete
   matches.sort((a, b) => a.score - b.score);
   const best = matches[0];
   if (!best || Math.min(best.error, best.mirroredError) > .24) return failure('The detected shapes do not match this sheet and marker size. Check Sheet settings or place markers manually.', 'not-found', candidates.length);
-  if (best.hole < 12 || best.holeGap < 8) return failure('The white-hole marker is unclear. Place TL on the marker with the hole, then continue clockwise.', 'ambiguous', candidates.length);
+  if (best.hole < 12 || best.holeGap < 8) return failure(`The ${settings.paperTone === 'dark' ? 'dark' : 'white'}-hole marker is unclear. Place TL on the marker with the hole, then continue clockwise.`, 'ambiguous', candidates.length);
   if (best.mirroredError + .08 < best.error) return failure('The marker geometry suggests a mirrored photo or swapped sheet dimensions. Check the image and Sheet settings; no automatic flip was applied.', 'mirrored', candidates.length);
-  if (Math.abs(best.error - best.mirroredError) < .04) return failure('The sheet orientation is ambiguous. Place the white-hole marker and remaining corners manually.', 'ambiguous', candidates.length);
+  if (Math.abs(best.error - best.mirroredError) < .04) return failure('The sheet orientation is ambiguous. Place the marker with the hole and remaining corners manually.', 'ambiguous', candidates.length);
   const runnerUp = matches.find((m, i) => i > 0 && m.hole >= 12 && m.holeGap >= 8 && Math.abs(m.score - best.score) < .025 && m.points.some(p => !best.points.includes(p)));
   if (runnerUp) return failure('More than one marker group looks plausible. Place the four centers manually.', 'ambiguous', candidates.length);
   return { status: 'found', points: best.points.map(({ x, y }) => ({ x, y })) as Quad, candidates: candidates.length, message: 'Four markers found. Check the frame windows and drag any marker to refine it.' };

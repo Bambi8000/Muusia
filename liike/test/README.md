@@ -202,3 +202,35 @@ SHA-256 (original bytes):
 
 - `animtest.jpeg`: `90a3f095a5b758d967ecfabf5a790281256dcf3762fccd65536696bef4a9c1c2`
 - `animtest.svg`: `f44b6b7ebc1a9511ccd09477b2e68cd96ad6cbabe10b46bcf1aa3e7d5160edac`
+
+## Black paper — 2026-09-14
+
+Daniel supplied `IMG_2609.jpeg` and confirmed A3 landscape, 4×3, margin
+30 mm, gap 8 mm and 15 mm markers. This photo is labeled P 1/2; the check
+uses the supplied first sheet only, with Total frames 12 and Frame window,
+zero padding. The original remains outside the repository.
+
+The standalone production build was checked with the original 4032×3024
+JPEG in the Codex browser. With Paper color set to Black / dark before
+import, all four bright green hatched markers were found automatically,
+including the dark TL orientation hole. Adjust preserves green/yellow ink
+on a dark background. Auto adjust plus Sharpen 40% produced twelve
+1080×764 frames. A contact sheet of all twelve was also inspected from the
+same processing functions. GIF generation and its actual encoded preview
+were checked at 720×509 (12 frames, 1 second); MP4 generated and decoded as
+720×510, 48 frames, 4 seconds; PNG ZIP generation completed with 12 frames.
+These are generation/preview checks, not a new on-disk download check.
+
+Switching paper color in Adjust replaced the paper model and cleared old
+extracted frames. Reset adjustments retained Black / dark and disabled
+white balance. The 390 px Adjust layout had no horizontal overflow. No
+console warnings or errors were observed.
+
+`dark-paper.test.mjs` adds 11 regression checks: colored bright markers at
+0/90/180/270/35 degrees with an independent camera warp and <0.5 mm marker
+error; missing/multiple holes and mirrored rejection; independently generated
+additive glare and known green pigment; almost-black blank references;
+consistent whole-sheet/crop corrections; preservation of source data;
+black alpha/missing-pixel backgrounds; two-tone output with sharpening;
+stabilization parity; unchanged physical layout and export paper metadata.
+Together with existing white-paper checks, all 70 tests pass.

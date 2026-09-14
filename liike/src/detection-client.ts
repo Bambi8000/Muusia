@@ -3,7 +3,7 @@ import type { DetectionResult, DetectionSettings } from './detection';
 import type { Quad } from './homography';
 import type { Photo } from './photos';
 
-export const detectionSettingsKey = (settings: DetectionSettings) => `${settings.W}/${settings.H}/${settings.markSize}`;
+export const detectionSettingsKey = (settings: DetectionSettings) => `${settings.W}/${settings.H}/${settings.markSize}/${settings.paperTone ?? 'light'}`;
 
 /** Each job owns its worker; cancellation and completion release the copied raster. */
 export function startDetection(photo: Photo, settings: DetectionSettings) {

@@ -3,8 +3,9 @@ import type { Rect, SheetSettings } from './layout';
 import { registrationTransform } from './homography.ts';
 import type { Matrix, Quad } from './homography';
 import type { Photo } from './photos';
+import type { PaperTone } from './paper';
 
-export type FrameSpec = { id: string; photoId: string; sheet: number; frame: number; cell: number; crop: Rect; width: number; height: number; stabilized?: boolean };
+export type FrameSpec = { id: string; photoId: string; sheet: number; frame: number; cell: number; crop: Rect; width: number; height: number; stabilized?: boolean; paperTone?: PaperTone };
 export type SheetPlan = { photoId: string; h: Matrix; frames: FrameSpec[] };
 export type ExtractedFrame = FrameSpec & { url: string; thumbnailUrl: string; warning?: string };
 type RegisteredPhoto = Pick<Photo, 'id' | 'width' | 'height' | 'points' | 'detection'>;
@@ -32,7 +33,7 @@ export function planFrames(settings: SheetSettings, photos: RegisteredPhoto[], r
     const frames = framesOnSheet(settings, sheet).map(f => {
       const q = f.crop;
       if ([[q.x, q.y], [q.x + q.w, q.y], [q.x + q.w, q.y + q.h], [q.x, q.y + q.h]].some(([x, y]) => h[6] * x! + h[7] * y! + h[8] <= 1e-8)) throw new Error(`${prefix}reduce padding or check the perspective before extracting frames.`);
-      return { id: `${photo.id}:${f.index}`, photoId: photo.id, sheet, frame: f.frame, cell: f.index, crop: q, ...outputSize(q, resolution) };
+      return { id: `${photo.id}:${f.index}`, photoId: photo.id, sheet, frame: f.frame, cell: f.index, crop: q, paperTone: settings.paperTone ?? 'light', ...outputSize(q, resolution) };
     });
     return { photoId: photo.id, h, frames };
   });

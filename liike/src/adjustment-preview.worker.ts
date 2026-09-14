@@ -4,6 +4,7 @@ import type { Rect, SheetSettings } from './layout';
 import type { Matrix } from './homography';
 import { sampleRect } from './sampling';
 import type { Raster } from './sampling';
+import { paperBackground } from './paper';
 
 type Init = { type: 'init'; raster: Raster; original: { width: number; height: number }; h: Matrix; settings: SheetSettings };
 type Render = { type: 'render'; id: number; rect: Rect; adjustments: Adjustments };
@@ -28,7 +29,7 @@ self.onmessage = async (event: MessageEvent<Init | Render>) => {
   try {
     if (!input || !model) throw new Error(initError || 'Preview is not ready.');
     const scale = 640 / Math.max(message.rect.w, message.rect.h);
-    const original = sampleRect(input.raster, input.original, input.h, message.rect, Math.max(1, Math.round(message.rect.w * scale)), Math.max(1, Math.round(message.rect.h * scale)));
+    const original = sampleRect(input.raster, input.original, input.h, message.rect, Math.max(1, Math.round(message.rect.w * scale)), Math.max(1, Math.round(message.rect.h * scale)), paperBackground(input.settings.paperTone));
     const adjusted = adjustRaster(original, message.rect, model, message.adjustments);
     const [before, after] = await Promise.all([blob(original), blob(adjusted)]);
     self.postMessage({ id: message.id, before, after, width: original.width, height: original.height, note: model.note, supported: model.supported } satisfies AdjustmentPreviewResult);

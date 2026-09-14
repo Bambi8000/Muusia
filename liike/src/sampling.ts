@@ -4,11 +4,12 @@ import type { Rect } from './layout';
 export type Raster = { width: number; height: number; data: Uint8ClampedArray };
 
 /** Output pixel centers → sheet mm → original oriented photo → working pixels.
- * alpha is composited onto white, and out-of-image samples remain white. */
-export function sampleRect(source: Raster, original: { width: number; height: number }, h: Matrix, rect: Rect, width: number, height: number): Raster {
+ * alpha and out-of-image pixels use the paper background (white by default). */
+export function sampleRect(source: Raster, original: { width: number; height: number }, h: Matrix, rect: Rect, width: number, height: number, background = 255): Raster {
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1) throw new Error('Invalid preview size.');
   const result = new Uint8ClampedArray(width * height * 4);
-  result.fill(255);
+  result.fill(background);
+  for (let i = 3; i < result.length; i += 4) result[i] = 255;
   const scaleX = source.width / original.width, scaleY = source.height / original.height;
   for (let y = 0; y < height; y++) {
     const my = rect.y + (y + .5) * rect.h / height;
@@ -30,7 +31,7 @@ export function sampleRect(source: Raster, original: { width: number; height: nu
         let value = 0;
         for (let i = 0; i < 4; i++) {
           const alpha = source.data[offsets[i]! + 3]! / 255;
-          value += (source.data[offsets[i]! + channel]! * alpha + 255 * (1 - alpha)) * weights[i]!;
+          value += (source.data[offsets[i]! + channel]! * alpha + background * (1 - alpha)) * weights[i]!;
         }
         result[out + channel] = value;
       }

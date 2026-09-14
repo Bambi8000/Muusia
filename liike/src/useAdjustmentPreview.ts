@@ -8,7 +8,7 @@ import type { Matrix } from './homography';
 
 type Preview = { before: string; after: string; width: number; height: number; note: string; supported: boolean; sourceKey: string; id: number };
 export function useAdjustmentPreview(photo: Photo, settings: SheetSettings, h: Matrix | null, rect: Rect, adjustments: Adjustments) {
-  const analysisSettings = useMemo<SheetSettings>(() => ({ W: settings.W, H: settings.H, cols: settings.cols, rows: settings.rows, margin: settings.margin, gap: settings.gap, markSize: settings.markSize, total: 1, order: 'Row-major', crop: 'Frame window', pad: 0 }), [settings.W, settings.H, settings.cols, settings.rows, settings.margin, settings.gap, settings.markSize]);
+  const analysisSettings = useMemo<SheetSettings>(() => ({ W: settings.W, H: settings.H, cols: settings.cols, rows: settings.rows, margin: settings.margin, gap: settings.gap, markSize: settings.markSize, paperTone: settings.paperTone ?? 'light', total: 1, order: 'Row-major', crop: 'Frame window', pad: 0 }), [settings.W, settings.H, settings.cols, settings.rows, settings.margin, settings.gap, settings.markSize, settings.paperTone]);
   const sourceKey = JSON.stringify([photo.id, analysisSettings, h]);
   const rectKey = JSON.stringify(rect);
   const stableRect = useMemo<Rect>(() => JSON.parse(rectKey), [rectKey]);

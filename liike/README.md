@@ -31,7 +31,7 @@ padding.
 
 Photos accepts JPEG/PNG/WebP files, including multiple photos in sheet order,
 with replacement, removal and reordering. Loading a photo starts automatic
-marker detection in a worker. The white hole identifies the physical TL
+marker detection in a worker. The hole (white on light paper, dark on black paper) identifies the physical TL
 marker and the sheet orientation. Register provides draggable refinement,
 manual placement, zoom/pan, a magnifier, coordinate fields and pixel nudges.
 The sheet is rectified with the photo_trace DLT
@@ -51,13 +51,14 @@ See [KELA-HANDOFF.md](./KELA-HANDOFF.md) for the supplied project specification.
 ## Register a photograph
 
 1. Match Sheet settings to the plot, or choose **Use reference sheet** for
-   `animtest.jpeg`.
+   `animtest.jpeg`. Choose **Paper color → Black / dark** for bright ink on
+   dark paper before adding the photo; **White / light** is the default.
 2. Choose **Add photos**, select the JPEG, wait for detection, then choose
    **Review markers**. If detection fails, choose **Place markers manually**
    on the desired photo to open it directly. Missing or extra photos do not
    block registration of photos already loaded.
 3. Check the detected centers. If detection needs help, tap the center of the
-   marker with the white hole (TL), then continue clockwise around the photo:
+   marker with the hole (TL), then continue clockwise around the photo:
    TR, BR, BL. These labels refer to the physical sheet, not the photo's screen
    corners. In the reference photo TL is bottom-left.
 4. Drag a handle to refine it. The magnifier, X/Y fields and nudge buttons
@@ -73,8 +74,8 @@ registered in advance, but have no frame windows and are excluded from the
 sequence until **Total frames** requires them or they are moved earlier in
 Photos. The app keeps this distinction visible without blocking manual work.
 
-Use **Detect markers** to try again after correcting sheet dimensions or
-marker size. Failed or ambiguous detection preserves existing positions;
+Use **Detect markers** to try again after correcting sheet dimensions,
+marker size or paper color. Failed or ambiguous detection preserves existing positions;
 **Undo auto placement** restores the positions from before a successful rerun.
 Manual edits cancel pending detection so a late result cannot replace them.
 Missing or multiple holes, mirrored photos and near-square sheets can make
@@ -88,12 +89,39 @@ the working raster is at most 2000 px on its long side and the rectified
 preview is 900 px. No photos are transmitted and no dependencies were added
 for image processing. HEIC files get a request to export as JPEG.
 
+## Black paper and bright ink
+
+Choose **Paper color → Black / dark** in Sheet or Adjust. This is one shared
+setting for the sequence; it changes marker polarity, paper correction and
+background padding without inverting the photograph's colors or its geometry.
+The detector looks for bright hatched squares and a dark orientation hole.
+If a photo was loaded in light-paper mode, open Register and choose
+**Detect markers** again, or place the centers manually.
+
+With dark paper, **Paper flatten** subtracts smooth RGB background glare to
+bring the background close to black. **Auto adjust** additionally deepens
+blacks and lifts bright ink using one bounded contrast range per photo.
+Color contrast uses the brightest ink channel so colored pens are not treated
+as white references. **Auto white balance** is unavailable on dark paper;
+switching back to light paper restores its previous selection. Shared tone
+sliders and **Sharpen** work in both modes. Leave **Ink threshold** off for
+colored ink; when enabled it makes white ink on black, and a lower cutoff
+retains dimmer strokes.
+
+Switching paper color refreshes the paper estimate and invalidates extracted
+frames. **Reset adjustments** keeps the chosen paper color. The same look
+feeds the preview, sequence, GIF, video and PNG files. Optional stabilization
+also detects bright drawings on dark paper. All photographs in a sequence
+currently share one paper color.
+
 ## Adjust paper and tones
 
 Choose **Adjust paper & tones** after registration, or open **Adjust**.
 Select the photographed sheet and a source frame or Whole sheet. Switch
 between **Original** and **Adjusted** to compare; on phones the preview stays
 visible above the controls while scrolling.
+
+For **White / light** paper:
 
 - **Auto adjust**, off by default, combines paper flattening, white balance
   and automatic contrast. It estimates one black/white range for each entire
@@ -122,7 +150,8 @@ visible above the controls while scrolling.
 
 The paper model uses a 540 px rectified working image. It samples blank
 margins and gaps outside full cells, excluding marker squares and sheet
-edges. Bright quantiles in local tiles suppress small marks; a quadratic RGB
+edges. Bright quantiles for light paper and dark quantiles for black paper
+in local tiles suppress small marks; a quadratic RGB
 surface models smooth lighting. Artwork inside cells never determines the
 paper lighting estimate; Auto adjust analyzes it separately for contrast.
 The model is independent of frame selection, crop, order, output size
@@ -155,7 +184,7 @@ their inputs have not changed.
    the original EXIF-oriented bitmap through its sheet transform, then receives
    the chosen paper and tone adjustments. Frame-window
    crops keep the canvas aspect; Full cell uses the cell aspect. Padding keeps
-   the same center and aspect. Samples beyond the photograph are white.
+   the same center and aspect. Samples beyond the photograph use the selected paper background (white or black).
 3. Use **Play**, **Pause**, the position slider or previous/next buttons. Speed
    ranges from 1–30 fps, default 12. With Loop off, playback stops after holding
    the last frame for its full interval. Hidden tabs pause playback.
@@ -232,12 +261,12 @@ H.264 MP4, then VP9 WebM; an MP4 encoding failure also retries as WebM when
 available. WebM can be selected explicitly. If neither codec works, try a
 smaller size or GIF/PNG. Quality controls bitrate. **Repeats** (1–20, default
 4) determines the file length independently of the playback loop toggle.
-Video is silent. Odd dimensions get a one-pixel white edge so the image is
+Video is silent. Odd dimensions get a one-pixel edge matching the paper color so the image is
 not stretched or clipped. WebM metadata includes the final frame's interval.
 
 **PNG ZIP:** contains one timeline cycle as `frames/frame-000001.png`, etc.,
 plus `sequence.json` with fps, dimensions, duration and each frame's source
-sheet/frame and microsecond timing. Full-size PNGs retain their extracted
+sheet/frame, paper color and microsecond timing. Full-size PNGs retain their extracted
 bytes; smaller sizes are resampled once. PNG files are stored without an
 extra compression pass since PNG is already compressed.
 
@@ -269,11 +298,14 @@ browser checks and the outstanding on-disk download verification.
   generated lighting/casts, ink preservation, exclusion of artwork from the
   paper estimate, consistent color across photos, control defaults and limits,
   unsupported references and matching crop/full-sheet processing. The suite
-  currently has 59 tests, including bounded automatic contrast, light-residue
+  currently has 70 tests, including bounded automatic contrast, light-residue
   cleanup, sharpening against an independent soft-edge target, noise/halo
   limits, consistent physical radius, and manual registration access after failed
   detection with missing/extra photos, plus export timelines, timing, palettes, GIF
   structure, video capability fallback, ZIP contents and final-frame duration.
+  Dark-paper tests cover rotated colored markers, a dark orientation hole,
+  additive glare, ink colors, almost-black references, shared crop tones,
+  alpha/background handling, threshold, stabilization and export metadata.
 - `npm run build:liike`: standalone single-file build.
 
 Layout rectangles use sheet mm, origin top-left, y down. Cell indices always

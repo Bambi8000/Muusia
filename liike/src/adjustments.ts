@@ -4,10 +4,12 @@ import type { Matrix } from './homography';
 import { sampleRect } from './sampling.ts';
 import type { Raster } from './sampling';
 import { sharpenRaster } from './sharpen.ts';
+import { paperBackground } from './paper.ts';
+import type { PaperTone } from './paper';
 
 export type Adjustments = { flatten: boolean; whiteBalance: boolean; autoAdjust: boolean; sharpenEnabled: boolean; sharpen: number; black: number; white: number; gamma: number; saturation: number; thresholdEnabled: boolean; threshold: number };
 export const DEFAULT_ADJUSTMENTS: Readonly<Adjustments> = Object.freeze({ flatten: true, whiteBalance: true, autoAdjust: false, sharpenEnabled: false, sharpen: 40, black: 0, white: 255, gamma: 1, saturation: 100, thresholdEnabled: false, threshold: 128 });
-export type PaperModel = { W: number; H: number; h: Matrix; photoWidth: number; photoHeight: number; paper: number[]; coefficients: number[][]; samples: number; supported: boolean; note: string; autoLevels?: { black: number; white: number } };
+export type PaperModel = { W: number; H: number; h: Matrix; photoWidth: number; photoHeight: number; paper: number[]; coefficients: number[][]; samples: number; supported: boolean; note: string; paperTone?: PaperTone; autoLevels?: { black: number; white: number } };
 type PaperSample = { x: number; y: number; rgb: number[] };
 const clamp = (value: number, low = 0, high = 255) => Math.max(low, Math.min(high, value));
 const median = (values: number[]) => { const sorted = [...values].sort((a, b) => a - b); return sorted[Math.floor(sorted.length / 2)] ?? 255; };
@@ -19,6 +21,14 @@ export function validateAdjustments(a: Adjustments) {
 }
 
 function paperValue(value: number, c: number, nx: number, ny: number, model: PaperModel, flatten: boolean, whiteBalance: boolean) {
+  if (model.paperTone === 'dark') {
+    // Black paper is not a white-balance reference. Subtract smooth colored
+    // background glare instead of dividing by near-black channel values.
+    if (!flatten) return value;
+    const k = model.coefficients[c]!;
+    const field = k[0]! + k[1]! * nx + k[2]! * ny + k[3]! * nx * nx + k[4]! * nx * ny + k[5]! * ny * ny;
+    return value - Math.max(0, field - 10);
+  }
   const peak = Math.max(...model.paper);
   if (flatten) {
     const k = model.coefficients[c]!;
@@ -72,12 +82,13 @@ function inPhoto(h: Matrix, x: number, y: number, width: number, height: number)
 }
 
 /** One model per photographed sheet, independent of crop, frame content and output size.
- * Only margins/gaps outside the full cells are paper references. Local bright
+ * Only margins/gaps outside the full cells are paper references. Local paper
  * quantiles suppress labels and dirt; a smooth field avoids following drawn marks. */
 export function estimatePaper(source: Raster, original: { width: number; height: number }, h: Matrix, settings: SheetSettings): PaperModel {
-  const { W, H } = settings, layout = buildLayout(settings);
+  const { W, H } = settings, layout = buildLayout(settings), dark = settings.paperTone === 'dark';
+  const paperTone = dark ? 'dark' : 'light', background = paperBackground(paperTone);
   const scale = 540 / Math.max(W, H);
-  const raster = sampleRect(source, original, h, { x: 0, y: 0, w: W, h: H }, Math.max(1, Math.round(W * scale)), Math.max(1, Math.round(H * scale)));
+  const raster = sampleRect(source, original, h, { x: 0, y: 0, w: W, h: H }, Math.max(1, Math.round(W * scale)), Math.max(1, Math.round(H * scale)), background);
   const cols = Math.min(28, Math.max(6, Math.ceil(W / 14))), rows = Math.min(28, Math.max(6, Math.ceil(H / 14)));
   const bins: { x: number; y: number; rgb: number[]; light: number }[][] = Array.from({ length: cols * rows }, () => []);
   for (let y = 0; y < raster.height; y++) for (let x = 0; x < raster.width; x++) {
@@ -88,24 +99,25 @@ export function estimatePaper(source: Raster, original: { width: number; height:
     const i = (y * raster.width + x) * 4;
     const rgb = [raster.data[i]!, raster.data[i + 1]!, raster.data[i + 2]!];
     const light = .2126 * rgb[0]! + .7152 * rgb[1]! + .0722 * rgb[2]!;
-    if (light < 30) continue;
+    if (!dark && light < 30) continue;
     const bin = Math.floor(my / H * rows) * cols + Math.floor(mx / W * cols);
     bins[bin]!.push({ x: mx / W * 2 - 1, y: my / H * 2 - 1, rgb, light });
   }
   let samples: PaperSample[] = bins.filter(bin => bin.length >= 8).map(bin => {
     bin.sort((a, b) => a.light - b.light);
-    const bright = bin.slice(Math.floor(bin.length * .65), Math.max(Math.floor(bin.length * .9), Math.floor(bin.length * .65) + 1));
+    const start = Math.floor(bin.length * (dark ? .1 : .65)), end = Math.floor(bin.length * (dark ? .35 : .9));
+    const bright = bin.slice(start, Math.max(end, start + 1));
     return { x: bright.reduce((sum, p) => sum + p.x, 0) / bright.length, y: bright.reduce((sum, p) => sum + p.y, 0) / bright.length, rgb: [0, 1, 2].map(c => median(bright.map(p => p.rgb[c]!))) };
   });
   const supported = samples.length >= 12 && Math.max(...samples.map(s => s.x)) - Math.min(...samples.map(s => s.x)) > 1 && Math.max(...samples.map(s => s.y)) - Math.min(...samples.map(s => s.y)) > 1;
-  if (!supported) return { W, H, h, photoWidth: original.width, photoHeight: original.height, paper: [255, 255, 255], coefficients: [[255, 0, 0, 0, 0, 0], [255, 0, 0, 0, 0, 0], [255, 0, 0, 0, 0, 0]], samples: samples.length, supported: false, note: 'Not enough blank paper is visible to estimate lighting. Automatic corrections are skipped for this sheet; global sliders still apply.' };
+  if (!supported) return { W, H, h, paperTone, photoWidth: original.width, photoHeight: original.height, paper: [background, background, background], coefficients: [0, 1, 2].map(() => [background, 0, 0, 0, 0, 0]), samples: samples.length, supported: false, note: 'Not enough blank paper is visible to estimate lighting. Automatic corrections are skipped for this sheet; global sliders still apply.' };
   let coefficients = [0, 1, 2].map(c => fit(samples, c));
   // Remove isolated contaminated reference tiles, keeping broad illumination changes.
   const residuals = samples.map(s => Math.abs(s.rgb[1]! - evaluate(coefficients[1]!, basis(s.x, s.y))));
   const limit = Math.max(12, median(residuals) * 4);
   const clean = samples.filter((_, i) => residuals[i]! <= limit);
   if (clean.length >= samples.length * .75 && clean.length >= 12) { samples = clean; coefficients = [0, 1, 2].map(c => fit(samples, c)); }
-  const model: PaperModel = { W, H, h, photoWidth: original.width, photoHeight: original.height, paper: [0, 1, 2].map(c => median(samples.map(s => s.rgb[c]!))), coefficients, samples: samples.length, supported: true, note: 'Lighting estimated from blank paper across this sheet. The same correction is used for every frame.' };
+  const model: PaperModel = { W, H, h, paperTone, photoWidth: original.width, photoHeight: original.height, paper: [0, 1, 2].map(c => median(samples.map(s => s.rgb[c]!))), coefficients, samples: samples.length, supported: true, note: dark ? 'Dark paper estimated across this sheet. Background glare is reduced while bright ink keeps its color; every frame shares the correction.' : 'Lighting estimated from blank paper across this sheet. The same correction is used for every frame.' };
   // Analyze all physical cells together, independent of playback, crop, total
   // frame count and output size. Never auto-level individual animation frames.
   const ink = new Uint32Array(256), paper = new Uint32Array(256);
@@ -116,10 +128,17 @@ export function estimatePaper(source: Raster, original: { width: number; height:
     const rgb = [0, 1, 2].map(c => paperValue(raster.data[(y * raster.width + x) * 4 + c]!, c, mx / W * 2 - 1, my / H * 2 - 1, model, true, true));
     const light = Math.round(clamp(.2126 * rgb[0]! + .7152 * rgb[1]! + .0722 * rgb[2]!));
     const inCell = layout.cells.some(({ cell }) => mx >= cell.x - 1 && my >= cell.y - 1 && mx <= cell.x + cell.w + 1 && my <= cell.y + cell.h + 1);
-    if (inCell && light < 180) ink[light]!++;
-    if (!inCell && light >= 190) paper[light]!++;
+    if (dark) {
+      if (inCell && light > 40) ink[Math.round(clamp(Math.max(...rgb)))]!++;
+      if (!inCell && light <= 100) paper[light]!++;
+    } else {
+      if (inCell && light < 180) ink[light]!++;
+      if (!inCell && light >= 190) paper[light]!++;
+    }
   }
-  model.autoLevels = { black: clamp(quantile(ink, .1, 0) - 5, 0, 60), white: clamp(quantile(paper, .1, 245) - 8, 215, 245) };
+  model.autoLevels = dark
+    ? { black: clamp(quantile(paper, .9, 10) + 4, 0, 45), white: clamp(quantile(ink, .95, 255), 150, 255) }
+    : { black: clamp(quantile(ink, .1, 0) - 5, 0, 60), white: clamp(quantile(paper, .1, 245) - 8, 215, 245) };
   return model;
 }
 
@@ -127,6 +146,7 @@ export function estimatePaper(source: Raster, original: { width: number; height:
 export function adjustRaster(source: Raster, rect: Rect, model: PaperModel, adjustments: Adjustments): Raster {
   validateAdjustments(adjustments);
   const a = adjustments, data = new Uint8ClampedArray(source.data.length);
+  const background = paperBackground(model.paperTone);
   const sharpen = a.sharpenEnabled && a.sharpen > 0;
   const auto = a.autoAdjust && model.supported ? model.autoLevels : undefined;
   const flatten = (a.flatten || a.autoAdjust) && model.supported, whiteBalance = (a.whiteBalance || a.autoAdjust) && model.supported;
@@ -137,7 +157,7 @@ export function adjustRaster(source: Raster, rect: Rect, model: PaperModel, adju
       const valid = mx >= 0 && my >= 0 && mx <= model.W && my <= model.H && inPhoto(model.h, mx, my, model.photoWidth, model.photoHeight);
       const rgb = [0, 1, 2].map(c => {
         const alpha = source.data[i + 3]! / 255;
-        let value = source.data[i + c]! * alpha + 255 * (1 - alpha);
+        let value = source.data[i + c]! * alpha + background * (1 - alpha);
         if (valid) value = paperValue(value, c, nx, ny, model, flatten, whiteBalance);
         if (valid && auto) value = clamp((value - auto.black) / (auto.white - auto.black), 0, 1) * 255;
         return Math.pow(clamp((value - a.black) / (a.white - a.black), 0, 1), 1 / a.gamma) * 255;

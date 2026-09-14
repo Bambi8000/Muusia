@@ -28,7 +28,7 @@ self.onmessage = async (event: MessageEvent<{ type: 'probe' | 'export'; plan: Ex
     const draw = async (index: number) => {
       const bitmap = await createImageBitmap(await readBlob(index));
       try {
-        context.fillStyle = '#fff'; context.fillRect(0, 0, plan.width, plan.height);
+        context.fillStyle = plan.frames[index]!.paperTone === 'dark' ? '#000' : '#fff'; context.fillRect(0, 0, plan.width, plan.height);
         context.imageSmoothingEnabled = true; context.imageSmoothingQuality = 'high';
         context.drawImage(bitmap, 0, 0, plan.contentWidth, plan.contentHeight);
       } finally { bitmap.close(); }

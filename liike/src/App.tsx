@@ -14,13 +14,14 @@ import { DEFAULT_ADJUSTMENTS } from './adjustments';
 import type { Adjustments } from './adjustments';
 import ExportStep from './ExportStep';
 import { DEFAULT_EXPORT } from './export-plan';
+import type { PaperTone } from './paper';
 
 type NumericKey = 'W' | 'H' | 'cols' | 'rows' | 'margin' | 'gap' | 'markSize' | 'total' | 'pad';
-type Draft = Record<NumericKey, string> & { order: Order; crop: Crop };
+type Draft = Record<NumericKey, string> & { order: Order; crop: Crop; paperTone: PaperTone };
 const numericKeys: NumericKey[] = ['W', 'H', 'cols', 'rows', 'margin', 'gap', 'markSize', 'total', 'pad'];
-const makeDraft = (p: SheetSettings): Draft => Object.fromEntries(Object.entries(p).map(([key, value]) => [key, String(value)])) as Draft;
+const makeDraft = (p: SheetSettings): Draft => ({ ...Object.fromEntries(Object.entries(p).map(([key, value]) => [key, String(value)])), paperTone: p.paperTone ?? 'light' }) as Draft;
 const readDraft = (d: Draft): SheetSettings => ({
-  order: d.order, crop: d.crop,
+  order: d.order, crop: d.crop, paperTone: d.paperTone,
   ...Object.fromEntries(numericKeys.map(key => [key, d[key].trim() === '' ? NaN : Number(d[key])])) as Record<NumericKey, number>,
 });
 const mm = (value: number) => Number(value.toFixed(2)).toLocaleString('en-US');
@@ -31,18 +32,19 @@ function SheetPreview({ settings, sheet, guides }: { settings: SheetSettings; sh
   const frames = framesOnSheet(settings, sheet);
   const byCell = new Map(frames.map(f => [f.index, f.frame + 1]));
   const fontSize = Math.min(l.cw, l.ch) * 0.22;
+  const dark = settings.paperTone === 'dark', paperColor = dark ? '#161e24' : '#fffef9', inkColor = dark ? '#d7f69f' : '#454b3d';
   return <svg className="sheet" viewBox={`0 0 ${settings.W} ${settings.H}`} role="img" aria-label={`Sheet ${sheet + 1}: ${frames.length} frames in ${settings.cols} columns and ${settings.rows} rows`}>
-    <defs><pattern id="marker-hatch" width="1" height="0.6" patternUnits="userSpaceOnUse"><path d="M0 .3H1" stroke="#454b3d" strokeWidth=".3" /></pattern></defs>
-    <rect width={settings.W} height={settings.H} fill="#fffef9" />
+    <defs><pattern id="marker-hatch" width="1" height="0.6" patternUnits="userSpaceOnUse"><path d="M0 .3H1" stroke={inkColor} strokeWidth=".3" /></pattern></defs>
+    <rect width={settings.W} height={settings.H} fill={paperColor} />
     {l.cells.map(({ index, cell, window, crop }) => <g key={index} className={byCell.has(index) ? 'occupied' : 'empty'}>
       {guides && <rect {...rectProps(cell)} className="cell-guide" />}
-      <rect {...rectProps(window)} className="frame-window" />
+      <rect {...rectProps(window)} className="frame-window" style={dark ? { fill: '#29392e', stroke: '#789d61' } : undefined} />
       {byCell.has(index) && (settings.crop === 'Full cell' || settings.pad > 0) && <rect {...rectProps(crop)} className="crop-guide" />}
-      <text x={window.x + window.w / 2} y={window.y + window.h / 2} fontSize={fontSize} textAnchor="middle" dominantBaseline="central" fill={byCell.has(index) ? '#526638' : '#92978b'}>{byCell.get(index) ?? '—'}</text>
+      <text x={window.x + window.w / 2} y={window.y + window.h / 2} fontSize={fontSize} textAnchor="middle" dominantBaseline="central" fill={dark ? '#d7f69f' : byCell.has(index) ? '#526638' : '#92978b'}>{byCell.get(index) ?? '—'}</text>
     </g>)}
     {l.markers.map((m, i) => <g key={i}>
-      <rect x={m.x - settings.markSize / 2} y={m.y - settings.markSize / 2} width={settings.markSize} height={settings.markSize} fill="url(#marker-hatch)" stroke="#454b3d" strokeWidth=".3" />
-      {m.hole && <circle cx={m.x} cy={m.y} r={settings.markSize * .2} fill="#fffef9" stroke="#454b3d" strokeWidth=".3" />}
+      <rect x={m.x - settings.markSize / 2} y={m.y - settings.markSize / 2} width={settings.markSize} height={settings.markSize} fill="url(#marker-hatch)" stroke={inkColor} strokeWidth=".3" />
+      {m.hole && <circle cx={m.x} cy={m.y} r={settings.markSize * .2} fill={paperColor} stroke={inkColor} strokeWidth=".3" />}
     </g>)}
   </svg>;
 }
@@ -112,6 +114,7 @@ export default function App() {
     <div className="workspace">
       <section className="settings" aria-label="Sheet settings">
         <fieldset><legend><span>01</span> Canvas</legend>
+          <label className="field"><span>Paper color</span><select value={draft.paperTone} onChange={e => update({ paperTone: e.target.value as PaperTone })}><option value="light">White / light</option><option value="dark">Black / dark</option></select></label>
           <div className="field-row"><label className="field"><span>Paper size</span><select value={paper} onChange={e => choosePaper(e.target.value)}><option>A3</option><option>A4</option><option>Custom</option></select></label>
             <label className="field"><span>Orientation</span><select value={settings.H > settings.W ? 'Portrait' : 'Landscape'} disabled={!Number.isFinite(settings.W) || !Number.isFinite(settings.H)} onChange={e => {
               const portrait = e.target.value === 'Portrait';
@@ -129,7 +132,7 @@ export default function App() {
           <label className="field"><span>Frame order</span><select value={draft.order} onChange={e => update({ order: e.target.value as Order })}>{ORDERS.map(order => <option key={order}>{order}</option>)}</select></label>
           <p className="hint">Boustrophedon alternates left-to-right and right-to-left on each row.</p>
           <div className="field-row">{numberField('total', 'Total frames', 1)}{numberField('markSize', 'Marker size · mm', 8, .5, 15)}</div>
-          <p className="hint">Marker centers are fixed at 20 mm from the sheet edges. The white hole marks the top-left corner.</p>
+          <p className="hint">Marker centers are fixed at 20 mm from the sheet edges. The {settings.paperTone === 'dark' ? 'dark' : 'white'} hole marks the top-left corner.</p>
         </fieldset>
         <fieldset><legend><span>03</span> Crop</legend>
           <div className="field-row crop-fields"><label className="field"><span>Crop area</span><select value={draft.crop} onChange={e => update({ crop: e.target.value as Crop })}><option>Frame window</option><option>Full cell</option></select></label>{numberField('pad', 'Pad · %', 0, .5, 100)}</div>
@@ -154,7 +157,7 @@ export default function App() {
     </>}
     {step === 1 && layout && <PhotosStep library={library} sheets={layout.sheets} settings={settings} onBack={() => setStep(0)} onRegister={index => { setPhotoIndex(index); setStep(2); }} />}
     {step === 2 && layout && registrationPhoto && <>
-      <section className="intro"><div><p className="eyebrow">03 / Register the sheet</p><h1>Find <em>the corners.</em></h1><p>Match the markers in your photo to the sheet. Begin with the marker that has a white hole.</p></div><label className="field"><span>Photographed sheet</span><select value={registrationPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{library.photos.map((photo, i) => <option key={photo.id} value={i}>Sheet {i + 1} · {photo.name}{i >= layout.sheets ? ' · extra photo' : ''}</option>)}</select></label></section>
+      <section className="intro"><div><p className="eyebrow">03 / Register the sheet</p><h1>Find <em>the corners.</em></h1><p>Match the markers in your photo to the sheet. Begin with the marker that has a {settings.paperTone === 'dark' ? 'dark' : 'white'} hole.</p></div><label className="field"><span>Photographed sheet</span><select value={registrationPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{library.photos.map((photo, i) => <option key={photo.id} value={i}>Sheet {i + 1} · {photo.name}{i >= layout.sheets ? ' · extra photo' : ''}</option>)}</select></label></section>
       {availablePhotos.length < layout.sheets && <p className="warning">{layout.sheets - availablePhotos.length} more photos needed. You can register these sheets now and add the rest in Photos.</p>}
       {registrationPhotoIndex >= layout.sheets && <p className="warning">This extra photo can be registered now, but is not used in the sequence yet. Increase Total frames in Sheet or move this photo earlier in Photos to include it.</p>}
       <RegistrationStep key={registrationPhoto.id} photo={registrationPhoto} settings={settings} sheet={registrationPhotoIndex} setPoints={library.setPoints} detect={library.detect} undoDetection={library.undoDetection} />
@@ -162,7 +165,7 @@ export default function App() {
     </>}
     {step === 3 && layout && selectedPhoto && <>
       <section className="intro"><div><p className="eyebrow">04 / Adjust the paper</p><h1>Let the drawing <em>shine.</em></h1><p>Even out the lighting and give the whole animation a consistent look.</p></div><label className="field"><span>Photographed sheet</span><select value={selectedPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{availablePhotos.map((photo, i) => <option key={photo.id} value={i}>Sheet {i + 1} · {photo.name}</option>)}</select></label></section>
-      <AdjustStep key={selectedPhoto.id} photo={selectedPhoto} settings={settings} sheet={selectedPhotoIndex} adjustments={adjustments} setAdjustments={setAdjustments} readiness={readiness} onBack={() => setStep(2)} onSequence={() => { setStep(4); if (!extraction.completed) void extraction.extract(); }} />
+      <AdjustStep key={selectedPhoto.id} photo={selectedPhoto} settings={settings} sheet={selectedPhotoIndex} adjustments={adjustments} setAdjustments={setAdjustments} setPaperTone={paperTone => update({ paperTone })} readiness={readiness} onBack={() => setStep(2)} onSequence={() => { setStep(4); if (!extraction.completed) void extraction.extract(); }} />
     </>}
     {step === 4 && layout && <SequenceStep stabilize={stabilize} setStabilize={setStabilize} extraction={extraction} resolution={resolution} setResolution={setResolution} total={settings.total} readiness={readiness} sequence={sequence} setSequence={setSequence} onBack={() => setStep(selectedPhoto ? 3 : 1)} onExport={() => setStep(5)} />}
     {step === 5 && layout && <ExportStep frames={extraction.completed ? extraction.frames : []} sequence={sequence} setSequence={setSequence} options={exportOptions} setOptions={setExportOptions} onBack={() => setStep(4)} />}

@@ -1,16 +1,19 @@
+import type { PaperTone } from './paper';
+
 export type Order = 'Row-major' | 'Column-major' | 'Boustrophedon';
 export type Crop = 'Frame window' | 'Full cell';
 export type Rect = { x: number; y: number; w: number; h: number };
 export type SheetSettings = {
   W: number; H: number; cols: number; rows: number; margin: number;
   gap: number; markSize: number; order: Order; total: number; crop: Crop; pad: number;
+  paperTone?: PaperTone;
 };
 
 export const LAYOUTS = [[3, 2], [4, 3], [2, 2], [3, 3], [4, 4]] as const;
 export const ORDERS: readonly Order[] = ['Row-major', 'Column-major', 'Boustrophedon'];
 export const DEFAULTS: Readonly<SheetSettings> = Object.freeze({
   W: 420, H: 297, cols: 4, rows: 3, margin: 30, gap: 8, markSize: 15,
-  order: 'Row-major', total: 12, crop: 'Frame window', pad: 0,
+  order: 'Row-major', total: 12, crop: 'Frame window', pad: 0, paperTone: 'light',
 });
 
 export function validateSettings(p: SheetSettings): string[] {
@@ -27,6 +30,7 @@ export function validateSettings(p: SheetSettings): string[] {
   if (!Number.isSafeInteger(p.total) || p.total < 1) issues.push('Total frames must be a positive whole number.');
   if (p.pad < 0 || p.pad > 100) issues.push('Padding must be between 0 and 100%.');
   if (!ORDERS.includes(p.order)) issues.push('Choose a supported frame order.');
+  if (p.paperTone !== undefined && !['light', 'dark'].includes(p.paperTone)) issues.push('Choose light or dark paper.');
   if (!['Frame window', 'Full cell'].includes(p.crop)) issues.push('Choose a supported crop.');
   // Muusia emits no cells when either dimension is <= 1 mm.
   if ((p.W - 2 * p.margin - (p.cols - 1) * p.gap) / p.cols <= 1 ||

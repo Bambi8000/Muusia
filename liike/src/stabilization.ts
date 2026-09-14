@@ -1,6 +1,8 @@
 import type { Raster } from './sampling';
 import type { Rect } from './layout';
 import type { Point } from './homography';
+import { analysisLight } from './paper.ts';
+import type { PaperTone } from './paper';
 
 export type DrawingPosition = { center: Point; bounds: Rect };
 
@@ -51,10 +53,10 @@ function hullCenter(points: Point[]): Point | null {
 
 /** Identify one isolated ink drawing on paper, before any tone adjustments.
  * Return normalized coordinates. Ambiguous/edge-clipped artwork is rejected. */
-export function drawingPosition(raster: Raster): DrawingPosition | null {
+export function drawingPosition(raster: Raster, paperTone?: PaperTone): DrawingPosition | null {
   const { width, height, data } = raster, count = width * height;
   const gray = new Float32Array(count);
-  for (let i = 0; i < count; i++) gray[i] = (data[i * 4]! * .299 + data[i * 4 + 1]! * .587 + data[i * 4 + 2]! * .114) * data[i * 4 + 3]! / 255 + 255 - data[i * 4 + 3]!;
+  for (let i = 0; i < count; i++) gray[i] = analysisLight(data[i * 4]!, data[i * 4 + 1]!, data[i * 4 + 2]!, data[i * 4 + 3]!, paperTone);
   const smooth = mean(gray, width, height, 1), background = mean(smooth, width, height, Math.max(6, Math.round(Math.max(width, height) / 32)));
   const ink = new Uint8Array(count), connected = new Uint8Array(count);
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
