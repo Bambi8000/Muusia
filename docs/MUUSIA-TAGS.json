@@ -102,6 +102,11 @@
   "pathops",
   "round"
  ],
+ "broken_grid": [
+  "geometric",
+  "grid",
+  "retro"
+ ],
  "brush_z": [
   "audio",
   "noise",
@@ -967,6 +972,12 @@
   "scatter",
   "spiral"
  ],
+ "plaid": [
+  "3d",
+  "animation",
+  "geometric",
+  "grid"
+ ],
  "pointcloud": [
   "3d",
   "connect",
@@ -1271,6 +1282,12 @@
  "stamp": [
   "decoration",
   "repeat"
+ ],
+ "starchart": [
+  "chart",
+  "dots",
+  "scatter",
+  "scientific"
  ],
  "starfield": [
   "connect",

@@ -1290,6 +1290,18 @@ text are **English**.
   line up; optional Overlap mm runs past the seam as an open path to hide
   the pen dot. Born from the first Belt Drive plot on Viivain.
 
+- **2.88** three new generators. **Plaid Grids 3D** (gen/geometric):
+  band-line grid planes in a rotatable 3D world, true pinhole perspective,
+  Phase = one full camera orbit with a byte-perfect seamless loop, per-line
+  hashed dropout so frames never flicker, orbit-scanned fit so the whole
+  loop stays on the sheet. **Star Chart** (gen/scientific): Galaxis-style
+  polar/cartesian graticule with ring bundles, wear, tangential labels and
+  a patchy density field of dot hits on a separate pen. **Broken Grid**
+  (gen/geometric): per-edge grid decay with either-or zone territories,
+  lattice shifts, dash gaps and doubles — plus an always-on guard that
+  detects isolated swastika-reading motifs (both chiralities, arms 1-2,
+  with an isolation rule) and breaks them deterministically.
+
 ## Hard-won pitfalls (keep)
 
 - SENTINELS IN dist MUST BE STRING LITERALS. Vite minification renames every

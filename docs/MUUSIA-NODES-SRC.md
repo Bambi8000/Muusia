@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (268 files, generated)
+# MUUSIA v2.29 — Node Sources (271 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -3547,6 +3547,208 @@ export default {
       out.push({ pts: [[ax, ay], [bx, by]], closed: false, layer: L });
     }
     return { paths: out };
+  },
+};
+```
+
+## broken_grid.js
+
+```js
+import { Pin, hash2, noise2, applyStyle } from "../helpers.js";
+
+export default {
+  /* Broken Grid - a grid whose every cell edge is an independent seeded
+     decision, steered by a low-frequency zone field: some regions keep
+     both directions (boxes), some collapse into columns of vertical
+     dashes or runs of horizontals, some fall silent. Early-computer-art
+     drawing in the Vera Molnar tradition. */
+  key: "broken_grid",
+  name: "Broken Grid",
+  cat: "gen",
+  group: "geometric",
+  desc: "A grid falling apart by regions. Every cell edge is its own seeded decision driven by two noise fields, one for vertical edges and one for horizontal: Zones sets the size of the regions, Contrast sharpens them from gentle drift to hard either-or territories, Density scales everything, and Mix couples the two fields - at 0 vertical and horizontal zones live separate lives (columns of dashes here, rows there), at 1 they agree and the drawing becomes solid boxes against empty voids. Every drawn edge is a dash: Gap shortens it at both ends with per-edge jitter, Shift knocks it off the lattice by a fraction of the cell, Doubles gives a share of edges a second parallel stroke (the inked-twice look) and Wobble bends them by hand. All decisions are hashed per edge - fully deterministic. A built-in guard scans the lattice for isolated swastika-reading motifs (both chiralities, arm lengths 1-2) and deterministically removes one bend edge from any it finds, so the pattern can never accidentally form one; motifs buried inside dense grid regions do not read and are left alone.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+    { key: "cell", label: "Cell", type: "slider", min: 3, max: 20, step: 0.5, def: 8 },
+    { key: "zones", label: "Zones", type: "slider", min: 0.4, max: 3, step: 0.1, def: 1.4 },
+    { key: "contrast", label: "Contrast", type: "slider", min: 0, max: 1, step: 0.05, def: 0.7 },
+    { key: "density", label: "Density", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.75 },
+    { key: "mix", label: "Mix", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35 },
+    { key: "gap", label: "Gap", type: "slider", min: 0, max: 0.45, step: 0.01, def: 0.12 },
+    { key: "shift", label: "Shift", type: "slider", min: 0, max: 1, step: 0.05, def: 0.3 },
+    { key: "doubles", label: "Doubles", type: "slider", min: 0, max: 1, step: 0.05, def: 0.15 },
+    { key: "wobble", label: "Wobble", type: "slider", min: 0, max: 1, step: 0.05, def: 0.25 },
+    { key: "margin", label: "Margin", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+    { key: "pen", label: "Pen", type: "pen", def: 0 },
+  ],
+
+  overlay(p, ctx, ins, node) {
+    return [{ kind: "rect", x: p.margin, y: p.margin, w: ctx.W - 2 * p.margin, h: ctx.H - 2 * p.margin }];
+  },
+
+  compute(ins, p, ctx, node) {
+    const W = ctx.W, H = ctx.H;
+    const BUDGET = 110000;
+    let used = 0;
+    const paths = [];
+    const pen = Math.max(0, Math.min(11, Math.round(p.pen)));
+    const push = (pts) => {
+      if (pts.length < 2 || used > BUDGET) return;
+      used += pts.length;
+      paths.push({ pts, closed: false, layer: pen });
+    };
+    const kSeed = (p.seed >>> 0) * 101 + 23;
+    const m = Math.max(0, p.margin);
+    const cell = Math.max(1.5, p.cell);
+    const nx = Math.max(1, Math.floor((W - 2 * m) / cell));
+    const ny = Math.max(1, Math.floor((H - 2 * m) / cell));
+    const ox = (W - nx * cell) / 2;
+    const oy = (H - ny * cell) / 2;
+    const zf = Math.max(0.1, p.zones) * 0.9;
+    const con = Math.max(0, Math.min(1, p.contrast));
+    const den = Math.max(0, Math.min(1, p.density));
+    const mix = Math.max(0, Math.min(1, p.mix));
+    const shf = Math.max(0, p.shift) * cell * 0.35;
+    const dg = Math.max(0, Math.min(0.45, p.gap));
+    const wob = Math.max(0, p.wobble);
+
+    /* two zone fields, coupled by Mix; Contrast pushes them toward hard
+       either-or territories */
+    const field = (x, y, which) => {
+      const u = (x / Math.max(W, H)) * 4.2 / zf;
+      const v = (y / Math.max(W, H)) * 4.2 / zf;
+      const a = noise2(u + 3.1, v + 7.7, kSeed + 5);
+      const b = noise2(u * 2.3 + 41.2, v * 2.3 + 19.5, kSeed + 9);
+      /* Mix 0: horizontal territory is the OPPOSITE of vertical (hard
+         either-or regions); Mix 1: both agree (boxes vs voids); a smaller
+         independent field adds ragged territory borders */
+      const n = which === 0 ? a : mix * a + (1 - mix) * (1 - a);
+      const c = (n - 0.5) * (1 + con * 5) + 0.5 + (b - 0.5) * 0.35;
+      return Math.max(0, Math.min(1, c)) * den;
+    };
+
+    /* one dash: from a to b, shortened, shifted, wobbled, maybe doubled */
+    const dash = (ax, ay, bx, by, id) => {
+      const g0 = dg * (0.5 + hash2(id, 1, kSeed + 11));
+      const g1 = dg * (0.5 + hash2(id, 2, kSeed + 13));
+      const t0 = Math.min(0.45, g0), t1 = Math.max(0.55, 1 - g1);
+      const sx = (hash2(id, 3, kSeed + 17) - 0.5) * 2 * shf;
+      const sy = (hash2(id, 4, kSeed + 19) - 0.5) * 2 * shf;
+      const x0 = ax + (bx - ax) * t0 + sx, y0 = ay + (by - ay) * t0 + sy;
+      const x1 = ax + (bx - ax) * t1 + sx, y1 = ay + (by - ay) * t1 + sy;
+      const dx = x1 - x0, dy = y1 - y0;
+      const L = Math.hypot(dx, dy);
+      if (L < 0.4) return;
+      const nxu = -dy / L, nyu = dx / L;
+      const emit = (off) => {
+        if (wob > 0.01) {
+          const n = Math.max(2, Math.ceil(L / 2));
+          const pts = [];
+          for (let i = 0; i <= n; i++) {
+            const t = i / n;
+            const w = (noise2(t * 4 + id * 0.13, id * 0.71, kSeed + 29) - 0.5) * 2 * wob * 0.35;
+            pts.push([x0 + dx * t + nxu * (w + off), y0 + dy * t + nyu * (w + off)]);
+          }
+          push(pts);
+        } else {
+          push([[x0 + nxu * off, y0 + nyu * off], [x1 + nxu * off, y1 + nyu * off]]);
+        }
+      };
+      emit(0);
+      if (hash2(id, 5, kSeed + 23) < p.doubles) emit(0.55);
+    };
+
+    /* pass 1: every edge decision into a lattice
+       (vertical: node (i,j)->(i,j+1); horizontal: (i,j)->(i+1,j)) */
+    const EV = [], EH = [];
+    for (let i = 0; i <= nx; i++) {
+      EV.push([]); EH.push([]);
+      for (let j = 0; j <= ny; j++) {
+        const x = ox + i * cell, y = oy + j * cell;
+        EV[i].push(j < ny && hash2(i * 4096 + j * 2 + 0, 7, kSeed + 3) < field(x, y + cell / 2, 0));
+        EH[i].push(i < nx && hash2(i * 4096 + j * 2 + 1, 7, kSeed + 3) < field(x + cell / 2, y, 1));
+      }
+    }
+    const gV = (i, j) => i >= 0 && j >= 0 && i <= nx && j < ny && EV[i][j];
+    const gH = (i, j) => i >= 0 && j >= 0 && i < nx && j <= ny && EH[i][j];
+
+    /* pass 2: swastika guard - an isolated motif (both chiralities, arm
+       lengths 1..2) gets one bend edge removed; buried motifs inside a
+       dense region do not read and are left alone. Removals only delete
+       edges, so the sweep converges. */
+    {
+      const motif = (i, j, L, cw) => {
+        const edges = [];
+        for (let k = 1; k <= L; k++) {
+          if (!gV(i, j - k)) return null;
+          edges.push(["V", i, j - k]);
+          if (!gV(i, j + k - 1)) return null;
+          edges.push(["V", i, j + k - 1]);
+          if (!gH(i + k - 1, j)) return null;
+          edges.push(["H", i + k - 1, j]);
+          if (!gH(i - k, j)) return null;
+          edges.push(["H", i - k, j]);
+        }
+        const bends = cw
+          ? [["H", i, j - L], ["V", i + L, j], ["H", i - 1, j + L], ["V", i - L, j - 1]]
+          : [["H", i - 1, j - L], ["V", i + L, j - 1], ["H", i, j + L], ["V", i - L, j]];
+        for (const [t, a, b] of bends) {
+          if (t === "V" ? !gV(a, b) : !gH(a, b)) return null;
+          edges.push([t, a, b]);
+        }
+        /* isolation: count drawn edges touching motif nodes beyond the motif */
+        const nodes = [[i, j]];
+        for (let k = 1; k <= L; k++) nodes.push([i, j - k], [i, j + k], [i + k, j], [i - k, j]);
+        nodes.push(cw ? [i + 1, j - L] : [i - 1, j - L]);
+        nodes.push(cw ? [i + L, j + 1] : [i + L, j - 1]);
+        nodes.push(cw ? [i - 1, j + L] : [i + 1, j + L]);
+        nodes.push(cw ? [i - L, j - 1] : [i - L, j + 1]);
+        const inMotif = new Set(edges.map((e) => e.join(",")));
+        let extra = 0;
+        for (const [a, b] of nodes) {
+          if (gV(a, b) && !inMotif.has("V," + a + "," + b)) extra++;
+          if (gV(a, b - 1) && !inMotif.has("V," + a + "," + (b - 1))) extra++;
+          if (gH(a, b) && !inMotif.has("H," + a + "," + b)) extra++;
+          if (gH(a - 1, b) && !inMotif.has("H," + (a - 1) + "," + b)) extra++;
+        }
+        if (extra > 3) return null;
+        return { bends };
+      };
+      let guard = 0, found = true;
+      while (found && guard++ < 60) {
+        found = false;
+        for (let i = 1; i < nx && !found; i++) {
+          for (let j = 1; j < ny && !found; j++) {
+            for (const L of [1, 2]) {
+              for (const cw of [true, false]) {
+                const mm = motif(i, j, L, cw);
+                if (!mm) continue;
+                const pick = mm.bends[Math.floor(hash2(i, j, kSeed + 97) * 4) % 4];
+                if (pick[0] === "V") EV[pick[1]][pick[2]] = false;
+                else EH[pick[1]][pick[2]] = false;
+                found = true;
+                break;
+              }
+              if (found) break;
+            }
+          }
+        }
+      }
+    }
+
+    /* pass 3: render */
+    for (let i = 0; i <= nx; i++) {
+      for (let j = 0; j <= ny; j++) {
+        const x = ox + i * cell, y = oy + j * cell;
+        if (gV(i, j)) dash(x, y, x, y + cell, i * 4096 + j * 2 + 0);
+        if (gH(i, j)) dash(x, y, x + cell, y, i * 4096 + j * 2 + 1);
+        if (used > BUDGET) break;
+      }
+      if (used > BUDGET) break;
+    }
+    return applyStyle({ paths }, ins[0]);
   },
 };
 ```
@@ -25521,6 +25723,211 @@ export default {
 };
 ```
 
+## plaid.js
+
+```js
+import { Pin, mulberry32, hash2, noise2, applyStyle } from "../helpers.js";
+
+export default {
+  /* Plaid Grids 3D - overlapping band-line grids living on planes in a
+     rotatable 3D world. True pinhole perspective (straight lines stay
+     straight), orbit camera: Phase 0..1 spins a full 360 degrees so a
+     Frame Grid sweep loops seamlessly. Dropout and wobble are hashed per
+     line, never from phase, so nothing flickers between frames. */
+  key: "plaid",
+  name: "Plaid Grids 3D",
+  cat: "gen",
+  group: "geometric",
+  desc: "Overlapping hand-drawn grids as planes in a fully rotatable 3D world. Each grid gets a seeded character: cell size, band structure (every line is a bundle of 1..Bands parallel strokes - the tartan look), extent, wobble and dropout. Arrangement Stack floats parallel panes in depth like sheets of glass (orbiting makes them slide past each other in parallax), Box aligns planes to the three axis orientations, Random tumbles them freely; Depth spread scatters the panes. Yaw and Pitch orbit the camera by hand and Perspective bends the view from flat orthographic to a deep pinhole lens. Phase adds a full 360-degree orbit turn from 0 to 1 - wire ANIMATE Steps into it and the loop closes seamlessly, with Bob adding a pitch sway that also loops. Dropout and wobble are hashed per line, never from phase, so frames never flicker. Pen per grid cycles pens by plane for instant multicolour plaid.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+    { key: "grids", label: "Grids", type: "slider", min: 2, max: 8, step: 1, def: 4 },
+    { key: "arrange", label: "Arrangement", type: "select", options: ["Stack", "Box", "Random"], def: "Stack" },
+    { key: "spread", label: "Depth spread", type: "slider", min: 0, max: 1, step: 0.05, def: 0.55 },
+    { key: "size", label: "Size", type: "slider", min: 40, max: 220, step: 2, def: 140 },
+    { key: "cellmin", label: "Cell min", type: "slider", min: 2, max: 30, step: 0.5, def: 6 },
+    { key: "cellmax", label: "Cell max", type: "slider", min: 2, max: 40, step: 0.5, def: 16 },
+    { key: "bands", label: "Bands", type: "slider", min: 1, max: 6, step: 1, def: 3 },
+    { key: "bandgap", label: "Band gap", type: "slider", min: 0.4, max: 4, step: 0.1, def: 1.1 },
+    { key: "wobble", label: "Wobble", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35 },
+    { key: "dropout", label: "Dropout", type: "slider", min: 0, max: 0.9, step: 0.05, def: 0.15 },
+    { key: "yaw", label: "Yaw deg", type: "slider", min: 0, max: 360, step: 1, def: 25 },
+    { key: "pitch", label: "Pitch deg", type: "slider", min: -80, max: 80, step: 1, def: 15 },
+    { key: "persp", label: "Perspective", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35 },
+    { key: "phase", label: "Phase (wire Steps)", type: "slider", min: 0, max: 1, step: 0.01, def: 0 },
+    { key: "bob", label: "Bob deg", type: "slider", min: 0, max: 30, step: 1, def: 0 },
+    { key: "margin", label: "Margin", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+    { key: "pen", label: "Pen", type: "pen", def: 0 },
+    { key: "penper", label: "Pen per grid", type: "check", def: false },
+  ],
+
+  /* per-grid planes, shared by compute and overlay */
+  _layout(ins, p, ctx) {
+    const nG = Math.max(1, Math.min(12, Math.round(p.grids)));
+    const spread = Math.max(0, Math.min(1, p.spread));
+    let cmin = Math.min(p.cellmin, p.cellmax), cmax = Math.max(p.cellmin, p.cellmax);
+    cmin = Math.max(0.8, cmin); cmax = Math.max(cmin, cmax);
+    const planes = [];
+    for (let gi = 0; gi < nG; gi++) {
+      const rng = mulberry32((p.seed >>> 0) * 7919 + gi * 613 + 29);
+      /* basis vectors u,v spanning the plane, in world space */
+      let u, v;
+      if (p.arrange === "Box") {
+        const o = gi % 3;
+        u = o === 0 ? [1, 0, 0] : o === 1 ? [1, 0, 0] : [0, 1, 0];
+        v = o === 0 ? [0, 0, 1] : o === 1 ? [0, 1, 0] : [0, 0, 1];
+      } else if (p.arrange === "Random") {
+        const a1 = rng() * Math.PI * 2, a2 = Math.acos(2 * rng() - 1), a3 = rng() * Math.PI * 2;
+        const n = [Math.sin(a2) * Math.cos(a1), Math.sin(a2) * Math.sin(a1), Math.cos(a2)];
+        const t = Math.abs(n[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0];
+        const ux = [n[1] * t[2] - n[2] * t[1], n[2] * t[0] - n[0] * t[2], n[0] * t[1] - n[1] * t[0]];
+        const ul = Math.hypot(...ux) || 1;
+        u = ux.map((x) => x / ul);
+        const vv = [n[1] * u[2] - n[2] * u[1], n[2] * u[0] - n[0] * u[2], n[0] * u[1] - n[1] * u[0]];
+        const c3 = Math.cos(a3), s3 = Math.sin(a3);
+        const u2 = u.map((x, i) => x * c3 + vv[i] * s3);
+        v = u.map((x, i) => -x * s3 + vv[i] * c3);
+        u = u2;
+      } else { /* Stack: upright panes facing the camera at yaw 0 */
+        u = [1, 0, 0];
+        v = [0, 0, 1];
+      }
+      const center = p.arrange === "Stack"
+        ? [(rng() * 2 - 1) * 0.14 * spread, (gi / Math.max(1, nG - 1) - 0.5) * 1.1 * spread, (rng() * 2 - 1) * 0.14 * spread]
+        : [(rng() * 2 - 1) * 0.42 * spread, (rng() * 2 - 1) * 0.42 * spread, (rng() * 2 - 1) * 0.42 * spread];
+      const a = 0.32 + rng() * 0.24;
+      const b = 0.32 + rng() * 0.24;
+      const cell = (cmin + rng() * (cmax - cmin)) / Math.max(20, p.size);
+      const nb = 1 + Math.floor(rng() * Math.max(1, Math.min(6, Math.round(p.bands))));
+      planes.push({ gi, u, v, center, a, b, cell, nb, drop: rng() * 1e6 });
+    }
+    return { planes };
+  },
+
+  overlay(p, ctx, ins, node) {
+    const guides = [{ kind: "rect", x: p.margin, y: p.margin, w: ctx.W - 2 * p.margin, h: ctx.H - 2 * p.margin }];
+    try {
+      if (typeof this._layout !== "function") return guides;
+      const L = this._layout(ins, p, ctx);
+      for (const pl of L.planes.slice(0, 12)) {
+        guides.push({ kind: "circle", cx: ctx.W / 2 + pl.center[0] * p.size * 0.5, cy: ctx.H / 2 - pl.center[2] * p.size * 0.5, r: Math.max(2, pl.a * p.size * 0.25) });
+      }
+    } catch (e) { /* never throw */ }
+    return guides;
+  },
+
+  compute(ins, p, ctx, node) {
+    const W = ctx.W, H = ctx.H;
+    const BUDGET = 110000;
+    let used = 0;
+    const paths = [];
+    const push = (pts, layer) => {
+      if (pts.length < 2 || used > BUDGET) return;
+      used += pts.length;
+      paths.push({ pts, closed: false, layer });
+    };
+    const d0v = 1.25 / Math.max(0.02, p.persp);
+    const projAt = (P, cy, sy, cp, sp) => {
+      const x1 = P[0] * cy - P[1] * sy;
+      const y1 = P[0] * sy + P[1] * cy;
+      const sv = y1 * sp - P[2] * cp;
+      const depth = y1 * cp + P[2] * sp;
+      const k = d0v / Math.max(0.25, d0v - depth);
+      return [x1 * k, sv * k];
+    };
+    const wob = Math.max(0, p.wobble);
+    const drop = Math.max(0, Math.min(0.95, p.dropout));
+
+    /* camera: yaw orbit (+ full turn per phase cycle), pitch with looping bob */
+    const ph = p.phase - Math.floor(p.phase); /* 1.0 wraps to 0 exactly: byte-perfect loop */
+    const yaw = ((p.yaw / 360 + ph) % 1) * Math.PI * 2;
+    const pit = ((p.pitch + p.bob * Math.sin(ph * Math.PI * 2)) * Math.PI) / 180;
+    const cy0 = Math.cos(yaw), sy0 = Math.sin(yaw);
+    const cph = Math.cos(pit), sph = Math.sin(pit);
+
+    const L = this._layout(ins, p, ctx);
+
+    /* fit: measure this configuration's own extent over the FULL orbit
+       (plane corner points x 48 yaw samples x bob pitch extremes) so the
+       whole loop is guaranteed in frame without a per-frame re-fit; the
+       scan covers every phase, so the scale is phase-independent */
+    let ext = 0.05;
+    {
+      const pits = p.bob > 0
+        ? [((p.pitch - p.bob) * Math.PI) / 180, (p.pitch * Math.PI) / 180, ((p.pitch + p.bob) * Math.PI) / 180]
+        : [(p.pitch * Math.PI) / 180];
+      for (const pl of L.planes) {
+        for (const [su, sv2] of [[-pl.a, -pl.b], [-pl.a, pl.b], [pl.a, -pl.b], [pl.a, pl.b], [0, -pl.b], [0, pl.b], [-pl.a, 0], [pl.a, 0]]) {
+          const P = [
+            pl.center[0] + pl.u[0] * su + pl.v[0] * sv2,
+            pl.center[1] + pl.u[1] * su + pl.v[1] * sv2,
+            pl.center[2] + pl.u[2] * su + pl.v[2] * sv2,
+          ];
+          for (let oi = 0; oi < 48; oi++) {
+            const a2 = (oi / 48) * Math.PI * 2;
+            const cy2 = Math.cos(a2), sy2 = Math.sin(a2);
+            for (const pt2 of pits) {
+              const q = projAt(P, cy2, sy2, Math.cos(pt2), Math.sin(pt2));
+              ext = Math.max(ext, Math.abs(q[0]), Math.abs(q[1]));
+            }
+          }
+        }
+      }
+    }
+    const S = Math.min(Math.max(20, p.size), Math.max(12, (0.97 * (Math.min(W, H) / 2 - Math.max(0, p.margin) - 1.2)) / ext));
+    const proj = (P) => {
+      const q = projAt(P, cy0, sy0, cph, sph);
+      return [W / 2 + q[0] * S, H / 2 + q[1] * S];
+    };
+    const bg = Math.max(0.2, p.bandgap) / S;
+    for (const pl of L.planes) {
+      const layer = p.penper ? (Math.round(p.pen) + pl.gi) % 12 : Math.max(0, Math.min(11, Math.round(p.pen)));
+      const kSeed = (p.seed >>> 0) * 101 + pl.gi * 37 + 11;
+      /* two families of band lines on the plane */
+      for (let fam = 0; fam < 2; fam++) {
+        const along = fam === 0 ? pl.v : pl.u;   /* line direction */
+        const across = fam === 0 ? pl.u : pl.v;  /* stepping direction */
+        const half = fam === 0 ? pl.a : pl.b;
+        const lineHalf = fam === 0 ? pl.b : pl.a;
+        const nLines = Math.max(1, Math.floor((2 * half) / pl.cell));
+        for (let li = 0; li <= nLines; li++) {
+          if (hash2(li * 2 + fam, pl.gi * 7 + 1, kSeed) < drop) continue;
+          const off = -half + li * pl.cell;
+          for (let bi = 0; bi < pl.nb; bi++) {
+            if (pl.nb > 1 && hash2(li * 11 + bi, pl.gi * 5 + fam, kSeed + 3) < drop * 0.6) continue;
+            const boff = off + (bi - (pl.nb - 1) / 2) * bg;
+            if (boff < -half - 1e-9 || boff > half + 1e-9) continue;
+            const P0 = [], seg = [];
+            const wobAmp = (wob * 0.8) / S;
+            const nS = wob > 0.01 ? Math.max(2, Math.ceil((2 * lineHalf * S) / 2.5)) : 1;
+            for (let si = 0; si <= nS; si++) {
+              const t = -lineHalf + (2 * lineHalf * si) / nS;
+              const w = wob > 0.01
+                ? (noise2(t * 7 + li * 1.7 + bi * 0.9, pl.gi * 3.1 + fam * 5.5, kSeed + 7) - 0.5) * 2 * wobAmp
+                : 0;
+              const o = boff + w;
+              seg.push([
+                pl.center[0] + pl.u[0] * (fam === 0 ? o : t) + pl.v[0] * (fam === 0 ? t : o),
+                pl.center[1] + pl.u[1] * (fam === 0 ? o : t) + pl.v[1] * (fam === 0 ? t : o),
+                pl.center[2] + pl.u[2] * (fam === 0 ? o : t) + pl.v[2] * (fam === 0 ? t : o),
+              ]);
+            }
+            push(seg.map(proj), layer);
+            if (used > BUDGET) break;
+          }
+          if (used > BUDGET) break;
+        }
+        if (used > BUDGET) break;
+      }
+      if (used > BUDGET) break;
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
 ## pointcloud.js
 
 ```js
@@ -33807,6 +34214,233 @@ export default {
       return { paths };
     },
   
+};
+```
+
+## starchart.js
+
+```js
+import { Pin, mulberry32, hash2, noise2, applyStyle, fontStrokes } from "../helpers.js";
+
+export default {
+  /* Star Chart - a scientific coordinate graticule buried under thousands
+     of observation hits, after Roland Kayn's Galaxis chart. Ring bundles,
+     radial spokes, degree labels, seeded wear gaps, and a patchy density
+     field driving the dots. */
+  key: "starchart",
+  name: "Star Chart",
+  cat: "gen",
+  group: "scientific",
+  desc: "A coordinate chart drowning in observations. System Polar draws concentric ring bundles (every ring is 1..Band close-set lines with seeded spacing jitter), radial spokes, rim ticks and degree labels around the outer edge, with a clean center Hole for a title; Cartesian rules a banded graph grid with axis numbers instead. Wear breaks the graticule lines into worn seeded fragments and Wobble gives them a drafting hand. Hits scatters up to thousands of dots over the chart through a density field: Patchiness clumps them into drifts and voids, Falloff pulls them outward (+) or toward the center (-), and every dot is a tiny filled polygon between Dot min and Dot max (small ones common, big ones rare). Grid pen and Hit pen split the two layers for a two-colour plot. All placement is seeded and deterministic.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "system", label: "System", type: "select", options: ["Polar", "Cartesian"], def: "Polar" },
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+    { key: "rings", label: "Rings", type: "slider", min: 4, max: 24, step: 1, def: 12 },
+    { key: "band", label: "Band", type: "slider", min: 1, max: 5, step: 1, def: 3 },
+    { key: "bandgap", label: "Band gap", type: "slider", min: 0.3, max: 2, step: 0.05, def: 0.7 },
+    { key: "spokes", label: "Spokes", type: "slider", min: 4, max: 36, step: 1, def: 12, showIf: (p) => p.system === "Polar" },
+    { key: "hole", label: "Hole", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.18, showIf: (p) => p.system === "Polar" },
+    { key: "labels", label: "Labels", type: "check", def: true },
+    { key: "wear", label: "Wear", type: "slider", min: 0, max: 1, step: 0.05, def: 0.3 },
+    { key: "wobble", label: "Wobble", type: "slider", min: 0, max: 1, step: 0.05, def: 0.25 },
+    { key: "hits", label: "Hits", type: "slider", min: 0, max: 8000, step: 50, def: 3000 },
+    { key: "dotmin", label: "Dot min", type: "slider", min: 0.2, max: 2, step: 0.05, def: 0.35 },
+    { key: "dotmax", label: "Dot max", type: "slider", min: 0.2, max: 2.5, step: 0.05, def: 0.9 },
+    { key: "patchiness", label: "Patchiness", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
+    { key: "falloff", label: "Falloff", type: "slider", min: -1, max: 1, step: 0.05, def: 0.15 },
+    { key: "margin", label: "Margin", type: "slider", min: 0, max: 60, step: 1, def: 15 },
+    { key: "gpen", label: "Grid pen", type: "pen", def: 0 },
+    { key: "hpen", label: "Hit pen", type: "pen", def: 0 },
+  ],
+
+  overlay(p, ctx, ins, node) {
+    const guides = [{ kind: "rect", x: p.margin, y: p.margin, w: ctx.W - 2 * p.margin, h: ctx.H - 2 * p.margin }];
+    try {
+      if (p.system === "Polar") {
+        const R = Math.max(5, Math.min(ctx.W, ctx.H) / 2 - p.margin - (p.labels ? 6 : 0));
+        guides.push({ kind: "circle", cx: ctx.W / 2, cy: ctx.H / 2, r: R });
+        if (p.hole > 0.01) guides.push({ kind: "circle", cx: ctx.W / 2, cy: ctx.H / 2, r: R * p.hole });
+      }
+    } catch (e) { /* never throw */ }
+    return guides;
+  },
+
+  compute(ins, p, ctx, node) {
+    const W = ctx.W, H = ctx.H;
+    const TAU = Math.PI * 2;
+    const BUDGET = 110000;
+    let used = 0;
+    const paths = [];
+    const push = (pts, closed, layer) => {
+      if (pts.length < 2 || used > BUDGET) return;
+      used += pts.length;
+      paths.push({ pts, closed, layer });
+    };
+    const gpen = Math.max(0, Math.min(11, Math.round(p.gpen)));
+    const hpen = Math.max(0, Math.min(11, Math.round(p.hpen)));
+    const kSeed = (p.seed >>> 0) * 101 + 17;
+    const rng = mulberry32((p.seed >>> 0) * 7919 + 13);
+    const wear = Math.max(0, Math.min(1, p.wear));
+    const wob = Math.max(0, p.wobble);
+    const cx = W / 2, cy = H / 2;
+    const polar = p.system === "Polar";
+    const labelPad = p.labels ? 6 : 0;
+
+    const text = (str, tx, ty, h, ang, layer) => {
+      const fs = fontStrokes(String(str).toUpperCase(), Math.max(1.5, h), 1);
+      const ca = Math.cos(ang), sa = Math.sin(ang);
+      const ox = -fs.width / 2, oy = h / 2;
+      for (const st of fs.strokes) {
+        if (st.length < 2) continue;
+        push(st.map(([sx, sy]) => [tx + (sx + ox) * ca - (sy - oy) * sa, ty + (sx + ox) * sa + (sy - oy) * ca]), false, layer);
+      }
+    };
+
+    /* draw a parametric graticule line f(t) -> [x,y], t in 0..1, with
+       wobble and seeded wear gaps */
+    const worn = (f, lenMm, wid, layer, closed) => {
+      const n = Math.max(6, Math.ceil(lenMm / 2.2));
+      let seg = [];
+      let gapUntil = -1;
+      for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        if (i > gapUntil && wear > 0 && hash2(wid, i, kSeed + 31) < wear * 0.05) {
+          gapUntil = i + 1 + Math.floor(hash2(wid, i, kSeed + 37) * (2 + wear * 6));
+        }
+        if (i > gapUntil) {
+          const q = f(t);
+          const wq = wob > 0.01 ? (noise2(t * 9 + wid * 0.7, wid * 1.9, kSeed + 7) - 0.5) * 2 * wob * 0.5 : 0;
+          seg.push([q[0] + wq * q[2], q[1] + wq * q[3]]);
+        } else if (seg.length > 1) { push(seg.splice(0), false, layer); }
+        else seg.length = 0;
+        if (used > BUDGET) break;
+      }
+      if (seg.length > 1) push(seg, false, closed && seg.length > n * 0.98 ? layer : layer);
+    };
+
+    const nRings = Math.max(2, Math.round(p.rings));
+    const nBand = Math.max(1, Math.min(5, Math.round(p.band)));
+    const bgap = Math.max(0.2, p.bandgap);
+    let wid = 0;
+
+    /* density field for hits, in normalized chart coords */
+    const dens = (nx, ny, rr) => {
+      let d = 1;
+      if (p.patchiness > 0) {
+        const nv = noise2(nx * 5.2 + 3.3, ny * 5.2 + 8.1, kSeed + 51)
+          + 0.5 * noise2(nx * 13.1 + 21.2, ny * 13.1 + 4.4, kSeed + 53);
+        d *= Math.max(0, 1 + p.patchiness * (nv / 1.5 - 0.5) * 2.6);
+      }
+      d *= Math.max(0.02, 1 + p.falloff * (rr - 0.5) * 1.8);
+      return Math.min(1, d * 0.72);
+    };
+    const dot = (x, y) => {
+      const t = rng();
+      const r = p.dotmin + Math.max(0, p.dotmax - p.dotmin) * t * t;
+      const nseg = r > 0.7 ? 7 : 5;
+      const pts = [];
+      const a0 = rng() * TAU;
+      for (let k2 = 0; k2 < nseg; k2++) {
+        const a = a0 + (k2 / nseg) * TAU;
+        pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r]);
+      }
+      push(pts, true, hpen);
+    };
+
+    if (polar) {
+      const R = Math.max(5, Math.min(W, H) / 2 - Math.max(0, p.margin) - labelPad);
+      const holeR = R * Math.max(0, Math.min(0.9, p.hole));
+      /* ring bundles with seeded spacing jitter */
+      const radii = [];
+      for (let i = 0; i <= nRings; i++) {
+        const jr = (rng() - 0.5) * 0.35;
+        radii.push(holeR + ((i + (i > 0 && i < nRings ? jr : 0)) / nRings) * (R - holeR));
+      }
+      for (const r0 of radii) {
+        for (let bi = 0; bi < nBand; bi++) {
+          if (nBand > 1 && hash2(wid, bi, kSeed + 41) < wear * 0.35) continue;
+          const rb = r0 + (bi - (nBand - 1) / 2) * bgap;
+          if (rb < 1 || rb > R + bgap) continue;
+          const w2 = wid * 7 + bi;
+          worn((t) => {
+            const a = t * TAU;
+            return [cx + Math.cos(a) * rb, cy + Math.sin(a) * rb, Math.cos(a), Math.sin(a)];
+          }, TAU * rb, w2, gpen, true);
+        }
+        wid++;
+      }
+      /* spokes + rim ticks + labels */
+      const nSp = Math.max(2, Math.round(p.spokes));
+      for (let si = 0; si < nSp; si++) {
+        const a = (si / nSp) * TAU;
+        const ca = Math.cos(a), sa = Math.sin(a);
+        worn((t) => {
+          const r = holeR + t * (R - holeR);
+          return [cx + ca * r, cy + sa * r, -sa, ca];
+        }, R - holeR, 1000 + si, gpen, false);
+        push([[cx + ca * R, cy + sa * R], [cx + ca * (R + 2), cy + sa * (R + 2)]], false, gpen);
+        if (p.labels) {
+          const deg = Math.round((si / nSp) * 360);
+          text(String(deg), cx + ca * (R + 4.2), cy + sa * (R + 4.2), 2.4, a + Math.PI / 2, gpen);
+        }
+      }
+      /* hits in the annulus */
+      const nH = Math.max(0, Math.round(p.hits));
+      for (let i = 0; i < nH; i++) {
+        const rr = Math.sqrt(rng());
+        const r = Math.sqrt(holeR * holeR + rr * rr * (R * R - holeR * holeR));
+        const a = rng() * TAU;
+        const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+        const keep = rng() < dens(x / W, y / H, (r - holeR) / Math.max(1, R - holeR));
+        if (!keep) continue;
+        if (r < holeR + p.dotmax + 0.3 || r > R - 0.2) continue;
+        dot(x, y);
+        if (used > BUDGET) break;
+      }
+    } else {
+      /* Cartesian: banded rules both ways + axis numbers + hits in the box */
+      const x0 = Math.max(0, p.margin) + labelPad, y0 = Math.max(0, p.margin) + 2;
+      const x1 = W - Math.max(0, p.margin) - 2, y1 = H - Math.max(0, p.margin) - labelPad;
+      const cols = Math.max(2, Math.round((nRings * (x1 - x0)) / Math.max(1, y1 - y0)));
+      for (let i = 0; i <= nRings; i++) {
+        const jy = i > 0 && i < nRings ? (rng() - 0.5) * 0.3 : 0;
+        const yy = y0 + ((i + jy) / nRings) * (y1 - y0);
+        for (let bi = 0; bi < nBand; bi++) {
+          if (nBand > 1 && hash2(wid, bi, kSeed + 41) < wear * 0.35) continue;
+          const yb = yy + (bi - (nBand - 1) / 2) * bgap;
+          if (yb < y0 - bgap || yb > y1 + bgap) continue;
+          worn((t) => [x0 + t * (x1 - x0), yb, 0, 1], x1 - x0, wid * 7 + bi, gpen, false);
+        }
+        wid++;
+        if (p.labels && i < nRings) text(String((nRings - i) * 10), x0 - 4, y0 + (i / nRings) * (y1 - y0), 2.2, 0, gpen);
+      }
+      for (let i = 0; i <= cols; i++) {
+        const jx = i > 0 && i < cols ? (rng() - 0.5) * 0.3 : 0;
+        const xx = x0 + ((i + jx) / cols) * (x1 - x0);
+        for (let bi = 0; bi < nBand; bi++) {
+          if (nBand > 1 && hash2(wid, bi, kSeed + 43) < wear * 0.35) continue;
+          const xb = xx + (bi - (nBand - 1) / 2) * bgap;
+          if (xb < x0 - bgap || xb > x1 + bgap) continue;
+          worn((t) => [xb, y0 + t * (y1 - y0), 1, 0], y1 - y0, wid * 7 + bi, gpen, false);
+        }
+        wid++;
+        if (p.labels && i > 0) text(String(i * 10), x0 + (i / cols) * (x1 - x0), y1 + 4, 2.2, 0, gpen);
+      }
+      const nH = Math.max(0, Math.round(p.hits));
+      for (let i = 0; i < nH; i++) {
+        const x = x0 + rng() * (x1 - x0), y = y0 + rng() * (y1 - y0);
+        const rr = Math.hypot(x - (x0 + x1) / 2, y - (y0 + y1) / 2) / (Math.hypot(x1 - x0, y1 - y0) / 2);
+        const keep = rng() < dens(x / W, y / H, Math.min(1, rr));
+        if (!keep) continue;
+        if (x < x0 + p.dotmax || x > x1 - p.dotmax || y < y0 + p.dotmax || y > y1 - p.dotmax) continue;
+        dot(x, y);
+        if (used > BUDGET) break;
+      }
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
 };
 ```
 

@@ -1,13 +1,13 @@
-# MUUSIA v2.87 — Node Reference
+# MUUSIA v2.88 — Node Reference
 
-All 270 built-in nodes. Conventions used below: most generators accept a **Style**
+All 273 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (160)
+## Generators (163)
 
 **TV Antennas** — the analog-era rooftop antenna forest planted along a wired
 *Roofline* path (a Base Y baseline when unwired; the node only ADDS ink, so
@@ -201,6 +201,35 @@ Perspective are value-drivable — wire Frame into Yaw for a spinning molecule;
 *Front half* culls bonds facing away by surface normal for a solid look;
 *Atom dots* marks the carbons.
 
+**Plaid Grids 3D** — overlapping hand-drawn grids as planes in a fully
+rotatable 3D world. Each grid gets a seeded character: cell size, band
+structure (every line is a bundle of 1..*Bands* parallel strokes, the tartan
+look), extent, wobble and dropout. *Arrangement* Stack floats parallel panes
+in depth like sheets of glass so orbiting slides them past each other in
+parallax, Box aligns planes to the three axis orientations, Random tumbles
+them freely; *Depth spread* scatters the panes. *Yaw* and *Pitch* orbit the
+camera by hand and *Perspective* bends the view from flat orthographic to a
+deep pinhole lens (a true perspective — straight lines stay straight).
+*Phase* adds a full 360-degree orbit turn from 0 to 1: wire ANIMATE Steps
+into it and the loop closes byte-perfectly, with *Bob* adding a pitch sway
+that also loops. Dropout and wobble are hashed per line, never from phase, so
+frames never flicker, and the scale is measured over the whole orbit so no
+frame ever leaves the sheet. *Pen per grid* cycles pens by plane.
+
+**Broken Grid** — a grid falling apart by regions, in the early-computer-art
+tradition. Every cell edge is its own seeded decision driven by two noise
+fields: *Zones* sets the size of the territories, *Contrast* sharpens them
+into hard either-or regions, *Density* scales everything and *Mix* couples
+the fields — at 0 vertical and horizontal zones live separate lives (columns
+of dashes here, rows there), at 1 they agree and the drawing becomes solid
+boxes against empty voids. Every drawn edge is a dash: *Gap* shortens it with
+per-edge jitter, *Shift* knocks it off the lattice, *Doubles* gives a share a
+second parallel stroke and *Wobble* bends them. A built-in guard scans the
+lattice for isolated swastika-reading motifs (both chiralities, arm lengths
+1–2) and deterministically removes one bend edge from any it finds — motifs
+buried inside dense regions do not read and are left alone; the guard is
+always on by design.
+
 **Grid** — vertical/horizontal line grid. The plain sheet of paper of generative art;
 feed it to Warp, Stretch or Lens to bend space itself.
 
@@ -221,6 +250,18 @@ seeded cells into quarter-size tiles (strands break at scale seams — that is
 the style), *Pens by depth* inks each scale level separately.
 
 **Zigzag** — rows of zigzag, sine or square waves. *Skew* tilts the zigzag toward a sawtooth; *Envelope* modulates amplitude with a seeded noise envelope (bursts and quiet passages); *Row phase* offsets rows for interference. Wire any path into **Spine** and the waves follow it as parallel offset rows.
+
+**Star Chart** — a coordinate chart drowning in observations, after Roland
+Kayn's Galaxis. *System* Polar draws concentric ring bundles (every ring is
+1..*Band* close-set lines with seeded spacing jitter), radial spokes, rim
+ticks and tangential degree labels, with a clean center *Hole* for a title;
+Cartesian rules a banded graph grid with axis numbers instead. *Wear* breaks
+the graticule into worn seeded fragments and *Wobble* gives it a drafting
+hand. *Hits* scatters up to thousands of dots through a density field:
+*Patchiness* clumps them into drifts and voids, *Falloff* pulls them outward
+or toward the center, and every dot is a tiny filled polygon between *Dot
+min* and *Dot max* (small ones common, big ones rare). *Grid pen* and *Hit
+pen* split the layers — graticule in one colour, observations in another.
 
 **Lissajous** — x/y sinusoids with frequency ratio and phase; the *damping* parameter
 turns it into a harmonograph decay spiral.
