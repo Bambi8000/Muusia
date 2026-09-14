@@ -70,5 +70,13 @@ export function usePhotos() {
     const photo = current.current.find(p => p.id === id);
     if (photo?.previousPoints) setPoints(id, photo.previousPoints);
   }
-  return { photos, busy, errors, add, remove, move, setPoints, detect, undoDetection };
+  function replaceAll(next: Photo[]) {
+    generation.current++;
+    for (const job of jobs.current.values()) job.cancel();
+    jobs.current.clear();
+    const old = current.current;
+    commit(next); old.forEach(disposePhoto);
+    loading.current = false; setBusy(false); setErrors([]);
+  }
+  return { photos, busy, errors, add, remove, move, setPoints, detect, undoDetection, replaceAll };
 }

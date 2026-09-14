@@ -44,9 +44,46 @@ Adjust adds per-photo paper lighting correction and white balance, plus shared
 tone controls with a live original/adjusted preview. The same processing is
 applied to the full-resolution sequence. Export creates GIF, H.264 MP4 with
 WebM fallback, and PNG ZIP files in a worker. Optional position stabilization
-centers an isolated drawing without changing its size or rotation. Next is M7:
-project save/load, multi-sheet polish and seeded Random order.
+centers an isolated drawing without changing its size or rotation. Save/load
+restores a complete local project, including the original photographs. Remaining
+M7 work is multi-sheet polish and seeded Random order.
 See [KELA-HANDOFF.md](./KELA-HANDOFF.md) for the supplied project specification.
+
+## Save and load a project
+
+The **Project name**, **Save project** and **Load project** controls are
+available above every workflow step.
+
+1. Give the project a name and choose **Save project**. Keep the downloaded
+   `.liike` file. If the download does not start, use **Download project** in
+   the status area. The file includes the original photos, sheet settings,
+   photo order and marker positions, paper color, all adjustments, extraction
+   resolution, stabilization, playback order/exclusions/speed/loop and export
+   settings. You can save before all photos or markers are ready.
+2. Choose **Load project** and select the saved file, including after closing
+   or refreshing the page. All photos are decoded and checked before the
+   current session is replaced. A failed or cancelled load leaves it intact.
+   Save the current work before switching to another project.
+3. Review the restored photos/markers, then choose **Build sequence** in
+   Adjust or **Extract frames** in Sequence. Generated crops and finished
+   GIF/video/PNG exports are rebuilt from the saved originals and settings.
+   Save again after making edits; earlier files are independent snapshots.
+
+This is a local file workflow. There is no upload, account, cloud storage or
+implicit autosave. Refreshing still clears the in-memory session; Load project
+restores a saved one. Original files are embedded byte-for-byte, without image
+re-encoding. Projects currently allow up to 64 photos, 40 MB per photo,
+255 MB of source files and 160 million decoded photo pixels in total. Larger
+projects show a request to use fewer or smaller sheet photos.
+
+The `.liike` file is a ZIP container with a versioned `project.json` and
+numbered files under `photos/`. The loader validates the schema, archive paths,
+expanded sizes, unique identifiers, frame references, SHA-256 photo checksums
+and decoded dimensions. It accepts version 1 and rejects unsupported versions
+without changing the session. New runtime photo identifiers prevent stale
+crop reuse; saved sequence references are remapped consistently. No executable
+content or remote image URLs are accepted. Save/load includes extra photos
+and incomplete manual registrations; it does not silently rerun detection.
 
 ## Register a photograph
 
@@ -82,9 +119,9 @@ Missing or multiple holes, mirrored photos and near-square sheets can make
 orientation uncertain; use the manual controls when automatic placement is
 unavailable. Always review the straightened preview before continuing.
 
-Photos and marker points live in memory only. Changing steps or sheet settings
-preserves them; replacing a photo clears that photo's points. Refreshing starts
-over. Full-resolution EXIF-oriented bitmaps are used for frame extraction;
+Photos and marker points stay in memory while you work. Changing steps or sheet
+settings preserves them; replacing a photo clears that photo's points. Save a
+project before refreshing, then use Load project to restore it. Full-resolution EXIF-oriented bitmaps are used for frame extraction;
 the working raster is at most 2000 px on its long side and the rectified
 preview is 900 px. No photos are transmitted and no dependencies were added
 for image processing. HEIC files get a request to export as JPEG.
@@ -298,7 +335,7 @@ browser checks and the outstanding on-disk download verification.
   generated lighting/casts, ink preservation, exclusion of artwork from the
   paper estimate, consistent color across photos, control defaults and limits,
   unsupported references and matching crop/full-sheet processing. The suite
-  currently has 70 tests, including bounded automatic contrast, light-residue
+  currently has 79 tests, including bounded automatic contrast, light-residue
   cleanup, sharpening against an independent soft-edge target, noise/halo
   limits, consistent physical radius, and manual registration access after failed
   detection with missing/extra photos, plus export timelines, timing, palettes, GIF
@@ -306,6 +343,10 @@ browser checks and the outstanding on-disk download verification.
   Dark-paper tests cover rotated colored markers, a dark orientation hole,
   additive glare, ink colors, almost-black references, shared crop tones,
   alpha/background handling, threshold, stabilization and export metadata.
+  Project tests cover byte-for-byte image round trips, all settings, partial
+  sheets, manual/excluded frame identity, unfinished registrations, corrupted
+  or oversized archives, unsupported versions, staged-photo cleanup on failure
+  or cancellation, immutable snapshots and portable filenames.
 - `npm run build:liike`: standalone single-file build.
 
 Layout rectangles use sheet mm, origin top-left, y down. Cell indices always

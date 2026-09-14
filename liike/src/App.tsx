@@ -15,6 +15,8 @@ import type { Adjustments } from './adjustments';
 import ExportStep from './ExportStep';
 import { DEFAULT_EXPORT } from './export-plan';
 import type { PaperTone } from './paper';
+import ProjectBar from './ProjectBar';
+import type { RestoredProject } from './project-archive';
 
 type NumericKey = 'W' | 'H' | 'cols' | 'rows' | 'margin' | 'gap' | 'markSize' | 'total' | 'pad';
 type Draft = Record<NumericKey, string> & { order: Order; crop: Crop; paperTone: PaperTone };
@@ -50,6 +52,9 @@ function SheetPreview({ settings, sheet, guides }: { settings: SheetSettings; sh
 }
 
 export default function App() {
+  const [projectName, setProjectName] = useState('Untitled');
+  const [projectBusy, setProjectBusy] = useState(false);
+  const [projectRevision, setProjectRevision] = useState(0);
   const [step, setStep] = useState(0);
   const [photoIndex, setPhotoIndex] = useState(0);
   const library = usePhotos();
@@ -87,6 +92,19 @@ export default function App() {
     setDraft(current => ({ ...current, ...patch }));
     setSheetIndex(0);
   }
+  function restore({ project, photos }: RestoredProject) {
+    extraction.cancel();
+    library.replaceAll(photos);
+    setProjectName(project.name); setDraft(makeDraft(project.settings));
+    const { W, H, cols, rows } = project.settings;
+    const wide = Math.max(W, H), tall = Math.min(W, H);
+    setPaper(wide === 420 && tall === 297 ? 'A3' : wide === 297 && tall === 210 ? 'A4' : 'Custom');
+    setLayoutMode(LAYOUTS.some(([c, r]) => c === cols && r === rows) ? `${cols}x${rows}` : 'Custom');
+    setAdjustments(project.adjustments); setSequence(project.sequence); setExportOptions(project.exportOptions);
+    setResolution(project.resolution); setStabilize(project.stabilize);
+    setPhotoIndex(0); setSheetIndex(0); setNotice(''); setStep(photos.length ? 1 : 0);
+    setProjectRevision(value => value + 1);
+  }
   function reset(reference = false) {
     setDraft(makeDraft(reference ? REFERENCE_SETTINGS : DEFAULTS));
     setPaper(reference ? 'A4' : 'A3'); setLayoutMode('4x3'); setSheetIndex(0);
@@ -108,6 +126,8 @@ export default function App() {
 
   return <main>
     <header><a className="wordmark" href="./">Liike<span>↗</span></a><span className="tagline">From paper to motion</span></header>
+    <ProjectBar state={{ name: projectName, settings, adjustments, sequence, exportOptions, resolution, stabilize }} photos={library.photos} disabled={library.busy || library.photos.some(p => p.detection?.status === 'running')} saveIssue={issues[0] ?? ''} setName={setProjectName} onBusy={setProjectBusy} onLoad={restore} loaded={projectRevision > 0} />
+    <div inert={projectBusy} key={projectRevision}>
     <nav aria-label="Workflow"><ol className="steps">{['Sheet', 'Photos', 'Register', 'Adjust', 'Sequence', 'Export'].map((name, i) => <li key={name} aria-current={i === step ? 'step' : undefined}><button onClick={() => setStep(i)} disabled={library.busy || (i > 0 && !layout) || (i === 2 && !registrationPhoto) || (i === 3 && !selectedPhoto)}><span className="step-number">{i + 1}</span>{name}</button></li>)}</ol></nav>
     {step === 0 && <>
     <section className="intro"><div><p className="eyebrow">01 / Set up your sheet</p><h1>Start with <em>the paper.</em></h1><p>Match the Frame Grid settings you plotted. Every frame will share the same crop and scale.</p></div><button className="secondary" onClick={() => reset()}>Muusia defaults ↺</button></section>
@@ -169,6 +189,7 @@ export default function App() {
     </>}
     {step === 4 && layout && <SequenceStep stabilize={stabilize} setStabilize={setStabilize} extraction={extraction} resolution={resolution} setResolution={setResolution} total={settings.total} readiness={readiness} sequence={sequence} setSequence={setSequence} onBack={() => setStep(selectedPhoto ? 3 : 1)} onExport={() => setStep(5)} />}
     {step === 5 && layout && <ExportStep frames={extraction.completed ? extraction.frames : []} sequence={sequence} setSequence={setSequence} options={exportOptions} setOptions={setExportOptions} onBack={() => setStep(4)} />}
-    <footer><span>Photos stay on your device · Refreshing starts a new session.</span><span>Next in development: project save & load.</span></footer>
+    </div>
+    <footer><span>Photos stay on your device.</span><span>Save project to keep your work after closing or refreshing.</span></footer>
   </main>;
 }

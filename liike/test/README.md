@@ -234,3 +234,33 @@ consistent whole-sheet/crop corrections; preservation of source data;
 black alpha/missing-pixel backgrounds; two-tone output with sharpening;
 stabilization parity; unchanged physical layout and export paper metadata.
 Together with existing white-paper checks, all 70 tests pass.
+
+## Project save/load — 2026-09-14
+
+Nine project tests cover original-byte preservation, duplicate photo names,
+all saved controls, partial sheets and manual/excluded timeline identity after
+runtime IDs change, empty/incomplete projects, stale-reference cleanup,
+invalid types/versions/paths/geometry, corrupted/missing images, archive size
+limits, cancellation and failure cleanup, immutable save snapshots and names.
+All 79 tests pass, along with strict TypeScript/lint and both production builds.
+
+The production browser test imported IMG_2609.jpeg twice as two test sheets
+with Total frames 13 (not a claim to have received the actual second sheet).
+The resulting 6.5 MB `.liike` file downloaded to disk. Both embedded originals
+were verified byte-for-byte against the supplied JPEG. The downloaded file
+was then opened after reloading the page to an empty session.
+
+Both photos and all eight marker centers returned. Black / dark paper,
+Auto adjust, Sharpen 41%, Gamma 1.05, 1080 px extraction, manual frame order
+with source 3 moved before source 2, excluded source 2, speed 11 fps and loop
+off were preserved. Extraction produced 13 source frames with 12 included
+playback frames. Export restored Video/WebM, 720 px, Standard quality and
+6 repeats. Loading a deliberately truncated project kept the existing photos,
+name and controls intact and displayed an error. The 390 px viewport had no
+horizontal overflow and the project controls remained usable. No console
+warnings or errors were observed.
+
+The project download/restore round trip is verified on disk. Earlier notes
+about the initial M6 media-download test describe that earlier test only;
+this verification does not independently repeat every media format download.
+User photos and downloaded project files remain outside the repository.
