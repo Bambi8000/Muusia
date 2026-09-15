@@ -49,6 +49,52 @@ restores a complete local project, including the original photographs. Remaining
 M7 work is multi-sheet polish and seeded Random order.
 See [KELA-HANDOFF.md](./KELA-HANDOFF.md) for the supplied project specification.
 
+## Individual frame photographs
+
+Choose **Sheet → Capture mode → Individual frames** to photograph each
+cell close up. The existing **Whole sheets** mode remains available.
+
+1. In Muusia, enable **Cell frames** and **Corner dots**. Each cell needs a
+   complete rectangular outline and the 3 mm circle just outside its top-left
+   corner (center 2.5 mm left and above the corner). Use **Clearance mm** of
+   at least 3 mm to leave blank paper inside the outline. Frame numbers help
+   organize the photos; Liike does not read the numbers automatically.
+2. Match the original sheet size, grid, margin, gap and **Plot clearance** in
+   Liike. These establish the physical cell size even though each photo shows
+   only one cell. Select the appropriate light or dark paper color.
+3. Photograph one complete cell per photo, keeping its outline and top-left
+   circle visible. Small parts of neighboring cells are fine. Add photos in
+   frame order; use the arrows to correct it and **Use these N frames** to
+   match Total frames to the number of photos.
+4. **Review corners** checks the detected outline and orientation. If detection
+   is uncertain, **Place corners manually** always opens registration: place
+   TL beside the circle, then TR, BR, BL at the frame-line intersections.
+   Drag, magnify or nudge the points to refine them. **Rotate corner labels**
+   corrects a cyclic orientation assignment.
+5. The default crop is **Full cell**, with **Border trim 1 mm** to remove the
+   outline, no padding and a **2160 px** long side. Every photo uses the same
+   physical crop and scale. Plot clearance describes the drawing's blank
+   border; Border trim controls the output crop. They are independent.
+   **Frame window** follows the original canvas aspect and plot clearance;
+   check the green crop outline carefully because it can cut drawings that
+   extend beyond that window. Stabilize position starts off in this mode.
+6. Adjust, build the sequence and export as usual. Auto paper correction
+   samples the blank band inside the outline. Auto contrast uses shared limits
+   across close-ups to avoid changing with each drawing's ink coverage.
+   If the blank band is too narrow, correction is skipped with a visible
+   explanation; shared tones and sharpening remain usable.
+
+Each photo produces exactly one frame. Capture mode, clearance, trim, corner
+positions and original photos are included in Save/Load. Switching modes
+requires registration for the new geometry before extraction; sheet-marker
+centers are never reused as frame corners. PNG export metadata identifies the
+source photo rather than implying each close-up is a separate physical sheet.
+
+The supplied IMG_2635.jpeg and IMG_2636.jpeg register automatically and retain
+all strokes with the default Full cell crop. More pixels help preserve fine
+lines, but output size cannot restore missing focus detail. Full animation
+stability still depends on the photographed sequence and paper flatness.
+
 ## Save and load a project
 
 The **Project name**, **Save project** and **Load project** controls are
@@ -73,13 +119,16 @@ This is a local file workflow. There is no upload, account, cloud storage or
 implicit autosave. Refreshing still clears the in-memory session; Load project
 restores a saved one. Original files are embedded byte-for-byte, without image
 re-encoding. Projects currently allow up to 64 photos, 40 MB per photo,
-255 MB of source files and 160 million decoded photo pixels in total. Larger
+255 MB of source files and 400 million decoded photo pixels in total.
+Originals are decoded one photo at a time for extraction, rather than retaining
+a full-resolution bitmap for every photo. Larger
 projects show a request to use fewer or smaller sheet photos.
 
 The `.liike` file is a ZIP container with a versioned `project.json` and
 numbered files under `photos/`. The loader validates the schema, archive paths,
 expanded sizes, unique identifiers, frame references, SHA-256 photo checksums
-and decoded dimensions. It accepts version 1 and rejects unsupported versions
+and decoded dimensions. New saves use version 2; the loader also migrates version 1 sheet projects
+without changing their geometry and rejects unsupported versions
 without changing the session. New runtime photo identifiers prevent stale
 crop reuse; saved sequence references are remapped consistently. No executable
 content or remote image URLs are accepted. Save/load includes extra photos
@@ -194,7 +243,8 @@ paper lighting estimate; Auto adjust analyzes it separately for contrast.
 The model is independent of frame selection, crop, order, output size
 and global sliders, so each photographed sheet has one consistent correction.
 Preview and extraction estimate it from the same working pixels. The live
-crop preview has a 640 px long side; final crops still use the original photo.
+crop preview has a 1080 px long side sampled from the original photo, as are
+final crops.
 
 If too little blank paper is available, the app reports that automatic
 correction was skipped for that sheet; manual tones and sharpening still apply.
@@ -216,7 +266,7 @@ their inputs have not changed.
    or open **Sequence**.
    All required photos must have valid marker positions. A missing or invalid
    sheet is identified before extraction starts.
-2. Choose **Resolution · long side** (480, 720, 1080 or 2160 px; default 1080),
+2. Choose **Resolution · long side** (480, 720, 1080 or 2160 px; default 1080 for sheets, 2160 for individual frames),
    then **Extract frames**. Every frame is bilinearly sampled directly from
    the original EXIF-oriented bitmap through its sheet transform, then receives
    the chosen paper and tone adjustments. Frame-window

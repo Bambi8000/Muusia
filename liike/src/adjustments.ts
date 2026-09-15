@@ -1,4 +1,5 @@
 import { buildLayout } from './layout.ts';
+import { individualFrames, photoGeometry } from './capture.ts';
 import type { Rect, SheetSettings } from './layout';
 import type { Matrix } from './homography';
 import { sampleRect } from './sampling.ts';
@@ -85,7 +86,11 @@ function inPhoto(h: Matrix, x: number, y: number, width: number, height: number)
  * Only margins/gaps outside the full cells are paper references. Local paper
  * quantiles suppress labels and dirt; a smooth field avoids following drawn marks. */
 export function estimatePaper(source: Raster, original: { width: number; height: number }, h: Matrix, settings: SheetSettings): PaperModel {
-  const { W, H } = settings, layout = buildLayout(settings), dark = settings.paperTone === 'dark';
+  const { W, H } = photoGeometry(settings), layout = buildLayout(settings), dark = settings.paperTone === 'dark', closeup = individualFrames(settings);
+  const blank = (x: number, y: number) => closeup
+    ? Math.min(x, y, W - x, H - y) > .7 && Math.min(x, y, W - x, H - y) < (settings.clearance ?? 0) - .4
+    : !layout.cells.some(({ cell }) => x >= cell.x - 1 && y >= cell.y - 1 && x <= cell.x + cell.w + 1 && y <= cell.y + cell.h + 1);
+  const usable = (x: number, y: number) => closeup ? x > .7 && y > .7 && x < W - .7 && y < H - .7 : x >= 4 && y >= 4 && x <= W - 4 && y <= H - 4 && !layout.markers.some(m => Math.abs(x - m.x) < settings.markSize / 2 + 2 && Math.abs(y - m.y) < settings.markSize / 2 + 2);
   const paperTone = dark ? 'dark' : 'light', background = paperBackground(paperTone);
   const scale = 540 / Math.max(W, H);
   const raster = sampleRect(source, original, h, { x: 0, y: 0, w: W, h: H }, Math.max(1, Math.round(W * scale)), Math.max(1, Math.round(H * scale)), background);
@@ -93,9 +98,7 @@ export function estimatePaper(source: Raster, original: { width: number; height:
   const bins: { x: number; y: number; rgb: number[]; light: number }[][] = Array.from({ length: cols * rows }, () => []);
   for (let y = 0; y < raster.height; y++) for (let x = 0; x < raster.width; x++) {
     const mx = (x + .5) * W / raster.width, my = (y + .5) * H / raster.height;
-    if (mx < 4 || my < 4 || mx > W - 4 || my > H - 4 || !inPhoto(h, mx, my, original.width, original.height)) continue;
-    if (layout.markers.some(m => Math.abs(mx - m.x) < settings.markSize / 2 + 2 && Math.abs(my - m.y) < settings.markSize / 2 + 2)) continue;
-    if (layout.cells.some(({ cell }) => mx >= cell.x - 1 && my >= cell.y - 1 && mx <= cell.x + cell.w + 1 && my <= cell.y + cell.h + 1)) continue;
+    if (!usable(mx, my) || !blank(mx, my) || !inPhoto(h, mx, my, original.width, original.height)) continue;
     const i = (y * raster.width + x) * 4;
     const rgb = [raster.data[i]!, raster.data[i + 1]!, raster.data[i + 2]!];
     const light = .2126 * rgb[0]! + .7152 * rgb[1]! + .0722 * rgb[2]!;
@@ -110,7 +113,7 @@ export function estimatePaper(source: Raster, original: { width: number; height:
     return { x: bright.reduce((sum, p) => sum + p.x, 0) / bright.length, y: bright.reduce((sum, p) => sum + p.y, 0) / bright.length, rgb: [0, 1, 2].map(c => median(bright.map(p => p.rgb[c]!))) };
   });
   const supported = samples.length >= 12 && Math.max(...samples.map(s => s.x)) - Math.min(...samples.map(s => s.x)) > 1 && Math.max(...samples.map(s => s.y)) - Math.min(...samples.map(s => s.y)) > 1;
-  if (!supported) return { W, H, h, paperTone, photoWidth: original.width, photoHeight: original.height, paper: [background, background, background], coefficients: [0, 1, 2].map(() => [background, 0, 0, 0, 0, 0]), samples: samples.length, supported: false, note: 'Not enough blank paper is visible to estimate lighting. Automatic corrections are skipped for this sheet; global sliders still apply.' };
+  if (!supported) return { W, H, h, paperTone, photoWidth: original.width, photoHeight: original.height, paper: [background, background, background], coefficients: [0, 1, 2].map(() => [background, 0, 0, 0, 0, 0]), samples: samples.length, supported: false, note: closeup ? 'Not enough blank paper inside the frame. Check Clearance mm against the plot. Automatic paper corrections are skipped; shared tone controls still apply.' : 'Not enough blank paper is visible to estimate lighting. Automatic corrections are skipped for this sheet; global sliders still apply.' };
   let coefficients = [0, 1, 2].map(c => fit(samples, c));
   // Remove isolated contaminated reference tiles, keeping broad illumination changes.
   const residuals = samples.map(s => Math.abs(s.rgb[1]! - evaluate(coefficients[1]!, basis(s.x, s.y))));
@@ -118,6 +121,13 @@ export function estimatePaper(source: Raster, original: { width: number; height:
   const clean = samples.filter((_, i) => residuals[i]! <= limit);
   if (clean.length >= samples.length * .75 && clean.length >= 12) { samples = clean; coefficients = [0, 1, 2].map(c => fit(samples, c)); }
   const model: PaperModel = { W, H, h, paperTone, photoWidth: original.width, photoHeight: original.height, paper: [0, 1, 2].map(c => median(samples.map(s => s.rgb[c]!))), coefficients, samples: samples.length, supported: true, note: dark ? 'Dark paper estimated across this sheet. Background glare is reduced while bright ink keeps its color; every frame shares the correction.' : 'Lighting estimated from blank paper across this sheet. The same correction is used for every frame.' };
+  if (closeup) {
+    // The blank border corrects each photo's lighting. Never derive contrast
+    // from a single drawing's ink histogram: that would make the animation flicker.
+    model.autoLevels = dark ? { black: 10, white: 255 } : { black: 0, white: 245 };
+    model.note = dark ? 'Lighting estimated from the blank band inside the frame. Bright ink keeps its color; contrast uses a shared setting.' : 'Lighting estimated from the blank band inside the frame. Contrast uses a shared setting to keep the animation consistent.';
+    return model;
+  }
   // Analyze all physical cells together, independent of playback, crop, total
   // frame count and output size. Never auto-level individual animation frames.
   const ink = new Uint32Array(256), paper = new Uint32Array(256);

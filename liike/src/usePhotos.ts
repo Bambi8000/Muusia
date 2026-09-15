@@ -3,6 +3,7 @@ import { disposePhoto, loadPhoto } from './photos';
 import type { Photo, MarkerPoints } from './photos';
 import { detectionSettingsKey, startDetection } from './detection-client';
 import type { DetectionSettings } from './detection';
+import type { CaptureMode } from './layout';
 
 export function usePhotos() {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -20,14 +21,15 @@ export function usePhotos() {
     if (!photo || jobs.current.has(id)) return;
     const settingsKey = detectionSettingsKey(settings);
     const job = startDetection(photo, settings); jobs.current.set(id, job);
-    commit(current.current.map(p => p.id === id ? { ...p, detection: { status: 'running', message: 'Finding markers… You can still place them manually.', settingsKey } } : p));
+    commit(current.current.map(p => p.id === id ? { ...p, detection: { status: 'running', message: `Finding ${settings.captureMode === 'frames' ? 'frame corners' : 'markers'}… You can still place them manually.`, settingsKey } } : p));
     const result = await job.promise;
     if (jobs.current.get(id) !== job) return;
     jobs.current.delete(id);
     // A late result must never overwrite marker edits made while the worker ran.
     commit(current.current.map(p => p.id !== id || p.points !== photo.points ? p : {
-      ...p, points: result.points ?? p.points,
-      previousPoints: result.points && p.points.some(Boolean) ? p.points : p.previousPoints,
+      ...p, points: result.points ?? ((p.registrationMode ?? 'sheet') === (settings.captureMode ?? 'sheet') ? p.points : [null, null, null, null]),
+      registrationMode: settings.captureMode ?? 'sheet',
+      previousPoints: result.points && p.points.some(Boolean) && (p.registrationMode ?? 'sheet') === (settings.captureMode ?? 'sheet') ? p.points : undefined,
       detection: { status: result.status, message: result.message, settingsKey },
     }));
   }
@@ -62,9 +64,9 @@ export function usePhotos() {
     if (index < 0 || target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target]!, next[index]!]; commit(next);
   }
-  function setPoints(id: string, points: MarkerPoints) {
+  function setPoints(id: string, points: MarkerPoints, registrationMode?: CaptureMode) {
     stopDetection(id);
-    commit(current.current.map(p => p.id === id ? { ...p, points, previousPoints: undefined, detection: { status: 'edited', message: 'Manual marker positions. Run detection again whenever needed.', settingsKey: p.detection?.settingsKey ?? '' } } : p));
+    commit(current.current.map(p => p.id === id ? { ...p, points, registrationMode: registrationMode ?? p.registrationMode ?? 'sheet', previousPoints: undefined, detection: { status: 'edited', message: 'Manual corner positions. Run detection again whenever needed.', settingsKey: p.detection?.settingsKey ?? '' } } : p));
   }
   function undoDetection(id: string) {
     const photo = current.current.find(p => p.id === id);

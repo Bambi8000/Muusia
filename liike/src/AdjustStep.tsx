@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { Photo } from './photos';
-import { framesOnSheet } from './layout';
+import { framesForPhoto, individualFrames, photoGeometry } from './capture';
 import type { SheetSettings } from './layout';
-import { registrationTransform } from './homography';
 import type { Quad } from './homography';
+import { frameRegistration, registrationTransform } from './homography';
 import { DEFAULT_ADJUSTMENTS } from './adjustments';
 import type { Adjustments } from './adjustments';
 import { useAdjustmentPreview } from './useAdjustmentPreview';
@@ -15,14 +15,16 @@ export default function AdjustStep({ photo, settings, sheet, adjustments, setAdj
   const [selected, setSelected] = useState(0);
   const [original, setOriginal] = useState(false);
   const dark = settings.paperTone === 'dark';
-  const frames = framesOnSheet(settings, sheet);
+  const closeup = individualFrames(settings), geometry = photoGeometry(settings);
+  const frames = framesForPhoto(settings, sheet);
   const frame = frames[Math.max(0, Math.min(selected, frames.length - 1))]!;
-  const rect = selected === -1 ? { x: 0, y: 0, w: settings.W, h: settings.H } : frame.crop;
+  const rect = selected === -1 ? { x: 0, y: 0, w: geometry.W, h: geometry.H } : frame.crop;
+  const { W: registrationWidth, H: registrationHeight } = geometry;
   const registration = useMemo(() => {
     if (photo.points.some(p => !p)) return { h: null, error: 'Place all four markers for this sheet in Register to preview adjustments.' };
-    try { return { h: registrationTransform(settings.W, settings.H, photo.points as Quad), error: '' }; }
+    try { return { h: (closeup ? frameRegistration : registrationTransform)(registrationWidth, registrationHeight, photo.points as Quad), error: '' }; }
     catch (error) { return { h: null, error: error instanceof Error ? error.message : 'Check the marker positions.' }; }
-  }, [photo.points, settings.W, settings.H]);
+  }, [photo.points, closeup, registrationWidth, registrationHeight]);
   const { preview, busy, error } = useAdjustmentPreview(photo, settings, registration.h, rect, adjustments);
   const update = (patch: Partial<Adjustments>) => setAdjustments({ ...adjustments, ...patch });
   function slider(key: 'black' | 'white' | 'gamma' | 'saturation' | 'threshold' | 'sharpen', label: string, min: number, max: number, step = 1, suffix = '') {
@@ -33,7 +35,7 @@ export default function AdjustStep({ photo, settings, sheet, adjustments, setAdj
       <section className="settings" aria-label="Color adjustments">
         <fieldset><legend><span>01</span> Paper & light</legend>
           <label className="field"><span>Paper color</span><select value={settings.paperTone ?? 'light'} onChange={e => setPaperTone(e.target.value as PaperTone)}><option value="light">White / light</option><option value="dark">Black / dark</option></select></label>
-          <label className="checkbox"><input type="checkbox" checked={adjustments.autoAdjust} onChange={e => update({ autoAdjust: e.target.checked })} />Auto adjust</label><p className="hint">{dark ? 'Deepen the black background and lift bright ink, keeping its color.' : 'Clean the paper, balance color and strengthen ink contrast.'} One automatic setting per photo, shared by all its frames. Check faint strokes with Original.</p>
+          <label className="checkbox"><input type="checkbox" checked={adjustments.autoAdjust} onChange={e => update({ autoAdjust: e.target.checked })} />Auto adjust</label><p className="hint">{dark ? 'Deepen the black background and lift bright ink, keeping its color.' : 'Clean the paper, balance color and strengthen ink contrast.'} {closeup ? 'Lighting comes from the blank border; contrast stays consistent across frames.' : 'One automatic setting per photo, shared by all its frames.'} Check faint strokes with Original.</p>
           <label className="checkbox"><input type="checkbox" checked={adjustments.autoAdjust || adjustments.flatten} disabled={adjustments.autoAdjust} onChange={e => update({ flatten: e.target.checked })} />Paper flatten</label><p className="hint">{dark ? 'Reduce smooth glare and color cast in the dark background.' : 'Even out smooth shadows and brighten the paper.'}</p>
           <label className="checkbox"><input type="checkbox" checked={!dark && (adjustments.autoAdjust || adjustments.whiteBalance)} disabled={dark || adjustments.autoAdjust} onChange={e => update({ whiteBalance: e.target.checked })} />Auto white balance</label><p className="hint">{dark ? 'Black paper is not a white-balance reference. Paper flatten corrects the background without whitening colored ink.' : "Remove the lighting's color cast using blank paper."}</p>
         </fieldset>
@@ -46,13 +48,13 @@ export default function AdjustStep({ photo, settings, sheet, adjustments, setAdj
       </section>
       <section className="adjust-preview" aria-label="Adjustment preview">
         <div className="preview-heading"><div><p className="eyebrow">Before & after</p><h2>{dark ? 'Bright ink. Deep black.' : 'Keep the ink. Lift the paper.'}</h2></div></div>
-        <div className="adjust-preview-controls"><label className="field"><span>Preview area</span><select value={selected === -1 ? -1 : Math.min(selected, frames.length - 1)} onChange={e => setSelected(Number(e.target.value))}><option value={-1}>Whole sheet</option>{frames.map((f, i) => <option key={f.frame} value={i}>Source frame {f.frame + 1}</option>)}</select></label><div className="comparison-toggle" role="group" aria-label="Compare adjustments"><button className={!original ? 'selected' : ''} aria-pressed={!original} onClick={() => setOriginal(false)}>Adjusted</button><button className={original ? 'selected' : ''} aria-pressed={original} onClick={() => setOriginal(true)}>Original</button></div></div>
+        <div className="adjust-preview-controls"><label className="field"><span>Preview area</span><select value={selected === -1 ? -1 : Math.min(selected, frames.length - 1)} onChange={e => setSelected(Number(e.target.value))}><option value={-1}>{closeup ? 'Full frame outline' : 'Whole sheet'}</option>{frames.map((f, i) => <option key={f.frame} value={i}>Source frame {f.frame + 1}</option>)}</select></label><div className="comparison-toggle" role="group" aria-label="Compare adjustments"><button className={!original ? 'selected' : ''} aria-pressed={!original} onClick={() => setOriginal(false)}>Adjusted</button><button className={original ? 'selected' : ''} aria-pressed={original} onClick={() => setOriginal(true)}>Original</button></div></div>
         {registration.error || error ? <p className="error" role="alert">{registration.error || error}</p> : preview ? <div className="adjust-image-stage" aria-busy={busy}>
           <img src={original ? preview.before : preview.after} width={preview.width} height={preview.height} alt={`${original ? 'Original' : 'Adjusted'} ${selected === -1 ? 'sheet' : `source frame ${frame.frame + 1}`}`} />
           <span className="comparison-label">{original ? 'Original' : 'Adjusted'}</span>
         </div> : <div className="preview-placeholder"><span aria-hidden="true">◐</span><h2>Reading the paper…</h2><p>The preview will update as you move the sliders.</p></div>}
         <p className="notice adjustment-status" role="status">{busy ? 'Updating preview…' : preview ? preview.note : ''}</p>
-        <p className="hint">Compare with Original to check fine strokes and colors. The preview uses a smaller copy; the sequence is rendered from your full-resolution photos.</p>
+        <p className="hint">Compare with Original to check fine strokes and colors. Both this preview and the sequence are sampled from your original photos. The preview is displayed at 1080 px.</p>
         <div className="reference"><div><strong>One look for the whole animation</strong><p>Paper lighting is estimated separately for each photograph. Every frame shares the same tone controls. Original photos stay unchanged.</p></div></div>
       </section>
     </div>

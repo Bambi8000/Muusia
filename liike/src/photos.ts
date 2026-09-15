@@ -1,12 +1,14 @@
 import type { Point } from './homography';
 import type { Raster } from './sampling';
 import type { DetectionResult } from './detection';
+import type { CaptureMode } from './layout';
 
 export type MarkerPoints = [Point | null, Point | null, Point | null, Point | null];
 export type Photo = {
   id: string; name: string; width: number; height: number;
-  bitmap: ImageBitmap; working: Raster; url: string; points: MarkerPoints;
+  bitmap?: ImageBitmap; working: Raster; url: string; points: MarkerPoints;
   file: File;
+  registrationMode?: CaptureMode;
   detection?: { status: DetectionResult['status'] | 'running' | 'edited'; message: string; settingsKey: string };
   previousPoints?: MarkerPoints;
 };
@@ -38,8 +40,12 @@ export async function loadPhoto(file: File): Promise<Photo> {
     ctx.globalCompositeOperation = 'destination-over';
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('Photo preview could not be created.')), 'image/jpeg', .92));
-    return { id: crypto.randomUUID(), name: file.name, file, width: bitmap.width, height: bitmap.height, bitmap, working, url: URL.createObjectURL(blob), points: emptyPoints() };
+    const photo: Photo = { id: crypto.randomUUID(), name: file.name, file, width: bitmap.width, height: bitmap.height, working, url: URL.createObjectURL(blob), points: emptyPoints() };
+    // Keep original bytes, decode one full-resolution photo at a time on demand.
+    // A sequence of close-ups must not retain dozens of 12 MP decoded bitmaps.
+    bitmap.close();
+    return photo;
   } catch (error) { bitmap.close(); throw error; }
 }
 
-export function disposePhoto(photo: Photo) { photo.bitmap.close(); URL.revokeObjectURL(photo.url); }
+export function disposePhoto(photo: Photo) { photo.bitmap?.close(); URL.revokeObjectURL(photo.url); }

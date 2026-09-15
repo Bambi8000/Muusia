@@ -52,14 +52,23 @@ export function project(h: Matrix, x: number, y: number): Point {
 
 export function registrationTransform(W: number, H: number, points: Quad): Matrix {
   if (!Number.isFinite(W) || !Number.isFinite(H) || W <= 40 || H <= 40) throw new Error('Check the sheet dimensions.');
+  return registrationQuad([{ x: 20, y: 20 }, { x: W - 20, y: 20 }, { x: W - 20, y: H - 20 }, { x: 20, y: H - 20 }], points, W, H);
+}
+
+export function frameRegistration(W: number, H: number, points: Quad): Matrix {
+  if (!Number.isFinite(W) || !Number.isFinite(H) || W <= 1 || H <= 1) throw new Error('Check the frame dimensions.');
+  return registrationQuad([{ x: 0, y: 0 }, { x: W, y: 0 }, { x: W, y: H }, { x: 0, y: H }], points, W, H);
+}
+
+function registrationQuad(source: Quad, points: Quad, W: number, H: number): Matrix {
   if (points.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) throw new Error('Check the marker coordinates.');
   const crosses = points.map((a, i) => {
     const b = points[(i + 1) % 4]!, c = points[(i + 2) % 4]!;
     return (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
   });
-  if (crosses.every(c => c < -1e-6)) throw new Error('The marker order is mirrored. Start at the hole and continue clockwise: TL → TR → BR → BL.');
+  if (crosses.every(c => c < -1e-6)) throw new Error('The corner order is mirrored. Start at TL and continue clockwise: TL → TR → BR → BL.');
   if (crosses.some(c => c <= 1e-6)) throw new Error('Markers must form four distinct corners without crossing. Check their order.');
-  const h = solveHomography([{ x: 20, y: 20 }, { x: W - 20, y: 20 }, { x: W - 20, y: H - 20 }, { x: 20, y: H - 20 }], points);
+  const h = solveHomography(source, points);
   // Extrapolation from the inset markers must remain finite over the entire sheet.
   const denominators = [[0, 0], [W, 0], [W, H], [0, H]].map(([x, y]) => h[6] * x! + h[7] * y! + 1);
   if (!denominators.every(v => v > 1e-8)) throw new Error('The perspective is too extreme. Check the corners or take a more overhead photo.');

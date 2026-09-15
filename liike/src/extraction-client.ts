@@ -16,7 +16,7 @@ export function startExtraction(photos: Photo[], plans: SheetPlan[], settings: S
         if (stopped) throw new Error('Extraction cancelled.');
         const photo = photos.find(p => p.id === plan.photoId);
         if (!photo) throw new Error('A sheet photo is missing. Add it again in Photos.');
-        const bitmap = await createImageBitmap(photo.bitmap);
+        const bitmap = await createImageBitmap(photo.file, { imageOrientation: 'from-image' });
         if (stopped) { bitmap.close(); throw new Error('Extraction cancelled.'); }
         try { worker = new ExtractionWorker(); }
         catch (error) { bitmap.close(); throw error; }

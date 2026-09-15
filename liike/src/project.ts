@@ -1,19 +1,20 @@
 import { validateSettings } from './layout.ts';
-import type { SheetSettings } from './layout';
+import type { CaptureMode, SheetSettings } from './layout';
 import { validateAdjustments } from './adjustments.ts';
 import type { Adjustments } from './adjustments';
 import type { SequenceSettings } from './sequence';
 import type { ExportOptions } from './export-plan';
 import type { MarkerPoints, Photo } from './photos';
 
-export const PROJECT_VERSION = 1;
+export const PROJECT_VERSION = 2;
 export const MAX_PROJECT_BYTES = 256 * 1024 * 1024;
 export const MAX_PHOTO_BYTES = 40 * 1024 * 1024;
-export const MAX_PROJECT_PIXELS = 160_000_000;
+// Originals are now decoded one at a time. This includes 24–32 typical 12 MP close-ups.
+export const MAX_PROJECT_PIXELS = 400_000_000;
 export const MAX_PROJECT_PHOTOS = 64;
 export type ProjectState = { name: string; settings: SheetSettings; adjustments: Adjustments; sequence: SequenceSettings; exportOptions: ExportOptions; resolution: number; stabilize: boolean };
-export type ProjectPhoto = { id: string; name: string; path: string; type: string; size: number; lastModified: number; width: number; height: number; points: MarkerPoints; settingsKey: string; sha256: string };
-export type ProjectDocument = ProjectState & { format: 'liike-project'; version: 1; photos: ProjectPhoto[] };
+export type ProjectPhoto = { id: string; name: string; path: string; type: string; size: number; lastModified: number; width: number; height: number; points: MarkerPoints; registrationMode: CaptureMode; settingsKey: string; sha256: string };
+export type ProjectDocument = ProjectState & { format: 'liike-project'; version: 2; photos: ProjectPhoto[] };
 const fail = (message: string): never => { throw new Error(message); };
 const object = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : fail('Invalid project structure.');
 const string = (value: unknown, name: string, max = 200): string => typeof value === 'string' && value.length <= max ? value : fail(`Invalid ${name} in project.`);
@@ -25,7 +26,8 @@ function choice<T extends string>(value: unknown, name: string, values: readonly
 export function parseProject(value: unknown): ProjectDocument {
   const p = object(value);
   if (p.format !== 'liike-project') fail('This is not a Liike project. Choose a file saved with Save project.');
-  if (p.version !== PROJECT_VERSION) fail('This project version is not supported. Update Liike and try again.');
+  if (p.version !== 1 && p.version !== PROJECT_VERSION) fail('This project version is not supported. Update Liike and try again.');
+  const legacy = p.version === 1;
   const s = object(p.settings);
   const settings: SheetSettings = {
     W: number(s.W, 'sheet width', 41, 100000), H: number(s.H, 'sheet height', 41, 100000),
@@ -33,6 +35,8 @@ export function parseProject(value: unknown): ProjectDocument {
     margin: number(s.margin, 'margin', 0, 100000), gap: number(s.gap, 'gap', 0, 100000), markSize: number(s.markSize, 'marker size', 8, 15),
     order: choice(s.order, 'frame order', ['Row-major', 'Column-major', 'Boustrophedon']), total: number(s.total, 'total frames', 1, Number.MAX_SAFE_INTEGER, true),
     crop: choice(s.crop, 'crop', ['Frame window', 'Full cell']), pad: number(s.pad, 'padding', 0, 100), paperTone: choice<'light' | 'dark'>(s.paperTone, 'paper color', ['light', 'dark']),
+    captureMode: legacy ? 'sheet' : choice<CaptureMode>(s.captureMode, 'capture mode', ['sheet', 'frames']),
+    clearance: legacy ? 0 : number(s.clearance, 'plot clearance', 0, 10), trim: legacy ? 0 : number(s.trim, 'border trim', 0, 10),
   };
   const issues = validateSettings(settings); if (issues.length) fail(issues[0]!);
   const a = object(p.adjustments);
@@ -65,14 +69,14 @@ export function parseProject(value: unknown): ProjectDocument {
     // Incomplete or crossing assignments are valid editable work in progress.
     const sha256 = string(f.sha256, 'photo checksum', 64);
     if (!/^[a-f0-9]{64}$/.test(sha256)) fail('Invalid photo checksum in project.');
-    return { id, path, type, size, width, height, points, sha256, name: string(f.name, 'photo name', 255), lastModified: number(f.lastModified, 'photo date', 0, Number.MAX_SAFE_INTEGER, true), settingsKey: string(f.settingsKey, 'marker settings', 200) };
+    return { id, path, type, size, width, height, points, sha256, registrationMode: legacy ? 'sheet' : choice(f.registrationMode, 'registration mode', ['sheet', 'frames']), name: string(f.name, 'photo name', 255), lastModified: number(f.lastModified, 'photo date', 0, Number.MAX_SAFE_INTEGER, true), settingsKey: string(f.settingsKey, 'marker settings', 200) };
   });
   const q = object(p.sequence);
   const references = (value: unknown): string[] => {
     if (!Array.isArray(value) || value.length > MAX_PROJECT_PHOTOS * 36) fail('Invalid frame references in project.');
     const result = (value as unknown[]).map(v => {
       const id = string(v, 'frame reference', 85), split = id.lastIndexOf(':');
-      if (!ids.has(id.slice(0, split)) || !/^(0|[1-9][0-9]*)$/.test(id.slice(split + 1)) || Number(id.slice(split + 1)) >= settings.cols * settings.rows) fail('A sequence frame refers to an unknown photo or cell.');
+      if (!ids.has(id.slice(0, split)) || !/^(0|[1-9][0-9]*)$/.test(id.slice(split + 1)) || Number(id.slice(split + 1)) >= (settings.captureMode === 'frames' ? 1 : settings.cols * settings.rows)) fail('A sequence frame refers to an unknown photo or cell.');
       return id;
     });
     if (new Set(result).size !== result.length) fail('Duplicate frame references in project.');
@@ -89,7 +93,7 @@ export function parseProject(value: unknown): ProjectDocument {
 
 /** Keep pending choices for extra photos, discard references to removed photos/cells. */
 export function currentSequence(sequence: SequenceSettings, settings: SheetSettings, photos: Pick<Photo, 'id'>[]): SequenceSettings {
-  const valid = new Set(photos.flatMap(p => Array.from({ length: settings.cols * settings.rows }, (_, cell) => `${p.id}:${cell}`)));
+  const valid = new Set(photos.flatMap(p => Array.from({ length: settings.captureMode === 'frames' ? 1 : settings.cols * settings.rows }, (_, cell) => `${p.id}:${cell}`)));
   const keep = (ids: string[]) => [...new Set(ids.filter(id => valid.has(id)))];
   return { ...sequence, manual: keep(sequence.manual), excluded: keep(sequence.excluded) };
 }

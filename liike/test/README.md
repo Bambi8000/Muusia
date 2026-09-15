@@ -264,3 +264,58 @@ The project download/restore round trip is verified on disk. Earlier notes
 about the initial M6 media-download test describe that earlier test only;
 this verification does not independently repeat every media format download.
 User photos and downloaded project files remain outside the repository.
+
+## Close-up capture proof — 2026-09-15
+
+`closeup-detection.test.mjs` exercises the experimental cell-outline and
+external 3 mm ring detector. Fourteen tests cover light/dark paper, four
+right-angle rotations plus 25°, perspective, noise, lighting gradients,
+open rings, missing/ambiguous orientation, dense artwork, and clipped
+neighboring cells. Recovered synthetic corners must be within 0.3 mm.
+All 93 tests and strict TypeScript/lint pass.
+
+The supplied IMG_2635.jpeg and IMG_2636.jpeg each produce one correctly
+oriented quad, including after all four right-angle rotations. Rotating back
+changes fitted corners by at most 0.73 working pixels. Both source images
+are 3024 × 4032 after EXIF orientation. Direct full-resolution sampling
+produced 2160 × 1888 PNGs using the same 1 mm inset from the 84 × 73.6667 mm
+cell. The corresponding source widths are approximately 2654 and 2458 px.
+Overlays and complete drawings were visually checked. These checks validate
+two photos, not full-animation stability or broad camera compatibility.
+
+At the proof stage, the prototype was not yet wired into the app UI or released.
+The integrated mode is described below. The local
+review images and processing notes are in ignored `wip/liike-closeups/`;
+the original photos remain in Downloads. Frame-window cropping would clip
+some upper strokes in these drawings, so the proof uses a fixed cell inset.
+The future capture UI must keep the cell/window choice and plot clearance
+separate from border trimming, and preserve a shared crop and scale.
+
+## Individual frames integration — 2026-09-15
+
+The capture tests cover cell-local geometry, independent clearance/trim,
+shared crop and scale across different camera distances, one photo per frame,
+photo order and extra photos, mode-switch registration guards, light/dark blank
+paper references independent of artwork, and close-up PNG source metadata.
+Project tests add v1 sheet migration, v2 frame identity/geometry restoration,
+and the 24 × 12 MP photo budget. All 102 tests pass with strict TypeScript/lint.
+
+The production browser imported the supplied IMG_2635.jpeg and IMG_2636.jpeg.
+Both outlines and orientations were found. Clearing and re-detecting corners
+restored registration. With A3/4×3/30 mm margin/8 mm gap, Full cell, 1 mm trim
+and 3 mm clearance, extraction produced two 2160×1888 frames. The downloaded
+PNG ZIP retained the complete drawings at those dimensions, in manually
+reversed order, with 11 fps timing. The downloaded v2 project restored both
+photos, eight corners, capture mode, crop geometry, Auto adjust, Sharpen 40%,
+Gamma 1.05, 2160 px, stabilization off and manual order/loop-off settings.
+Embedded original JPEGs matched the supplied files byte for byte. This is a
+two-photo check, not evidence of full-animation stability on every camera.
+
+The final build also restored the older v1 black-paper QA project and rebuilt
+13 source frames with its 12 included playback frames. Switching to the other
+capture mode hid incompatible registration points and disabled extraction;
+switching back restored the original corners. GIF download was verified as
+two 720×629 frames with 90 ms delays; MP4 creation/download completed at
+720×630 with eight frames (four repeats). The desktop layout had no horizontal
+overflow, and no console warnings or errors were observed. Both production
+builds passed.

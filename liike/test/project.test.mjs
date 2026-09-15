@@ -22,6 +22,40 @@ async function archiveParts() {
 const pack = files => new Blob([zipSync(files)]);
 const rewrite = (files, document) => pack({ ...files, 'project.json': strToU8(JSON.stringify(document)) });
 
+test('version 1 sheet projects migrate without changing crop geometry or marker interpretation', async () => {
+  const {files,document}=await archiveParts();
+  document.version=1;
+  delete document.settings.captureMode; delete document.settings.clearance; delete document.settings.trim;
+  document.photos.forEach(p=>delete p.registrationMode);
+  const result=await readProject(rewrite(files,document));
+  assert.equal(result.project.version,2); assert.equal(result.project.settings.captureMode,'sheet');
+  assert.equal(result.project.settings.clearance,0); assert.equal(result.project.settings.trim,0);
+  assert.ok(result.project.photos.every(p=>p.registrationMode==='sheet'));
+});
+
+test('close-up projects preserve frame identity, capture geometry and original photos', async()=>{
+  const photos=[photo('one'),photo('two')].map(p=>({...p,registrationMode:'frames'}));
+  const config=state(photos);
+  config.settings={...config.settings,captureMode:'frames',total:2,clearance:3,trim:1,crop:'Full cell',pad:0};
+  config.sequence={...config.sequence,manual:['two:0','one:0'],excluded:['one:0']};
+  let id=0;
+  const restored=await openProject(await saveProject(config,photos),noop,undefined,async file=>({...photo(`fresh${++id}`),file}),noop);
+  assert.deepEqual(restored.project.settings,config.settings);
+  assert.ok(restored.photos.every(p=>p.registrationMode==='frames'));
+  const frames=planFrames(restored.project.settings,restored.photos,2160).flatMap(p=>p.frames);
+  assert.equal(frames.length,2);
+  assert.deepEqual(timelineFrames(frames,restored.project.sequence).map(f=>f.frame),[1]);
+  const invalid=structuredClone(restored.project); invalid.sequence.manual=[`${restored.photos[0].id}:1`];
+  assert.throws(()=>parseProject(invalid),/unknown photo or cell/);
+});
+
+test('a 24-frame series of 12 MP originals fits the project pixel budget',async()=>{
+  const photos=Array.from({length:24},(_,i)=>({...photo(`frame${i}`),width:3024,height:4032,registrationMode:'frames'}));
+  const config=state(); config.settings={...DEFAULTS,captureMode:'frames',total:24,clearance:3,trim:1,crop:'Full cell'};
+  const restored=await readProject(await saveProject(config,photos));
+  assert.equal(restored.project.photos.length,24);
+});
+
 test('project round trip preserves original photo bytes, duplicate names, markers and every control', async () => {
   const { photos, config, blob, document } = await archiveParts();
   const restored = await readProject(blob);

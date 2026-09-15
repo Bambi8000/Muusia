@@ -8,7 +8,7 @@ import type { Matrix } from './homography';
 
 type Preview = { before: string; after: string; width: number; height: number; note: string; supported: boolean; sourceKey: string; id: number };
 export function useAdjustmentPreview(photo: Photo, settings: SheetSettings, h: Matrix | null, rect: Rect, adjustments: Adjustments) {
-  const analysisSettings = useMemo<SheetSettings>(() => ({ W: settings.W, H: settings.H, cols: settings.cols, rows: settings.rows, margin: settings.margin, gap: settings.gap, markSize: settings.markSize, paperTone: settings.paperTone ?? 'light', total: 1, order: 'Row-major', crop: 'Frame window', pad: 0 }), [settings.W, settings.H, settings.cols, settings.rows, settings.margin, settings.gap, settings.markSize, settings.paperTone]);
+  const analysisSettings = useMemo<SheetSettings>(() => ({ W: settings.W, H: settings.H, cols: settings.cols, rows: settings.rows, margin: settings.margin, gap: settings.gap, markSize: settings.markSize, paperTone: settings.paperTone ?? 'light', captureMode: settings.captureMode ?? 'sheet', clearance: settings.clearance ?? 0, total: 1, order: 'Row-major', crop: 'Frame window', pad: 0 }), [settings.W, settings.H, settings.cols, settings.rows, settings.margin, settings.gap, settings.markSize, settings.paperTone, settings.captureMode, settings.clearance]);
   const sourceKey = JSON.stringify([photo.id, analysisSettings, h]);
   const rectKey = JSON.stringify(rect);
   const stableRect = useMemo<Rect>(() => JSON.parse(rectKey), [rectKey]);
@@ -34,10 +34,10 @@ export function useAdjustmentPreview(photo: Photo, settings: SheetSettings, h: M
         old.forEach(url => URL.revokeObjectURL(url));
       };
       current.onerror = () => { setBusy(false); setError('Could not render the preview. Try reopening Adjust.'); };
-      current.postMessage({ type: 'init', raster: photo.working, original: { width: photo.width, height: photo.height }, h, settings: analysisSettings });
+      current.postMessage({ type: 'init', raster: photo.working, file: photo.file, original: { width: photo.width, height: photo.height }, h, settings: analysisSettings });
     } catch { setError('Image workers are unavailable in this browser.'); }
     return () => { current?.terminate(); worker.current = null; owned.current.forEach(url => URL.revokeObjectURL(url)); owned.current = []; };
-  }, [sourceKey, photo.working, photo.width, photo.height, h, analysisSettings]);
+  }, [sourceKey, photo.working, photo.file, photo.width, photo.height, h, analysisSettings]);
   useEffect(() => {
     const id = ++latest.current;
     setBusy(Boolean(worker.current));

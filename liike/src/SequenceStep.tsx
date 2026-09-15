@@ -4,6 +4,8 @@ import { orderedFrames, timelineFrames, moveFrame, playbackPosition } from './se
 import type { SequenceSettings, SequenceOrder } from './sequence';
 import type { useFrames } from './useFrames';
 
+const sourceLabel = (frame: ExtractedFrame) => `${frame.captureMode === 'frames' ? 'Photo' : 'Sheet'} ${frame.sheet + 1}`;
+
 function Player({ frames, fps, loop }: { frames: ExtractedFrame[]; fps: number; loop: boolean }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -36,14 +38,14 @@ function Player({ frames, fps, loop }: { frames: ExtractedFrame[]; fps: number; 
   return <section className="player-panel" aria-label="Animation preview">
     <div className="preview-heading"><div><p className="eyebrow">Animation preview</p><h2>Paper in motion</h2></div><span className="playback-state">{playing ? 'Playing' : 'Paused'}</span></div>
     <div className="animation-stage" style={{ aspectRatio: shown ? `${shown.width} / ${shown.height}` : '4 / 3' }}>
-      {shown ? <img src={shown.url} width={shown.width} height={shown.height} alt={`Source frame ${shown.frame + 1}, sheet ${shown.sheet + 1}`} /> : <p>Include a frame below to preview the animation.</p>}
+      {shown ? <img src={shown.url} width={shown.width} height={shown.height} alt={`Source frame ${shown.frame + 1}, ${sourceLabel(shown)}`} /> : <p>Include a frame below to preview the animation.</p>}
     </div>
     <div className="playback-controls"><button className="icon-button" aria-label="Previous frame" disabled={!frames.length || index === 0} onClick={() => seek(index - 1)}>←</button><button className="primary" disabled={!frames.length} onClick={() => {
       if (!playing && !loop && index === frames.length - 1) { position.current = 0; setIndex(0); }
       setPlaying(p => !p);
     }}>{playing ? 'Pause' : 'Play'}</button><button className="icon-button" aria-label="Next frame" disabled={!frames.length || index === frames.length - 1} onClick={() => seek(index + 1)}>→</button></div>
     <label className="field scrub-field"><span>Playback position · {frames.length ? index + 1 : 0} / {frames.length}</span><input aria-label="Playback position" type="range" min={1} max={Math.max(1, frames.length)} value={frames.length ? index + 1 : 1} disabled={!frames.length} onChange={e => seek(Number(e.target.value) - 1)} /></label>
-    <p className="hint player-caption">{shown ? `Source frame ${shown.frame + 1} · Sheet ${shown.sheet + 1} · ${shown.width} × ${shown.height} px` : 'All frames are excluded.'}</p>
+    <p className="hint player-caption">{shown ? `Source frame ${shown.frame + 1} · ${sourceLabel(shown)} · ${shown.width} × ${shown.height} px` : 'All frames are excluded.'}</p>
   </section>;
 }
 
@@ -68,7 +70,7 @@ export default function SequenceStep({ extraction, resolution, setResolution, st
   }
   return <>
     <section className="intro"><div><p className="eyebrow">05 / Build the sequence</p><h1>Bring it <em>to life.</em></h1><p>Extract your drawings, set the rhythm and arrange the frames. Each crop comes directly from the original photograph.</p></div></section>
-    <div className="extraction-bar"><div><strong>{extraction.completed ? `${frames.length} frames ready` : extraction.busy ? `Extracting frame ${Math.min(extraction.frames.length + 1, total)} of ${total}…` : 'Turn your sheets into frames'}</strong><p>{extraction.completed ? stabilize ? 'Position stabilized. Size, rotation and your paper adjustments are preserved.' : 'These frames include your latest paper and tone adjustments.' : 'Check the markers and choose your look in Adjust before extracting.'}</p></div>
+    <div className="extraction-bar"><div><strong>{extraction.completed ? `${frames.length} frames ready` : extraction.busy ? `Extracting frame ${Math.min(extraction.frames.length + 1, total)} of ${total}…` : 'Turn your photos into frames'}</strong><p>{extraction.completed ? stabilize ? 'Position stabilized. Size, rotation and your paper adjustments are preserved.' : 'These frames include your latest paper and tone adjustments.' : 'Check registration and choose your look in Adjust before extracting.'}</p></div>
       <label className="field"><span>Resolution · long side</span><select value={resolution} disabled={extraction.busy} onChange={e => setResolution(Number(e.target.value))}>{[480, 720, 1080, 2160].map(n => <option key={n} value={n}>{n} px</option>)}</select></label>
       {extraction.busy ? <button className="secondary" onClick={extraction.cancel}>Cancel extraction</button> : <button className="primary" disabled={Boolean(readiness)} onClick={() => { void extraction.extract(); }}>{extraction.completed ? 'Extract again' : 'Extract frames'}</button>}
     </div>
@@ -87,11 +89,11 @@ export default function SequenceStep({ extraction, resolution, setResolution, st
           <label className="checkbox"><input type="checkbox" checked={sequence.loop} onChange={e => setSequence({ ...sequence, loop: e.target.checked })} />Loop playback</label>
         </fieldset><dl className="sequence-metrics"><div><dt>Included drawings</dt><dd>{frames.filter(f => !sequence.excluded.includes(f.id)).length} / {frames.length}</dd></div><div><dt>Playback steps</dt><dd>{timeline.length}</dd></div><div><dt>Duration</dt><dd>{(timeline.length / sequence.fps).toFixed(2)} s</dd></div></dl><p className="hint">Return to Adjust to change paper lighting or tones, or continue to Export to save your animation.</p></section>
       </div>
-      <section className="frame-library" aria-label="Extracted frames"><div className="preview-heading"><div><p className="eyebrow">Your drawings</p><h2>Arrange the frames</h2></div><button className="secondary" disabled={!sequence.excluded.length} onClick={() => setSequence({ ...sequence, excluded: [] })}>Include all</button></div><p className="hint">Drag to reorder, or use the arrows. Uncheck Include to skip a drawing. Source numbers always refer to the original plotted frames.</p>
+      <section className="frame-library" aria-label="Extracted frames"><div className="preview-heading"><div><p className="eyebrow">Your drawings</p><h2>Arrange the frames</h2></div><button className="secondary" disabled={!sequence.excluded.length} onClick={() => setSequence({ ...sequence, excluded: [] })}>Include all</button></div><p className="hint">Drag to reorder, or use the arrows. Uncheck Include to skip a drawing. Source numbers follow the photo and frame order you set up.</p>
         <p role="status" className="sr-only">{moveNotice}</p>
         <ol className="frame-grid">{ordered.map((frame, i) => <li key={frame.id} className={sequence.excluded.includes(frame.id) ? 'excluded' : ''} draggable onDragStart={e => { setDragged(frame.id); e.dataTransfer.setData('text/plain', frame.id); e.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => setDragged(null)} onDragOver={e => { if (dragged) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } }} onDrop={e => { e.preventDefault(); if (dragged) move(dragged, frame.id); setDragged(null); }}>
           <img src={frame.thumbnailUrl} width={frame.width} height={frame.height} alt={`Source frame ${frame.frame + 1}`} loading="lazy" draggable={false} />
-          <div className="frame-card-heading"><strong>{i + 1}</strong><span>Source {frame.frame + 1}<small>Sheet {frame.sheet + 1}</small></span></div>
+          <div className="frame-card-heading"><strong>{i + 1}</strong><span>Source {frame.frame + 1}<small>{sourceLabel(frame)}</small></span></div>
           <label className="checkbox"><input aria-label={`Include source frame ${frame.frame + 1}`} type="checkbox" checked={!sequence.excluded.includes(frame.id)} onChange={e => setSequence({ ...sequence, excluded: e.target.checked ? sequence.excluded.filter(id => id !== frame.id) : [...sequence.excluded, frame.id] })} />Include</label>
           <div className="frame-move"><button className="secondary" aria-label={`Move source frame ${frame.frame + 1} earlier`} disabled={i === 0} onClick={() => move(frame.id, ordered[i - 1]!.id)}>←</button><button className="secondary" aria-label={`Move source frame ${frame.frame + 1} later`} disabled={i === ordered.length - 1} onClick={() => move(frame.id, ordered[i + 1]!.id)}>→</button></div>
         </li>)}</ol>

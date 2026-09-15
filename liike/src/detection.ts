@@ -4,7 +4,7 @@ import type { Raster } from './sampling';
 import { analysisLight } from './paper.ts';
 import type { PaperTone } from './paper';
 
-export type DetectionSettings = { W: number; H: number; markSize: number; paperTone?: PaperTone };
+export type DetectionSettings = { W: number; H: number; markSize: number; paperTone?: PaperTone; captureMode?: 'sheet' | 'frames'; cols?: number; rows?: number; margin?: number; gap?: number };
 export type DetectionResult = {
   status: 'found' | 'not-found' | 'ambiguous' | 'mirrored';
   points: Quad | null;
@@ -14,7 +14,7 @@ export type DetectionResult = {
 type Candidate = Point & { width: number; height: number; area: number; hole: number };
 
 /** Separable box mean with clipped image edges, O(width × height). */
-function boxMean(input: Float32Array, w: number, h: number, radius: number): Float32Array {
+export function boxMean(input: Float32Array, w: number, h: number, radius: number): Float32Array {
   const intermediate = new Float32Array(input.length), result = new Float32Array(input.length);
   for (let y = 0; y < h; y++) {
     let sum = 0;
