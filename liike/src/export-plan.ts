@@ -36,7 +36,7 @@ export const gifDelay = (index: number, fps: number) => (Math.round((index + 1) 
 export const pngName = (index: number) => `frames/frame-${String(index + 1).padStart(6, '0')}.png`;
 export function exportManifest(plan: ExportPlan) {
   return { app: 'Liike', version: 1, timeUnit: 'microseconds', fps: plan.fps, loop: plan.loop, width: plan.width, height: plan.height, durationSeconds: plan.frames.length / plan.fps,
-    frames: plan.frames.map((frame, i) => ({ file: pngName(i), sourceFrame: frame.frame + 1, ...(frame.captureMode === 'frames' ? { captureMode: 'frames', sourcePhoto: frame.sheet + 1 } : { sheet: frame.sheet + 1 }), paperTone: frame.paperTone ?? 'light', stabilized: Boolean(frame.stabilized), ...frameTiming(i, plan.fps) })) };
+    frames: plan.frames.map((frame, i) => ({ file: pngName(i), sourceFrame: frame.captureMode === 'frames' ? frame.frameNumber ?? null : frame.frame + 1, ...(frame.captureMode === 'frames' ? { captureMode: 'frames', sourcePhoto: frame.sheet + 1 } : { sheet: frame.sheet + 1 }), paperTone: frame.paperTone ?? 'light', stabilized: Boolean(frame.stabilized), ...frameTiming(i, plan.fps) })) };
 }
 
 export type VideoChoice = { format: 'mp4' | 'webm'; config: VideoEncoderConfig };

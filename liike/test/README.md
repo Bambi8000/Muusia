@@ -319,3 +319,23 @@ two 720×629 frames with 90 ms delays; MP4 creation/download completed at
 720×630 with eight frames (four repeats). The desktop layout had no horizontal
 overflow, and no console warnings or errors were observed. Both production
 builds passed.
+
+## Printed frame numbers — 2026-09-15
+
+Regression coverage separates printed numbers from upload positions: an
+unnumbered close-up does not claim to be frame 1; an explicitly assigned 5
+survives sorting, manual/excluded playback and PNG metadata. Sorting validates
+missing, duplicate and invalid numbers without mutating photos or geometry.
+Version 3 project saves retain numbers; versions 1 and 2 migrate with numbers
+unset. Partial assignments are valid work in progress. All 107 tests, strict
+TypeScript/lint and both production builds pass.
+
+In the production browser the earlier v2 close-up QA project opened with no
+invented printed numbers. Assigning 5 to the first test photo changed the
+registration overlay to 5 without changing its corners. Assigning 2 to the
+second photo and sorting reversed their photo order while retaining labels.
+The sequence and downloaded PNG ZIP reported sources 2, 5. The downloaded
+v3 project preserved both original JPEGs byte-for-byte; after reload both
+numbers and the frame-5 overlay returned. These numbers were assigned for
+this regression test, not read from the photographed artwork. No console
+warnings/errors or desktop horizontal overflow were observed.

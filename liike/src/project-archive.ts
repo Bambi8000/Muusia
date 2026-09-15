@@ -17,7 +17,7 @@ export async function saveProject(state: ProjectState, photos: Photo[], progress
   if (photos.some(p => !p.file || p.file.size > MAX_PHOTO_BYTES) || photos.reduce((n, p) => n + p.file.size, 0) > MAX_PROJECT_BYTES - 1024 * 1024) throw new Error('Project photos must be under 40 MB each and 255 MB in total. Use smaller photos.');
   const metadata: ProjectPhoto[] = photos.map((photo, i) => {
     const type = mime(photo.file), ext = type === 'image/jpeg' ? 'jpg' : type === 'image/png' ? 'png' : 'webp';
-    return { id: photo.id, name: photo.name, path: `photos/${String(i + 1).padStart(4, '0')}.${ext}`, type, size: photo.file.size, lastModified: photo.file.lastModified, width: photo.width, height: photo.height, points: photo.points.map(p => p && { ...p }) as Photo['points'], registrationMode: photo.registrationMode ?? 'sheet', settingsKey: photo.detection?.settingsKey ?? '', sha256: '0'.repeat(64) };
+    return { id: photo.id, name: photo.name, path: `photos/${String(i + 1).padStart(4, '0')}.${ext}`, type, size: photo.file.size, lastModified: photo.file.lastModified, width: photo.width, height: photo.height, points: photo.points.map(p => p && { ...p }) as Photo['points'], registrationMode: photo.registrationMode ?? 'sheet', frameNumber: photo.frameNumber, settingsKey: photo.detection?.settingsKey ?? '', sha256: '0'.repeat(64) };
   });
   // Validate and copy the snapshot before the first asynchronous operation.
   const document = parseProject({ ...state, settings: { ...state.settings, paperTone: state.settings.paperTone ?? 'light', captureMode: state.settings.captureMode ?? 'sheet', clearance: state.settings.clearance ?? 0, trim: state.settings.trim ?? 0 }, sequence: currentSequence(state.sequence, state.settings, photos), format: 'liike-project', version: PROJECT_VERSION, photos: metadata });
@@ -95,6 +95,7 @@ export async function openProject(file: Blob, progress: ProjectProgress = () => 
       ids.set(saved.id, photo.id);
       photo.points = saved.points;
       photo.registrationMode = saved.registrationMode;
+      photo.frameNumber = saved.frameNumber;
       photo.detection = { status: 'edited', settingsKey: saved.settingsKey, message: saved.registrationMode === 'frames' ? 'Restored frame corners. Check the crop before extracting.' : 'Restored marker positions. Check the frame windows before extracting.' };
     }
     check(signal);

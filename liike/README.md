@@ -57,15 +57,19 @@ cell close up. The existing **Whole sheets** mode remains available.
 1. In Muusia, enable **Cell frames** and **Corner dots**. Each cell needs a
    complete rectangular outline and the 3 mm circle just outside its top-left
    corner (center 2.5 mm left and above the corner). Use **Clearance mm** of
-   at least 3 mm to leave blank paper inside the outline. Frame numbers help
-   organize the photos; Liike does not read the numbers automatically.
+   at least 3 mm to leave blank paper inside the outline. Liike detects the outline
+   and orientation, but does not read the printed number automatically.
 2. Match the original sheet size, grid, margin, gap and **Plot clearance** in
    Liike. These establish the physical cell size even though each photo shows
    only one cell. Select the appropriate light or dark paper color.
 3. Photograph one complete cell per photo, keeping its outline and top-left
    circle visible. Small parts of neighboring cells are fine. Add photos in
-   frame order; use the arrows to correct it and **Use these N frames** to
-   match Total frames to the number of photos.
+   frame order. Enter **Frame number on paper** in Photos or Register; a photo
+   without an assigned number is labeled **Photo N · number not set**, not
+   Frame N. Use **Order by frame number** to sort all photos in ascending
+   order and reset playback to that order, or use the photo arrows. Sorting
+   requires unique numbers on every loaded photo, including extras.
+   **Use these N frames** matches Total frames to the number of photos.
 4. **Review corners** checks the detected outline and orientation. If detection
    is uncertain, **Place corners manually** always opens registration: place
    TL beside the circle, then TR, BR, BL at the frame-line intersections.
@@ -84,11 +88,15 @@ cell close up. The existing **Whole sheets** mode remains available.
    If the blank band is too narrow, correction is skipped with a visible
    explanation; shared tones and sharpening remain usable.
 
-Each photo produces exactly one frame. Capture mode, clearance, trim, corner
-positions and original photos are included in Save/Load. Switching modes
+Each photo produces exactly one frame. The printed number stays with its photo
+when reordered, replaced or saved. It does not change the crop or require
+missing frames to be filled (a two-photo sequence may contain frames 2 and 5).
+Unknown numbers remain unset when older projects are opened.
+Capture mode, clearance, trim, corner positions, frame numbers and original photos are included in Save/Load. Switching modes
 requires registration for the new geometry before extraction; sheet-marker
 centers are never reused as frame corners. PNG export metadata identifies the
-source photo rather than implying each close-up is a separate physical sheet.
+source photo and the assigned printed frame number (`sourceFrame` is null
+when unset), rather than implying each close-up is a separate physical sheet.
 
 The supplied IMG_2635.jpeg and IMG_2636.jpeg register automatically and retain
 all strokes with the default Full cell crop. More pixels help preserve fine
@@ -127,7 +135,8 @@ projects show a request to use fewer or smaller sheet photos.
 The `.liike` file is a ZIP container with a versioned `project.json` and
 numbered files under `photos/`. The loader validates the schema, archive paths,
 expanded sizes, unique identifiers, frame references, SHA-256 photo checksums
-and decoded dimensions. New saves use version 2; the loader also migrates version 1 sheet projects
+and decoded dimensions. New saves use version 3; the loader also migrates version 1 sheet and version 2
+close-up projects
 without changing their geometry and rejects unsupported versions
 without changing the session. New runtime photo identifiers prevent stale
 crop reuse; saved sequence references are remapped consistently. No executable

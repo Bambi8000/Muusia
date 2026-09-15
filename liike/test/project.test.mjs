@@ -28,13 +28,13 @@ test('version 1 sheet projects migrate without changing crop geometry or marker 
   delete document.settings.captureMode; delete document.settings.clearance; delete document.settings.trim;
   document.photos.forEach(p=>delete p.registrationMode);
   const result=await readProject(rewrite(files,document));
-  assert.equal(result.project.version,2); assert.equal(result.project.settings.captureMode,'sheet');
+  assert.equal(result.project.version,3); assert.equal(result.project.settings.captureMode,'sheet');
   assert.equal(result.project.settings.clearance,0); assert.equal(result.project.settings.trim,0);
   assert.ok(result.project.photos.every(p=>p.registrationMode==='sheet'));
 });
 
 test('close-up projects preserve frame identity, capture geometry and original photos', async()=>{
-  const photos=[photo('one'),photo('two')].map(p=>({...p,registrationMode:'frames'}));
+  const photos=[photo('one'),photo('two')].map((p,i)=>({...p,registrationMode:'frames',frameNumber:[5,2][i]}));
   const config=state(photos);
   config.settings={...config.settings,captureMode:'frames',total:2,clearance:3,trim:1,crop:'Full cell',pad:0};
   config.sequence={...config.sequence,manual:['two:0','one:0'],excluded:['one:0']};
@@ -42,6 +42,7 @@ test('close-up projects preserve frame identity, capture geometry and original p
   const restored=await openProject(await saveProject(config,photos),noop,undefined,async file=>({...photo(`fresh${++id}`),file}),noop);
   assert.deepEqual(restored.project.settings,config.settings);
   assert.ok(restored.photos.every(p=>p.registrationMode==='frames'));
+  assert.deepEqual(restored.photos.map(p=>p.frameNumber),[5,2]);
   const frames=planFrames(restored.project.settings,restored.photos,2160).flatMap(p=>p.frames);
   assert.equal(frames.length,2);
   assert.deepEqual(timelineFrames(frames,restored.project.sequence).map(f=>f.frame),[1]);
@@ -170,4 +171,28 @@ test('saving snapshots controls before reading files and uses a portable project
   assert.equal(project.adjustments.gamma, 1.15); assert.equal(project.photos[0].points[0].x, 20);
   assert.equal(projectFilename(' Vihreä / kukka?! '), 'Vihreä  kukka.liike');
   assert.equal(projectFilename('...'), 'Liike.liike');
+});
+
+
+test('version 2 projects migrate without inventing printed frame numbers', async()=>{
+  const {files,document}=await archiveParts();
+  document.version=2; document.settings.captureMode='frames'; document.settings.total=2;
+  document.photos.forEach(p=>{p.registrationMode='frames';delete p.frameNumber;});
+  document.sequence.manual=[];document.sequence.excluded=[];
+  const result=await readProject(rewrite(files,document));
+  assert.equal(result.project.version,3);
+  assert.deepEqual(result.project.settings,document.settings);
+  assert.ok(result.project.photos.every(p=>p.frameNumber===undefined));
+});
+
+test('project frame numbers accept partial work but reject invalid values', async()=>{
+  const {files,document}=await archiveParts();
+  document.photos[0].frameNumber=5;
+  const result=await readProject(rewrite(files,document));
+  assert.equal(result.project.photos[0].frameNumber,5);
+  assert.equal(result.project.photos[1].frameNumber,undefined);
+  for(const value of [null,0,-1,1.5,1000000,'5']) {
+    document.photos[0].frameNumber=value;
+    await assert.rejects(()=>readProject(rewrite(files,document)),/frame number/);
+  }
 });

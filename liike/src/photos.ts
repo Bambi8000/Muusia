@@ -9,6 +9,7 @@ export type Photo = {
   bitmap?: ImageBitmap; working: Raster; url: string; points: MarkerPoints;
   file: File;
   registrationMode?: CaptureMode;
+  frameNumber?: number;
   detection?: { status: DetectionResult['status'] | 'running' | 'edited'; message: string; settingsKey: string };
   previousPoints?: MarkerPoints;
 };

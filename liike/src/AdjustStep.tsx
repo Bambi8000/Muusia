@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Photo } from './photos';
+import { frameLabel } from './frame-number';
 import { framesForPhoto, individualFrames, photoGeometry } from './capture';
 import type { SheetSettings } from './layout';
 import type { Quad } from './homography';
@@ -17,6 +18,7 @@ export default function AdjustStep({ photo, settings, sheet, adjustments, setAdj
   const dark = settings.paperTone === 'dark';
   const closeup = individualFrames(settings), geometry = photoGeometry(settings);
   const frames = framesForPhoto(settings, sheet);
+  const label = (frame: { frame: number }) => frameLabel({ ...frame, sheet, captureMode: settings.captureMode, frameNumber: photo.frameNumber });
   const frame = frames[Math.max(0, Math.min(selected, frames.length - 1))]!;
   const rect = selected === -1 ? { x: 0, y: 0, w: geometry.W, h: geometry.H } : frame.crop;
   const { W: registrationWidth, H: registrationHeight } = geometry;
@@ -48,9 +50,9 @@ export default function AdjustStep({ photo, settings, sheet, adjustments, setAdj
       </section>
       <section className="adjust-preview" aria-label="Adjustment preview">
         <div className="preview-heading"><div><p className="eyebrow">Before & after</p><h2>{dark ? 'Bright ink. Deep black.' : 'Keep the ink. Lift the paper.'}</h2></div></div>
-        <div className="adjust-preview-controls"><label className="field"><span>Preview area</span><select value={selected === -1 ? -1 : Math.min(selected, frames.length - 1)} onChange={e => setSelected(Number(e.target.value))}><option value={-1}>{closeup ? 'Full frame outline' : 'Whole sheet'}</option>{frames.map((f, i) => <option key={f.frame} value={i}>Source frame {f.frame + 1}</option>)}</select></label><div className="comparison-toggle" role="group" aria-label="Compare adjustments"><button className={!original ? 'selected' : ''} aria-pressed={!original} onClick={() => setOriginal(false)}>Adjusted</button><button className={original ? 'selected' : ''} aria-pressed={original} onClick={() => setOriginal(true)}>Original</button></div></div>
+        <div className="adjust-preview-controls"><label className="field"><span>Preview area</span><select value={selected === -1 ? -1 : Math.min(selected, frames.length - 1)} onChange={e => setSelected(Number(e.target.value))}><option value={-1}>{closeup ? 'Full frame outline' : 'Whole sheet'}</option>{frames.map((f, i) => <option key={f.frame} value={i}>{label(f)}</option>)}</select></label><div className="comparison-toggle" role="group" aria-label="Compare adjustments"><button className={!original ? 'selected' : ''} aria-pressed={!original} onClick={() => setOriginal(false)}>Adjusted</button><button className={original ? 'selected' : ''} aria-pressed={original} onClick={() => setOriginal(true)}>Original</button></div></div>
         {registration.error || error ? <p className="error" role="alert">{registration.error || error}</p> : preview ? <div className="adjust-image-stage" aria-busy={busy}>
-          <img src={original ? preview.before : preview.after} width={preview.width} height={preview.height} alt={`${original ? 'Original' : 'Adjusted'} ${selected === -1 ? 'sheet' : `source frame ${frame.frame + 1}`}`} />
+          <img src={original ? preview.before : preview.after} width={preview.width} height={preview.height} alt={`${original ? 'Original' : 'Adjusted'} ${selected === -1 ? (closeup ? 'full frame outline' : 'sheet') : label(frame)}`} />
           <span className="comparison-label">{original ? 'Original' : 'Adjusted'}</span>
         </div> : <div className="preview-placeholder"><span aria-hidden="true">◐</span><h2>Reading the paper…</h2><p>The preview will update as you move the sliders.</p></div>}
         <p className="notice adjustment-status" role="status">{busy ? 'Updating preview…' : preview ? preview.note : ''}</p>

@@ -8,7 +8,7 @@ import type { Adjustments } from './adjustments';
 import { validateAdjustments } from './adjustments';
 
 export function useFrames(photos: Photo[], settings: SheetSettings, resolution: number, adjustments: Adjustments, stabilize = false) {
-  const key = JSON.stringify([settings, resolution, adjustments, stabilize, photos.map(p => [p.id, p.points])]);
+  const key = JSON.stringify([settings, resolution, adjustments, stabilize, photos.map(p => [p.id, p.points, p.registrationMode, p.frameNumber])]);
   const [state, setState] = useState<{ key: string; frames: ExtractedFrame[]; busy: boolean; error: string; completed: boolean }>({ key: '', frames: [], busy: false, error: '', completed: false });
   const owned = useRef<ExtractedFrame[]>([]);
   const active = useRef<ReturnType<typeof startExtraction> | null>(null);

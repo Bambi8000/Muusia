@@ -1,3 +1,4 @@
+import { photoLabel } from './frame-number.ts';
 import { buildLayout } from './layout.ts';
 import { framesForPhoto, individualFrames, photoTransform, requiredPhotos } from './capture.ts';
 import type { CaptureMode, Rect, SheetSettings } from './layout';
@@ -5,10 +6,10 @@ import type { Matrix, Quad } from './homography';
 import type { Photo } from './photos';
 import type { PaperTone } from './paper';
 
-export type FrameSpec = { id: string; photoId: string; sheet: number; frame: number; cell: number; crop: Rect; width: number; height: number; stabilized?: boolean; paperTone?: PaperTone; captureMode?: CaptureMode };
+export type FrameSpec = { id: string; photoId: string; sheet: number; frame: number; cell: number; crop: Rect; width: number; height: number; stabilized?: boolean; paperTone?: PaperTone; captureMode?: CaptureMode; frameNumber?: number };
 export type SheetPlan = { photoId: string; h: Matrix; frames: FrameSpec[] };
 export type ExtractedFrame = FrameSpec & { url: string; thumbnailUrl: string; warning?: string };
-type RegisteredPhoto = Pick<Photo, 'id' | 'width' | 'height' | 'points' | 'detection' | 'registrationMode'>;
+type RegisteredPhoto = Pick<Photo, 'id' | 'width' | 'height' | 'points' | 'detection' | 'registrationMode' | 'frameNumber'>;
 
 export function outputSize(crop: Rect, resolution: number) {
   if (!Number.isInteger(resolution) || resolution < 64 || resolution > 2160) throw new Error('Choose a resolution from 64 to 2160 pixels.');
@@ -23,7 +24,7 @@ export function planFrames(settings: SheetSettings, photos: RegisteredPhoto[], r
   const count = requiredPhotos(settings), closeup = individualFrames(settings);
   if (photos.length < count) throw new Error(`Add ${count - photos.length} more ${closeup ? 'frame' : 'sheet'} photo${count - photos.length === 1 ? '' : 's'} in Photos.`);
   return photos.slice(0, count).map((photo, sheet) => {
-    const prefix = `${closeup ? 'Frame' : 'Sheet'} ${sheet + 1}: `;
+    const prefix = `${photoLabel(photo, sheet, settings.captureMode)}: `;
     if ((photo.registrationMode ?? 'sheet') !== (settings.captureMode ?? 'sheet')) throw new Error(`${prefix}run detection or place the corners for this capture mode.`);
     if (photo.detection?.status === 'running') throw new Error(`${prefix}wait for ${closeup ? 'frame' : 'marker'} detection to finish.`);
     if (photo.points.some(p => !p)) throw new Error(`${prefix}place all four ${closeup ? 'corners' : 'markers'} in Register.`);
@@ -35,7 +36,7 @@ export function planFrames(settings: SheetSettings, photos: RegisteredPhoto[], r
     const frames = framesForPhoto(settings, sheet).map(f => {
       const q = f.crop;
       if ([[q.x, q.y], [q.x + q.w, q.y], [q.x + q.w, q.y + q.h], [q.x, q.y + q.h]].some(([x, y]) => h[6] * x! + h[7] * y! + h[8] <= 1e-8)) throw new Error(`${prefix}reduce padding or check the perspective before extracting frames.`);
-      return { id: `${photo.id}:${f.index}`, photoId: photo.id, sheet, frame: f.frame, cell: f.index, crop: q, captureMode: settings.captureMode ?? 'sheet', paperTone: settings.paperTone ?? 'light', ...outputSize(q, resolution) };
+      return { id: `${photo.id}:${f.index}`, photoId: photo.id, sheet, frame: f.frame, frameNumber: closeup ? photo.frameNumber : undefined, cell: f.index, crop: q, captureMode: settings.captureMode ?? 'sheet', paperTone: settings.paperTone ?? 'light', ...outputSize(q, resolution) };
     });
     return { photoId: photo.id, h, frames };
   });

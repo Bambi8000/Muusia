@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { buildLayout, DEFAULTS, framesOnSheet, LAYOUTS, ORDERS, validateSettings } from './layout';
 import type { CaptureMode, Crop, Order, Rect, SheetSettings } from './layout';
 import { individualFrames, photoForMode, requiredPhotos } from './capture';
+import { photoLabel } from './frame-number';
 import { REFERENCE_SETTINGS } from './reference-settings';
 import { usePhotos } from './usePhotos';
 import PhotosStep from './PhotosStep';
@@ -78,7 +79,7 @@ export default function App() {
   const count = layout ? framesOnSheet(settings, sheet).length : 0;
   const crop = layout?.cells[0]?.crop;
   const outside = layout?.cells.some(({ crop: q }) => q.x < 0 || q.y < 0 || q.x + q.w > settings.W + 1e-9 || q.y + q.h > settings.H + 1e-9);
-  const closeup = individualFrames(settings), photoNoun = closeup ? 'Frame' : 'Sheet';
+  const closeup = individualFrames(settings);
   const needed = layout ? requiredPhotos(settings) : 0;
   const availablePhotos = library.photos.slice(0, needed).map(photo => photoForMode(photo, settings));
   const registrationPhotoIndex = Math.max(0, Math.min(photoIndex, library.photos.length - 1));
@@ -188,16 +189,16 @@ export default function App() {
     </div>
     <div className="step-actions"><p className="hint">{library.photos.length ? 'Your photos and marker positions stay available when you change sheet settings.' : 'Ready to add the photographed sheets.'}</p><button className="primary" disabled={!layout} onClick={() => setStep(1)}>Add photos →</button></div>
     </>}
-    {step === 1 && layout && <PhotosStep library={library} sheets={needed} settings={settings} onUsePhotos={() => update({ total: String(library.photos.length) })} onBack={() => setStep(0)} onRegister={index => { setPhotoIndex(index); setStep(2); }} />}
+    {step === 1 && layout && <PhotosStep library={library} sheets={needed} settings={settings} onUsePhotos={() => update({ total: String(library.photos.length) })} onSortNumbers={() => { library.sortNumbers(); setPhotoIndex(0); setSequence(current => ({ ...current, order: 'Original', manual: [] })); }} onBack={() => setStep(0)} onRegister={index => { setPhotoIndex(index); setStep(2); }} />}
     {step === 2 && layout && registrationPhoto && <>
-      <section className="intro"><div><p className="eyebrow">03 / Register the {closeup ? 'frame' : 'sheet'}</p><h1>Find <em>the corners.</em></h1><p>{closeup ? "Use the four corners of the cell outline. Top-left is the corner beside the small external circle." : <>Match the markers in your photo to the sheet. Begin with the marker that has a {settings.paperTone === 'dark' ? 'dark' : 'white'} hole.</>}</p></div><label className="field"><span>Photographed {closeup ? 'frame' : 'sheet'}</span><select value={registrationPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{library.photos.map((photo, i) => <option key={photo.id} value={i}>{photoNoun} {i + 1} · {photo.name}{i >= needed ? ' · extra photo' : ''}</option>)}</select></label></section>
+      <section className="intro"><div><p className="eyebrow">03 / Register the {closeup ? 'frame' : 'sheet'}</p><h1>Find <em>the corners.</em></h1><p>{closeup ? "Use the four corners of the cell outline. Top-left is the corner beside the small external circle." : <>Match the markers in your photo to the sheet. Begin with the marker that has a {settings.paperTone === 'dark' ? 'dark' : 'white'} hole.</>}</p></div><label className="field"><span>Photographed {closeup ? 'frame' : 'sheet'}</span><select value={registrationPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{library.photos.map((photo, i) => <option key={photo.id} value={i}>{photoLabel(photo, i, settings.captureMode)} · {photo.name}{i >= needed ? ' · extra photo' : ''}</option>)}</select></label></section>
       {availablePhotos.length < needed && <p className="warning">{needed - availablePhotos.length} more photos needed. You can register these photos now and add the rest in Photos.</p>}
       {registrationPhotoIndex >= needed && <p className="warning">This extra photo can be registered now, but is not used in the sequence yet. Increase Total frames in Sheet or move this photo earlier in Photos to include it.</p>}
-      <RegistrationStep key={`${registrationPhoto.id}:${settings.captureMode}`} photo={registrationPhoto} settings={settings} sheet={registrationPhotoIndex} setPoints={(id, points) => library.setPoints(id, points, settings.captureMode ?? 'sheet')} detect={library.detect} undoDetection={library.undoDetection} />
+      <RegistrationStep key={`${registrationPhoto.id}:${settings.captureMode}`} photo={registrationPhoto} settings={settings} sheet={registrationPhotoIndex} setPoints={(id, points) => library.setPoints(id, points, settings.captureMode ?? 'sheet')} detect={library.detect} undoDetection={library.undoDetection} setFrameNumber={library.setFrameNumber} />
       <div className="step-actions"><button className="secondary" onClick={() => setStep(1)}>← Photos</button>{registrationPhotoIndex + 1 < library.photos.length ? <button className="primary" onClick={() => setPhotoIndex(registrationPhotoIndex + 1)}>Next {closeup ? 'frame' : 'sheet'} →</button> : <button className="primary" onClick={() => { setPhotoIndex(selectedPhotoIndex); setStep(3); }}>Adjust paper & tones →</button>}</div>
     </>}
     {step === 3 && layout && selectedPhoto && <>
-      <section className="intro"><div><p className="eyebrow">04 / Adjust the paper</p><h1>Let the drawing <em>shine.</em></h1><p>Even out the lighting and give the whole animation a consistent look.</p></div><label className="field"><span>Photographed {closeup ? 'frame' : 'sheet'}</span><select value={selectedPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{availablePhotos.map((photo, i) => <option key={photo.id} value={i}>{photoNoun} {i + 1} · {photo.name}</option>)}</select></label></section>
+      <section className="intro"><div><p className="eyebrow">04 / Adjust the paper</p><h1>Let the drawing <em>shine.</em></h1><p>Even out the lighting and give the whole animation a consistent look.</p></div><label className="field"><span>Photographed {closeup ? 'frame' : 'sheet'}</span><select value={selectedPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{availablePhotos.map((photo, i) => <option key={photo.id} value={i}>{photoLabel(photo, i, settings.captureMode)} · {photo.name}</option>)}</select></label></section>
       <AdjustStep key={`${selectedPhoto.id}:${settings.captureMode}`} photo={selectedPhoto} settings={settings} sheet={selectedPhotoIndex} adjustments={adjustments} setAdjustments={setAdjustments} setPaperTone={paperTone => update({ paperTone })} readiness={readiness} onBack={() => setStep(2)} onSequence={() => { setStep(4); if (!extraction.completed) void extraction.extract(); }} />
     </>}
     {step === 4 && layout && <SequenceStep stabilize={stabilize} setStabilize={setStabilize} extraction={extraction} resolution={resolution} setResolution={setResolution} total={settings.total} readiness={readiness} sequence={sequence} setSequence={setSequence} onBack={() => setStep(selectedPhoto ? 3 : 1)} onExport={() => setStep(5)} />}

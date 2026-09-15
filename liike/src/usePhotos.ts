@@ -4,6 +4,7 @@ import type { Photo, MarkerPoints } from './photos';
 import { detectionSettingsKey, startDetection } from './detection-client';
 import type { DetectionSettings } from './detection';
 import type { CaptureMode } from './layout';
+import { sortByFrameNumber, validFrameNumber } from './frame-number';
 
 export function usePhotos() {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -46,6 +47,7 @@ export function usePhotos() {
           const old = current.current.find(p => p.id === replaceId);
           if (!old) { disposePhoto(photo); continue; }
           stopDetection(old.id);
+          photo.frameNumber = old.frameNumber;
           commit(current.current.map(p => p.id === replaceId ? photo : p)); disposePhoto(old);
         } else commit([...current.current, photo]);
         if (settings) await detect(photo.id, settings);
@@ -64,6 +66,11 @@ export function usePhotos() {
     if (index < 0 || target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target]!, next[index]!]; commit(next);
   }
+  function setFrameNumber(id: string, frameNumber: number | undefined) {
+    if (frameNumber !== undefined && !validFrameNumber(frameNumber)) return;
+    commit(current.current.map(p => p.id === id ? { ...p, frameNumber } : p));
+  }
+  function sortNumbers() { commit(sortByFrameNumber(current.current)); }
   function setPoints(id: string, points: MarkerPoints, registrationMode?: CaptureMode) {
     stopDetection(id);
     commit(current.current.map(p => p.id === id ? { ...p, points, registrationMode: registrationMode ?? p.registrationMode ?? 'sheet', previousPoints: undefined, detection: { status: 'edited', message: 'Manual corner positions. Run detection again whenever needed.', settingsKey: p.detection?.settingsKey ?? '' } } : p));
@@ -80,5 +87,5 @@ export function usePhotos() {
     commit(next); old.forEach(disposePhoto);
     loading.current = false; setBusy(false); setErrors([]);
   }
-  return { photos, busy, errors, add, remove, move, setPoints, detect, undoDetection, replaceAll };
+  return { photos, busy, errors, add, remove, move, setPoints, detect, undoDetection, replaceAll, setFrameNumber, sortNumbers };
 }

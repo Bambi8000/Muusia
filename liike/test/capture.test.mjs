@@ -32,12 +32,12 @@ test('one photo yields one identically scaled frame; photo order overrides sheet
   assert.deepEqual(plan.map(p=>p.frames.map(f=>[f.id,f.frame,f.cell,f.width,f.height])), [[['first:0',0,0,2160,1888]],[['second:0',1,0,2160,1888]]]);
   assert.deepEqual(plan[0].frames[0].crop, plan[1].frames[0].crop);
   const manifest = exportManifest(buildExportPlan(plan.flatMap(p=>p.frames), {...INITIAL_SEQUENCE,order:'Reverse'}, DEFAULT_EXPORT));
-  assert.deepEqual(manifest.frames.map(f=>[f.captureMode,f.sourcePhoto,f.sourceFrame]),[['frames',2,2],['frames',1,1]]);
+  assert.deepEqual(manifest.frames.map(f=>[f.captureMode,f.sourcePhoto,f.sourceFrame]),[['frames',2,null],['frames',1,null]]);
   assert.ok(manifest.frames.every(f=>!('sheet' in f)));
   const reverse = planFrames(settings,[photos[1],photos[0]],2160);
   assert.deepEqual(reverse.map(p=>p.frames[0].id),['second:0','first:0']);
   assert.deepEqual(framesForPhoto(settings,2),[]);
-  assert.throws(()=>planFrames({...settings,total:3},photos,2160), /Frame 3: place all four/);
+  assert.throws(()=>planFrames({...settings,total:3},photos,2160), /Photo 3.*place all four/);
   assert.throws(()=>planFrames(settings,photos.slice(0,1),2160), /Add 1 more frame/);
 });
 
