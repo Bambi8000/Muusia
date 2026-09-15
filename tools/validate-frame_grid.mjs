@@ -330,5 +330,19 @@ if (process.argv.includes("--proof")) {
   console.log("proof written: proof-frame_grid.svg (" + rP.paths.length + " paths)");
 }
 
+/* --- close-up capture marks --- */
+{
+  const pi3 = { ...p0, inset: 3 };
+  const L3 = def._layout.call(def, pi3, CTX), Lz = def._layout.call(def, p0, CTX);
+  ok(L3.s < Lz.s && Math.min((L3.cw - 420 * L3.s) / 2, (L3.ch - 297 * L3.s) / 2) >= 3 - 1e-9,
+    "Clearance mm: shared scale shrinks, >= 3 mm band in every cell");
+  const rD = run({ ...p0, cellmarks: "On" }, wired6);
+  const dots = rD.paths.filter((q) => q.closed && q.pts.length === 16);
+  ok(dots.length === Lz.cells.length && dots.every((q) => q.layer === p0.penMark),
+    "Corner dots: one 3 mm ring per cell on the marker pen");
+  ok(JSON.stringify(run({ ...p0, inset: 0, cellmarks: "Off" }, wired6)) === JSON.stringify(run(p0, wired6)),
+    "defaults unchanged: inset 0 + dots Off is the original output");
+}
+
 console.log(fails === 0 ? "ALL OK" : fails + " FAILURES");
 process.exit(fails === 0 ? 0 : 1);

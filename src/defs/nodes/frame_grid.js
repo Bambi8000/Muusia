@@ -48,7 +48,7 @@ export default {
   key: "frame_grid",
   name: "Frame Grid",
   cat: "duo",
-  desc: "Animation frame imposition: lays frames into a grid with photo_trace-compatible fiducial markers for camera frame extraction. Animate mode takes the whole animation through ONE input via the frameFan engine seam and pages overflow frames onto further sheets (outer frameIdx = sheet, P n/N tag, global numbering; evaluation cost multiplies by Total frames). Inputs mode gives one pin per cell; Clock mode places a single input into cell frameIdx for per-frame export merging. Canvas maps into every cell with one shared scale so frames stay registered.",
+  desc: "Animation frame imposition: lays frames into a grid with photo_trace-compatible fiducial markers for camera frame extraction. Animate mode takes the whole animation through ONE input via the frameFan engine seam and pages overflow frames onto further sheets (outer frameIdx = sheet, P n/N tag, global numbering; evaluation cost multiplies by Total frames). Inputs mode gives one pin per cell; Clock mode places a single input into cell frameIdx for per-frame export merging. Canvas maps into every cell with one shared scale so frames stay registered. For per-frame close-up capture, Clearance mm keeps an ink-free band between the drawing and the cell frame line (the shared scale shrinks, registration holds) and Corner dots plots a 3 mm orientation circle outside each cell's top-left corner - the cell frame rectangle becomes the registration quad, the dot the rotation anchor.",
 
   ins: (node) => {
     const p = node && node.params;
@@ -83,6 +83,8 @@ export default {
     { key: "marks", label: "Markers", type: "select", options: ["On", "Off"], def: "On" },
     { key: "markSize", label: "Marker mm", type: "slider", min: 8, max: 15, step: 0.5, def: 15, showIf: (p) => p.marks === "On" },
     { key: "cellFrames", label: "Cell frames", type: "select", options: ["Off", "On"], def: "Off" },
+    { key: "inset", label: "Clearance mm", type: "slider", min: 0, max: 10, step: 0.5, def: 0 },
+    { key: "cellmarks", label: "Corner dots", type: "select", options: ["Off", "On"], def: "Off" },
     { key: "numbers", label: "Frame numbers", type: "select", options: ["Off", "On"], def: "Off" },
     { key: "labelText", label: "Label", type: "text", def: "" },
     { key: "chrome", label: "Static parts", type: "select", options: ["Every frame", "First frame only"], def: "Every frame", showIf: (p) => p.fill === "Clock" },
@@ -149,8 +151,10 @@ export default {
     ];
 
     /* one uniform canvas->cell scale, shared by all cells */
-    const s = cw > 1 && ch > 1 ? Math.min(cw / W, ch / H) : 0;
-    return { W, H, cols, rows, cw, ch, cells, markers, ms, s };
+    const ins2 = Math.max(0, Math.min(10, Number(p.inset) || 0));
+    const aw = cw - 2 * ins2, ah = ch - 2 * ins2;
+    const s = aw > 1 && ah > 1 ? Math.min(aw / W, ah / H) : 0;
+    return { W, H, cols, rows, cw, ch, cells, markers, ms, s, ins: ins2 };
   },
 
   compute(ins, p, ctx, node) {
@@ -219,6 +223,19 @@ export default {
       }
     }
 
+    if (chromeOn && p.cellmarks === "On") {
+      /* per-frame orientation dot: a 3 mm circle outside each cell's
+         top-left corner - in close-up capture the cell frame rectangle is
+         the registration quad and this dot is the rotation anchor */
+      for (const q of L.cells) {
+        const cx = q.x - 2.5, cy = q.y - 2.5, r = 1.5;
+        if (cx - r < 0 || cy - r < 0) continue;
+        const ring = [];
+        for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; ring.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); }
+        push(ring, true, pen);
+      }
+    }
+
     if (chromeOn && p.numbers === "On") {
       const SZ = 3;
       L.cells.forEach((q, i) => {
@@ -268,7 +285,7 @@ export default {
           if (pt[1] < y0) y0 = pt[1]; if (pt[1] > y1) y1 = pt[1];
         }
         const bw = Math.max(1e-6, x1 - x0), bh = Math.max(1e-6, y1 - y0);
-        s = Math.min(q.w / bw, q.h / bh);
+        s = Math.min(Math.max(1e-6, q.w - 2 * L.ins) / bw, Math.max(1e-6, q.h - 2 * L.ins) / bh);
         ox = q.x + (q.w - bw * s) / 2 - x0 * s;
         oy = q.y + (q.h - bh * s) / 2 - y0 * s;
       } else {
@@ -306,6 +323,7 @@ export default {
     try {
       const L = this._layout(p, ctx);
       for (const q of L.cells) g.push({ kind: "rect", x: q.x, y: q.y, w: q.w, h: q.h });
+      if (p.cellmarks === "On") for (const q of L.cells) g.push({ kind: "circle", cx: q.x - 2.5, cy: q.y - 2.5, r: 1.5 });
       if (p.marks === "On") {
         const h = L.ms / 2;
         for (const mk of L.markers) {
