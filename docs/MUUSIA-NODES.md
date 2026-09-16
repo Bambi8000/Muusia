@@ -1,13 +1,84 @@
-# MUUSIA v2.88 — Node Reference
+# MUUSIA v2.89 — Node Reference
 
-All 273 built-in nodes. Conventions used below: most generators accept a **Style**
+All 276 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (163)
+## Generators (166)
+
+**Whale** — line-drawn whales in two hands, with an octopus hiding in the
+*Species* list. Simple is a child's whale: a fat blob body, heart-shaped
+flukes, a fountain *Spout*, one eye, a smile, a belly line and a flipper, every
+stroke shaken by *Wobble %*; the Simple octopus is a round head with two eyes,
+a smile and 6–8 wiggly arm strokes. Detailed is a naturalist's ink drawing:
+a species body profile (Blue, Humpback, Sperm, Orca, Narwhal or Generic) with
+the flukes turned to show both lobes — the near one lower and larger, the far
+one foreshortened above, a notch between — a species dorsal (tall triangle,
+hump, small hook, sperm-whale knuckles, narwhal ridge), a swept flipper
+(humpback's a third of the body with a scalloped edge), eye, mouth line (the
+sperm whale's runs along the underside of its box head), spout, and *Skin
+texture* markings: throat pleats on the baleen whales, humpback tubercles,
+sperm-whale wrinkles, blue-whale mottle, orca eye patch, saddle and belly
+boundary, the narwhal's tusk with its spiral hatching and back spots. Octopus
+swaps the whole plan: a mantle egg and head circle walked as one silhouette,
+slit-pupil eyes, a siphon, eight tapered arms fanning from under the head as
+closed limbs with suckers along the inner edge, and papillae on the mantle.
+Mixed rolls style and species per creature. *Layout*, *Facing*, *Heading*,
+*Spine mount*, shrink-only fit and the point-budget order work exactly as in
+Fish. *Bodies* carries the closed silhouettes: one per whale, mantle plus each
+of the eight arms for an octopus.
+
+**Fish** — line-drawn fish in two hands. *Style* Simple is a child's fish: a
+lens body and a triangle tail as one closed path, one big eye (sometimes in the
+wrong place), a smile, an o or a line for the mouth, 0–2 triangle fins, a few
+U-shaped scales, stripes and bubbles, every stroke shaken by *Wobble %* so it
+reads as crayon rather than geometry. Detailed is a naturalist's ink drawing
+built by a skeleton walk: a *Species* body profile (Perch, Pike, Roach, Bream,
+Burbot, Trout or Generic — Finnish lake fish) with a snout arc whose bluntness
+is species-specific, rayed dorsal, anal, pectoral and pelvic fins (the perch's
+front dorsal is spiny and tallest at the head), a forked or rounded caudal fin
+with rays, gill cover, lateral line, eye with pupil, mouth (*Mouth* Open drops
+the lower jaw from its hinge) and species markings — perch bars, pike spots,
+trout dots, burbot mottle — plus crescent *Scales* on a staggered grid whose
+density follows *Detail %*. Mixed rolls the style, and Species Mixed the
+species, per fish from the seed. *Layout* Rows fills a *Count* x *Rows* grid
+loosened by *Jitter %*; School scatters a shoal swimming toward *Heading* with
+*Turn jitter*; Spine strings fish along a wired path facing its travel
+direction, *Spine mount* either On path or offset Left, Right, Both (alternate)
+or Both (random) on the Fur convention; unwired, a horizontal line through the
+centre. Fit is shrink-only: every fish is measured after placement and reduced
+to its cell or the *Margin*, never enlarged, so *Size* stays a size. The
+*Bodies* output carries each fish's closed body-and-tail silhouette, identical
+to the one in *Lines*, for fill and hatch nodes. Decoration is emitted last,
+so a point-budget cut removes scales before it removes fish.
+
+**Hands** — anatomically proportioned arms and hands, each drawn as one
+closed silhouette. The construction is a skeleton walk rather than a morph of
+stock shapes: a palm with five jointed finger chains on anthropometric phalanx
+ratios, knuckles set on an arc, and a forearm about 1.6x the hand length
+tapering from elbow to wrist. The outline is traced once around that skeleton —
+up the arm edge, around the thumb, finger by finger through the webs, back down
+the far edge and across the cut end — so every hand is a single closed path and
+routes, hatches and transforms downstream like any other outline. *Pose* picks
+the shape: Relaxed, Spread, Point, Pinch, Claw, Wave, Flip the bird, Rock horns,
+Half heart, or Mix, which rolls a different pose per hand from the seed; *Pose
+jitter*, *Spread*, *Wrist bend* and *Elbow bend* vary it further, and *Which*
+mirrors the whole thing between a left and a right hand. *Mutation %* slides
+from believable anatomy toward AI-hand chaos — joints past their physiological
+limits, knuckles off the arc, and past roughly half way fingers that duplicate,
+vanish or cross — while *Detail %* sets outline point density on its own, so
+angular low-poly and smooth-but-deformed are independent choices. *Arm length*
+(Hand only / Forearm / Full arm), *Arm width*, *Cut end* (Flat or a rounded
+Cuff) and *Nails* finish the anatomy, and *Size* scales the whole unit. Layout
+Rows lays *Count* x *Rows* hands onto a grid loosened by *Jitter %*; Layout
+Spine takes a wired path, where *Spine mount* either runs the arm Along it with
+the hand at the far end, or sprouts hands perpendicular at *Spacing mm*
+intervals — Left, Right, Both (alternate) or Both (random). Left and Right
+follow the path's travel direction, the Fur convention, not the screen: a spine
+drawn left to right puts Left above it.
 
 **TV Antennas** — the analog-era rooftop antenna forest planted along a wired
 *Roofline* path (a Base Y baseline when unwired; the node only ADDS ink, so

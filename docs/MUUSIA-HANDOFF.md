@@ -34,7 +34,7 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **265 files** (267 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **274 files** (276 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (265) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (274) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1302,7 +1302,50 @@ text are **English**.
   detects isolated swastika-reading motifs (both chiralities, arms 1-2,
   with an isolation rule) and breaks them deterministically.
 
+- **2.89** three new **creatures** generators. **Hands** (gen/creatures):
+  anatomically proportioned arms and hands as single closed silhouettes built by
+  a skeleton-to-outline walk (anthropometric phalanx ratios, knuckle arc,
+  tapering forearm), ten poses including Mix, *Mutation %* sliding anatomy into
+  AI-hand chaos independently of *Detail %* point density, Rows grid or a wired
+  Spine with perpendicular mounts. It was written and validated at 84 checks in
+  an earlier session but shipped only now: the lab file was graduated and
+  deleted while the baked `src/defs/nodes/hands.js` was never staged, so commit
+  eec9836 landed the validator alone and the node lived on only in the browser
+  session that had imported it through Node ⇣. Recovered from the delivered lab
+  file, re-baked, committed with `git add -f` on the explicit path. Lesson in
+  the pitfalls. **Fish**
+  (gen/creatures): Simple / Detailed / Mixed styles, seven species body
+  profiles by a half-height function `ped + (1-ped) sin(pi u t^q)^k` with a
+  species snout arc, rayed fins, gill, lateral line, markings and crescent
+  scales; Rows / School / Spine layouts, Spine on the Fur Left/Right
+  convention; shrink-only fit measured after placement; Lines + Bodies outputs;
+  decoration emitted last so a budget cut removes scales before fish.
+  121-check validator. **Whale** (gen/creatures): same frame, new drawing
+  machine — flukes turned to show both lobes, species dorsals and flippers,
+  sperm-whale box head with underslung jaw, orca patches, narwhal tusk — and an
+  **Octopus** species (mantle+head as one ray-swept union, eight tapered arms
+  with suckers) that Mixed rolls in among the whales in both styles.
+  125-check validator. Both nodes reuse one placement block: Rows grid with
+  jitter, School rejection-sampled scatter with heading and turn jitter, Spine
+  resampled along wired paths with a default centre line when unwired.
+
 ## Hard-won pitfalls (keep)
+
+- A GRADUATED LAB FILE IS NOT A SHIPPED NODE, AND A BAKED NODE IS NOT A
+  DOCUMENTED ONE. `bake.mjs` writes `src/defs/nodes/<key>.js` and the lab file
+  is deleted by hand afterwards; if the new file then misses `git add`, nothing
+  complains. The app keeps working for the rest of the session because Node ⇣
+  registered the def in memory, the validator keeps passing in baked mode, and
+  the loss only surfaces when the node is missing from the palette after a
+  refresh or a deploy. v2.89: hands was validated at 84 checks, committed as
+  "add hands validator, drop graduated lab file" with the node itself absent,
+  and the source survived only as a chat attachment — `nodes-lab/` is not even
+  gitignored, the file was simply never staged. Its doc batch was then deferred
+  by one session and forgotten too, so the node sat in the build untagged until
+  the next release's patch reported one node missing from TAGS.json. After every
+  bake: `ls -l src/defs/nodes/<key>.js`, `git add -f` the explicit path, read
+  `git status --short` for the `A` line, and run the doc batch in the same
+  sitting.
 
 - SENTINELS IN dist MUST BE STRING LITERALS. Vite minification renames every
   local identifier, so `grep -c someVarName dist/index.html` returns 0 even

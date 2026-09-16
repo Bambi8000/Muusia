@@ -374,6 +374,12 @@
   "terrain",
   "tiling"
  ],
+ "fish": [
+  "creature",
+  "nature",
+  "water",
+  "repeat"
+ ],
  "fit_canvas": [
   "transform"
  ],
@@ -542,6 +548,12 @@
  "handdrawn": [
   "deform",
   "noise"
+ ],
+ "hands": [
+  "creature",
+  "grid",
+  "organic",
+  "repeat"
  ],
  "harmonograph": [
   "chaos",
@@ -1508,6 +1520,12 @@
   "hatch",
   "noise",
   "wave"
+ ],
+ "whale": [
+  "creature",
+  "nature",
+  "water",
+  "organic"
  ],
  "windtunnel": [
   "combine",
