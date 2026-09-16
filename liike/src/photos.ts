@@ -2,6 +2,7 @@ import type { Point } from './homography';
 import type { Raster } from './sampling';
 import type { DetectionResult } from './detection';
 import type { CaptureMode } from './layout';
+import type { NumberReading } from './number-detection';
 
 export type MarkerPoints = [Point | null, Point | null, Point | null, Point | null];
 export type Photo = {
@@ -10,6 +11,7 @@ export type Photo = {
   file: File;
   registrationMode?: CaptureMode;
   frameNumber?: number;
+  numberDetection?: NumberReading | { status: 'running'; message: string };
   detection?: { status: DetectionResult['status'] | 'running' | 'edited'; message: string; settingsKey: string };
   previousPoints?: MarkerPoints;
 };

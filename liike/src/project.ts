@@ -7,7 +7,7 @@ import type { SequenceSettings } from './sequence';
 import type { ExportOptions } from './export-plan';
 import type { MarkerPoints, Photo } from './photos';
 
-export const PROJECT_VERSION = 3;
+export const PROJECT_VERSION = 4;
 export const MAX_PROJECT_BYTES = 256 * 1024 * 1024;
 export const MAX_PHOTO_BYTES = 40 * 1024 * 1024;
 // Originals are now decoded one at a time. This includes 24–32 typical 12 MP close-ups.
@@ -15,7 +15,7 @@ export const MAX_PROJECT_PIXELS = 400_000_000;
 export const MAX_PROJECT_PHOTOS = 64;
 export type ProjectState = { name: string; settings: SheetSettings; adjustments: Adjustments; sequence: SequenceSettings; exportOptions: ExportOptions; resolution: number; stabilize: boolean };
 export type ProjectPhoto = { id: string; name: string; path: string; type: string; size: number; lastModified: number; width: number; height: number; points: MarkerPoints; registrationMode: CaptureMode; frameNumber?: number; settingsKey: string; sha256: string };
-export type ProjectDocument = ProjectState & { format: 'liike-project'; version: 3; photos: ProjectPhoto[] };
+export type ProjectDocument = ProjectState & { format: 'liike-project'; version: 4; photos: ProjectPhoto[] };
 const fail = (message: string): never => { throw new Error(message); };
 const object = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : fail('Invalid project structure.');
 const string = (value: unknown, name: string, max = 200): string => typeof value === 'string' && value.length <= max ? value : fail(`Invalid ${name} in project.`);
@@ -27,7 +27,7 @@ function choice<T extends string>(value: unknown, name: string, values: readonly
 export function parseProject(value: unknown): ProjectDocument {
   const p = object(value);
   if (p.format !== 'liike-project') fail('This is not a Liike project. Choose a file saved with Save project.');
-  if (p.version !== 1 && p.version !== 2 && p.version !== PROJECT_VERSION) fail('This project version is not supported. Update Liike and try again.');
+  if (p.version !== 1 && p.version !== 2 && p.version !== 3 && p.version !== PROJECT_VERSION) fail('This project version is not supported. Update Liike and try again.');
   const legacy = p.version === 1;
   const s = object(p.settings);
   const settings: SheetSettings = {
@@ -70,7 +70,7 @@ export function parseProject(value: unknown): ProjectDocument {
     // Incomplete or crossing assignments are valid editable work in progress.
     const sha256 = string(f.sha256, 'photo checksum', 64);
     if (!/^[a-f0-9]{64}$/.test(sha256)) fail('Invalid photo checksum in project.');
-    return { id, path, type, size, width, height, points, sha256, ...(p.version === 3 && f.frameNumber !== undefined ? { frameNumber: number(f.frameNumber, 'frame number', 1, MAX_FRAME_NUMBER, true) } : {}), registrationMode: legacy ? 'sheet' : choice(f.registrationMode, 'registration mode', ['sheet', 'frames']), name: string(f.name, 'photo name', 255), lastModified: number(f.lastModified, 'photo date', 0, Number.MAX_SAFE_INTEGER, true), settingsKey: string(f.settingsKey, 'marker settings', 200) };
+    return { id, path, type, size, width, height, points, sha256, ...((p.version === 3 || p.version === 4) && f.frameNumber !== undefined ? { frameNumber: number(f.frameNumber, 'frame number', 1, MAX_FRAME_NUMBER, true) } : {}), registrationMode: legacy ? 'sheet' : choice(f.registrationMode, 'registration mode', ['sheet', 'frames']), name: string(f.name, 'photo name', 255), lastModified: number(f.lastModified, 'photo date', 0, Number.MAX_SAFE_INTEGER, true), settingsKey: string(f.settingsKey, 'marker settings', 200) };
   });
   const q = object(p.sequence);
   const references = (value: unknown): string[] => {
@@ -83,7 +83,9 @@ export function parseProject(value: unknown): ProjectDocument {
     if (new Set(result).size !== result.length) fail('Duplicate frame references in project.');
     return result;
   };
-  const sequence: SequenceSettings = { order: choice(q.order, 'sequence order', ['Original', 'Reverse', 'Ping-pong', 'Manual']), manual: references(q.manual), excluded: references(q.excluded), fps: number(q.fps, 'speed', 1, 30, true), loop: boolean(q.loop, 'loop') };
+  const sequence: SequenceSettings = { order: choice(q.order, 'sequence order', ['Original', 'Frame number', 'Reverse', 'Ping-pong', 'Manual']), manual: references(q.manual), excluded: references(q.excluded), fps: number(q.fps, 'speed', 1, 30, true), loop: boolean(q.loop, 'loop') };
+  // Older close-up projects used upload order despite having printed numbers.
+  if (p.version !== 4 && settings.captureMode === 'frames' && sequence.order === 'Original') sequence.order = 'Frame number';
   const e = object(p.exportOptions);
   const exportOptions: ExportOptions = { format: choice(e.format, 'export format', ['gif', 'video', 'png']), longSide: number(e.longSide, 'export size', 0, 2160, true), dither: boolean(e.dither, 'dither'), loops: number(e.loops, 'repeats', 1, 20, true), quality: choice(e.quality, 'quality', ['Standard', 'High']), videoFormat: choice(e.videoFormat, 'video format', ['auto', 'webm']) };
   if (exportOptions.longSide !== 0 && exportOptions.longSide < 64) fail('Invalid export size in project.');

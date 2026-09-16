@@ -339,3 +339,43 @@ v3 project preserved both original JPEGs byte-for-byte; after reload both
 numbers and the frame-5 overlay returned. These numbers were assigned for
 this regression test, not read from the photographed artwork. No console
 warnings/errors or desktop horizontal overflow were observed.
+
+## Automatic frame numbers and numeric playback — 2026-09-16
+
+`number-detection.test.mjs` checks the templates against Muusia's actual
+plotting font, all labels 1–24 on light/dark paper, larger multi-digit labels,
+rotation/perspective, neighboring labels, plot drift and a frame line crossing
+the digit strokes. Missing, clipped and scribbled labels remain unassigned.
+Sequence/export regressions reproduce the reported 24-photo upload order and
+verify numeric, reverse and ping-pong timelines, exclusions, manual/photo order,
+and rejection of unknown/duplicate numbers. React render checks cover sorted
+cards, number controls and blocked playback/export. Project tests cover v1–v3
+migration to numeric close-up order and preservation of explicit manual order
+and v4 photo order. All 124 tests, strict TypeScript/lint and both builds pass.
+
+A private test copy of Daniel's geid2.liike removed all 24 frame numbers while
+retaining the saved corners. In the production browser, Read missing numbers
+recovered all 24 correctly. Extraction at 480×420 produced ascending 1–24
+playback. Editing 5 to 25 moved it to the end; Read number restored 5 with
+all crop URLs unchanged. Reverse began at 24, Ping-pong contained 46 steps,
+and a manual move followed by Order by frame number restored ascending order.
+Clearing one number blocked numeric playback/export; reading it restored both.
+The number controls fit 390 px without horizontal overflow. No browser console
+warnings or errors were observed.
+
+The downloaded PNG ZIP contains 24 PNGs with sourceFrame 1–24 in that order
+and correct sourcePhoto references. The downloaded v4 project retained all
+24 recognized numbers, numeric order, unchanged corner coordinates and
+byte-identical original JPEGs. Reopening it restored all 24 assigned numbers.
+These are 480 px sequence/export checks; the original 2160 px sampling path
+was not changed. Photos and generated QA files remain outside the repository.
+
+Separately, direct processing with newly detected corners read 19 of the 24
+numbers correctly; the existing outline detector declined the other five
+photos. All 24 read correctly once their saved corner positions were used.
+Thus the number result does not imply automatic outline detection succeeds
+for every photo. Recognition is specific to the plotted font, not general OCR.
+
+Fresh browser imports of IMG_2636.jpeg followed by IMG_2635.jpeg also found
+both outlines and automatically assigned 2 and 1, without a separate Read
+number action.

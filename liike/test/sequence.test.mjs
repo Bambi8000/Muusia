@@ -34,3 +34,16 @@ test('playback follows elapsed time, holds the last frame for one interval and w
   assert.deepEqual(playbackPosition(0, 1000, 1, 1, false), { index: 0, ended: true });
   assert.deepEqual(playbackPosition(0, 1000, 30, 0, true), { index: 0, ended: true });
 });
+
+test('the reported 24-photo upload order becomes numeric order in preview and every exporter', () => {
+  const numbers=[13,14,17,18,19,22,23,24,15,16,20,21,5,6,7,8,10,11,12,1,2,3,4,9];
+  const photos=numbers.map(n=>({id:`photo-${n}`,frameNumber:n,captureMode:'frames'}));
+  const ordered=order=>timelineFrames(photos,{...INITIAL_SEQUENCE,order}).map(f=>f.frameNumber);
+  const ascending=Array.from({length:24},(_,i)=>i+1);
+  assert.deepEqual(ordered('Frame number'),ascending);
+  assert.deepEqual(ordered('Reverse'),[...ascending].reverse());
+  assert.deepEqual(ordered('Ping-pong'),[...ascending,...ascending.slice(1,-1).reverse()]);
+  assert.deepEqual(ordered('Original'),numbers);
+  assert.deepEqual(ordered('Manual'),numbers);
+  assert.deepEqual(photos.map(p=>p.frameNumber),numbers);
+});

@@ -47,3 +47,18 @@ test('number sorting rejects missing, invalid and duplicate numbers without chan
   assert.equal(photoLabel(photo('a',5),0,'sheet'),'Sheet 1');
   assert.equal(frameLabel({frame:4,sheet:0,captureMode:'sheet',frameNumber:9}),'Source frame 5');
 });
+
+test('number-order exports cannot silently use missing or duplicate labels; exclusions and manual order remain usable', async()=>{
+  const { sequenceOrderIssue }=await import('../src/sequence.ts');
+  const sources=[photo('five',5),photo('unknown')];
+  const frames=planFrames(settings,sources,2160).flatMap(p=>p.frames);
+  const sequence={...INITIAL_SEQUENCE,order:'Frame number'};
+  assert.match(sequenceOrderIssue(frames,sequence),/Set the number/);
+  assert.throws(()=>buildExportPlan(frames,sequence,DEFAULT_EXPORT),/Set the number/);
+  const included={...sequence,excluded:['unknown:0']};
+  assert.equal(buildExportPlan(frames,included,DEFAULT_EXPORT).frames.length,1);
+  const duplicate=[frames[0],{...frames[1],frameNumber:5}];
+  assert.throws(()=>buildExportPlan(duplicate,sequence,DEFAULT_EXPORT),/more than once/);
+  assert.equal(buildExportPlan(frames,{...sequence,order:'Original'},DEFAULT_EXPORT).frames.length,2);
+  assert.equal(buildExportPlan(frames,{...sequence,order:'Manual'},DEFAULT_EXPORT).frames.length,2);
+});

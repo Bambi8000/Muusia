@@ -28,7 +28,7 @@ test('version 1 sheet projects migrate without changing crop geometry or marker 
   delete document.settings.captureMode; delete document.settings.clearance; delete document.settings.trim;
   document.photos.forEach(p=>delete p.registrationMode);
   const result=await readProject(rewrite(files,document));
-  assert.equal(result.project.version,3); assert.equal(result.project.settings.captureMode,'sheet');
+  assert.equal(result.project.version,4); assert.equal(result.project.settings.captureMode,'sheet');
   assert.equal(result.project.settings.clearance,0); assert.equal(result.project.settings.trim,0);
   assert.ok(result.project.photos.every(p=>p.registrationMode==='sheet'));
 });
@@ -180,7 +180,7 @@ test('version 2 projects migrate without inventing printed frame numbers', async
   document.photos.forEach(p=>{p.registrationMode='frames';delete p.frameNumber;});
   document.sequence.manual=[];document.sequence.excluded=[];
   const result=await readProject(rewrite(files,document));
-  assert.equal(result.project.version,3);
+  assert.equal(result.project.version,4);
   assert.deepEqual(result.project.settings,document.settings);
   assert.ok(result.project.photos.every(p=>p.frameNumber===undefined));
 });
@@ -195,4 +195,19 @@ test('project frame numbers accept partial work but reject invalid values', asyn
     document.photos[0].frameNumber=value;
     await assert.rejects(()=>readProject(rewrite(files,document)),/frame number/);
   }
+});
+
+test('older close-up projects adopt numeric order; explicit manual and current photo order are preserved', async()=>{
+  const {files,document}=await archiveParts();
+  document.settings.captureMode='frames';document.settings.total=2;
+  document.photos.forEach((p,i)=>{p.registrationMode='frames';p.frameNumber=[5,2][i];});
+  document.sequence.manual=[];document.sequence.excluded=[];
+  document.version=3;document.sequence.order='Original';
+  assert.equal((await readProject(rewrite(files,document))).project.sequence.order,'Frame number');
+  document.sequence.order='Manual';
+  assert.equal((await readProject(rewrite(files,document))).project.sequence.order,'Manual');
+  document.version=4;document.sequence.order='Original';
+  assert.equal((await readProject(rewrite(files,document))).project.sequence.order,'Original');
+  document.sequence.order='Frame number';
+  assert.equal((await readProject(rewrite(files,document))).project.sequence.order,'Frame number');
 });

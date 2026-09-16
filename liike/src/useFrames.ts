@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { planFrames, releaseFrames } from './frames';
 import type { ExtractedFrame } from './frames';
 import { startExtraction } from './extraction-client';
@@ -8,7 +8,7 @@ import type { Adjustments } from './adjustments';
 import { validateAdjustments } from './adjustments';
 
 export function useFrames(photos: Photo[], settings: SheetSettings, resolution: number, adjustments: Adjustments, stabilize = false) {
-  const key = JSON.stringify([settings, resolution, adjustments, stabilize, photos.map(p => [p.id, p.points, p.registrationMode, p.frameNumber])]);
+  const key = JSON.stringify([settings, resolution, adjustments, stabilize, photos.map(p => [p.id, p.points, p.registrationMode])]);
   const [state, setState] = useState<{ key: string; frames: ExtractedFrame[]; busy: boolean; error: string; completed: boolean }>({ key: '', frames: [], busy: false, error: '', completed: false });
   const owned = useRef<ExtractedFrame[]>([]);
   const active = useRef<ReturnType<typeof startExtraction> | null>(null);
@@ -51,5 +51,6 @@ export function useFrames(photos: Photo[], settings: SheetSettings, resolution: 
     releaseFrames(owned.current); owned.current = [];
     setState({ key, frames: [], busy: false, error: 'Extraction cancelled. You can try again.', completed: false });
   }
-  return { ...(state.key === key ? state : { frames: [], busy: false, error: '', completed: false }), extract, cancel };
+  const labeledFrames = useMemo(() => state.frames.map(frame => frame.captureMode === 'frames' ? { ...frame, frameNumber: photos.find(p => p.id === frame.photoId)?.frameNumber } : frame), [state.frames, photos]);
+  return { ...(state.key === key ? { ...state, frames: labeledFrames } : { frames: [], busy: false, error: '', completed: false }), extract, cancel };
 }

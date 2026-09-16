@@ -1,4 +1,4 @@
-import { timelineFrames } from './sequence.ts';
+import { timelineFrames, sequenceOrderIssue } from './sequence.ts';
 import type { SequenceSettings } from './sequence';
 import type { ExtractedFrame } from './frames';
 
@@ -11,6 +11,7 @@ export type ExportPlan = {
 };
 
 export function buildExportPlan(frames: ExtractedFrame[], sequence: SequenceSettings, options: ExportOptions): ExportPlan {
+  const issue = sequenceOrderIssue(frames, sequence); if (issue) throw new Error(issue);
   const timeline = timelineFrames(frames, sequence);
   if (!timeline.length) throw new Error('Include at least one frame in Sequence before exporting.');
   if (!Number.isInteger(sequence.fps) || sequence.fps < 1 || sequence.fps > 30) throw new Error('Choose a speed from 1 to 30 fps.');

@@ -8,7 +8,7 @@ export const detectionSettingsKey = (settings: DetectionSettings) => settings.ca
   : `${settings.W}/${settings.H}/${settings.markSize}/${settings.paperTone ?? 'light'}`;
 
 /** Each job owns its worker; cancellation and completion release the copied raster. */
-export function startDetection(photo: Photo, settings: DetectionSettings) {
+export function startDetection(photo: Photo, settings: DetectionSettings, numberOnly = false) {
   let finish: (result: DetectionResult) => void = () => {};
   const fallback: DetectionResult = { status: 'not-found', points: null, candidates: 0, message: settings.captureMode === 'frames' ? 'Automatic detection is unavailable. Place the four frame corners manually.' : 'Automatic detection is unavailable. Place the four marker centers manually.' };
   const promise = new Promise<DetectionResult>(resolve => {
@@ -28,7 +28,9 @@ export function startDetection(photo: Photo, settings: DetectionSettings) {
       worker.onerror = () => finish(fallback);
       timer = setTimeout(() => finish({ ...fallback, message: 'Detection took too long. Try a clearer photo or place the centers manually.' }), 15000);
       // Structured cloning preserves the full working raster for preview/sampling.
-      worker.postMessage({ raster: { width: photo.working.width, height: photo.working.height, data: photo.working.data }, settings });
+      const points = numberOnly && photo.registrationMode === 'frames' && photo.points.every(Boolean)
+        ? (photo.points as Quad).map(p => ({ x: p.x * photo.working.width / photo.width, y: p.y * photo.working.height / photo.height })) : undefined;
+      worker.postMessage({ raster: { width: photo.working.width, height: photo.working.height, data: photo.working.data }, settings, numberOnly, points });
     } catch { finish(fallback); }
   });
   return { promise, cancel: () => finish(fallback) };

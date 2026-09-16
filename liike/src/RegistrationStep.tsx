@@ -14,7 +14,7 @@ import FrameNumberField from './FrameNumberField';
 
 const SHORT = ['TL', 'TR', 'BR', 'BL'];
 const COLORS = ['#d47527', '#447bc3', '#945aa1', '#478567'];
-type Props = { photo: Photo; settings: SheetSettings; sheet: number; setPoints: (id: string, points: MarkerPoints) => void; detect: (id: string, settings: SheetSettings) => Promise<void>; undoDetection: (id: string) => void; setFrameNumber?: (id: string, number: number | undefined) => void };
+type Props = { photo: Photo; settings: SheetSettings; sheet: number; setPoints: (id: string, points: MarkerPoints) => void; detect: (id: string, settings: SheetSettings, numberOnly?: boolean) => Promise<void>; undoDetection: (id: string) => void; setFrameNumber?: (id: string, number: number | undefined) => void };
 
 export default function RegistrationStep({ photo, settings, sheet, setPoints, detect, undoDetection, setFrameNumber }: Props) {
   const closeup = individualFrames(settings);
@@ -129,7 +129,7 @@ export default function RegistrationStep({ photo, settings, sheet, setPoints, de
       </section>
       <section aria-label="Rectified preview" className="registration-panel">
         <div className="preview-heading"><div><p className="eyebrow">Straightened {closeup ? 'frame' : 'sheet'}</p><h2>{closeup ? 'Check the crop' : 'Check every frame'}</h2></div><label className="checkbox"><input type="checkbox" checked={showGuides} onChange={e => setShowGuides(e.target.checked)} />Show guides</label></div>
-        {closeup && <><p className="hint">The outline and orientation are detected automatically. Set the printed frame number here; it is separate from photo order.</p>{setFrameNumber && <FrameNumberField photo={photo} setNumber={setFrameNumber} />}</>}
+        {closeup && <><p className="hint">Liike reads the number below the frame after finding its outline. Check the result; use Read number to try again or correct it here.</p>{setFrameNumber && <FrameNumberField photo={photo} setNumber={setFrameNumber} readNumber={id => { void detect(id, settings, true); }} />}</>}
         {registration.error || renderError ? <p className="error" role="alert">{registration.error || renderError}</p> : currentPreview && registration.h ? <div className="rectified-stage"><svg viewBox={`0 0 ${geometry.W} ${geometry.H}`} className="rectified-sheet" role="img" aria-label={`Rectified ${photoLabel(photo, sheet, settings.captureMode)} with ${frames.length} frame windows`}><image href={currentPreview} width={geometry.W} height={geometry.H} />
           {showGuides && <>{geometry.cells.map(({ index, cell }) => <rect key={index} {...rProps(cell)} className="cell-guide" />)}{frames.map(f => <g key={f.frame}><rect {...rProps(closeup ? f.crop : f.window)} className="photo-window" />{(settings.crop === 'Full cell' || settings.pad > 0) && <rect {...rProps(f.crop)} className="crop-guide" />}{(!closeup || photo.frameNumber !== undefined) && <text x={f.window.x + 1.5} y={f.window.y + 5} fontSize={4} fill="#365b26" stroke="#fff" paintOrder="stroke" strokeWidth={.7}>{closeup ? photo.frameNumber : f.frame + 1}</text>}</g>)}</>}
         </svg></div> : <div className="preview-placeholder" role="status"><span aria-hidden="true">⌗</span><h2>{count === 4 ? 'Updating preview…' : `${count} of 4 ${closeup ? 'corners' : 'markers'} placed`}</h2><p>{closeup ? 'The straightened frame appears once all four corners are placed.' : 'The straightened sheet appears once all four centers are placed.'}</p></div>}

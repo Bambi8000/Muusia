@@ -3,6 +3,7 @@ import type { Point, Quad } from './homography';
 import type { Raster } from './sampling';
 import { analysisLight } from './paper.ts';
 import type { PaperTone } from './paper';
+import type { NumberReading } from './number-detection';
 
 export type DetectionSettings = { W: number; H: number; markSize: number; paperTone?: PaperTone; captureMode?: 'sheet' | 'frames'; cols?: number; rows?: number; margin?: number; gap?: number };
 export type DetectionResult = {
@@ -10,6 +11,7 @@ export type DetectionResult = {
   points: Quad | null;
   message: string;
   candidates: number;
+  number?: NumberReading;
 };
 type Candidate = Point & { width: number; height: number; area: number; hole: number };
 

@@ -100,7 +100,7 @@ export default function App() {
   function chooseCaptureMode(captureMode: CaptureMode) {
     update({ captureMode, crop: captureMode === 'frames' ? 'Full cell' : 'Frame window', clearance: captureMode === 'frames' ? '3' : '0', trim: captureMode === 'frames' ? '1' : '0', pad: '0' });
     setResolution(captureMode === 'frames' ? 2160 : 1080);
-    setStabilize(false); setSequence({ ...INITIAL_SEQUENCE }); setPhotoIndex(0);
+    setStabilize(false); setSequence({ ...INITIAL_SEQUENCE, order: captureMode === 'frames' ? 'Frame number' : 'Original' }); setPhotoIndex(0);
   }
   function restore({ project, photos }: RestoredProject) {
     extraction.cancel();
@@ -136,7 +136,7 @@ export default function App() {
 
   return <main>
     <header><a className="wordmark" href="./">Liike<span>↗</span></a><span className="tagline">From paper to motion</span></header>
-    <ProjectBar state={{ name: projectName, settings, adjustments, sequence, exportOptions, resolution, stabilize }} photos={library.photos} disabled={library.busy || library.photos.some(p => p.detection?.status === 'running')} saveIssue={issues[0] ?? ''} setName={setProjectName} onBusy={setProjectBusy} onLoad={restore} loaded={projectRevision > 0} />
+    <ProjectBar state={{ name: projectName, settings, adjustments, sequence, exportOptions, resolution, stabilize }} photos={library.photos} disabled={library.busy || library.photos.some(p => p.detection?.status === 'running' || p.numberDetection?.status === 'running')} saveIssue={issues[0] ?? ''} setName={setProjectName} onBusy={setProjectBusy} onLoad={restore} loaded={projectRevision > 0} />
     <div inert={projectBusy} key={projectRevision}>
     <nav aria-label="Workflow"><ol className="steps">{['Sheet', 'Photos', 'Register', 'Adjust', 'Sequence', 'Export'].map((name, i) => <li key={name} aria-current={i === step ? 'step' : undefined}><button onClick={() => setStep(i)} disabled={library.busy || (i > 0 && !layout) || (i === 2 && !registrationPhoto) || (i === 3 && !selectedPhoto)}><span className="step-number">{i + 1}</span>{name}</button></li>)}</ol></nav>
     {step === 0 && <>
@@ -189,7 +189,7 @@ export default function App() {
     </div>
     <div className="step-actions"><p className="hint">{library.photos.length ? 'Your photos and marker positions stay available when you change sheet settings.' : 'Ready to add the photographed sheets.'}</p><button className="primary" disabled={!layout} onClick={() => setStep(1)}>Add photos →</button></div>
     </>}
-    {step === 1 && layout && <PhotosStep library={library} sheets={needed} settings={settings} onUsePhotos={() => update({ total: String(library.photos.length) })} onSortNumbers={() => { library.sortNumbers(); setPhotoIndex(0); setSequence(current => ({ ...current, order: 'Original', manual: [] })); }} onBack={() => setStep(0)} onRegister={index => { setPhotoIndex(index); setStep(2); }} />}
+    {step === 1 && layout && <PhotosStep library={library} sheets={needed} settings={settings} onUsePhotos={() => update({ total: String(library.photos.length) })} onSortNumbers={() => { library.sortNumbers(); setPhotoIndex(0); setSequence(current => ({ ...current, order: 'Frame number', manual: [] })); }} onBack={() => setStep(0)} onRegister={index => { setPhotoIndex(index); setStep(2); }} />}
     {step === 2 && layout && registrationPhoto && <>
       <section className="intro"><div><p className="eyebrow">03 / Register the {closeup ? 'frame' : 'sheet'}</p><h1>Find <em>the corners.</em></h1><p>{closeup ? "Use the four corners of the cell outline. Top-left is the corner beside the small external circle." : <>Match the markers in your photo to the sheet. Begin with the marker that has a {settings.paperTone === 'dark' ? 'dark' : 'white'} hole.</>}</p></div><label className="field"><span>Photographed {closeup ? 'frame' : 'sheet'}</span><select value={registrationPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{library.photos.map((photo, i) => <option key={photo.id} value={i}>{photoLabel(photo, i, settings.captureMode)} · {photo.name}{i >= needed ? ' · extra photo' : ''}</option>)}</select></label></section>
       {availablePhotos.length < needed && <p className="warning">{needed - availablePhotos.length} more photos needed. You can register these photos now and add the rest in Photos.</p>}
@@ -201,7 +201,7 @@ export default function App() {
       <section className="intro"><div><p className="eyebrow">04 / Adjust the paper</p><h1>Let the drawing <em>shine.</em></h1><p>Even out the lighting and give the whole animation a consistent look.</p></div><label className="field"><span>Photographed {closeup ? 'frame' : 'sheet'}</span><select value={selectedPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{availablePhotos.map((photo, i) => <option key={photo.id} value={i}>{photoLabel(photo, i, settings.captureMode)} · {photo.name}</option>)}</select></label></section>
       <AdjustStep key={`${selectedPhoto.id}:${settings.captureMode}`} photo={selectedPhoto} settings={settings} sheet={selectedPhotoIndex} adjustments={adjustments} setAdjustments={setAdjustments} setPaperTone={paperTone => update({ paperTone })} readiness={readiness} onBack={() => setStep(2)} onSequence={() => { setStep(4); if (!extraction.completed) void extraction.extract(); }} />
     </>}
-    {step === 4 && layout && <SequenceStep stabilize={stabilize} setStabilize={setStabilize} extraction={extraction} resolution={resolution} setResolution={setResolution} total={settings.total} readiness={readiness} sequence={sequence} setSequence={setSequence} onBack={() => setStep(selectedPhoto ? 3 : 1)} onExport={() => setStep(5)} />}
+    {step === 4 && layout && <SequenceStep closeup={closeup} photos={library.photos} numberBusy={library.busy} setFrameNumber={library.setFrameNumber} onReadNumber={id => { void library.detect(id, settings, true); }} onReadMissingNumbers={() => { void library.readMissingNumbers(settings); }} stabilize={stabilize} setStabilize={setStabilize} extraction={extraction} resolution={resolution} setResolution={setResolution} total={settings.total} readiness={readiness} sequence={sequence} setSequence={setSequence} onBack={() => setStep(selectedPhoto ? 3 : 1)} onExport={() => setStep(5)} />}
     {step === 5 && layout && <ExportStep frames={extraction.completed ? extraction.frames : []} sequence={sequence} setSequence={setSequence} options={exportOptions} setOptions={setExportOptions} onBack={() => setStep(4)} />}
     </div>
     <footer><span>Photos stay on your device.</span><span>Save project to keep your work after closing or refreshing.</span></footer>

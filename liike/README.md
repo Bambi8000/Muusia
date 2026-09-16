@@ -39,7 +39,7 @@ convention and bilinear sampling; cells and occupied frame windows overlay
 the preview. Mirrored/crossed/degenerate assignments show actionable errors.
 
 Sequence extracts full-resolution crops in a worker and provides playback,
-scrubbing, frame exclusion and Original/Reverse/Ping-pong/Manual ordering.
+scrubbing, frame exclusion and Original/Frame number/Reverse/Ping-pong/Manual ordering.
 Adjust adds per-photo paper lighting correction and white balance, plus shared
 tone controls with a live original/adjusted preview. The same processing is
 applied to the full-resolution sequence. Export creates GIF, H.264 MP4 with
@@ -54,21 +54,22 @@ See [KELA-HANDOFF.md](./KELA-HANDOFF.md) for the supplied project specification.
 Choose **Sheet → Capture mode → Individual frames** to photograph each
 cell close up. The existing **Whole sheets** mode remains available.
 
-1. In Muusia, enable **Cell frames** and **Corner dots**. Each cell needs a
+1. In Muusia, enable **Cell frames**, **Corner dots** and **Frame numbers**. Each cell needs a
    complete rectangular outline and the 3 mm circle just outside its top-left
    corner (center 2.5 mm left and above the corner). Use **Clearance mm** of
    at least 3 mm to leave blank paper inside the outline. Liike detects the outline
-   and orientation, but does not read the printed number automatically.
+   and orientation, then reads the printed 3 mm Muusia digit label at the bottom edge.
 2. Match the original sheet size, grid, margin, gap and **Plot clearance** in
    Liike. These establish the physical cell size even though each photo shows
    only one cell. Select the appropriate light or dark paper color.
 3. Photograph one complete cell per photo, keeping its outline and top-left
-   circle visible. Small parts of neighboring cells are fine. Add photos in
-   frame order. Enter **Frame number on paper** in Photos or Register; a photo
-   without an assigned number is labeled **Photo N · number not set**, not
-   Frame N. Use **Order by frame number** to sort all photos in ascending
-   order and reset playback to that order, or use the photo arrows. Sorting
-   requires unique numbers on every loaded photo, including extras.
+   circle and bottom number visible. Small parts of neighboring cells are fine.
+   Upload order can differ from frame order. Check **Frame number on paper**
+   in Photos, Register or Sequence. **Read number** reads that photo again
+   without changing its corners; **Read missing numbers** fills only unset
+   numbers. Unclear or clipped digits stay unset and can be entered manually.
+   Photos’ **Order by frame number** sorts all loaded photos, including extras;
+   it requires unique numbers on every photo.
    **Use these N frames** matches Total frames to the number of photos.
 4. **Review corners** checks the detected outline and orientation. If detection
    is uncertain, **Place corners manually** always opens registration: place
@@ -82,7 +83,12 @@ cell close up. The existing **Whole sheets** mode remains available.
    **Frame window** follows the original canvas aspect and plot clearance;
    check the green crop outline carefully because it can cut drawings that
    extend beyond that window. Stabilize position starts off in this mode.
-6. Adjust, build the sequence and export as usual. Auto paper correction
+6. Adjust, build the sequence and export as usual. **Frame number** is the
+   default close-up playback order. Sequence’s **Order by frame number**
+   sorts the extracted frames immediately, without extracting again. Reverse
+   and Ping-pong also follow numeric order. Missing or duplicate numbers block
+   numeric playback/export until corrected or excluded. **Photo order** and
+   **Manual** remain available; dragging switches to Manual. Auto paper correction
    samples the blank band inside the outline. Auto contrast uses shared limits
    across close-ups to avoid changing with each drawing's ink coverage.
    If the blank band is too narrow, correction is skipped with a visible
@@ -91,12 +97,19 @@ cell close up. The existing **Whole sheets** mode remains available.
 Each photo produces exactly one frame. The printed number stays with its photo
 when reordered, replaced or saved. It does not change the crop or require
 missing frames to be filled (a two-photo sequence may contain frames 2 and 5).
-Unknown numbers remain unset when older projects are opened.
+Unknown numbers remain unset when older projects are opened; use Read missing
+numbers after checking the saved corners. Older close-up projects that used
+Original order migrate to numeric order, while explicit Manual order is retained.
 Capture mode, clearance, trim, corner positions, frame numbers and original photos are included in Save/Load. Switching modes
 requires registration for the new geometry before extraction; sheet-marker
 centers are never reused as frame corners. PNG export metadata identifies the
 source photo and the assigned printed frame number (`sourceFrame` is null
 when unset), rather than implying each close-up is a separate physical sheet.
+
+Number recognition runs locally without external OCR downloads. It is tailored
+to Muusia’s plotting font, not general handwriting; check the proposed numbers.
+A photographed label can overlap the frame border. The reader isolates that
+line and matches the remaining digit strokes.
 
 The supplied IMG_2635.jpeg and IMG_2636.jpeg register automatically and retain
 all strokes with the default Full cell crop. More pixels help preserve fine
@@ -135,8 +148,7 @@ projects show a request to use fewer or smaller sheet photos.
 The `.liike` file is a ZIP container with a versioned `project.json` and
 numbered files under `photos/`. The loader validates the schema, archive paths,
 expanded sizes, unique identifiers, frame references, SHA-256 photo checksums
-and decoded dimensions. New saves use version 3; the loader also migrates version 1 sheet and version 2
-close-up projects
+and decoded dimensions. New saves use version 4; the loader also migrates versions 1–3
 without changing their geometry and rejects unsupported versions
 without changing the session. New runtime photo identifiers prevent stale
 crop reuse; saved sequence references are remapped consistently. No executable
