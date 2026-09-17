@@ -88,6 +88,10 @@ export function parseProject(value: unknown): ProjectDocument {
   if (p.version !== 4 && settings.captureMode === 'frames' && sequence.order === 'Original') sequence.order = 'Frame number';
   const e = object(p.exportOptions);
   const exportOptions: ExportOptions = { format: choice(e.format, 'export format', ['gif', 'video', 'png']), longSide: number(e.longSide, 'export size', 0, 2160, true), dither: boolean(e.dither, 'dither'), loops: number(e.loops, 'repeats', 1, 20, true), quality: choice(e.quality, 'quality', ['Standard', 'High']), videoFormat: choice(e.videoFormat, 'video format', ['auto', 'webm']) };
+  // Additive v4 option: older files keep their original 256-color encoding.
+  const gifColors = e.gifColors === undefined ? 256 : number(e.gifColors, 'GIF colors', 64, 256, true);
+  if (gifColors === 64 || gifColors === 128 || gifColors === 256) exportOptions.gifColors = gifColors;
+  else fail('Invalid GIF colors in project.');
   if (exportOptions.longSide !== 0 && exportOptions.longSide < 64) fail('Invalid export size in project.');
   const resolution = number(p.resolution, 'resolution', 64, 2160, true);
   if (![480, 720, 1080, 2160].includes(resolution)) fail('Unsupported frame resolution in project.');

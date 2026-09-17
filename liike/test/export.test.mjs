@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { unzipSync, strFromU8 } from 'fflate';
 import { Muxer, ArrayBufferTarget } from 'webm-muxer';
-import { buildExportPlan, DEFAULT_EXPORT, frameTiming, gifDelay, chooseVideo } from '../src/export-plan.ts';
+import { buildExportPlan, DEFAULT_EXPORT, frameTiming, gifDelay, chooseVideo, chatGifOptions } from '../src/export-plan.ts';
 import { INITIAL_SEQUENCE } from '../src/sequence.ts';
 import { encodeGif } from '../src/export-gif.ts';
 import { paletteMapper } from '../src/gif-palette.ts';
@@ -72,7 +72,7 @@ function inspectGif(bytes) {
   const blocks = () => { const result = []; while (bytes[at]) { const size = bytes[at++]; result.push(...bytes.subarray(at, at + size)); at += size; } at++; return new Uint8Array(result); };
   while (at < bytes.length) {
     const marker = bytes[at++];
-    if (marker === 0x3b) { assert.equal(at, bytes.length); return { width, height, delays, images, localPalettes, applications, globalPalette: !!(packed & 128) }; }
+    if (marker === 0x3b) { assert.equal(at, bytes.length); return { width, height, delays, images, localPalettes, applications, globalPalette: !!(packed & 128), colors: 2 ** ((packed & 7) + 1) }; }
     if (marker === 0x21) {
       const label = bytes[at++];
       if (label === 0xf9) { assert.equal(bytes[at++], 4); delays.push(view.getUint16(at + 1, true)); at += 4; assert.equal(bytes[at++], 0); }
@@ -88,6 +88,33 @@ function inspectGif(bytes) {
   assert.fail('Missing GIF trailer');
 }
 const raster = (color, width = 16, height = 12) => ({ width, height, data: Uint8ClampedArray.from(Array.from({ length: width * height }, () => [...color, 255]).flat()) });
+
+test('chat GIF presets shrink landscape and portrait output without dropping or retiming frames', () => {
+  for (const size of [320,480]) for (const portrait of [false,true]) {
+    const source=frames.map(f=>({...f,width:portrait?1888:2160,height:portrait?2160:1888}));
+    const original={...DEFAULT_EXPORT,format:'video',dither:true,longSide:1080};
+    const options=chatGifOptions(original,size),result=plan({order:'Ping-pong',fps:17,excluded:['f1']},options,source);
+    assert.equal(original.dither,true);assert.equal(original.format,'video');
+    assert.equal(Math.max(result.width,result.height),size);
+    assert.ok(Math.abs(result.width/result.height-source[0].width/source[0].height)<.004);
+    assert.deepEqual(result.frames.map(f=>f.id),['f0','f2','f3','f2']);
+    assert.equal(result.fps,17);assert.equal(result.duration,4/17);
+    assert.equal(result.options.gifColors,64);assert.equal(result.options.dither,false);
+  }
+  assert.equal(plan({},chatGifOptions(DEFAULT_EXPORT,480),[{...frames[0],width:240,height:180}]).width,240);
+  for(const gifColors of [0,63,65,512,NaN])assert.throws(()=>plan({},{gifColors}),/GIF colors/);
+});
+
+test('compact GIF encodes a smaller global palette while preserving frames, timing and loop metadata', async () => {
+  const source=Array.from({length:3},(_,i)=>({...frames[0],id:`c${i}`,width:80,height:64}));
+  const read=async i=>({width:80,height:64,data:Uint8ClampedArray.from(Array.from({length:80*64},(_,p)=>[(p*7+i*19)%256,(p*3)%256,(p*11)%256,255]).flat())});
+  const full=await encodeGif(plan({fps:11},{gifColors:256},source),read,noop);
+  const compact=await encodeGif(plan({fps:11},{gifColors:64},source),read,noop);
+  const a=inspectGif(new Uint8Array(await full.arrayBuffer())),b=inspectGif(new Uint8Array(await compact.arrayBuffer()));
+  assert.equal(a.colors,256);assert.equal(b.colors,64);assert.deepEqual(a.images,b.images);
+  assert.deepEqual(a.delays,b.delays);assert.deepEqual(a.applications,b.applications);
+  assert.ok(b.localPalettes.every(v=>!v));assert.ok(compact.size<full.size);
+});
 
 test('real GIF has one global palette, every frame, bounded delays and optional infinite loop', async () => {
   const source = Array.from({ length: 12 }, (_, i) => ({ ...frames[0], id: `f${i}`, frame: i, width: 16, height: 12 }));

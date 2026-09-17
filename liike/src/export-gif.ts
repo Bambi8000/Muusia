@@ -18,7 +18,7 @@ export async function encodeGif(plan: ExportPlan, read: (index: number) => Promi
     }
     progress({ phase: 'Choosing GIF colors', done: i + 1, total: unique.length });
   }
-  const palette = quantize(samples, 256, { format: 'rgb565' });
+  const palette = quantize(samples, plan.options.gifColors ?? 256, { format: 'rgb565' });
   const map = paletteMapper(palette, plan.options.dither), gif = GIFEncoder();
   for (let i = 0; i < plan.frames.length; i++) {
     const raster = await read(i);

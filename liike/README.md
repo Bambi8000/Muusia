@@ -358,7 +358,18 @@ lens distortion or changing shape/scale caused by a curved photograph.
    the previous output. **Cancel export** releases the running worker and
    permits a fresh attempt. Original photos and extracted frames are retained.
 
-**GIF:** uses a single palette of up to 256 colors sampled across all included
+**Chat GIF:** choose **Chat GIF · 480 px** or **Smaller GIF · 320 px** in
+Export, then Create GIF and Download GIF. These presets preserve every frame,
+the sequence order and playback speed, enable looping, and use a shared
+64-color palette without dithering. Only the exported copy is scaled down;
+extracted frames and original photos keep their resolution. The aspect ratio
+is retained and small inputs are never enlarged. The actual file size appears
+after encoding; it depends on the artwork and sequence length. For more tonal
+detail, select 128 or 256 GIF colors, or a larger export size. If a chat app
+does not animate an attached GIF, export an MP4 from Video instead.
+GIF color choices are saved with the project; older files default to 256.
+
+**GIF:** uses a single palette of up to 64, 128 or 256 colors sampled across all included
 unique drawings. Optional serpentine Floyd–Steinberg dithering softens color
 steps. **Loop forever** shares the Sequence loop setting; off produces one
 pass. Delays use cumulative hundredths-of-a-second rounding, keeping timing

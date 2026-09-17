@@ -3,8 +3,11 @@ import type { SequenceSettings } from './sequence';
 import type { ExtractedFrame } from './frames';
 
 export type ExportFormat = 'gif' | 'video' | 'png';
-export type ExportOptions = { format: ExportFormat; longSide: number; dither: boolean; loops: number; quality: 'Standard' | 'High'; videoFormat: 'auto' | 'webm' };
-export const DEFAULT_EXPORT: ExportOptions = { format: 'gif', longSide: 0, dither: false, loops: 4, quality: 'High', videoFormat: 'auto' };
+export type GifColors = 64 | 128 | 256;
+export type ExportOptions = { format: ExportFormat; longSide: number; dither: boolean; gifColors?: GifColors; loops: number; quality: 'Standard' | 'High'; videoFormat: 'auto' | 'webm' };
+export const DEFAULT_EXPORT: ExportOptions = { format: 'gif', longSide: 0, dither: false, gifColors: 256, loops: 4, quality: 'High', videoFormat: 'auto' };
+/** A smaller shared palette reduces file size without dropping animation frames. */
+export const chatGifOptions = (options: ExportOptions, longSide: 320 | 480): ExportOptions => ({ ...options, format: 'gif', longSide, gifColors: 64, dither: false });
 export type ExportPlan = {
   frames: ExtractedFrame[]; fps: number; loop: boolean; width: number; height: number; contentWidth: number; contentHeight: number;
   options: ExportOptions; frameCount: number; duration: number;
@@ -16,6 +19,7 @@ export function buildExportPlan(frames: ExtractedFrame[], sequence: SequenceSett
   if (!timeline.length) throw new Error('Include at least one frame in Sequence before exporting.');
   if (!Number.isInteger(sequence.fps) || sequence.fps < 1 || sequence.fps > 30) throw new Error('Choose a speed from 1 to 30 fps.');
   if (!['gif', 'video', 'png'].includes(options.format) || !['Standard', 'High'].includes(options.quality) || !['auto', 'webm'].includes(options.videoFormat)) throw new Error('Choose a supported export format.');
+  if (![64, 128, 256].includes(options.gifColors ?? 256)) throw new Error('Choose 64, 128 or 256 GIF colors.');
   if (options.format === 'video' && (!Number.isInteger(options.loops) || options.loops < 1 || options.loops > 20)) throw new Error('Choose 1–20 video repeats.');
   const first = timeline[0]!;
   if (timeline.some(f => f.width !== first.width || f.height !== first.height || f.width < 1 || f.height < 1)) throw new Error('Extract all frames again at the same resolution.');

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import type { ExtractedFrame } from './frames';
 import type { SequenceSettings } from './sequence';
-import { buildExportPlan } from './export-plan';
-import type { ExportOptions, ExportPlan } from './export-plan';
+import { buildExportPlan, chatGifOptions } from './export-plan';
+import type { ExportOptions, ExportPlan, GifColors } from './export-plan';
 import { useExport, useVideoSupport } from './useExport';
 
 type Props = { frames: ExtractedFrame[]; sequence: SequenceSettings; setSequence: (value: SequenceSettings) => void; options: ExportOptions; setOptions: (value: ExportOptions) => void; onBack: () => void };
@@ -22,16 +22,20 @@ export default function ExportStep({ frames, sequence, setSequence, options, set
     {!frames.length ? <div className="preview-placeholder"><span aria-hidden="true">↗</span><h2>Build your frames first</h2><p>Open Sequence and extract your drawings before exporting.</p><button className="primary" onClick={onBack}>Go to Sequence →</button></div> : <div className="workspace export-workspace">
       <section className="settings" aria-label="Export settings">
         <fieldset><legend>Make it yours</legend>
+          <div className="chat-presets" role="group" aria-label="Chat GIF presets">{([480, 320] as const).map(size => <button key={size} className="secondary" aria-pressed={options.format === 'gif' && options.longSide === size && options.gifColors === 64 && !options.dither} onClick={() => { setOptions(chatGifOptions(options, size)); setSequence({ ...sequence, loop: true }); }}>{size === 480 ? 'Chat GIF' : 'Smaller GIF'} · {size} px</button>)}</div>
+          <p className="hint">A small, looping GIF for sharing in chats. Keeps every frame and your playback speed. Choose 480 px for more detail, or 320 px for a smaller file.</p>
           <label className="field"><span>File format</span><select value={options.format} onChange={e => update({ format: e.target.value as ExportOptions['format'] })}><option value="gif">Animated GIF</option><option value="video">Video</option><option value="png">PNG frames · ZIP</option></select></label>
-          <label className="field"><span>Export size · long side</span><select value={options.longSide} onChange={e => update({ longSide: Number(e.target.value) })}><option value={0}>Original · {Math.max(frames[0]!.width, frames[0]!.height)} px</option>{[480, 720, 1080].filter(n => n < Math.max(frames[0]!.width, frames[0]!.height) || n === options.longSide).map(n => <option key={n} value={n}>{n} px</option>)}</select></label>
+          <label className="field"><span>Export size · long side</span><select value={options.longSide} onChange={e => update({ longSide: Number(e.target.value) })}><option value={0}>Original · {Math.max(frames[0]!.width, frames[0]!.height)} px</option>{[320, 480, 720, 1080].filter(n => n < Math.max(frames[0]!.width, frames[0]!.height) || n === options.longSide).map(n => <option key={n} value={n}>{n} px</option>)}</select></label>
           <label className="field"><span>Speed · {sequence.fps} fps</span><input aria-label="Frames per second" type="range" min={1} max={30} value={sequence.fps} onChange={e => setSequence({ ...sequence, fps: Number(e.target.value) })} /></label>
           <p className="hint">Uses your Sequence order and exclusions. Speed changes also update the preview in Sequence.</p>
         </fieldset>
         <fieldset><legend>{options.format === 'gif' ? 'GIF options' : options.format === 'video' ? 'Video options' : 'Individual drawings'}</legend>
           {options.format === 'gif' && <>
+            <label className="field"><span>GIF colors</span><select value={options.gifColors ?? 256} onChange={e => update({ gifColors: Number(e.target.value) as GifColors })}><option value={64}>64 · compact</option><option value={128}>128 · balanced</option><option value={256}>256 · full palette</option></select></label>
             <label className="checkbox"><input type="checkbox" checked={sequence.loop} onChange={e => setSequence({ ...sequence, loop: e.target.checked })} />Loop forever</label>
             <label className="checkbox"><input type="checkbox" checked={options.dither} onChange={e => update({ dither: e.target.checked })} />Dither colors</label>
             <p className="hint">A shared palette keeps colors consistent. Dithering softens color steps with fine dots. GIF timing is rounded to hundredths of a second.</p>
+            <p className="hint">The chat presets use fewer colors and no dithering to keep files small. If your chat app does not animate the GIF, choose Video and send an MP4 instead.</p>
           </>}
           {options.format === 'video' && <>
             <label className="field"><span>Video format</span><select value={options.videoFormat} onChange={e => update({ videoFormat: e.target.value as ExportOptions['videoFormat'] })}><option value="auto">MP4 · automatic WebM fallback</option><option value="webm">WebM</option></select></label>

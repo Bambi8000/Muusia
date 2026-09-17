@@ -19,6 +19,15 @@ async function archiveParts() {
   const files = unzipSync(new Uint8Array(await blob.arrayBuffer()));
   return { photos, config, blob, files, document: JSON.parse(strFromU8(files['project.json'])) };
 }
+
+test('chat GIF settings survive save/load and older projects retain 256-color output', async () => {
+  const config=state();config.exportOptions={...config.exportOptions,format:'gif',longSide:320,gifColors:64,dither:false};
+  const restored=await readProject(await saveProject(config,[]));
+  assert.deepEqual(restored.project.exportOptions,config.exportOptions);
+  const older=structuredClone(restored.project);delete older.exportOptions.gifColors;
+  assert.equal(parseProject(older).exportOptions.gifColors,256);
+  for(const value of [null,'64',65,256.5]) { const broken=structuredClone(older);broken.exportOptions.gifColors=value;assert.throws(()=>parseProject(broken),/GIF colors/); }
+});
 const pack = files => new Blob([zipSync(files)]);
 const rewrite = (files, document) => pack({ ...files, 'project.json': strToU8(JSON.stringify(document)) });
 

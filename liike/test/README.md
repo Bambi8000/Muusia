@@ -379,3 +379,28 @@ for every photo. Recognition is specific to the plotted font, not general OCR.
 Fresh browser imports of IMG_2636.jpeg followed by IMG_2635.jpeg also found
 both outlines and automatically assigned 2 and 1, without a separate Read
 number action.
+
+## Chat GIF presets — 2026-09-17
+
+Export now offers 480 px and 320 px GIF presets with a shared 64-color palette,
+no dithering and looping. Tests cover portrait/landscape aspect ratio, no
+upscaling, unchanged manual/excluded/ping-pong timeline and speed, an actual
+encoded global palette with unchanged frame blocks/delays/loop metadata,
+invalid palette sizes, saved compact options and 256-color defaults for older
+project files. All 127 tests, TypeScript/lint and both production builds pass.
+
+The standalone production browser opened Daniel's geid2.liike and extracted
+24 frames at 1080×944. Downloaded GIFs were independently decoded with Sharp:
+1080×944 / 256 colors = 10,255,792 bytes; Chat GIF 480×420 / 64 colors =
+1,560,850 bytes; Smaller GIF 320×280 / 64 colors = 750,568 bytes. All three
+contain 24 frames, 2,000 ms total delay and infinite looping. Both smaller
+versions' decoded first frames were visually inspected for retained lines.
+Preset selection clears stale output, sets the expected size/palette/dither,
+and retains 12 fps. The 390 px export controls fit without horizontal overflow;
+no browser warnings or errors were observed. These sizes describe this reel,
+not an output size guarantee for other artwork or longer sequences.
+
+User originals and downloaded QA GIFs stay outside version control. No files
+were sent to Telegram or WhatsApp; delivery and rendering inside those apps
+were not tested. The UI offers Video/MP4 as a fallback when a recipient's
+chat app does not animate an attached GIF.
