@@ -1,13 +1,114 @@
-# MUUSIA v2.89 — Node Reference
+# MUUSIA v2.90 — Node Reference
 
-All 276 built-in nodes. Conventions used below: most generators accept a **Style**
+All 281 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (166)
+## Generators (171)
+
+**Drape** — a mesh cloth laid over hidden objects, drawn in 3D with true
+hidden-line removal. Seeded spheres, boxes, cones or a mix sit on a table; a
+grid sheet is dropped over them and relaxed with *Tension* until it rests on
+the tops and sags between them (each pass averages a point with its
+neighbours but never lets it sink below an object; a little gravity stops it
+floating flat), and *Wrinkles* folds only the raised cloth. Wire your own
+objects instead: closed paths on the *Objects* input become flat-topped blocks
+with a soft edge, open paths round ridges, and a triangle mesh on the *Mesh*
+input (Blob Mesh, or anything Mesh Slice takes) is rasterised from above into
+the height field — a wired input replaces the seeded objects. *Yaw*,
+*Elevation* (90 = straight down, where the grid is an exact lattice) and
+*Perspective* turn the view; a screen-space z-buffer hides the far side of
+every bump, and a low view hides more than a high one. *Style*: Wire, Weave
+(warp and weft break alternately at every crossing), Contour (height contours
+of the draped surface projected in 3D, with the rim and a sparse table grid)
+or Hatch (grid lines that survive only away from *Light angle*, plus the
+silhouette). *Sheet* Fit is a rectangle in the margins' proportions, Square a
+square, Round a disc whose outline does not change with Yaw at all. *Lock
+size* scales by the sheet's rotation-invariant bounding circle so turning
+never changes the scale; off, the drawing refits the margins at every yaw.
+
+**Chip Die** — a microchip die shot built the way a die is built. A seal ring
+and a ring of bond pads (nested squares) frame the edge; inside, the core is
+split hierarchically into blocks with routing channels left between them, and
+every channel carries a bus of parallel traces whose width shrinks with the
+depth of the split. Blocks take a texture from their type — SRAM as
+sub-arrays of dense word lines broken by bit-line groups with a decoder strip
+between, standard-cell logic as power-rail rows filled with cell edges, metal
+stubs and L-shaped routes, analog as interdigitated transistor fingers and a
+rectangular spiral inductor, capacitor arrays as a lattice of squares, IO as
+nested frames, empty silicon as sparse dummy fill — and *routed* blocks are
+the tangle of a 1970s die: thick Manhattan traces walked on a grid so they
+never cross, a via square at every end, as centre lines or outlined rods at
+*Trace width*. *Style*: Processor repeats one core's floorplan mirrored into
+every core slot under a row of L2 arrays and above an IO strip; Memory is
+banks of arrays with decoder logic; FPGA a uniform grid of tiles with a
+channel on every row and column; Analog a few large mixed-signal blocks (an
+inductor is guaranteed); Vintage one routed die with a wide power ring, a few
+transistor islands and big pads; Random a seeded floorplan of everything.
+*Colour by type* puts each class on its own pen counted up from *Pen* — seal
+and pads 0, SRAM +1, logic +2, analog +3, IO +4, buses +5, routing +6, modulo
+12 — so a multi-pen plot reads like a false-colour die photograph; *Bond
+wires* arc from every pad out past the die edge (the die shrinks to leave them
+room). Every segment is axis-aligned. *Die width* and *Aspect* are exact mm,
+shrink-only; the *Blocks* output carries the closed block outlines on their
+pens for fill nodes.
+
+**Cross Stitch** — lettering for thread on paper. Text is set in a bitmap
+sampler font on a stitch grid; every filled cell is one cross stitch, and the
+cell's four corners are the holes the needle must pierce. The *Holes* output
+carries those holes once each as small circles at *Hole size*, deduplicated
+where neighbouring stitches share a corner (five stitches in a row are twelve
+holes, not twenty) — chain it into Needle Punch with Punch at: Centers, or
+plot the circles and pierce by hand. The *Stitches* output (the second pin,
+wire it separately) is the thread guide: an X per cell, a *Half /* or *Half
+\* stitch, a *Backstitch* outline round the letters (every cell edge with a
+stitch on one side only), or None — the holes never change with it. *Font*
+Sampler 5x7 is the classic, Bold 5x7 thickens it by one cell, Tiny 3x5 is for
+small work; all carry A–Z, 0–9, ÄÖÅ and punctuation, and <3 is a heart.
+*Pitch* is the physical hole spacing and stays exact unless the block cannot
+fit, when it shrinks; the hole radius is capped below half the pitch so holes
+never merge. *Letter gap* and *Line gap* are whole cells, *Border* adds a
+one-stitch frame at *Border gap*, *Mirror* flips the block for punching from
+the back, separate pens for holes and guide.
+
+**Lettering** — heavy plotter capitals with a 3D side. *Font* Bold sweeps the
+built-in geometric capitals with a round pen, Block with a square pen, Roman
+with a broad nib at *Nib angle* so thickness follows stroke direction as in
+calligraphy (a vertical stroke at nib 0 is full *Weight*, a horizontal one a
+hairline). Every stroke is stamped into a distance field and the union is
+traced as one clean outline, so joints never double up; *Fill* shades the
+face from the same field as Outline, *Hatch* (angle and spacing) or *Inline*
+(concentric outlines stepping inward). *Depth* extrudes the letters toward
+*Depth angle* like sign-painter's block letters: the extruded body is the
+field's sliding minimum along the depth vector, the back silhouette is drawn
+only where it is not the face outline, and the visible sides are the outline
+stretches whose outward normal points along the depth. *Side texture* draws
+them as Zigzag (a sawtooth stripe at *Side pitch*), Lines (rules from face to
+back), Hatch or a plain Outline; the whole block is one field, so rules stop
+where they would run into another letter. *Rotate* turns the block, *Slant*
+shears it, *Weight* follows the fitted size. Lines with |, *Align*,
+*Tracking*, *Line height*, *Y offset*; the block shrinks to the margins on
+both axes, stroke overhang included.
+
+**Snowflake** — snow crystals with true six-fold symmetry: one arm is grown
+from the seed and copied round the centre, so every flake is perfectly
+symmetric while no two flakes in a sheet match. *Style* Dendrite is a main
+arm with mirrored side branches at *Branch angle* and sub-branches to
+*Depth*, lengths shrinking toward the tip by *Falloff*; Fern multiplies the
+branching into feathers; Stellar keeps few branches and caps every tip with a
+hexagonal plate over a large sectored core; Plate is a big hexagon with inner
+rings, spokes and sector windows, its corners sprouting short dendrites; Paper
+is a child's cut-paper flake — one wedge's jagged profile mirrored round into
+a closed silhouette, *Holes* cut-outs mirrored with it, *Wobble* shaking the
+scissors. *Arms* sets the symmetry (6 is snow; 3, 4, 5, 8 and 12 are for
+art), *Tip* caps each arm with a plate, needle, fan or arrow, *Core* sets the
+centre plate, *Width* turns centre lines into closed rods tapering to the
+tips, *Rime* dots frost along the arms. *Layout* Rows fills a *Count* x *Rows*
+grid with *Jitter*; Scatter drops a flurry of different sizes (*Size vary*)
+and turns (*Spin vary*). Fit is shrink-only.
 
 **Whale** — line-drawn whales in two hands, with an octopus hiding in the
 *Species* list. Simple is a child's whale: a fat blob body, heart-shaped

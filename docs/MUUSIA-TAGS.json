@@ -159,6 +159,12 @@
   "repeat",
   "weave"
  ],
+ "chipdie": [
+  "machine",
+  "grid",
+  "structural",
+  "texture"
+ ],
  "chop": [
   "clip",
   "pens"
@@ -260,6 +266,12 @@
  "crop": [
   "clip"
  ],
+ "crossstitch": [
+  "text",
+  "dots",
+  "grid",
+  "weave"
+ ],
  "ctrl": [
   "animation",
   "math"
@@ -319,6 +331,12 @@
   "physics",
   "scientific",
   "spiral"
+ ],
+ "drape": [
+  "3d",
+  "mesh",
+  "grid",
+  "weave"
  ],
  "echo": [
   "deform",
@@ -665,6 +683,12 @@
   "deform",
   "round",
   "warp"
+ ],
+ "lettering": [
+  "text",
+  "3d",
+  "fill",
+  "structural"
  ],
  "lfo": [
   "animation",
@@ -1245,6 +1269,12 @@
   "organic",
   "chaos",
   "flow"
+ ],
+ "snowflake": [
+  "nature",
+  "symmetry",
+  "fractal",
+  "repeat"
  ],
  "solids": [
   "3d",

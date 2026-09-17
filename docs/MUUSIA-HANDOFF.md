@@ -34,7 +34,7 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **274 files** (276 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **279 files** (281 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (274) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (279) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1328,6 +1328,26 @@ text are **English**.
   125-check validator. Both nodes reuse one placement block: Rows grid with
   jitter, School rejection-sampled scatter with heading and turn jitter, Spine
   resampled along wired paths with a default centre line when unwired.
+
+- **2.90** five generators. **Snowflake** (gen/nature): one arm grown from
+  the seed and rotated *Arms* times, five styles (Dendrite, Fern, Stellar,
+  Plate, Paper), rod outlines, rime, Rows/Scatter; the validator proves the
+  symmetry by rotating every point and finding its twin. **Lettering**
+  (gen/textimg): Bold/Block/Roman capitals as a stamped distance field —
+  clean unions, Outline/Hatch/Inline fills — plus 3D extrusion as the field's
+  sliding minimum with Zigzag/Lines/Hatch side textures; the cursive Script
+  and Copperplate hands that were prototyped were dropped before baking.
+  **Cross Stitch** (gen/textimg): bitmap sampler fonts to deduplicated needle
+  holes on the Holes pin for Needle Punch, thread guide (X, half, backstitch)
+  on a second pin. **Chip Die** (gen/structural): hierarchical floorplan with
+  bus channels, SRAM/logic/analog/cap/IO/routed textures, Processor cores
+  mirrored from one template, Vintage routed dies with power ring and bond
+  wires, Colour by type across seven pens. **Drape** (gen/structural): mesh
+  cloth relaxed over seeded or wired objects (paths or a mesh pin), z-buffer
+  hidden lines, Wire/Weave/Contour/Hatch, Fit/Square/Round sheet, Lock size
+  by the rotation-invariant bounding circle. A Skull node was prototyped as an
+  SDF surface and shelved. All five reuse the shared placement/fit pattern:
+  measure after placement, shrink only, never grow.
 
 ## Hard-won pitfalls (keep)
 
