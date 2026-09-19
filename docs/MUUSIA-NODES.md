@@ -1,13 +1,39 @@
-# MUUSIA v2.90 — Node Reference
+# MUUSIA v2.91 — Node Reference
 
-All 281 built-in nodes. Conventions used below: most generators accept a **Style**
+All 282 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (171)
+## Generators (172)
+
+**Perspective Hall** — one-point perspective corridor built as a real 3D box:
+walls, floor and ceiling (plus optional *Far wall*, stepped *Ledges* and
+*Doorways*) are projected through a pinhole at the vanishing point (*VP X/Y %*)
+and every plane is filled with hatch at constant 3D spacing, so the lines rush
+toward the VP the way a ruled perspective does. *Mode* Grid rules every plane
+in both directions — the classic laser-line perspective grid; Hatch lets each
+plane choose Across (lines at constant depth: vertical on walls, horizontal on
+floor and ceiling), Along (lines converging to the VP), Both or None. *Gap* is
+the spacing in mm at the sheet edge; where the projected spacing falls under
+*Min gap* lines are dropped — every 2nd, 4th… in ruled work, at random with the
+same survival rate in hand-drawn work — so the hatch continues to the vanishing
+point without clogging, and the density bands where that happens sit at one
+shared depth on all four planes whatever the *Aspect*. *Walls* Aspect is a
+symmetric box seen from its axis; Sheet edges moves the eye off the corridor
+axis so the four corner lines run exactly into the frame corners and every wall
+stays on the sheet however far off-centre the VP is. *Ledges* adds blocks along
+both walls at a geometric *Rhythm* (*Ledge height %*, *Ledge depth %*, *Ledge /
+bay*, *Stagger sides*), with white *Doorways* of *Door height %* left between
+them; occlusion is exact — blocks hide the wall and floor behind them and
+nearer blocks hide farther ones, all done as t-interval arithmetic on the
+projected segments with 1/Z linear along a line. *Hand* 0 is ruler-straight
+2-point segments; raising it adds low-frequency wobble, a slight bow, spacing
+drift, ragged over/undershooting ends, broken strokes and the occasional missed
+line. *Edges* draws the construction lines (corner lines, block edges, door
+frames, far wall) with *Edge pen*. Point budget 112k with early stop.
 
 **Drape** — a mesh cloth laid over hidden objects, drawn in 3D with true
 hidden-line removal. Seeded spheres, boxes, cones or a mix sit on a table; a

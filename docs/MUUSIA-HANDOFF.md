@@ -34,7 +34,7 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **279 files** (281 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **280 files** (282 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
@@ -1348,6 +1348,24 @@ text are **English**.
   by the rotation-invariant bounding circle. A Skull node was prototyped as an
   SDF surface and shelved. All five reuse the shared placement/fit pattern:
   measure after placement, shrink only, never grow.
+- **2.91** new **Perspective Hall** generator (gen/structural, `persp_hall`): a
+  one-point perspective corridor as a real 3D box (walls, floor, ceiling, far
+  wall, stepped ledges with doorways) projected from the VP, every plane hatched
+  at constant 3D spacing. Grid mode = classic laser-line perspective grid; Hatch
+  mode = per-plane Across/Along/Both/None with *Hand* wobble, ragged ends and
+  broken strokes for the organic ink-drawing look. Level of detail: when the
+  projected spacing falls under *Min gap*, lines are dropped (stride doubling
+  when ruled, stochastic survival when hand-drawn) so the hatch reaches the VP
+  without clogging; one shared reference extent keeps the resulting density
+  bands at the same depth on all planes regardless of Aspect, with a per-plane
+  clog guard for walls much narrower than the reference. *Walls* = Sheet edges
+  puts the eye off-axis so the corner lines hit the frame corners (asymmetric
+  extents Xl/Xr/Yt/Yb throughout). Occlusion is exact t-interval arithmetic on
+  projected segments (1/Z linear along a line; Cyrus–Beck against each ledge's
+  convex-hull silhouette, owner excluded). 102-check validator incl. door
+  emptiness, ledge occlusion, min-spacing, band alignment across aspects and
+  corner hits; mutation-tested (removing occlusion, doors or LOD each trips its
+  own checks).
 
 ## Hard-won pitfalls (keep)
 

@@ -992,6 +992,12 @@
   "mesh",
   "terrain"
  ],
+ "persp_hall": [
+  "3d",
+  "geometric",
+  "hatch",
+  "structural"
+ ],
  "photo_trace": [
   "image",
   "region"
