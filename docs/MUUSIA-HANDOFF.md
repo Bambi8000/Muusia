@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **281 files** (283 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **282 files** (284 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 173, Modifiers 72). ESM format:
+  Generators 174, Modifiers 72). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (281) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (282) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1383,6 +1383,33 @@ text are **English**.
   per run, seed scope, shrink-only fit and connectivity; mutation-tested
   (edge classification, halo ring, seedless hash2, bridge, merge, pin
   predicate, fit and 4- vs 8-neighbour rings each trip their own checks).
+
+- **2.93** new **Kolam** generator (gen/geometric, `kolam`): sikku kolam
+  as Gerdes mirror curves on a dot lattice. Midpoints stored in doubled
+  integer coords; a ray at 45° crosses or reflects at each midpoint (boundary
+  edges always reflect → border teardrop loops); state = (midpoint, outgoing
+  dir), both orientations marked per traced cycle so each geometric strand is
+  found once. Turns % = seeded interior mirrors; Single line / Target count =
+  greedy toggling of an edge whose two sides belong to different strands
+  (merge, −1) or the same strand (split attempt), retracing after each toggle.
+  Layouts Interlaced (idukku pulli, u=i−j / v=i+j rectangle with parity),
+  Square, Diamond, Wired region (lattice points inside the wired polygon,
+  pitch kept exact). Rendering: control polygon = midpoints with turning
+  points pushed outward (Loop reach / Turn size), Chaikin ×0–4 (collinear
+  crossings stay exact X); Under gaps cuts only the pass parallel to the
+  under direction (the same strand also crosses on top) using the checkerboard
+  rule (horizontal-edge crossing: NE/SW over; vertical: NW/SE over) which
+  alternates along every strand through turns; Ribbon / Contours = distance
+  field over bucketed segments + marching squares (sdfcontours lineage),
+  isolines at Width/2 + k·step. SFONT row / strand numbers, dots, pen per
+  strand. 121-check validator: gcd law on n × m grids, single line over 192
+  layout × seed × turns cases, every pass covered once, exact 90° crossings
+  on the raw polygon, one open piece per crossing + two piece ends per
+  crossing + alternation derived from the output, isoline distance ± field
+  cell, border loop apex, chart-style bottom-up row numbers, wired-region
+  containment; mutation-tested (mirrors ignored, reverse orientation, merge
+  disabled, non-alternating over/under, double cut, reach, ribbon width,
+  fit, row order each trip their own checks).
 
 ## Hard-won pitfalls (keep)
 

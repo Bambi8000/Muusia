@@ -1,13 +1,42 @@
-# MUUSIA v2.92 — Node Reference
+# MUUSIA v2.93 — Node Reference
 
-All 283 built-in nodes. Conventions used below: most generators accept a **Style**
+All 284 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (173)
+## Generators (174)
+
+**Kolam** — sikku (kambi) kolam: one or more closed loops winding at 45°
+through a grid of dots, built as Gerdes mirror curves. At every midpoint between
+two neighbouring dots the line either crosses straight into the next cell or
+turns and keeps circling the same dot; on the outer edge of the dot set it
+always turns, which gives the teardrop loops around the border dots. Every
+ray closes on itself, so the output is a set of closed strands. *Layout*
+Interlaced is the classic idukku-pulli chart (*Rows* display rows alternating
+*Cols* and Cols−1 dots — 4 × 7 is the 1-3-5-7-5-3-1 diamond), Square is
+Cols × Rows, Diamond is |i|+|j| ≤ *Radius*, Wired region puts dots wherever
+the wired closed shape covers the lattice at *Pitch* (any silhouette becomes
+a kolam); *Rotate 45°* turns the lattice. *Turns %* is the seeded density of
+interior turns. *Strands* Free keeps whatever the mirrors give (a plain n × m
+grid gives gcd(n, m) loops), Single line merges everything into one unbroken
+kolam by toggling turns where two strands meet, Target count aims at N. *Loop
+reach* stretches the border loops outward, *Turn size* the interior loops,
+*Roundness* rounds the 45° polygon into arcs (0 = angular chart). *Crossings*
+Cross draws real X crossings; Under gaps cuts the under strand at every
+crossing with a consistent alternating over/under — the knot look — at *Gap
+mm*. *Render* Centerline plots the line; Ribbon plots one distance-field
+isoline at *Width*/2 around the whole line, so crossings fuse into a single
+shape like rice paste on the floor; Contours nests *Contours* isolines
+*Contour step* apart; Centerline + ribbon draws both, the ribbon on *Ribbon
+pen* (*Field cell* is the SDF resolution). *Dots* draws the dot grid, Row
+numbers or Strand numbers write SFONT digits at the dots (*Number size*),
+rows counted from the bottom as kolam charts do. *Pen per strand* cycles a
+pen per closed loop. Pitch stays exact unless the drawing — loops included —
+cannot fit inside *Margin*, when it shrinks. Region input is optional (Wired
+region only); Style input is the second pin.
 
 **Stitch Type** — bitmap lettering dressed in layered stitch marks, in the manner
 of an 8-bit sampler chart. Text is set in a pixel font (*Font* Bold 5x7,
