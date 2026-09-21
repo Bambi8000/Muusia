@@ -233,6 +233,13 @@
   "spiral",
   "text"
  ],
+ "conformal": [
+  "geometric",
+  "grid",
+  "math",
+  "round",
+  "symmetry"
+ ],
  "container": [
   "clip",
   "combine",

@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **282 files** (284 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **283 files** (285 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 174, Modifiers 72). ESM format:
+  Generators 175, Modifiers 72). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (282) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (283) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1410,6 +1410,31 @@ text are **English**.
   containment; mutation-tested (mirrors ignored, reverse orientation, merge
   disabled, non-alternating over/under, double cut, reach, ribbon width,
   fit, row order each trip their own checks).
+
+- **2.94** new **Conformal Grid** generator (gen/geometric, `conformal`): Smith chart
+  family as conformal maps of an R × X grid (Smith / Admittance / Immittance,
+  Inversion, Joukowski, Log-polar, Power). Lines are polylines sampled by
+  clipped rendered length (coarse 64-sample estimate → N = length / step);
+  Smith parametrises R and X through tan so the infinite lines are uniform on
+  their image circles. Chart-style adaptive subdivision: majors (Smith value
+  list 0…50) whole, minors (÷ Minor per major) and fine levels (halvings ×
+  Fine depth) gap-pruned per sample against the nearest same-or-coarser-level
+  neighbour (gap ≥ Cell mm), giving the fade-out hatching of the printed
+  chart. Generic clip (Disc / Sheet / Wired shape) by predicate + bisection.
+  Dressing: axis, angle and wavelength rings with ticks and radially rotated
+  SFONT numbers, R labels vertical on the axis, X labels at the rim; text
+  size capped at 4 % of the radius. Output bucketed by level and assembled
+  coarse-first under the budget (skeleton truncated if it alone exceeds the
+  budget, finer levels all-or-nothing). 97-check validator: conformality from
+  the OUTPUT on all five map kinds (majors cross at 90° ± 2.5° at analytic
+  crossing points), rim = full unit circle, R = 1 through the centre,
+  Admittance = byte-level mirror, Immittance = Smith + mirror, Cell-mm
+  pruning monotonic and parallel-neighbour distance ≥ 0.9 Cell, tick counts
+  (144 + 36 / 200 + 50, ticks identified as radial 2-point segments), label
+  stroke counts, clip containment, shrink-only fit incl. rings; 9 mutations
+  each trip their own checks (stretched map, wrong Joukowski sign, prune
+  threshold, no pruning, loose clip, tick spacing, one-axis mirror, no fit,
+  unprotected skeleton).
 
 ## Hard-won pitfalls (keep)
 

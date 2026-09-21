@@ -1,13 +1,39 @@
-# MUUSIA v2.93 — Node Reference
+# MUUSIA v2.94 — Node Reference
 
-All 284 built-in nodes. Conventions used below: most generators accept a **Style**
+All 285 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (174)
+## Generators (175)
+
+**Conformal Grid** — the Smith chart and its relatives: a rectangular R × X grid
+pushed through a conformal map, so the grid lines curve into circle and arc
+families that stay orthogonal at every crossing. *Map* Smith is the impedance
+chart ((w−1)/(w+1), right half-plane onto the unit disc — constant-R circles
+tangent at the right rim, constant-X arcs through the same point), Admittance
+its mirror image through the centre, Immittance both together with the
+admittance grid on *Admittance pen*; Inversion 1/z, Joukowski (w+1/w)/2,
+Log-polar exp(w) and Power w^n (*Exponent*) map a symmetric source grid of
+*Range* with *Major lines per range*. Subdivision follows the printed chart:
+each major interval is split into *Minor per major*, each minor is halved
+*Fine depth* times, and a sub-level line is drawn only along the stretch
+where the gap to its same-level neighbour is at least *Cell mm* — fine
+hatching appears where cells are large and fades where they crowd; majors
+are always drawn whole. Every line is a polyline sampled by rendered length
+(*Line step mm*), so one code path serves every map. *Clip* Disc keeps the
+unit disc (*Radius mm*, shrink-only fit that includes the scale rings), Sheet
+lets the map run to the margin box, Wired shape clips to a wired closed path
+(Region pin). Smith dressing, all optional: *Axis* (horizontal axis and centre
+mark), *Scales* Angle (reflection-coefficient ring, ticks every 2°, numbers
+every 10°) and Wavelength (0–0.5 clockwise from the left, ticks every 0.002,
+numbers every 0.01), *Labels* (SFONT values on the majors: R vertical along
+the axis, X at the rim rotated radially; *Label size*, capped for small
+charts). Output is assembled coarse-first under the point budget, so a heavy
+chart loses its finest hatching before its skeleton. Pens: Major, Minor,
+Fine, Admittance, Scales, Labels. No randomness.
 
 **Kolam** — sikku (kambi) kolam: one or more closed loops winding at 45°
 through a grid of dots, built as Gerdes mirror curves. At every midpoint between
