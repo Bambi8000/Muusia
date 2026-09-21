@@ -1,6 +1,6 @@
-# MUUSIA v2.94 — Node Reference
+# MUUSIA v2.95 — Node Reference
 
-All 285 built-in nodes. Conventions used below: most generators accept a **Style**
+All 286 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
@@ -1503,7 +1503,28 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (72)
+## Modifiers (73)
+
+**Mosaic** — mosaic tiling of the sheet with an optional figure. Wire closed
+shapes into *Shape* and they are laid in **opus vermiculatum** (*Figure style*
+Contour rows: tile rows following the outline inward, cut at *Tile* × *Aspect*
+and staggered; rows from the outer edge and from holes collide in the middle
+into the irregular core tiles of a real mosaic), as a clipped **Grid**, as a
+**Fan** of polar rings and sectors about the figure centre, or left blank
+(**None**: one outlined tile). The ground is **opus regulatum**, a square grid
+snapped so whole rows fill the margin box (*Grid fit*), clipped to a grout
+gap around the figure and continuing inside holes; the outermost *Border
+rows* take *Outer row pen* and *Inner row pen*. With nothing wired the sheet
+still fills with grid and border. Everything comes from one tile-id field: a
+fine raster (*Field cell*, 0 = Tile/8) gets a tile id per cell — nearest-
+outline distance and arc-length for the figure, grid cell for the ground —
+and tiles are the id boundaries. *Render* Tiles draws every tile as a closed
+outline shrunk by *Grout*/2 so the grout shows on paper; Seams draws every
+boundary once (lightest plot); Both draws both. *Smooth* rounds the raster
+boundaries (Chaikin passes), *Min tile* drops slivers, *Irregularity*
+jitters cuts, row edges and grid lines with the *Seed* for a hand-cut look.
+Pens: Figure, Ground, Outer row, Inner row. Ground None leaves only the
+figure.
 
 **Zigzag Path** — redraws every input path as a patterned stroke following
 the original line. Mode: *Zigzag* (sharp triangle wave, apex points inserted

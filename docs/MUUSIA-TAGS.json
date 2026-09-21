@@ -836,6 +836,13 @@
   "deform",
   "stack"
  ],
+ "mosaic": [
+  "fill",
+  "grid",
+  "texture",
+  "decoration",
+  "hatch"
+ ],
  "mountains": [
   "3d",
   "mesh",

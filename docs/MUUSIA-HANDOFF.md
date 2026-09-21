@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **283 files** (285 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **284 files** (286 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 175, Modifiers 72). ESM format:
+  Generators 175, Modifiers 73). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (283) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (284) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1435,6 +1435,32 @@ text are **English**.
   each trip their own checks (stretched map, wrong Joukowski sign, prune
   threshold, no pruning, loose clip, tick spacing, one-axis mirror, no fit,
   unprotected skeleton).
+
+- **2.95** new **Mosaic** modifier (mod/texture, `mosaic`, Shape pin
+  optional): mosaic as a TILE-ID FIELD. Fine raster over the margin box;
+  figure mask by scanline parity (holes work); nearest-outline transform by
+  8SSEDT-style propagation with exact sample positions (outline resampled at
+  cell/2, boundary cells seeded, four corners brute-force seeded, two
+  sweeps) giving distance d and arc-length s per cell. Ids: ground grid cell
+  (snapped tx/ty so whole rows fit; border ring → pens), figure Contour rows
+  (band = ⌊d/T⌋, cut by s scaled with the band perimeter ± 2π k T so inner
+  rows keep their pitch, staggered; nearest-side rule yields the collision
+  core), Grid, Fan (polar rings/sectors about the outermost container's
+  centroid), None; thin grout zone along the outline belongs to no tile.
+  Boundaries = edges between differing ids, chained per tile into loops
+  (Tiles: Chaikin + Douglas-Peucker + inward bisector shrink by Grout/2,
+  sliver fallback Grout/4, Min tile area filter) or chained once between
+  junctions (Seams). Irregularity: hashed cut/grid-line jitter and noise2
+  band wobble. 93-check validator: one tile per grid cell and border ring
+  counts, grid-fit extents, tile areas = (Tile−Grout)², figure tiles inside
+  / ground tiles outside the ring by distance, grout gap on both sides, rows
+  from both boundaries, rim tile count = perimeter/pitch, no overlapping
+  tiles (centroid test), Fan centroids at ring centres, Grid alignment with
+  the ground, Seams ≈ half the ink of Tiles and Both = sum, seed scope, raster
+  independence of the tile count, off-sheet outline fills the box; 12
+  mutations each trip their own checks (no propagation, no grout zone, no
+  pitch scaling, double bands, border pens, no shrink, grid fit ignored, fan
+  sectors/rings, wobble ignored).
 
 ## Hard-won pitfalls (keep)
 
