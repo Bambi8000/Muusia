@@ -1,13 +1,41 @@
-# MUUSIA v2.91 — Node Reference
+# MUUSIA v2.92 — Node Reference
 
-All 282 built-in nodes. Conventions used below: most generators accept a **Style**
+All 283 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (172)
+## Generators (173)
+
+**Stitch Type** — bitmap lettering dressed in layered stitch marks, in the manner
+of an 8-bit sampler chart. Text is set in a pixel font (*Font* Bold 5x7,
+Sampler 5x7 or Tiny 3x5; A–Z, 0–9, ÄÖÅ, punctuation, | starts a new line) and
+every font pixel becomes a *Pixel* × *Pixel* block of stitch cells. Cells are
+then classified by distance to the letter boundary, and each class gets its own
+mark and pen: **Core** (inside, not touching the outside) carries the fill —
+Cross X, Plus +, Diamond, Dots, Hatch / or \, Rings; **Edge** (the letter's own
+boundary ring) a lattice of joined plus marks, an Outline, Boxes, Dots or
+Diagonals; **Halo** (the ring of cells just outside the letter, 8-connected)
+horizontal or vertical stripes at *Halo stripes / cell*, Dashes, Dots or a
+Zigzag; **Aura** (the next *Aura rings* out, 0–3) seeded Dashes, Dots, Ticks or
+Crosses at *Aura fill* density, thinning ring by ring. **Pins** are long seeded
+bars laid along the halo runs beside the stems (Vertical, Horizontal, Both or
+None, density *Pin density*), the pink verticals of the reference chart.
+*Preset* Sampler is that reference look (X / lattice / stripes / dashes /
+vertical pins); Circuit, Knit and Dotted are ready variants; Custom exposes the
+five mark selectors. *Cell mm* is the stitch pitch and stays exact unless the
+block — rings included — cannot fit inside *Margin*, when it shrinks (never
+grows). *Bridge diagonals* fills a 2×2 block where two font pixels touch only
+at a corner, so Sampler and Tiny diagonals (Z, N, K, X) stay edge-connected
+instead of falling into corner-touching blocks; Bold is already connected and
+ignores it. Collinear marks are merged into single strokes — the X fill and
+the lattice plot as long diagonals and rules, not thousands of ticks — and the
+*Seed* only moves pins and aura, so the letter itself is stable while the
+decoration re-rolls. Five pens by default: Purple core, Blue edge, Red halo,
+Magenta pins, Orange aura; guides show the margin box, the letter block and
+the outer ring box.
 
 **Perspective Hall** — one-point perspective corridor built as a real 3D box:
 walls, floor and ceiling (plus optional *Far wall*, stepped *Ledges* and

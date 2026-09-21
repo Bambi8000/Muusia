@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **280 files** (282 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **281 files** (283 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 158, Modifiers 71). ESM format:
+  Generators 173, Modifiers 72). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (279) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (281) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1366,6 +1366,23 @@ text are **English**.
   emptiness, ledge occlusion, min-spacing, band alignment across aspects and
   corner hits; mutation-tested (removing occlusion, doors or LOD each trips its
   own checks).
+
+- **2.92** new **Stitch Type** generator (gen/textimg, `stitchtype`): bitmap
+  lettering (Bold/Sampler 5x7, Tiny 3x5, Pixel = cells per font pixel) with a
+  distance-ring classification of the stitch grid — core / edge (inside),
+  halo / aura rings (outside, 8-neighbour dilation) — and one mark family +
+  pen per class (X · lattice · stripes · dashes · pink pins = the reference
+  sampler chart; Circuit / Knit / Dotted presets; Custom exposes all five
+  selectors). Collinear marks merge into runs (diagonals grouped by c−r / c+r,
+  lattice by row/column), Bridge diagonals adds a 2×2 block at corner-only
+  pixel contacts so thin-font diagonals stay connected, seed scoped to pins +
+  aura only. Layout shared via `this._layout` (compute + overlay; overlay
+  guarded for unbound this). 137-check validator rebuilds the grid through
+  `_layout` and proves ring geometry, per-pen ring membership by sampling
+  stroke interiors, both-diagonal coverage of every core cell, stripe count
+  per run, seed scope, shrink-only fit and connectivity; mutation-tested
+  (edge classification, halo ring, seedless hash2, bridge, merge, pin
+  predicate, fit and 4- vs 8-neighbour rings each trip their own checks).
 
 ## Hard-won pitfalls (keep)
 
