@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **284 files** (286 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **285 files** (287 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 175, Modifiers 73). ESM format:
+  Generators 176, Modifiers 73). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (284) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (285) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1436,7 +1436,7 @@ text are **English**.
   threshold, no pruning, loose clip, tick spacing, one-axis mirror, no fit,
   unprotected skeleton).
 
-- **2.95** new **Mosaic** modifier (mod/texture, `mosaic`, Shape pin
+- **2.95** new **Mosaic** modifier (mod/fillstyle, `mosaic`, Shape pin
   optional): mosaic as a TILE-ID FIELD. Fine raster over the margin box;
   figure mask by scanline parity (holes work); nearest-outline transform by
   8SSEDT-style propagation with exact sample positions (outline resampled at
@@ -1461,6 +1461,33 @@ text are **English**.
   mutations each trip their own checks (no propagation, no grout zone, no
   pitch scaling, double bands, border pens, no shrink, grid fit ignored, fan
   sectors/rings, wobble ignored).
+
+- **2.96** new **Gravity** generator (gen/geometric, `gravity`, Stamp pin
+  optional): grid of stamps releasing from the bottom up. Release score =
+  row position + noise2 clump field + hashed softness; released elements get
+  a hashed fall fraction (Progress = landed share, the rest skewed toward
+  just-released by a 2.2 power), Drift / Spin / Size mod ramp with the
+  fraction, Grid jitter shakes intact elements near the line (zero at
+  Release 0 so the grid is exact). Heap = seeded landing order into a 1-D
+  height field with downhill rolling (sandpile), Pile spread pulls landings
+  toward the centre, Packing sets increments; Floor / None alternatives.
+  Wired stamps normalised to a unit box; built-in Dot segments sized by
+  plotted radius and trimmed under the budget (80 × 80 Ring stays under
+  112 k pts). Palette 1–4 with Diagonal / Rows / Columns / Random
+  assignment, colour travels with the element. 106-check validator via
+  `_layout` states and output geometry: exact grid at Release 0, crisp line
+  at Softness 0 + Clumps 0, landed share ≈ Progress, drift/spin/size scaling
+  with the fall, no same-column overlap and a sandpile slope limit in the
+  heap, mound position vs Pile spread, Floor / None counts, stamp
+  normalisation, pen assignment incl. landed elements, seed scope; 10
+  mutations each trip their own checks. Also fixes Mosaic's palette folder
+  (group texture → fillstyle; "texture" was not a MOD_GROUPS key so the node
+  was invisible in folder view).
+
+- **2.96** Gravity: new *Spin / size apply to* select (Fallen only = ramp with
+  the fall as before; All = every element, intact included, carries its own
+  hashed spin direction and size amount). Both modes share the per-element
+  hash so switching keeps directions. Validator +10 checks (116).
 
 ## Hard-won pitfalls (keep)
 

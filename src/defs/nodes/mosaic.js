@@ -32,7 +32,7 @@ export default {
   key: "mosaic",
   name: "Mosaic",
   cat: "mod",
-  group: "texture",
+  group: "fillstyle",
   desc: "Mosaic tiling of the sheet with an optional figure: wire closed shapes into Shape and they are laid in opus vermiculatum (Contour rows: tile rows following the outline inward, cut at Tile × Aspect and staggered, colliding in the middle into the irregular core tiles of a real mosaic), as a clipped Grid, as a Fan of polar rings about the figure centre, or left blank (None, one outlined tile). The ground is opus regulatum, a square grid snapped so whole rows fill the margin box (Grid fit), clipped to a grout gap around the figure and continuing inside holes; the outermost Border rows get Outer row pen and Inner row pen. With nothing wired the sheet still fills with grid and border. Render Tiles draws every tile as a closed outline shrunk by Grout/2, Seams draws every tile boundary once (lightest plot), Both draws both. Smooth rounds the raster boundaries (Chaikin passes), Field cell sets the raster (0 = Tile/8), Min tile drops slivers, Irregularity jitters cuts and grid lines with the Seed for a hand-cut look. Pens: Figure, Ground, Outer row, Inner row.",
   ins: [Pin("paths", "Shape (optional)"), Pin("style", "Style")],
   outs: [Pin("paths")],

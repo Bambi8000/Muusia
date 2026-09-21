@@ -1,13 +1,37 @@
-# MUUSIA v2.95 — Node Reference
+# MUUSIA v2.96 — Node Reference
 
-All 286 built-in nodes. Conventions used below: most generators accept a **Style**
+All 287 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (175)
+## Generators (176)
+
+**Gravity** — a regular grid of stamps lets go from the bottom up: rows
+below the *Release* line detach, fall and pile into a heap on the floor of
+the margin box while the top of the grid stays intact — the falling-dots
+print. *Stamp* is a Dot, Ring, Square, Diamond or Cross, or the wired
+**Stamp** paths normalised to a unit box and repeated in every cell (*Stamp
+size* × cell; a Lettering glyph, a leaf, anything). *Release* sets how much of
+the sheet has let go, *Softness* blurs the line with a hashed term, *Clumps*
+adds a noise2 field that frees clusters higher up. Every released element
+gets a hashed fall fraction: *Progress* is the share that has already landed,
+the rest hang mid-fall skewed toward "just let go"; along the fall *Drift*
+moves them sideways with noise, *Spin* rotates them (hashed direction, shows
+on non-round stamps), *Size mod* shrinks or grows them — *Spin / size apply to* makes those two
+ramp with the fall (Fallen only) or gives every element, intact ones
+included, its own hashed spin and size (All) — and *Grid jitter*
+shakes the intact elements near the line. *Pile* Heap drops the landed
+elements in seeded order into a 1-D height field that rolls to the lower
+neighbour like sand (*Pile spread* pulls landings toward the middle for a
+central mound, *Packing* sets the stacking density), Floor lays them on the
+floor line, None lets them fall off the sheet. *Palette* 1–4 pens assigned by
+Diagonal (the i + j pattern of the classic print), Rows, Columns or Random —
+the colour travels with the element into the heap. Release 0 is the exact
+grid; the *Seed* moves only the released elements and the jitter. Guides show
+the margin box, the grid and the floor line.
 
 **Conformal Grid** — the Smith chart and its relatives: a rectangular R × X grid
 pushed through a conformal map, so the grid lines curve into circle and arc

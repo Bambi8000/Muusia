@@ -524,6 +524,13 @@
   "deform",
   "texture"
  ],
+ "gravity": [
+  "grid",
+  "dots",
+  "physics",
+  "scatter",
+  "noise"
+ ],
  "gravity_cascade": [
   "chaos",
   "physics",
