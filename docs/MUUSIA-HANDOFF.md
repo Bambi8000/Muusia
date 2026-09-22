@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **285 files** (287 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **290 files** (292 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 176, Modifiers 73). ESM format:
+  Generators 179, Modifiers 75). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (285) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (290) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1488,6 +1488,37 @@ text are **English**.
   the fall as before; All = every element, intact included, carries its own
   hashed spin direction and size amount). Both modes share the per-element
   hash so switching keeps directions. Validator +10 checks (116).
+
+- **2.97** five nodes, one batch (lab → validator → visual proof → bake).
+  **Ray Fill** (mod/fillstyle, `rayfill`): even-odd ray fill of closed
+  shapes, Per shape centres (Centroid / Random inside / Edge / Outside / Mix)
+  or Shared centres (Nearest / All), spacing-at-rim density, core gap, fill
+  fraction; validator 115 checks with mutation-tested midpoint-inside,
+  segment-vs-outline and hole oracles; bbox rejection kept output
+  byte-identical at 4× speed. **Fray** (mod/deform, `fray`): threads off a
+  source line with hitches, beads and coil/ring/knot ends, one stroke per
+  thread; *Avoid source* (interior test) and *Crossings None* (spatial-hash
+  steering, spiral coils, beads beside the thread) — validator 95 checks
+  proves zero proper crossings over the whole result and root-on-source
+  < 0.05 mm. **Pleat** (gen/geometric, `pleat`): folded ribbon of parallel
+  lines from a crease token script (`- / \ ^ v < > ( ) x ~ =`, presets
+  Zigzag / Accordion / Twisted / Fan / Custom), cylinder shade, construction
+  lines to the margin; validator 83 checks proves every token to the
+  millimetre. **Chronophoto** (gen/scientific, `chrono`): Marey stick-figure
+  motion analysis — 3-D skeleton, six keyframed motions, Side / Front,
+  far-limb dashing, dashed joint trajectories with markers and SFONT
+  numbers, ground line, optional Path pin for the pelvis route, *Animate*
+  (Single instant / Onion skin, Phase wired from Frame, Trail write-on) with
+  a layout fixed from the whole time window; validator 173 checks (bone
+  invariance in every motion, no foot below ground, Phase 0/1 = plate first/
+  last exposure, fixed ground across phases). **Typewriter Rain**
+  (gen/textimg, `typerain`): typewriter grid with seeded glyph runs, bars
+  and slash ladders, Down / Right, Strict / Free grid, double strike, Mask
+  pin; validator 75 checks (single-cell strokes, one glyph + one pen per run,
+  gap oracle mutation-tested). Engine lesson reconfirmed: shared geometry via
+  `this._helper` methods (`_plan`, `_roots`, `_layout`, `_frames`,
+  `_grid`) works because the engine calls compute/overlay as def methods.
+  Doc batch: tools/era/patch-docs-v297.mjs.
 
 ## Hard-won pitfalls (keep)
 

@@ -1,13 +1,81 @@
-# MUUSIA v2.96 — Node Reference
+# MUUSIA v2.97 — Node Reference
 
-All 287 built-in nodes. Conventions used below: most generators accept a **Style**
+All 292 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (176)
+## Generators (179)
+
+**Typewriter Rain** — typewriter art as rain: the sheet becomes a fixed
+character grid (*Size* sets the cap height, *Pitch X* / *Pitch Y* the cell in
+cap-height units — a real machine sits near 1.2 × 1.7) and every column
+(*Direction* Down) or row (Right) is filled with seeded runs, each run one
+glyph from *Glyphs* repeated cell after cell on one pen, separated by at least
+*Gap* empty cells. Repeat a character in *Glyphs* to weight it; lowercase is
+typed as capitals, unknown characters are dropped, an empty field types M.
+*Bars* turns a share of the runs into solid ruled lines through the cell
+centres, *Slashes* forces a share into / ladders — the diagonal stairs of the
+original. *Density* is the filled share of every lane (0 types nothing),
+*Run length* and *Run variation* shape the runs (most short, a few long).
+*Grid* Strict keeps every run on the row pitch; Free lets each run slip a
+fraction of a cell like a platen that was never quite aligned. *Double strike*
+overtypes each glyph with a 0.15 mm shift, once or twice, for the heavy-ribbon
+look (the ink box is centred in the cell, so the shifts never leave it). *Pens
+used* from *First pen* picks a seeded colour per run. Wire closed shapes into
+**Mask** and the rain falls only inside them (bars break at the mask edge).
+Cells are typed lane by lane, so a point-budget cut loses the far lanes first.
+
+**Chronophoto** — Étienne-Jules Marey's chronophotographic motion analysis as
+a drawing: an articulated stick figure (head, trunk, both arms and legs with
+feet) is drawn at *Frames* successive instants of a motion — Long jump
+(approach run, take-off, hang, landing), Walk, Run, High jump, Standing jump or
+Somersault — with bone lengths held exactly constant, so the figures overlap
+the way superimposed exposures do. The skeleton is 3-D (sagittal joint angles
+on keyframe tables with Catmull-Rom interpolation, plus shoulder and hip
+widths), so *View* Side is Marey's plate and Front turns the camera round on
+the same model. Near limbs are solid and *Far limbs* Dashed as in the
+originals (Solid / Hidden); *Frame style* can dash alternate or early
+instants; *Head* Circle / Dot / None. *Trajectories* trace chosen joints
+(head, hip, hands, feet, or all) as smooth dashed curves sampled from the
+motion itself, with a marker at every instant and SFONT *Numbers* 1…N above
+them. *Time window* crops the motion to a phase range, *Spacing* scales the
+forward displacement (0 stacks every instant on one spot), *Stride* stretches
+the travel, *Trunk lean* tilts the figure. The ground is where the lowest foot
+stands: walking never leaves it, jumps lift off it, and *Ground line* draws it
+with Marey's end dot. The whole sequence is centred and fitted (shrink only)
+inside the margin box. Wire a line into **Path** and the pelvis follows it
+instead — the motion supplies the poses, the wire supplies the route.
+*Animate* turns the plate into an animation: Single instant draws one figure at
+*Phase* (wire the Frame clock's t into it), Onion skin adds the previous
+*Onion frames* exposures as ghosts (*Onion style* Dashed / Solid), and *Trail*
+lets the trajectories write on up to the current instant (so far / full /
+none) — the layout, scale and ground come from the whole time window, so the
+figure travels across a fixed sheet frame by frame. Pens: Figure, Trajectory,
+Labels.
+
+**Pleat** — a ribbon of parallel lines folded like a strip of paper: the band
+runs along the sheet (*Orientation* Vertical / Horizontal, *Length %* of the
+margin box, *Width*) and kinks at every crease; between creases each of the
+*Lines* is straight, so the strip reads as a stack of tilted panels in
+perspective. Creases are written as a token script, one token per crease,
+characters combining inside a token: `-` straight, `/` `\` tilted by
+*Tilt*, `^` `v` chevron (apex toward the start / end of the strip by
+*Chevron mm*), `<` `>` shifted sideways by *Shift*, `(` `)` narrow or
+wide by *Pinch*, `x` twist (the line order flips from that crease on — an
+hourglass; a second `x` flips back), `~` or `=` force a fully
+cylindrical or flat line distribution on that crease. *Preset* gives the
+classic folds — Zigzag is the drawn-paper look (chevron creases alternating
+left and right, wide fans at both ends), Accordion tilted creases, Twisted,
+Fan — and Custom reads the *Folds* field (unknown characters are ignored, an
+empty script is two straight creases, 60 tokens max). *Shade* pushes lines
+toward the panel edges like a rolled cylinder; *Spacing variation* jitters the
+crease intervals with the Seed. *Construction lines* extend every crease edge
+from the ribbon corner to the margin box on *Guide pen*, the way the pencil
+guides survive on the original drawing (corners already on the sheet edge get
+none). Each ribbon line is one continuous stroke end to end.
 
 **Gravity** — a regular grid of stamps lets go from the bottom up: rows
 below the *Release* line detach, fall and pile into a heap on the floor of
@@ -1527,7 +1595,42 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (73)
+## Modifiers (75)
+
+**Fray** — loose threads fraying off the source line, like yarn ends pulled
+out of an embroidered outline: strands leave the path at *Spacing* intervals
+(*Spacing jitter*), head Outward — or Left / Right / Both / Alternate for open
+lines — within *Spread* of the normal, wave with *Wave amp* / *Wave length*,
+*Wander* off course and lean toward the *Drift angle* by *Drift*; lengths
+scatter by *Length variation* (most short, a few long) and stop at *Margin*
+when *Clip to margin* is on. Along the way *Hitches* tie small self-crossing
+loops and *Beads* hang tiny rings; every thread ends in a Coil (loose
+overlapping loops), a Ring, a Knot (tight tangle), a Mix, or None (frayed tip)
+at *Coil size* ± *Coil variation*. Each thread is ONE continuous stroke from
+root to coil end. *Avoid source* keeps threads, beads and coils off the
+interior of closed shapes. *Crossings* None makes the whole result
+crossing-free: coils turn into inward spirals, hitches vanish, beads move
+beside the thread, and threads steer around or stop at other threads and the
+source (spatial-hash segment test). *First pen* + *Pens used* picks a seeded
+colour per thread; *Inherit source pens* uses the root path's pen. *Keep
+source* passes the input through.
+
+**Ray Fill** — fills every closed shape with straight rays that fan out from a
+centre and are clipped to the shape by even-odd rules, so nested shapes act as
+holes. *Centres* Per shape gives each shape its own centre by *Placement*:
+Centroid (starburst), Random inside (off-centre burst), Edge (a fan from the
+outline) or Outside (sweeping near-parallel chords through the shape) — Mix
+lets each shape draw its own kind for the varied look of a hand-filled map.
+Shared scatters *Centres count* seeded centres over the margin box
+(best-candidate spread); Nearest centre fills each shape only from the centre
+closest to it, All centres lets every centre radiate through the whole sheet
+so one burst spills across many shapes. *Spacing at rim* sets the ray gap at
+the far edge — rays converge toward the core exactly like a real pen
+starburst; *Core gap* opens a hole there instead of an ink pool. *Fill
+fraction* fills only a seeded share of the shapes. *Jitter* wobbles ray angles,
+*Min length* drops slivers, *Alternate direction* plots rays as a zigzag (off =
+every ray drawn from the core outward). *Keep outlines* passes the shapes
+through, *Inherit shape pens* colours the rays with each shape's pen.
 
 **Mosaic** — mosaic tiling of the sheet with an optional figure. Wire closed
 shapes into *Shape* and they are laid in **opus vermiculatum** (*Figure style*

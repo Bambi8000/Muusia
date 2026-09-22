@@ -169,6 +169,11 @@
   "clip",
   "pens"
  ],
+ "chrono": [
+  "animation",
+  "creature",
+  "scientific"
+ ],
  "circpack": [
   "geometric",
   "noise",
@@ -468,6 +473,12 @@
   "animation",
   "combine",
   "pathops"
+ ],
+ "fray": [
+  "decoration",
+  "deform",
+  "organic",
+  "texture"
  ],
  "fresnel": [
   "fill",
@@ -1048,6 +1059,11 @@
   "geometric",
   "grid"
  ],
+ "pleat": [
+  "geometric",
+  "repeat",
+  "structural"
+ ],
  "pointcloud": [
   "3d",
   "connect",
@@ -1105,6 +1121,12 @@
  "raydrape": [
   "combine",
   "water"
+ ],
+ "rayfill": [
+  "fill",
+  "geometric",
+  "hatch",
+  "region"
  ],
  "rectcollage": [
   "clip",
@@ -1532,6 +1554,12 @@
   "clip",
   "grid",
   "retro",
+  "text"
+ ],
+ "typerain": [
+  "grid",
+  "retro",
+  "scatter",
   "text"
  ],
  "tyylita": [
