@@ -300,6 +300,41 @@ magnet-jig and pen-cal workflows above.
 
 ---
 
+### 5.3 Bed alignment marks (drawn 2026-09-22)
+
+The steel bed carries permanent paper-alignment marks, drawn by the machine
+itself with a Texmark 500 marker from `tools/bed-marks.mjs` (living tool,
+deterministic; regenerate with `node tools/bed-marks.mjs --out
+~/Desktop/bed-marks.gcode` and run it after PLOT_START with no paper on the
+bed — work Z0 is the steel because the fixed block stands on it). All
+coordinates are in the paper frame PLOT_START sets up (machine 42,20), so the
+marks and every Muusia export share one origin corner.
+
+What is on the bed:
+
+- Baselines x=0 and y=0 over the reachable area, 10 mm outward ticks every
+  50 mm, 12 mm numbers every 100 mm just inside the lines. Numbers that would
+  touch a format edge are deliberately absent (300 and 600 on X, 600 on Y).
+- A4, A3, A2 in portrait (P) and landscape (L): the two far edges as 15/15 mm
+  dashed lines (overlapping spans inked once), L-brackets at the three
+  non-origin corners with legs continuing the edges 15 mm outside the sheet
+  so the corners stay visible under paper, 18 mm label at the far corner.
+- A1 partial: A1 P (594×841) right-edge guide + `TOP +48`; A1 L (841×594)
+  top-edge guide + `RIGHT +90`. A1 lies on the bed but overhangs the
+  reachable area by that much in either orientation.
+- `MAX 751X793` at the reachable-area corner.
+
+Reachable area from the paper origin is **751 × 793 mm** (position_max
+793 × 813 minus the 42/20 origin). A4–A2 fit in both orientations; A1 never
+fits fully (841 > 813 in any orientation); A0 is out. Largest full-reach
+sheet: a cut 751 × 793 or a 610 mm roll × 793.
+
+Tool options worth knowing: `--passes 2` (double-ink for a weak marker),
+`--text` (label height, numbers 2/3 of it), `--a1 0`, `--origin`/`--travel`
+if PLOT_START or position_max change, `--clear N` re-enables an exclusion of
+outward marks near the origin corner (default off — the Z block does not reach
+them).
+
 ## 6. What to design next
 
 Design the **pen holder / carriage assembly** that ties the above together:
