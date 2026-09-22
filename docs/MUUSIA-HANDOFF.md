@@ -96,7 +96,7 @@ text are **English**.
   MUUSIA-PORTRAIT-SPEC.md (Portrait node: face analysis + tonal rounds +
   one-line modes, design complete),
 - `klipper/` — machine-side configs at the repo root: `printer.cfg` draft for
-  the BTT Kraken, `moonraker-cors.snippet.conf`, pen-cal drafts, README with
+  the BTT Kraken, `moonraker-cors.snippet.conf`, `viivain-screen.conf` (KlipperScreen menus, MECH-HANDOFF §7.1), pen-cal drafts, README with
   the firmware build recipe. Version-controlled source of truth; live copies
   on the Pi (`viivain`). Outside `src/` and `public/` — never touches the Vite
   build or Pages. Details: MUUSIA-PLOTTER-MECH-HANDOFF.md §1 and §5.1.

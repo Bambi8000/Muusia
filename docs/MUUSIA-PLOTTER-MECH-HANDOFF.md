@@ -386,6 +386,34 @@ down.
 
 ---
 
+### 7.1 KlipperScreen — plotter menus (2026-09-22)
+
+The touchscreen no longer shows the 3D-printer defaults. `klipper/viivain-screen.conf`
+(repo, live copy in `~/printer_data/config/`) is pulled in by a single
+`[include viivain-screen.conf]` line at the top of `KlipperScreen.conf`, so
+KlipperScreen's own auto-generated section in that file survives edits.
+`[main] use_default_menu: False` replaces the default menu; `auto_open_extrude:
+False` stops the Extrude panel popping up when a job pauses for a pen change.
+
+- **Idle menu** (8 top-level buttons): Pen Up, Pen Down, Plot Start (runs
+  `PLOT_START`, no confirmation), Print (file browser), Move (jog + homing),
+  Macros (every macro without a leading underscore), Console, More (Motors Off,
+  Pen Release, Restart Klipper, Settings, Network, Update).
+- **Job menu** (5 buttons, the menu button on the job status page — also
+  while paused at an M0 pen change): Pen Up, Pen Down, Move, Macros, Console.
+  Resume/Cancel stay on the job status page itself.
+- Macro buttons carry `enable: {{ 'NAME' in printer.gcode_macros.list }}` so a
+  renamed macro hides its button instead of breaking the menu.
+- Icons are file names in `~/KlipperScreen/styles/z-bolt/images/`; a missing
+  icon renders a blank button.
+- Deploy: `scp klipper/viivain-screen.conf viivain:~/printer_data/config/` then
+  `curl -X POST "http://viivain:7125/machine/services/restart?service=KlipperScreen"`
+  (Moonraker manages the service — no sudo). Check
+  `grep -a 'Config path\|Traceback' ~/printer_data/logs/KlipperScreen.log | tail`.
+- **Trap:** `PEN_UP`/`PEN_DOWN` are defined in both `printer.cfg` and the
+  not-yet-included `pen-cal.cfg`. Klipper refuses duplicate sections — remove
+  them from pen-cal.cfg before ever including it (§5.1).
+
 ## 8. Session log 2026-08-12 — workflow commissioning (keep the pitfalls)
 
 - **CANVAS_CHECK pause blew through silently at first.** Root cause chain:
