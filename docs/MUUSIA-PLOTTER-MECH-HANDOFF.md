@@ -517,25 +517,84 @@ that reach full velocity and therefore demand the most from the motors when
 decelerating; short moves never get there. When the fault persisted at 50 mm/s
 travel and 500 mm/s² accel, speed was no longer a credible explanation.
 
-**Motion settings that produce clean plots** (2026-09-04):
+**Motion settings that produce clean plots** (2026-09-04; motion limits raised 2026-09-22, see §9.1):
 
 | Setting | Value | Where |
 |---|---|---|
 | `run_current` X/Y/Y1 | **2.0 A** | printer.cfg `[tmc5160 stepper_*]` |
 | `run_current` Z | 1.4 A | printer.cfg |
-| `stealthchop_threshold` X/Y/Y1 | **0** (spreadCycle) | printer.cfg — stealthChop dropped steps on short fast pen-lift moves |
+| `stealthchop_threshold` X/Y/Y1 | **0** (spreadCycle) | printer.cfg — stealthChop dropped steps on short fast pen-lift moves. NOTE: this row was recorded on 2026-09-04 but the live cfg still read 999999 until 2026-09-22 (§9.1) — verify with grep, not with this table |
 | `stealthchop_threshold` Z | 999999 (stealth) | printer.cfg — quiet, and Z is slow |
-| `max_accel` | 500 | printer.cfg `[printer]` |
-| `max_velocity` | 60 | printer.cfg `[printer]` |
+| `max_accel` | **500** | printer.cfg `[printer]` — speed ladder 2026-09-22: 800 faint ringing, 1200 visible ringing, 1800+ lost steps |
+| `max_velocity` | **150** | printer.cfg `[printer]` — speed ladder 2026-09-22: clean to 150 mm/s at 500 mm/s², three sheets |
 | `max_z_velocity` | 5 | printer.cfg — ACME screw resonates audibly above ~5 mm/s |
 | `max_z_accel` | 60 | printer.cfg |
-| Draw F | 1800 | Muusia profile |
-| Travel F | 3000 | Muusia profile |
+| Draw F | 3600 | Muusia profile (60 mm/s; text and lines were clean at 150 mm/s, raise per pen) |
+| Travel F | 9000 | Muusia profile (150 mm/s) |
 
 Room to move: current has thermal headroom to ~2.2 A if a heavier tool needs
-it, and `max_velocity`/`max_accel` can be raised stepwise now that the torque
-floor is fixed — raise one at a time and re-run a long-travel job, because
-short test moves will not reproduce the failure.
+it. Velocity and accel were measured on 2026-09-22 (§9.1): velocity is not the
+limit up to 150 mm/s, accel is — 500 is the ceiling for a clean line on this
+gantry until the ringing is addressed (input shaper or stiffening).
+
+### 9.1 Speed ladder 2026-09-22 — motion limits measured
+
+Belts tightened, calibration sheet clean, so the limits from §9 were raised
+with a purpose-built test instead of guessing. `tools/speed-ladder.mjs`
+(living tool) writes a G-code file in the Viivain dialect that steps
+`SET_VELOCITY_LIMIT` through a ladder of velocity/accel pairs, one A4 row per
+stage, row 0 = current cfg as the control. Nothing touches printer.cfg during
+the test; the file restores base limits at the end.
+
+```
+node tools/speed-ladder.mjs --v 60,80,100,120,150 --a 500 --out ~/Desktop/ladder-v.gcode
+node tools/speed-ladder.mjs --v 150 --a 500,800,1200,1800,2500 --out ~/Desktop/ladder-a.gcode
+```
+
+Header: `G28 X Y`, `CLEAR_PAUSE`, `PEN_UP`, `PLOT_HEIGHT` (PLOT_START leaves Z
+on the 8 mm block — remove the block first, as for any job), optional `--z`
+for felt-tip preload. Each row: a `+` anchor at base limits → stage limits →
+hop comb (6 pen-up hops to far sheet corners/edges, a tick after each; uneven
+pitch = lost steps on long travels) → nested squares (corner ringing, closure
+gap) → zigzag (reversals) → circle (belt slack) → long shallow diagonal at
+speed (wobble, ink) → base limits → `×` over the `+`. **A clean 8-point star
+means the stage lost nothing; the offset of × from + is that stage's error in
+mm with its direction.** A + at the sheet origin before stage 0 and a × after
+the last stage give the whole-run error.
+
+**Findings (three sheets):**
+
+- **Live cfg had X/Y/Y1 in stealthChop** (`stealthchop_threshold: 999999`)
+  although the §9 table recorded 0. The first velocity ladder showed it: the
+  control row 60/500 lost ~4 mm in Y on its first long hop and every faster
+  row was clean — stealthChop's pwm_autoscale tunes during the first moves
+  after power-on and can drop steps on the first hard travel. Switched X/Y/Y1
+  to spreadCycle (`stealthchop_threshold: 0`, Z stays stealth); re-run was
+  clean on every row including the control. Lesson: the table is not the
+  cfg — grep the live file.
+- **Velocity is not the limit.** 60→150 mm/s at 500 mm/s²: every cross a
+  clean star, squares/zigzags/text clean, ink kept up at 150 mm/s draw.
+  Repeated on a third sheet. `max_velocity: 150`.
+- **Accel is the limit, and line quality fails before steps do.** At 150 mm/s:
+  A500 clean; A800 crosses clean, faint wave in square sides; A1200 visible
+  ringing in squares and zigzag, cross a hair off; A1800 and A2500 crosses
+  off by mm, the long diagonal wavy along its whole length (the 4.5 mm sprint
+  to 150 excites the gantry and it does not damp out). `max_accel: 500` —
+  800 is usable if time matters, at a small cost in line smoothness.
+- **Residual ringing after long X travels.** The tick drawn after the pure-X
+  hop is faintly wavy on every row regardless of speed (X-direction,
+  ~0.1–0.2 mm after spreadCycle, ~0.3 mm before): the carriage still rings
+  when the servo drops the pen 250 ms after arrival. Not a limit — a settle
+  issue. Knobs: Muusia profile *settle before draw* (`penDelayDown`), or
+  Klipper `[input_shaper]` (ring frequency estimated 30–50 Hz from the tick
+  waves; measure properly before configuring). Input shaper is also the
+  prerequisite for ever raising accel past 500.
+- Watch item: the V60 diagonal showed a small kink near X≈245 mm on two
+  sheets and none on the third — not deterministic, not acted on.
+
+**Applied 2026-09-22:** `max_velocity: 150`, `max_accel: 500`,
+`stealthchop_threshold: 0` on X/Y/Y1 (klipper/printer.cfg, synced to the Pi,
+RESTART). Muusia profile: Draw F 3600, Travel F 9000.
 
 ## 10. Related project docs (software side — not needed for mechanics)
 - MUUSIA-MAGNET-JIG-SPEC.md — the Safe Areas / laser magnet-jig software feature.

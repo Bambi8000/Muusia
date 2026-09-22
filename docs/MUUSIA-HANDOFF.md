@@ -104,7 +104,7 @@ text are **English**.
   patches, era validators) live in `tools/era/` — do **not** re-run, anchored
   patches are not idempotent. Living: `extract.mjs`,
   `patch-docs.mjs`, `make-src-bundle.mjs`, **`bake.mjs`** (lab → built-in
-  converter), `validate-examples.mjs` (structural check for src/examples.js). Every new node gets a
+  converter), `validate-examples.mjs` (structural check for src/examples.js), `speed-ladder.mjs` (Viivain motion-limit test G-code, MECH-HANDOFF §9.1). Every new node gets a
   `tools/validate-<name>.mjs` before it ships.
 - `nodes-lab/` — experimental `.plotternode.js` files for the in-app **Node ⇣**
   import; not part of the build. Approved experiments graduate to `src/defs/nodes/`
