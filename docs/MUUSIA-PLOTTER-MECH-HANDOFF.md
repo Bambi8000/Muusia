@@ -565,16 +565,25 @@ the last stage give the whole-run error.
 **Findings (three sheets):**
 
 - **Live cfg had X/Y/Y1 in stealthChop** (`stealthchop_threshold: 999999`)
-  although the §9 table recorded 0. The first velocity ladder showed it: the
-  control row 60/500 lost ~4 mm in Y on its first long hop and every faster
-  row was clean — stealthChop's pwm_autoscale tunes during the first moves
-  after power-on and can drop steps on the first hard travel. Switched X/Y/Y1
-  to spreadCycle (`stealthchop_threshold: 0`, Z stays stealth); re-run was
-  clean on every row including the control. Lesson: the table is not the
-  cfg — grep the live file.
+  although the §9 table recorded 0 — the table is not the cfg, grep the live
+  file. On the first velocity ladder the control row 60/500 lost ~4 mm in Y
+  on its first long hop while every faster row was clean. stealthChop's
+  autotune on the first moves after power-on was a plausible story, but it is
+  **not established**: the attempted switch to spreadCycle never reached the
+  Pi (the awk edit was never applied — klippy.log's per-start config dumps
+  show 999999 at every start until 12:10), so all three measurement sheets
+  ran in stealthChop, and the "confirming" re-run changed nothing. The 4 mm
+  loss did not recur on the next three sheets: recorded as a one-off, cause
+  unknown. X/Y/Y1 were switched to spreadCycle at 12:10 after the
+  measurements, on §9's standing recommendation and because stealthChop is
+  the wrong mode for fast travel; a fourth velocity ladder in spreadCycle was
+  clean on every row. **Lesson: before crediting a re-run to a cfg change,
+  check klippy.log — `grep -a -n -E '^Start printer at|^<setting>'` shows what
+  each start actually loaded.**
 - **Velocity is not the limit.** 60→150 mm/s at 500 mm/s²: every cross a
   clean star, squares/zigzags/text clean, ink kept up at 150 mm/s draw.
-  Repeated on a third sheet. `max_velocity: 150`.
+  Repeated on a third sheet (stealthChop) and a fourth (spreadCycle).
+  `max_velocity: 150`.
 - **Accel is the limit, and line quality fails before steps do.** At 150 mm/s:
   A500 clean; A800 crosses clean, faint wave in square sides; A1200 visible
   ringing in squares and zigzag, cross a hair off; A1800 and A2500 crosses
@@ -582,19 +591,22 @@ the last stage give the whole-run error.
   to 150 excites the gantry and it does not damp out). `max_accel: 500` —
   800 is usable if time matters, at a small cost in line smoothness.
 - **Residual ringing after long X travels.** The tick drawn after the pure-X
-  hop is faintly wavy on every row regardless of speed (X-direction,
-  ~0.1–0.2 mm after spreadCycle, ~0.3 mm before): the carriage still rings
+  hop was faintly wavy on every row regardless of speed on the three
+  stealthChop sheets (X-direction, ~0.1–0.3 mm, varying sheet to sheet with
+  no cfg change) and absent on the one spreadCycle sheet — one observation,
+  not yet a conclusion: the carriage may still ring
   when the servo drops the pen 250 ms after arrival. Not a limit — a settle
   issue. Knobs: Muusia profile *settle before draw* (`penDelayDown`), or
   Klipper `[input_shaper]` (ring frequency estimated 30–50 Hz from the tick
   waves; measure properly before configuring). Input shaper is also the
   prerequisite for ever raising accel past 500.
 - Watch item: the V60 diagonal showed a small kink near X≈245 mm on two
-  sheets and none on the third — not deterministic, not acted on.
+  sheets and none on the third or fourth — not deterministic, not acted on.
 
-**Applied 2026-09-22:** `max_velocity: 150`, `max_accel: 500`,
-`stealthchop_threshold: 0` on X/Y/Y1 (klipper/printer.cfg, synced to the Pi,
-RESTART). Muusia profile: Draw F 3600, Travel F 9000.
+**Applied 2026-09-22:** `max_velocity: 150`, `max_accel: 500` (12:09) and
+`stealthchop_threshold: 0` on X/Y/Y1 (12:10, after all ladder measurements;
+klipper/printer.cfg synced to the Pi, RESTART, verified in klippy.log).
+Muusia profile: Draw F 3600, Travel F 9000.
 
 ## 10. Related project docs (software side — not needed for mechanics)
 - MUUSIA-MAGNET-JIG-SPEC.md — the Safe Areas / laser magnet-jig software feature.
