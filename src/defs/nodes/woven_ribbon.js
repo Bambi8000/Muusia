@@ -5,7 +5,7 @@ export default {
   name: "Woven Ribbon",
   cat: "gen",
   group: "structural",
-  desc: "A multi-track ribbon woven over and under itself. A seeded walk on a grid lays out the spine (never reusing an edge; at an already-visited point it passes straight through, creating a perpendicular crossing), corners become exact arcs, and the spine is offset into a center line plus Offset pairs parallel tracks at Track spacing. At every self-crossing the under pass is clipped by the full width of the over pass plus Gap - the classic cover-underpasses weave, so nothing in the output ever intersects. Weave picks who goes under: Alternate (checkerboard basket weave), Later over, or Earlier over. End caps close the loose ends with nested semicircles. Grid sets the cell size in mm, Steps the walk length, Straightness the urge to keep going straight (1 = only turns when forced). Track spacing auto-shrinks if the tracks would not fit the grid corners.",
+  desc: "A multi-track ribbon woven over and under itself. A seeded walk on a grid lays out the spine (never reusing an edge; at an already-visited point it passes straight through, creating a perpendicular crossing), corners become exact arcs, and the spine is offset into a center line plus Offset pairs parallel tracks at Track spacing. At every self-crossing the under pass is clipped by the full width of the over pass plus Gap - the classic cover-underpasses weave, so nothing in the output ever intersects. Weave picks who goes under: Alternate (checkerboard basket weave), Later over, or Earlier over. End caps close the loose ends with nested semicircles. Grid sets the cell size in mm, Steps the walk length, Straightness the urge to keep going straight (1 = only turns when forced). Track spacing auto-shrinks if the tracks would not fit the grid corners. Fill Tracks draws the parallel tracks; Rays replaces them with a perpendicular comb across the whole ribbon width every Ray step along the spine — the teeth fan out on the outside of every bend like radial-comb lettering — and Square wave draws that same comb as ONE continuous meander (across, along the edge, back across), the plotter-friendly version; both keep the under-pass gaps, and Ray overhang lets the teeth stick out beyond the ribbon.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
@@ -18,6 +18,9 @@ export default {
     { key: "spacing", label: "Track spacing", type: "slider", min: 0.5, max: 4, step: 0.1, def: 1.5 },
     { key: "weave", label: "Weave", type: "select", options: ["Alternate", "Later over", "Earlier over"], def: "Alternate" },
     { key: "gap", label: "Gap (mm)", type: "slider", min: 0, max: 3, step: 0.1, def: 0.9 },
+    { key: "fill", label: "Fill", type: "select", options: ["Tracks", "Rays", "Square wave"], def: "Tracks" },
+    { key: "rayStep", label: "Ray step (mm)", type: "slider", min: 0.3, max: 6, step: 0.1, def: 1, showIf: (p) => p.fill !== "Tracks" },
+    { key: "overhang", label: "Ray overhang (mm)", type: "slider", min: 0, max: 20, step: 0.5, def: 0, showIf: (p) => p.fill !== "Tracks" },
     { key: "caps", label: "End caps", type: "check", def: true },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
@@ -204,18 +207,54 @@ export default {
       return false;
     };
 
-    // ---- emit tracks (split at gaps) + optional end caps
+    // ---- emit tracks / rays / square wave (split at gaps) + optional end caps
     const paths = [];
-    for (let k = -pairs; k <= pairs; k++) {
-      const d = k * eff;
+    const fill = String(p.fill || "Tracks");
+    if (fill === "Tracks") {
+      for (let k = -pairs; k <= pairs; k++) {
+        const d = k * eff;
+        let run = [];
+        for (const q of pts) {
+          if (inGap(q[2])) {
+            if (run.length >= 2) paths.push({ pts: run, closed: false, layer });
+            run = [];
+            continue;
+          }
+          run.push([q[0] - q[4] * d, q[1] + q[3] * d]);
+        }
+        if (run.length >= 2) paths.push({ pts: run, closed: false, layer });
+      }
+    } else {
+      // perpendicular comb: sample the centerline every rayStep of arclength
+      const hw = off + Math.max(0, +p.overhang || 0);
+      let step = Math.max(0.3, +p.rayStep || 1);
+      step = Math.max(step, totalS / 50000); // point budget
+      let j = 0;
+      const at = (sv) => {
+        while (j < pts.length - 2 && pts[j + 1][2] < sv) j++;
+        const a = pts[j], b = pts[Math.min(pts.length - 1, j + 1)];
+        const span = b[2] - a[2];
+        const t = span > 1e-9 ? Math.max(0, Math.min(1, (sv - a[2]) / span)) : 0;
+        const q = t < 0.5 ? a : b; // tangent of the nearer sample (exact on lines, arc-accurate at DS)
+        const L = Math.hypot(q[3], q[4]) || 1;
+        return { x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, nx: -q[4] / L, ny: q[3] / L };
+      };
+      const n = Math.floor(totalS / step);
       let run = [];
-      for (const q of pts) {
-        if (inGap(q[2])) {
+      let side = 1;
+      for (let i = 0; i <= n; i++) {
+        const sv = i * step;
+        if (inGap(sv)) {
           if (run.length >= 2) paths.push({ pts: run, closed: false, layer });
           run = [];
           continue;
         }
-        run.push([q[0] - q[4] * d, q[1] + q[3] * d]);
+        const q = at(sv);
+        const A = [q.x - q.nx * hw * side, q.y - q.ny * hw * side];
+        const B = [q.x + q.nx * hw * side, q.y + q.ny * hw * side];
+        if (fill === "Rays") paths.push({ pts: [A, B], closed: false, layer });
+        else { run.push(A, B); }
+        side = -side; // zigzag: rays alternate direction, square wave meanders
       }
       if (run.length >= 2) paths.push({ pts: run, closed: false, layer });
     }

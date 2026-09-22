@@ -1520,6 +1520,15 @@ text are **English**.
   `_grid`) works because the engine calls compute/overlay as def methods.
   Doc batch: tools/era/patch-docs-v297.mjs.
 
+- **2.98** Woven Ribbon: *Fill* Tracks / Rays / Square wave (+ *Ray step*,
+  *Ray overhang*). Rays = perpendicular comb sampled every Ray step of spine
+  arclength across the full ribbon width, alternating direction; Square wave =
+  the same comb as one continuous meander (vertices identical to the Rays
+  endpoints, proven). Both honour the under-pass gap windows; Tracks output is
+  byte-identical to v2.97 (regression-checked). Era: tools/era/patch-woven-
+  fill.mjs (node) + patch-docs-woven-fill.mjs (docs); validator
+  tools/validate-woven-fill.mjs, 37 checks.
+
 ## Hard-won pitfalls (keep)
 
 - A GRADUATED LAB FILE IS NOT A SHIPPED NODE, AND A BAKED NODE IS NOT A

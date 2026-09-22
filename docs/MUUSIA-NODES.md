@@ -1,4 +1,4 @@
-# MUUSIA v2.97 — Node Reference
+# MUUSIA v2.98 — Node Reference
 
 All 292 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
@@ -1362,7 +1362,13 @@ corner arcs, offset into a center line plus *Offset pairs* parallel tracks. At
 every self-crossing the under pass is clipped by the full over-pass width plus
 *Gap* — cover-underpasses weaving, so nothing in the output intersects
 (validated). *Weave*: Alternate (basket parity), Later over, Earlier over;
-*End caps* close the loose ends with nested semicircles.
+*End caps* close the loose ends with nested semicircles. *Fill* Tracks draws
+the parallel tracks; Rays replaces them with a perpendicular comb across the
+whole ribbon width every *Ray step* along the spine — the teeth fan out on the
+outside of every bend like radial-comb lettering — and Square wave draws that
+same comb as ONE continuous meander (across, along the edge, back across), the
+plotter-friendly version; both keep the under-pass gaps, and *Ray overhang*
+lets the teeth stick out beyond the ribbon.
 
 **Flow Traces** — circuit-atlas routing: strictly self-avoiding traces walk an
 orthogonal grid steered by a flow field — *Flow angle* plus *Swirl* around the
