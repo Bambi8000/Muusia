@@ -95,6 +95,44 @@ const pr = { ...p0, fill: "Rays" };
   ok(caps(r).length === caps(rr).length, "Square wave: same end caps as Rays");
 }
 
+/* ---------- Two-tone comb ---------- */
+{
+  const has = def.params.some((q) => q.key === "twoTone") && def.params.some((q) => q.key === "split") && def.params.some((q) => q.key === "pen2");
+  ok(has, "two-tone patch present: Two-tone comb / Split / Second pen");
+  if (has) {
+    const pt = { ...pr, twoTone: true, pen2: 4 };
+    const hw = hwOf(pt);
+    const r1 = run(pr), r2 = run(pt);
+    const half = (r, pen, L) => r.paths.filter((q) => q.pts.length === 2 && q.layer === pen && Math.abs(len(q.pts[0], q.pts[1]) - L) < 1e-6);
+    const a = half(r2, pt.layer, hw), b = half(r2, 4, hw);
+    ok(a.length === rays(r1, pr).length && b.length === a.length, "Two-tone Rays: every tooth becomes two half-teeth, one per pen (" + a.length + " + " + b.length + ")");
+    ok(a.every((q, i) => { const m1 = q.pts[0], m2 = q.pts[1], n1 = b[i].pts[0], n2 = b[i].pts[1]; return [m1, m2].some((P) => [n1, n2].some((Q) => len(P, Q) < 1e-9)); }), "Two-tone Rays: the two halves of a tooth share the split point");
+    ok(a.every((q, i) => { const full = rays(r1, pr)[i]; const ends = [q.pts[0], q.pts[1], b[i].pts[0], b[i].pts[1]]; return full.pts.every((P) => ends.some((Q) => len(P, Q) < 1e-9)); }), "Two-tone Rays: half-teeth together cover exactly the one-pen tooth");
+    let alt = 0; for (let i = 1; i < a.length; i++) { const d = (a[i - 1].pts[1][0] - a[i - 1].pts[0][0]) * (a[i].pts[1][0] - a[i].pts[0][0]) + (a[i - 1].pts[1][1] - a[i - 1].pts[0][1]) * (a[i].pts[1][1] - a[i].pts[0][1]); if (d < 0) alt++; }
+    ok(alt / (a.length - 1) > 0.95, "Two-tone Rays: each half zigzags on its own");
+    const ps5 = { ...pt, split: 0.5 };
+    const r5 = run(ps5);
+    const l1 = r5.paths.filter((q) => q.pts.length === 2 && q.layer === pt.layer && Math.abs(len(q.pts[0], q.pts[1]) - 1.5 * hw) < 1e-6).length;
+    const l2 = r5.paths.filter((q) => q.pts.length === 2 && q.layer === 4 && Math.abs(len(q.pts[0], q.pts[1]) - 0.5 * hw) < 1e-6).length;
+    ok(l1 === a.length && l2 === a.length, "Split 0.5: Pen halves 1.5·hw, Second-pen halves 0.5·hw");
+    const rm = run({ ...pt, split: -1 });
+    ok(rm.paths.filter((q) => q.pts.length === 2 && q.layer === 4 && Math.abs(len(q.pts[0], q.pts[1]) - 2 * hw) < 1e-6).length === a.length && rm.paths.filter((q) => q.pts.length === 2 && q.layer === pt.layer && len(q.pts[0], q.pts[1]) > 1e-6).length === 0, "Split -1: whole tooth on Second pen, nothing left on Pen");
+    /* square wave two-tone: two meander families whose vertices equal the Rays halves in order */
+    const pq = { ...pt, fill: "Square wave" };
+    const rq = run(pq);
+    const fam = (pen, L) => rq.paths.filter((q) => q.pts.length % 2 === 0 && q.layer === pen && Math.abs(len(q.pts[0], q.pts[1]) - L) < 1e-6).flatMap((q) => q.pts);
+    const fa = fam(pt.layer, hw), fb = fam(4, hw);
+    const ra = a.flatMap((q) => q.pts), rb = b.flatMap((q) => q.pts);
+    ok(fa.length === ra.length && fa.every((P, i) => len(P, ra[i]) < 1e-9) && fb.length === rb.length && fb.every((P, i) => len(P, rb[i]) < 1e-9), "Two-tone Square wave: both meanders' vertices are exactly the half-teeth endpoints in order");
+    ok(rq.paths.filter((q) => q.pts.length % 2 === 0 && Math.abs(len(q.pts[0], q.pts[1]) - hw) < 1e-6).length <= 2 * rays(r1, pr).length / 10, "Two-tone Square wave: continuous (few paths)");
+    ok(JSON.stringify(run({ ...pt, split: 0.3 })) !== JSON.stringify(run(pt)) && JSON.stringify(run({ ...pt, pen2: 7 })) !== JSON.stringify(run(pt)), "param live: split, pen2 (two-tone on)");
+    ok(JSON.stringify(run({ ...pr, split: 0.3, pen2: 7 })) === JSON.stringify(run(pr)), "two-tone off: split / pen2 inert");
+    const vis = (pp) => def.params.filter((q) => typeof q.showIf !== "function" || q.showIf(pp)).map((q) => q.key);
+    ok(!vis(p0).includes("twoTone") && vis(pr).includes("twoTone") && !vis(pr).includes("split") && vis(pt).includes("split") && vis(pt).includes("pen2"), "showIf: Two-tone in comb modes, Split / Second pen only when on");
+    ok(finiteAll(run({ ...pt, fill: "Square wave", steps: 120, grid: 8, rayStep: 0.3, overhang: 20 })), "two-tone extreme: finite");
+  }
+}
+
 /* ---------- liveness / selects / showIf / extremes ---------- */
 const J = (r) => JSON.stringify(r);
 ok(J(run(pr)) !== J(run({ ...pr, rayStep: 2 })), "param live: rayStep (Rays)");

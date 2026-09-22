@@ -1,4 +1,4 @@
-# MUUSIA v2.98 — Node Reference
+# MUUSIA v2.99 — Node Reference
 
 All 292 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
@@ -1368,7 +1368,10 @@ whole ribbon width every *Ray step* along the spine — the teeth fan out on the
 outside of every bend like radial-comb lettering — and Square wave draws that
 same comb as ONE continuous meander (across, along the edge, back across), the
 plotter-friendly version; both keep the under-pass gaps, and *Ray overhang*
-lets the teeth stick out beyond the ribbon.
+lets the teeth stick out beyond the ribbon. *Two-tone comb* cuts every tooth
+at the *Split* line (0 = the spine, ±1 = an edge) and draws the two halves on
+*Pen* and *Second pen* — for Square wave that is two meanders sharing the
+split line, each zigzagging on its own.
 
 **Flow Traces** — circuit-atlas routing: strictly self-avoiding traces walk an
 orthogonal grid steered by a flow field — *Flow angle* plus *Swirl* around the

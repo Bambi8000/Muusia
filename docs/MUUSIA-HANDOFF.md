@@ -1529,6 +1529,13 @@ text are **English**.
   fill.mjs (node) + patch-docs-woven-fill.mjs (docs); validator
   tools/validate-woven-fill.mjs, 37 checks.
 
+- **2.99** Woven Ribbon: *Two-tone comb* (+ *Split*, *Second pen*) for Rays /
+  Square wave — every tooth cut at the split line, halves on two pens, the
+  meander becomes two meanders sharing the split line. Two-tone off is
+  byte-identical to v2.98 in all three fills (regression-checked). Era:
+  tools/era/patch-woven-twotone.mjs + patch-docs-woven-twotone.mjs;
+  validate-woven-fill.mjs now 50 checks.
+
 ## Hard-won pitfalls (keep)
 
 - A GRADUATED LAB FILE IS NOT A SHIPPED NODE, AND A BAKED NODE IS NOT A

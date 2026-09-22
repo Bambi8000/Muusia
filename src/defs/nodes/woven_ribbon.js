@@ -5,7 +5,7 @@ export default {
   name: "Woven Ribbon",
   cat: "gen",
   group: "structural",
-  desc: "A multi-track ribbon woven over and under itself. A seeded walk on a grid lays out the spine (never reusing an edge; at an already-visited point it passes straight through, creating a perpendicular crossing), corners become exact arcs, and the spine is offset into a center line plus Offset pairs parallel tracks at Track spacing. At every self-crossing the under pass is clipped by the full width of the over pass plus Gap - the classic cover-underpasses weave, so nothing in the output ever intersects. Weave picks who goes under: Alternate (checkerboard basket weave), Later over, or Earlier over. End caps close the loose ends with nested semicircles. Grid sets the cell size in mm, Steps the walk length, Straightness the urge to keep going straight (1 = only turns when forced). Track spacing auto-shrinks if the tracks would not fit the grid corners. Fill Tracks draws the parallel tracks; Rays replaces them with a perpendicular comb across the whole ribbon width every Ray step along the spine — the teeth fan out on the outside of every bend like radial-comb lettering — and Square wave draws that same comb as ONE continuous meander (across, along the edge, back across), the plotter-friendly version; both keep the under-pass gaps, and Ray overhang lets the teeth stick out beyond the ribbon.",
+  desc: "A multi-track ribbon woven over and under itself. A seeded walk on a grid lays out the spine (never reusing an edge; at an already-visited point it passes straight through, creating a perpendicular crossing), corners become exact arcs, and the spine is offset into a center line plus Offset pairs parallel tracks at Track spacing. At every self-crossing the under pass is clipped by the full width of the over pass plus Gap - the classic cover-underpasses weave, so nothing in the output ever intersects. Weave picks who goes under: Alternate (checkerboard basket weave), Later over, or Earlier over. End caps close the loose ends with nested semicircles. Grid sets the cell size in mm, Steps the walk length, Straightness the urge to keep going straight (1 = only turns when forced). Track spacing auto-shrinks if the tracks would not fit the grid corners. Fill Tracks draws the parallel tracks; Rays replaces them with a perpendicular comb across the whole ribbon width every Ray step along the spine — the teeth fan out on the outside of every bend like radial-comb lettering — and Square wave draws that same comb as ONE continuous meander (across, along the edge, back across), the plotter-friendly version; both keep the under-pass gaps, and Ray overhang lets the teeth stick out beyond the ribbon. Two-tone comb cuts every tooth at the Split line (0 = the spine, ±1 = an edge) and draws the two halves on Pen and Second pen — for Square wave that is two meanders sharing the split line.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
@@ -21,6 +21,9 @@ export default {
     { key: "fill", label: "Fill", type: "select", options: ["Tracks", "Rays", "Square wave"], def: "Tracks" },
     { key: "rayStep", label: "Ray step (mm)", type: "slider", min: 0.3, max: 6, step: 0.1, def: 1, showIf: (p) => p.fill !== "Tracks" },
     { key: "overhang", label: "Ray overhang (mm)", type: "slider", min: 0, max: 20, step: 0.5, def: 0, showIf: (p) => p.fill !== "Tracks" },
+    { key: "twoTone", label: "Two-tone comb", type: "check", def: false, showIf: (p) => p.fill !== "Tracks" },
+    { key: "split", label: "Split (-1 left … 1 right)", type: "slider", min: -1, max: 1, step: 0.05, def: 0, showIf: (p) => p.fill !== "Tracks" && !!p.twoTone },
+    { key: "pen2", label: "Second pen", type: "pen", def: 1, showIf: (p) => p.fill !== "Tracks" && !!p.twoTone },
     { key: "caps", label: "End caps", type: "check", def: true },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
@@ -240,23 +243,38 @@ export default {
         return { x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, nx: -q[4] / L, ny: q[3] / L };
       };
       const n = Math.floor(totalS / step);
-      let run = [];
+      const twoTone = !!p.twoTone;
+      const pen2 = Math.round(+p.pen2 || 0);
+      const sp = Math.max(-1, Math.min(1, +p.split || 0)) * hw; // split offset across the ribbon (0 = spine)
+      let run = [], run2 = [];
       let side = 1;
+      const flush = () => {
+        if (run.length >= 2) paths.push({ pts: run, closed: false, layer });
+        if (run2.length >= 2) paths.push({ pts: run2, closed: false, layer: pen2 });
+        run = []; run2 = [];
+      };
       for (let i = 0; i <= n; i++) {
         const sv = i * step;
-        if (inGap(sv)) {
-          if (run.length >= 2) paths.push({ pts: run, closed: false, layer });
-          run = [];
-          continue;
-        }
+        if (inGap(sv)) { flush(); continue; }
         const q = at(sv);
-        const A = [q.x - q.nx * hw * side, q.y - q.ny * hw * side];
-        const B = [q.x + q.nx * hw * side, q.y + q.ny * hw * side];
-        if (fill === "Rays") paths.push({ pts: [A, B], closed: false, layer });
-        else { run.push(A, B); }
+        if (!twoTone) {
+          const A = [q.x - q.nx * hw * side, q.y - q.ny * hw * side];
+          const B = [q.x + q.nx * hw * side, q.y + q.ny * hw * side];
+          if (fill === "Rays") paths.push({ pts: [A, B], closed: false, layer });
+          else { run.push(A, B); }
+        } else {
+          // two halves: left edge -> split on Pen, split -> right edge on Second pen; each half zigzags on its own
+          const Lp = [q.x - q.nx * hw, q.y - q.ny * hw];
+          const M = [q.x + q.nx * sp, q.y + q.ny * sp];
+          const Rp = [q.x + q.nx * hw, q.y + q.ny * hw];
+          const h1 = side > 0 ? [Lp, M] : [M, Lp];
+          const h2 = side > 0 ? [M, Rp] : [Rp, M];
+          if (fill === "Rays") { paths.push({ pts: h1, closed: false, layer }); paths.push({ pts: h2, closed: false, layer: pen2 }); }
+          else { run.push(h1[0], h1[1]); run2.push(h2[0], h2[1]); }
+        }
         side = -side; // zigzag: rays alternate direction, square wave meanders
       }
-      if (run.length >= 2) paths.push({ pts: run, closed: false, layer });
+      flush();
     }
     if (p.caps) {
       const capAt = (P, t, forward, sEdge) => {
