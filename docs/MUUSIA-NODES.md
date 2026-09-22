@@ -1,13 +1,39 @@
-# MUUSIA v2.99 — Node Reference
+# MUUSIA v2.100 — Node Reference
 
-All 292 built-in nodes. Conventions used below: most generators accept a **Style**
+All 293 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (179)
+## Generators (180)
+
+**Root Vegetables** — the Kosmos Botanika root cellar, Potato's companion:
+*Kind* Carrot, Turnip, Swede, Sugar beet, Onion, Garlic, Leek, Cauliflower,
+Cabbage, or Mix (a seeded shuffle that shows every kind before any repeats).
+Each specimen is a botanical-plate outline built from a kind-specific
+half-width profile along a vertical axis — carrot cone with a rounded
+shoulder, flat turnip, necked swede, wedge beet, onion and garlic with a cut
+neck, leek shaft, curd dome, leaf ball — roughened by *Irregularity* with
+different harmonics on each side. *Texture* adds the lines that belong to the
+kind: carrot ring scars, onion skin meridians, garlic clove ridges and papery
+cracks, the beet's two grooves and wrinkles, leek shaft lines, cauliflower
+curds, cabbage leaf edges and veins, and the purple shoulder of turnip and
+swede on *Accent pen*. *Tops* Leaves draws feathery carrot tops, spoon leaves
+on stems for turnip / swede / beet, hollow onion tubes, flat garlic and leek
+blades, wrapping cauliflower and cabbage leaves (each blade with a midrib),
+Cut stubs the trimmed stems; *Top length* scales them (never more than that
+above the body). *Roots* hangs fine wandering root hairs from the right
+places — an onion / garlic / leek tuft at the base, a carrot taproot tail with
+lateral hairs, beet rootlets along the lower body, a turnip taproot — every
+hair starting on the outline and never re-entering the body; *Root length*
+scales them; cabbage and cauliflower are cut and have none. *Size* is the body
+height exactly, *Size variation* scatters it downward; *Rotation* Upright /
+Tilt (± *Tilt °*) / Random; *Placement* No overlap keeps whole specimens (tops
+and roots included) apart by bounding box — a rejection sampler like Potato's,
+so oversized requests fit fewer — Loose lets bodies touch. Pens: body,
+*Accent*, *Tops*, *Roots*.
 
 **Typewriter Rain** — typewriter art as rain: the sheet becomes a fixed
 character grid (*Size* sets the cap height, *Pitch X* / *Pitch Y* the cell in

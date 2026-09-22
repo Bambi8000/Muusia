@@ -1187,6 +1187,12 @@
   "structural",
   "water"
  ],
+ "rootveg": [
+  "nature",
+  "organic",
+  "plants",
+  "scatter"
+ ],
  "roundcanvas": [
   "clip",
   "noise",

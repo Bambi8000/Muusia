@@ -34,11 +34,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **290 files** (292 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **291 files** (293 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 179, Modifiers 75). ESM format:
+  Generators 180, Modifiers 75). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (290) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (291) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1535,6 +1535,16 @@ text are **English**.
   byte-identical to v2.98 in all three fills (regression-checked). Era:
   tools/era/patch-woven-twotone.mjs + patch-docs-woven-twotone.mjs;
   validate-woven-fill.mjs now 50 checks.
+
+- **2.100** **Root Vegetables** (gen/nature, `rootveg`) — Kosmos Botanika
+  root cellar: nine kinds + Mix, half-width-profile bodies with asymmetric
+  harmonics, kind-specific textures (accent shoulder on turnip / swede),
+  Leaves / Cut stubs tops, Fray-lite root hairs that start on the outline and
+  never re-enter the body, bbox rejection placement with 80 positions per
+  grown specimen. Validator 178 checks (body height = Size exactly, roots on
+  outline < 0.1 mm, bodies never intersect under No overlap, tops ≤ Top
+  length × size, Mix cycles all nine kinds). Doc batch:
+  tools/era/patch-docs-rootveg.mjs.
 
 ## Hard-won pitfalls (keep)
 
