@@ -1546,6 +1546,21 @@ text are **English**.
   length × size, Mix cycles all nine kinds). Doc batch:
   tools/era/patch-docs-rootveg.mjs.
 
+- **2.101** Test Card fixes + thick-pen variants. Line spacing: gap groups no
+  longer run into the next lane (lines clip at their own pitch), labels sit on
+  two alternating rows and shrink to two lanes' width — "0.35"/"0.25" used to
+  overprint. Hatch density: label moved BELOW its square (was inside, over the
+  hatch and the border). Three new Tests options — *Line weight sweep (thick)*,
+  *Line spacing (thick)*, *Hatch density (thick)* — same tests with series for
+  2 mm+ nibs (gaps 8/6/4.5/3.5/2.5/2, hatch 8/5/3.5/2.5, pass offset 0.8 mm);
+  cell titles shrink to the cell width. Default Tests list unchanged; the two
+  fixed tests change geometry for saved patches (calibration sheet, accepted).
+  Era: tools/era/patch-testcard-thick.mjs (node + docs + version, one
+  all-or-nothing patch). New tools/validate-testcard.mjs (label clusters =
+  label count, labels never overlap test lines, lanes hold, thick series
+  exact, thick ≠ fine, Pen pin only on Pen) — mutation-tested against the
+  pre-patch node (cluster and lane checks fail there).
+
 ## Hard-won pitfalls (keep)
 
 - A GRADUATED LAB FILE IS NOT A SHIPPED NODE, AND A BAKED NODE IS NOT A

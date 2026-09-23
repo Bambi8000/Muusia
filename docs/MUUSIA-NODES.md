@@ -1,4 +1,4 @@
-# MUUSIA v2.100 — Node Reference
+# MUUSIA v2.101 — Node Reference
 
 All 293 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
@@ -504,7 +504,7 @@ splits) while short-range repulsion keeps it self-avoiding and cohesion keeps it
 smooth — the organic meander classic. Circle or canvas bounds (guide overlay),
 optional history rings every N iterations for the nested look. Point-capped.
 
-**Test Card** — calibration sheets: line weight sweep, converging line spacing, hatch density, arcs & tight circles, pen-lift dot grid, fill swatches, registration marks, speed-ramp zigzag, and a *Pen palette* drawing one labelled swatch per pen (all 12). The grid auto-shrinks its cells to fit the current canvas.
+**Test Card** — calibration sheets: line weight sweep, converging line spacing, hatch density, arcs & tight circles, pen-lift dot grid, fill swatches, registration marks, speed-ramp zigzag, and a *Pen palette* drawing one labelled swatch per pen (all 12). The three pen tests also come as *(thick)* variants with series chosen for 2 mm+ nibs — gaps 8→2 mm, hatch 8→2.5 mm, wider pass offsets; set *Pen* to the thick pen and keep *Label pen* fine. Line-spacing groups each stay in their own lane with labels on two alternating rows, hatch labels sit below their squares. The grid auto-shrinks its cells to fit the current canvas.
 
 **CMYK Registration** — prepress furniture as art: thirteen authentic
 registration and control marks (crosshair target, letterpress bullseye,

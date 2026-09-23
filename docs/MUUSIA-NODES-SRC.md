@@ -42169,11 +42169,11 @@ export default {
   name: "Test Card",
   cat: "gen",
   group: "structural",
-  desc: "Calibration sheets for pen and machine: line weight sweep (repeat passes), converging line spacing, hatch density squares, arcs and tight circles, pen-lift dot grid, fill swatches, registration marks, a speed-ramp zigzag - and a Pen palette that draws one labelled swatch per pen (all 12) for ink checks. The grid auto-shrinks its cells to fit the current canvas.",
+  desc: "Calibration sheets for pen and machine: line weight sweep (repeat passes), converging line spacing, hatch density squares, arcs and tight circles, pen-lift dot grid, fill swatches, registration marks, a speed-ramp zigzag - and a Pen palette that draws one labelled swatch per pen (all 12) for ink checks. The three pen tests also come in (thick) variants with series chosen for 2 mm+ nibs (gaps 8 to 2 mm, hatch 8 to 2.5 mm, wider pass offsets) - set Pen to the thick pen and keep Label pen fine. The grid auto-shrinks its cells to fit the current canvas.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "tests", label: "Tests", type: "multi", options: ["Line weight sweep", "Line spacing", "Hatch density", "Arcs & circles", "Pen-lift dots", "Fill swatches", "Registration", "Speed ramp", "Pen palette (12)"], def: ["Line weight sweep", "Line spacing", "Hatch density", "Arcs & circles", "Pen-lift dots", "Fill swatches"] },
+    { key: "tests", label: "Tests", type: "multi", options: ["Line weight sweep", "Line spacing", "Hatch density", "Line weight sweep (thick)", "Line spacing (thick)", "Hatch density (thick)", "Arcs & circles", "Pen-lift dots", "Fill swatches", "Registration", "Speed ramp", "Pen palette (12)"], def: ["Line weight sweep", "Line spacing", "Hatch density", "Arcs & circles", "Pen-lift dots", "Fill swatches"] },
     { key: "cols", label: "Columns", type: "slider", min: 1, max: 4, step: 1, def: 2 },
     { key: "cell", label: "Cell size mm", type: "slider", min: 30, max: 120, step: 1, def: 62 },
     { key: "gap", label: "Cell gap mm", type: "slider", min: 4, max: 30, step: 1, def: 12 },
@@ -42205,45 +42205,62 @@ export default {
     };
     /* --- yksittaiset testit; kukin piirtaa soluun (x0,y0,cs) --- */
     const drawTest = (name, x0, y0, cs) => {
-      if (p.labels) label(name, x0, y0 - 3, Math.min(3.4, cs * 0.055));
+      if (p.labels) {
+        /* otsikko kutistuu solun levyiseksi - pitkat nimet eivat vuoda viereiseen soluun */
+        const tw = fontStrokes(name, 10, 1).width / 10;
+        label(name, x0, y0 - 3, Math.min(3.4, cs * 0.055, tw > 0 ? cs / tw : 3.4));
+      }
+      const thick = /\(thick\)$/.test(name);
+      const base = thick ? name.replace(/ \(thick\)$/, "") : name;
       const pad = 3;
       const ix = x0 + pad, iy = y0 + pad, iw = cs - pad * 2, ih = cs - pad * 2;
-      if (name === "Line weight sweep") {
+      if (base === "Line weight sweep") {
         /* sama viiva monta kertaa: yksi veto, 2, 3... paallekkain -> nakyva paksuus/peitto.
            plotterilla toistoveto tummentaa; nakee myos kohdistustarkkuuden. */
         const rows = 6;
+        /* thick: 0.8 mm askel levittaa 2 mm+ kynan vedot nauhaksi; kutistuu pienissa soluissa */
+        const off = thick ? Math.min(0.8, (ih / rows) * 0.14) : 0.15;
         for (let r = 0; r < rows; r++) {
           const y = iy + (r + 0.5) * (ih / rows);
           const passes = r + 1;
           for (let q = 0; q < passes; q++) {
-            line([ix, y + (q - passes / 2) * 0.15], [ix + iw * 0.8, y + (q - passes / 2) * 0.15]);
+            line([ix, y + (q - passes / 2) * off], [ix + iw * 0.8, y + (q - passes / 2) * off]);
           }
           if (p.labels) label(passes + "x", ix + iw * 0.84, y + 1.2, 2.6);
         }
-      } else if (name === "Line spacing") {
-        /* tihenevat pystyviivat: nakee milloin viivat sulautuvat / kynan leveys */
-        const gaps = [3, 2, 1.4, 1, 0.7, 0.5, 0.35, 0.25];
-        let x = ix;
-        for (let g = 0; g < gaps.length && x < ix + iw; g++) {
-          const grp = ix + (g / gaps.length) * iw;
+      } else if (base === "Line spacing") {
+        /* tihenevat pystyviivat: nakee milloin viivat sulautuvat / kynan leveys.
+           jokainen ryhma pysyy omassa kaistassaan (ei vuoda seuraavaan), nimiot
+           vuorottelevat kahdella rivilla ja kutistuvat kahden kaistan levyisiksi.
+           thick: sarja 2 mm+ kynille. */
+        const gaps = thick ? [8, 6, 4.5, 3.5, 2.5, 2] : [3, 2, 1.4, 1, 0.7, 0.5, 0.35, 0.25];
+        const pitch = iw / gaps.length;
+        const lineH = ih * 0.78;
+        const sz = Math.max(1, Math.min(2.2, (2 * pitch - 0.8) / 3.6));
+        for (let g = 0; g < gaps.length; g++) {
+          const grp = ix + g * pitch;
           for (let k = 0; k < 5; k++) {
             const xx = grp + k * gaps[g];
-            if (xx < ix + iw) line([xx, iy], [xx, iy + ih * 0.82]);
+            if (xx > grp + pitch - 1) break;
+            line([xx, iy], [xx, iy + lineH]);
           }
-          if (p.labels) label(gaps[g] + "", grp, iy + ih * 0.9, 2.2);
+          if (p.labels) label(gaps[g] + "", grp, iy + lineH + 1.4 + (g % 2) * (sz + 0.8), sz);
         }
-      } else if (name === "Hatch density") {
-        /* nelja ruutua kasvavalla viivoitustiheydella + ristikko */
-        const dens = [2.5, 1.5, 1, 0.6];
+      } else if (base === "Hatch density") {
+        /* nelja ruutua kasvavalla viivoitustiheydella + ristikko. nimio ruudun ALLA
+           omassa kaistassaan (sisalla se meni viivoituksen ja reunan paalle).
+           thick: sarja 2 mm+ kynille. */
+        const dens = thick ? [8, 5, 3.5, 2.5] : [2.5, 1.5, 1, 0.6];
+        const labH = 3.4;
         for (let i = 0; i < 4; i++) {
           const qx = ix + (i % 2) * (iw / 2), qy = iy + Math.floor(i / 2) * (ih / 2);
-          const qw = iw / 2 - 2, qh = ih / 2 - 2;
+          const qw = iw / 2 - 2, qh = ih / 2 - labH - 1;
           poly([[qx, qy], [qx + qw, qy], [qx + qw, qy + qh], [qx, qy + qh]], true);
           for (let y = qy + dens[i]; y < qy + qh; y += dens[i]) line([qx, y], [qx + qw, y]);
           if (i >= 2) for (let x = qx + dens[i]; x < qx + qw; x += dens[i]) line([x, qy], [x, qy + qh]);
-          if (p.labels) label(dens[i] + "", qx + 1, qy + qh - 1, 2.2);
+          if (p.labels) label(dens[i] + "", qx, qy + qh + 0.8, 2.2);
         }
-      } else if (name === "Arcs & circles") {
+      } else if (base === "Arcs & circles") {
         /* sisakkaiset ympyrat + kaaria eri sateilla: nakee pyoreyden ja nykimisen */
         const cx = ix + iw / 2, cy = iy + ih / 2;
         for (let r = ih * 0.08; r < ih * 0.48; r += ih * 0.09) arc(cx, cy, r, 0, Math.PI * 2, Math.max(24, r * 3));
