@@ -1,6 +1,6 @@
-# MUUSIA v2.103 — Node Reference
+# MUUSIA v2.104 — Node Reference
 
-All 293 built-in nodes. Conventions used below: most generators accept a **Style**
+All 294 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
@@ -2056,7 +2056,7 @@ Satellite companion rings shape the look. The point budget is shared between
 input paths by arc length and an oversubscribed path thins evenly along its
 whole length — large radii never leave loops or tails blank.
 
-## Combiners (21)
+## Combiners (22)
 
 **Frame Grid** — animation frame imposition: frames land in a grid on one
 sheet with photo_trace-compatible fiducial markers (hatch-filled squares,
@@ -2224,6 +2224,37 @@ and no distortion, the artwork simply reading sideways on the sheet. Trim marks,
 fold ticks or dashed fold lines, the cut slit and panel frames go on the Mark
 pen; *Page numbers* draws a numeral in each panel in that panel's own
 orientation — print once, fold it, and the imposition is proven.
+
+**Card Sheet** — imposition for postcards and folded cards, both sides of the
+paper. A grid of cards (*Card width/height*, *Columns*, *Rows*, *Gap*, *Sheet
+margin*; cards that do not fit are dropped and the overlay shows the grid that
+did) is laid on the sheet and a full-canvas composition is scaled into each
+card face as in Mini Canvas — *Scaling*: Fit, Fill (crop), Stretch, Rotate 90 +
+Fit / Fill. *Fold* None gives a flat postcard with Front and Back pins;
+Vertical or Horizontal folds the card in the middle and the pins become Cover,
+Back cover and the two inside faces (Inside L/R or Inside top/bottom). The
+outside of a horizontal-fold card is laid out the way the paper works: cover on
+top, upside down, so it reads upright once the card is folded. Two-sided work
+runs through *Side*: plot Front (outside), turn the sheet, switch to Back
+(inside), plot again. The back layout is derived, never typed — the face behind
+each panel is its real partner (behind the cover sits the inside page you see
+when you open the card) and the sheet is mirrored according to *Flip axis*:
+Vertical axis for turning the sheet like a page (columns swap, artwork upright),
+Horizontal axis for turning it end over end (rows swap and everything turns
+180°). Registration marks print at identical sheet coordinates on both sides and
+are symmetric under both flips. Three ways to nail the back to the front:
+*Back offset X/Y* shifts back-side content only (read it off the Duplex test);
+*Trim frame* draws one outline around the whole grid — cut the sheet to it after
+the front and the sheet edges become plotter-accurate, so the back registers
+against them; *Pin holes* marks two 6 mm hole centres on the flip axis in the
+waste margin for pin registration, which makes the paper's cut tolerance
+irrelevant. *Mode* Duplex test replaces the content with vernier scales at four
+points — front ticks 1.00 mm apart above the baseline, back ticks 1.10 mm below
+it; hold the sheet against the light with the back facing you and the pair that
+lines up, k ticks from the centre toward the arrow, means Back offset = 0.1·k
+mm on that axis. Trim marks, fold ticks or dashed fold lines and panel frames go
+on the Mark pen. Compare **Zine** (booklet imposition, page order by folds) and
+**Mini Canvas** (contact sheets and one-sided production runs).
 
 ## Math (10)
 

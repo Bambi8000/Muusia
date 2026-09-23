@@ -34,7 +34,7 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **291 files** (293 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **292 files** (294 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (291) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (292) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1582,6 +1582,26 @@ text are **English**.
   byte-identical to 2.102 (fine tests; regression-checked). Era:
   tools/era/patch-testcard-labelsize.mjs; validate-testcard.mjs (182 checks) now covers
   labelSize liveness and 8/10 mm thick layouts for overlap.
+
+- **2.104** New node **Card Sheet** (`cardsheet`, duo): two-sided imposition
+  for postcards and folded cards. Grid of cards on the sheet, compositions
+  scaled into faces (Zine's Fit/Fill/Stretch/Rotate 90 placement), dynamic pins
+  by *Fold* (None → Front/Back; Vertical → Cover/Back cover/Inside L/R;
+  Horizontal → …/Inside top/bottom, cover on top turned 180 as the paper
+  works). Back layout derived: back view = front mirrored in x (page turn),
+  tumble = that rotated 180 = mirror y; faces paired (Cover ↔ Inside L/top,
+  Back cover ↔ Inside R/bottom). Shared `_layout` method for compute + overlay.
+  Registration: symmetric reg marks, *Back offset X/Y* (content only), *Trim
+  frame* (trim-first), *Pin holes* (two 6 mm centres on the flip axis, replace
+  the two reg targets on that axis). *Mode* Duplex test: vernier scales at four
+  points, 1.00 mm front / 1.10 mm back on opposite sides of the baseline,
+  coincident pair k → offset 0.1·k mm. Default 140×200 card, margin 5, gap 6:
+  A3 portrait takes 2×2, A4 landscape 2×1. Validator
+  tools/validate-cardsheet.mjs (123 checks): partner-face oracle on panel
+  rects, orientation flags, tumble-back == rot180(page-back) path-for-path,
+  mark symmetry, back-offset isolation, vernier pitch + arithmetic, overlay
+  tiling drift — mutation-tested against 12 deliberate breakages. Docs era:
+  tools/era/patch-docs-cardsheet.mjs.
 
 ## Hard-won pitfalls (keep)
 

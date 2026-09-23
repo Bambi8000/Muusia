@@ -135,6 +135,13 @@
   "grid",
   "text"
  ],
+ "cardsheet": [
+  "clip",
+  "combine",
+  "grid",
+  "repeat",
+  "structural"
+ ],
  "carve": [
   "animation",
   "deform"
