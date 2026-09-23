@@ -1561,6 +1561,28 @@ text are **English**.
   exact, thick ≠ fine, Pen pin only on Pen) — mutation-tested against the
   pre-patch node (cluster and lane checks fail there).
 
+- **2.102** Test Card (thick) variants: 4 mm numerals (cap 2.2 → 4, shrinking
+  with the cell), weight-sweep pass labels centred on their row, line-spacing
+  lines shortened for two 4 mm label rows, hatch label band grows with the
+  label, cell title up to 4.5 mm — still capped by the cell width, so the
+  long "(THICK)" titles only grow with Cell size. Fine tests byte-identical
+  (regression-checked in validate-testcard.mjs, now 103 checks incl. thick
+  numeral height ≥ 1.7× fine). Era: tools/era/patch-testcard-thick-labels.mjs.
+
+- **2.103** Test Card: *Label size mm* (1.5–12, def 2.2 = the old fixed size,
+  showIf labels). Numerals are labelSize tall (thick keeps 4 mm at the
+  default), other labels scale by labelSize/2.2; big Line-spacing labels sit
+  right-aligned in their own lane on 2–3 rows; the header band grows with it
+  (6 + 2.6·(size−2.2)) and, once taller than the default, width-shrunk titles
+  wrap onto two lines at the word split giving the narrowest line. Line
+  spacing picks 2 or 3 label rows as the numerals need and shortens its lines;
+  weight sweep shortens lines so the pass label fits; hatch and palette label
+  bands grow. Motivation: a Textmark 500 plot showed the nib is ~2.3 mm on
+  paper, so 4 mm numerals are blobs — legible needs ~10 mm. Default output
+  byte-identical to 2.102 (fine tests; regression-checked). Era:
+  tools/era/patch-testcard-labelsize.mjs; validate-testcard.mjs (182 checks) now covers
+  labelSize liveness and 8/10 mm thick layouts for overlap.
+
 ## Hard-won pitfalls (keep)
 
 - A GRADUATED LAB FILE IS NOT A SHIPPED NODE, AND A BAKED NODE IS NOT A

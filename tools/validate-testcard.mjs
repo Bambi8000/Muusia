@@ -77,6 +77,8 @@ diff({ labels: false }, "labels");
 diff({ labelPen: 3 }, "labelPen");
 diff({ margin: 30 }, "margin");
 diff({ layer: 5 }, "layer");
+diff({ labelSize: 4 }, "labelSize");
+ok(def.params.find((q) => q.key === "labelSize").def === 2.2, "labelSize default 2.2 = the old fixed size (default output unchanged)");
 
 /* --- every Tests option renders alone, on both orientations --- */
 const testsParam = def.params.find((q) => q.key === "tests");
@@ -95,12 +97,14 @@ for (const opt of OPTS) {
 /* --- layout replica for a single-test sheet (mirrors compute) --- */
 const cellOf = (p, ctx, nTests) => {
   const cols = Math.round(p.cols), gap = p.gap, m = p.margin;
+  const lsz = p.labelSize === undefined ? 2.2 : p.labelSize;
+  const hdr = 6 + 2.6 * Math.max(0, lsz - 2.2);
   const rowsN = Math.ceil(nTests / cols);
   const fitW = (ctx.W - 2 * m - (cols - 1) * gap) / cols;
-  const fitH = (ctx.H - 2 * m - 6 - (rowsN - 1) * (gap + 6) - 6) / rowsN;
+  const fitH = (ctx.H - 2 * m - hdr - (rowsN - 1) * (gap + hdr) - 6) / rowsN;
   const cs = Math.max(24, Math.min(p.cell, fitW, fitH));
   const gridW = cols * cs + (cols - 1) * gap;
-  const x0 = m + Math.max(0, (ctx.W - 2 * m - gridW) / 2), y0 = m + 6;
+  const x0 = m + Math.max(0, (ctx.W - 2 * m - gridW) / 2), y0 = m + hdr;
   return { x0, y0, cs, ix: x0 + 3, iy: y0 + 3, iw: cs - 6, ih: cs - 6 };
 };
 
@@ -116,13 +120,17 @@ const splitLabels = (r, geo) => {
 };
 const clusters = (strokes) => {
   const bb = strokes.map((q) => bbox(q.pts));
+  /* glyph gap scales with the font: 2 font units = 0.2 x cap; a dot adds ~1 unit.
+     use half the tallest cap in the set as the split threshold */
+  const cap = Math.max(0.5, ...bb.map((b) => b.y1 - b.y0));
+  const thr = cap * 0.5;
   const parent = bb.map((_, i) => i);
   const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));
   for (let i = 0; i < bb.length; i++) for (let j = i + 1; j < bb.length; j++) {
     const a = bb[i], b = bb[j];
     const sameRow = a.y0 < b.y1 + 0.3 && b.y0 < a.y1 + 0.3;
     const xgap = Math.max(a.x0, b.x0) - Math.min(a.x1, b.x1);
-    if (sameRow && xgap < 0.9) parent[find(i)] = find(j);
+    if (sameRow && xgap < thr) parent[find(i)] = find(j);
   }
   const ids = new Set(bb.map((_, i) => find(i)));
   return ids.size;
@@ -213,6 +221,60 @@ for (const [opt, dens] of [["Hatch density", FINE_DENS], ["Hatch density (thick)
 }
 ok(JSON.stringify(single("Line spacing")) !== JSON.stringify(single("Line spacing (thick)")), "thick line spacing differs from fine");
 ok(JSON.stringify(single("Hatch density")) !== JSON.stringify(single("Hatch density (thick)")), "thick hatch density differs from fine");
+
+/* --- thick numerals are big: cap height >= 1.7x the fine 2.2 mm at cell 62 --- */
+{
+  const capH = (opt) => {
+    const r = single(opt), geo = cellOf(p0, A4W, 1);
+    const { nums } = splitLabels(r, geo);
+    return Math.max(...nums.map((q) => { const b = bbox(q.pts); return b.y1 - b.y0; }));
+  };
+  for (const [f, t] of [["Line spacing", "Line spacing (thick)"], ["Hatch density", "Hatch density (thick)"], ["Line weight sweep", "Line weight sweep (thick)"]]) {
+    const hf = capH(f), ht = capH(t);
+    ok(ht >= hf * 1.4 && ht >= 3.8, "'" + t + "' numerals " + ht.toFixed(2) + " mm vs fine " + hf.toFixed(2) + " mm (>= 3.8 and >= 1.4x)");
+  }
+  const r = single("Line weight sweep (thick)"), geo = cellOf(p0, A4W, 1);
+  const { nums } = splitLabels(r, geo);
+  const b = bbox(nums.flatMap((q) => q.pts));
+  ok(b.x1 <= geo.ix + geo.iw + 0.5, "'Line weight sweep (thick)' pass labels stay inside the cell (right edge " + b.x1.toFixed(1) + ")");
+}
+
+/* --- Label size: big labels stay clear of the geometry and inside the cell --- */
+for (const lsz of [6, 8, 10]) {
+  for (const opt of ["Line spacing (thick)", "Hatch density (thick)", "Line weight sweep (thick)", "Line spacing", "Hatch density"]) {
+    const extra = { labelSize: lsz, cell: 90 };
+    const r = single(opt, A4W, extra);
+    const geo = cellOf({ ...p0, ...extra }, A4W, 1);
+    const { content, nums, title } = splitLabels(r, geo);
+    const nb = bbox(nums.flatMap((q) => q.pts));
+    const capH = Math.max(...nums.map((q) => { const b = bbox(q.pts); return b.y1 - b.y0; }));
+    ok(finiteAll(r) && noOverlap(nums, content), "labelSize " + lsz + " '" + opt + "': labels clear of test lines");
+    ok(nb.x1 <= geo.x0 + geo.cs + 0.5 && nb.y1 <= geo.y0 + geo.cs + 3.5, "labelSize " + lsz + " '" + opt + "': labels inside the cell (x1 " + nb.x1.toFixed(1) + ", y1 " + nb.y1.toFixed(1) + ")");
+    /* fine Line spacing has 8 lanes in the cell: "0.25" caps at 3 lanes' width, so it may fall short of the asked size */
+    const lo = opt === "Line spacing" ? 0.7 : 0.85;
+    ok(capH >= lsz * lo && capH <= lsz * 1.01, "labelSize " + lsz + " '" + opt + "': numerals are " + capH.toFixed(1) + " mm (asked " + lsz + ", lane-capped allowed for fine spacing)");
+    const want = opt.startsWith("Line spacing") ? (opt.includes("thick") ? 6 : 8) : opt.startsWith("Hatch") ? 4 : 6;
+    const ncl = clusters(nums);
+    ok(ncl === want, "labelSize " + lsz + " '" + opt + "': " + want + " label clusters (got " + ncl + ", no overprinting labels)");
+    const tb = bbox(title.flatMap((q) => q.pts));
+    ok(title.length > 0 && tb.x1 <= geo.x0 + geo.cs + 0.5 && tb.y0 >= geo.y0 - (6 + 2.6 * (lsz - 2.2)) - 0.5, "labelSize " + lsz + " '" + opt + "': title inside its header band");
+  }
+}
+{
+  /* wrapped title at big label size is larger than the single-line title at default */
+  const capT = (extra) => {
+    const r = single("Line weight sweep (thick)", A4W, extra), geo = cellOf({ ...p0, ...extra }, A4W, 1);
+    const { title } = splitLabels(r, geo);
+    return Math.max(...title.map((q) => { const b = bbox(q.pts); return b.y1 - b.y0; }));
+  };
+  const t0 = capT({ cell: 90 }), t1 = capT({ cell: 90, labelSize: 8 });
+  ok(t1 > t0 * 1.3, "labelSize 8: two-line title is larger than the one-line default (" + t1.toFixed(1) + " vs " + t0.toFixed(1) + " mm)");
+}
+{
+  /* all tests with big labels on a full sheet: finite, in bounds, cells don't collide */
+  const r = run({ ...p0, tests: OPTS, cols: 3, cell: 120, labelSize: 8, labelPen: 1 }, { W: 420, H: 297 });
+  ok(finiteAll(r) && inb(r, 420, 297) && npts(r) <= 120000, "labelSize 8, all 12 tests on A3: finite, in bounds (" + npts(r) + " pts)");
+}
 
 /* --- titles fit the cell --- */
 for (const opt of ["Line weight sweep (thick)", "Hatch density (thick)", "Line spacing (thick)"]) {
