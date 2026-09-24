@@ -586,7 +586,7 @@ travel and 500 mm/s² accel, speed was no longer a credible explanation.
 |---|---|---|
 | `run_current` X/Y/Y1 | **2.0 A** | printer.cfg `[tmc5160 stepper_*]` |
 | `run_current` Z | 1.4 A | printer.cfg |
-| `hold_current` X/Y/Y1 | **1.0 A** | printer.cfg — spreadCycle standstill hiss at 2.0 A hold; 0.7 tested silent, 1.0 keeps holding torque for pen changes (§9.2) |
+| `hold_current` X/Y/Y1 | **0.7 A** | printer.cfg — spreadCycle standstill hiss at 2.0 A hold; 0.7 tested silent (§9.2) |
 | `stealthchop_threshold` X/Y/Y1 | **0** (spreadCycle) | printer.cfg — stealthChop dropped steps on short fast pen-lift moves. NOTE: this row was recorded on 2026-09-04 but the live cfg still read 999999 until 2026-09-22 (§9.1) — verify with grep, not with this table |
 | `stealthchop_threshold` Z | 999999 (stealth) | printer.cfg — quiet, and Z is slow |
 | `max_accel` | **500** | printer.cfg `[printer]` — speed ladder 2026-09-22: 800 faint ringing, 1200 visible ringing, 1800+ lost steps |
@@ -681,9 +681,10 @@ before touching cfg: `SET_TMC_CURRENT STEPPER=stepper_x CURRENT=2.0
 HOLDCURRENT=0.7` (and y, y1) silenced it — the source is the spreadCycle
 chopper at full 2.0 A hold current, not the PSU. stealthChop is silent at
 standstill but is the wrong mode for moving (§9.1), so the fix is
-`hold_current: 1.0` on X/Y/Y1: quiet enough, less idle heat, and still enough
-holding torque that pushing on the carriage during a pen change does not
-shift the position. Not applied: `stealthchop_threshold: 10` (stealth below
+`hold_current: 0.7` on X/Y/Y1: silent, less idle heat. Holding torque at 0.7 A
+is lower — if a plot ever resumes misaligned after an M0 pen change, suspect
+the carriage having been pushed during the change and raise hold_current to
+1.0 before anything else. Not applied: `stealthchop_threshold: 10` (stealth below
 10 mm/s) would be fully silent but switches chopper mode at the start of
 every move under load, which Klipper's TMC docs warn about.
 
