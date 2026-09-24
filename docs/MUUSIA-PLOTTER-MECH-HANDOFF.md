@@ -37,9 +37,9 @@ Working language: Finnish in chat, English in all code/GUI/docs.
 - **Control board:** BTT Kraken v1.1 (8× onboard TMC2160, SPI, up to 60 V) — in service since 2026-08-11.
   Port budget: X, Y1, Y2, Z, brush rotation, ink pump, nozzle sweep = 7 of 8.
 - **Host:** Raspberry Pi 4.
-- **PSU:** Meishile S-500-24 (24 V, 21 A, 500 W) enclosed switching supply from
-  parts bin — correct type for motors. Verify 230 V mains selector + test
-  before use. **Current: X/Y/Y1 run at 2.0 A RMS** (measured working value,
+- **PSU:** Mean Well UHP-500-24 (24 V, 20.9 A, 500 W, fanless) since 2026-09-24 —
+  replaced the Meishile S-500-24 whose fan was loud. Fanless means every
+  other noise is now audible; see §9.2. **Current: X/Y/Y1 run at 2.0 A RMS** (measured working value,
   2026-09-04). The earlier "moderate 1.3–1.8 A" guidance was wrong for this
   frame: at 1.4 A — half the motor's 2.8 A rating — the gantry lost steps on
   every long travel move. At 2.0 A a 23 m plot ran clean with no `ot`/`otpw`
@@ -586,6 +586,7 @@ travel and 500 mm/s² accel, speed was no longer a credible explanation.
 |---|---|---|
 | `run_current` X/Y/Y1 | **2.0 A** | printer.cfg `[tmc5160 stepper_*]` |
 | `run_current` Z | 1.4 A | printer.cfg |
+| `hold_current` X/Y/Y1 | **1.0 A** | printer.cfg — spreadCycle standstill hiss at 2.0 A hold; 0.7 tested silent, 1.0 keeps holding torque for pen changes (§9.2) |
 | `stealthchop_threshold` X/Y/Y1 | **0** (spreadCycle) | printer.cfg — stealthChop dropped steps on short fast pen-lift moves. NOTE: this row was recorded on 2026-09-04 but the live cfg still read 999999 until 2026-09-22 (§9.1) — verify with grep, not with this table |
 | `stealthchop_threshold` Z | 999999 (stealth) | printer.cfg — quiet, and Z is slow |
 | `max_accel` | **500** | printer.cfg `[printer]` — speed ladder 2026-09-22: 800 faint ringing, 1200 visible ringing, 1800+ lost steps |
@@ -670,6 +671,26 @@ the last stage give the whole-run error.
 `stealthchop_threshold: 0` on X/Y/Y1 (12:10, after all ladder measurements;
 klipper/printer.cfg synced to the Pi, RESTART, verified in klippy.log).
 Muusia profile: Draw F 3600, Travel F 9000.
+
+### 9.2 Standstill hiss — hold_current (2026-09-24)
+
+After the fanless PSU went in, the XY motors hissed whenever they were
+enabled and standing still; `M84` silenced it. Two things had changed in the
+same week (spreadCycle on 09-22, PSU on 09-24), so it was tested at runtime
+before touching cfg: `SET_TMC_CURRENT STEPPER=stepper_x CURRENT=2.0
+HOLDCURRENT=0.7` (and y, y1) silenced it — the source is the spreadCycle
+chopper at full 2.0 A hold current, not the PSU. stealthChop is silent at
+standstill but is the wrong mode for moving (§9.1), so the fix is
+`hold_current: 1.0` on X/Y/Y1: quiet enough, less idle heat, and still enough
+holding torque that pushing on the carriage during a pen change does not
+shift the position. Not applied: `stealthchop_threshold: 10` (stealth below
+10 mm/s) would be fully silent but switches chopper mode at the start of
+every move under load, which Klipper's TMC docs warn about.
+
+Second-guess tool for any noise question: `SET_TMC_CURRENT … HOLDCURRENT=`
+and `SET_TMC_FIELD STEPPER=… FIELD=en_pwm_mode VALUE=1` are runtime and
+reversible with `FIRMWARE_RESTART`; if neither changes the sound but `M84`
+does, listen to the PSU (coil whine under load).
 
 ## 10. Related project docs (software side — not needed for mechanics)
 - MUUSIA-MAGNET-JIG-SPEC.md — the Safe Areas / laser magnet-jig software feature.
