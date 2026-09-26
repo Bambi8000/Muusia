@@ -111,6 +111,149 @@ export function applyStyle(ps, st) {
   return { paths: out };
 }
 
+/* ---------- SVG parsing internals for parseSVG (moved here from App.jsx in v2.105; module-private, not part of the node API) ---------- */
+const M_ID = [1, 0, 0, 1, 0, 0];
+function mMul(m, n) {
+  return [
+    m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1],
+    m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3],
+    m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5],
+  ];
+}
+function mApply(m, x, y) { return [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]]; }
+function parseTransform(str) {
+  let m = M_ID;
+  if (!str) return m;
+  const re = /(\w+)\s*\(([^)]*)\)/g;
+  let t;
+  while ((t = re.exec(str))) {
+    const a = t[2].split(/[\s,]+/).filter(Boolean).map(Number);
+    const f = t[1];
+    if (f === "translate") m = mMul(m, [1, 0, 0, 1, a[0] || 0, a[1] || 0]);
+    else if (f === "scale") m = mMul(m, [a[0] || 1, 0, 0, a[1] !== undefined ? a[1] : a[0] || 1, 0, 0]);
+    else if (f === "rotate") {
+      const r = ((a[0] || 0) * Math.PI) / 180, cx = a[1] || 0, cy = a[2] || 0;
+      m = mMul(m, [1, 0, 0, 1, cx, cy]);
+      m = mMul(m, [Math.cos(r), Math.sin(r), -Math.sin(r), Math.cos(r), 0, 0]);
+      m = mMul(m, [1, 0, 0, 1, -cx, -cy]);
+    } else if (f === "matrix" && a.length === 6) m = mMul(m, a);
+  }
+  return m;
+}
+function flattenCubic(p0, p1, p2, p3, out) {
+  const len = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) + Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) + Math.hypot(p3[0] - p2[0], p3[1] - p2[1]);
+  const n = Math.min(64, Math.max(4, Math.ceil(len / 2)));
+  for (let i = 1; i <= n; i++) {
+    const t = i / n, u = 1 - t;
+    out.push([
+      u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0],
+      u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1],
+    ]);
+  }
+}
+function flattenQuad(p0, p1, p2, out) {
+  flattenCubic(p0,
+    [p0[0] + (2 / 3) * (p1[0] - p0[0]), p0[1] + (2 / 3) * (p1[1] - p0[1])],
+    [p2[0] + (2 / 3) * (p1[0] - p2[0]), p2[1] + (2 / 3) * (p1[1] - p2[1])],
+    p2, out);
+}
+function flattenArc(p0, rx, ry, rotDeg, laf, sf, p1, out) {
+  /* W3C endpoint -> center -parametrisointi */
+  if (rx === 0 || ry === 0) { out.push(p1); return; }
+  rx = Math.abs(rx); ry = Math.abs(ry);
+  const phi = (rotDeg * Math.PI) / 180;
+  const dx = (p0[0] - p1[0]) / 2, dy = (p0[1] - p1[1]) / 2;
+  const x1 = Math.cos(phi) * dx + Math.sin(phi) * dy;
+  const y1 = -Math.sin(phi) * dx + Math.cos(phi) * dy;
+  let l = (x1 * x1) / (rx * rx) + (y1 * y1) / (ry * ry);
+  if (l > 1) { rx *= Math.sqrt(l); ry *= Math.sqrt(l); }
+  const num = rx * rx * ry * ry - rx * rx * y1 * y1 - ry * ry * x1 * x1;
+  const den = rx * rx * y1 * y1 + ry * ry * x1 * x1;
+  let co = Math.sqrt(Math.max(0, num / den));
+  if (laf === sf) co = -co;
+  const cxp = (co * rx * y1) / ry, cyp = (-co * ry * x1) / rx;
+  const cx = Math.cos(phi) * cxp - Math.sin(phi) * cyp + (p0[0] + p1[0]) / 2;
+  const cy = Math.sin(phi) * cxp + Math.cos(phi) * cyp + (p0[1] + p1[1]) / 2;
+  const ang = (ux, uy, vx, vy) => {
+    const d = Math.hypot(ux, uy) * Math.hypot(vx, vy);
+    let a = Math.acos(Math.min(1, Math.max(-1, (ux * vx + uy * vy) / d)));
+    if (ux * vy - uy * vx < 0) a = -a;
+    return a;
+  };
+  const th1 = ang(1, 0, (x1 - cxp) / rx, (y1 - cyp) / ry);
+  let dth = ang((x1 - cxp) / rx, (y1 - cyp) / ry, (-x1 - cxp) / rx, (-y1 - cyp) / ry);
+  if (!sf && dth > 0) dth -= 2 * Math.PI;
+  if (sf && dth < 0) dth += 2 * Math.PI;
+  const n = Math.min(96, Math.max(4, Math.ceil(Math.abs(dth) * Math.max(rx, ry) / 2)));
+  for (let i = 1; i <= n; i++) {
+    const th = th1 + (dth * i) / n;
+    out.push([
+      cx + rx * Math.cos(phi) * Math.cos(th) - ry * Math.sin(phi) * Math.sin(th),
+      cy + rx * Math.sin(phi) * Math.cos(th) + ry * Math.cos(phi) * Math.sin(th),
+    ]);
+  }
+}
+function parsePathD(d) {
+  const tokens = d.match(/[a-zA-Z]|-?\.?\d+(?:\.\d+)?(?:e[+-]?\d+)?/gi) || [];
+  const subs = [];
+  let pts = null, closed = false;
+  let cx = 0, cy = 0, sx = 0, sy = 0, cmd = "", pcx = null, pcy = null, pqx = null, pqy = null;
+  let i = 0;
+  const num = () => parseFloat(tokens[i++]);
+  const flush = () => { if (pts && pts.length > 1) subs.push({ pts, closed }); pts = null; closed = false; };
+  while (i < tokens.length) {
+    if (/[a-zA-Z]/.test(tokens[i])) cmd = tokens[i++];
+    const rel = cmd === cmd.toLowerCase();
+    const C = cmd.toUpperCase();
+    if (C === "M") {
+      flush();
+      let x = num(), y = num();
+      if (rel) { x += cx; y += cy; }
+      cx = sx = x; cy = sy = y;
+      pts = [[x, y]];
+      cmd = rel ? "l" : "L";
+      pcx = pcy = pqx = pqy = null;
+    } else if (C === "L") {
+      let x = num(), y = num();
+      if (rel) { x += cx; y += cy; }
+      pts && pts.push([x, y]); cx = x; cy = y; pcx = pqx = null;
+    } else if (C === "H") {
+      let x = num(); if (rel) x += cx;
+      pts && pts.push([x, cy]); cx = x; pcx = pqx = null;
+    } else if (C === "V") {
+      let y = num(); if (rel) y += cy;
+      pts && pts.push([cx, y]); cy = y; pcx = pqx = null;
+    } else if (C === "C" || C === "S") {
+      let x1, y1;
+      if (C === "C") { x1 = num(); y1 = num(); if (rel) { x1 += cx; y1 += cy; } }
+      else { x1 = pcx !== null ? 2 * cx - pcx : cx; y1 = pcy !== null ? 2 * cy - pcy : cy; }
+      let x2 = num(), y2 = num(), x = num(), y = num();
+      if (rel) { x2 += cx; y2 += cy; x += cx; y += cy; }
+      pts && flattenCubic([cx, cy], [x1, y1], [x2, y2], [x, y], pts);
+      pcx = x2; pcy = y2; pqx = null; cx = x; cy = y;
+    } else if (C === "Q" || C === "T") {
+      let x1, y1;
+      if (C === "Q") { x1 = num(); y1 = num(); if (rel) { x1 += cx; y1 += cy; } }
+      else { x1 = pqx !== null ? 2 * cx - pqx : cx; y1 = pqy !== null ? 2 * cy - pqy : cy; }
+      let x = num(), y = num();
+      if (rel) { x += cx; y += cy; }
+      pts && flattenQuad([cx, cy], [x1, y1], [x, y], pts);
+      pqx = x1; pqy = y1; pcx = null; cx = x; cy = y;
+    } else if (C === "A") {
+      const rx = num(), ry = num(), rot = num(), laf = num(), sf = num();
+      let x = num(), y = num();
+      if (rel) { x += cx; y += cy; }
+      pts && flattenArc([cx, cy], rx, ry, rot, laf, sf, [x, y], pts);
+      pcx = pqx = null; cx = x; cy = y;
+    } else if (C === "Z") {
+      closed = true; cx = sx; cy = sy;
+      flush();
+    } else { i++; }
+  }
+  flush();
+  return subs;
+}
+
 export function parseSVG(text) {
   const doc = new DOMParser().parseFromString(text, "image/svg+xml");
   if (doc.querySelector("parsererror")) throw new Error("SVG parse failed");

@@ -1603,8 +1603,26 @@ text are **English**.
   tiling drift — mutation-tested against 12 deliberate breakages. Docs era:
   tools/era/patch-docs-cardsheet.mjs.
 
+- **2.105** Import SVG fix: every SVG load failed with `Error: M_ID is not
+  defined`. The C0 split moved `parseSVG` into src/defs/helpers.js but left
+  its module-private helpers (`M_ID, mMul, mApply, parseTransform,
+  flattenCubic, flattenQuad, flattenArc, parsePathD`) behind in App.jsx, where
+  nothing referenced them any more; the ReferenceError only fires at file-load
+  time, so build and every validator stayed green. The block now lives in
+  helpers.js directly above `parseSVG` (verbatim, still module-private — the
+  helper API is unchanged). New tools/validate-svgimport.mjs exercises the REAL
+  `parseSVG` + baked node in Node (jsdom/linkedom if installed, else a
+  built-in minimal XML DOM) and accepts an optional SVG path to smoke-test a
+  user file. Era: tools/era/patch-svgimport-deps.mjs.
+
 ## Hard-won pitfalls (keep)
 
+- Extracting a function into helpers.js must take its module-private
+  dependencies with it. `parseSVG` moved in C0 but `M_ID`/`parsePathD` and
+  friends stayed in App.jsx as dead code; the ReferenceError surfaces only
+  when a user loads a file (undetected from the C0 split until v2.105). Vite does not
+  cross-module-check free identifiers. Any helper that is only reached via
+  `onFile`/user action needs a Node validator that actually calls it.
 - A GRADUATED LAB FILE IS NOT A SHIPPED NODE, AND A BAKED NODE IS NOT A
   DOCUMENTED ONE. `bake.mjs` writes `src/defs/nodes/<key>.js` and the lab file
   is deleted by hand afterwards; if the new file then misses `git add`, nothing
