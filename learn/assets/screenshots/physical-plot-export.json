@@ -1,0 +1,69 @@
+{
+  "source": "Actual Muusia browser export",
+  "appVersion": "2.106",
+  "date": "2026-09-29",
+  "patch": "examples/tutorial-physical-plot.muusia.json",
+  "patchSha256": "15ebd55b8b7161642b77f84156aa3fde9bc71a5fb90d40b5bfbb33efdb48365f",
+  "file": "examples/physical-plot.svg",
+  "sha256": "66c32f681b229a1132bbef1ecf8b414b8c87db8c6004d33996ee374ac904d15f",
+  "selectedNode": "Merge",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "settings": {
+    "optimizeRoute": false,
+    "preserveDirection": true,
+    "megaCanvas": false,
+    "pen": 0
+  },
+  "sourceFiles": [
+    {
+      "path": "src/App.jsx",
+      "sha256": "3b1be506671867f8c0a03d6917b1a33bf473a26be46d7dcb8938bede03988205",
+      "reviewedChange": {
+        "date": "2026-09-29",
+        "scope": "help-copy-only",
+        "sha256": "bcb07e68e3820bc64e73c46eb884d39a1f426e84d4ee95942af659a49b3b47c0",
+        "reason": "Removed fixed tutorial and node-guide counts from the Help description. Reversing this single text replacement exactly reproduces the captured source hash; export code is unchanged.",
+        "replacement": {
+          "before": "Three step-by-step tutorials and twelve illustrated node guides.",
+          "after": "Step-by-step tutorials and illustrated node guides."
+        }
+      }
+    },
+    {
+      "path": "src/defs/helpers.js",
+      "sha256": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
+    },
+    {
+      "path": "src/defs/nodes/container.js",
+      "sha256": "fb9b11583906d0c0678f8df117224aa41899aef9a13123b1f1bdf1b058a7d801"
+    },
+    {
+      "path": "src/defs/nodes/grid.js",
+      "sha256": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2"
+    },
+    {
+      "path": "src/defs/nodes/move_scale.js",
+      "sha256": "6ee2ad58f72358b5a84556610610caee43220877cd047588e955847d6ebf15c3"
+    },
+    {
+      "path": "src/defs/nodes/merge.js",
+      "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
+    }
+  ],
+  "gcodeSoftwareCheck": {
+    "source": "Actual Muusia browser export, checked locally; not a supplied machine profile",
+    "profileName": "Learn — example only",
+    "sha256": "d2136262072f8e590ee2f8a151b91f67df60032cbc121e16cf045e560d5d622c",
+    "drawingPaths": 5,
+    "coordinatePrecisionMm": 0.01,
+    "allDrawingCoordinatesMatchPatch": true,
+    "rapidMovesPenUp": true,
+    "homingCommandPresent": false,
+    "endPenUp": true,
+    "hardwareExecuted": false
+  },
+  "physicalPlotVerified": false
+}

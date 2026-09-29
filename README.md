@@ -2,6 +2,8 @@
 
 **A node-graph editor for generative pen-plotter art.**
 
+**Learn Muusia:** the [public learning site](https://bambi8000.github.io/Muusia/learn/) includes seven English tutorials, eighteen node guides, real screenshots and downloadable examples, including per-pen SVG export, numeric controls and preparing a first physical plot through SVG or G-code. See the [guide maintenance instructions](learn/README.md) for details. Build with `npm run build`, run `npm run preview:learn`, and open `/learn/index.html` on the local preview server.
+
 Muusia is a browser-based visual programming environment for creating plotter drawings.
 You build images by wiring nodes together: generators produce line work, modifiers
 transform it, and the export panel turns the result into G-code for a pen plotter or

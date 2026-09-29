@@ -1,0 +1,27 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Grid — evenly spaced lines",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "grid",
+        "x": 30,
+        "y": 30,
+        "params": {
+          "vlines": 0,
+          "hlines": 24,
+          "margin": 24,
+          "res": 2,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": []
+  }
+}

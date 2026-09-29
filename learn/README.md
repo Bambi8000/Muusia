@@ -1,0 +1,67 @@
+# Muusia Learn
+
+An English companion guide to Muusia: seven complete tutorials, eighteen illustrated node guides, twenty-eight real UI screenshots, reproducible SVG comparisons, twenty-six downloadable patches and two reference export artifacts from the actual app: a per-pen SVG ZIP and a single test SVG. The site is static and has no runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
+
+## Build and preview
+
+Public URL: [Muusia Learn](https://bambi8000.github.io/Muusia/learn/). The application remains at [Muusia](https://bambi8000.github.io/Muusia/).
+
+Run `npm run build` from the repository root. It builds the standalone application and then the guide into `dist/learn/`. The existing Pages workflow publishes both in the same artifact. Nothing is published by the local build.
+
+To publish an update, build and run `npm run check:learn`, then commit and push the reviewed source and required assets to `main`. The existing GitHub Pages workflow repeats the build and Learn validation before publishing. Verify the workflow succeeds and open the public guide, a lesson and its downloads before announcing the update. Keep Claude machine-profile handoffs separate from the website artifact.
+
+Run `npm run preview:learn`, then open `http://127.0.0.1:5183/learn/index.html`. The Open Muusia link opens the application at the same origin. Muusia's built web Help also links back to Learn; the link is omitted in the development server and a standalone `file://` application, where built guide pages are unavailable.
+
+After changing guide content or styles, `npm run build:learn` rebuilds only the guide. `npm run check:learn` validates the built application and guide. Rebuild the application first if its code changes.
+
+## Where things live
+
+- `content.mjs`: authored tutorials, recipes, controls and troubleshooting.
+- `lib/fixtures.mjs`: complete example graphs with explicit parameters, seeds, canvas dimensions and image data; imports the real node computations.
+- `generate-assets.mjs`: renders full SVG geometry, comparisons, original image fixture and patch downloads, with deterministic validation.
+- `generated/manifest.json`: versioned source metadata and artifact provenance. Generated, never hand-edited.
+- `assets/screenshots/`: eighteen node captures, six tutorial graph captures, two Stack workflow captures and two machine/export captures from the actual Muusia application, plus their capture manifest and SVG-export provenance. There are no synthetic node cards or replacement connection diagrams.
+- `build.mjs`, `site.css`, `site.js`: static page generation, responsive presentation and local node-library search. No external fonts or dependencies.
+- `validate.mjs`: broken links, missing assets, page coverage, patch integrity and screenshot/provenance validation; also rejects Finnish Style labels, synthetic diagram references and the removed logo markup in published HTML.
+
+## Reproducibility and screenshot capture
+
+All examples use A4 landscape (297 × 210 mm) and the default pen palette. Geometry is generated with the actual node definitions, not approximated from descriptions. Comparison captions name the changed control. Frame uses 12 frames, and frame 2 is pictured; animation settings must be set after loading because Muusia does not save them in patches.
+
+The two-pen tutorial chooses colours directly on the generators: Grid uses Pen 1 · Blue and feeds Wave, while Tracks uses Pen 2 · Red. Wave and Tracks feed Merge inputs 1 and 2, with Pen change per input off. Its variation changes Grid’s Pen to 3 · Green. The separate Set Pen example takes that finished multi-pen composition from Merge and uses Recolor All → To pen 0 · Black to put the whole drawing on one pen. Its comparisons show the original two-pen input, all-black output and all-green output.
+
+Lesson 04, **Export a two-colour SVG set**, reuses that graph and adds the current Stack → Pens → SVG .zip workflow. Its quick reference and seven steps cover export settings, file-to-pen mapping, registration and handoff to external plotting software. Regular SVG groups are distinguished from Inkscape layers; manufacturer profile integration is not implied.
+
+Lesson 05, **Transform, crop and fill shapes**, builds Tracks → Move / Scale → Rotate → Hatch Fill → Container. Its seven steps and quick reference explain independent axis scaling, the rotation pivot, closed regions, hatch pens and filling before clipping. The four associated node guides include genuine Focus screenshots and comparisons generated from the same source geometry. The final drawing contains blue cropped hatch strokes and a separate black frame.
+
+Lesson 06, **Control a patch with numbers**, keeps Grid → Wave as the drawing branch and connects Value → Math A, Random → Math B, and Math → Wave’s Amplitude mm input. With Value 4, Random Min 1 / Max 2 / Seed 11, and Math set to A × B, the amplitude is approximately 6.54 mm. The lesson explains green numeric connections, connected controls, fallback values and repeatable seeds. Random and Math have separate guide patches and reproducible parameter comparisons: Random directly drives Wave with Min 2 / Max 8 / Seed 11; Math multiplies a connected Value 4 by its unwired B value 2. Keep Wave selected to see and export the drawing in all three examples.
+
+Lesson 07, **Prepare your first physical plot**, provides separate SVG and G-code preparation routes around one small test drawing. Two Container nodes produce a 20 × 20 mm square and a right-pointing triangle; Grid → Move / Scale supplies three separate horizontal strokes, and Merge combines all five paths on Pen 0 · Black. The lesson distinguishes document dimensions, artwork bounds and machine work area; shows real Machine Setup and generated G-code; and explains the physical measurements the user must perform. Its nine steps and quick reference do not claim a calibrated device preset or a completed physical plot.
+
+`examples/svg-workflow-per-pen.zip` was downloaded through the real Muusia UI with Merge selected, Sheet margin 0, Mirror/Numbers off and Drill marks Off. The red sheet was hidden in the preview to verify that the export still includes both colours. Its two files contain 24 blue wave paths and 12 red loop paths, each on the same 297 × 210 mm page. `assets/screenshots/svg-workflow-export.json` records checksums, source files and settings. This ZIP is a captured artifact, not regenerated by the illustration generator; recapture and validate it if export behavior changes.
+
+`examples/physical-plot.svg` is the test drawing exported through the actual Muusia UI with Merge selected, Optimize route off, Preserve direction on and Mega Canvas off. It preserves the 297 × 210 mm page and five paths: two closed outlines and three open strokes. `assets/screenshots/physical-plot-export.json` records the patch/export checksums and source provenance. The same UI session generated G-code with the demo profile **Learn — example only**: its five drawing paths matched the patch at 0.01 mm precision, all rapid moves occurred with the pen up, and the result ended pen-up. These are software checks; no machine was run. The captured SVG is supplied as a reference download; no ready-to-run machine G-code or calibrated profile is bundled.
+
+Capture the corresponding `examples/<node-key>.muusia.json` in Muusia. Choose A4 wide in the toolbar to synchronize the visible size fields, select the relevant output, then capture at 1120 × 900 pixels. Most node shots use Focus mode (F) at 100% graph zoom. Stroke, Value, Frame, Random and Math use the normal graph view at approximately 83% zoom so the driving connection and consuming node are visible. Keep each relevant node header and connected port clear of overlapping cards. Return with Esc; reloading the app restores the normal graph framing when switching examples. Long Focus panels scroll within the application; the control reference on the page covers settings below the pictured portion.
+
+For each tutorial, load its complete example patch and capture the actual graph view with its real node cards and wires. The first three graph captures are `tutorial-first.png`, `tutorial-stamps.png` and `tutorial-two-pens.png`, corresponding to the identically named files in `examples/`. Later lessons have their own capture instructions below. Request a 1600-pixel-wide viewport, with heights 620, 800 and 980 pixels respectively. The current browser capture contains the left 1125 pixels, including the graph and node menu; the right-hand preview is intentionally outside these images because each tutorial supplies a separate result image. Use 100% graph zoom for the first two tutorials and approximately 83% for the two-pen composition. Record both requested viewport and actual captured dimensions in the manifest.
+
+Frame the tutorial graph so all relevant nodes and connections are readable, select the final output, and preserve the genuine app controls. Do not redraw Muusia's nodes as simplified cards. Style input labels are English in the node definitions and should read **Style** in the captures.
+
+For lesson 04, load `examples/tutorial-svg-workflow.muusia.json`, choose A4 wide, select Merge and open Stack → Pens at 1120 × 900 pixels. Use Paper background and turn Plexi off for readability; these are preview-only settings. `svg-stack.png` shows both sheets and `svg-stack-settings.png` shows Red hidden in the preview. Both captures show the export settings described above. Reuse `tutorial-two-pens.png` for the unchanged graph.
+
+For lesson 05, capture the four new node examples in Focus view at 1120 × 1000 pixels with 100% graph zoom. All controls fit. Load `examples/tutorial-transform-fill.muusia.json` for the graph capture, select Tracks before zooming out three times to approximately 58%, then select Container. Request 1600 × 550 pixels; the capture is 1125 × 550 and includes all five cards and their wires. Container’s red dashed preview guide is an editing overlay; Draw region separately adds the black frame to the actual output.
+
+For lesson 06 and its numeric guides, use the normal graph view at approximately 83% zoom with Wave selected. `satunnainen.png` is captured at the requested 1120 × 900 pixels and shows Grid, Random and Wave. For `matem.png` and `tutorial-numbers.png`, request 1600 × 820 pixels; the actual captures are 1125 × 820 and show the full connected graphs. The Math guide uses Grid, Value, Math and Wave; the tutorial adds Random to Math’s B input. Their numeric outputs feed a visible drawing consumer, rather than being mistaken for path geometry. UI checks confirmed Value 8 gives an amplitude of 13.07 mm, Seed 12 with Value 4 gives 4.83 mm, and restoring Seed 11 returns 6.54 mm.
+
+For lesson 07, load `examples/tutorial-physical-plot.muusia.json`, choose A4 wide and select Merge. Keep both Container cards collapsed to show the real five-node graph clearly. At approximately 83% graph zoom, request 1600 × 950 pixels for `tutorial-physical-plot.png`; the actual capture is 1125 × 950. Capture `machine-setup.png` and `physical-export-gcode.png` at the requested 1120 × 1000 pixels, with Merge selected and the same zoom. Their demonstration profile is named **Learn — example only**, uses a 330 × 240 mm work area, origin 0/0, Flip Y off and servo mode; these values are illustrative, not device recommendations. The demonstrated start commands omit G28 homing, but the end commands still include G0 X0 Y0. Do not treat this as a file that makes no movement. Keep Optimize route off for the recorded reference, and do not execute it on hardware while recapturing the guide.
+
+Use actual PNG encoding for `.png` files: some browser tools return JPEG bytes regardless of the output filename. Format conversion is acceptable; do not retouch controls, labels, connections or example geometry. Record the app version, patch, view, dimensions and SHA-256 checksum for all twenty-eight captures in `assets/screenshots/capture-manifest.json`. Graph entries use `view: "graph"`; Stack entries use `view: "stack"`; the two lesson 07 workflow entries use `view: "machine"` and `view: "export"`. On UI changes, recapture affected screenshots and review them beside the lesson. The validator checks that published pixels and their provenance match the source captures.
+
+## Current scope
+
+The current build contains 28 static pages: the overview, tutorial index, node reference index, seven tutorials and eighteen node guides. Downloads include eighteen node patches, seven complete tutorial patches and one blank starter, plus the captured per-pen SVG ZIP and single test SVG.
+
+Published nodes: Grid, Wave, Tracks, Stroke, Stamp, Set Pen, Merge, Value, Frame, Image, Polyhedron Studio, Travel Sort, Move / Scale, Rotate, Hatch Fill, Container, Random and Math. Other built-ins remain in the in-app catalog and are not represented as finished guides. Group/legacy guides and more advanced tutorials belong to the next stages in `docs/MUUSIA-LEARN-PLAN.md`.
+
+The SVG examples, both reference export artifacts, UI and lesson 07 demonstration G-code are verified locally. External manufacturer-software previews, controller compatibility, device calibration and physical plotting remain unverified. Machine-profile integration is specified separately in `docs/MUUSIA-MACHINE-PROFILES-CLAUDE-HANDOFF.md`.

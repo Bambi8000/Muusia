@@ -1,0 +1,507 @@
+{
+  "appVersion": "2.106",
+  "date": "2026-09-29",
+  "source": "Actual Muusia browser UI after English port-label correction",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "format": "PNG; browser JPEG converted without UI edits",
+  "captures": [
+    {
+      "nodeKey": "tutorial-first",
+      "file": "tutorial-first.png",
+      "patch": "examples/tutorial-first.muusia.json",
+      "width": 1125,
+      "height": 620,
+      "sha256": "ecba5917ac8a0ab24d9be66f8837b93162d594e033938e5848f46adfd6af28d7",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1600,
+        "height": 620
+      },
+      "zoom": 1,
+      "selectedNode": "Wave"
+    },
+    {
+      "nodeKey": "tutorial-stamps",
+      "file": "tutorial-stamps.png",
+      "patch": "examples/tutorial-stamps.muusia.json",
+      "width": 1125,
+      "height": 800,
+      "sha256": "bd2d40c8ce6dd10aeae11806e4450fab0185baf930bf2ae61c0427d658ef9a56",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1600,
+        "height": 800
+      },
+      "zoom": 1,
+      "selectedNode": "Stamp"
+    },
+    {
+      "nodeKey": "tutorial-two-pens",
+      "file": "tutorial-two-pens.png",
+      "patch": "examples/tutorial-two-pens.muusia.json",
+      "width": 1125,
+      "height": 980,
+      "sha256": "41986fca9dd7428ba01771b89bd94240f4e8d59f0d7a1c8ca7f5a2e10da42837",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1600,
+        "height": 980
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Merge"
+    },
+    {
+      "nodeKey": "grid",
+      "file": "grid.png",
+      "patch": "examples/grid.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "a13df27e305daa270054072cc446d75645c8bfcb14256246028d28a923cb4428",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Grid"
+    },
+    {
+      "nodeKey": "aaltoilu",
+      "file": "aaltoilu.png",
+      "patch": "examples/aaltoilu.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "94c8ce4ea17753553e92c7e2d89ae6b199c3bbc48b835a3a628d8ac0db58fac9",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Wave"
+    },
+    {
+      "nodeKey": "radat",
+      "file": "radat.png",
+      "patch": "examples/radat.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "6dabefd22a42318f60abb7c4fad29ee1c88801a33ee9faee8e6108bc2b5f6b6f",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Tracks"
+    },
+    {
+      "nodeKey": "stamp",
+      "file": "stamp.png",
+      "patch": "examples/stamp.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "bac2b0d3a4eb3d8a4d540a7136d341844b64807ffbb5ebfdc11d0d6161507f8e",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Stamp"
+    },
+    {
+      "nodeKey": "setpen",
+      "file": "setpen.png",
+      "patch": "examples/setpen.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "f19e293ce597ef8669209ebc87131fa669302349efe9249e8e412acacaad8519",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Set Pen"
+    },
+    {
+      "nodeKey": "merge",
+      "file": "merge.png",
+      "patch": "examples/merge.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "280dc5cb67e942aeb862f9cc9e0d2b9bbcff127dd8271e542a212a7459d0bb1e",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Merge"
+    },
+    {
+      "nodeKey": "image",
+      "file": "image.png",
+      "patch": "examples/image.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "839b5c20810ddff8570b103a899bb79258bb2497da245337355bc8d22f1e374c",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Image"
+    },
+    {
+      "nodeKey": "polystudio",
+      "file": "polystudio.png",
+      "patch": "examples/polystudio.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "f6c74e827b1b5f3d6bdc0c8d30f37c34251d27a5bcf7ebf5b41e76f33e18a5a9",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Polyhedron Studio"
+    },
+    {
+      "nodeKey": "travelsort",
+      "file": "travelsort.png",
+      "patch": "examples/travelsort.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "a0045247ca762938ba3fa00fe1b5cb6923119bdb3ac968310e18ccbbd9167afe",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Travel Sort"
+    },
+    {
+      "nodeKey": "viiva",
+      "file": "viiva.png",
+      "patch": "examples/viiva.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "48187d2601e1e9df3807a792b990c63901ee10e409725e66ef227637a5b82e0b",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Grid"
+    },
+    {
+      "nodeKey": "arvo",
+      "file": "arvo.png",
+      "patch": "examples/arvo.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "f0232d4e5aa5810806e60318326b584eb84052eff9a776dee24efcb28d17559b",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Wave"
+    },
+    {
+      "nodeKey": "frame",
+      "file": "frame.png",
+      "patch": "examples/frame.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "e4a62dc738084c129626cdf2e3a223792532ba50d436d0bd9304d802535624af",
+      "view": "graph",
+      "frameIndex": 1,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Polyhedron Studio"
+    },
+    {
+      "nodeKey": "svg-stack",
+      "file": "svg-stack.png",
+      "patch": "examples/tutorial-svg-workflow.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "1fa228b7474cac3bba26cce361deb3f15f9b0c8d4c2ddc7f86e2337ec2f4a18c",
+      "view": "stack",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Merge",
+      "settings": {
+        "mode": "pens",
+        "paperBackground": true,
+        "plexi": false,
+        "margin": 0,
+        "mirror": false,
+        "numbers": false,
+        "drill": "off",
+        "visiblePens": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "nodeKey": "svg-stack-settings",
+      "file": "svg-stack-settings.png",
+      "patch": "examples/tutorial-svg-workflow.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "952e7863c6c194bda50b4490d25538b8a4a865c9ed498c48edf49898fb276a9a",
+      "view": "stack",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Merge",
+      "settings": {
+        "mode": "pens",
+        "paperBackground": true,
+        "plexi": false,
+        "margin": 0,
+        "mirror": false,
+        "numbers": false,
+        "drill": "off",
+        "visiblePens": [
+          1
+        ]
+      }
+    },
+    {
+      "nodeKey": "move_scale",
+      "file": "move_scale.png",
+      "patch": "examples/move_scale.muusia.json",
+      "width": 1120,
+      "height": 1000,
+      "sha256": "247da3432769170de29c840e2facc34c1baecb860a5071b2d49c812a26000ee1",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 1000
+      },
+      "zoom": 1,
+      "selectedNode": "Move / Scale"
+    },
+    {
+      "nodeKey": "kierto",
+      "file": "kierto.png",
+      "patch": "examples/kierto.muusia.json",
+      "width": 1120,
+      "height": 1000,
+      "sha256": "fd8861a543adb489b96747f0a5d81d8840fed4426c4c4a1fa39d4ee52ef73225",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 1000
+      },
+      "zoom": 1,
+      "selectedNode": "Rotate"
+    },
+    {
+      "nodeKey": "hatch",
+      "file": "hatch.png",
+      "patch": "examples/hatch.muusia.json",
+      "width": 1120,
+      "height": 1000,
+      "sha256": "b4029abb6bc13c2d1b2dc52f2d9c6f6b03edd0d608ba707d594510ebccbe99e8",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 1000
+      },
+      "zoom": 1,
+      "selectedNode": "Hatch Fill"
+    },
+    {
+      "nodeKey": "container",
+      "file": "container.png",
+      "patch": "examples/container.muusia.json",
+      "width": 1120,
+      "height": 1000,
+      "sha256": "7e1984801fa3eafa7e7c2400c25cdfcf715f9a84caeb8a3969a424c1cdcb64d8",
+      "view": "focus",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 1000
+      },
+      "zoom": 1,
+      "selectedNode": "Container"
+    },
+    {
+      "nodeKey": "tutorial-transform-fill",
+      "file": "tutorial-transform-fill.png",
+      "patch": "examples/tutorial-transform-fill.muusia.json",
+      "width": 1125,
+      "height": 550,
+      "sha256": "313050a88fb0d38224c9cdc49fdc8f7be42e6b2712f2a34e2afd9ed3b9fe52f8",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1600,
+        "height": 550
+      },
+      "zoom": 0.5787037037037038,
+      "selectedNode": "Container"
+    },
+    {
+      "nodeKey": "satunnainen",
+      "file": "satunnainen.png",
+      "patch": "examples/satunnainen.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "6ca1ff20181f346abccd415837b169f4dbd1001e11152ee59cb3ff25208500b4",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Wave"
+    },
+    {
+      "nodeKey": "matem",
+      "file": "matem.png",
+      "patch": "examples/matem.muusia.json",
+      "width": 1125,
+      "height": 820,
+      "sha256": "4c593c0894e753930729e159d600683ac05ea68356c75ab6f599d9e1e991bc24",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1600,
+        "height": 820
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Wave"
+    },
+    {
+      "nodeKey": "tutorial-numbers",
+      "file": "tutorial-numbers.png",
+      "patch": "examples/tutorial-numbers.muusia.json",
+      "width": 1125,
+      "height": 820,
+      "sha256": "fe2bb17a939beafe1ac9ff51517c51714dd7f2c2242ade23f396aa53262309fc",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1600,
+        "height": 820
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Wave"
+    },
+    {
+      "nodeKey": "tutorial-physical-plot",
+      "file": "tutorial-physical-plot.png",
+      "patch": "examples/tutorial-physical-plot.muusia.json",
+      "width": 1125,
+      "height": 950,
+      "sha256": "c3f980709af63640907c1d7883ee7afa23bb7ae01ff39101825cfed27cfe627b",
+      "view": "graph",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1600,
+        "height": 950
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Merge"
+    },
+    {
+      "nodeKey": "machine-setup",
+      "file": "machine-setup.png",
+      "patch": "examples/tutorial-physical-plot.muusia.json",
+      "width": 1120,
+      "height": 1000,
+      "sha256": "c33898ef58cb271f7315fb0de1808b679ec18252cf70e3ba1b5054e7f72851b4",
+      "view": "machine",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 1000
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Merge",
+      "settings": {
+        "profileName": "Learn \u2014 example only",
+        "workW": 330,
+        "workH": 240,
+        "originX": 0,
+        "originY": 0,
+        "flipY": false,
+        "zMode": "servo",
+        "optimizeRoute": false,
+        "hardwareExecuted": false
+      }
+    },
+    {
+      "nodeKey": "physical-export-gcode",
+      "file": "physical-export-gcode.png",
+      "patch": "examples/tutorial-physical-plot.muusia.json",
+      "width": 1120,
+      "height": 1000,
+      "sha256": "9c16e503135595921ff871860291891e40e084cad5083cfa82785fd423e54261",
+      "view": "export",
+      "frameIndex": 0,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 1000
+      },
+      "zoom": 0.8333333333333334,
+      "selectedNode": "Merge",
+      "settings": {
+        "profileName": "Learn \u2014 example only",
+        "workW": 330,
+        "workH": 240,
+        "originX": 0,
+        "originY": 0,
+        "flipY": false,
+        "zMode": "servo",
+        "optimizeRoute": false,
+        "hardwareExecuted": false
+      }
+    }
+  ]
+}

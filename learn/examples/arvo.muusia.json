@@ -1,0 +1,62 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Value — drive Wave amplitude",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "grid",
+        "x": 30,
+        "y": 30,
+        "params": {
+          "vlines": 0,
+          "hlines": 24,
+          "margin": 24,
+          "res": 2,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "arvo",
+        "x": 30,
+        "y": 540,
+        "params": {
+          "v": 4
+        }
+      },
+      {
+        "id": 9003,
+        "type": "aaltoilu",
+        "x": 350,
+        "y": 30,
+        "params": {
+          "amp": 4,
+          "wl": 45,
+          "phase": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e900190030",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 0
+      },
+      {
+        "id": "e90029003pamp",
+        "from": 9002,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": "p:amp"
+      }
+    ]
+  }
+}

@@ -2,7 +2,7 @@ import { Pin, applyStyle } from "../helpers.js";
 
 export default {
   key: "grid",
-    name: "Grid", cat: "gen", group: "geometric", ins: [Pin("style", "Tyyli")], outs: [Pin("paths")],
+    name: "Grid", cat: "gen", group: "geometric", ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
       { key: "vlines", label: "Vertical lines", type: "slider", min: 0, max: 60, step: 1, def: 13 },
       { key: "hlines", label: "Horizontal lines", type: "slider", min: 0, max: 60, step: 1, def: 10 },

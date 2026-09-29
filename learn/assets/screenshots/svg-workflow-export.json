@@ -1,0 +1,63 @@
+{
+  "source": "Actual Muusia browser export",
+  "appVersion": "2.106",
+  "date": "2026-09-29",
+  "patch": "examples/tutorial-svg-workflow.muusia.json",
+  "patchSha256": "e968c8b6da958130ce8869e9927339b02255cde5febf7cddbe234d2886c2c1b7",
+  "bundle": "examples/svg-workflow-per-pen.zip",
+  "originalDownload": "Export a two-colour SVG set-sheets-svg.zip",
+  "sha256": "f0ce3fe36c406929766f68e644cdf3c4866602be463e5276172b001a500eca42",
+  "selectedNode": "Merge",
+  "settings": {
+    "mode": "pens",
+    "margin": 0,
+    "mirror": false,
+    "numbers": false,
+    "drill": "off",
+    "visiblePens": [
+      1
+    ],
+    "exportedPens": [
+      1,
+      2
+    ]
+  },
+  "files": [
+    {
+      "name": "Export a two-colour SVG set-sheet01.svg",
+      "sha256": "71dd88eee3691977719e2975e209aae47bfdda6965e22bc18a150c8afe382d38",
+      "paths": 24,
+      "width": "297mm",
+      "height": "210mm",
+      "viewBox": "0 0 297 210"
+    },
+    {
+      "name": "Export a two-colour SVG set-sheet02.svg",
+      "sha256": "f7daf05aed031d4018641df5eb35d64803616006e33aa35528c17df7bc4e2350",
+      "paths": 12,
+      "width": "297mm",
+      "height": "210mm",
+      "viewBox": "0 0 297 210"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/App.jsx",
+      "sha256": "3b1be506671867f8c0a03d6917b1a33bf473a26be46d7dcb8938bede03988205",
+      "reviewedChange": {
+        "date": "2026-09-29",
+        "scope": "help-copy-only",
+        "sha256": "bcb07e68e3820bc64e73c46eb884d39a1f426e84d4ee95942af659a49b3b47c0",
+        "reason": "Removed fixed tutorial and node-guide counts from the Help description. Reversing this single text replacement exactly reproduces the captured source hash; export code is unchanged.",
+        "replacement": {
+          "before": "Three step-by-step tutorials and twelve illustrated node guides.",
+          "after": "Step-by-step tutorials and illustrated node guides."
+        }
+      }
+    },
+    {
+      "path": "src/stack-view.jsx",
+      "sha256": "9069fd75c94d918925e0512dcf1452cd4d6a54c5e6e499b307078ef2d0781fc8"
+    }
+  ]
+}

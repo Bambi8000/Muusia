@@ -4178,6 +4178,10 @@ export default function App() {
             style={{ width: 640, maxWidth: "92vw", maxHeight: "84vh", overflowY: "auto", background: T.panel, border: `1px solid ${T.line}`, borderRadius: 10, boxShadow: "0 20px 60px rgba(0,0,0,0.55)", padding: "18px 22px" }}>
             <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, marginBottom: 2 }}>MUUSIA — Help</div>
             <div style={{ fontSize: 11, color: T.dim, marginBottom: 14 }}>Node-graph editor for generative pen-plotter art</div>
+            {!import.meta.env.DEV && window.location.protocol !== "file:" && <a href="./learn/index.html" target="_blank" rel="noopener noreferrer"
+              style={{ display: "block", padding: "10px 12px", marginBottom: 14, border: `1px solid ${T.accent}66`, borderRadius: 5, color: T.text, background: T.accent + "15", textDecoration: "none", fontSize: 12 }}>
+              Muusia Learn ↗<span style={{ display: "block", color: T.dim, fontSize: 11, marginTop: 3 }}>Step-by-step tutorials and illustrated node guides.</span>
+            </a>}
 
             <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 11, letterSpacing: "0.1em", color: T.accent, margin: "10px 0 4px" }}>EXAMPLES — START HERE</div>
             {EXAMPLES.map((ex, i) => (
@@ -4208,7 +4212,7 @@ export default function App() {
               ]],
               ["BASICS", [
                 "Drag nodes from the left palette to the canvas, or press G/M/D/C/X/N for quick-add search, A for your starred favorites. B (or the Catalog button) opens the visual node catalog: every node as a live thumbnail, with deep search, tag filters and a Surprise me button.",
-                "Wire outputs (right side of a node) to inputs (left side). Blue = paths, green = numbers, yellow = stroke style.",
+                "Wire outputs (right side of a node) to inputs (left side). Blue = paths, green = numbers, purple = stroke style.",
                 "Every numeric parameter has a green input port \u2014 wire Value, Random, Math or Frame into it to modulate.",
                 "Click a node to select: the right panel shows its live preview and parameters. Space toggles a large preview.",
                 "Cmd/Ctrl+Z undo \u00B7 Shift+Cmd+Z redo \u00B7 Delete removes selection \u00B7 Cmd+G groups selection.",

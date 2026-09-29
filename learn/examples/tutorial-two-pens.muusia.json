@@ -1,0 +1,84 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Build a two-pen composition",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "grid",
+        "x": 30,
+        "y": 30,
+        "params": {
+          "vlines": 0,
+          "hlines": 24,
+          "margin": 24,
+          "res": 2,
+          "layer": 1
+        }
+      },
+      {
+        "id": 9002,
+        "type": "aaltoilu",
+        "x": 350,
+        "y": 30,
+        "params": {
+          "amp": 4,
+          "wl": 45,
+          "phase": 0
+        }
+      },
+      {
+        "id": 9004,
+        "type": "radat",
+        "x": 350,
+        "y": 520,
+        "params": {
+          "rings": 12,
+          "gap": 6,
+          "wob": 4,
+          "drift": 2,
+          "seed": 7,
+          "layer": 2
+        }
+      },
+      {
+        "id": 9006,
+        "type": "merge",
+        "x": 670,
+        "y": 270,
+        "params": {
+          "count": 2,
+          "penPer": false
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e900190020",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      },
+      {
+        "id": "e900290060",
+        "from": 9002,
+        "fromPort": 0,
+        "to": 9006,
+        "toPort": 0
+      },
+      {
+        "id": "e900490061",
+        "from": 9004,
+        "fromPort": 0,
+        "to": 9006,
+        "toPort": 1
+      }
+    ]
+  }
+}

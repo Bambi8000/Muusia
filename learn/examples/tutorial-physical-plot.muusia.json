@@ -1,0 +1,121 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Prepare your first physical plot",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "container",
+        "x": 30,
+        "y": 30,
+        "params": {
+          "shape": "Rectangle",
+          "cx": 30,
+          "cy": 30,
+          "rw": 20,
+          "rh": 20,
+          "cr": 55,
+          "rot": 0,
+          "keep": "Inside",
+          "gap": 0,
+          "draw": true,
+          "regionPen": 0
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "container",
+        "x": 30,
+        "y": 240,
+        "params": {
+          "shape": "Triangle",
+          "cx": 70,
+          "cy": 30,
+          "rw": 120,
+          "rh": 90,
+          "cr": 8,
+          "rot": 90,
+          "keep": "Inside",
+          "gap": 0,
+          "draw": true,
+          "regionPen": 0
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9003,
+        "type": "grid",
+        "x": 30,
+        "y": 460,
+        "params": {
+          "vlines": 0,
+          "hlines": 3,
+          "margin": 0,
+          "res": 2,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9004,
+        "type": "move_scale",
+        "x": 350,
+        "y": 460,
+        "params": {
+          "dx": 50,
+          "dy": 50,
+          "scale": 10,
+          "scaleY": 5,
+          "origin": "Custom point",
+          "ox": 0,
+          "oy": 0
+        }
+      },
+      {
+        "id": 9005,
+        "type": "merge",
+        "x": 670,
+        "y": 180,
+        "params": {
+          "count": 3,
+          "penPer": false
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e900390040",
+        "from": 9003,
+        "fromPort": 0,
+        "to": 9004,
+        "toPort": 0
+      },
+      {
+        "id": "e900190050",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9005,
+        "toPort": 0
+      },
+      {
+        "id": "e900290051",
+        "from": 9002,
+        "fromPort": 0,
+        "to": 9005,
+        "toPort": 1
+      },
+      {
+        "id": "e900490052",
+        "from": 9004,
+        "fromPort": 0,
+        "to": 9005,
+        "toPort": 2
+      }
+    ]
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Hatch Fill — turn a closed shape into pen strokes",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "radat",
+        "x": 30,
+        "y": 30,
+        "params": {
+          "rings": 1,
+          "gap": 6,
+          "wob": 8,
+          "drift": 0,
+          "seed": 7,
+          "layer": 1
+        }
+      },
+      {
+        "id": 9002,
+        "type": "move_scale",
+        "x": 350,
+        "y": 30,
+        "params": {
+          "dx": 20,
+          "dy": -5,
+          "scale": 70,
+          "scaleY": 45,
+          "origin": "Content center",
+          "ox": 150,
+          "oy": 100
+        }
+      },
+      {
+        "id": 9003,
+        "type": "kierto",
+        "x": 670,
+        "y": 30,
+        "params": {
+          "deg": 25,
+          "per": true,
+          "grad": false
+        }
+      },
+      {
+        "id": 9004,
+        "type": "hatch",
+        "x": 990,
+        "y": 30,
+        "params": {
+          "region": "Inside shapes",
+          "invMargin": 8,
+          "angle": 90,
+          "spacing": 2.5,
+          "inset": 0,
+          "cross": false,
+          "outlines": true,
+          "keepCol": true,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e900190020",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      },
+      {
+        "id": "e900290030",
+        "from": 9002,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 0
+      },
+      {
+        "id": "e900390040",
+        "from": 9003,
+        "fromPort": 0,
+        "to": 9004,
+        "toPort": 0
+      }
+    ]
+  }
+}

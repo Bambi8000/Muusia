@@ -1,0 +1,45 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Polyhedron Studio — fills that follow faces",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "polystudio",
+        "x": 30,
+        "y": 30,
+        "params": {
+          "shape": "Icosahedron",
+          "sides": 6,
+          "freq": 2,
+          "size": 150,
+          "x": 50,
+          "y": 50,
+          "rx": -22,
+          "ry": 32,
+          "rz": 0,
+          "persp": 0.35,
+          "vis": "Solid (hide back)",
+          "fill": "Concentric inset",
+          "step": 2.4,
+          "hatchAng": 30,
+          "dotSize": 1,
+          "inset": 1.5,
+          "edges": true,
+          "stellate": 0,
+          "explode": 0,
+          "depthCue": 0,
+          "evenDensity": true,
+          "layer": 1,
+          "pen2": 0
+        }
+      }
+    ],
+    "edges": []
+  }
+}

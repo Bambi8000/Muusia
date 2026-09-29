@@ -1,0 +1,13 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Muusia Learn — blank A4 landscape",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [],
+    "edges": []
+  }
+}

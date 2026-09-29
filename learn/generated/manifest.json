@@ -1,0 +1,5041 @@
+{
+  "schemaVersion": 1,
+  "version": "2.106",
+  "sourceCommit": "8f7245b48f79721999202eb7665c56627854deda",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "palette": [
+    {
+      "name": "Black",
+      "c": "#23242A"
+    },
+    {
+      "name": "Blue",
+      "c": "#2A56A8"
+    },
+    {
+      "name": "Red",
+      "c": "#C23A30"
+    },
+    {
+      "name": "Green",
+      "c": "#1F7A48"
+    },
+    {
+      "name": "Orange",
+      "c": "#D2761E"
+    },
+    {
+      "name": "Purple",
+      "c": "#6C42A6"
+    },
+    {
+      "name": "Teal",
+      "c": "#1F8A80"
+    },
+    {
+      "name": "Magenta",
+      "c": "#C2408F"
+    },
+    {
+      "name": "Brown",
+      "c": "#7A4A2B"
+    },
+    {
+      "name": "Gray",
+      "c": "#7D828C"
+    },
+    {
+      "name": "Ochre",
+      "c": "#B8952E"
+    },
+    {
+      "name": "Sky",
+      "c": "#3E9BD6"
+    }
+  ],
+  "provenance": {
+    "generator": "learn/generate-assets.mjs",
+    "fixtures": "learn/lib/fixtures.mjs",
+    "command": "node learn/generate-assets.mjs",
+    "validationCommand": "node learn/generate-assets.mjs --check",
+    "geometry": "Actual built-in node compute functions; no catalog point cap, no simulated screenshots.",
+    "sourceNote": "Source commit records the checkout base; input hashes identify the exact working-tree sources used.",
+    "inputs": [
+      {
+        "path": "learn/generate-assets.mjs",
+        "sha256": "efab1ce69cbd83cd80eef621edd472c3a2affceee53d2194ca515ced03c21f83"
+      },
+      {
+        "path": "learn/lib/fixtures.mjs",
+        "sha256": "42033e4213576a428a8a9bb5a6b7e5441e4223cf090ae0734cc137d2520428d9"
+      },
+      {
+        "path": "src/defs/helpers.js",
+        "sha256": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
+      },
+      {
+        "path": "src/defs/nodes/grid.js",
+        "sha256": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2"
+      },
+      {
+        "path": "src/defs/nodes/aaltoilu.js",
+        "sha256": "3ddf01da7770ca6195ac5d04519c430b64cd198e9c1418fb29c388d25d378d3d"
+      },
+      {
+        "path": "src/defs/nodes/radat.js",
+        "sha256": "9c6716d5af57da2589ea4194f16811de3838eeeeeaad2df8a15a2025f58cac38"
+      },
+      {
+        "path": "src/defs/nodes/viiva.js",
+        "sha256": "ef272d6c15049e40606194a4a64f1c76d42858213e4ec6c637d0f10936e1d73c"
+      },
+      {
+        "path": "src/defs/nodes/stamp.js",
+        "sha256": "a3808d99e702731370d40fd9401610fe4411a47346a528b7c5c1d57ea6200685"
+      },
+      {
+        "path": "src/defs/nodes/setpen.js",
+        "sha256": "f794990a7915e45f700f2dd80d0590320910da6adbbf8baca98e18f995956c9c"
+      },
+      {
+        "path": "src/defs/nodes/merge.js",
+        "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
+      },
+      {
+        "path": "src/defs/nodes/arvo.js",
+        "sha256": "1b72b433edb86f03e204b9c3c2f9ffea85d9fa2758e1aecdb9bf898cc3118b15"
+      },
+      {
+        "path": "src/defs/nodes/frame.js",
+        "sha256": "4c9e5949a74dcdb7e0d6423b4b2a06fec919002081b526b76e0cedbe6558dc27"
+      },
+      {
+        "path": "src/defs/nodes/image.js",
+        "sha256": "6bb690da33f34eeee517e7ad7ac747f177ccc3b0af760dd498634962bdcdd741"
+      },
+      {
+        "path": "src/defs/nodes/polystudio.js",
+        "sha256": "2700a406ff06d701add97269582e080c44399b45060133e805c7be6acaa05080"
+      },
+      {
+        "path": "src/defs/nodes/travelsort.js",
+        "sha256": "fe0249e9f84eca4b1ff79108917a707e873e010d980f6ff3cba0965b7d98f977"
+      },
+      {
+        "path": "src/defs/nodes/move_scale.js",
+        "sha256": "6ee2ad58f72358b5a84556610610caee43220877cd047588e955847d6ebf15c3"
+      },
+      {
+        "path": "src/defs/nodes/kierto.js",
+        "sha256": "7c588b660d64443fbe42c28e30de14db5033b0e577ebfbf1f402bedfee5d3bcc"
+      },
+      {
+        "path": "src/defs/nodes/hatch.js",
+        "sha256": "4f4a71a13d486458dcf981884c1fe43b44f3dd41da8aeaffba4745c9c83e6c28"
+      },
+      {
+        "path": "src/defs/nodes/container.js",
+        "sha256": "fb9b11583906d0c0678f8df117224aa41899aef9a13123b1f1bdf1b058a7d801"
+      },
+      {
+        "path": "src/defs/nodes/satunnainen.js",
+        "sha256": "b1b1134b463cef87968dc553f5ad0b41bc7485b6cdc6f304c9e903661ff1fb89"
+      },
+      {
+        "path": "src/defs/nodes/matem.js",
+        "sha256": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "assets/comparisons/grid-0.svg",
+        "sha256": "5fc153832bb1762203d4cce613520cf156a0d2eb4499e059bde0911d4549b711"
+      },
+      {
+        "path": "assets/comparisons/grid-1.svg",
+        "sha256": "fb68feaf29c1b4bc5de0bc61f4df1437758ba18fc3383822a834a7432c98785c"
+      },
+      {
+        "path": "assets/comparisons/grid-2.svg",
+        "sha256": "5888b065f5bf7a432b0453a22b09a0d46731874921cdf89630041aecb77dcd45"
+      },
+      {
+        "path": "assets/comparisons/aaltoilu-0.svg",
+        "sha256": "6272d6af446f29b26673bc293d9d9c8f63bef7596a36c8c0ef32fc7e244518fb"
+      },
+      {
+        "path": "assets/comparisons/aaltoilu-1.svg",
+        "sha256": "c3c5c65e742e6dd5fd81370aa6e9fc2a072718ca1d6d221fc070dae97a0e716d"
+      },
+      {
+        "path": "assets/comparisons/aaltoilu-2.svg",
+        "sha256": "7b6da917e48efb626467e29cf33fe28afb75185b27b3692176aa38d51846025e"
+      },
+      {
+        "path": "assets/comparisons/radat-0.svg",
+        "sha256": "793a67866291638673efa7fc10a0559e7830f3cc26344448babeb126b4e38806"
+      },
+      {
+        "path": "assets/comparisons/radat-1.svg",
+        "sha256": "b9c4551e9c31391dfb0b8e48372af3a4974254304f24f3ebe01240b306c24c5b"
+      },
+      {
+        "path": "assets/comparisons/radat-2.svg",
+        "sha256": "a0dd02438e75ace795f952b9f70d4d351f8033937de0100edf8ba1b4e8cbf2ba"
+      },
+      {
+        "path": "assets/comparisons/viiva-0.svg",
+        "sha256": "df6a823c83e06484d561e6568282cb29ceebc08ef40b42a40a8624fecba2da62"
+      },
+      {
+        "path": "assets/comparisons/viiva-1.svg",
+        "sha256": "9e390790f60f6a60aa78eab2c759fab6dd2b8bfc828d631f76810f9a2ebc1fd8"
+      },
+      {
+        "path": "assets/comparisons/viiva-2.svg",
+        "sha256": "559fecca64ef1a506dbdc51f58e774309803d99e8872f8f12a3b4ee9d4da0e5d"
+      },
+      {
+        "path": "assets/comparisons/stamp-0.svg",
+        "sha256": "e53fa49f27c8fbec515c3985f01d12a94dff13d747c5295990f7831dfdadf086"
+      },
+      {
+        "path": "assets/comparisons/stamp-1.svg",
+        "sha256": "e1297926d067c39552dd730734e69200bcd2402658aba00ccc2f7d262c52b08e"
+      },
+      {
+        "path": "assets/comparisons/stamp-2.svg",
+        "sha256": "9ed7b57d6e284977633f67dafc9dc46b6964b02df1aed57044e30e97ed14e3b5"
+      },
+      {
+        "path": "assets/comparisons/setpen-0.svg",
+        "sha256": "f429d7579b8450b16d3fd12707ccb1a82073d9b59603e3baecdddf40e99378aa"
+      },
+      {
+        "path": "assets/comparisons/setpen-1.svg",
+        "sha256": "000be2a9ef58dd571e1173e58dc9c1c0e5cb5c1256a3cde1b35db0e5c8cc2e91"
+      },
+      {
+        "path": "assets/comparisons/setpen-2.svg",
+        "sha256": "dd7ce5382d250855dd8e98d1abdd01cc6cbe6a79b1d5e6133cacbae426a67000"
+      },
+      {
+        "path": "assets/comparisons/merge-0.svg",
+        "sha256": "d3e2112c8f4f376b57c48cec1cccf49dcb448fd345039fee27e97ed89eebc31b"
+      },
+      {
+        "path": "assets/comparisons/merge-1.svg",
+        "sha256": "96e336ed57584716b85453692c8f6af3790f9b1294fcf5124767fee6e93ea5ab"
+      },
+      {
+        "path": "assets/comparisons/merge-2.svg",
+        "sha256": "9fb0b06bad212d099aa51c144640f37f27f806f88680b570183e03c2fd13f345"
+      },
+      {
+        "path": "assets/comparisons/arvo-0.svg",
+        "sha256": "e2200cbb12b474e7cb8e59d22e9b632646038c9a463fd761f819d966b52864ba"
+      },
+      {
+        "path": "assets/comparisons/arvo-1.svg",
+        "sha256": "6f09c7c295b02a6e3635d07c7be262f9efb8b0d3fb646dfd9c000c104037d2f9"
+      },
+      {
+        "path": "assets/comparisons/arvo-2.svg",
+        "sha256": "2a608f29e5407104dfd29200f46075757c76da3746d1b0b7b145429e2306a19d"
+      },
+      {
+        "path": "assets/comparisons/frame-0.svg",
+        "sha256": "01555a9a2c366dff2c60fd0a3f464c57429d880dce6b1ee97c5160d576d4ea64"
+      },
+      {
+        "path": "assets/comparisons/frame-1.svg",
+        "sha256": "2c6528b360149d8aba94415eb7bb4f7b57c17863acc706d4498709276e53887e"
+      },
+      {
+        "path": "assets/comparisons/frame-2.svg",
+        "sha256": "07dd9081c4d69f21ffbd70a67341178ad0c06248f79d480478f4fbc960b2e88c"
+      },
+      {
+        "path": "assets/comparisons/image-0.svg",
+        "sha256": "53afd7fe883eddd7ca1d8c4a0b686633e8bc78735bb8c836958a7c8aaec65372"
+      },
+      {
+        "path": "assets/comparisons/image-1.svg",
+        "sha256": "649e07461cf8595fffeec2d0aa27b9de2eb9df1b301a1b47a5629a64bea771ba"
+      },
+      {
+        "path": "assets/comparisons/image-2.svg",
+        "sha256": "a236da1c47c8d59e312c1e1e8701bd4e95f9942a7e9a0a587367d1c52c32ba4d"
+      },
+      {
+        "path": "assets/comparisons/polystudio-0.svg",
+        "sha256": "dc53884ab054b177f3f95e534047aaf34a6e2f20cee5a7ad2bc534ef3a8d52e6"
+      },
+      {
+        "path": "assets/comparisons/polystudio-1.svg",
+        "sha256": "f9089d85799bc2efcb863ef80bee2bf276aafb244bfff6b1499ec4a72ff1793d"
+      },
+      {
+        "path": "assets/comparisons/polystudio-2.svg",
+        "sha256": "45e0e77b7bc5a9908528e1adf5adcaab1d00bb51682feeb54d8d630079281314"
+      },
+      {
+        "path": "assets/comparisons/travelsort-0.svg",
+        "sha256": "cd24446e412316b8841fefb8b37f94e24b1c04641178faeea2b398f023881927"
+      },
+      {
+        "path": "assets/comparisons/travelsort-1.svg",
+        "sha256": "3183f81c43fd6660aac55a9e0e451013c79b431e2c77a18b8731da4d18362581"
+      },
+      {
+        "path": "assets/comparisons/move_scale-0.svg",
+        "sha256": "fdb44a802894016b4793e1deafeeba68ea60a828ebf503a1fb89fd8184664ed6"
+      },
+      {
+        "path": "assets/comparisons/move_scale-1.svg",
+        "sha256": "255958ebf52ca8ad062d1ca22c4f5a3dd24e3a3528b3d2b05c419be667ba155e"
+      },
+      {
+        "path": "assets/comparisons/move_scale-2.svg",
+        "sha256": "d33b83c7121d401f6741f6f520bd11c371a070809a11855072585f386b46fb05"
+      },
+      {
+        "path": "assets/comparisons/kierto-0.svg",
+        "sha256": "dac7b20e93109e6148a349c33aafec56e7a95e9b3ba353431138fafc6d8bc2f1"
+      },
+      {
+        "path": "assets/comparisons/kierto-1.svg",
+        "sha256": "a6f2cb89c554d71c76df6aca9589753cc4182c502333b981354ac279df7d4fd9"
+      },
+      {
+        "path": "assets/comparisons/kierto-2.svg",
+        "sha256": "dc08da4d094cc7dad319cfefa4fd4d66f381eed32a5aa24fb658a430bc46fb73"
+      },
+      {
+        "path": "assets/comparisons/hatch-0.svg",
+        "sha256": "ce15267ecc79776bb86d776d33af5c60bf2511f48218ab03167a3acd99f111bf"
+      },
+      {
+        "path": "assets/comparisons/hatch-1.svg",
+        "sha256": "21d39f132848ed8c9e7df40dd37d756b93014391a287edabbcab66833425e7e1"
+      },
+      {
+        "path": "assets/comparisons/hatch-2.svg",
+        "sha256": "e4fe322f6dc2d7db36915c586611c44afac12c93b0d92b827429c9ce070f984a"
+      },
+      {
+        "path": "assets/comparisons/container-0.svg",
+        "sha256": "5d19361a86e5f28420339a9c877265d44febe98add7c46eca476d2f7c66b2c96"
+      },
+      {
+        "path": "assets/comparisons/container-1.svg",
+        "sha256": "f21f40ddaa4f6633da4d04d8a2a0a7d7d168944d85886779e0e7b5ba331e2634"
+      },
+      {
+        "path": "assets/comparisons/container-2.svg",
+        "sha256": "59449f2ed8beedd7fc3a0b391d809b41bbd22a1d6db637040a92e2709ef9fc63"
+      },
+      {
+        "path": "assets/comparisons/satunnainen-0.svg",
+        "sha256": "d0e0cd57b4175e5d6b553c597d87700add50fcc47208ac66a5636737c5294390"
+      },
+      {
+        "path": "assets/comparisons/satunnainen-1.svg",
+        "sha256": "e82003228b089b087ee318a26eec50b93337c7d4474df779bd323a69da269ebf"
+      },
+      {
+        "path": "assets/comparisons/satunnainen-2.svg",
+        "sha256": "0be9c78f26f5b2d06f4ceb150b3d82679148299bab63ba56ea580d2205471afa"
+      },
+      {
+        "path": "assets/comparisons/matem-0.svg",
+        "sha256": "e3a64f6bda42bd34f94cab09cd92ee70a43856d471ce1855df325c28ff77dadb"
+      },
+      {
+        "path": "assets/comparisons/matem-1.svg",
+        "sha256": "cc0484836ab36aecf585704e2afaa03bc6a090e8a16df8d9027c7f42bd9eafbc"
+      },
+      {
+        "path": "assets/comparisons/matem-2.svg",
+        "sha256": "acc3b5d16b3d538d6d1cbb3b7dd5d866d6ce9360b7ca2d4df3809b9d882a0fd4"
+      },
+      {
+        "path": "examples/tutorial-first.muusia.json",
+        "sha256": "658658be0e38c0362ee3973900c8cf2d3fb9b5f967496bfb6e232063e4dc56e1"
+      },
+      {
+        "path": "examples/tutorial-stamps.muusia.json",
+        "sha256": "8f0fe90df7c78e7aeb4e3f7f22de7195d933fb67a5596e310c873de4e7c9095c"
+      },
+      {
+        "path": "examples/tutorial-two-pens.muusia.json",
+        "sha256": "bfedea602366526768a46c259b60590ba875e7a88a6012613ac786e45c9b09d6"
+      },
+      {
+        "path": "examples/tutorial-svg-workflow.muusia.json",
+        "sha256": "e968c8b6da958130ce8869e9927339b02255cde5febf7cddbe234d2886c2c1b7"
+      },
+      {
+        "path": "examples/tutorial-transform-fill.muusia.json",
+        "sha256": "3408b653bd50da9ad0cf0780f3baae481a7f1b34b2cf920eaba4b56828c75381"
+      },
+      {
+        "path": "examples/tutorial-numbers.muusia.json",
+        "sha256": "e707897ec9ee2b1737ff9dce72aaaa5fd8ecae310f6014617c845b3b91efbc76"
+      },
+      {
+        "path": "examples/tutorial-physical-plot.muusia.json",
+        "sha256": "15ebd55b8b7161642b77f84156aa3fde9bc71a5fb90d40b5bfbb33efdb48365f"
+      },
+      {
+        "path": "examples/satunnainen.muusia.json",
+        "sha256": "1950126db2dd67ee4b99c748e44d96d78d96e06412dcecbe8eeaa58dbad9124d"
+      },
+      {
+        "path": "examples/matem.muusia.json",
+        "sha256": "6dfd5159d45b4ed1117e27eee70972a889ed74de20a15860c62a3333dc4dad87"
+      },
+      {
+        "path": "examples/move_scale.muusia.json",
+        "sha256": "5110165065c3eee95b4756f78d12ec76a5f3bdcf7baed982c2946fb27158feae"
+      },
+      {
+        "path": "examples/kierto.muusia.json",
+        "sha256": "1847781016c5e87073b394b2aba786844319fdee675aa9f3e5c921440e716a03"
+      },
+      {
+        "path": "examples/hatch.muusia.json",
+        "sha256": "473137e926b536272fa2489192ac89bad22987606df411254b795132059b4252"
+      },
+      {
+        "path": "examples/container.muusia.json",
+        "sha256": "9361e281b0bb1333ad73526b1ad46adf56b0ae329e8cd4f29614a7d8b6713d16"
+      },
+      {
+        "path": "examples/grid.muusia.json",
+        "sha256": "755205b5acb7aae380d4905c489be2be0af101b90d0bcf167fbdf808e229323f"
+      },
+      {
+        "path": "examples/aaltoilu.muusia.json",
+        "sha256": "aac3bd1e015e8d5c5f58730a9fbf510a5ed842b2eae899987139385b5558c5dc"
+      },
+      {
+        "path": "examples/radat.muusia.json",
+        "sha256": "ac52c0a0176db62554e071e5b867fdb9c7bc127944e901e148e2c56c68c7c839"
+      },
+      {
+        "path": "examples/viiva.muusia.json",
+        "sha256": "8b2da62dfaea3c8502d407627ca72db014057a0f134effa4590ab988a44511ba"
+      },
+      {
+        "path": "examples/stamp.muusia.json",
+        "sha256": "6b0019136bf69984e040de6fb42bf8cf9aa6140392ce03703eb012ae526d53d2"
+      },
+      {
+        "path": "examples/setpen.muusia.json",
+        "sha256": "173c4b01751640e79642d3586cd5d8cf6139a37d01b078fcf2209daefb8b523e"
+      },
+      {
+        "path": "examples/merge.muusia.json",
+        "sha256": "bf88ef80650167c9a27db3750320c095d1e12e611bab25acaefbe0c6e13061dc"
+      },
+      {
+        "path": "examples/arvo.muusia.json",
+        "sha256": "6f9b2993874e53b390a3aa29752f2ac83a104cdc10534f7b309ec3c73998691c"
+      },
+      {
+        "path": "examples/frame.muusia.json",
+        "sha256": "47b2c73975654622996c433e9d64a4383fd776ab2c934d33921bbfe8237c2a0e"
+      },
+      {
+        "path": "examples/image.muusia.json",
+        "sha256": "e203dfc2b41a6f477f910d9dae8818ef4550384243c1edb2e43a665119759182"
+      },
+      {
+        "path": "examples/polystudio.muusia.json",
+        "sha256": "41dfcc0f238c71892eeb491980bb11691a3983b0fdf954478cd1e6604801cb33"
+      },
+      {
+        "path": "examples/travelsort.muusia.json",
+        "sha256": "ed6cbb296afc2251524eeb46ad7e557a0551d109f6e7e8400619137067c9eb90"
+      },
+      {
+        "path": "examples/blank.muusia.json",
+        "sha256": "bbf766048520aee8a2aebb105bed586f6ce38d377bd5086cd3338dd0e844564a"
+      },
+      {
+        "path": "assets/results/grid.svg",
+        "sha256": "0fa232c5cccf2689dfbcd27f4fd0fb1d17d1550e0ca43ec6fc4b3f26ad8f6f42"
+      },
+      {
+        "path": "assets/results/aaltoilu.svg",
+        "sha256": "1b32eb27cd4e09439b7d66f5e099e29502eb13bdfa948afdc2d1ff46d6778114"
+      },
+      {
+        "path": "assets/results/radat.svg",
+        "sha256": "3cef29b490d96ac53ef04b42ebea55b5b49a9ece8aece243f22dce85929c3686"
+      },
+      {
+        "path": "assets/results/viiva.svg",
+        "sha256": "f4b9592d0f2219ec0e647a5440877d5fb1a91419c0b43905dc21f8934bb078c3"
+      },
+      {
+        "path": "assets/results/stamp.svg",
+        "sha256": "91040f6fb5865f4d688ccb32b82934821944f46f8713c49b4be6a309aa5a47f8"
+      },
+      {
+        "path": "assets/results/setpen.svg",
+        "sha256": "81ce00bbfba2ff34dfcb895ce836fd4a5cb99b0970a23086f611067c9a4a74b2"
+      },
+      {
+        "path": "assets/results/merge.svg",
+        "sha256": "7c793edaf83d53b665e11eaa37e85026750518ad69045caf32fbdc43893bc81a"
+      },
+      {
+        "path": "assets/results/arvo.svg",
+        "sha256": "5d9af9ac2fae25d67c6e23e76b0771502a030fa422b00472d95ccfd1ceff1dee"
+      },
+      {
+        "path": "assets/results/frame.svg",
+        "sha256": "08314efd5f64309db916a763b6f9a9ebdf3b5459967dd199a9cb1cb9c1e88d6a"
+      },
+      {
+        "path": "assets/results/image.svg",
+        "sha256": "ca9022703d5ee3d9143f0e76251b1b3386fbd7b1a4f85e0e7b7fe6d1df04560e"
+      },
+      {
+        "path": "assets/results/polystudio.svg",
+        "sha256": "5c1fa636e3f4405e46d49375eafe51a1f3091bc3064592388c59e93b23a633a8"
+      },
+      {
+        "path": "assets/results/travelsort.svg",
+        "sha256": "c094e52c356f058c1e84a21c3a30c43e426f4bb5534cc4014373cb563678acfe"
+      },
+      {
+        "path": "assets/results/move_scale.svg",
+        "sha256": "77bd490e5164fb6521f89ff53a02cc16e8d9e5b470e4759aa42fb9f494cdd336"
+      },
+      {
+        "path": "assets/results/kierto.svg",
+        "sha256": "39236fb05acfdf86e56d8238703924df21e76034c8362d6af4173f4a3b674559"
+      },
+      {
+        "path": "assets/results/hatch.svg",
+        "sha256": "2054f746b57631c0bf106d041f36f91a18a8bae0a52e99775de272420d0f00cc"
+      },
+      {
+        "path": "assets/results/container.svg",
+        "sha256": "7c72e476934b4e0d64c6249d184497726221edc8374b5ea6d1c92a57db0c0cd6"
+      },
+      {
+        "path": "assets/results/satunnainen.svg",
+        "sha256": "7c473a58c47610f49d21b465216616826665a4ef0eef736245b1d15fb102a44e"
+      },
+      {
+        "path": "assets/results/matem.svg",
+        "sha256": "549bd3907ab83820c0f907e3ca9977cfc7619f3537fed99c3821b2a325d17654"
+      },
+      {
+        "path": "assets/results/tutorial-first.svg",
+        "sha256": "5bee087fc1a03f724de77e62e600d670231369b093bfb2167c1060953f1b4f44"
+      },
+      {
+        "path": "assets/results/tutorial-first-step-1.svg",
+        "sha256": "7864d107615ea66ef3e79fe026de1b2fcfdc19185a88a7e1cc968bff76793ff8"
+      },
+      {
+        "path": "assets/results/tutorial-first-step-2.svg",
+        "sha256": "f00b298efcdad22761f56a4b430eef8de2dfd791036e98c8707048d4a8a36a11"
+      },
+      {
+        "path": "assets/results/tutorial-stamps.svg",
+        "sha256": "de9f3a16665e78d9f4eac1cf995bc50977fb96761b3f8654f50621dd3d0ccdb0"
+      },
+      {
+        "path": "assets/results/tutorial-stamps-step-1.svg",
+        "sha256": "8290b18998ad4df905b47f979efd449d59c92a056e1c6582994de5dde0547a09"
+      },
+      {
+        "path": "assets/results/tutorial-stamps-step-2.svg",
+        "sha256": "4691a767b69a5f1f66e46a52591db48bcd972c29d179b7533932b961b1166201"
+      },
+      {
+        "path": "assets/results/tutorial-two-pens.svg",
+        "sha256": "cbef6aef7402348a39c0f840260c97a69fe0edfbf45dde8985604023beb2d0ac"
+      },
+      {
+        "path": "assets/results/tutorial-two-pens-step-1.svg",
+        "sha256": "9e884bdecaffade689a9b7b5a61d00cf92fdbdfbd5da17b6e47289f31c9c5e21"
+      },
+      {
+        "path": "assets/results/tutorial-two-pens-step-2.svg",
+        "sha256": "d9ed18224cf51ae6da5d8737cf8b463dd24430c571cb74eb048b4a8bad3d14d0"
+      },
+      {
+        "path": "assets/results/tutorial-two-pens-step-3.svg",
+        "sha256": "a375c8ab64b34c3d80c91517a3ee64458f4d0a3de99b12403de8c18f015f8119"
+      },
+      {
+        "path": "assets/results/tutorial-svg-workflow.svg",
+        "sha256": "b4a51338fa1f466829fe870cfe82c23a4fdb80f09d0bd9ceac4c1b6726e66973"
+      },
+      {
+        "path": "assets/results/tutorial-svg-workflow-step-1.svg",
+        "sha256": "61b41bd0522a59d5fd7236dc839e08b626afbd1f632608409d8b102e59ab7ffc"
+      },
+      {
+        "path": "assets/results/tutorial-svg-workflow-step-2.svg",
+        "sha256": "7b6e6f33faaa6fbb08ded8f3cd9cc37facc92a28f324f0537c39569205623a7b"
+      },
+      {
+        "path": "assets/results/tutorial-svg-workflow-step-3.svg",
+        "sha256": "c50864453986c63554bfd236ab8c147f21065a90ce6260f2a25cfe5b2a8663aa"
+      },
+      {
+        "path": "assets/results/tutorial-transform-fill.svg",
+        "sha256": "6bd0bb629a0573674c0df34715998b77c7303b6f230d3b13dca00ded6be90f1a"
+      },
+      {
+        "path": "assets/results/tutorial-transform-fill-step-1.svg",
+        "sha256": "8bf3f357ebe6d5cb7d2b76dab7ed5fea08614a391f76e3a725e7cb16cfae69ce"
+      },
+      {
+        "path": "assets/results/tutorial-transform-fill-step-2.svg",
+        "sha256": "fd65f45bd4f7749be560a03b1c24663d84652f2a3f78605c9de57d9a5cdd5f3e"
+      },
+      {
+        "path": "assets/results/tutorial-transform-fill-step-3.svg",
+        "sha256": "63ef5cd993c2f0f08be3f2c752d42dfc7ed9b8b1962a33d904c5fb9d6ff34a72"
+      },
+      {
+        "path": "assets/results/tutorial-transform-fill-step-4.svg",
+        "sha256": "c7b96054a2429039a43fea09521d71a87645bc2c672395af8caa6703af979bb2"
+      },
+      {
+        "path": "assets/results/tutorial-transform-fill-step-5.svg",
+        "sha256": "406e5435d8c578c0f84b6160110a6251859ae3f17aa36907fbc4c2acd3fca3c7"
+      },
+      {
+        "path": "assets/results/tutorial-numbers.svg",
+        "sha256": "55b2d90f1ed542056b28100784c13cc9dd007d97f477d48e8a9e5b95b8e435e1"
+      },
+      {
+        "path": "assets/results/tutorial-numbers-step-1.svg",
+        "sha256": "5edaeb9b2840387bad9f4e77749e381225f81c212fbaf4468f0d5dd440fe13f4"
+      },
+      {
+        "path": "assets/results/tutorial-numbers-step-2.svg",
+        "sha256": "169f22e0b81cfbf85cb83cb7220b8c41f9f1147212bd763bdd49582863bf52ac"
+      },
+      {
+        "path": "assets/results/tutorial-numbers-step-3.svg",
+        "sha256": "d22732b1156c04a00f86945d38e68d6292a3754a21022fe65987ed8860aa0359"
+      },
+      {
+        "path": "assets/results/tutorial-physical-plot.svg",
+        "sha256": "0d572b958e327e5324d46a46d93c477c0957b38d433add4dcd81607edceb4a5b"
+      },
+      {
+        "path": "assets/results/tutorial-physical-plot-step-1.svg",
+        "sha256": "e245957da86c1bad6e6f5c50d02d13b4c2b20e4405f4bebfbe7247d2898aab88"
+      },
+      {
+        "path": "assets/results/tutorial-physical-plot-step-2.svg",
+        "sha256": "453ce7dd23f9eba06e2a19b8c18cab076e79c9cb52bc7e01a250e5523c9b9b48"
+      },
+      {
+        "path": "assets/results/tutorial-physical-plot-step-3.svg",
+        "sha256": "3df317e3ddd28d69b912c27a4a4e29a3695f30032f97461f852722ee14449dea"
+      },
+      {
+        "path": "assets/details/physical-plot.svg",
+        "sha256": "1451898feb58c50ba15280292020bc6dbdba4f41785287d47d4caa123d1ed8f5"
+      },
+      {
+        "path": "assets/source/tonal-shapes.png",
+        "sha256": "1025bb95f687058521996306845b1f9d4a618c4acd244f0d61bd6dc59ca2f442"
+      },
+      {
+        "path": "assets/source/README.md",
+        "sha256": "d31c82051d91e31033f7b8c13d2b00b2843cb66f446bddf8c03851fb0523c9fd"
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "key": "grid",
+      "name": "Grid",
+      "category": "Generators",
+      "categoryKey": "gen",
+      "group": "Geometric",
+      "groupKey": "geometric",
+      "params": [
+        {
+          "key": "vlines",
+          "label": "Vertical lines",
+          "type": "slider",
+          "min": 0,
+          "max": 60,
+          "step": 1,
+          "def": 13,
+          "default": 13,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "hlines",
+          "label": "Horizontal lines",
+          "type": "slider",
+          "min": 0,
+          "max": 60,
+          "step": 1,
+          "def": 10,
+          "default": 10,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "margin",
+          "label": "Margin mm",
+          "type": "slider",
+          "min": 0,
+          "max": 60,
+          "step": 1,
+          "def": 15,
+          "default": 15,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "res",
+          "label": "Resolution mm",
+          "type": "slider",
+          "min": 0.5,
+          "max": 10,
+          "step": 0.5,
+          "def": 2,
+          "default": 2,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layer",
+          "label": "Pen",
+          "type": "pen",
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "style",
+          "label": "Style"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/grid.muusia.json",
+      "output": "assets/results/grid.svg",
+      "screenshot": "assets/screenshots/grid.png",
+      "comparisons": [
+        {
+          "label": "8 horizontal lines",
+          "src": "assets/comparisons/grid-0.svg",
+          "stats": {
+            "paths": 8,
+            "points": 1008,
+            "drawingMm": 1992,
+            "travelMm": 1784.5
+          }
+        },
+        {
+          "label": "16 horizontal lines",
+          "src": "assets/comparisons/grid-1.svg",
+          "stats": {
+            "paths": 16,
+            "points": 2016,
+            "drawingMm": 3984,
+            "travelMm": 3772.5
+          }
+        },
+        {
+          "label": "24 horizontal lines",
+          "src": "assets/comparisons/grid-2.svg",
+          "stats": {
+            "paths": 24,
+            "points": 3024,
+            "drawingMm": 5976,
+            "travelMm": 5763.2
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 0
+            }
+          }
+        ],
+        "edges": [],
+        "outputId": 9001
+      },
+      "exampleParams": {
+        "vlines": 0,
+        "hlines": 24,
+        "margin": 24,
+        "res": 2,
+        "layer": 0
+      },
+      "outputId": 9001,
+      "stats": {
+        "paths": 24,
+        "points": 3024,
+        "drawingMm": 5976,
+        "travelMm": 5763.2
+      }
+    },
+    {
+      "key": "aaltoilu",
+      "name": "Wave",
+      "category": "Modifiers",
+      "categoryKey": "mod",
+      "group": "Deform",
+      "groupKey": "deform",
+      "params": [
+        {
+          "key": "amp",
+          "label": "Amplitude mm",
+          "type": "slider",
+          "min": 0,
+          "max": 20,
+          "step": 0.25,
+          "def": 3,
+          "default": 3,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "wl",
+          "label": "Wavelength mm",
+          "type": "slider",
+          "min": 2,
+          "max": 120,
+          "step": 1,
+          "def": 30,
+          "default": 30,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "phase",
+          "label": "Phase",
+          "type": "slider",
+          "min": 0,
+          "max": 6.28,
+          "step": 0.05,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/aaltoilu.muusia.json",
+      "output": "assets/results/aaltoilu.svg",
+      "screenshot": "assets/screenshots/aaltoilu.png",
+      "comparisons": [
+        {
+          "label": "Amplitude 0 mm",
+          "src": "assets/comparisons/aaltoilu-0.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 5976,
+            "travelMm": 5763.2
+          }
+        },
+        {
+          "label": "Amplitude 4 mm",
+          "src": "assets/comparisons/aaltoilu-1.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 6413.3,
+            "travelMm": 5763.8
+          }
+        },
+        {
+          "label": "Amplitude 8 mm",
+          "src": "assets/comparisons/aaltoilu-2.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 7528.2,
+            "travelMm": 5764.4
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 0
+            }
+          },
+          {
+            "id": 9002,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9002
+      },
+      "exampleParams": {
+        "amp": 4,
+        "wl": 45,
+        "phase": 0
+      },
+      "outputId": 9002,
+      "stats": {
+        "paths": 24,
+        "points": 1896,
+        "drawingMm": 6413.3,
+        "travelMm": 5763.8
+      }
+    },
+    {
+      "key": "radat",
+      "name": "Tracks",
+      "category": "Generators",
+      "categoryKey": "gen",
+      "group": "Geometric",
+      "groupKey": "geometric",
+      "params": [
+        {
+          "key": "rings",
+          "label": "Loops",
+          "type": "slider",
+          "min": 1,
+          "max": 30,
+          "step": 1,
+          "def": 10,
+          "default": 10,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "gap",
+          "label": "Gap mm",
+          "type": "slider",
+          "min": 1,
+          "max": 20,
+          "step": 0.5,
+          "def": 6,
+          "default": 6,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "wob",
+          "label": "Shape noise",
+          "type": "slider",
+          "min": 0,
+          "max": 30,
+          "step": 0.5,
+          "def": 8,
+          "default": 8,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "drift",
+          "label": "Drift",
+          "type": "slider",
+          "min": 0,
+          "max": 20,
+          "step": 0.5,
+          "def": 4,
+          "default": 4,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "seed",
+          "def": 7,
+          "default": 7,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layer",
+          "label": "Pen",
+          "type": "pen",
+          "def": 1,
+          "default": 1,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "style",
+          "label": "Style"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/radat.muusia.json",
+      "output": "assets/results/radat.svg",
+      "screenshot": "assets/screenshots/radat.png",
+      "comparisons": [
+        {
+          "label": "Shape noise 0",
+          "src": "assets/comparisons/radat-0.svg",
+          "stats": {
+            "paths": 12,
+            "points": 917,
+            "drawingMm": 5501.8,
+            "travelMm": 374.8
+          }
+        },
+        {
+          "label": "Shape noise 4",
+          "src": "assets/comparisons/radat-1.svg",
+          "stats": {
+            "paths": 12,
+            "points": 917,
+            "drawingMm": 5427.2,
+            "travelMm": 375.9
+          }
+        },
+        {
+          "label": "Shape noise 12",
+          "src": "assets/comparisons/radat-2.svg",
+          "stats": {
+            "paths": 12,
+            "points": 917,
+            "drawingMm": 5326.2,
+            "travelMm": 378
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 12,
+              "gap": 6,
+              "wob": 4,
+              "drift": 2,
+              "seed": 7,
+              "layer": 1
+            }
+          }
+        ],
+        "edges": [],
+        "outputId": 9001
+      },
+      "exampleParams": {
+        "rings": 12,
+        "gap": 6,
+        "wob": 4,
+        "drift": 2,
+        "seed": 7,
+        "layer": 1
+      },
+      "outputId": 9001,
+      "stats": {
+        "paths": 12,
+        "points": 917,
+        "drawingMm": 5427.2,
+        "travelMm": 375.9
+      }
+    },
+    {
+      "key": "viiva",
+      "name": "Stroke",
+      "category": "Generators",
+      "categoryKey": "gen",
+      "group": "Text & Image",
+      "groupKey": "textimg",
+      "params": [
+        {
+          "key": "mode",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            "Solid",
+            "Dashed",
+            "Dots",
+            "Dash-dot"
+          ],
+          "def": "Dashed",
+          "default": "Dashed",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "dash",
+          "label": "Dash mm",
+          "type": "slider",
+          "min": 0.5,
+          "max": 30,
+          "step": 0.25,
+          "def": 4,
+          "default": 4,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "gap",
+          "label": "Gap mm",
+          "type": "slider",
+          "min": 0.3,
+          "max": 30,
+          "step": 0.25,
+          "def": 3,
+          "default": 3,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "vary",
+          "label": "Variation",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "phase",
+          "label": "Phase mm",
+          "type": "slider",
+          "min": 0,
+          "max": 30,
+          "step": 0.5,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "seed",
+          "def": 4,
+          "default": 4,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "style"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/viiva.muusia.json",
+      "output": "assets/results/viiva.svg",
+      "screenshot": "assets/screenshots/viiva.png",
+      "comparisons": [
+        {
+          "label": "Solid",
+          "src": "assets/comparisons/viiva-0.svg",
+          "stats": {
+            "paths": 14,
+            "points": 1764,
+            "drawingMm": 3486,
+            "travelMm": 3275
+          }
+        },
+        {
+          "label": "Dashed",
+          "src": "assets/comparisons/viiva-1.svg",
+          "stats": {
+            "paths": 168,
+            "points": 4704,
+            "drawingMm": 2688,
+            "travelMm": 4019
+          }
+        },
+        {
+          "label": "Dots",
+          "src": "assets/comparisons/viiva-2.svg",
+          "stats": {
+            "paths": 686,
+            "points": 1372,
+            "drawingMm": 96,
+            "travelMm": 6607.2
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "viiva",
+            "name": "Stroke",
+            "params": {
+              "mode": "Dashed",
+              "dash": 16,
+              "gap": 5,
+              "vary": 0,
+              "phase": 0,
+              "seed": 4
+            }
+          },
+          {
+            "id": 9002,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 14,
+              "margin": 24,
+              "res": 2,
+              "layer": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9002
+      },
+      "exampleParams": {
+        "mode": "Dashed",
+        "dash": 16,
+        "gap": 5,
+        "vary": 0,
+        "phase": 0,
+        "seed": 4
+      },
+      "outputId": 9002,
+      "stats": {
+        "paths": 168,
+        "points": 4704,
+        "drawingMm": 2688,
+        "travelMm": 4019
+      }
+    },
+    {
+      "key": "stamp",
+      "name": "Stamp",
+      "category": "Decorators",
+      "categoryKey": "dec",
+      "group": "Decorators",
+      "groupKey": "dec",
+      "params": [
+        {
+          "key": "spacing",
+          "label": "Spacing mm",
+          "type": "slider",
+          "min": 2,
+          "max": 60,
+          "step": 0.5,
+          "def": 10,
+          "default": 10,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "size",
+          "label": "Size mm",
+          "type": "slider",
+          "min": 0.5,
+          "max": 25,
+          "step": 0.25,
+          "def": 3,
+          "default": 3,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "sizeMod",
+          "label": "Size modulation",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "pathVar",
+          "label": "Per-path variation",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 1,
+          "default": 1,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "motif",
+          "label": "Motif (if unwired)",
+          "type": "select",
+          "options": [
+            "Circle",
+            "Square",
+            "Triangle",
+            "Line"
+          ],
+          "def": "Circle",
+          "default": "Circle",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "orientMode",
+          "label": "Orientation",
+          "type": "select",
+          "options": [
+            "Fixed",
+            "Along path",
+            "Perpendicular"
+          ],
+          "def": "Fixed",
+          "default": "Fixed",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "angle",
+          "label": "Angle °",
+          "type": "slider",
+          "min": -180,
+          "max": 180,
+          "step": 1,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "host",
+          "label": "Include host path",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "keepCol",
+          "label": "Keep motif colors",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "seed",
+          "def": 2,
+          "default": 2,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layer",
+          "label": "Motif pen",
+          "type": "pen",
+          "def": 3,
+          "default": 3,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "paths",
+          "label": "Host path"
+        },
+        {
+          "type": "paths",
+          "label": "Motif"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/stamp.muusia.json",
+      "output": "assets/results/stamp.svg",
+      "screenshot": "assets/screenshots/stamp.png",
+      "comparisons": [
+        {
+          "label": "Size 1.5 mm",
+          "src": "assets/comparisons/stamp-0.svg",
+          "stats": {
+            "paths": 792,
+            "points": 8866,
+            "drawingMm": 6217.2,
+            "travelMm": 9985.9
+          }
+        },
+        {
+          "label": "Size 2.5 mm",
+          "src": "assets/comparisons/stamp-1.svg",
+          "stats": {
+            "paths": 792,
+            "points": 8866,
+            "drawingMm": 7589,
+            "travelMm": 10041.6
+          }
+        },
+        {
+          "label": "Size 5 mm",
+          "src": "assets/comparisons/stamp-2.svg",
+          "stats": {
+            "paths": 792,
+            "points": 8866,
+            "drawingMm": 11018.5,
+            "travelMm": 10241.6
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "viiva",
+            "name": "Stroke",
+            "params": {
+              "mode": "Dashed",
+              "dash": 16,
+              "gap": 5,
+              "vary": 0,
+              "phase": 0,
+              "seed": 4
+            }
+          },
+          {
+            "id": 9002,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 12,
+              "gap": 6,
+              "wob": 4,
+              "drift": 2,
+              "seed": 7,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9003,
+            "key": "stamp",
+            "name": "Stamp",
+            "params": {
+              "spacing": 18,
+              "size": 2.5,
+              "sizeMod": 0,
+              "pathVar": 1,
+              "motif": "Triangle",
+              "orientMode": "Along path",
+              "angle": 0,
+              "host": true,
+              "keepCol": false,
+              "seed": 6727,
+              "layer": 3
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290030",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9003,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9003
+      },
+      "exampleParams": {
+        "spacing": 18,
+        "size": 2.5,
+        "sizeMod": 0,
+        "pathVar": 1,
+        "motif": "Triangle",
+        "orientMode": "Along path",
+        "angle": 0,
+        "host": true,
+        "keepCol": false,
+        "seed": 6727,
+        "layer": 3
+      },
+      "outputId": 9003,
+      "stats": {
+        "paths": 792,
+        "points": 8866,
+        "drawingMm": 7589,
+        "travelMm": 10041.6
+      }
+    },
+    {
+      "key": "setpen",
+      "name": "Set Pen",
+      "category": "Modifiers",
+      "categoryKey": "mod",
+      "group": "Pen & Output",
+      "groupKey": "penout",
+      "params": [
+        {
+          "key": "mode",
+          "label": "Recolor",
+          "type": "select",
+          "options": [
+            "All",
+            "Single"
+          ],
+          "def": "All",
+          "default": "All",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "from",
+          "label": "From pen (Single)",
+          "type": "pen",
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layer",
+          "label": "To pen",
+          "type": "pen",
+          "def": 1,
+          "default": 1,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "paths",
+          "label": "Paths"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/setpen.muusia.json",
+      "output": "assets/results/setpen.svg",
+      "screenshot": "assets/screenshots/setpen.png",
+      "comparisons": [
+        {
+          "label": "Input · Blue and Red pens",
+          "src": "assets/comparisons/setpen-0.svg",
+          "stats": {
+            "paths": 36,
+            "points": 2813,
+            "drawingMm": 11840.6,
+            "travelMm": 5928.9
+          }
+        },
+        {
+          "label": "Recolor All → pen 0 · Black",
+          "src": "assets/comparisons/setpen-1.svg",
+          "stats": {
+            "paths": 36,
+            "points": 2813,
+            "drawingMm": 11840.6,
+            "travelMm": 5928.9
+          }
+        },
+        {
+          "label": "Recolor All → pen 3 · Green",
+          "src": "assets/comparisons/setpen-2.svg",
+          "stats": {
+            "paths": 36,
+            "points": 2813,
+            "drawingMm": 11840.6,
+            "travelMm": 5928.9
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          },
+          {
+            "id": 9004,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 12,
+              "gap": 6,
+              "wob": 4,
+              "drift": 2,
+              "seed": 7,
+              "layer": 2
+            }
+          },
+          {
+            "id": 9006,
+            "key": "merge",
+            "name": "Merge",
+            "params": {
+              "count": 2,
+              "penPer": false
+            }
+          },
+          {
+            "id": 9007,
+            "key": "setpen",
+            "name": "Set Pen",
+            "params": {
+              "mode": "All",
+              "from": 0,
+              "layer": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290060",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9006,
+            "toPort": 0
+          },
+          {
+            "id": "e900490061",
+            "from": 9004,
+            "fromPort": 0,
+            "to": 9006,
+            "toPort": 1
+          },
+          {
+            "id": "e900690070",
+            "from": 9006,
+            "fromPort": 0,
+            "to": 9007,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9007
+      },
+      "exampleParams": {
+        "mode": "All",
+        "from": 0,
+        "layer": 0
+      },
+      "outputId": 9007,
+      "stats": {
+        "paths": 36,
+        "points": 2813,
+        "drawingMm": 11840.6,
+        "travelMm": 5928.9
+      }
+    },
+    {
+      "key": "merge",
+      "name": "Merge",
+      "category": "Combiners",
+      "categoryKey": "duo",
+      "group": "Combiners",
+      "groupKey": "duo",
+      "params": [
+        {
+          "key": "count",
+          "label": "Inputs",
+          "type": "slider",
+          "min": 2,
+          "max": 6,
+          "step": 1,
+          "def": 2,
+          "default": 2,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "penPer",
+          "label": "Pen change per input",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "paths",
+          "label": "1"
+        },
+        {
+          "type": "paths",
+          "label": "2"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": true,
+      "inputsNote": "Inputs evaluated with the example node parameters; changing Inputs changes the number of sockets.",
+      "example": "examples/merge.muusia.json",
+      "output": "assets/results/merge.svg",
+      "screenshot": "assets/screenshots/merge.png",
+      "comparisons": [
+        {
+          "label": "Blue branch · Grid’s Pen setting",
+          "src": "assets/comparisons/merge-0.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 6413.3,
+            "travelMm": 5763.8
+          }
+        },
+        {
+          "label": "Red branch · Tracks’ Pen setting",
+          "src": "assets/comparisons/merge-1.svg",
+          "stats": {
+            "paths": 12,
+            "points": 917,
+            "drawingMm": 5427.2,
+            "travelMm": 375.9
+          }
+        },
+        {
+          "label": "Both branches merged",
+          "src": "assets/comparisons/merge-2.svg",
+          "stats": {
+            "paths": 36,
+            "points": 2813,
+            "drawingMm": 11840.6,
+            "travelMm": 5928.9
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          },
+          {
+            "id": 9004,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 12,
+              "gap": 6,
+              "wob": 4,
+              "drift": 2,
+              "seed": 7,
+              "layer": 2
+            }
+          },
+          {
+            "id": 9006,
+            "key": "merge",
+            "name": "Merge",
+            "params": {
+              "count": 2,
+              "penPer": false
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290060",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9006,
+            "toPort": 0
+          },
+          {
+            "id": "e900490061",
+            "from": 9004,
+            "fromPort": 0,
+            "to": 9006,
+            "toPort": 1
+          }
+        ],
+        "outputId": 9006
+      },
+      "exampleParams": {
+        "count": 2,
+        "penPer": false
+      },
+      "outputId": 9006,
+      "stats": {
+        "paths": 36,
+        "points": 2813,
+        "drawingMm": 11840.6,
+        "travelMm": 5928.9
+      }
+    },
+    {
+      "key": "arvo",
+      "name": "Value",
+      "category": "Math",
+      "categoryKey": "math",
+      "group": "Math",
+      "groupKey": "math",
+      "params": [
+        {
+          "key": "v",
+          "label": "Value",
+          "type": "slider",
+          "min": -100,
+          "max": 100,
+          "step": 0.5,
+          "def": 4,
+          "default": 4,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "value"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/arvo.muusia.json",
+      "output": "assets/results/arvo.svg",
+      "screenshot": "assets/screenshots/arvo.png",
+      "comparisons": [
+        {
+          "label": "Value 0 → amplitude 0 mm",
+          "src": "assets/comparisons/arvo-0.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 5976,
+            "travelMm": 5763.2
+          }
+        },
+        {
+          "label": "Value 4 → amplitude 4 mm",
+          "src": "assets/comparisons/arvo-1.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 6413.3,
+            "travelMm": 5763.8
+          }
+        },
+        {
+          "label": "Value 10 → amplitude 10 mm",
+          "src": "assets/comparisons/arvo-2.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 8242.1,
+            "travelMm": 5764.8
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 0
+            }
+          },
+          {
+            "id": 9002,
+            "key": "arvo",
+            "name": "Value",
+            "params": {
+              "v": 4
+            }
+          },
+          {
+            "id": 9003,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190030",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9003,
+            "toPort": 0
+          },
+          {
+            "id": "e90029003pamp",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9003,
+            "toPort": "p:amp"
+          }
+        ],
+        "outputId": 9003
+      },
+      "exampleParams": {
+        "v": 4
+      },
+      "outputId": 9003,
+      "stats": {
+        "paths": 24,
+        "points": 1896,
+        "drawingMm": 6413.3,
+        "travelMm": 5763.8
+      }
+    },
+    {
+      "key": "frame",
+      "name": "Frame",
+      "category": "Math",
+      "categoryKey": "math",
+      "group": "Math",
+      "groupKey": "math",
+      "params": [],
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "value",
+          "label": "t 0→1"
+        },
+        {
+          "type": "value",
+          "label": "frame #"
+        },
+        {
+          "type": "value",
+          "label": "wave loop"
+        },
+        {
+          "type": "value",
+          "label": "ping-pong"
+        },
+        {
+          "type": "value",
+          "label": "rot °"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/frame.muusia.json",
+      "output": "assets/results/frame.svg",
+      "screenshot": "assets/screenshots/frame.png",
+      "comparisons": [
+        {
+          "label": "Frame 1 of 12 · 0°",
+          "src": "assets/comparisons/frame-0.svg",
+          "stats": {
+            "paths": 18,
+            "points": 72,
+            "drawingMm": 3394.6,
+            "travelMm": 550.1
+          },
+          "frameIdx": 0,
+          "frameCount": 12
+        },
+        {
+          "label": "Frame 2 of 12 · 30°",
+          "src": "assets/comparisons/frame-1.svg",
+          "stats": {
+            "paths": 22,
+            "points": 88,
+            "drawingMm": 3867.3,
+            "travelMm": 694.3
+          },
+          "frameIdx": 1,
+          "frameCount": 12
+        },
+        {
+          "label": "Frame 3 of 12 · 60°",
+          "src": "assets/comparisons/frame-2.svg",
+          "stats": {
+            "paths": 21,
+            "points": 84,
+            "drawingMm": 3869.2,
+            "travelMm": 550.7
+          },
+          "frameIdx": 2,
+          "frameCount": 12
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "frame",
+            "name": "Frame",
+            "params": {}
+          },
+          {
+            "id": 9002,
+            "key": "polystudio",
+            "name": "Polyhedron Studio",
+            "params": {
+              "shape": "Cube",
+              "sides": 6,
+              "freq": 2,
+              "size": 145,
+              "x": 50,
+              "y": 50,
+              "rx": -22,
+              "ry": 32,
+              "rz": 0,
+              "persp": 0.35,
+              "vis": "Solid (hide back)",
+              "fill": "Concentric inset",
+              "step": 3,
+              "hatchAng": 30,
+              "dotSize": 1,
+              "inset": 1.5,
+              "edges": true,
+              "stellate": 0,
+              "explode": 0,
+              "depthCue": 0,
+              "evenDensity": true,
+              "layer": 1,
+              "pen2": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e90019002pry",
+            "from": 9001,
+            "fromPort": 4,
+            "to": 9002,
+            "toPort": "p:ry"
+          }
+        ],
+        "outputId": 9002
+      },
+      "exampleParams": {},
+      "outputId": 9002,
+      "stats": {
+        "paths": 22,
+        "points": 88,
+        "drawingMm": 3867.3,
+        "travelMm": 694.3
+      },
+      "frameNote": "Set Frames to 12 in the animation controls. The patch file does not save animation settings. Frame 2 of 12 is pictured.",
+      "frameCount": 12,
+      "frameIdx": 1
+    },
+    {
+      "key": "image",
+      "name": "Image",
+      "category": "Generators",
+      "categoryKey": "gen",
+      "group": "Text & Image",
+      "groupKey": "textimg",
+      "params": [
+        {
+          "key": "file",
+          "label": "Image (PNG/JPG)",
+          "type": "file",
+          "def": "",
+          "default": "",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "mode",
+          "label": "Render",
+          "type": "select",
+          "options": [
+            "Scanline wave",
+            "Halftone dots",
+            "Hatch levels",
+            "Flow shade",
+            "Contours (trace)"
+          ],
+          "def": "Scanline wave",
+          "default": "Scanline wave",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "cell",
+          "label": "Cell / spacing mm",
+          "type": "slider",
+          "min": 0.8,
+          "max": 12,
+          "step": 0.1,
+          "def": 2.4,
+          "default": 2.4,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "strength",
+          "label": "Strength",
+          "type": "slider",
+          "min": 0.1,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.8,
+          "default": 0.8,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "gamma",
+          "label": "Gamma",
+          "type": "slider",
+          "min": 0.3,
+          "max": 3,
+          "step": 0.05,
+          "def": 1,
+          "default": 1,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "cutoff",
+          "label": "White cutoff",
+          "type": "slider",
+          "min": 0,
+          "max": 0.5,
+          "step": 0.01,
+          "def": 0.06,
+          "default": 0.06,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "invert",
+          "label": "Invert",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "levels",
+          "label": "Contour levels",
+          "type": "slider",
+          "min": 1,
+          "max": 6,
+          "step": 1,
+          "def": 3,
+          "default": 3,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "low",
+          "label": "Lowest threshold",
+          "type": "slider",
+          "min": 0.05,
+          "max": 0.9,
+          "step": 0.05,
+          "def": 0.25,
+          "default": 0.25,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "high",
+          "label": "Highest threshold",
+          "type": "slider",
+          "min": 0.1,
+          "max": 0.95,
+          "step": 0.05,
+          "def": 0.75,
+          "default": 0.75,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "minlen",
+          "label": "Min contour mm",
+          "type": "slider",
+          "min": 0,
+          "max": 30,
+          "step": 1,
+          "def": 5,
+          "default": 5,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "margin",
+          "label": "Margin mm",
+          "type": "slider",
+          "min": 0,
+          "max": 60,
+          "step": 1,
+          "def": 12,
+          "default": 12,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "seed",
+          "def": 139,
+          "default": 139,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layer",
+          "label": "Pen",
+          "type": "pen",
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "style",
+          "label": "Style"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/image.muusia.json",
+      "output": "assets/results/image.svg",
+      "screenshot": "assets/screenshots/image.png",
+      "comparisons": [
+        {
+          "label": "Scanline wave",
+          "src": "assets/comparisons/image-0.svg",
+          "stats": {
+            "paths": 93,
+            "points": 23478,
+            "drawingMm": 16319.5,
+            "travelMm": 8881.6
+          }
+        },
+        {
+          "label": "Halftone dots",
+          "src": "assets/comparisons/image-1.svg",
+          "stats": {
+            "paths": 3319,
+            "points": 19938,
+            "drawingMm": 10090.9,
+            "travelMm": 16358.5
+          }
+        },
+        {
+          "label": "Hatch levels",
+          "src": "assets/comparisons/image-2.svg",
+          "stats": {
+            "paths": 279,
+            "points": 27164,
+            "drawingMm": 13442.5,
+            "travelMm": 16463.9
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "image",
+            "name": "Image",
+            "params": {
+              "file": "tonal-shapes.png",
+              "mode": "Scanline wave",
+              "cell": 2.4,
+              "strength": 0.8,
+              "gamma": 1,
+              "cutoff": 0.06,
+              "invert": false,
+              "levels": 3,
+              "low": 0.25,
+              "high": 0.75,
+              "minlen": 5,
+              "margin": 20,
+              "seed": 139,
+              "layer": 0
+            }
+          }
+        ],
+        "edges": [],
+        "outputId": 9001
+      },
+      "exampleParams": {
+        "file": "tonal-shapes.png",
+        "mode": "Scanline wave",
+        "cell": 2.4,
+        "strength": 0.8,
+        "gamma": 1,
+        "cutoff": 0.06,
+        "invert": false,
+        "levels": 3,
+        "low": 0.25,
+        "high": 0.75,
+        "minlen": 5,
+        "margin": 20,
+        "seed": 139,
+        "layer": 0
+      },
+      "outputId": 9001,
+      "stats": {
+        "paths": 93,
+        "points": 23478,
+        "drawingMm": 16319.5,
+        "travelMm": 8881.6
+      },
+      "sourceImage": "assets/source/tonal-shapes.png",
+      "sourceNote": "An original grayscale tonal study generated locally. The full raster data is embedded in this patch."
+    },
+    {
+      "key": "polystudio",
+      "name": "Polyhedron Studio",
+      "category": "Generators",
+      "categoryKey": "gen",
+      "group": "Space",
+      "groupKey": "space",
+      "params": [
+        {
+          "key": "shape",
+          "label": "Shape",
+          "type": "select",
+          "options": [
+            "Tetrahedron",
+            "Cube",
+            "Octahedron",
+            "Dodecahedron",
+            "Icosahedron",
+            "Truncated tetrahedron",
+            "Truncated cube",
+            "Truncated octahedron",
+            "Truncated dodecahedron",
+            "Truncated icosahedron",
+            "Cuboctahedron",
+            "Icosidodecahedron",
+            "Rhombicuboctahedron",
+            "Rhombicosidodecahedron",
+            "Rhombic dodecahedron",
+            "Rhombic triacontahedron",
+            "Prism",
+            "Antiprism",
+            "Pyramid",
+            "Bipyramid",
+            "Geodesic sphere"
+          ],
+          "def": "Icosahedron",
+          "default": "Icosahedron",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "sides",
+          "label": "Sides",
+          "type": "slider",
+          "min": 3,
+          "max": 16,
+          "step": 1,
+          "def": 6,
+          "default": 6,
+          "conditional": true,
+          "visibilityNote": "Shown for Prism, Antiprism, Pyramid, and Bipyramid.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "freq",
+          "label": "Frequency",
+          "type": "slider",
+          "min": 1,
+          "max": 4,
+          "step": 1,
+          "def": 2,
+          "default": 2,
+          "conditional": true,
+          "visibilityNote": "Shown for Geodesic sphere.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "size",
+          "label": "Size mm",
+          "type": "slider",
+          "min": 20,
+          "max": 260,
+          "step": 1,
+          "def": 150,
+          "default": 150,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "x",
+          "label": "X %",
+          "type": "slider",
+          "min": 0,
+          "max": 100,
+          "step": 0.5,
+          "def": 50,
+          "default": 50,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "y",
+          "label": "Y %",
+          "type": "slider",
+          "min": 0,
+          "max": 100,
+          "step": 0.5,
+          "def": 50,
+          "default": 50,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "rx",
+          "label": "Rotate X deg",
+          "type": "slider",
+          "min": -180,
+          "max": 180,
+          "step": 1,
+          "def": -22,
+          "default": -22,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "ry",
+          "label": "Rotate Y deg",
+          "type": "slider",
+          "min": -180,
+          "max": 180,
+          "step": 1,
+          "def": 32,
+          "default": 32,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "rz",
+          "label": "Rotate Z deg",
+          "type": "slider",
+          "min": -180,
+          "max": 180,
+          "step": 1,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "persp",
+          "label": "Perspective",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.35,
+          "default": 0.35,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "vis",
+          "label": "Visibility",
+          "type": "select",
+          "options": [
+            "Solid (hide back)",
+            "Transparent",
+            "X-ray (back thinned)"
+          ],
+          "def": "Solid (hide back)",
+          "default": "Solid (hide back)",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "fill",
+          "label": "Face fill",
+          "type": "select",
+          "options": [
+            "Concentric inset",
+            "Face hatch",
+            "Spiral",
+            "Nested rings",
+            "Centroid fan",
+            "Dots",
+            "None"
+          ],
+          "def": "Concentric inset",
+          "default": "Concentric inset",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "step",
+          "label": "Fill step mm",
+          "type": "slider",
+          "min": 0.6,
+          "max": 12,
+          "step": 0.1,
+          "def": 2.4,
+          "default": 2.4,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "hatchAng",
+          "label": "Hatch angle deg",
+          "type": "slider",
+          "min": 0,
+          "max": 180,
+          "step": 1,
+          "def": 30,
+          "default": 30,
+          "conditional": true,
+          "visibilityNote": "Shown when Face fill is Face hatch.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "dotSize",
+          "label": "Dot size mm",
+          "type": "slider",
+          "min": 0.3,
+          "max": 6,
+          "step": 0.1,
+          "def": 1,
+          "default": 1,
+          "conditional": true,
+          "visibilityNote": "Shown when Face fill is Dots.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "inset",
+          "label": "Face inset mm",
+          "type": "slider",
+          "min": 0,
+          "max": 12,
+          "step": 0.1,
+          "def": 1.5,
+          "default": 1.5,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "edges",
+          "label": "Draw edges",
+          "type": "check",
+          "def": true,
+          "default": true,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "stellate",
+          "label": "Stellate",
+          "type": "slider",
+          "min": -0.6,
+          "max": 2,
+          "step": 0.02,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "explode",
+          "label": "Explode mm",
+          "type": "slider",
+          "min": 0,
+          "max": 60,
+          "step": 0.5,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "depthCue",
+          "label": "Depth cue",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "evenDensity",
+          "label": "Even density",
+          "type": "check",
+          "def": true,
+          "default": true,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layer",
+          "label": "Pen",
+          "type": "pen",
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "pen2",
+          "label": "Edge / silhouette pen",
+          "type": "pen",
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "style",
+          "label": "Style"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths",
+          "label": "Faces"
+        },
+        {
+          "type": "paths",
+          "label": "Silhouette"
+        },
+        {
+          "type": "mesh",
+          "label": "Mesh"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/polystudio.muusia.json",
+      "output": "assets/results/polystudio.svg",
+      "screenshot": "assets/screenshots/polystudio.png",
+      "comparisons": [
+        {
+          "label": "Concentric inset",
+          "src": "assets/comparisons/polystudio-0.svg",
+          "stats": {
+            "paths": 45,
+            "points": 135,
+            "drawingMm": 6222.5,
+            "travelMm": 1456.6
+          }
+        },
+        {
+          "label": "Face hatch",
+          "src": "assets/comparisons/polystudio-1.svg",
+          "stats": {
+            "paths": 121,
+            "points": 258,
+            "drawingMm": 7033.6,
+            "travelMm": 2326.7
+          }
+        },
+        {
+          "label": "Centroid fan",
+          "src": "assets/comparisons/polystudio-2.svg",
+          "stats": {
+            "paths": 377,
+            "points": 770,
+            "drawingMm": 12294.9,
+            "travelMm": 2343.6
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "polystudio",
+            "name": "Polyhedron Studio",
+            "params": {
+              "shape": "Icosahedron",
+              "sides": 6,
+              "freq": 2,
+              "size": 150,
+              "x": 50,
+              "y": 50,
+              "rx": -22,
+              "ry": 32,
+              "rz": 0,
+              "persp": 0.35,
+              "vis": "Solid (hide back)",
+              "fill": "Concentric inset",
+              "step": 2.4,
+              "hatchAng": 30,
+              "dotSize": 1,
+              "inset": 1.5,
+              "edges": true,
+              "stellate": 0,
+              "explode": 0,
+              "depthCue": 0,
+              "evenDensity": true,
+              "layer": 1,
+              "pen2": 0
+            }
+          }
+        ],
+        "edges": [],
+        "outputId": 9001
+      },
+      "exampleParams": {
+        "shape": "Icosahedron",
+        "sides": 6,
+        "freq": 2,
+        "size": 150,
+        "x": 50,
+        "y": 50,
+        "rx": -22,
+        "ry": 32,
+        "rz": 0,
+        "persp": 0.35,
+        "vis": "Solid (hide back)",
+        "fill": "Concentric inset",
+        "step": 2.4,
+        "hatchAng": 30,
+        "dotSize": 1,
+        "inset": 1.5,
+        "edges": true,
+        "stellate": 0,
+        "explode": 0,
+        "depthCue": 0,
+        "evenDensity": true,
+        "layer": 1,
+        "pen2": 0
+      },
+      "outputId": 9001,
+      "stats": {
+        "paths": 45,
+        "points": 135,
+        "drawingMm": 6222.5,
+        "travelMm": 1456.6
+      }
+    },
+    {
+      "key": "travelsort",
+      "name": "Travel Sort",
+      "category": "Modifiers",
+      "categoryKey": "mod",
+      "group": "Pen & Output",
+      "groupKey": "penout",
+      "params": [
+        {
+          "key": "reverse",
+          "label": "Allow reversing",
+          "type": "check",
+          "def": true,
+          "default": true,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "rotate",
+          "label": "Rotate closed starts",
+          "type": "check",
+          "def": true,
+          "default": true,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "bypen",
+          "label": "Group by pen",
+          "type": "check",
+          "def": true,
+          "default": true,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "paths",
+          "label": "Source"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/travelsort.muusia.json",
+      "output": "assets/results/travelsort.svg",
+      "screenshot": "assets/screenshots/travelsort.png",
+      "comparisons": [
+        {
+          "label": "Before sorting",
+          "src": "assets/comparisons/travelsort-0.svg",
+          "stats": {
+            "paths": 16,
+            "points": 2016,
+            "drawingMm": 3984,
+            "travelMm": 3772.5
+          }
+        },
+        {
+          "label": "After sorting",
+          "src": "assets/comparisons/travelsort-1.svg",
+          "stats": {
+            "paths": 16,
+            "points": 2016,
+            "drawingMm": 3984,
+            "travelMm": 195.9
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 16,
+              "margin": 24,
+              "res": 2,
+              "layer": 0
+            }
+          },
+          {
+            "id": 9002,
+            "key": "travelsort",
+            "name": "Travel Sort",
+            "params": {
+              "reverse": true,
+              "rotate": true,
+              "bypen": true
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9002
+      },
+      "exampleParams": {
+        "reverse": true,
+        "rotate": true,
+        "bypen": true
+      },
+      "outputId": 9002,
+      "stats": {
+        "paths": 16,
+        "points": 2016,
+        "drawingMm": 3984,
+        "travelMm": 195.9
+      }
+    },
+    {
+      "key": "move_scale",
+      "name": "Move / Scale",
+      "category": "Modifiers",
+      "categoryKey": "mod",
+      "group": "Transform",
+      "groupKey": "transform",
+      "params": [
+        {
+          "key": "dx",
+          "label": "Move X mm",
+          "type": "slider",
+          "min": -400,
+          "max": 400,
+          "step": 0.5,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "dy",
+          "label": "Move Y mm",
+          "type": "slider",
+          "min": -400,
+          "max": 400,
+          "step": 0.5,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "scale",
+          "label": "Scale %",
+          "type": "slider",
+          "min": 5,
+          "max": 400,
+          "step": 1,
+          "def": 100,
+          "default": 100,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "scaleY",
+          "label": "Scale Y % (0 = same)",
+          "type": "slider",
+          "min": 0,
+          "max": 400,
+          "step": 1,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "origin",
+          "label": "Scale origin",
+          "type": "select",
+          "options": [
+            "Content center",
+            "Canvas center",
+            "Custom point"
+          ],
+          "def": "Content center",
+          "default": "Content center",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "ox",
+          "label": "Origin X mm (custom)",
+          "type": "slider",
+          "min": 0,
+          "max": 400,
+          "step": 1,
+          "def": 150,
+          "default": 150,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "oy",
+          "label": "Origin Y mm (custom)",
+          "type": "slider",
+          "min": 0,
+          "max": 400,
+          "step": 1,
+          "def": 100,
+          "default": 100,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/move_scale.muusia.json",
+      "output": "assets/results/move_scale.svg",
+      "screenshot": "assets/screenshots/move_scale.png",
+      "comparisons": [
+        {
+          "label": "Original closed loop",
+          "src": "assets/comparisons/move_scale-0.svg",
+          "stats": {
+            "paths": 1,
+            "points": 116,
+            "drawingMm": 689.6,
+            "travelMm": 290.5
+          }
+        },
+        {
+          "label": "Scale 70% · Scale Y 45%",
+          "src": "assets/comparisons/move_scale-1.svg",
+          "stats": {
+            "paths": 1,
+            "points": 116,
+            "drawingMm": 417.4,
+            "travelMm": 273.6
+          }
+        },
+        {
+          "label": "Scale 70% · Scale Y 0 (same)",
+          "src": "assets/comparisons/move_scale-2.svg",
+          "stats": {
+            "paths": 1,
+            "points": 116,
+            "drawingMm": 482.7,
+            "travelMm": 273.4
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 1,
+              "gap": 6,
+              "wob": 8,
+              "drift": 0,
+              "seed": 7,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "move_scale",
+            "name": "Move / Scale",
+            "params": {
+              "dx": 20,
+              "dy": -5,
+              "scale": 70,
+              "scaleY": 45,
+              "origin": "Content center",
+              "ox": 150,
+              "oy": 100
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9002
+      },
+      "exampleParams": {
+        "dx": 20,
+        "dy": -5,
+        "scale": 70,
+        "scaleY": 45,
+        "origin": "Content center",
+        "ox": 150,
+        "oy": 100
+      },
+      "outputId": 9002,
+      "stats": {
+        "paths": 1,
+        "points": 116,
+        "drawingMm": 417.4,
+        "travelMm": 273.6
+      }
+    },
+    {
+      "key": "kierto",
+      "name": "Rotate",
+      "category": "Modifiers",
+      "categoryKey": "mod",
+      "group": "Transform",
+      "groupKey": "transform",
+      "params": [
+        {
+          "key": "deg",
+          "label": "Angle °",
+          "type": "slider",
+          "min": -180,
+          "max": 180,
+          "step": 1,
+          "def": 15,
+          "default": 15,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "per",
+          "label": "Per path (centroid)",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "grad",
+          "label": "Progressive (Molnár)",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/kierto.muusia.json",
+      "output": "assets/results/kierto.svg",
+      "screenshot": "assets/screenshots/kierto.png",
+      "comparisons": [
+        {
+          "label": "Angle 0° · Per path on",
+          "src": "assets/comparisons/kierto-0.svg",
+          "stats": {
+            "paths": 1,
+            "points": 116,
+            "drawingMm": 417.4,
+            "travelMm": 273.6
+          }
+        },
+        {
+          "label": "Angle 25° · Per path on",
+          "src": "assets/comparisons/kierto-1.svg",
+          "stats": {
+            "paths": 1,
+            "points": 116,
+            "drawingMm": 417.4,
+            "travelMm": 282.2
+          }
+        },
+        {
+          "label": "Angle 65° · Per path on",
+          "src": "assets/comparisons/kierto-2.svg",
+          "stats": {
+            "paths": 1,
+            "points": 116,
+            "drawingMm": 417.4,
+            "travelMm": 272.7
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 1,
+              "gap": 6,
+              "wob": 8,
+              "drift": 0,
+              "seed": 7,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "move_scale",
+            "name": "Move / Scale",
+            "params": {
+              "dx": 20,
+              "dy": -5,
+              "scale": 70,
+              "scaleY": 45,
+              "origin": "Content center",
+              "ox": 150,
+              "oy": 100
+            }
+          },
+          {
+            "id": 9003,
+            "key": "kierto",
+            "name": "Rotate",
+            "params": {
+              "deg": 25,
+              "per": true,
+              "grad": false
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290030",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9003,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9003
+      },
+      "exampleParams": {
+        "deg": 25,
+        "per": true,
+        "grad": false
+      },
+      "outputId": 9003,
+      "stats": {
+        "paths": 1,
+        "points": 116,
+        "drawingMm": 417.4,
+        "travelMm": 282.2
+      }
+    },
+    {
+      "key": "hatch",
+      "name": "Hatch Fill",
+      "category": "Modifiers",
+      "categoryKey": "mod",
+      "group": "Fill & Style",
+      "groupKey": "fillstyle",
+      "params": [
+        {
+          "key": "region",
+          "label": "Region",
+          "type": "select",
+          "options": [
+            "Inside shapes",
+            "Outside (invert)"
+          ],
+          "def": "Inside shapes",
+          "default": "Inside shapes",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "invMargin",
+          "label": "Invert margin mm",
+          "type": "slider",
+          "min": 0,
+          "max": 60,
+          "step": 1,
+          "def": 8,
+          "default": 8,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "angle",
+          "label": "Angle °",
+          "type": "slider",
+          "min": 0,
+          "max": 180,
+          "step": 1,
+          "def": 45,
+          "default": 45,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "spacing",
+          "label": "Spacing mm",
+          "type": "slider",
+          "min": 0.3,
+          "max": 15,
+          "step": 0.1,
+          "def": 2,
+          "default": 2,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "inset",
+          "label": "Inset from edge mm",
+          "type": "slider",
+          "min": 0,
+          "max": 10,
+          "step": 0.1,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "cross",
+          "label": "Cross hatch",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "outlines",
+          "label": "Keep outlines",
+          "type": "check",
+          "def": true,
+          "default": true,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "keepCol",
+          "label": "Keep shape colors",
+          "type": "check",
+          "def": true,
+          "default": true,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layer",
+          "label": "Hatch pen",
+          "type": "pen",
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/hatch.muusia.json",
+      "output": "assets/results/hatch.svg",
+      "screenshot": "assets/screenshots/hatch.png",
+      "comparisons": [
+        {
+          "label": "Spacing 5 mm",
+          "src": "assets/comparisons/hatch-0.svg",
+          "stats": {
+            "paths": 33,
+            "points": 180,
+            "drawingMm": 2732.1,
+            "travelMm": 485.7
+          }
+        },
+        {
+          "label": "Spacing 2.5 mm",
+          "src": "assets/comparisons/hatch-1.svg",
+          "stats": {
+            "paths": 65,
+            "points": 244,
+            "drawingMm": 5042,
+            "travelMm": 489.1
+          }
+        },
+        {
+          "label": "Spacing 2.5 mm · Cross hatch on",
+          "src": "assets/comparisons/hatch-2.svg",
+          "stats": {
+            "paths": 108,
+            "points": 330,
+            "drawingMm": 9669.8,
+            "travelMm": 836.4
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 1,
+              "gap": 6,
+              "wob": 8,
+              "drift": 0,
+              "seed": 7,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "move_scale",
+            "name": "Move / Scale",
+            "params": {
+              "dx": 20,
+              "dy": -5,
+              "scale": 70,
+              "scaleY": 45,
+              "origin": "Content center",
+              "ox": 150,
+              "oy": 100
+            }
+          },
+          {
+            "id": 9003,
+            "key": "kierto",
+            "name": "Rotate",
+            "params": {
+              "deg": 25,
+              "per": true,
+              "grad": false
+            }
+          },
+          {
+            "id": 9004,
+            "key": "hatch",
+            "name": "Hatch Fill",
+            "params": {
+              "region": "Inside shapes",
+              "invMargin": 8,
+              "angle": 90,
+              "spacing": 2.5,
+              "inset": 0,
+              "cross": false,
+              "outlines": true,
+              "keepCol": true,
+              "layer": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290030",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9003,
+            "toPort": 0
+          },
+          {
+            "id": "e900390040",
+            "from": 9003,
+            "fromPort": 0,
+            "to": 9004,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9004
+      },
+      "exampleParams": {
+        "region": "Inside shapes",
+        "invMargin": 8,
+        "angle": 90,
+        "spacing": 2.5,
+        "inset": 0,
+        "cross": false,
+        "outlines": true,
+        "keepCol": true,
+        "layer": 0
+      },
+      "outputId": 9004,
+      "stats": {
+        "paths": 65,
+        "points": 244,
+        "drawingMm": 5042,
+        "travelMm": 489.1
+      }
+    },
+    {
+      "key": "container",
+      "name": "Container",
+      "category": "Combiners",
+      "categoryKey": "duo",
+      "group": "Combiners",
+      "groupKey": "duo",
+      "params": [
+        {
+          "key": "shape",
+          "label": "Shape",
+          "type": "select",
+          "options": [
+            "Wired region",
+            "Rectangle",
+            "Circle",
+            "Triangle"
+          ],
+          "def": "Wired region",
+          "default": "Wired region",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "cx",
+          "label": "Center X mm",
+          "type": "slider",
+          "min": 0,
+          "max": 400,
+          "step": 1,
+          "def": 105,
+          "default": 105,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "cy",
+          "label": "Center Y mm",
+          "type": "slider",
+          "min": 0,
+          "max": 400,
+          "step": 1,
+          "def": 148,
+          "default": 148,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "rw",
+          "label": "Rect W mm",
+          "type": "slider",
+          "min": 5,
+          "max": 400,
+          "step": 1,
+          "def": 120,
+          "default": 120,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "rh",
+          "label": "Rect H mm",
+          "type": "slider",
+          "min": 5,
+          "max": 400,
+          "step": 1,
+          "def": 90,
+          "default": 90,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "cr",
+          "label": "Circle / Triangle R mm",
+          "type": "slider",
+          "min": 2,
+          "max": 250,
+          "step": 1,
+          "def": 55,
+          "default": 55,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "rot",
+          "label": "Rotate °",
+          "type": "slider",
+          "min": 0,
+          "max": 360,
+          "step": 1,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "keep",
+          "label": "Keep",
+          "type": "select",
+          "options": [
+            "Inside",
+            "Outside"
+          ],
+          "def": "Inside",
+          "default": "Inside",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "gap",
+          "label": "Gap mm (+grow / -shrink)",
+          "type": "slider",
+          "min": -20,
+          "max": 20,
+          "step": 0.5,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "draw",
+          "label": "Draw region",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "regionPen",
+          "label": "Region pen",
+          "type": "pen",
+          "def": 1,
+          "default": 1,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "paths",
+          "label": "Content"
+        },
+        {
+          "type": "paths",
+          "label": "Region (closed)"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/container.muusia.json",
+      "output": "assets/results/container.svg",
+      "screenshot": "assets/screenshots/container.png",
+      "comparisons": [
+        {
+          "label": "Before cropping",
+          "src": "assets/comparisons/container-0.svg",
+          "stats": {
+            "paths": 65,
+            "points": 244,
+            "drawingMm": 5042,
+            "travelMm": 489.1
+          }
+        },
+        {
+          "label": "Keep Inside · Draw region on",
+          "src": "assets/comparisons/container-1.svg",
+          "stats": {
+            "paths": 57,
+            "points": 5147,
+            "drawingMm": 4514.7,
+            "travelMm": 482.4
+          }
+        },
+        {
+          "label": "Keep Outside · Draw region on",
+          "src": "assets/comparisons/container-2.svg",
+          "stats": {
+            "paths": 65,
+            "points": 1367,
+            "drawingMm": 1487.2,
+            "travelMm": 810.4
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 1,
+              "gap": 6,
+              "wob": 8,
+              "drift": 0,
+              "seed": 7,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "move_scale",
+            "name": "Move / Scale",
+            "params": {
+              "dx": 20,
+              "dy": -5,
+              "scale": 70,
+              "scaleY": 45,
+              "origin": "Content center",
+              "ox": 150,
+              "oy": 100
+            }
+          },
+          {
+            "id": 9003,
+            "key": "kierto",
+            "name": "Rotate",
+            "params": {
+              "deg": 25,
+              "per": true,
+              "grad": false
+            }
+          },
+          {
+            "id": 9004,
+            "key": "hatch",
+            "name": "Hatch Fill",
+            "params": {
+              "region": "Inside shapes",
+              "invMargin": 8,
+              "angle": 90,
+              "spacing": 2.5,
+              "inset": 0,
+              "cross": false,
+              "outlines": true,
+              "keepCol": true,
+              "layer": 0
+            }
+          },
+          {
+            "id": 9005,
+            "key": "container",
+            "name": "Container",
+            "params": {
+              "shape": "Rectangle",
+              "cx": 148.5,
+              "cy": 105,
+              "rw": 150,
+              "rh": 90,
+              "cr": 55,
+              "rot": 0,
+              "keep": "Inside",
+              "gap": 0,
+              "draw": true,
+              "regionPen": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290030",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9003,
+            "toPort": 0
+          },
+          {
+            "id": "e900390040",
+            "from": 9003,
+            "fromPort": 0,
+            "to": 9004,
+            "toPort": 0
+          },
+          {
+            "id": "e900490050",
+            "from": 9004,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9005
+      },
+      "exampleParams": {
+        "shape": "Rectangle",
+        "cx": 148.5,
+        "cy": 105,
+        "rw": 150,
+        "rh": 90,
+        "cr": 55,
+        "rot": 0,
+        "keep": "Inside",
+        "gap": 0,
+        "draw": true,
+        "regionPen": 0
+      },
+      "outputId": 9005,
+      "stats": {
+        "paths": 57,
+        "points": 5147,
+        "drawingMm": 4514.7,
+        "travelMm": 482.4
+      }
+    },
+    {
+      "key": "satunnainen",
+      "name": "Random",
+      "category": "Math",
+      "categoryKey": "math",
+      "group": "Math",
+      "groupKey": "math",
+      "params": [
+        {
+          "key": "min",
+          "label": "Min",
+          "type": "slider",
+          "min": -100,
+          "max": 100,
+          "step": 0.5,
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "max",
+          "label": "Max",
+          "type": "slider",
+          "min": -100,
+          "max": 100,
+          "step": 0.5,
+          "def": 10,
+          "default": 10,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "seed",
+          "def": 11,
+          "default": 11,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "value"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/satunnainen.muusia.json",
+      "output": "assets/results/satunnainen.svg",
+      "screenshot": "assets/screenshots/satunnainen.png",
+      "comparisons": [
+        {
+          "label": "Seed 3 → amplitude ≈ 2.51 mm",
+          "src": "assets/comparisons/satunnainen-0.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 6153.8,
+            "travelMm": 5763.6
+          }
+        },
+        {
+          "label": "Seed 11 → amplitude ≈ 5.80 mm",
+          "src": "assets/comparisons/satunnainen-1.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 6852.5,
+            "travelMm": 5764.1
+          }
+        },
+        {
+          "label": "Seed 42 → amplitude ≈ 4.65 mm",
+          "src": "assets/comparisons/satunnainen-2.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 6557.2,
+            "travelMm": 5763.9
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9003,
+            "key": "satunnainen",
+            "name": "Random",
+            "params": {
+              "min": 2,
+              "max": 8,
+              "seed": 11
+            }
+          },
+          {
+            "id": 9005,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190050",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": 0
+          },
+          {
+            "id": "e90039005pamp",
+            "from": 9003,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": "p:amp"
+          }
+        ],
+        "outputId": 9005
+      },
+      "exampleParams": {
+        "min": 2,
+        "max": 8,
+        "seed": 11
+      },
+      "outputId": 9005,
+      "stats": {
+        "paths": 24,
+        "points": 1896,
+        "drawingMm": 6852.5,
+        "travelMm": 5764.1
+      }
+    },
+    {
+      "key": "matem",
+      "name": "Math",
+      "category": "Math",
+      "categoryKey": "math",
+      "group": "Math",
+      "groupKey": "math",
+      "params": [
+        {
+          "key": "op",
+          "label": "Operation",
+          "type": "select",
+          "options": [
+            "A + B",
+            "A − B",
+            "A × B",
+            "A ÷ B",
+            "min",
+            "max",
+            "A ^ B",
+            "A mod B"
+          ],
+          "def": "A + B",
+          "default": "A + B",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "a",
+          "label": "A (if unwired)",
+          "type": "slider",
+          "min": -100,
+          "max": 100,
+          "step": 0.5,
+          "def": 1,
+          "default": 1,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "b",
+          "label": "B (if unwired)",
+          "type": "slider",
+          "min": -100,
+          "max": 100,
+          "step": 0.5,
+          "def": 1,
+          "default": 1,
+          "conditional": false,
+          "visibleByDefault": true
+        }
+      ],
+      "inputs": [
+        {
+          "type": "value",
+          "label": "A"
+        },
+        {
+          "type": "value",
+          "label": "B"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "value"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/matem.muusia.json",
+      "output": "assets/results/matem.svg",
+      "screenshot": "assets/screenshots/matem.png",
+      "comparisons": [
+        {
+          "label": "4 × 1 → amplitude 4 mm",
+          "src": "assets/comparisons/matem-0.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 6413.3,
+            "travelMm": 5763.8
+          }
+        },
+        {
+          "label": "4 × 2 → amplitude 8 mm",
+          "src": "assets/comparisons/matem-1.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 7528.2,
+            "travelMm": 5764.4
+          }
+        },
+        {
+          "label": "4 × 3 → amplitude 12 mm",
+          "src": "assets/comparisons/matem-2.svg",
+          "stats": {
+            "paths": 24,
+            "points": 1896,
+            "drawingMm": 9023.5,
+            "travelMm": 5765.1
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "arvo",
+            "name": "Value",
+            "params": {
+              "v": 4
+            }
+          },
+          {
+            "id": 9004,
+            "key": "matem",
+            "name": "Math",
+            "params": {
+              "op": "A × B",
+              "a": 1,
+              "b": 2
+            }
+          },
+          {
+            "id": 9005,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190050",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": 0
+          },
+          {
+            "id": "e900290040",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9004,
+            "toPort": 0
+          },
+          {
+            "id": "e90049005pamp",
+            "from": 9004,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": "p:amp"
+          }
+        ],
+        "outputId": 9005
+      },
+      "exampleParams": {
+        "op": "A × B",
+        "a": 1,
+        "b": 2
+      },
+      "outputId": 9005,
+      "stats": {
+        "paths": 24,
+        "points": 1896,
+        "drawingMm": 7528.2,
+        "travelMm": 5764.4
+      }
+    }
+  ],
+  "tutorials": {
+    "first": {
+      "key": "first",
+      "title": "Your first Muusia drawing",
+      "example": "examples/tutorial-first.muusia.json",
+      "output": "assets/results/tutorial-first.svg",
+      "steps": [
+        {
+          "label": "Grid: the source lines",
+          "nodeId": 9001,
+          "src": "assets/results/tutorial-first-step-1.svg"
+        },
+        {
+          "label": "Wave: the finished drawing",
+          "nodeId": 9002,
+          "src": "assets/results/tutorial-first-step-2.svg"
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 0
+            }
+          },
+          {
+            "id": 9002,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9002
+      },
+      "stats": {
+        "paths": 24,
+        "points": 1896,
+        "drawingMm": 6413.3,
+        "travelMm": 5763.8
+      }
+    },
+    "stamps": {
+      "key": "stamps",
+      "title": "Style and stamp a pattern",
+      "example": "examples/tutorial-stamps.muusia.json",
+      "output": "assets/results/tutorial-stamps.svg",
+      "steps": [
+        {
+          "label": "Tracks with the dashed Stroke applied",
+          "nodeId": 9002,
+          "src": "assets/results/tutorial-stamps-step-1.svg"
+        },
+        {
+          "label": "Stamp adds triangles and keeps the host paths",
+          "nodeId": 9003,
+          "src": "assets/results/tutorial-stamps-step-2.svg"
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "viiva",
+            "name": "Stroke",
+            "params": {
+              "mode": "Dashed",
+              "dash": 16,
+              "gap": 5,
+              "vary": 0,
+              "phase": 0,
+              "seed": 4
+            }
+          },
+          {
+            "id": 9002,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 12,
+              "gap": 6,
+              "wob": 4,
+              "drift": 2,
+              "seed": 7,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9003,
+            "key": "stamp",
+            "name": "Stamp",
+            "params": {
+              "spacing": 18,
+              "size": 2.5,
+              "sizeMod": 0,
+              "pathVar": 1,
+              "motif": "Triangle",
+              "orientMode": "Along path",
+              "angle": 0,
+              "host": true,
+              "keepCol": false,
+              "seed": 6727,
+              "layer": 3
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290030",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9003,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9003
+      },
+      "stats": {
+        "paths": 792,
+        "points": 8866,
+        "drawingMm": 7589,
+        "travelMm": 10041.6
+      }
+    },
+    "two-pens": {
+      "key": "two-pens",
+      "title": "Build a two-pen composition",
+      "example": "examples/tutorial-two-pens.muusia.json",
+      "output": "assets/results/tutorial-two-pens.svg",
+      "steps": [
+        {
+          "label": "The blue Wave branch",
+          "nodeId": 9002,
+          "src": "assets/results/tutorial-two-pens-step-1.svg"
+        },
+        {
+          "label": "The red Tracks branch",
+          "nodeId": 9004,
+          "src": "assets/results/tutorial-two-pens-step-2.svg"
+        },
+        {
+          "label": "Both pen layers combined",
+          "nodeId": 9006,
+          "src": "assets/results/tutorial-two-pens-step-3.svg"
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          },
+          {
+            "id": 9004,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 12,
+              "gap": 6,
+              "wob": 4,
+              "drift": 2,
+              "seed": 7,
+              "layer": 2
+            }
+          },
+          {
+            "id": 9006,
+            "key": "merge",
+            "name": "Merge",
+            "params": {
+              "count": 2,
+              "penPer": false
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290060",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9006,
+            "toPort": 0
+          },
+          {
+            "id": "e900490061",
+            "from": 9004,
+            "fromPort": 0,
+            "to": 9006,
+            "toPort": 1
+          }
+        ],
+        "outputId": 9006
+      },
+      "stats": {
+        "paths": 36,
+        "points": 2813,
+        "drawingMm": 11840.6,
+        "travelMm": 5928.9
+      }
+    },
+    "svg-workflow": {
+      "key": "svg-workflow",
+      "title": "Export a two-colour SVG set",
+      "example": "examples/tutorial-svg-workflow.muusia.json",
+      "output": "assets/results/tutorial-svg-workflow.svg",
+      "steps": [
+        {
+          "label": "File 01 · Pen 1 · Blue waves",
+          "nodeId": 9002,
+          "src": "assets/results/tutorial-svg-workflow-step-1.svg"
+        },
+        {
+          "label": "File 02 · Pen 2 · Red loops",
+          "nodeId": 9004,
+          "src": "assets/results/tutorial-svg-workflow-step-2.svg"
+        },
+        {
+          "label": "Aligned on the same sheet",
+          "nodeId": 9006,
+          "src": "assets/results/tutorial-svg-workflow-step-3.svg"
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          },
+          {
+            "id": 9004,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 12,
+              "gap": 6,
+              "wob": 4,
+              "drift": 2,
+              "seed": 7,
+              "layer": 2
+            }
+          },
+          {
+            "id": 9006,
+            "key": "merge",
+            "name": "Merge",
+            "params": {
+              "count": 2,
+              "penPer": false
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290060",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9006,
+            "toPort": 0
+          },
+          {
+            "id": "e900490061",
+            "from": 9004,
+            "fromPort": 0,
+            "to": 9006,
+            "toPort": 1
+          }
+        ],
+        "outputId": 9006
+      },
+      "stats": {
+        "paths": 36,
+        "points": 2813,
+        "drawingMm": 11840.6,
+        "travelMm": 5928.9
+      },
+      "exportBundle": {
+        "src": "examples/svg-workflow-per-pen.zip",
+        "label": "Download reference SVG set"
+      }
+    },
+    "transform-fill": {
+      "key": "transform-fill",
+      "title": "Transform, crop and fill shapes",
+      "example": "examples/tutorial-transform-fill.muusia.json",
+      "output": "assets/results/tutorial-transform-fill.svg",
+      "steps": [
+        {
+          "label": "Tracks · one closed blue loop",
+          "nodeId": 9001,
+          "src": "assets/results/tutorial-transform-fill-step-1.svg"
+        },
+        {
+          "label": "Move / Scale · resize, then move",
+          "nodeId": 9002,
+          "src": "assets/results/tutorial-transform-fill-step-2.svg"
+        },
+        {
+          "label": "Rotate · turn the closed loop 25°",
+          "nodeId": 9003,
+          "src": "assets/results/tutorial-transform-fill-step-3.svg"
+        },
+        {
+          "label": "Hatch Fill · add vertical pen strokes",
+          "nodeId": 9004,
+          "src": "assets/results/tutorial-transform-fill-step-4.svg"
+        },
+        {
+          "label": "Container · crop the strokes and add a black frame",
+          "nodeId": 9005,
+          "src": "assets/results/tutorial-transform-fill-step-5.svg"
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "radat",
+            "name": "Tracks",
+            "params": {
+              "rings": 1,
+              "gap": 6,
+              "wob": 8,
+              "drift": 0,
+              "seed": 7,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "move_scale",
+            "name": "Move / Scale",
+            "params": {
+              "dx": 20,
+              "dy": -5,
+              "scale": 70,
+              "scaleY": 45,
+              "origin": "Content center",
+              "ox": 150,
+              "oy": 100
+            }
+          },
+          {
+            "id": 9003,
+            "key": "kierto",
+            "name": "Rotate",
+            "params": {
+              "deg": 25,
+              "per": true,
+              "grad": false
+            }
+          },
+          {
+            "id": 9004,
+            "key": "hatch",
+            "name": "Hatch Fill",
+            "params": {
+              "region": "Inside shapes",
+              "invMargin": 8,
+              "angle": 90,
+              "spacing": 2.5,
+              "inset": 0,
+              "cross": false,
+              "outlines": true,
+              "keepCol": true,
+              "layer": 0
+            }
+          },
+          {
+            "id": 9005,
+            "key": "container",
+            "name": "Container",
+            "params": {
+              "shape": "Rectangle",
+              "cx": 148.5,
+              "cy": 105,
+              "rw": 150,
+              "rh": 90,
+              "cr": 55,
+              "rot": 0,
+              "keep": "Inside",
+              "gap": 0,
+              "draw": true,
+              "regionPen": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190020",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9002,
+            "toPort": 0
+          },
+          {
+            "id": "e900290030",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9003,
+            "toPort": 0
+          },
+          {
+            "id": "e900390040",
+            "from": 9003,
+            "fromPort": 0,
+            "to": 9004,
+            "toPort": 0
+          },
+          {
+            "id": "e900490050",
+            "from": 9004,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": 0
+          }
+        ],
+        "outputId": 9005
+      },
+      "stats": {
+        "paths": 57,
+        "points": 5147,
+        "drawingMm": 4514.7,
+        "travelMm": 482.4
+      }
+    },
+    "numbers": {
+      "key": "numbers",
+      "title": "Control a patch with numbers",
+      "example": "examples/tutorial-numbers.muusia.json",
+      "output": "assets/results/tutorial-numbers.svg",
+      "steps": [
+        {
+          "label": "Value 2 × same seeded Random → amplitude ≈ 3.27 mm",
+          "nodeId": 9005,
+          "changes": {
+            "type": "arvo",
+            "params": {
+              "v": 2
+            }
+          },
+          "src": "assets/results/tutorial-numbers-step-1.svg"
+        },
+        {
+          "label": "Value 4 × same seeded Random → amplitude ≈ 6.54 mm",
+          "nodeId": 9005,
+          "changes": {
+            "type": "arvo",
+            "params": {
+              "v": 4
+            }
+          },
+          "src": "assets/results/tutorial-numbers-step-2.svg"
+        },
+        {
+          "label": "Value 8 × same seeded Random → amplitude ≈ 13.07 mm",
+          "nodeId": 9005,
+          "changes": {
+            "type": "arvo",
+            "params": {
+              "v": 8
+            }
+          },
+          "src": "assets/results/tutorial-numbers-step-3.svg"
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 24,
+              "margin": 24,
+              "res": 2,
+              "layer": 1
+            }
+          },
+          {
+            "id": 9002,
+            "key": "arvo",
+            "name": "Value",
+            "params": {
+              "v": 4
+            }
+          },
+          {
+            "id": 9003,
+            "key": "satunnainen",
+            "name": "Random",
+            "params": {
+              "min": 1,
+              "max": 2,
+              "seed": 11
+            }
+          },
+          {
+            "id": 9004,
+            "key": "matem",
+            "name": "Math",
+            "params": {
+              "op": "A × B",
+              "a": 1,
+              "b": 2
+            }
+          },
+          {
+            "id": 9005,
+            "key": "aaltoilu",
+            "name": "Wave",
+            "params": {
+              "amp": 4,
+              "wl": 45,
+              "phase": 0
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900190050",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": 0
+          },
+          {
+            "id": "e900290040",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9004,
+            "toPort": 0
+          },
+          {
+            "id": "e900390041",
+            "from": 9003,
+            "fromPort": 0,
+            "to": 9004,
+            "toPort": 1
+          },
+          {
+            "id": "e90049005pamp",
+            "from": 9004,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": "p:amp"
+          }
+        ],
+        "outputId": 9005
+      },
+      "stats": {
+        "paths": 24,
+        "points": 1896,
+        "drawingMm": 7062.7,
+        "travelMm": 5764.2
+      }
+    },
+    "physical-plot": {
+      "key": "physical-plot",
+      "title": "Prepare your first physical plot",
+      "example": "examples/tutorial-physical-plot.muusia.json",
+      "output": "assets/results/tutorial-physical-plot.svg",
+      "steps": [
+        {
+          "label": "Scale · a 20 × 20 mm square",
+          "nodeId": 9001,
+          "src": "assets/results/tutorial-physical-plot-step-1.svg"
+        },
+        {
+          "label": "Orientation · triangle points right",
+          "nodeId": 9002,
+          "src": "assets/results/tutorial-physical-plot-step-2.svg"
+        },
+        {
+          "label": "Pen lifts · three separate strokes",
+          "nodeId": 9004,
+          "src": "assets/results/tutorial-physical-plot-step-3.svg"
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "container",
+            "name": "Container",
+            "params": {
+              "shape": "Rectangle",
+              "cx": 30,
+              "cy": 30,
+              "rw": 20,
+              "rh": 20,
+              "cr": 55,
+              "rot": 0,
+              "keep": "Inside",
+              "gap": 0,
+              "draw": true,
+              "regionPen": 0
+            }
+          },
+          {
+            "id": 9002,
+            "key": "container",
+            "name": "Container",
+            "params": {
+              "shape": "Triangle",
+              "cx": 70,
+              "cy": 30,
+              "rw": 120,
+              "rh": 90,
+              "cr": 8,
+              "rot": 90,
+              "keep": "Inside",
+              "gap": 0,
+              "draw": true,
+              "regionPen": 0
+            }
+          },
+          {
+            "id": 9003,
+            "key": "grid",
+            "name": "Grid",
+            "params": {
+              "vlines": 0,
+              "hlines": 3,
+              "margin": 0,
+              "res": 2,
+              "layer": 0
+            }
+          },
+          {
+            "id": 9004,
+            "key": "move_scale",
+            "name": "Move / Scale",
+            "params": {
+              "dx": 50,
+              "dy": 50,
+              "scale": 10,
+              "scaleY": 5,
+              "origin": "Custom point",
+              "ox": 0,
+              "oy": 0
+            }
+          },
+          {
+            "id": 9005,
+            "key": "merge",
+            "name": "Merge",
+            "params": {
+              "count": 3,
+              "penPer": false
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e900390040",
+            "from": 9003,
+            "fromPort": 0,
+            "to": 9004,
+            "toPort": 0
+          },
+          {
+            "id": "e900190050",
+            "from": 9001,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": 0
+          },
+          {
+            "id": "e900290051",
+            "from": 9002,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": 1
+          },
+          {
+            "id": "e900490052",
+            "from": 9004,
+            "fromPort": 0,
+            "to": 9005,
+            "toPort": 2
+          }
+        ],
+        "outputId": 9005
+      },
+      "stats": {
+        "paths": 5,
+        "points": 457,
+        "drawingMm": 210.7,
+        "travelMm": 181.9
+      },
+      "exportBundle": {
+        "src": "examples/physical-plot.svg",
+        "label": "Download reference SVG",
+        "provenance": "assets/screenshots/physical-plot-export.json"
+      }
+    }
+  },
+  "blankExample": "examples/blank.muusia.json",
+  "validation": {
+    "examples": 25,
+    "nodes": 18,
+    "deterministic": true,
+    "typedEdges": true,
+    "finiteCoordinates": true,
+    "travelSortPreservesSegments": true,
+    "travelSortBeforeMm": 3772.5,
+    "travelSortAfterMm": 195.9,
+    "note": "Travel distances start at (0,0), include pen-up moves between paths, and exclude a return-to-origin move. Turn off Optimize route in the app to inspect this node alone."
+  }
+}

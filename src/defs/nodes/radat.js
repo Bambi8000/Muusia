@@ -2,7 +2,7 @@ import { Pin, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "radat",
-    name: "Tracks", cat: "gen", group: "geometric", ins: [Pin("style", "Tyyli")], outs: [Pin("paths")],
+    name: "Tracks", cat: "gen", group: "geometric", ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
       { key: "rings", label: "Loops", type: "slider", min: 1, max: 30, step: 1, def: 10 },
       { key: "gap", label: "Gap mm", type: "slider", min: 1, max: 20, step: 0.5, def: 6 },

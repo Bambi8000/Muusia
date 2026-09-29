@@ -2,7 +2,7 @@ import { Pin, EMPTY, PENS, applyStyle, signedArea, parseSVG } from "../helpers.j
 
 export default {
   key: "svgimport",
-    name: "Import SVG", cat: "gen", group: "textimg", ins: [Pin("style", "Tyyli")], outs: [Pin("paths")],
+    name: "Import SVG", cat: "gen", group: "textimg", ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
       { key: "filename", label: "SVG file", type: "file", def: "" },
       { key: "fit", label: "Fit", type: "select", options: ["Fit to canvas", "Scale %"], def: "Fit to canvas" },

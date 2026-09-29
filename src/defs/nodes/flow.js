@@ -2,7 +2,7 @@ import { Pin, mulberry32, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "flow",
-    name: "Flow Field", cat: "gen", group: "organic", ins: [Pin("style", "Tyyli")], outs: [Pin("paths")],
+    name: "Flow Field", cat: "gen", group: "organic", ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
       { key: "count", label: "Trails", type: "slider", min: 5, max: 300, step: 5, def: 80 },
       { key: "steps", label: "Length", type: "slider", min: 10, max: 300, step: 5, def: 90 },

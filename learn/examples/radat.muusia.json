@@ -1,0 +1,28 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Tracks — nested organic loops",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "radat",
+        "x": 30,
+        "y": 30,
+        "params": {
+          "rings": 12,
+          "gap": 6,
+          "wob": 4,
+          "drift": 2,
+          "seed": 7,
+          "layer": 1
+        }
+      }
+    ],
+    "edges": []
+  }
+}
