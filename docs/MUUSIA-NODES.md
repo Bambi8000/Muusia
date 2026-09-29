@@ -1,13 +1,132 @@
-# MUUSIA v2.105 — Node Reference
+# MUUSIA v2.106 — Node Reference
 
-All 294 built-in nodes. Conventions used below: most generators accept a **Style**
+All 302 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (180)
+## Generators (187)
+
+**Data Chart** — plottable charts from your own data. Load a CSV, TSV or JSON
+file with the file button (first column labels, further columns numeric
+series, header row optional; semicolon CSV with decimal commas as Excel writes
+it; JSON as an array of objects or arrays — the parsed table travels inside
+the patch), or paste rows into *Data* separated by ; with label,value cells
+(the default demo table draws with nothing loaded). *Chart* Bars, Stacked
+bars, Lollipop, Lines (*Smooth* rounds them), Area (hatched under the curve),
+Scatter (the first two numeric columns as x and y, a third scales the marker;
+series names become axis titles), Donut or Radar. *Axes*, *Grid* (on *Grid
+pen*) and *Ticks* draw the frame with a nice 1-2-5 value scale that always
+includes zero; *Labels* writes categories, tick values, legend and *Title* in
+the stroke font at *Label size* — long category names run up at 45° and every
+label is shifted, never clipped, to stay inside *Margin*. *Fill* hatches bars
+and wedges (None / Hatch / Cross at *Fill density*), *Bar width* is the
+bar-to-slot ratio, *Markers* dots data points, *Sort* reorders categories by
+the first series. Series take one pen each from *Series pen* when *Cycle pens*
+is on; the frame draws on *Frame pen*.
+
+**Reeds in Snow** — a charcoal sketch of winter reeds on blank paper. *Stalks*
+rise from a shallow ground band (*Ground*, *Ground depth*) to heights
+scattered by *Height* / *Height variation*, curving with *Bend*, leaning with
+*Lean* ± *Lean variation*, trembling with *Roughness*. Each stalk has its own
+weight: *Weight* and *Weight variation* decide how many parallel passes it
+gets at 0.18 mm pitch, and *Taper* makes the passes converge so the stalk
+thins toward the tip (a 0.3 mm pen fuses them into one dark line, a finer pen
+leaves separate strands). *Broken* turns a share into dotted lines, *Fallen*
+tips a share over as long crossing diagonals (shortened to fit the sheet,
+never clipped). On the *Light pen*: *Wind marks*, faint near-horizontal
+strokes across the snow surface; *Tangles*, small scribbled knots at stalk
+tips or on the ground; *Wisps*, long faint sweeps. The snow itself stays
+empty. Overlay shows the ground band.
+
+**Ribbon Type** — brush lettering as parallel hairlines, after the
+ribbon-lettering paintings where a wide flat brush is dragged through
+geometric letterforms. Every letter is a monoline skeleton of stems, bowls and
+arches (lowercase a–z; capitals fold to lowercase, digits and punctuation keep
+an advance but draw nothing) swept by a flat brush of *Ribbon width* (×
+x-height), drawn as offset curves *Line gap* apart. Straight strokes become
+parallel lines, bowls and arches concentric arcs that collapse into a pinhole
+at the centre once the ribbon is wider than the curve, corners mitre so
+diagonals read as folded tape. *Stretch X* / *Stretch Y* / *Slant* deform the
+skeleton while the ribbon keeps its width; *Ascender* and *Descender* (×
+x-height) set how far stems run; *Facets per quarter* samples arcs coarsely
+for an angular folded alphabet (1 = diamonds, 8 = round). *Asymmetry* Grow /
+Shrink / Alternate / Random scales each successive stroke of a letter from its
+own baseline anchor by *Asymmetry amount* — the second arch of an m, the top
+bowl of an s, the hook of a g, the bowl of a b grow while feet stay on the
+baseline and the advance follows (Random uses *Seed*). *Letter spacing* is the
+gap between ribbon edges (0 = touching), *Align*, *Baseline* and *Fit* (shrink
+only) place the word inside *Margin*; *Pen per letter* cycles the palette.
+Wire Frame into Stretch Y or Slant to animate.
+
+**Duga Array** — the Chernobyl-2 over-the-horizon radar receiver (Duga-1, the
+"Russian Woodpecker", often miscalled Duga-3) as a rotatable 3-D wireframe: a
+low-band curtain about 150 m tall and 500 m long and a high-band curtain about
+90 × 250 m beside it, each a row of free-standing square lattice masts (*Mast
+width*, *Tower detail* Full lattice / Light / Outline) carrying horizontal
+trusses, wire-cage dipoles hung in every bay at *Dipole pitch* on stand-off
+pipes (*Stand-off*) in front of the masts, ladder-line *Feed lines* up each
+bay and a wire reflector *Screen* behind (Vertical / Mesh at *Screen wire
+spacing*). *Sections* Both / Low band / High band with their mast counts,
+heights, *Mast spacing* and *Section gap* in metres; *Dipole length* (× bay),
+*Cage diameter*, *Cage wires*, *Stagger levels*, *Ground line*. *View* Camera
+uses *Yaw* / *Pitch* / *Perspective* / *Eye height* (a true camera — far masts
+shrink and converge toward the eye's horizon; wire Frame into Yaw to orbit),
+*View* Front elevation is the orthographic 2-D drawing. Fits inside *Margin*;
+masts on *Mast pen*, cages and feeds on *Dipole pen*, screen and ground on
+*Screen pen*.
+
+**Cage Dipoles** — the broadband wire-cage "fat dipoles" of the UTR-2 radio
+telescope at Kharkiv, the same family the Duga radar used: two cage arms on a
+common boom, each a cylinder of longitudinal *Wires* closed by a cone to the
+feed *Gap* and a cone to the boom end, *Hoops* at the cylinder ends and along
+it, four diagonal *Stays*. *Diameter* and *Cylinder* shape the cage (× dipole
+length). *Per row* puts dipoles end to end on one boom, *Rows* lines up booms
+at *Row gap*, *Poles* carries them on posts of *Pole height* with a cross-arm,
+*Ground frame* draws the field outline. Every wire is one 4-point polyline
+apex–hoop–hoop–apex and consecutive wires run in opposite directions, so the
+pen walks the cage without lifting. Camera: *Yaw* (wire Frame to orbit),
+*Pitch*, *Perspective* and *Eye height* — the default is the field
+photographed from the ground, near row large, far rows sinking toward the
+horizon. Fits inside *Margin*; poles and ground on *Pole pen*. No seed: the
+geometry is fully deterministic.
+
+**Fruits** — the Kosmos Botanika fruit bowl, Root Vegetables' companion:
+*Kind* Lemon, Apple, Pear, Kiwi, Avocado, Fig, Starfruit, Dragon fruit,
+Pomegranate or Mix (every kind before any repeats). *Cut* Whole / Halved / Mix
+— a halved kiwi shows its seed ring and pale core, an avocado its pit, a lemon
+its segments and peel band, a starfruit its five-point star with seed pockets,
+a pomegranate its honeycomb of arils between membranes, a dragon fruit its
+speckled flesh and scale tips, apple and pear their core, seeds and stem.
+Every specimen is an outline from a kind-specific profile (Catmull-Rom lemon
+with collar and nipple, dimpled apple, necked pear, teardrop fig) roughened by
+*Irregularity* with a per-kind weight; *Fill* hatches, contours or stipples
+the peel at *Fill density* — only the peel band on halved fruit, and never
+under the sticker; *Details* adds what belongs to the kind: lemon pores, kiwi
+fuzz, avocado bumps, fig meridians, starfruit ridges, dragon-fruit bracts, the
+pomegranate crown. *Stems & leaves* on *Leaf pen*; *Sticker* Oval / Round puts
+a produce sticker with *Sticker label* (stroke font, kept upright on fruit
+lying on its side) on whole fruit, on *Sticker pen*; interior details on
+*Detail pen*. *Specimens*, *Size* (body height), *Size variation*, *Placement*
+No overlap / Loose, *Rotation* Upright / Tilt / Random (lemons and kiwis lie
+on their side), *Margin*.
+
+**Scaffolding** — tube-and-coupler scaffolding as a 3-D wireframe: standards,
+ledgers, transoms, a kick lift at the base, facade and end braces, deck
+boards, guardrails, toe boards, base plates and couplers. *Bays* × *Lifts* ×
+*Rows* sets the grid, *Lift height* and *Depth* (× bay) its proportions;
+*Shape* Full / Ragged / Stairs / Pyramid with *Vary* makes a half-built
+skyline, and where a deck sits on a column's top the standard runs on to
+guardrail height as a real scaffold does. *Braces* None / Ends / Zigzag /
+Lattice / Random on the outer face plus end faces; *Decks* None / Top / Every
+lift / Alternate with *Boards per deck* (on *Deck pen*, with *Guardrails + toe
+boards*); *Couplers* marks every ledger joint; *Tube* Line keeps a bare
+wireframe, Double draws every tube as two lines *Tube width* apart with
+open-end caps, ledgers stopping at the standard's surface. *Yaw* (wire Frame
+to orbit), *Pitch*, *Perspective*; fits inside *Margin*. Point budget guarded
+for the largest grids.
 
 **Root Vegetables** — the Kosmos Botanika root cellar, Potato's companion:
 *Kind* Carrot, Turnip, Swede, Sugar beet, Onion, Garlic, Leek, Cauliflower,
@@ -1630,7 +1749,23 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (75)
+## Modifiers (76)
+
+**Stripe Discs** — op-art rotated discs after Bridget Riley: a field of
+stripes is cut by circles, and inside each circle the field is rotated about
+the circle's centre while outside it runs on untouched, so the stripes twist
+through round lenses and meet the rim point-exactly (segment/circle
+intersections are solved analytically; collinear points are dropped so
+straight stripes stay 2-point lines). With nothing wired the node draws its
+own stripes (*Stripe spacing*, *Stripe angle*); wire any lines into the
+optional *Field* input to twist those instead — hatch, text, a map. *Layout*
+Grid (*Columns* × *Rows*, *Jitter*) or Random (*Count*, *Radius variation*, no
+overlap); *Radius*. *Rotation* modulates the disc angles: Progressive steps by
+*Angle step* disc by disc, Rows / Columns per row or column, Alternate flips ±
+step, Random and Noise are seeded; *Angle* is the base — wire Frame into it to
+spin every disc. *Gap* parts the rotated content from the rim, *Rim* draws the
+circle, *Disc pen* recolours the twisted content. Overlay shows the discs and
+the margin box.
 
 **Fray** — loose threads fraying off the source line, like yarn ends pulled
 out of an embroidered outline: strands leave the path at *Spacing* intervals

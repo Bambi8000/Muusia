@@ -125,6 +125,13 @@
   "noise",
   "organic"
  ],
+ "cagedipole": [
+  "3d",
+  "machine",
+  "repeat",
+  "retro",
+  "structural"
+ ],
  "cagewarp": [
   "deform",
   "grid",
@@ -305,6 +312,12 @@
   "plants",
   "round"
  ],
+ "datachart": [
+  "chart",
+  "hatch",
+  "scientific",
+  "text"
+ ],
  "dazzle": [
   "fractal",
   "geometric",
@@ -356,6 +369,13 @@
   "mesh",
   "grid",
   "weave"
+ ],
+ "duga": [
+  "3d",
+  "machine",
+  "repeat",
+  "retro",
+  "structural"
  ],
  "echo": [
   "deform",
@@ -492,6 +512,12 @@
   "region",
   "round",
   "warp"
+ ],
+ "fruits": [
+  "nature",
+  "organic",
+  "plants",
+  "scatter"
  ],
  "fur": [
   "decoration"
@@ -1139,6 +1165,12 @@
   "clip",
   "grid"
  ],
+ "reedsnow": [
+  "nature",
+  "organic",
+  "plants",
+  "texture"
+ ],
  "regmarks": [
   "round",
   "structural"
@@ -1162,6 +1194,12 @@
   "geometric",
   "noise",
   "round"
+ ],
+ "ribbontype": [
+  "geometric",
+  "hatch",
+  "round",
+  "text"
  ],
  "ripple": [
   "deform",
@@ -1229,6 +1267,12 @@
  ],
  "satunnainen": [
   "math"
+ ],
+ "scaffolding": [
+  "3d",
+  "grid",
+  "repeat",
+  "structural"
  ],
  "scan": [
   "chart",
@@ -1442,6 +1486,13 @@
   "3d",
   "deform",
   "texture"
+ ],
+ "stripediscs": [
+  "clip",
+  "deform",
+  "geometric",
+  "hatch",
+  "round"
  ],
  "subway": [
   "dots",

@@ -34,7 +34,7 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **292 files** (294 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **300 files** (302 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (292) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (300) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1614,6 +1614,40 @@ text are **English**.
   `parseSVG` + baked node in Node (jsdom/linkedom if installed, else a
   built-in minimal XML DOM) and accepts an optional SVG path to smoke-test a
   user file. Era: tools/era/patch-svgimport-deps.mjs.
+
+- **2.106** Eight new nodes (302 nodes, 187 generators, 76 modifiers).
+  **Scaffolding** (`scaffolding`, structural): tube-and-coupler scaffold as a
+  3-D wireframe with Full / Ragged / Stairs / Pyramid skylines, braces, decks,
+  guardrails, couplers, Line / Double tubes, camera yaw / pitch / perspective.
+  **Fruits** (`fruits`, nature): Root Vegetables' companion, 9 kinds whole or
+  halved, outline + peel Fill (Hatch / Contours / Stipple clipped to the peel
+  band and around the sticker) + kind Details, produce Sticker with
+  stroke-font label, Catmull-Rom `spline()` profile helper. **Cage Dipoles**
+  (`cagedipole`, structural): UTR-2 fat dipoles, wires as single 4-point
+  polylines alternating direction, rows / fields on poles, true camera with
+  Eye height. **Duga Array** (`duga`, structural): Chernobyl-2 receiver in
+  metres — two curtains of square lattice masts, cage dipoles on stand-offs,
+  ladder feeds, reflector screen; View Camera / Front elevation (orthographic
+  2-D). **Stripe Discs** (`stripediscs`, deform): Riley-style rotated-disc
+  lens on the built-in stripes or any wired Field; analytic circle clipping,
+  Grid / Random layout, six rotation modulations, `_discs()` shared by compute
+  + overlay. **Ribbon Type** (`ribbontype`, textimg): monoline skeleton
+  alphabet a–z swept as offset curves — mitre / bevel joins, curvature
+  collapse to a pinhole, Facets 1–8, Stretch X/Y + Slant on the skeleton only,
+  Asymmetry per stroke (chained strokes scale about their join, `["@",x,y]`
+  pins an anchor). **Reeds in Snow** (`reedsnow`, nature): charcoal reeds —
+  multi-pass weight at 0.18 mm pitch with taper, broken / fallen stalks, wind
+  marks / tangles / wisps on a light pen. **Data Chart** (`datachart`,
+  scientific): first data-import node — CSV / TSV / semicolon-CSV (decimal
+  comma) / JSON via onFile → node.data.svg, or pasted Data; 8 chart types,
+  nice 1-2-5 axes, stroke-font labels shifted (never clipped) into the margin,
+  hatch fills. Validators tools/validate-<key>.mjs (88 / 118 / 54 / 77 / 74 /
+  90 / 60 / 134 checks). Lessons: two params defaulting to the same pen make
+  layer-based oracles ambiguous — set distinct pens in the test base; rotated
+  text and marker radii must be reserved in the layout, not clipped
+  afterwards; a generator whose specimen may not fit must check the body-only
+  bbox before building details (Fruits went from 2.7 s to 0 ms on skipped
+  sizes). Docs era: tools/era/patch-docs-eight-nodes.mjs.
 
 ## Hard-won pitfalls (keep)
 

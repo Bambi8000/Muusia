@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (292 files, generated)
+# MUUSIA v2.29 — Node Sources (300 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -4188,6 +4188,157 @@ export default {
       return applyStyle({ paths }, ins[0]);
     },
   
+};
+```
+
+## cagedipole.js
+
+```js
+import { Pin, applyStyle } from "../helpers.js";
+
+export default {
+  /* Cage Dipoles — the UTR-2 (Kharkiv) broadband "fat dipole": two wire-cage
+     arms on a common boom, each a cylinder of longitudinal wires closed by a
+     cone to the feed gap and a cone to the boom end, hoops at the cylinder
+     ends, optional diagonal stays. Rows of dipoles sit end to end on one boom
+     carried by poles; a field is several rows. World: X along the boom, Y
+     across rows, Z up; camera yaw / pitch / perspective; the projected
+     drawing is fitted into the margin box. Purely deterministic, no seed. */
+  key: "cagedipole",
+  name: "Cage Dipoles",
+  cat: "gen",
+  group: "structural",
+  desc: "The broadband wire-cage dipoles of the UTR-2 radio telescope at Kharkiv (the same fat-dipole family the Duga over-the-horizon radar used): two cage arms on a common boom, each a cylinder of longitudinal Wires closed by a cone to the feed Gap and a cone to the boom end, Hoops at the cylinder ends and along it, optional diagonal Stays. Per row puts dipoles end to end on one boom, Rows lines up several booms at Row gap, Poles carries the booms on posts of Pole height with a short cross-arm, Ground draws the horizon under the field. Diameter and Cylinder shape the cage. Yaw / Pitch / Perspective set the camera - wire Frame into Yaw to orbit; everything is fitted inside Margin. Poles and ground draw on the Pole pen.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "rows", label: "Rows", type: "slider", min: 1, max: 8, step: 1, def: 4 },
+    { key: "perRow", label: "Per row", type: "slider", min: 1, max: 12, step: 1, def: 4 },
+    { key: "rowGap", label: "Row gap (x dipole)", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1.1, showIf: (p) => p.rows > 1 },
+    { key: "dia", label: "Diameter (x dipole)", type: "slider", min: 0.08, max: 0.5, step: 0.01, def: 0.22 },
+    { key: "cyl", label: "Cylinder (of arm)", type: "slider", min: 0.2, max: 0.85, step: 0.05, def: 0.55 },
+    { key: "gap", label: "Feed gap (x dipole)", type: "slider", min: 0, max: 0.12, step: 0.005, def: 0.03 },
+    { key: "wires", label: "Wires", type: "slider", min: 4, max: 24, step: 1, def: 14 },
+    { key: "hoops", label: "Hoops per arm", type: "slider", min: 2, max: 6, step: 1, def: 3 },
+    { key: "stays", label: "Stays", type: "check", def: true },
+    { key: "poles", label: "Poles", type: "check", def: true },
+    { key: "poleH", label: "Pole height (x dipole)", type: "slider", min: 0.2, max: 2, step: 0.05, def: 0.7, showIf: (p) => !!p.poles },
+    { key: "ground", label: "Ground frame", type: "check", def: false, showIf: (p) => !!p.poles },
+    { key: "yaw", label: "Yaw deg (wire Frame)", type: "slider", min: -90, max: 90, step: 1, def: 14 },
+    { key: "pitch", label: "Pitch deg", type: "slider", min: -30, max: 60, step: 1, def: -4 },
+    { key: "persp", label: "Perspective", type: "slider", min: 0, max: 3, step: 0.05, def: 1.6 },
+    { key: "eye", label: "Eye height (x dipole, 0 = boom)", type: "slider", min: -2, max: 2, step: 0.05, def: -0.5 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 40, step: 1, def: 15 },
+    { key: "pen", label: "Pen", type: "pen", def: 0 },
+    { key: "penPole", label: "Pole pen", type: "pen", def: 8 },
+  ],
+  overlay(p, ctx) {
+    const W = (ctx && ctx.W) || 0, H = (ctx && ctx.H) || 0;
+    const m = Math.max(0, +(p && p.margin) || 0);
+    return [{ kind: "rect", x: m, y: m, w: Math.max(0, W - 2 * m), h: Math.max(0, H - 2 * m) }];
+  },
+  compute(ins, p, ctx) {
+    const W = ctx.W, H = ctx.H;
+    const clampI = (v, a, b) => Math.max(a, Math.min(b, Math.round(+v || 0)));
+    const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0));
+    const rows = clampI(p.rows, 1, 16), per = clampI(p.perRow, 1, 24);
+    const rowGap = cl(p.rowGap, 0.1, 5);
+    const R = cl(p.dia, 0.02, 0.8) / 2;             /* cage radius, dipole length = 1 */
+    const cyl = cl(p.cyl, 0.05, 0.95);
+    const g = cl(p.gap, 0, 0.2);
+    const NW = clampI(p.wires, 3, 48), NH = clampI(p.hoops, 2, 12);
+    const polesOn = !!p.poles, poleH = polesOn ? cl(p.poleH, 0.05, 4) : 0;
+    const pen = clampI(p.pen, 0, 11), penP = clampI(p.penPole, 0, 11);
+    const TWO_PI = Math.PI * 2;
+
+    /* --- camera --- */
+    const yaw = cl(p.yaw, -720, 720) * Math.PI / 180;
+    const pit = cl(p.pitch, -85, 85) * Math.PI / 180;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pit), sp = Math.sin(pit);
+    const persp = cl(p.persp, 0, 6);
+    const eye = cl(p.eye, -10, 10);
+    /* camera sits at eye height: far geometry converges toward the eye's horizon, not the boom */
+    const view = (x, y, z) => { const vx = x * cy - y * sy, vy = x * sy + y * cy, vz = z - eye; return [vx, vy * cp - vz * sp, vz * cp + vy * sp]; };
+
+    /* --- world geometry: collect view-space polylines, project + fit at the end --- */
+    const raw = [];
+    let budget = 115000;
+    const add = (wpts, closed, layer) => {
+      if (budget <= 0 || wpts.length < 2) return;
+      budget -= wpts.length;
+      raw.push({ v: wpts.map((q) => view(q[0], q[1], q[2])), closed, layer });
+    };
+    const arm = (x0, y, sgn, flip) => {
+      /* one cage arm from feed apex (x0 + sgn*g) to boom end (x0 + sgn*0.5) */
+      const xa = x0 + sgn * g, xe = x0 + sgn * 0.5;
+      const armLen = Math.abs(xe - xa);
+      const cone = armLen * (1 - cyl) / 2;
+      const x1 = xa + sgn * cone, x2 = xe - sgn * cone;
+      /* longitudinal wires, alternating direction to shorten pen travel */
+      for (let k = 0; k < NW; k++) {
+        const a = (k / NW) * TWO_PI + Math.PI / NW;
+        const dy = Math.cos(a) * R, dz = Math.sin(a) * R;
+        const w = [[xa, y, 0], [x1, y + dy, dz], [x2, y + dy, dz], [xe, y, 0]];
+        add((k + (flip ? 1 : 0)) % 2 ? w.reverse() : w, false, pen);
+      }
+      /* hoops along the cylinder */
+      const NR = Math.max(12, Math.min(40, Math.round(R * 160)));
+      for (let h = 0; h < NH; h++) {
+        const x = x1 + (x2 - x1) * (NH === 1 ? 0.5 : h / (NH - 1));
+        const ring = [];
+        for (let i = 0; i < NR; i++) { const a = (i / NR) * TWO_PI; ring.push([x, y + Math.cos(a) * R, Math.sin(a) * R]); }
+        add(ring, true, pen);
+      }
+      /* diagonal stays between the end hoops, four of them a quarter turn apart */
+      if (p.stays) for (let s = 0; s < 4; s++) {
+        const a0 = (s / 4) * TWO_PI + Math.PI / 4, a1 = a0 + Math.PI / 2;
+        add([[x1, y + Math.cos(a0) * R, Math.sin(a0) * R], [x2, y + Math.cos(a1) * R, Math.sin(a1) * R]], false, pen);
+      }
+    };
+
+    const halfX = per / 2;
+    const yOf = (r) => (r - (rows - 1) / 2) * rowGap;
+    for (let r = 0; r < rows; r++) {
+      const y = yOf(r);
+      /* boom: one line for the whole row plus a short overhang */
+      add([[-halfX - 0.06, y, 0], [halfX + 0.06, y, 0]], false, pen);
+      for (let d = 0; d < per; d++) {
+        const x0 = -halfX + d + 0.5;
+        arm(x0, y, 1, false);
+        arm(x0, y, -1, true);
+      }
+      if (polesOn) {
+        for (let j = 0; j <= per; j++) {
+          const x = -halfX + j;
+          add([[x, y, -poleH], [x, y, -0.02]], false, penP);
+          add([[x, y - 0.06, -0.03], [x, y + 0.06, -0.03]], false, penP);   /* cross-arm under the boom */
+          add([[x, y, -0.03], [x, y, 0]], false, penP);
+        }
+      }
+    }
+    if (polesOn && p.ground) {
+      const y0 = yOf(0) - rowGap * 0.5, y1 = yOf(rows - 1) + rowGap * 0.5;
+      const ext = 0.4;
+      add([[-halfX - ext, y0, -poleH], [halfX + ext, y0, -poleH]], false, penP);
+      if (rows > 1) add([[-halfX - ext, y1, -poleH], [halfX + ext, y1, -poleH]], false, penP);
+      add([[-halfX - ext, y0, -poleH], [-halfX - ext, y1, -poleH]], false, penP);
+      add([[halfX + ext, y0, -poleH], [halfX + ext, y1, -poleH]], false, penP);
+    }
+
+    /* --- project with perspective, then fit into the margin box --- */
+    let dMin = Infinity, dMax = -Infinity;
+    for (const q of raw) for (const v of q.v) { if (v[1] < dMin) dMin = v[1]; if (v[1] > dMax) dMax = v[1]; }
+    const S = Math.max(1e-6, dMax - dMin);
+    const proj = raw.map((q) => ({ ...q, s: q.v.map((v) => { const s = 1 / (1 + persp * (v[1] - dMin) / S); return [v[0] * s, -v[2] * s]; }) }));
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const q of proj) for (const s of q.s) { if (s[0] < x0) x0 = s[0]; if (s[0] > x1) x1 = s[0]; if (s[1] < y0) y0 = s[1]; if (s[1] > y1) y1 = s[1]; }
+    const m = Math.max(0, +p.margin || 0);
+    const boxW = Math.max(1, W - 2 * m), boxH = Math.max(1, H - 2 * m);
+    const k = Math.min(boxW / Math.max(1e-6, x1 - x0), boxH / Math.max(1e-6, y1 - y0));
+    const cx = (x0 + x1) / 2, cyy = (y0 + y1) / 2;
+    const paths = proj.map((q) => ({ pts: q.s.map(([x, y]) => [W / 2 + (x - cx) * k, H / 2 + (y - cyy) * k]), closed: q.closed, layer: q.layer }));
+    return applyStyle({ paths }, ins[0]);
+  },
 };
 ```
 
@@ -9950,6 +10101,295 @@ export default {
 };
 ```
 
+## datachart.js
+
+```js
+import { Pin, EMPTY, applyStyle, fontStrokes } from "../helpers.js";
+
+export default {
+  /* Data Chart — plottable charts from imported data. Data comes from a CSV /
+     TSV / JSON file (onFile -> node.data.svg, engine convention) or from the
+     Data text param (rows separated by ";" or newlines, cells by "," or tab).
+     First column may hold category labels; a header row is detected when the
+     first row is non-numeric; every further numeric column is a series.
+     Eight chart types share one axis/label/legend layer; bars and donut
+     wedges are filled with hatch lines, text is drawn with the stroke font. */
+  key: "datachart",
+  name: "Data Chart",
+  cat: "gen",
+  group: "scientific",
+  desc: "Plottable charts from your own data. Load a CSV, TSV or JSON file (first column labels, further columns numeric series, header row optional; JSON as an array of objects or arrays) or paste rows straight into Data, separated by ; with label,value cells. Chart picks Bars, Stacked bars, Lollipop, Lines, Area, Scatter (first two numeric columns as x and y), Donut or Radar; several series get one pen each when Cycle pens is on. Axes, Grid and Ticks draw the frame on the Frame pen with a nice 1-2-5 value scale that includes zero; Labels writes categories, tick values, legend and Title in the stroke font at Label size. Fill hatches bars and wedges (None / Hatch / Cross, Fill density), Bar width sets the bar-to-slot ratio, Smooth rounds lines, Markers dots the data points, Sort reorders categories by the first series. Everything stays inside Margin.",
+  fileLabel: "Choose data file\u2026",
+  fileAccept: ".csv,.tsv,.txt,.json,text/csv,application/json",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "src", label: "Data file (CSV / TSV / JSON)", type: "file", def: "" },
+    { key: "data", label: "Data (rows ; cells , - used when no file)", type: "text", def: "Jan,12,8;Feb,19,11;Mar,7,14;Apr,23,9;May,17,16;Jun,30,12;Jul,26,20;Aug,14,18" },
+    { key: "chart", label: "Chart", type: "select", options: ["Bars", "Stacked bars", "Lollipop", "Lines", "Area", "Scatter", "Donut", "Radar"], def: "Bars" },
+    { key: "title", label: "Title", type: "text", def: "" },
+    { key: "labels", label: "Labels", type: "check", def: true },
+    { key: "labelSize", label: "Label size mm", type: "slider", min: 1.5, max: 10, step: 0.25, def: 3.5, showIf: (p) => !!p.labels },
+    { key: "axes", label: "Axes", type: "check", def: true },
+    { key: "grid", label: "Grid", type: "check", def: true },
+    { key: "ticks", label: "Ticks", type: "slider", min: 2, max: 12, step: 1, def: 5 },
+    { key: "fill", label: "Fill", type: "select", options: ["None", "Hatch", "Cross"], def: "Hatch" },
+    { key: "fillDens", label: "Fill density", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.45, showIf: (p) => p.fill !== "None" },
+    { key: "barW", label: "Bar width", type: "slider", min: 0.2, max: 1, step: 0.05, def: 0.65 },
+    { key: "smooth", label: "Smooth lines", type: "check", def: false },
+    { key: "markers", label: "Markers", type: "check", def: true },
+    { key: "sort", label: "Sort", type: "select", options: ["None", "Ascending", "Descending"], def: "None" },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 40, step: 1, def: 15 },
+    { key: "layer", label: "Frame pen", type: "pen", def: 0 },
+    { key: "seriesPen", label: "Series pen", type: "pen", def: 1 },
+    { key: "cyclePens", label: "Cycle pens per series", type: "check", def: true },
+    { key: "gridPen", label: "Grid pen", type: "pen", def: 9 },
+  ],
+
+  /* ---- parsing: text -> { cats, series:[{name, values}] } ---- */
+  _parse(text) {
+    const t = String(text == null ? "" : text).trim();
+    if (!t) return { cats: [], series: [] };
+    let rows = [];
+    if (/^[\[{]/.test(t)) {
+      try {
+        const j = JSON.parse(t);
+        const arr = Array.isArray(j) ? j : Array.isArray(j.data) ? j.data : Array.isArray(j.rows) ? j.rows : [];
+        if (arr.length && Array.isArray(arr[0])) rows = arr.map((r) => r.map((v) => String(v)));
+        else if (arr.length && typeof arr[0] === "object" && arr[0]) { const keys = Object.keys(arr[0]); rows = [keys, ...arr.map((o) => keys.map((k) => String(o[k] == null ? "" : o[k])))]; }
+      } catch (e) { rows = []; }
+    }
+    if (!rows.length) {
+      const lines = t.split(/\r?\n/).length > 1 ? t.split(/\r?\n/) : t.split(/;/);
+      const first = lines.find((l) => l.trim()) || "";
+      const delim = (first.match(/\t/g) || []).length ? "\t" : (first.match(/;/g) || []).length && t.split(/\r?\n/).length > 1 ? ";" : ",";
+      const decimalComma = delim !== ",";
+      rows = lines.map((l) => l.trim()).filter((l) => l.length).map((l) => l.split(delim).map((c) => { c = c.trim().replace(/^"|"$/g, ""); return decimalComma ? c.replace(/,/g, ".") : c; }));
+    }
+    rows = rows.filter((r) => r.length && r.some((c) => c !== ""));
+    if (!rows.length) return { cats: [], series: [] };
+    const num = (c) => { const v = parseFloat(String(c).replace(/\s/g, "")); return Number.isFinite(v) ? v : null; };
+    const ncol = Math.max(...rows.map((r) => r.length));
+    /* header: first row has a non-numeric cell in a column that is numeric in the rest */
+    const colNumeric = (ci, from) => rows.slice(from).some((r) => num(r[ci]) !== null) && rows.slice(from).every((r) => r[ci] === undefined || r[ci] === "" || num(r[ci]) !== null);
+    let header = null;
+    if (rows.length > 1) { const hasNonNum = rows[0].some((c, ci) => num(c) === null && colNumeric(ci, 1)); if (hasNonNum) header = rows.shift(); }
+    const labelCol = !colNumeric(0, 0) ? 0 : -1;
+    const cats = rows.map((r, i) => (labelCol === 0 ? String(r[0]) : String(i + 1)));
+    const series = [];
+    for (let ci = 0; ci < ncol; ci++) {
+      if (ci === labelCol) continue;
+      if (!colNumeric(ci, 0)) continue;
+      series.push({ name: header && header[ci] ? String(header[ci]) : "S" + (series.length + 1), values: rows.map((r) => { const v = num(r[ci]); return v === null ? 0 : v; }) });
+    }
+    return { cats, series };
+  },
+  onFile(text) { return this && this._parse ? this._parse(text) : { cats: [], series: [] }; },
+
+  overlay(p, ctx) {
+    try {
+      const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+      const m = Math.max(0, Math.min(+(p && p.margin) || 0, Math.min(W, H) / 2 - 1));
+      return [{ kind: "rect", x: m, y: m, w: W - 2 * m, h: H - 2 * m }];
+    } catch (e) { return []; }
+  },
+
+  compute(ins, p, ctx, node) {
+    const W = ctx.W, H = ctx.H;
+    const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0));
+    const m = Math.max(0, Math.min(cl(p.margin, 0, 1e4), Math.min(W, H) / 2 - 1));
+    const penF = Math.max(0, Math.min(11, Math.round(+p.layer || 0)));
+    const penS0 = Math.max(0, Math.min(11, Math.round(+p.seriesPen || 0)));
+    const penG = Math.max(0, Math.min(11, Math.round(+p.gridPen || 0)));
+    const sPen = (i) => (p.cyclePens ? (penS0 + i) % 12 : penS0);
+    const fileData = node && node.data && node.data.svg && Array.isArray(node.data.svg.series) ? node.data.svg : null;
+    let D = fileData || this._parse(p.data);
+    if (!D.series.length || !D.cats.length) return EMPTY;
+    /* sort by the first series */
+    if (p.sort !== "None") {
+      const idx = D.cats.map((_, i) => i).sort((a, b) => (D.series[0].values[a] - D.series[0].values[b]) * (p.sort === "Ascending" ? 1 : -1));
+      D = { cats: idx.map((i) => D.cats[i]), series: D.series.map((s) => ({ name: s.name, values: idx.map((i) => s.values[i]) })) };
+    }
+    const N = D.cats.length, S = D.series.length;
+    const paths = [];
+    let budget = 115000;
+    const emit = (pts, layer, closed) => { if (pts.length < 2 || budget <= 0) return; budget -= pts.length; paths.push({ pts, closed: !!closed, layer }); };
+    const ls = cl(p.labelSize, 0.5, 50);
+    const labelsOn = !!p.labels;
+    /* text: top-left anchored stroke font, y down; align l / c / r */
+    const text = (str, x, y, size, align, layer, rot) => {
+      const F = fontStrokes(String(str), size, 1);
+      const ox = align === "c" ? -F.width / 2 : align === "r" ? -F.width : 0;
+      const ca = Math.cos(rot || 0), sa = Math.sin(rot || 0);
+      /* keep the glyph box inside the margin box: shift, never clip */
+      const corners = [[ox, 0], [ox + F.width, 0], [ox, size], [ox + F.width, size]].map(([u, v]) => [x + u * ca - v * sa, y + u * sa + v * ca]);
+      let dx = 0, dy = 0;
+      const minX = Math.min(...corners.map((c) => c[0])), maxX = Math.max(...corners.map((c) => c[0]));
+      const minY = Math.min(...corners.map((c) => c[1])), maxY = Math.max(...corners.map((c) => c[1]));
+      if (minX < m) dx = m - minX; else if (maxX > W - m) dx = W - m - maxX;
+      if (minY < m) dy = m - minY; else if (maxY > H - m) dy = H - m - maxY;
+      for (const st of F.strokes) emit(st.map(([gx, gy]) => [x + dx + (gx + ox) * ca - gy * sa, y + dy + (gx + ox) * sa + gy * ca]), layer);
+      return F.width;
+    };
+    const textW = (str, size) => fontStrokes(String(str), size, 1).width;
+    const fmt = (v) => { const a = Math.abs(v); const s = a >= 100 ? v.toFixed(0) : a >= 10 ? (Math.round(v * 10) / 10).toString() : (Math.round(v * 100) / 100).toString(); return s; };
+    /* hatch an axis-aligned rect */
+    const dens = cl(p.fillDens, 0.05, 1);
+    const hatchRect = (x, y, w, h, layer) => {
+      if (p.fill === "None" || w <= 0 || h <= 0) return;
+      const sp = Math.max(0.5, 3.4 - 2.9 * dens);
+      const angles = p.fill === "Cross" ? [Math.PI / 4, -Math.PI / 4] : [Math.PI / 4];
+      for (const a of angles) {
+        const ca = Math.cos(a), sa = Math.sin(a), nx = -sa, ny = ca;
+        const cx = x + w / 2, cy = y + h / 2, R = Math.hypot(w, h) / 2 + sp;
+        let flip = false;
+        for (let d = -R; d <= R; d += sp) {
+          const ox = cx + nx * d, oy = cy + ny * d;
+          let t0 = -Infinity, t1 = Infinity;
+          for (const [o, dir, lo, hi] of [[ox, ca, x, x + w], [oy, sa, y, y + h]]) {
+            if (Math.abs(dir) < 1e-9) { if (o < lo || o > hi) { t0 = 1; t1 = 0; } continue; }
+            const ta = (lo - o) / dir, tb = (hi - o) / dir; t0 = Math.max(t0, Math.min(ta, tb)); t1 = Math.min(t1, Math.max(ta, tb));
+          }
+          if (t1 - t0 < 0.3) continue;
+          const A = [ox + ca * t0, oy + sa * t0], B = [ox + ca * t1, oy + sa * t1];
+          emit(flip ? [B, A] : [A, B], layer); flip = !flip;
+        }
+      }
+    };
+    const rect = (x, y, w, h, layer) => emit([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], layer, true);
+    const circle = (cx, cy, r, layer, n) => { const k = n || Math.max(8, Math.min(48, Math.round(r * 4))); const pts = []; for (let i = 0; i < k; i++) { const a = (i / k) * Math.PI * 2; pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } emit(pts, layer, true); };
+    /* nice scale including zero */
+    const allVals = D.series.flatMap((s) => s.values);
+    const stacked = p.chart === "Stacked bars";
+    let vMax = stacked ? Math.max(...D.cats.map((_, i) => D.series.reduce((a, s) => a + Math.max(0, s.values[i]), 0))) : Math.max(...allVals);
+    let vMin = stacked ? Math.min(0, ...D.cats.map((_, i) => D.series.reduce((a, s) => a + Math.min(0, s.values[i]), 0))) : Math.min(...allVals);
+    vMax = Math.max(vMax, 0); vMin = Math.min(vMin, 0);
+    if (vMax - vMin < 1e-9) vMax = vMin + 1;
+    const nTicks = Math.max(2, Math.min(20, Math.round(+p.ticks || 5)));
+    const niceStep = (range, n) => { const raw = range / n, mag = Math.pow(10, Math.floor(Math.log10(raw))); const r = raw / mag; return (r < 1.5 ? 1 : r < 3.5 ? 2 : r < 7.5 ? 5 : 10) * mag; };
+    const step = niceStep(vMax - vMin, nTicks);
+    const tMax = Math.ceil(vMax / step - 1e-9) * step, tMin = Math.floor(vMin / step + 1e-9) * step;
+
+    /* ---- layout ---- */
+    let top = m, left = m, right = W - m, bottom = H - m;
+    const title = String(p.title == null ? "" : p.title).trim();
+    if (labelsOn && title) { text(title, W / 2, top, ls * 1.4, "c", penF); top += ls * 1.4 + ls; }
+    const isPolar = p.chart === "Donut" || p.chart === "Radar";
+    const legendOn = labelsOn && S > 1 && p.chart !== "Donut" && p.chart !== "Scatter";
+    if (legendOn && !isPolar) { /* legend row above the plot: swatch + name per series */
+      let lx = left; const lh = ls;
+      const widths = D.series.map((s) => textW(s.name, ls) + lh * 2.6);
+      const total = widths.reduce((a, b) => a + b, 0);
+      lx = Math.max(left, W / 2 - total / 2);
+      D.series.forEach((s, i) => { rect(lx, top, lh, lh, sPen(i)); if (p.fill !== "None") hatchRect(lx, top, lh, lh, sPen(i)); text(s.name, lx + lh * 1.5, top, ls, "l", penF); lx += widths[i]; });
+      top += ls * 2;
+    }
+    if (!isPolar) {
+      const tickW = labelsOn ? Math.max(...[tMin, tMax].map((v) => textW(fmt(v), ls))) + ls * 0.8 : 0;
+      const scatter0 = p.chart === "Scatter";
+      const maxCatW = labelsOn && !scatter0 ? Math.max(...D.cats.map((c) => textW(c, ls))) : 0;
+      const rotCats = maxCatW > ((right - left - tickW) / N) * 0.9;
+      const catH = labelsOn ? (rotCats ? ls * 0.8 + (maxCatW + ls) * 0.707 : ls * 1.8) : 0;
+      /* markers poke past the data extremes: reserve their radius at the plot edges */
+      const mr = scatter0 ? 4.6 : p.chart === "Lollipop" ? ls * 1.2 + 0.2 : p.markers && (p.chart === "Lines" || p.chart === "Area") ? ls * 0.3 + 0.6 : 0;
+      const px0 = left + tickW, px1 = right - mr, py0 = top + ls * 0.5 + mr, py1 = bottom - catH;
+      const pw = Math.max(1, px1 - px0), ph = Math.max(1, py1 - py0);
+      const Y = (v) => py1 - ((v - tMin) / (tMax - tMin)) * ph;
+      const scatter = p.chart === "Scatter";
+      /* x scale */
+      let xOf, xMinS = 0, xMaxS = 1;
+      if (scatter && S >= 2) { const xs = D.series[0].values; xMinS = Math.min(...xs); xMaxS = Math.max(...xs); if (xMaxS - xMinS < 1e-9) xMaxS = xMinS + 1; const sx = niceStep(xMaxS - xMinS, nTicks); xMinS = Math.floor(xMinS / sx) * sx; xMaxS = Math.ceil(xMaxS / sx) * sx; xOf = (v) => px0 + ((v - xMinS) / (xMaxS - xMinS)) * pw; }
+      else xOf = (i) => px0 + ((i + 0.5) / N) * pw;
+      /* grid + ticks */
+      for (let v = tMin; v <= tMax + step * 1e-6; v += step) {
+        const y = Y(v);
+        if (p.grid && Math.abs(v) > 1e-9) emit([[px0, y], [px1, y]], penG);
+        if (p.axes) emit([[px0 - ls * 0.4, y], [px0, y]], penF);
+        if (labelsOn) text(fmt(v), px0 - ls * 0.7, y - ls / 2, ls, "r", penF);
+      }
+      if (p.axes) { emit([[px0, py0], [px0, py1]], penF); emit([[px0, Y(0)], [px1, Y(0)]], penF); }
+      /* category labels */
+      if (labelsOn && !scatter) {
+        /* long labels run up toward their tick at 45 deg, ending just under the axis */
+        D.cats.forEach((c, i) => { const x = xOf(i); if (rotCats) text(c, x, py1 + ls * 0.9, ls, "r", penF, -Math.PI / 4); else text(c, x, py1 + ls * 0.6, ls, "c", penF); });
+      }
+      if (labelsOn && scatter && S >= 2) {
+        const sx = niceStep(xMaxS - xMinS, nTicks);
+        for (let v = xMinS; v <= xMaxS + sx * 1e-6; v += sx) { const x = xOf(v); if (p.axes) emit([[x, py1], [x, py1 + ls * 0.4]], penF); text(fmt(v), x, py1 + ls * 0.6, ls, "c", penF); }
+        /* axis titles instead of a legend: x series name bottom right, y series name top left */
+        text(D.series[0].name, px1, py1 + ls * 0.6, ls, "r", penF, 0);
+        text(D.series[1].name, px0 + ls * 0.4, py0 - ls * 0.4, ls, "l", penF, 0);
+      }
+      /* series */
+      const bw = cl(p.barW, 0.05, 1);
+      if (p.chart === "Bars" || p.chart === "Lollipop") {
+        const slot = pw / N, groupW = slot * bw, each = groupW / S;
+        D.series.forEach((s, si) => s.values.forEach((v, i) => {
+          const xc = xOf(i) - groupW / 2 + each * (si + 0.5), y0 = Y(0), y1 = Y(v);
+          if (p.chart === "Bars") { const bx = xc - each / 2 * 0.92, bwid = each * 0.92; rect(bx, Math.min(y0, y1), bwid, Math.abs(y1 - y0), sPen(si)); hatchRect(bx, Math.min(y0, y1), bwid, Math.abs(y1 - y0), sPen(si)); }
+          else { emit([[xc, y0], [xc, y1]], sPen(si)); circle(xc, y1, Math.min(ls * 1.2, Math.max(0.8, each * 0.18)), sPen(si)); }
+        }));
+      } else if (stacked) {
+        const slot = pw / N, bwid = slot * bw;
+        for (let i = 0; i < N; i++) {
+          let up = 0, down = 0;
+          D.series.forEach((s, si) => { const v = s.values[i]; const base = v >= 0 ? up : down; const y0 = Y(base), y1 = Y(base + v); const bx = xOf(i) - bwid / 2; rect(bx, Math.min(y0, y1), bwid, Math.abs(y1 - y0), sPen(si)); hatchRect(bx, Math.min(y0, y1), bwid, Math.abs(y1 - y0), sPen(si)); if (v >= 0) up += v; else down += v; });
+        }
+      } else if (p.chart === "Lines" || p.chart === "Area") {
+        D.series.forEach((s, si) => {
+          let pts = s.values.map((v, i) => [xOf(i), Y(v)]);
+          if (p.smooth && pts.length > 2) { /* Catmull-Rom */
+            const out = []; for (let i = 0; i < pts.length - 1; i++) { const P0 = pts[Math.max(0, i - 1)], P1 = pts[i], P2 = pts[i + 1], P3 = pts[Math.min(pts.length - 1, i + 2)]; for (let k = 0; k < 8; k++) { const u = k / 8, u2 = u * u, u3 = u2 * u; out.push([0.5 * (2 * P1[0] + (-P0[0] + P2[0]) * u + (2 * P0[0] - 5 * P1[0] + 4 * P2[0] - P3[0]) * u2 + (-P0[0] + 3 * P1[0] - 3 * P2[0] + P3[0]) * u3), 0.5 * (2 * P1[1] + (-P0[1] + P2[1]) * u + (2 * P0[1] - 5 * P1[1] + 4 * P2[1] - P3[1]) * u2 + (-P0[1] + 3 * P1[1] - 3 * P2[1] + P3[1]) * u3)]); } } out.push(pts[pts.length - 1]); pts = out;
+          }
+          emit(pts, sPen(si));
+          if (p.chart === "Area") {
+            /* close down to zero and hatch with vertical lines clipped under the curve */
+            emit([[pts[0][0], Y(0)], pts[0]], sPen(si)); emit([pts[pts.length - 1], [pts[pts.length - 1][0], Y(0)]], sPen(si));
+            if (p.fill !== "None") { const sp = Math.max(0.6, 3.4 - 2.9 * dens); let flip = false; for (let x = pts[0][0] + sp; x < pts[pts.length - 1][0]; x += sp) { let j = 0; while (j < pts.length - 2 && pts[j + 1][0] < x) j++; const a = pts[j], b = pts[j + 1]; const t = (x - a[0]) / ((b[0] - a[0]) || 1); const y = a[1] + (b[1] - a[1]) * t; const seg = flip ? [[x, y], [x, Y(0)]] : [[x, Y(0)], [x, y]]; if (Math.abs(y - Y(0)) > 0.3) emit(seg, sPen(si)); flip = !flip; } }
+          }
+          if (p.markers) s.values.forEach((v, i) => circle(xOf(i), Y(v), ls * 0.25 + 0.4, sPen(si), 10));
+        });
+      } else if (scatter) {
+        /* two numeric columns: x, y (third scales the marker); one column: index vs value */
+        const xs = S >= 2 ? D.series[0].values : D.cats.map((_, i) => i), ys = S >= 2 ? D.series[1].values : D.series[0].values, zs = S >= 3 ? D.series[2].values : null;
+        const zMax = zs ? Math.max(...zs.map(Math.abs), 1e-9) : 1;
+        for (let i = 0; i < N; i++) { const r = zs ? 0.8 + 3.5 * Math.sqrt(Math.abs(zs[i]) / zMax) : ls * 0.3 + 0.5; const x = xOf(xs[i]), y = Y(ys[i]); circle(x, y, r, sPen(0)); if (p.fill !== "None" && zs) circle(x, y, r * 0.6, sPen(0)); }
+      }
+    } else {
+      /* ---- polar charts ---- */
+      const cx = (left + right) / 2, cy = (top + bottom) / 2 + (legendOn ? 0 : 0);
+      const R = Math.max(2, Math.min(right - left, bottom - top) / 2 - (labelsOn ? ls * 3.2 : ls * 0.5));
+      if (p.chart === "Donut") {
+        const vals = D.series[0].values.map((v) => Math.max(0, v)), tot = vals.reduce((a, b) => a + b, 0) || 1;
+        const r0 = R * 0.5, r1 = R;
+        let a = -Math.PI / 2;
+        const arc = (r, a0, a1) => { const n = Math.max(2, Math.ceil((Math.abs(a1 - a0) * r) / 1.2)); const pts = []; for (let i = 0; i <= n; i++) { const t = a0 + (a1 - a0) * (i / n); pts.push([cx + Math.cos(t) * r, cy + Math.sin(t) * r]); } return pts; };
+        vals.forEach((v, i) => {
+          const a1 = a + (v / tot) * Math.PI * 2; if (a1 - a < 1e-6) return;
+          const outer = arc(r1, a, a1), inner = arc(r0, a1, a).slice(0);
+          emit([...outer, ...inner], sPen(i), true);
+          if (p.fill !== "None") { const sp = Math.max(0.9, (3.4 - 2.9 * dens) * 1.6); const n = Math.max(1, Math.floor(((a1 - a) * (r0 + r1) / 2) / sp)); let flip = false; for (let k = 1; k < n; k++) { const t = a + (a1 - a) * (k / n); const A = [cx + Math.cos(t) * r0, cy + Math.sin(t) * r0], B = [cx + Math.cos(t) * r1, cy + Math.sin(t) * r1]; emit(flip ? [B, A] : [A, B], sPen(i)); flip = !flip; } }
+          if (labelsOn) { const mid = (a + a1) / 2, lx = cx + Math.cos(mid) * (r1 + ls * 0.8), ly = cy + Math.sin(mid) * (r1 + ls * 0.8); text(D.cats[i] + " " + fmt(v), lx, ly - ls / 2, ls, Math.cos(mid) < -0.2 ? "r" : Math.cos(mid) > 0.2 ? "l" : "c", penF); }
+          a = a1;
+        });
+      } else { /* Radar */
+        const spokes = N;
+        const rings = nTicks;
+        for (let k = 1; k <= rings; k++) { const r = (R * k) / rings; const pts = []; for (let i = 0; i < spokes; i++) { const t = -Math.PI / 2 + (i / spokes) * Math.PI * 2; pts.push([cx + Math.cos(t) * r, cy + Math.sin(t) * r]); } if (p.grid || k === rings) emit(pts, k === rings ? penF : penG, true); }
+        for (let i = 0; i < spokes; i++) { const t = -Math.PI / 2 + (i / spokes) * Math.PI * 2; if (p.axes) emit([[cx, cy], [cx + Math.cos(t) * R, cy + Math.sin(t) * R]], penG); if (labelsOn) text(D.cats[i], cx + Math.cos(t) * (R + ls * 0.8), cy + Math.sin(t) * (R + ls * 0.8) - ls / 2, ls, Math.cos(t) < -0.2 ? "r" : Math.cos(t) > 0.2 ? "l" : "c", penF); }
+        const rOf = (v) => (R * Math.max(0, v - Math.min(0, tMin))) / (tMax - Math.min(0, tMin));
+        D.series.forEach((s, si) => { const pts = s.values.map((v, i) => { const t = -Math.PI / 2 + (i / spokes) * Math.PI * 2; return [cx + Math.cos(t) * rOf(v), cy + Math.sin(t) * rOf(v)]; }); emit(pts, sPen(si), true); if (p.markers) pts.forEach((q) => circle(q[0], q[1], ls * 0.25 + 0.4, sPen(si), 10)); });
+        if (labelsOn) text(fmt(tMax), cx + ls * 0.4, cy - R - ls * 0.2, ls * 0.8, "l", penG);
+      }
+      if (legendOn) { let ly = top; D.series.forEach((s, i) => { rect(left, ly, ls, ls, sPen(i)); text(s.name, left + ls * 1.5, ly, ls, "l", penF); ly += ls * 1.6; }); }
+    }
+    /* clamp to sheet */
+    for (const q of paths) q.pts = q.pts.map(([x, y]) => [Math.max(0, Math.min(W, x)), Math.max(0, Math.min(H, y))]);
+    return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
 ## dazzle.js
 
 ```js
@@ -11578,6 +12018,203 @@ export default {
       src.slice(0, 40).forEach((q) => { if (q.pts && q.pts.length >= 2) g.push({ kind: "poly", pts: q.pts }); });
       return g;
     } catch (e) { return []; }
+  },
+};
+```
+
+## duga.js
+
+```js
+import { Pin, applyStyle } from "../helpers.js";
+
+export default {
+  /* Duga Array — the Chernobyl-2 over-the-horizon radar receiver (Duga-1,
+     often miscalled Duga-3): two curtain arrays of wire-cage dipoles hung on
+     free-standing square lattice masts in front of a wire reflector screen,
+     fed by ladder lines. World in metres: X along the curtain, Y toward the
+     viewer is negative (dipoles in front of the masts, screen behind), Z up.
+     Camera yaw / pitch / perspective with an eye height; View = Front
+     elevation forces the orthographic front view. Deterministic, no seed. */
+  key: "duga",
+  name: "Duga Array",
+  cat: "gen",
+  group: "structural",
+  desc: "The Chernobyl-2 over-the-horizon radar receiver (Duga-1 - the 'Russian Woodpecker', often miscalled Duga-3) as a rotatable 3-D wireframe: a low-band curtain about 150 m tall and 500 m long and a high-band curtain about 90 m by 250 m beside it, each a row of free-standing square lattice masts carrying horizontal trusses, wire-cage dipoles hung in every bay at Dipole pitch on stand-off pipes in front of the masts, ladder-line Feed lines running up each bay, and a wire reflector Screen behind. Sections picks Both, Low band or High band; Tower detail trades lattice bracing for speed; Stagger offsets alternate dipole levels by half a bay. View = Front elevation is the orthographic 2-D drawing; Camera uses Yaw / Pitch / Perspective / Eye height (wire Frame into Yaw to orbit). Everything fits inside Margin. Pens: masts and trusses, Dipoles (with feed lines), Screen (with the ground line).",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "sections", label: "Sections", type: "select", options: ["Both", "Low band", "High band"], def: "Both" },
+    { key: "towersA", label: "Low-band masts", type: "slider", min: 2, max: 16, step: 1, def: 11, showIf: (p) => p.sections !== "High band" },
+    { key: "towersB", label: "High-band masts", type: "slider", min: 2, max: 12, step: 1, def: 6, showIf: (p) => p.sections !== "Low band" },
+    { key: "bay", label: "Mast spacing m", type: "slider", min: 20, max: 80, step: 1, def: 50 },
+    { key: "heightA", label: "Low-band height m", type: "slider", min: 40, max: 250, step: 5, def: 150, showIf: (p) => p.sections !== "High band" },
+    { key: "heightB", label: "High-band height m", type: "slider", min: 30, max: 200, step: 5, def: 90, showIf: (p) => p.sections !== "Low band" },
+    { key: "gapAB", label: "Section gap m", type: "slider", min: 0, max: 200, step: 5, def: 60, showIf: (p) => p.sections === "Both" },
+    { key: "towerW", label: "Mast width m", type: "slider", min: 2, max: 12, step: 0.5, def: 5 },
+    { key: "detail", label: "Tower detail", type: "select", options: ["Full lattice", "Light", "Outline"], def: "Full lattice" },
+    { key: "pitchZ", label: "Dipole pitch m", type: "slider", min: 6, max: 40, step: 1, def: 13 },
+    { key: "dipLen", label: "Dipole length (x bay)", type: "slider", min: 0.3, max: 0.95, step: 0.05, def: 0.7 },
+    { key: "dipDia", label: "Cage diameter m", type: "slider", min: 1, max: 12, step: 0.5, def: 5 },
+    { key: "wires", label: "Cage wires", type: "slider", min: 4, max: 16, step: 1, def: 8 },
+    { key: "standoff", label: "Stand-off m", type: "slider", min: 0, max: 30, step: 1, def: 10 },
+    { key: "stagger", label: "Stagger levels", type: "check", def: false },
+    { key: "feeds", label: "Feed lines", type: "check", def: true },
+    { key: "screen", label: "Screen", type: "select", options: ["None", "Vertical", "Mesh"], def: "Vertical" },
+    { key: "screenGap", label: "Screen wire spacing m", type: "slider", min: 2, max: 20, step: 0.5, def: 6, showIf: (p) => p.screen !== "None" },
+    { key: "ground", label: "Ground line", type: "check", def: true },
+    { key: "view", label: "View", type: "select", options: ["Camera", "Front elevation"], def: "Camera" },
+    { key: "yaw", label: "Yaw deg (wire Frame)", type: "slider", min: -90, max: 90, step: 1, def: 48, showIf: (p) => p.view === "Camera" },
+    { key: "pitch", label: "Pitch deg", type: "slider", min: -45, max: 60, step: 1, def: -8, showIf: (p) => p.view === "Camera" },
+    { key: "persp", label: "Perspective", type: "slider", min: 0, max: 3, step: 0.05, def: 1.6, showIf: (p) => p.view === "Camera" },
+    { key: "eye", label: "Eye height m", type: "slider", min: 0, max: 300, step: 1, def: 2, showIf: (p) => p.view === "Camera" },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 40, step: 1, def: 15 },
+    { key: "pen", label: "Mast pen", type: "pen", def: 0 },
+    { key: "penDip", label: "Dipole pen", type: "pen", def: 0 },
+    { key: "penScreen", label: "Screen pen", type: "pen", def: 9 },
+  ],
+  overlay(p, ctx) {
+    const W = (ctx && ctx.W) || 0, H = (ctx && ctx.H) || 0;
+    const m = Math.max(0, +(p && p.margin) || 0);
+    return [{ kind: "rect", x: m, y: m, w: Math.max(0, W - 2 * m), h: Math.max(0, H - 2 * m) }];
+  },
+  compute(ins, p, ctx) {
+    const W = ctx.W, H = ctx.H;
+    const clampI = (v, a, b) => Math.max(a, Math.min(b, Math.round(+v || 0)));
+    const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0));
+    const TWO_PI = Math.PI * 2;
+    const bay = cl(p.bay, 5, 200), tw = cl(p.towerW, 0.5, bay * 0.45);
+    const pitchZ = cl(p.pitchZ, 2, 200);
+    const dipLen = cl(p.dipLen, 0.1, 0.98) * bay, R = cl(p.dipDia, 0.2, bay) / 2;
+    const NW = clampI(p.wires, 3, 32);
+    const off = cl(p.standoff, 0, 200);
+    const pen = clampI(p.pen, 0, 11), penD = clampI(p.penDip, 0, 11), penS = clampI(p.penScreen, 0, 11);
+    const front = p.view === "Front elevation";
+
+    /* --- sections: [x0, masts, height] --- */
+    const secs = [];
+    const nA = clampI(p.towersA, 2, 40), nB = clampI(p.towersB, 2, 40);
+    const hA = cl(p.heightA, 5, 1000), hB = cl(p.heightB, 5, 1000);
+    if (p.sections !== "High band") secs.push({ x0: 0, n: nA, h: hA });
+    if (p.sections !== "Low band") secs.push({ x0: secs.length ? (nA - 1) * bay + cl(p.gapAB, 0, 2000) : 0, n: nB, h: hB });
+    const xEnd = secs[secs.length - 1].x0 + (secs[secs.length - 1].n - 1) * bay;
+    const xMid = xEnd / 2;
+
+    /* --- camera --- */
+    const yaw = front ? 0 : cl(p.yaw, -720, 720) * Math.PI / 180;
+    const pit = front ? 0 : cl(p.pitch, -85, 85) * Math.PI / 180;
+    const persp = front ? 0 : cl(p.persp, 0, 6);
+    const eye = front ? 0 : cl(p.eye, -1000, 5000);
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pit), sp = Math.sin(pit);
+    const view = (x, y, z) => { const wx = x - xMid, vz = z - eye; const vx = wx * cy - y * sy, vy = wx * sy + y * cy; return [vx, vy * cp - vz * sp, vz * cp + vy * sp]; };
+
+    const raw = [];
+    let budget = 115000;
+    const add = (wpts, closed, layer) => {
+      if (budget <= 0 || wpts.length < 2) return;
+      budget -= wpts.length;
+      raw.push({ v: wpts.map((q) => view(q[0], q[1], q[2])), closed, layer });
+    };
+
+    /* --- masts: square lattice, legs + horizontal rings + X bracing on front/back faces --- */
+    const det = p.detail;
+    const panel = Math.max(2, tw * 1.5);
+    const mast = (x, h) => {
+      const hw = tw / 2;
+      const corners = [[-hw, -hw], [hw, -hw], [hw, hw], [-hw, hw]];
+      for (let c = 0; c < 4; c++) add([[x + corners[c][0], corners[c][1], 0], [x + corners[c][0], corners[c][1], h]], false, pen);
+      const nP = Math.max(1, Math.round(h / panel));
+      const step = det === "Full lattice" ? 1 : det === "Light" ? 2 : nP;
+      for (let k = step; k <= nP; k += step) {
+        const z = (k / nP) * h;
+        add(corners.map(([dx, dy]) => [x + dx, dy, z]), true, pen);
+      }
+      if (det === "Full lattice") for (let k = 0; k < nP; k++) {
+        const z0 = (k / nP) * h, z1 = ((k + 1) / nP) * h;
+        for (const yf of [-hw, hw]) {
+          if (k % 2 === 0) add([[x - hw, yf, z0], [x + hw, yf, z1]], false, pen); else add([[x + hw, yf, z0], [x - hw, yf, z1]], false, pen);
+        }
+      }
+    };
+
+    /* --- cage dipole centred at (xc, y, z), along X, total length dipLen --- */
+    const cage = (xc, y, z, flip) => {
+      const g = R * 0.15, half = dipLen / 2, cyl = 0.55;
+      const NR = 14;
+      for (const sgn of [1, -1]) {
+        const xa = xc + sgn * g, xe = xc + sgn * half;
+        const cone = (half - g) * (1 - cyl) / 2;
+        const x1 = xa + sgn * cone, x2 = xe - sgn * cone;
+        for (let k = 0; k < NW; k++) {
+          const a = (k / NW) * TWO_PI + Math.PI / NW;
+          const dy = Math.cos(a) * R, dz = Math.sin(a) * R;
+          const w = [[xa, y, z], [x1, y + dy, z + dz], [x2, y + dy, z + dz], [xe, y, z]];
+          add((k + (sgn < 0 ? 1 : 0) + (flip ? 1 : 0)) % 2 ? w.reverse() : w, false, penD);
+        }
+        for (const xr of [x1, x2]) {
+          const ring = [];
+          for (let i = 0; i < NR; i++) { const a = (i / NR) * TWO_PI; ring.push([xr, y + Math.cos(a) * R, z + Math.sin(a) * R]); }
+          add(ring, true, penD);
+        }
+      }
+      /* stand-off pipe from the mast plane into the feed point, and the boom through the cage */
+      add([[xc, 0, z], [xc, y, z]], false, pen);
+    };
+
+    for (const s of secs) {
+      const xs = []; for (let i = 0; i < s.n; i++) xs.push(s.x0 + i * bay);
+      const levels = []; for (let z = pitchZ * 0.9; z <= s.h - R - 1; z += pitchZ) levels.push(z);
+      /* top truss and level trusses between masts (mast plane y = 0) */
+      add([[xs[0], 0, s.h], [xs[xs.length - 1], 0, s.h]], false, pen);
+      for (const z of levels) add([[xs[0], 0, z], [xs[xs.length - 1], 0, z]], false, pen);
+      for (const x of xs) mast(x, s.h);
+      /* dipoles, one per bay per level, optionally staggered by half a bay on alternate levels */
+      let flip = false;
+      for (let li = 0; li < levels.length; li++) {
+        const z = levels[li];
+        const shift = p.stagger && li % 2 ? bay / 2 : 0;
+        for (let b = 0; b < s.n - 1; b++) {
+          const xc = xs[b] + bay / 2 + shift;
+          if (xc + dipLen / 2 > xs[s.n - 1] + 0.01) continue;
+          cage(xc, -off, z, flip); flip = !flip;
+        }
+      }
+      /* ladder-line feeds: two parallel wires up the bay centre with a rung at every dipole level */
+      if (p.feeds && levels.length) {
+        const zTop = s.h, lw = Math.max(0.3, R * 0.25), yf = -off * 0.55;
+        for (let b = 0; b < s.n - 1; b++) {
+          const xc = xs[b] + bay / 2;
+          add([[xc - lw, yf, levels[0]], [xc - lw, yf, zTop]], false, penD);
+          add([[xc + lw, yf, zTop], [xc + lw, yf, levels[0]]], false, penD);
+          for (const z of levels) add([[xc - lw, yf, z], [xc + lw, yf, z]], false, penD);
+        }
+      }
+      /* reflector screen behind the masts */
+      if (p.screen !== "None") {
+        const sg = cl(p.screenGap, 0.5, 100), ys = tw / 2 + 1.5;
+        const xa = xs[0], xb = xs[xs.length - 1];
+        let dir = false;
+        for (let x = xa + sg; x < xb - sg / 2; x += sg) { add(dir ? [[x, ys, s.h], [x, ys, 0]] : [[x, ys, 0], [x, ys, s.h]], false, penS); dir = !dir; }
+        if (p.screen === "Mesh") for (let z = sg * 3; z < s.h; z += sg * 3) add([[xa, ys, z], [xb, ys, z]], false, penS);
+      }
+    }
+    if (p.ground) {
+      const ext = bay * 0.6;
+      add([[-ext, 0, 0], [xEnd + ext, 0, 0]], false, penS);
+    }
+
+    /* --- project with perspective, then fit into the margin box --- */
+    let dMin = Infinity, dMax = -Infinity;
+    for (const q of raw) for (const v of q.v) { if (v[1] < dMin) dMin = v[1]; if (v[1] > dMax) dMax = v[1]; }
+    const S = Math.max(1e-6, dMax - dMin);
+    const proj = raw.map((q) => ({ closed: q.closed, layer: q.layer, s: q.v.map((v) => { const sc = 1 / (1 + persp * (v[1] - dMin) / S); return [v[0] * sc, -v[2] * sc]; }) }));
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const q of proj) for (const s of q.s) { if (s[0] < x0) x0 = s[0]; if (s[0] > x1) x1 = s[0]; if (s[1] < y0) y0 = s[1]; if (s[1] > y1) y1 = s[1]; }
+    const m = Math.max(0, +p.margin || 0);
+    const boxW = Math.max(1, W - 2 * m), boxH = Math.max(1, H - 2 * m);
+    const k = Math.min(boxW / Math.max(1e-6, x1 - x0), boxH / Math.max(1e-6, y1 - y0));
+    const cx = (x0 + x1) / 2, cyy = (y0 + y1) / 2;
+    const paths = proj.map((q) => ({ pts: q.s.map(([x, y]) => [W / 2 + (x - cx) * k, H / 2 + (y - cyy) * k]), closed: q.closed, layer: q.layer }));
+    return applyStyle({ paths }, ins[0]);
   },
 };
 ```
@@ -14994,6 +15631,404 @@ export default {
       return { paths };
     },
   
+};
+```
+
+## fruits.js
+
+```js
+import { Pin, mulberry32, noise2, applyStyle, fontStrokes } from "../helpers.js";
+
+export default {
+  /* Fruits — Kosmos Botanika companion to Root Vegetables: lemon, apple, pear,
+     kiwi, avocado, fig, starfruit, dragon fruit and pomegranate, whole or
+     halved. Three drawing layers per specimen: the outline, a Fill of the
+     peel (hatch / contours / stipple, clipped to the peel band on halved
+     fruit and around the sticker on whole fruit) and kind-specific Details
+     (pores, fuzz, scales, cores, seeds, arils). Local frame: body centre at
+     0,0, x right, y down, height h; rotated and bbox-placed like Root
+     Vegetables. */
+  key: "fruits",
+  name: "Fruits",
+  cat: "gen",
+  group: "nature",
+  desc: "A fruit bowl for the Kosmos Botanika plates: Lemon, Apple, Pear, Kiwi, Avocado, Fig, Starfruit, Dragon fruit and Pomegranate, or Mix for a seeded medley. Cut draws them Whole, Halved or a Mix - a halved kiwi shows its seed ring and pale core, an avocado its pit, a lemon its segments, a starfruit its five-point star, a pomegranate its honeycomb of arils, a dragon fruit its speckled flesh, apple and pear their core and seeds. Every specimen is an outline from a kind-specific profile roughened by Irregularity (apple dimple, lemon nipples, pear neck, fig teardrop), Fill hatches, contours or stipples the peel (only the peel band on halved fruit, never under the sticker) at Fill density, and Details adds what belongs to the kind: lemon pores, kiwi fuzz, avocado bumps, fig meridians, starfruit ridges, dragon-fruit scales, the pomegranate crown, seeds and membranes inside. Stems draws stems and leaves on the Leaf pen; Sticker puts a small produce sticker with Label text on whole fruit. Size is the body height, Size variation scatters it; Rotation Upright / Tilt / Random (lemons and kiwis lie on their side); Placement No overlap keeps specimens apart by bounding box, Loose lets them touch. Pens: body, Detail (flesh, seeds), Leaf, Sticker.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "kind", label: "Kind", type: "select", options: ["Mix", "Lemon", "Apple", "Pear", "Kiwi", "Avocado", "Fig", "Starfruit", "Dragon fruit", "Pomegranate"], def: "Mix" },
+    { key: "cut", label: "Cut", type: "select", options: ["Whole", "Halved", "Mix"], def: "Mix" },
+    { key: "count", label: "Specimens", type: "slider", min: 1, max: 40, step: 1, def: 8 },
+    { key: "size", label: "Size mm (body height)", type: "slider", min: 10, max: 150, step: 1, def: 48 },
+    { key: "sizeVar", label: "Size variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.3 },
+    { key: "irr", label: "Irregularity", type: "slider", min: 0, max: 0.5, step: 0.02, def: 0.08 },
+    { key: "fill", label: "Fill", type: "select", options: ["None", "Hatch", "Contours", "Stipple"], def: "Hatch" },
+    { key: "fillDens", label: "Fill density", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.45, showIf: (p) => p.fill !== "None" },
+    { key: "details", label: "Details", type: "slider", min: 0, max: 1, step: 0.05, def: 0.7 },
+    { key: "stems", label: "Stems & leaves", type: "check", def: true },
+    { key: "sticker", label: "Sticker", type: "select", options: ["None", "Oval", "Round"], def: "Oval" },
+    { key: "label", label: "Sticker label", type: "text", def: "FRESH", showIf: (p) => p.sticker !== "None" },
+    { key: "place", label: "Placement", type: "select", options: ["No overlap", "Loose (may overlap)"], def: "No overlap" },
+    { key: "rotation", label: "Rotation", type: "select", options: ["Upright", "Tilt", "Random"], def: "Tilt" },
+    { key: "tilt", label: "Tilt deg", type: "slider", min: 0, max: 60, step: 1, def: 20, showIf: (p) => p.rotation === "Tilt" },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "seed", label: "Seed", type: "seed", def: 23 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+    { key: "penDetail", label: "Detail pen", type: "pen", def: 8 },
+    { key: "penLeaf", label: "Leaf pen", type: "pen", def: 3 },
+    { key: "penSticker", label: "Sticker pen", type: "pen", def: 1 },
+  ],
+
+  overlay(p, ctx) {
+    try {
+      const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+      const m = Math.max(0, Math.min(+(p && p.margin) || 0, Math.min(W, H) / 2 - 2));
+      return [{ kind: "rect", x: m, y: m, w: W - 2 * m, h: H - 2 * m }];
+    } catch (e) { return []; }
+  },
+
+  compute(ins, p, ctx) {
+    const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+    const m = Math.max(0, Math.min(+p.margin || 0, Math.min(W, H) / 2 - 2));
+    const seed = (Math.round(+p.seed) || 1) >>> 0;
+    const rng = mulberry32(seed * 3137 + 41);
+    const KINDS = ["Lemon", "Apple", "Pear", "Kiwi", "Avocado", "Fig", "Starfruit", "Dragon fruit", "Pomegranate"];
+    const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0));
+    const penB = cl(Math.round(p.layer), 0, 11), penD = cl(Math.round(p.penDetail), 0, 11), penL = cl(Math.round(p.penLeaf), 0, 11), penS = cl(Math.round(p.penSticker), 0, 11);
+    const irr = cl(p.irr, 0, 0.6);
+    const det = cl(p.details, 0, 1);
+    const dens = cl(p.fillDens, 0.05, 1);
+    const TWO_PI = Math.PI * 2;
+    const paths = [];
+    const BUDGET = 110000;
+    let pts = 0;
+
+    /* ---------------- kind profiles: hw(t) in [0,1] × half-width, t = 0 top … 1 bottom ---------------- */
+    const circ = (t) => Math.sqrt(Math.max(0, 1 - (2 * t - 1) * (2 * t - 1)));
+    const sm = (u) => { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); };
+    /* Catmull-Rom half-width curve through [t, hw] control points (t ascending, 0..1) */
+    const spline = (K) => (t) => {
+      t = Math.max(0, Math.min(1, t));
+      let i = 0; while (i < K.length - 2 && K[i + 1][0] <= t) i++;
+      const P0 = K[Math.max(0, i - 1)], P1 = K[i], P2 = K[i + 1], P3 = K[Math.min(K.length - 1, i + 2)];
+      const u = (t - P1[0]) / ((P2[0] - P1[0]) || 1), u2 = u * u, u3 = u2 * u;
+      return Math.max(0, 0.5 * ((2 * P1[1]) + (-P0[1] + P2[1]) * u + (2 * P0[1] - 5 * P1[1] + 4 * P2[1] - P3[1]) * u2 + (-P0[1] + 3 * P1[1] - 3 * P2[1] + P3[1]) * u3));
+    };
+    const norm = (f) => { let mx = 1e-9; for (let i = 0; i <= 40; i++) mx = Math.max(mx, f(i / 40)); return (t) => f(t) / mx; };
+    const PROF = {
+      /* stem end at t = 0 (small collar), blossom-end nipple at t = 1 */
+      Lemon: { aspect: 1.55, ang: Math.PI / 2, peel: 0.13, irrK: 0.3, hw: spline([[0, 0], [0.012, 0.1], [0.03, 0.14], [0.055, 0.2], [0.1, 0.5], [0.18, 0.79], [0.28, 0.94], [0.42, 1], [0.56, 0.99], [0.68, 0.91], [0.78, 0.74], [0.855, 0.46], [0.905, 0.22], [0.935, 0.15], [0.965, 0.13], [0.988, 0.08], [1, 0]]) },
+      Apple: { aspect: 0.92, ang: 0, peel: 0.03, irrK: 0.8, dimple: [0.13, 0.05], hw: (t) => Math.pow(circ(t), 0.68) },
+      Pear: { aspect: 1.35, ang: 0, peel: 0.03, irrK: 0.8, dimple: [0, 0.04], hw: norm((t) => circ(t) * (0.42 + 0.58 * sm((t - 0.28) / 0.45))) },
+      Kiwi: { aspect: 1.25, ang: Math.PI / 2, peel: 0.06, irrK: 0.45, hw: (t) => Math.pow(circ(t), 0.92) },
+      Avocado: { aspect: 1.45, ang: 0, peel: 0.08, irrK: 0.7, hw: norm((t) => circ(t) * (0.52 + 0.48 * t)) },
+      Fig: { aspect: 1.15, ang: 0, peel: 0.06, irrK: 1, hw: norm((t) => Math.pow(circ(t), 0.85) * (0.3 + 0.7 * Math.pow(t, 0.6))) },
+      Starfruit: { aspect: 1.9, ang: 0, peel: 0.05, irrK: 0.4, hw: (t) => Math.pow(circ(t), 0.55) },
+      "Dragon fruit": { aspect: 1.3, ang: 0, peel: 0.1, irrK: 0.5, hw: (t) => Math.pow(circ(t), 0.88) },
+      Pomegranate: { aspect: 0.98, ang: 0, peel: 0.08, irrK: 0.55, dimple: [0.04, 0], hw: (t) => Math.pow(circ(t), 0.74) },
+    };
+    /* cross-section overrides when halved */
+    const HALF = {
+      Lemon: { aspect: 1.02, ang: 0, hw: (t) => Math.pow(circ(t), 0.92) },
+      Kiwi: { aspect: 1.1, ang: 0, hw: (t) => Math.pow(circ(t), 0.92) },
+      Pomegranate: { aspect: 1.0, ang: 0, hw: (t) => Math.pow(circ(t), 0.85), dimple: null },
+    };
+
+    /* ---------------- generic helpers ---------------- */
+    const push = (arr, list, pen, closed) => { if (list.length >= 2) arr.push({ pts: list, closed: !!closed, layer: pen }); };
+    const noiseAt = (a, b) => noise2(a, b, seed + 17);
+    const inPoly = (poly) => (x, y) => {
+      let c = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+      }
+      return c;
+    };
+    const scalePoly = (poly, k, cx, cy) => poly.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k]);
+    const bboxP = (poly) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const [x, y] of poly) { if (x < a) a = x; if (y < b) b = y; if (x > c) c = x; if (y > d) d = y; } return [a, b, c, d]; };
+    /* split a polyline into runs where keep(x,y) is true */
+    const clipRuns = (out, list, closed, keep, pen) => {
+      const src = closed ? [...list, list[0]] : list;
+      let run = [];
+      for (const q of src) { if (keep(q[0], q[1])) run.push(q); else { if (run.length >= 2) push(out, run, pen, false); run = []; } }
+      if (run.length >= 2) push(out, run, pen, false);
+    };
+    /* radial lookup for a star-shaped polygon around (cx,cy) */
+    const radial = (poly, cx, cy) => {
+      const arr = poly.map(([x, y]) => [Math.atan2(y - cy, x - cx), Math.hypot(x - cx, y - cy)]).sort((a, b) => a[0] - b[0]);
+      return (th) => {
+        th = Math.atan2(Math.sin(th), Math.cos(th));
+        let lo = 0, hi = arr.length - 1;
+        if (th <= arr[0][0] || th >= arr[hi][0]) { const a = arr[hi], b = arr[0]; const span = (b[0] + TWO_PI) - a[0]; const u = ((th < a[0] ? th + TWO_PI : th) - a[0]) / (span || 1); return a[1] + (b[1] - a[1]) * Math.max(0, Math.min(1, u)); }
+        while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (arr[mid][0] <= th) lo = mid; else hi = mid; }
+        const a = arr[lo], b = arr[hi]; const u = (th - a[0]) / ((b[0] - a[0]) || 1);
+        return a[1] + (b[1] - a[1]) * u;
+      };
+    };
+    const ellipse = (cx, cy, rx, ry, n, rot) => { const C = []; const ca = Math.cos(rot || 0), sa = Math.sin(rot || 0); for (let i = 0; i < n; i++) { const a = (i / n) * TWO_PI; const x = Math.cos(a) * rx, y = Math.sin(a) * ry; C.push([cx + x * ca - y * sa, cy + x * sa + y * ca]); } return C; };
+    const dot = (out, x, y, r, pen) => push(out, [[x + r, y], [x, y + r], [x - r, y], [x, y - r]], pen, true);
+    /* leaf blade: closed outline along a curved centreline + midrib */
+    const blade = (out, base, ang, len, wid, bend, pen, midrib, tipSharp) => {
+      const N = 12, L = [], R = [], C = [];
+      for (let i = 0; i <= N; i++) {
+        const u = i / N, a = ang + bend * u;
+        const cx = base[0] + Math.cos(a) * len * u, cy = base[1] + Math.sin(a) * len * u;
+        const w = wid * Math.pow(Math.sin(Math.PI * Math.min(0.999, Math.max(0.001, u * 0.9 + 0.05))), tipSharp ? 1.4 : 0.8);
+        const nx = -Math.sin(a), ny = Math.cos(a);
+        L.push([cx + nx * w, cy + ny * w]); R.push([cx - nx * w, cy - ny * w]); C.push([cx, cy]);
+      }
+      push(out, [...L, ...R.reverse()], pen, true);
+      if (midrib) push(out, C.slice(1, N), pen, false);
+    };
+    const stem = (out, base, ang, len, bend, pen) => {
+      const N = 6, C = [];
+      for (let i = 0; i <= N; i++) { const u = i / N, a = ang + bend * u; C.push([base[0] + Math.cos(a) * len * u, base[1] + Math.sin(a) * len * u]); }
+      push(out, C, pen, false);
+      return C;
+    };
+    /* hatch a region: parallel runs at angle a, spacing s, sampled every ds */
+    const hatch = (out, bb, keep, a, s, pen) => {
+      const ca = Math.cos(a), sa = Math.sin(a);
+      const cx = (bb[0] + bb[2]) / 2, cy = (bb[1] + bb[3]) / 2;
+      const R = Math.hypot(bb[2] - bb[0], bb[3] - bb[1]) / 2 + 1;
+      const ds = Math.min(0.6, s * 0.5);
+      let flip = false;
+      for (let d = -R; d <= R; d += s) {
+        const ox = cx + (-sa) * d, oy = cy + ca * d;
+        const run = [];
+        const emit = () => { if (run.length >= 2) { const q = [run[0], run[run.length - 1]]; push(out, flip ? q.reverse() : q, pen, false); } run.length = 0; };
+        for (let u = -R; u <= R; u += ds) {
+          const x = ox + ca * u, y = oy + sa * u;
+          if (keep(x, y)) run.push([x, y]); else emit();
+        }
+        emit();
+        flip = !flip;
+      }
+    };
+
+    /* ---------------- one specimen in local coords ---------------- */
+    const specimen = (kind, h, halved, r) => {
+      const P0 = PROF[kind];
+      const OV = halved && HALF[kind];
+      const P = OV ? { ...P0, ...OV } : P0;
+      const w2 = h / P.aspect / 2;
+      const out = [], bodyOut = [];
+      const ph = [r() * TWO_PI, r() * TWO_PI, r() * TWO_PI, r() * TWO_PI];
+      const irrL = irr * (P.irrK || 1);
+      const wob = (t, side) => 1 + irrL * (0.6 * Math.sin(TWO_PI * t * 1.3 + ph[side * 2]) + 0.4 * Math.sin(TWO_PI * t * 2.9 + ph[side * 2 + 1]));
+      const yAt = (t) => -h / 2 + h * t;
+      const hwAt = (t, side) => Math.max(0, P.hw(t)) * w2 * wob(t, side);
+      let body;
+      if (kind === "Starfruit" && halved) {
+        /* five-point star cross-section, rounded tips */
+        const R = h * 0.5, N = 90;
+        body = [];
+        for (let i = 0; i < N; i++) { const th = -Math.PI / 2 + (i / N) * TWO_PI; const k = 0.56 + 0.44 * Math.pow(0.5 + 0.5 * Math.cos(5 * (th + Math.PI / 2)), 0.62); const wobr = 1 + irrL * 0.4 * Math.sin(th * 3 + ph[0]); body.push([Math.cos(th) * R * k * wobr, Math.sin(th) * R * k * wobr]); }
+      } else {
+        const M = 56, tOf = (i) => 0.5 - 0.5 * Math.cos((Math.PI * i) / M);
+        const right = [], left = [];
+        for (let i = 0; i <= M; i++) { const t = tOf(i); right.push([hwAt(t, 0), yAt(t)]); left.push([-hwAt(t, 1), yAt(t)]); }
+        body = [...right, ...left.reverse()].filter((q, i, arr) => i === 0 || Math.hypot(q[0] - arr[i - 1][0], q[1] - arr[i - 1][1]) > 1e-6);
+        if (P.dimple) { /* push the top / bottom centre inward (apple stem cavity, calyx) */
+          const [dt, db] = P.dimple, sw = w2 * 0.28;
+          body = body.map(([x, y]) => { const g = Math.exp(-(x * x) / (sw * sw)); if (y < -h * 0.2) y += dt * h * g * sm((-y - h * 0.2) / (h * 0.3)); else if (y > h * 0.2) y -= db * h * g * sm((y - h * 0.2) / (h * 0.3)); return [x, y]; });
+        }
+      }
+      push(bodyOut, body, penB, true);
+      const inBody = inPoly(body);
+      const rOf = radial(body, 0, 0);
+      const bb = bboxP(body);
+      const top = body.reduce((a, q) => (q[1] < a[1] ? q : a), body[0]);
+      const topY = kind === "Apple" || kind === "Pomegranate" ? -h / 2 + (P.dimple ? P.dimple[0] * h : 0) : -h / 2;
+      const meridian = (k, t0, t1, pen, arr) => { const C = []; for (let i = 0; i <= 16; i++) { const t = t0 + (t1 - t0) * (i / 16); C.push([k * hwAt(t, k < 0 ? 1 : 0), yAt(t)]); } push(arr || out, C, pen, false); };
+
+      /* ---- flesh polygon (halved) ---- */
+      let flesh = null, inFlesh = () => false;
+      if (halved) { flesh = scalePoly(body, 1 - P.peel, 0, kind === "Avocado" ? h * 0.02 : 0); inFlesh = inPoly(flesh); }
+
+      /* ---- sticker (whole fruit) ---- */
+      let inSticker = () => false;
+      if (!halved && p.sticker !== "None") {
+        const sw = w2 * 0.5, sh = p.sticker === "Round" ? sw : sw * 0.62;
+        const t = 0.35 + r() * 0.3, side = (r() - 0.5) * 0.7;
+        const cx = side * hwAt(t, side > 0 ? 0 : 1), cy = yAt(t);
+        const rot = -P.ang + (r() - 0.5) * 0.5;
+        const sPoly = ellipse(cx, cy, sw, sh, 28, rot);
+        const inS = inPoly(sPoly);
+        inSticker = (x, y) => inS(x, y);
+        push(out, sPoly, penS, true);
+        const text = String(p.label == null ? "" : p.label).trim().slice(0, 12);
+        if (text) {
+          const F = fontStrokes(text, 10, 1);
+          const size = Math.min(sh * 0.9, (sw * 1.45 / Math.max(1e-6, F.width)) * 10);
+          if (size >= 1.6) {
+            const G = fontStrokes(text, size, 1);
+            const ca = Math.cos(rot), sa = Math.sin(rot);
+            const ox = -G.width / 2, oy = -size / 2;
+            for (const st of G.strokes) push(out, st.map(([x, y]) => [cx + (x + ox) * ca - (y + oy) * sa, cy + (x + ox) * sa + (y + oy) * ca]), penS, false);
+          }
+        }
+      }
+
+      /* ---- fill of the peel ---- */
+      if (p.fill !== "None") {
+        const keep = halved ? (x, y) => inBody(x, y) && !inFlesh(x, y) : (x, y) => inBody(x, y) && !inSticker(x, y);
+        if (p.fill === "Hatch") {
+          const s = Math.max(0.5, 3.2 - 2.7 * dens) * Math.max(0.5, Math.min(1.6, h / 45));
+          hatch(out, bb, keep, (r() - 0.5) * 0.5 + (halved ? Math.PI / 4 : -0.6), s, penB);
+        } else if (p.fill === "Contours") {
+          const n = halved ? Math.max(1, Math.round(dens * 3)) : Math.round(1 + dens * 8);
+          const kMin = halved ? 1 - P.peel : 0.06;
+          for (let i = 1; i <= n; i++) { const k = 1 - (1 - kMin) * (i / (n + 1)); clipRuns(out, scalePoly(body, k, 0, 0), true, halved ? () => true : (x, y) => !inSticker(x, y), penB); }
+        } else { /* Stipple */
+          const area = (bb[2] - bb[0]) * (bb[3] - bb[1]);
+          const n = Math.min(1200, Math.round(area * dens * (halved ? 0.06 : 0.12)));
+          const rd = Math.max(0.15, h * 0.004);
+          for (let i = 0; i < n; i++) { const x = bb[0] + r() * (bb[2] - bb[0]), y = bb[1] + r() * (bb[3] - bb[1]); if (keep(x, y)) dot(out, x, y, rd, penB); }
+        }
+      }
+
+      /* ---- details: whole fruit skin ---- */
+      if (!halved && det > 0) {
+        if (kind === "Lemon") { const n = Math.round(det * 45); for (let i = 0; i < n; i++) { const t = 0.08 + r() * 0.84; const x = (r() * 2 - 1) * hwAt(t, 0) * 0.85, y = yAt(t); if (!inSticker(x, y)) dot(out, x, y, h * 0.004, penB); } }
+        else if (kind === "Apple" || kind === "Pear") { const n = Math.round(det * (kind === "Apple" ? 14 : 30)); for (let i = 0; i < n; i++) { const t = 0.1 + r() * 0.8; const x = (r() * 2 - 1) * hwAt(t, 0) * 0.9, y = yAt(t); if (inBody(x, y) && !inSticker(x, y)) dot(out, x, y, h * 0.003, penB); } }
+        else if (kind === "Kiwi") { /* fuzz: short outward hairs from the outline */
+          const n = Math.round(det * 90); const L = body.length;
+          for (let i = 0; i < n; i++) { const j = Math.floor(r() * L); const q = body[j], q1 = body[(j + 1) % L], q0 = body[(j + L - 1) % L]; let nx = q1[1] - q0[1], ny = -(q1[0] - q0[0]); const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl; if (nx * q[0] + ny * q[1] < 0) { nx = -nx; ny = -ny; } const len = h * (0.012 + r() * 0.02), tw = (r() - 0.5) * 0.8; push(out, [q, [q[0] + (nx * Math.cos(tw) - ny * Math.sin(tw)) * len, q[1] + (nx * Math.sin(tw) + ny * Math.cos(tw)) * len]], penB, false); }
+          push(out, ellipse(-w2 * 0.86, 0, h * 0.02, h * 0.035, 10), penB, true);
+        }
+        else if (kind === "Avocado") { const n = Math.round(det * 55); for (let i = 0; i < n; i++) { const t = 0.08 + r() * 0.86; const x = (r() * 2 - 1) * hwAt(t, 0) * 0.88, y = yAt(t); if (inSticker(x, y)) continue; const rr = h * (0.008 + r() * 0.008), a0 = r() * TWO_PI; push(out, [[x + Math.cos(a0) * rr, y + Math.sin(a0) * rr], [x + Math.cos(a0 + 1.2) * rr, y + Math.sin(a0 + 1.2) * rr], [x + Math.cos(a0 + 2.4) * rr, y + Math.sin(a0 + 2.4) * rr]], penB, false); } }
+        else if (kind === "Fig") { const n = Math.round(2 + det * 4); for (let i = 1; i <= n; i++) { const k = (i / (n + 1)) * 1.6 - 0.8; const C = []; for (let j = 0; j <= 16; j++) { const t = 0.1 + 0.8 * (j / 16); C.push([k * hwAt(t, k < 0 ? 1 : 0), yAt(t)]); } clipRuns(out, C, false, (x, y) => !inSticker(x, y), penB); } }
+        else if (kind === "Starfruit") { for (const k of [-0.58, 0.02, 0.6]) { const C = []; for (let j = 0; j <= 20; j++) { const t = 0.04 + 0.92 * (j / 20); C.push([k * hwAt(t, k < 0 ? 1 : 0) * (0.9 + 0.1 * Math.sin(Math.PI * t)), yAt(t)]); } clipRuns(out, C, false, (x, y) => !inSticker(x, y), penB); } if (det > 0.5) for (const k of [-0.32, 0.31]) { const C = []; for (let j = 0; j <= 12; j++) { const t = 0.02 + 0.96 * (j / 12); C.push([k * hwAt(t, k < 0 ? 1 : 0) * 1.02, yAt(t)]); } clipRuns(out, C, false, (x, y) => !inSticker(x, y), penB); } }
+        else if (kind === "Dragon fruit") { /* pointed bracts rooted on the body, tips poking out */
+          const n = Math.round(7 + det * 8);
+          for (let i = 0; i < n; i++) { const t = 0.06 + 0.8 * (i / n) + r() * 0.04; const side = (i % 2 ? 1 : -1) * (0.2 + r() * 0.65); const bx = side * hwAt(t, side > 0 ? 0 : 1), by = yAt(t); const a = -Math.PI / 2 + side * 0.55 + (r() - 0.5) * 0.3; const L = h * (0.18 + r() * 0.1); blade(out, [bx * 0.72, by + h * 0.05], a, L, h * 0.034, side * 0.7, penB, false, true); }
+        }
+        else if (kind === "Pomegranate") { const n = Math.round(det * 8); for (let i = 0; i < n; i++) { const t = 0.15 + r() * 0.7; const x = (r() * 2 - 1) * hwAt(t, 0) * 0.85, y = yAt(t); if (inSticker(x, y)) continue; push(out, [[x, y], [x + h * 0.02 * (r() - 0.5), y + h * 0.03 * (0.5 + r())]], penB, false); } }
+      }
+      /* pomegranate crown belongs to the shape even at Details 0 */
+      if (!halved && kind === "Pomegranate") {
+        const cw = w2 * 0.3, C = [[-cw, topY + h * 0.01]];
+        const nsp = 5; for (let i = 0; i < nsp; i++) { const u = (i + 0.5) / nsp; C.push([-cw + cw * 2 * (u - 0.5 / nsp) + cw * 0.15, topY - h * (0.07 + 0.04 * r())]); C.push([-cw + cw * 2 * u + cw * 0.1, topY - h * 0.03]); }
+        C.push([cw, topY + h * 0.01]);
+        push(out, C, penB, false);
+      }
+
+      /* ---- stems & leaves (whole fruit; halved apple / pear keep the stem) ---- */
+      if (p.stems) {
+        if (kind === "Apple" || kind === "Pear") {
+          const a = -Math.PI / 2 + (r() - 0.5) * 0.5, len = h * (kind === "Apple" ? 0.2 : 0.26);
+          const C = stem(out, [0, topY - h * 0.01], a, len, (r() - 0.5) * 0.8, penL);
+          if (!halved || r() < 0.5) { const e = C[3]; const la = a + (r() < 0.5 ? 0.9 : -0.9) + (r() - 0.5) * 0.3; blade(out, e, la, h * (0.22 + r() * 0.1), h * 0.07, (r() - 0.5) * 0.6, penL, true, false); }
+        } else if (!halved && kind === "Lemon") { if (r() < 0.7) { const a = -Math.PI / 2 + (r() - 0.5) * 0.6; const C = stem(out, [0, -h / 2 + h * 0.005], a, h * 0.06, 0, penL); blade(out, C[C.length - 1], a + (r() < 0.5 ? 0.7 : -0.7), h * (0.3 + r() * 0.12), h * 0.075, (r() - 0.5) * 0.5, penL, true, false); } }
+        else if (!halved && kind === "Fig") { stem(out, [-h * 0.012, -h / 2], -Math.PI / 2 + 0.25, h * 0.12, 0.3, penL); stem(out, [h * 0.012, -h / 2], -Math.PI / 2 + 0.2, h * 0.12, 0.3, penL); }
+        else if (!halved && kind === "Avocado") { push(out, ellipse(0, -h / 2 + h * 0.005, w2 * 0.16, h * 0.02, 10), penL, true); }
+      }
+
+      /* ---- details: halved interiors ---- */
+      if (halved) {
+        const fOf = radial(flesh, 0, 0);
+        if (kind === "Apple" || kind === "Pear") {
+          /* core lens + two seeds; no visible inset line, the skin is thin */
+          const cy = kind === "Pear" ? h * 0.18 : h * 0.02, lh = h * 0.2, lw = w2 * 0.2;
+          const lens = []; for (let i = 0; i <= 14; i++) { const u = i / 14; lens.push([lw * Math.sin(Math.PI * u), cy - lh + 2 * lh * u]); } for (let i = 14; i >= 0; i--) { const u = i / 14; lens.push([-lw * Math.sin(Math.PI * u), cy - lh + 2 * lh * u]); }
+          push(out, lens.filter((q, i, a) => i === 0 || Math.hypot(q[0] - a[i - 1][0], q[1] - a[i - 1][1]) > 1e-6), penD, true);
+          for (const s of [-1, 1]) { const sx = s * lw * 0.35, sy = cy + lh * 0.1; const sd = []; for (let i = 0; i < 10; i++) { const a = (i / 10) * TWO_PI; const rr = h * 0.03 * (a < Math.PI ? 1 : 0.55); sd.push([sx + Math.sin(a) * rr * 0.5 * s * -1, sy + Math.cos(a) * rr]); } push(out, sd, penD, true); }
+          push(out, [[0, cy - lh], [0, topY + h * 0.02]], penD, false);
+          push(out, [[0, cy + lh], [0, h / 2 - h * 0.03]], penD, false);
+          if (det > 0.4) push(out, [[-w2 * 0.06, h / 2 - h * 0.05], [0, h / 2 - h * 0.02], [w2 * 0.06, h / 2 - h * 0.05]], penD, false);
+        } else {
+          push(out, flesh, penD, true);
+          if (kind === "Lemon") {
+            const rc = w2 * 0.07; push(out, ellipse(0, 0, rc, rc, 12), penD, true);
+            const ns = 8 + Math.floor(r() * 3), a0 = r() * TWO_PI;
+            for (let i = 0; i < ns; i++) { const a = a0 + (i / ns) * TWO_PI; const R = fOf(a) * 0.985; const g = 0.012 * w2 / Math.max(rc, 1e-6); for (const s of [-1, 1]) push(out, [[Math.cos(a + s * g) * rc, Math.sin(a + s * g) * rc], [Math.cos(a + s * g * rc / R) * R, Math.sin(a + s * g * rc / R) * R]], penD, false); }
+            const nv = Math.round(det * 5); if (nv > 0) for (let i = 0; i < ns; i++) for (let k = 0; k < nv; k++) { const a = a0 + ((i + 0.12 + 0.76 * r()) / ns) * TWO_PI; const R = fOf(a); const u0 = 0.35 + r() * 0.3, u1 = Math.min(0.93, u0 + 0.15 + r() * 0.25); push(out, [[Math.cos(a) * R * u0, Math.sin(a) * R * u0], [Math.cos(a) * R * u1, Math.sin(a) * R * u1]], penD, false); }
+          } else if (kind === "Kiwi") {
+            push(out, ellipse(0, 0, w2 * 0.16, h * 0.15, 20), penD, true);
+            const ns = Math.round(14 + det * 26); for (let i = 0; i < ns; i++) { const a = (i / ns) * TWO_PI + (r() - 0.5) * 0.2; const R = fOf(a) * (0.33 + r() * 0.16); const x = Math.cos(a) * R, y = Math.sin(a) * R; const l = h * 0.012; push(out, [[x - Math.cos(a) * l, y - Math.sin(a) * l], [x + Math.cos(a) * l, y + Math.sin(a) * l]], penD, false); }
+            const nr = Math.round(det * 22); for (let i = 0; i < nr; i++) { const a = (i / nr) * TWO_PI + r() * 0.1; const R = fOf(a); push(out, [[Math.cos(a) * R * 0.5, Math.sin(a) * R * 0.5], [Math.cos(a) * R * 0.94, Math.sin(a) * R * 0.94]], penD, false); }
+          } else if (kind === "Avocado") {
+            const pr = w2 * 0.62, pcy = h * 0.17;
+            push(out, ellipse(0, pcy, pr, pr * 1.05, 32), penD, true);
+            if (det > 0) { for (const k of [0.82, 0.62]) { if (k < 0.7 && det < 0.5) break; const C = []; for (let i = 0; i <= 14; i++) { const a = Math.PI * 0.7 + (i / 14) * Math.PI * 1.1; C.push([Math.cos(a) * pr * k, pcy + Math.sin(a) * pr * 1.05 * k]); } push(out, C, penD, false); } }
+          } else if (kind === "Fig") {
+            const cav = []; for (let i = 0; i < 24; i++) { const a = (i / 24) * TWO_PI; const rr = h * 0.13 * (1 + 0.15 * noiseAt(i * 0.5, 3)); cav.push([Math.cos(a) * rr * 0.9, h * 0.08 + Math.sin(a) * rr]); } push(out, cav, penD, true);
+            const n = Math.round(det * 60); for (let i = 0; i < n; i++) { const a = r() * TWO_PI; const R1 = fOf(a) * 0.95; const R0 = h * 0.14; const c = [0, h * 0.08]; const u0 = 0.15 + r() * 0.55; const x0 = c[0] + Math.cos(a) * (R0 + (R1 - R0) * u0) * 0.95, y0 = c[1] + Math.sin(a) * (R0 + (R1 - R0) * u0); const l = h * 0.03; push(out, [[x0, y0], [x0 + Math.cos(a) * l, y0 + Math.sin(a) * l]], penD, false); dot(out, x0 + Math.cos(a) * l * 1.15, y0 + Math.sin(a) * l * 1.15, h * 0.005, penD); }
+          } else if (kind === "Starfruit") {
+            const R = h * 0.5;
+            push(out, ellipse(0, 0, R * 0.09, R * 0.09, 8), penD, true);
+            for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + Math.PI / 5 + (i / 5) * TWO_PI; push(out, ellipse(Math.cos(a) * R * 0.3, Math.sin(a) * R * 0.3, R * 0.05, R * 0.1, 10, a + Math.PI / 2), penD, true); }
+            if (det > 0.3) for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i / 5) * TWO_PI; const R1 = fOf(a); push(out, [[Math.cos(a) * R * 0.12, Math.sin(a) * R * 0.12], [Math.cos(a) * R1 * 0.9, Math.sin(a) * R1 * 0.9]], penD, false); }
+          } else if (kind === "Dragon fruit") {
+            const nb = Math.round(3 + det * 5), Lb = body.length;
+            for (let i = 0; i < nb; i++) { const j = Math.floor(((i + 0.3 + r() * 0.4) / nb) * Lb) % Lb; const q = body[j]; const a = Math.atan2(q[1], q[0]) + (q[1] < 0 ? (q[0] < 0 ? 0.5 : -0.5) : (q[0] < 0 ? 1 : -1) * 1.1); blade(out, [q[0] * 0.92, q[1] * 0.92], a, h * (0.1 + r() * 0.05), h * 0.025, (q[0] < 0 ? -1 : 1) * 0.5, penB, false, true); }
+            const n = Math.min(500, Math.round(det * (bb[2] - bb[0]) * (bb[3] - bb[1]) * 0.06));
+            for (let i = 0; i < n; i++) { const x = bb[0] + r() * (bb[2] - bb[0]), y = bb[1] + r() * (bb[3] - bb[1]); if (inFlesh(x, y) && Math.hypot(x, y) < fOf(Math.atan2(y, x)) * 0.94) dot(out, x, y, h * 0.005, penD); }
+          } else if (kind === "Pomegranate") {
+            const nm = 5, a0 = r() * TWO_PI, mem = [];
+            for (let i = 0; i < nm; i++) { const a = a0 + (i / nm) * TWO_PI + (r() - 0.5) * 0.3; mem.push(a); const R = fOf(a) * 0.97; const C = []; for (let j = 0; j <= 8; j++) { const u = j / 8; const aa = a + 0.25 * Math.sin(Math.PI * u) * (r() > 0.5 ? 1 : -1) * 0.5; C.push([Math.cos(aa) * R * u, Math.sin(aa) * R * u]); } push(out, C, penD, false); }
+            if (det > 0) {
+              const cell = h * 0.075, ar = cell * 0.36;
+              for (let gy = bb[1]; gy <= bb[3]; gy += cell * 0.87) { let row = 0; for (let gx = bb[0] + ((Math.round((gy - bb[1]) / (cell * 0.87)) % 2) ? cell / 2 : 0); gx <= bb[2]; gx += cell) {
+                const x = gx + (r() - 0.5) * cell * 0.3, y = gy + (r() - 0.5) * cell * 0.3; row++;
+                const rr = Math.hypot(x, y), th = Math.atan2(y, x);
+                if (rr > fOf(th) * 0.9 || rr < h * 0.05) continue;
+                let near = false; for (const a of mem) { let d = Math.abs(Math.atan2(Math.sin(th - a), Math.cos(th - a))); if (d * rr < cell * 0.45) { near = true; break; } }
+                if (near || r() > 0.2 + det * 0.8) continue;
+                const A = []; const rot = r() * TWO_PI; for (let k = 0; k < 6; k++) { const a = rot + (k / 6) * TWO_PI; A.push([x + Math.cos(a) * ar * (0.85 + r() * 0.3), y + Math.sin(a) * ar * (0.85 + r() * 0.3)]); } push(out, A, penD, true);
+              } }
+            }
+          }
+        }
+      }
+      return { body: bodyOut, parts: out };
+    };
+
+    /* ---------------- placement ---------------- */
+    const rot = (list, ca, sa) => list.map((q) => ({ ...q, pts: q.pts.map(([x, y]) => [x * ca - y * sa, x * sa + y * ca]) }));
+    const bboxOf = (lists) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const q of lists) for (const [x, y] of q.pts) { if (x < a) a = x; if (y < b) b = y; if (x > c) c = x; if (y > d) d = y; } return [a, b, c, d]; };
+    const noOv = p.place !== "Loose (may overlap)";
+    const target = Math.max(1, Math.min(60, Math.round(+p.count || 1)));
+    const diag = Math.hypot(Math.max(1, W - 2 * m), Math.max(1, H - 2 * m));
+    const placed = [];
+    let guard = 0, made = 0;
+    const order = KINDS.slice();
+    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = order[i]; order[i] = order[j]; order[j] = t; }
+    while (made < target && guard++ < target * 12 && pts < BUDGET) {
+      const kind = p.kind === "Mix" ? order[made % order.length] : (PROF[p.kind] ? p.kind : "Lemon");
+      const halved = p.cut === "Halved" ? true : p.cut === "Whole" ? false : rng() < 0.5;
+      const h = Math.max(4, (+p.size || 10) * (1 - cl(p.sizeVar, 0, 1) * rng()));
+      if (h > diag) continue;
+      const PP = halved && HALF[kind] ? { ...PROF[kind], ...HALF[kind] } : PROF[kind];
+      let ang = PP.ang;
+      if (p.rotation === "Tilt") ang += (rng() * 2 - 1) * (Math.max(0, +p.tilt || 0) * Math.PI) / 180;
+      else if (p.rotation === "Random") ang = rng() * TWO_PI;
+      const ca = Math.cos(ang), sa = Math.sin(ang);
+      /* body-only rotated bbox: skip a specimen that cannot fit before building its details */
+      const bw0 = (h / PP.aspect) * Math.abs(ca) + h * Math.abs(sa), bh0 = (h / PP.aspect) * Math.abs(sa) + h * Math.abs(ca);
+      if (bw0 * 0.95 > W - 2 * m || bh0 * 0.95 > H - 2 * m) continue;
+      const spec = specimen(kind, h, halved, rng);
+      const body = rot(spec.body, ca, sa), parts = rot(spec.parts, ca, sa);
+      const bb = noOv ? bboxOf([...body, ...parts]) : bboxOf(body);
+      const bw = bb[2] - bb[0], bh = bb[3] - bb[1];
+      if (bw > W - 2 * m || bh > H - 2 * m) continue;
+      let cx = 0, cy = 0, box = null, ok = false;
+      for (let tries = 0; tries < 80 && !ok; tries++) {
+        cx = m - bb[0] + rng() * (W - 2 * m - bw); cy = m - bb[1] + rng() * (H - 2 * m - bh);
+        box = [bb[0] + cx, bb[1] + cy, bb[2] + cx, bb[3] + cy];
+        ok = true;
+        for (const q of placed) { if (noOv ? !(box[2] + 1 < q[0] || box[0] - 1 > q[2] || box[3] + 1 < q[1] || box[1] - 1 > q[3]) : Math.hypot((box[0] + box[2]) / 2 - (q[0] + q[2]) / 2, (box[1] + box[3]) / 2 - (q[1] + q[3]) / 2) < 0.35 * Math.min(bw + q[2] - q[0], bh + q[3] - q[1])) { ok = false; break; } }
+      }
+      if (!ok) continue;
+      placed.push(box);
+      for (const q of [...body, ...parts]) { paths.push({ pts: q.pts.map(([x, y]) => [x + cx, y + cy]), closed: q.closed, layer: q.layer }); pts += q.pts.length; }
+      made++;
+    }
+    for (const q of paths) q.pts = q.pts.map(([x, y]) => [Math.max(0, Math.min(W, x)), Math.max(0, Math.min(H, y))]);
+    return applyStyle({ paths }, ins && ins[0]);
+  },
 };
 ```
 
@@ -34319,6 +35354,183 @@ export default {
 };
 ```
 
+## reedsnow.js
+
+```js
+import { Pin, mulberry32, noise2, applyStyle } from "../helpers.js";
+
+export default {
+  /* Reeds in Snow — a charcoal-drawing study: tall thin stalks rising from a
+     shallow ground band, each with its own weight (multi-pass parallel
+     strokes that taper toward the tip), gentle bend and lean, a share of
+     them fallen as long diagonals, some drawn as broken dotted lines; around
+     them faint wind marks on the snow, a few scribbled tangles and long
+     wispy sweeps on a light pen. The snow itself is left blank. */
+  key: "reedsnow",
+  name: "Reeds in Snow",
+  cat: "gen",
+  group: "nature",
+  desc: "Winter reeds drawn like a charcoal sketch on white paper: Stalks rise from a shallow ground band (Ground and Ground depth) to varying heights, bending softly (Bend) and leaning with the wind (Lean, Lean variation) with a hand-drawn wobble (Roughness). Every stalk has its own weight - Weight and Weight variation set how many parallel passes it gets, and Taper makes the passes converge so the stalk thins toward its tip; Broken turns a share of them into dotted lines. Fallen tips a share over as long crossing diagonals. Wind marks are faint horizontal strokes across the snow surface, Tangles small scribbled knots at stalk tips or on the ground, Wisps long faint sweeps of the charcoal - all three on the Light pen. Stalks stay inside Margin.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "count", label: "Stalks", type: "slider", min: 1, max: 60, step: 1, def: 14 },
+    { key: "height", label: "Height mm", type: "slider", min: 20, max: 400, step: 5, def: 170 },
+    { key: "heightVar", label: "Height variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.55 },
+    { key: "bend", label: "Bend", type: "slider", min: 0, max: 1, step: 0.05, def: 0.3 },
+    { key: "lean", label: "Lean deg", type: "slider", min: -30, max: 30, step: 1, def: 4 },
+    { key: "leanVar", label: "Lean variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.4 },
+    { key: "rough", label: "Roughness", type: "slider", min: 0, max: 1, step: 0.05, def: 0.4 },
+    { key: "fallen", label: "Fallen", type: "slider", min: 0, max: 1, step: 0.05, def: 0.25 },
+    { key: "weight", label: "Weight mm", type: "slider", min: 0.15, max: 1.5, step: 0.05, def: 0.6 },
+    { key: "weightVar", label: "Weight variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.7 },
+    { key: "taper", label: "Taper", type: "check", def: true },
+    { key: "broken", label: "Broken (dotted)", type: "slider", min: 0, max: 1, step: 0.05, def: 0.2 },
+    { key: "windMarks", label: "Wind marks", type: "slider", min: 0, max: 40, step: 1, def: 12 },
+    { key: "tangles", label: "Tangles", type: "slider", min: 0, max: 8, step: 1, def: 2 },
+    { key: "wisps", label: "Wisps", type: "slider", min: 0, max: 20, step: 1, def: 6 },
+    { key: "ground", label: "Ground (0 = top, 1 = bottom)", type: "slider", min: 0.3, max: 1, step: 0.01, def: 0.86 },
+    { key: "groundDepth", label: "Ground depth mm", type: "slider", min: 0, max: 80, step: 1, def: 22 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 40, step: 1, def: 15 },
+    { key: "seed", label: "Seed", type: "seed", def: 11 },
+    { key: "layer", label: "Stalk pen", type: "pen", def: 0 },
+    { key: "penLight", label: "Light pen", type: "pen", def: 9 },
+  ],
+  overlay(p, ctx) {
+    try {
+      const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+      const m = Math.max(0, Math.min(+(p && p.margin) || 0, Math.min(W, H) / 2 - 1));
+      const gy = m + Math.max(0, Math.min(1, +(p && p.ground) || 0.86)) * (H - 2 * m);
+      const gd = Math.max(0, +(p && p.groundDepth) || 0);
+      return [{ kind: "rect", x: m, y: m, w: W - 2 * m, h: H - 2 * m }, { kind: "rect", x: m, y: Math.max(m, gy - gd / 2), w: W - 2 * m, h: Math.min(gd, H - m - Math.max(m, gy - gd / 2)) }];
+    } catch (e) { return []; }
+  },
+  compute(ins, p, ctx) {
+    const W = ctx.W, H = ctx.H;
+    const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0));
+    const m = Math.max(0, Math.min(cl(p.margin, 0, 1e4), Math.min(W, H) / 2 - 1));
+    const seed = (Math.round(+p.seed) || 1) >>> 0;
+    const rng = mulberry32(seed * 6151 + 3);
+    const pen = Math.max(0, Math.min(11, Math.round(+p.layer || 0))), penL = Math.max(0, Math.min(11, Math.round(+p.penLight || 0)));
+    const count = Math.max(1, Math.min(200, Math.round(+p.count || 1)));
+    const Hmax = cl(p.height, 5, 5000), hVar = cl(p.heightVar, 0, 1);
+    const bend = cl(p.bend, 0, 2), lean0 = cl(p.lean, -80, 80) * Math.PI / 180, leanVar = cl(p.leanVar, 0, 1);
+    const rough = cl(p.rough, 0, 2), fallenF = cl(p.fallen, 0, 1), brokenF = cl(p.broken, 0, 1);
+    const wMax = cl(p.weight, 0.05, 5), wVar = cl(p.weightVar, 0, 1);
+    const PASS = 0.18;                         /* pen-width pitch between passes */
+    const gy = m + cl(p.ground, 0, 1) * (H - 2 * m), gd = cl(p.groundDepth, 0, H);
+    const paths = [];
+    let budget = 115000;
+    const emit = (pts, layer) => { if (pts.length < 2 || budget <= 0) return; budget -= pts.length; paths.push({ pts: pts.map(([x, y]) => [Math.max(m, Math.min(W - m, x)), Math.max(m, Math.min(H - m, y))]), closed: false, layer }); };
+    const nz = (a, b, k) => noise2(a, b, seed + k) - 0.5;
+
+    /* ---- one stalk centreline: base, direction, length -> sampled polyline + local normals ---- */
+    const centreline = (bx, by, ang, len, bendAmt, wob, id) => {
+      const n = Math.max(12, Math.min(160, Math.round(len / 2.2)));
+      const pts = [];
+      const bs = rng() < 0.5 ? -1 : 1;
+      const ph = rng() * 100;
+      for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        /* base direction with a quadratic bend and a slow wobble */
+        const a = ang + bs * bendAmt * 0.9 * t * t + wob * 0.25 * nz(t * 3 + ph, id * 0.37, 1);
+        const s = len / n;
+        const prev = pts.length ? pts[pts.length - 1] : [bx, by];
+        pts.push(i === 0 ? [bx, by] : [prev[0] + Math.sin(a) * s, prev[1] - Math.cos(a) * s]);
+      }
+      /* fine hand tremor perpendicular to the line */
+      const out = pts.map((q, i) => {
+        const q0 = pts[Math.max(0, i - 1)], q1 = pts[Math.min(pts.length - 1, i + 1)];
+        let nx = -(q1[1] - q0[1]), ny = q1[0] - q0[0]; const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
+        const tr = wob * 0.7 * nz(i * 0.9 + ph, id * 0.91 + 7, 2) * Math.min(1, len / 60);
+        return [q[0] + nx * tr, q[1] + ny * tr, nx, ny];
+      });
+      return out;
+    };
+    /* multi-pass ribbon with optional taper */
+    const stroke = (cl2, wmm, taper, layer, dotted) => {
+      const passes = Math.max(1, Math.min(12, Math.round(wmm / PASS)));
+      for (let k = 0; k < passes; k++) {
+        const off = (k - (passes - 1) / 2) * PASS;
+        let pts = cl2.map((q, i) => { const t = i / (cl2.length - 1); const f = taper ? (1 - 0.85 * t) : 1; return [q[0] + q[2] * off * f, q[1] + q[3] * off * f]; });
+        if (k % 2) pts.reverse();
+        if (dotted) {
+          /* break into short dashes with irregular gaps */
+          let i = 0;
+          while (i < pts.length - 1) {
+            const dl = 1 + Math.round(rng() * 2), gl = 1 + Math.round(rng() * 1.5);
+            const seg = pts.slice(i, i + dl + 1);
+            if (seg.length >= 2) emit(seg, layer);
+            i += dl + gl;
+          }
+        } else emit(pts, layer);
+      }
+    };
+
+    /* ---- stalks ---- */
+    const usableTop = m + 2;
+    for (let i = 0; i < count; i++) {
+      const bx = m + rng() * (W - 2 * m);
+      const by = gy + (rng() - 0.5) * gd;
+      const fallen = rng() < fallenF;
+      const hRaw = Hmax * (1 - hVar * Math.pow(rng(), 0.8));
+      let ang = lean0 + (rng() - 0.5) * 2 * leanVar * 0.35;
+      let len = hRaw;
+      if (fallen) { ang = (rng() < 0.5 ? -1 : 1) * (0.3 + rng() * 0.55) + lean0 * 0.5; len = hRaw * (0.7 + rng() * 0.4); }
+      /* keep the tip inside the margin box: shorten if it would leave */
+      const reach = Math.max(0.05, Math.cos(ang));
+      len = Math.min(len, (by - usableTop) / reach);
+      const sx = Math.sin(ang);
+      if (sx > 1e-6) len = Math.min(len, (W - m - 2 - bx) / sx); else if (sx < -1e-6) len = Math.min(len, (bx - m - 2) / -sx);
+      if (len < 8) continue;
+      const cl2 = centreline(bx, by, ang, len, bend, rough, i + 1);
+      const wmm = Math.max(0.1, wMax * (1 - wVar * Math.pow(rng(), 0.6)));
+      const dotted = rng() < brokenF;
+      stroke(cl2, dotted ? Math.min(wmm, PASS * 2) : wmm, !!p.taper, pen, dotted);
+    }
+
+    /* ---- wind marks on the snow: faint, nearly horizontal ---- */
+    const nWind = Math.max(0, Math.min(200, Math.round(+p.windMarks || 0)));
+    for (let i = 0; i < nWind; i++) {
+      const L = 12 + rng() * 60, x0 = m + rng() * (W - 2 * m - L), y0 = gy + (rng() - 0.5) * (gd + 20);
+      const slope = (rng() - 0.5) * 0.12, ph = rng() * 50;
+      const n = Math.max(6, Math.round(L / 3));
+      const pts = [];
+      for (let k = 0; k <= n; k++) { const t = k / n; pts.push([x0 + L * t, y0 + slope * L * t + 0.6 * nz(t * 4 + ph, i, 3)]); }
+      emit(pts, penL);
+    }
+    /* ---- tangles: scribbled knots ---- */
+    const nT = Math.max(0, Math.min(40, Math.round(+p.tangles || 0)));
+    for (let i = 0; i < nT; i++) {
+      const cx = m + 10 + rng() * (W - 2 * m - 20), cy = rng() < 0.5 ? gy + (rng() - 0.5) * gd : gy - (0.3 + rng() * 0.5) * Math.min(Hmax, gy - m);
+      /* a scrawl: jittery random walk tethered to its centre, flattened like a mark made with the side of the hand */
+      const R = 5 + rng() * 9, n = 40 + Math.round(rng() * 40);
+      let x = cx, y = cy, a = rng() * Math.PI * 2;
+      const pts = [[x, y]];
+      for (let k = 1; k <= n; k++) {
+        a += (rng() - 0.5) * 2.4;
+        const dx = cx - x, dy = cy - y, d = Math.hypot(dx, dy);
+        if (d > R) a = Math.atan2(dy, dx) + (rng() - 0.5) * 0.8;
+        x += Math.cos(a) * 1.6; y += Math.sin(a) * 1.0;
+        pts.push([x, y]);
+      }
+      emit(pts, rng() < 0.6 ? pen : penL);
+    }
+    /* ---- wisps: long faint sweeps ---- */
+    const nW = Math.max(0, Math.min(80, Math.round(+p.wisps || 0)));
+    for (let i = 0; i < nW; i++) {
+      let x = m + rng() * (W - 2 * m), y = m + rng() * (H - 2 * m);
+      let a = rng() * Math.PI * 2;
+      const L = 40 + rng() * 120, n = Math.round(L / 2.5), ph = rng() * 80;
+      const pts = [[x, y]];
+      for (let k = 1; k <= n; k++) { a += 0.35 * nz(k * 0.15 + ph, i * 0.5, 6); x += Math.cos(a) * 2.5; y += Math.sin(a) * 2.5; if (x < m || x > W - m || y < m || y > H - m) break; pts.push([x, y]); }
+      emit(pts, penL);
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
 ## regmarks.js
 
 ```js
@@ -34670,6 +35882,287 @@ export default {
         return [pt[0] + normals[i][0] * f * w, pt[1] + normals[i][1] * f * w];
       });
       paths.push({ pts, closed: false, layer: L });
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
+## ribbontype.js
+
+```js
+import { Pin, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+  /* Ribbon Type — lettering swept by a wide flat brush drawn as parallel
+     hairlines. Each glyph is a monoline geometric skeleton of lines and arcs
+     (x-height = 1, baseline y = 0, y up); Stretch X / Y and Slant deform the
+     skeleton, then the ribbon is built as N offset curves of the skeleton at
+     evenly spaced distances across Ribbon width. Straight parts give parallel
+     lines, arcs give concentric arcs, corners mitre (bevel past the limit)
+     so diagonals read as folded tape, and where the offset exceeds the local
+     curvature radius the curve collapses to its centre - the inner lines of
+     an arch or bowl vanish into a tiny hole exactly like a real brush.
+     Facets samples arcs coarsely for an angular, folded alphabet. */
+  key: "ribbontype",
+  name: "Ribbon Type",
+  cat: "gen",
+  group: "textimg",
+  desc: "Brush lettering as parallel hairlines: every letter is a monoline geometric skeleton (stems, bowls, arches - lowercase only, capitals fold to lowercase, digits and punctuation are skipped) swept by a flat brush of Ribbon width, drawn as Line gap-spaced offset curves. Straight strokes become parallel lines, bowls and arches concentric arcs that collapse into a pinhole at the centre once the ribbon is wider than the curve, and corners mitre so diagonals look like folded tape. Stretch X / Stretch Y and Slant deform the skeleton while the ribbon stays the same width; Ascender and Descender set how far stems run above and below the x-height; Facets samples arcs with few segments for an angular alphabet (1 = folded diamonds, 8 = round). Asymmetry scales each successive stroke of a letter from its own baseline anchor - Grow makes the second arch of an m or the bowl of a b larger than the stem beside it, Shrink the opposite, Alternate flips, Random draws seeded factors - by Asymmetry amount, and the advance follows the wider letter. Spacing, Align and Baseline place the word inside Margin, Fit shrinks an oversized word to the box (never grows it). Pen per letter cycles the palette. Wire Frame into Stretch Y or Slant to animate.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "text", label: "Text", type: "text", def: "origin" },
+    { key: "xh", label: "x-height mm", type: "slider", min: 5, max: 200, step: 1, def: 32 },
+    { key: "width", label: "Ribbon width (x x-height)", type: "slider", min: 0.05, max: 1.4, step: 0.01, def: 0.5 },
+    { key: "gap", label: "Line gap mm", type: "slider", min: 0.25, max: 4, step: 0.05, def: 0.6 },
+    { key: "stretchX", label: "Stretch X", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
+    { key: "stretchY", label: "Stretch Y", type: "slider", min: 0.3, max: 4, step: 0.05, def: 1 },
+    { key: "slant", label: "Slant deg", type: "slider", min: -35, max: 35, step: 1, def: 0 },
+    { key: "asc", label: "Ascender (x x-height)", type: "slider", min: 1, max: 8, step: 0.1, def: 2.6 },
+    { key: "desc", label: "Descender (x x-height)", type: "slider", min: 0.1, max: 3, step: 0.1, def: 0.6 },
+    { key: "facets", label: "Facets per quarter", type: "slider", min: 1, max: 8, step: 1, def: 8 },
+    { key: "asym", label: "Asymmetry", type: "select", options: ["None", "Grow", "Shrink", "Alternate", "Random"], def: "None" },
+    { key: "asymAmt", label: "Asymmetry amount", type: "slider", min: 0, max: 1, step: 0.05, def: 0.4, showIf: (p) => p.asym !== "None" },
+    { key: "seed", label: "Seed (Random asymmetry)", type: "seed", def: 3, showIf: (p) => p.asym === "Random" },
+    { key: "spacing", label: "Letter spacing (x x-height)", type: "slider", min: -0.6, max: 1.5, step: 0.05, def: 0.12 },
+    { key: "align", label: "Align", type: "select", options: ["Left", "Center", "Right"], def: "Center" },
+    { key: "baseline", label: "Baseline (0 = top, 1 = bottom)", type: "slider", min: 0, max: 1, step: 0.01, def: 0.78 },
+    { key: "fit", label: "Fit to margin box (shrink only)", type: "check", def: true },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 40, step: 1, def: 12 },
+    { key: "penCycle", label: "Pen per letter", type: "check", def: false },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+  ],
+
+  /* ---- glyph skeletons in x-height units, y up; A = ascender, D = descender ----
+     primitives: ["L", [x,y], [x,y], ...] polyline  |  ["A", cx, cy, r, a0deg, a1deg] arc, a1 > a0 = counter-clockwise
+     ["@", x, y] as the first element pins the stroke's asymmetry anchor; a stroke that starts where the
+     previous one ended is chained and scales about that join, otherwise about (leftmost x, baseline) */
+  _glyphs(A, D) {
+    const C = (cx, cy, r) => ["A", cx, cy, r, 0, 360];
+    return {
+      a: { adv: 1.0, s: [[C(0.5, 0.5, 0.5)], [["L", [1, 1], [1, 0]]]] },
+      b: { adv: 1.0, s: [[["L", [0, A], [0, 0]]], [C(0.5, 0.5, 0.5)]] },
+      c: { adv: 0.95, s: [[["A", 0.5, 0.5, 0.5, 40, 320]]] },
+      d: { adv: 1.0, s: [[C(0.5, 0.5, 0.5)], [["L", [1, A], [1, 0]]]] },
+      e: { adv: 1.0, s: [[["L", [0, 0.5], [1, 0.5]], ["A", 0.5, 0.5, 0.5, 0, 315]]] },
+      f: { adv: 0.9, s: [[["A", 0.85, A - 0.35, 0.35, 90, 180], ["L", [0.5, A - 0.35], [0.5, 0]]], [["L", [0.15, 1], [0.85, 1]]]] },
+      g: { adv: 1.0, s: [[C(0.5, 0.5, 0.5)], [["@", 1, 0], ["L", [1, 1], [1, 0.5 - D]], ["A", 0.5, 0.5 - D, 0.5, 0, -180]]] },
+      h: { adv: 1.0, s: [[["L", [0, A], [0, 0]]], [["A", 0.5, 0.5, 0.5, 180, 0], ["L", [1, 0.5], [1, 0]]]] },
+      i: { adv: 0.0, s: [[["L", [0, A], [0, 0]]]] },
+      j: { adv: 0.5, s: [[["L", [0.5, 1], [0.5, 0.5 - D]], ["A", 0.25, 0.5 - D, 0.25, 0, -180]]] },
+      k: { adv: 0.8, s: [[["L", [0, A], [0, 0]]], [["L", [0.75, 1], [0, 0.4]]], [["L", [0.22, 0.62], [0.8, 0]]]] },
+      l: { adv: 0.0, s: [[["L", [0, A], [0, 0]]]] },
+      m: { adv: 2.0, s: [[["L", [0, 0], [0, 0.5]], ["A", 0.5, 0.5, 0.5, 180, 0], ["L", [1, 0.5], [1, 0]]], [["L", [1, 0], [1, 0.5]], ["A", 1.5, 0.5, 0.5, 180, 0], ["L", [2, 0.5], [2, 0]]]] },
+      n: { adv: 1.0, s: [[["L", [0, 1], [0, 0]]], [["A", 0.5, 0.5, 0.5, 180, 0], ["L", [1, 0.5], [1, 0]]]] },
+      o: { adv: 1.0, s: [[C(0.5, 0.5, 0.5)]] },
+      p: { adv: 1.0, s: [[["L", [0, 1], [0, -D]]], [C(0.5, 0.5, 0.5)]] },
+      q: { adv: 1.0, s: [[C(0.5, 0.5, 0.5)], [["L", [1, 1], [1, -D]]]] },
+      r: { adv: 0.6, s: [[["L", [0, 1], [0, 0]]], [["A", 0.5, 0.5, 0.5, 180, 90]]] },
+      s: { adv: 1.0, s: [[["A", 0.5, 0.25, 0.25, -170, 90]], [["A", 0.5, 0.75, 0.25, 270, 10]]] },
+      t: { adv: 0.75, s: [[["L", [0.35, 1 + (A - 1) * 0.55], [0.35, 0]]], [["L", [0, 1], [0.75, 1]]]] },
+      u: { adv: 1.0, s: [[["L", [0, 1], [0, 0.5]], ["A", 0.5, 0.5, 0.5, 180, 360], ["L", [1, 0.5], [1, 1]]], [["L", [1, 0.5], [1, 0]]]] },
+      v: { adv: 0.9, s: [[["L", [0, 1], [0.45, 0], [0.9, 1]]]] },
+      w: { adv: 1.4, s: [[["L", [0, 1], [0.35, 0], [0.7, 1]]], [["L", [0.7, 1], [1.05, 0], [1.4, 1]]]] },
+      x: { adv: 0.9, s: [[["L", [0, 1], [0.9, 0]]], [["L", [0, 0], [0.9, 1]]]] },
+      y: { adv: 0.9, s: [[["L", [0, 1], [0.45, 0]]], [["L", [0.9, 1], [0.45, 0], [0.2, -D]]]] },
+      z: { adv: 0.9, s: [[["L", [0, 1], [0.9, 1], [0, 0], [0.9, 0]]]] },
+      " ": { adv: 0.6, s: [] },
+    };
+  },
+
+  _layout(p, ctx) {
+    const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+    const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0));
+    const m = Math.max(0, Math.min(cl(p.margin, 0, 1e4), Math.min(W, H) / 2 - 1));
+    const A = cl(p.asc, 1, 20), D = cl(p.desc, 0.05, 10);
+    const G = this._glyphs(A, D);
+    const text = String(p.text == null ? "" : p.text).toLowerCase();
+    const sx = cl(p.stretchX, 0.05, 20), sy = cl(p.stretchY, 0.05, 20);
+    const wr = cl(p.width, 0.01, 4), sp = cl(p.spacing, -1, 5);
+    let xh = cl(p.xh, 1, 1e4);
+    /* ---- asymmetry: scale stroke k of a glyph by f(k) about (leftmost skeleton x, baseline) ---- */
+    const amt = cl(p.asymAmt, 0, 3);
+    const seed = (Math.round(+p.seed) || 1) >>> 0;
+    const rng = mulberry32(seed * 7717 + 11);
+    const factor = (k) => {
+      if (p.asym === "Grow") return 1 + amt * k;
+      if (p.asym === "Shrink") return 1 / (1 + amt * k);
+      if (p.asym === "Alternate") return k % 2 ? 1 + amt : 1;
+      if (p.asym === "Random") return Math.max(0.25, 1 + amt * (rng() * 2 - 1));
+      return 1;
+    };
+    const geo = (st) => st.filter((pr) => pr[0] !== "@");
+    const primXs = (pr) => (pr[0] === "L" ? pr.slice(1).map((q) => q[0]) : pr[0] === "A" ? [pr[1] - pr[3], pr[1] + pr[3]] : []);
+    const primYs = (pr) => (pr[0] === "L" ? pr.slice(1).map((q) => q[1]) : pr[0] === "A" ? [pr[2] - pr[3], pr[2] + pr[3]] : []);
+    const arcPt = (pr, deg) => [pr[1] + Math.cos(deg * Math.PI / 180) * pr[3], pr[2] + Math.sin(deg * Math.PI / 180) * pr[3]];
+    const startOf = (st) => { const pr = geo(st)[0]; return pr[0] === "L" ? pr[1] : arcPt(pr, pr[4]); };
+    const endOf = (st) => { const g2 = geo(st); const pr = g2[g2.length - 1]; return pr[0] === "L" ? pr[pr.length - 1] : arcPt(pr, pr[5]); };
+    /* scale a stroke by f about anchor a (raw coordinates), then translate so the anchor lands on 'to' */
+    const scaleStroke = (stroke, f, a, to) => geo(stroke).map((pr) => (pr[0] === "L"
+      ? ["L", ...pr.slice(1).map(([qx, qy]) => [to[0] + (qx - a[0]) * f, to[1] + (qy - a[1]) * f])]
+      : ["A", to[0] + (pr[1] - a[0]) * f, to[1] + (pr[2] - a[1]) * f, pr[3] * f, pr[4], pr[5]]));
+    const scaleGlyph = (strokes) => {
+      const out = [];
+      let prevRawEnd = null, prevEnd = null;
+      strokes.forEach((st, k) => {
+        const f = factor(k);
+        let a, to;
+        const start = startOf(st);
+        if (st[0][0] === "@") { a = [st[0][1], st[0][2]]; to = a; }
+        else if (prevRawEnd && Math.hypot(start[0] - prevRawEnd[0], start[1] - prevRawEnd[1]) < 1e-9) { a = start; to = prevEnd; }
+        else { let ax = Infinity; for (const pr of geo(st)) for (const v of primXs(pr)) ax = Math.min(ax, v); a = [ax, 0]; to = a; }
+        const sc = scaleStroke(st, f, a, to);
+        out.push(sc);
+        prevRawEnd = endOf(st); prevEnd = endOf(sc);
+      });
+      return out;
+    };
+    const chars = [];
+    let x = 0, yMax = A, yMin = -D;
+    /* advance = skeleton width + ribbon + spacing, so Spacing 0 means ribbons just touch */
+    for (const ch of text) {
+      const g = G[ch];
+      if (!g) { if (ch !== " ") x += (0.6 + wr + sp); continue; }
+      let strokes = g.s, adv = g.adv;
+      if (p.asym !== "None" && strokes.length) {
+        strokes = scaleGlyph(strokes);
+        const edge = (ss) => { let e = -Infinity; for (const st of ss) for (const pr of st) for (const v of primXs(pr)) e = Math.max(e, v); return e; };
+        adv = g.adv + (edge(strokes) - edge(g.s));
+        for (const st of strokes) for (const pr of st) for (const v of primYs(pr)) { yMax = Math.max(yMax, v); yMin = Math.min(yMin, v); }
+      }
+      chars.push({ g: { adv, s: strokes }, x });
+      x += adv + wr + sp;
+    }
+    if (chars.length) x -= wr + sp;
+    /* extents in units before scaling: ribbon adds wr/2 all round; the word spans [ -wr/2 .. x + wr/2 ] */
+    const unitsW = (x + wr) * sx;
+    const unitsUp = yMax * sy + wr / 2, unitsDown = -yMin * sy + wr / 2;
+    if (p.fit) {
+      const kx = Math.max(1e-6, W - 2 * m) / Math.max(1e-6, unitsW * xh);
+      const ky = Math.max(1e-6, H - 2 * m) / Math.max(1e-6, (unitsUp + unitsDown) * xh);
+      const k = Math.min(1, kx, ky);
+      xh *= k;
+    }
+    const wordW = unitsW * xh;
+    const bx0 = p.align === "Left" ? m : p.align === "Right" ? W - m - wordW : W / 2 - wordW / 2;
+    let base = m + cl(p.baseline, 0, 1) * (H - 2 * m);
+    if (p.fit) base = Math.max(m + unitsUp * xh, Math.min(H - m - unitsDown * xh, base));
+    const tanS = Math.tan(cl(p.slant, -80, 80) * Math.PI / 180);
+    const originX = bx0 + (wr / 2) * sx * xh;
+    /* unit -> mm (y up in units, y down on canvas) */
+    const T = (u, v) => [originX + (u * sx + v * sy * tanS) * xh, base - v * sy * xh];
+    return { chars, xh, T, A, D, wr, sx, sy, m, W, H, box: { x: bx0, y: base - unitsUp * xh, w: wordW, h: (unitsUp + unitsDown) * xh }, base };
+  },
+
+  overlay(p, ctx) {
+    try {
+      const L = this._layout(p, ctx);
+      const g = [{ kind: "rect", x: L.m, y: L.m, w: L.W - 2 * L.m, h: L.H - 2 * L.m }];
+      if (L.chars.length) { g.push({ kind: "rect", x: L.box.x, y: L.box.y, w: L.box.w, h: L.box.h }); g.push({ kind: "arrow", x1: L.box.x, y1: L.base, x2: L.box.x + L.box.w, y2: L.base }); }
+      return g;
+    } catch (e) { return []; }
+  },
+
+  compute(ins, p, ctx) {
+    const L = this._layout(p, ctx);
+    const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0));
+    const pen = Math.max(0, Math.min(11, Math.round(+p.layer || 0)));
+    const facets = Math.max(1, Math.min(16, Math.round(+p.facets || 8)));
+    const smooth = facets >= 4;
+    const wmm = L.wr * L.xh;
+    const gapmm = cl(p.gap, 0.1, 100);
+    const N = Math.max(1, Math.min(400, Math.round(wmm / gapmm) + 1));
+    const paths = [];
+    let budget = 115000;
+    const TWO_PI = Math.PI * 2, DEG = Math.PI / 180;
+
+    /* ---- sample a stroke (list of primitives) into mm points with per-vertex curvature centres ---- */
+    const sample = (prims, cx0) => {
+      const pts = [], cc = [];  /* cc[i] = [x,y] curvature centre for arc vertices, null for line vertices */
+      const push = (q, c) => { if (pts.length && Math.hypot(q[0] - pts[pts.length - 1][0], q[1] - pts[pts.length - 1][1]) < 1e-6) { if (c) cc[cc.length - 1] = c; return; } pts.push(q); cc.push(c); };
+      for (const pr of prims) {
+        if (pr[0] === "@") continue;
+        if (pr[0] === "L") { for (let i = 1; i < pr.length; i++) push(L.T(cx0 + pr[i][0], pr[i][1]), null); }
+        else {
+          const [, cx, cy, r, a0, a1] = pr;
+          const span = Math.abs(a1 - a0) * DEG;
+          const quarters = Math.max(1, span / (Math.PI / 2));
+          let n;
+          if (smooth) { const rOut = (r + L.wr / 2) * L.xh * Math.max(L.sx, L.sy); n = Math.max(Math.ceil(quarters * 6), Math.ceil((span * rOut) / 1.2)); }
+          else n = Math.max(1, Math.round(quarters * facets));
+          const arcPts = [];
+          for (let i = 0; i <= n; i++) { const a = (a0 + (a1 - a0) * (i / n)) * DEG; arcPts.push(L.T(cx0 + cx + Math.cos(a) * r, cy + Math.sin(a) * r)); }
+          /* curvature centres: circumcentre of consecutive sampled triples (exact for circles, good for stretched ones) */
+          const centres = arcPts.map((q, i) => {
+            if (!smooth) return null;
+            const a = arcPts[Math.max(0, Math.min(arcPts.length - 3, i - 1))], b = arcPts[Math.max(1, Math.min(arcPts.length - 2, i))], c = arcPts[Math.max(2, Math.min(arcPts.length - 1, i + 1))];
+            const d = 2 * (a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1]));
+            if (Math.abs(d) < 1e-9) return null;
+            const ux = ((a[0] * a[0] + a[1] * a[1]) * (b[1] - c[1]) + (b[0] * b[0] + b[1] * b[1]) * (c[1] - a[1]) + (c[0] * c[0] + c[1] * c[1]) * (a[1] - b[1])) / d;
+            const uy = ((a[0] * a[0] + a[1] * a[1]) * (c[0] - b[0]) + (b[0] * b[0] + b[1] * b[1]) * (a[0] - c[0]) + (c[0] * c[0] + c[1] * c[1]) * (b[0] - a[0])) / d;
+            return [ux, uy];
+          });
+          arcPts.forEach((q, i) => push(q, centres[i]));
+        }
+      }
+      const closed = pts.length > 2 && Math.hypot(pts[0][0] - pts[pts.length - 1][0], pts[0][1] - pts[pts.length - 1][1]) < 1e-6;
+      if (closed) { pts.pop(); cc.pop(); }
+      return { pts, cc, closed };
+    };
+
+    /* ---- offset a sampled stroke by signed distance d (left of travel), mitre joins with bevel limit, curvature collapse ---- */
+    const LIMIT = 3;
+    const offset = (S, d) => {
+      const { pts, cc, closed } = S;
+      const n = pts.length;
+      if (n < 2) return null;
+      const out = [];
+      const unit = (v) => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+      for (let i = 0; i < n; i++) {
+        const p = pts[i];
+        const hasPrev = closed || i > 0, hasNext = closed || i < n - 1;
+        const pv = hasPrev ? pts[(i - 1 + n) % n] : null, nx = hasNext ? pts[(i + 1) % n] : null;
+        const d1 = pv ? unit([p[0] - pv[0], p[1] - pv[1]]) : null, d2 = nx ? unit([nx[0] - p[0], nx[1] - p[1]]) : null;
+        const n1 = d1 ? [-d1[1], d1[0]] : null, n2 = d2 ? [-d2[1], d2[0]] : null;
+        let cand;
+        if (n1 && n2) {
+          const nb = unit([n1[0] + n2[0], n1[1] + n2[1]]);
+          const cosH = nb[0] * n1[0] + nb[1] * n1[1];
+          if (cosH < 1e-6 || 1 / cosH > LIMIT) { cand = [[p[0] + n1[0] * d, p[1] + n1[1] * d], [p[0] + n2[0] * d, p[1] + n2[1] * d]]; }
+          else { const k = d / cosH; cand = [[p[0] + nb[0] * k, p[1] + nb[1] * k]]; }
+        } else { const nn = n1 || n2; cand = [[p[0] + nn[0] * d, p[1] + nn[1] * d]]; }
+        /* curvature collapse: an inward offset past the local radius lands on the centre of curvature */
+        const c = cc[i];
+        if (c && cand.length === 1) {
+          const ux = c[0] - p[0], uy = c[1] - p[1], rho = Math.hypot(ux, uy);
+          const ox = cand[0][0] - p[0], oy = cand[0][1] - p[1];
+          if (rho > 1e-9 && ox * ux + oy * uy > 0 && Math.hypot(ox, oy) >= rho - 1e-9) cand = [[c[0], c[1]]];
+        }
+        for (const q of cand) if (!out.length || Math.hypot(q[0] - out[out.length - 1][0], q[1] - out[out.length - 1][1]) > 1e-6) out.push(q);
+      }
+      if (closed && out.length > 1 && Math.hypot(out[0][0] - out[out.length - 1][0], out[0][1] - out[out.length - 1][1]) < 1e-6) out.pop();
+      if (out.length < (closed ? 3 : 2)) return null;
+      return { pts: out, closed };
+    };
+
+    /* ---- sweep every stroke of every letter ---- */
+    let ci = 0;
+    for (const ch of L.chars) {
+      const layer = p.penCycle ? (pen + ci) % 12 : pen;
+      ci++;
+      for (const stroke of ch.g.s) {
+        const S = sample(stroke, ch.x);
+        if (S.pts.length < 2) continue;
+        for (let k = 0; k < N; k++) {
+          const d = N === 1 ? 0 : -wmm / 2 + (wmm * k) / (N - 1);
+          const O = offset(S, d);
+          if (!O || budget <= 0) continue;
+          const pts = k % 2 ? O.pts.slice().reverse() : O.pts;
+          budget -= pts.length;
+          paths.push({ pts, closed: O.closed, layer });
+        }
+      }
     }
     return applyStyle({ paths }, ins[0]);
   },
@@ -36600,6 +38093,262 @@ export default {
       return p.min + rng() * (p.max - p.min);
     },
   
+};
+```
+
+## scaffolding.js
+
+```js
+import { Pin, hash2, applyStyle } from "../helpers.js";
+
+export default {
+  key: "scaffolding",
+  name: "Scaffolding",
+  cat: "gen",
+  group: "structural",
+  desc: "Tube-and-coupler scaffolding as a 3-D wireframe: standards, ledgers, transoms, a kick lift at the base, facade and end braces, deck boards, guardrails, toe boards, base plates and couplers. Bays x Lifts x Rows sets the grid; Shape (Full / Ragged / Stairs / Pyramid) with Vary makes a half-built skyline. Tube = Double draws every tube as two lines with open-end caps, Line keeps a bare wireframe. Yaw / Pitch / Perspective set the camera - wire Frame into Yaw to orbit. Decks and rails draw on the Deck pen. Fits inside Margin.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "bays", label: "Bays", type: "slider", min: 1, max: 14, step: 1, def: 6 },
+    { key: "lifts", label: "Lifts", type: "slider", min: 1, max: 12, step: 1, def: 5 },
+    { key: "rows", label: "Rows (depth)", type: "slider", min: 1, max: 3, step: 1, def: 2 },
+    { key: "liftR", label: "Lift height (x bay)", type: "slider", min: 0.4, max: 1.6, step: 0.05, def: 0.8 },
+    { key: "depthR", label: "Depth (x bay)", type: "slider", min: 0.15, max: 0.8, step: 0.05, def: 0.35 },
+    { key: "shape", label: "Shape", type: "select", options: ["Full", "Ragged", "Stairs", "Pyramid"], def: "Ragged" },
+    { key: "vary", label: "Vary", type: "slider", min: 0, max: 1, step: 0.05, def: 0.4, showIf: (p) => p.shape !== "Full" },
+    { key: "braces", label: "Braces", type: "select", options: ["None", "Ends", "Zigzag", "Lattice", "Random"], def: "Zigzag" },
+    { key: "decks", label: "Decks", type: "select", options: ["None", "Top", "Every lift", "Alternate"], def: "Every lift" },
+    { key: "boards", label: "Boards per deck", type: "slider", min: 2, max: 6, step: 1, def: 3, showIf: (p) => p.decks !== "None" },
+    { key: "rails", label: "Guardrails + toe boards", type: "check", def: true, showIf: (p) => p.decks !== "None" },
+    { key: "couplers", label: "Couplers", type: "check", def: true },
+    { key: "tube", label: "Tube", type: "select", options: ["Line", "Double"], def: "Double" },
+    { key: "tubeW", label: "Tube width mm", type: "slider", min: 0.4, max: 3, step: 0.1, def: 1.2 },
+    { key: "yaw", label: "Yaw deg (wire Frame)", type: "slider", min: -80, max: 80, step: 1, def: 28 },
+    { key: "pitch", label: "Pitch deg", type: "slider", min: 0, max: 60, step: 1, def: 18 },
+    { key: "persp", label: "Perspective", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 40, step: 1, def: 15 },
+    { key: "seed", label: "Seed", type: "seed", def: 7 },
+    { key: "pen", label: "Tube pen", type: "pen", def: 0 },
+    { key: "deckPen", label: "Deck pen", type: "pen", def: 10 },
+  ],
+  overlay(p, ctx) {
+    const W = (ctx && ctx.W) || 0, H = (ctx && ctx.H) || 0;
+    const m = Math.max(0, +(p && p.margin) || 0);
+    return [{ kind: "rect", x: m, y: m, w: Math.max(0, W - 2 * m), h: Math.max(0, H - 2 * m) }];
+  },
+  compute(ins, p, ctx, node) {
+    const W = ctx.W, H = ctx.H;
+    const clampI = (v, a, b) => Math.max(a, Math.min(b, Math.round(+v || 0)));
+    const bays = clampI(p.bays, 1, 40);
+    const lifts = clampI(p.lifts, 1, 40);
+    const rows = clampI(p.rows, 1, 4);
+    const spans = rows - 1;
+    const L = Math.max(0.1, +p.liftR || 0.8);
+    const D = Math.max(0.05, +p.depthR || 0.35);
+    const depth = spans * D;
+    const seed = Math.round(+p.seed || 0);
+    const vary = Math.max(0, Math.min(1, +p.vary || 0));
+    const tw = Math.max(0.1, +p.tubeW || 1);
+    const dbl = p.tube === "Double";
+    const sh = dbl ? tw / 2 : 0;
+    const pen = clampI(p.pen, 0, 11);
+    const dpen = clampI(p.deckPen, 0, 11);
+
+    /* --- column heights in lifts (shared across rows) --- */
+    const hs = [];
+    for (let i = 0; i <= bays; i++) {
+      let f = 1;
+      if (p.shape === "Ragged") f = 1 - vary * hash2(i, 7, seed * 31 + 1);
+      else if (p.shape === "Stairs") f = 1 - vary * (1 - i / bays);
+      else if (p.shape === "Pyramid") f = 1 - vary * Math.abs(i - bays / 2) / (bays / 2 || 1);
+      hs.push(Math.max(1, Math.round(lifts * f)));
+    }
+    let maxH = 1;
+    for (const h of hs) maxH = Math.max(maxH, h);
+
+    /* --- camera: yaw about the vertical, pitch tilts the camera down --- */
+    const yaw = (+p.yaw || 0) * Math.PI / 180;
+    const pit = Math.max(-1.5, Math.min(1.5, (+p.pitch || 0) * Math.PI / 180));
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pit), sp = Math.sin(pit);
+    const persp = Math.max(0, Math.min(3, +p.persp || 0));
+    const view = (x, y, z) => {
+      const vx = x * cy - y * sy, vy = x * sy + y * cy;
+      return [vx, vy * cp - z * sp, z * cp + vy * sp];
+    };
+    const railsOn = p.decks !== "None" && !!p.rails && spans > 0;
+    const zTop = maxH * L + (railsOn ? 0.55 * L : 0);
+    const padW = 0.08;
+    const corners = [];
+    for (const x of [-padW, bays + padW]) for (const y of [-padW, depth + padW]) for (const z of [0, zTop]) corners.push(view(x, y, z));
+    let dMin = Infinity, dMax = -Infinity;
+    for (const c of corners) { dMin = Math.min(dMin, c[1]); dMax = Math.max(dMax, c[1]); }
+    const S = Math.max(1e-6, dMax - dMin);
+    const pv = (v) => { const s = 1 / (1 + persp * (v[1] - dMin) / S); return [v[0] * s, -v[2] * s]; };
+
+    /* --- fit the projected padded box into the margin box --- */
+    const m = Math.max(0, +p.margin || 0);
+    const pad = tw * 1.2;
+    const boxW = Math.max(1, W - 2 * m - 2 * pad), boxH = Math.max(1, H - 2 * m - 2 * pad);
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const c of corners) { const q = pv(c); x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); }
+    const k = Math.min(boxW / Math.max(1e-6, x1 - x0), boxH / Math.max(1e-6, y1 - y0));
+    const cx = (x0 + x1) / 2, cyy = (y0 + y1) / 2;
+    const P = (x, y, z) => { const q = pv(view(x, y, z)); return [W / 2 + (q[0] - cx) * k, H / 2 + (q[1] - cyy) * k]; };
+
+    /* --- emission with a point budget; least important geometry last --- */
+    const paths = [];
+    let budget = 115000;
+    const add = (pts, closed, layer) => { if (budget <= 0 || pts.length < 2) return; budget -= pts.length; paths.push({ pts, closed, layer }); };
+    const tube = (a, b, layer, sa, sb) => {
+      let dx = b[0] - a[0], dy = b[1] - a[1];
+      const len = Math.hypot(dx, dy);
+      if (len < 1e-6) return;
+      dx /= len; dy /= len;
+      sa = sa || 0; sb = sb || 0;
+      if (len - sa - sb < 0.05) return;
+      const A = [a[0] + dx * sa, a[1] + dy * sa], B = [b[0] - dx * sb, b[1] - dy * sb];
+      if (!dbl) { add([A, B], false, layer); return; }
+      const nx = -dy * tw / 2, ny = dx * tw / 2;
+      add([[A[0] + nx, A[1] + ny], [B[0] + nx, B[1] + ny]], false, layer);
+      add([[B[0] - nx, B[1] - ny], [A[0] - nx, A[1] - ny]], false, layer);
+    };
+    const Y = (r) => r * D;
+    const zBase = 0.12 * L;
+    const levelsTo = (h) => { const lv = [zBase]; for (let j = 1; j <= h; j++) lv.push(j * L); return lv; };
+
+    /* decks: which bay/lift carries boards */
+    const deckAt = (i, j) => {
+      if (i < 0 || i >= bays) return false;
+      const hm = Math.min(hs[i], hs[i + 1]);
+      if (spans <= 0 || j < 1 || j > hm) return false;
+      if (p.decks === "Top") return j === hm;
+      if (p.decks === "Every lift") return true;
+      if (p.decks === "Alternate") return (hm - j) % 2 === 0;
+      return false;
+    };
+    /* a standard runs on to guardrail height when a deck sits at its top */
+    const topZ = (i) => hs[i] * L + (railsOn && (deckAt(i - 1, hs[i]) || deckAt(i, hs[i])) ? 0.55 * L : 0);
+
+    /* standards + open-end caps */
+    for (let i = 0; i <= bays; i++) for (let r = 0; r < rows; r++) {
+      const a = P(i, Y(r), 0), b = P(i, Y(r), topZ(i));
+      tube(a, b, pen);
+      if (dbl) {
+        let tx = b[0] - a[0], ty = b[1] - a[1];
+        const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+        const nx = -ty, ny = tx;
+        const rx = tw / 2, ry = (tw / 2) * Math.max(0.15, Math.abs(sp));
+        const pts = [];
+        for (let q = 0; q < 10; q++) {
+          const a2 = (q / 10) * Math.PI * 2;
+          const u = Math.cos(a2) * rx, v = Math.sin(a2) * ry;
+          pts.push([b[0] + nx * u + tx * v, b[1] + ny * u + ty * v]);
+        }
+        add(pts, true, pen);
+      }
+    }
+    /* ledgers along the facade */
+    for (let i = 0; i < bays; i++) {
+      const lv = levelsTo(Math.min(hs[i], hs[i + 1]));
+      for (let r = 0; r < rows; r++) for (const z of lv) tube(P(i, Y(r), z), P(i + 1, Y(r), z), pen, sh, sh);
+    }
+    /* transoms across the depth */
+    for (let i = 0; i <= bays; i++) {
+      const lv = levelsTo(hs[i]);
+      for (let r = 0; r < spans; r++) for (const z of lv) tube(P(i, Y(r), z), P(i, Y(r + 1), z), pen, sh, sh);
+    }
+    /* braces on the outer face (y = 0) */
+    const bm = p.braces;
+    const braceDir = (i, j) => {
+      if (bm === "Ends") return (i === 0 || i === bays - 1) ? (j & 1) : -1;
+      if (bm === "Zigzag") return (i % 3 === 0 || i === bays - 1) ? (j & 1) : -1;
+      if (bm === "Lattice") return (i + j) & 1;
+      if (bm === "Random") return hash2(i, j, seed * 17 + 3) < 0.45 ? (hash2(i, j, seed * 23 + 5) < 0.5 ? 0 : 1) : -1;
+      return -1;
+    };
+    const off = 0.08 * L;
+    for (let i = 0; i < bays; i++) {
+      const hm = Math.min(hs[i], hs[i + 1]);
+      for (let j = 0; j < hm; j++) {
+        const d = braceDir(i, j);
+        if (d < 0) continue;
+        const z0 = (j === 0 ? zBase : j * L) + off, z1 = (j + 1) * L - off;
+        const a = P(d === 0 ? i : i + 1, 0, z0), b = P(d === 0 ? i + 1 : i, 0, z1);
+        tube(a, b, pen);
+      }
+    }
+    /* end braces across the depth on both end faces */
+    if (spans > 0 && bm !== "None") {
+      for (const i of [0, bays]) for (let j = 0; j < hs[i]; j++) {
+        if (bm === "Random" && hash2(i + 101, j, seed * 17 + 3) >= 0.45) continue;
+        const d = (j + (i === 0 ? 0 : 1)) & 1;
+        const z0 = (j === 0 ? zBase : j * L) + off, z1 = (j + 1) * L - off;
+        const a = P(i, d === 0 ? 0 : depth, z0), b = P(i, d === 0 ? depth : 0, z1);
+        tube(a, b, pen);
+      }
+    }
+    /* guardrails, end rails and toe boards */
+    if (railsOn) {
+      for (let i = 0; i < bays; i++) for (let j = 1; j <= Math.min(hs[i], hs[i + 1]); j++) {
+        if (!deckAt(i, j)) continue;
+        const z = j * L;
+        tube(P(i, 0, z + 0.25 * L), P(i + 1, 0, z + 0.25 * L), pen, sh, sh);
+        tube(P(i, 0, z + 0.5 * L), P(i + 1, 0, z + 0.5 * L), pen, sh, sh);
+        add([P(i + 0.02, 0, z), P(i + 0.98, 0, z), P(i + 0.98, 0, z + 0.08 * L), P(i + 0.02, 0, z + 0.08 * L)], true, dpen);
+      }
+      for (const i of [0, bays]) {
+        const bi = i === 0 ? 0 : bays - 1;
+        for (let j = 1; j <= Math.min(hs[bi], hs[bi + 1]); j++) {
+          if (!deckAt(bi, j)) continue;
+          const z = j * L;
+          tube(P(i, 0, z + 0.25 * L), P(i, depth, z + 0.25 * L), pen, sh, sh);
+          tube(P(i, 0, z + 0.5 * L), P(i, depth, z + 0.5 * L), pen, sh, sh);
+        }
+      }
+    }
+    /* base plates */
+    const bp = 0.05;
+    for (let i = 0; i <= bays; i++) for (let r = 0; r < rows; r++) {
+      const y = Y(r);
+      add([P(i - bp, y - bp, 0), P(i + bp, y - bp, 0), P(i + bp, y + bp, 0), P(i - bp, y + bp, 0)], true, pen);
+    }
+    /* deck boards */
+    if (spans > 0 && p.decks !== "None") {
+      const nb = clampI(p.boards, 1, 12);
+      const bw = depth / nb, g = 0.06 * bw;
+      for (let i = 0; i < bays; i++) for (let j = 1; j <= Math.min(hs[i], hs[i + 1]); j++) {
+        if (!deckAt(i, j)) continue;
+        const z = j * L;
+        for (let b = 0; b < nb; b++) {
+          const ya = b * bw + g, yb = (b + 1) * bw - g;
+          const e0 = 0.015 + 0.025 * hash2(i * 7 + b, j, seed * 41 + 9);
+          const e1 = 0.015 + 0.025 * hash2(i * 7 + b, j + 500, seed * 41 + 9);
+          add([P(i + e0, ya, z), P(i + 1 - e1, ya, z), P(i + 1 - e1, yb, z), P(i + e0, yb, z)], true, dpen);
+        }
+      }
+    }
+    /* couplers at every ledger/standard joint (screen-space clamps) */
+    if (p.couplers) {
+      const cw = tw * 2.1, ch = Math.max(0.4, tw * 1.1);
+      for (let i = 0; i <= bays; i++) for (let r = 0; r < rows; r++) {
+        const q0 = P(i, Y(r), 0), q1 = P(i, Y(r), L);
+        let tx = q1[0] - q0[0], ty = q1[1] - q0[1];
+        const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+        const nx = -ty, ny = tx;
+        for (const z of levelsTo(hs[i])) {
+          const q = P(i, Y(r), z);
+          add([
+            [q[0] + tx * ch / 2 + nx * cw / 2, q[1] + ty * ch / 2 + ny * cw / 2],
+            [q[0] + tx * ch / 2 - nx * cw / 2, q[1] + ty * ch / 2 - ny * cw / 2],
+            [q[0] - tx * ch / 2 - nx * cw / 2, q[1] - ty * ch / 2 - ny * cw / 2],
+            [q[0] - tx * ch / 2 + nx * cw / 2, q[1] - ty * ch / 2 + ny * cw / 2],
+          ], true, pen);
+        }
+      }
+    }
+    return applyStyle({ paths }, ins[0]);
+  },
 };
 ```
 
@@ -41809,6 +43558,253 @@ export default {
       return { paths };
     },
   
+};
+```
+
+## stripediscs.js
+
+```js
+import { Pin, mulberry32, noise2, resample } from "../helpers.js";
+
+export default {
+  /* Stripe Discs — op-art rotated-disc displacement: a field of lines (the
+     built-in stripes, or anything wired into Field) is cut by circular discs;
+     inside every disc the field is rotated about the disc centre by its own
+     angle, outside it is left alone, and the two meet exactly on the rim.
+     Discs sit on a grid or are scattered without overlap; their angles follow
+     a modulation (progressive, by row / column, alternating, random, noise).
+     Clipping is exact: runs are cut at the true segment/circle intersection,
+     then collinear points are dropped so straight stripes stay 2-point lines. */
+  key: "stripediscs",
+  name: "Stripe Discs",
+  cat: "mod",
+  group: "deform",
+  desc: "Op-art rotated discs after Bridget Riley: a field of stripes is cut by circles, and inside each circle the field is rotated about the circle's centre while outside it runs on untouched, so the stripes appear to twist through round lenses. With nothing wired the node draws its own stripes (Stripe spacing, Stripe angle); wire any lines into Field to twist those instead. Layout Grid places Columns x Rows discs (Jitter nudges them), Random scatters Count discs without overlap (Radius variation shrinks some). Rotation sets how the disc angles vary: Progressive steps by Angle step disc by disc, Rows and Columns step per row or column, Alternate flips +/- step, Random and Noise are seeded; Angle is the base - wire Frame into it to spin every disc. Gap parts the rotated content from the rim, Rim draws the circle itself, and Disc pen recolours the twisted content. Overlay shows the discs.",
+  ins: [Pin("paths", "Field (optional)")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "spacing", label: "Stripe spacing mm", type: "slider", min: 0.8, max: 12, step: 0.1, def: 2.6 },
+    { key: "stripeAngle", label: "Stripe angle deg", type: "slider", min: 0, max: 180, step: 1, def: 90 },
+    { key: "layout", label: "Layout", type: "select", options: ["Grid", "Random"], def: "Grid" },
+    { key: "cols", label: "Columns", type: "slider", min: 1, max: 10, step: 1, def: 3, showIf: (p) => p.layout === "Grid" },
+    { key: "rows", label: "Rows", type: "slider", min: 1, max: 10, step: 1, def: 3, showIf: (p) => p.layout === "Grid" },
+    { key: "jitter", label: "Jitter (x cell)", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.08, showIf: (p) => p.layout === "Grid" },
+    { key: "count", label: "Count", type: "slider", min: 1, max: 40, step: 1, def: 9, showIf: (p) => p.layout === "Random" },
+    { key: "radius", label: "Radius mm", type: "slider", min: 3, max: 120, step: 0.5, def: 24 },
+    { key: "radVar", label: "Radius variation", type: "slider", min: 0, max: 0.8, step: 0.05, def: 0.3, showIf: (p) => p.layout === "Random" },
+    { key: "mode", label: "Rotation", type: "select", options: ["Progressive", "Rows", "Columns", "Alternate", "Random", "Noise"], def: "Rows" },
+    { key: "angle", label: "Angle deg (wire Frame)", type: "slider", min: -360, max: 360, step: 1, def: 90 },
+    { key: "stepA", label: "Angle step deg", type: "slider", min: -180, max: 180, step: 1, def: -50, showIf: (p) => p.mode !== "Random" && p.mode !== "Noise" },
+    { key: "gap", label: "Gap mm", type: "slider", min: 0, max: 6, step: 0.1, def: 0 },
+    { key: "rim", label: "Rim", type: "check", def: false },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 40, step: 1, def: 10 },
+    { key: "seed", label: "Seed", type: "seed", def: 5 },
+    { key: "layer", label: "Stripe pen", type: "pen", def: 0 },
+    { key: "penMode", label: "Disc pen", type: "select", options: ["Same as field", "Disc pen"], def: "Same as field" },
+    { key: "penDisc", label: "Disc pen", type: "pen", def: 2, showIf: (p) => p.penMode === "Disc pen" },
+  ],
+
+  /* shared disc placement: [cx, cy, r, angleRad] per disc — same code feeds compute and overlay */
+  _discs(p, ctx) {
+    const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+    const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0));
+    const m = Math.max(0, Math.min(cl(p.margin, 0, 1e4), Math.min(W, H) / 2 - 1));
+    const R = cl(p.radius, 0.5, 1e4);
+    const seed = (Math.round(+p.seed) || 1) >>> 0;
+    const rng = mulberry32(seed * 4241 + 7);
+    const out = [];
+    let cols = 1, rows = 1;
+    if (p.layout === "Random") {
+      const n = Math.max(1, Math.min(200, Math.round(+p.count || 1)));
+      const rv = cl(p.radVar, 0, 0.95);
+      for (let i = 0; i < n; i++) {
+        const r = Math.max(0.5, R * (1 - rv * rng()));
+        let ok = false;
+        for (let t = 0; t < 60 && !ok; t++) {
+          const cx = m + r + rng() * Math.max(0, W - 2 * m - 2 * r), cy = m + r + rng() * Math.max(0, H - 2 * m - 2 * r);
+          if (r > (W - 2 * m) / 2 || r > (H - 2 * m) / 2) break;
+          ok = out.every((d) => Math.hypot(d[0] - cx, d[1] - cy) >= d[2] + r + 1);
+          if (ok) out.push([cx, cy, r, 0, i, 0]);
+        }
+      }
+    } else {
+      cols = Math.max(1, Math.min(40, Math.round(+p.cols || 1))); rows = Math.max(1, Math.min(40, Math.round(+p.rows || 1)));
+      const cw = (W - 2 * m) / cols, ch = (H - 2 * m) / rows;
+      const r = Math.min(R, 0.48 * Math.min(cw, ch));
+      const j = cl(p.jitter, 0, 0.5);
+      for (let ry = 0; ry < rows; ry++) for (let cx = 0; cx < cols; cx++) {
+        const jx = (rng() * 2 - 1) * j * (cw / 2 - r), jy = (rng() * 2 - 1) * j * (ch / 2 - r);
+        out.push([m + cw * (cx + 0.5) + jx, m + ch * (ry + 0.5) + jy, r, 0, cx, ry]);
+      }
+    }
+    /* angles */
+    const base = (+p.angle || 0) * Math.PI / 180, st = (+p.stepA || 0) * Math.PI / 180;
+    const arng = mulberry32(seed * 911 + 3);
+    out.forEach((d, i) => {
+      let a = base;
+      if (p.mode === "Progressive") a += st * i;
+      else if (p.mode === "Rows") a += st * (p.layout === "Random" ? Math.floor(((d[1] - m) / Math.max(1e-6, H - 2 * m)) * 3) : d[5]);
+      else if (p.mode === "Columns") a += st * (p.layout === "Random" ? Math.floor(((d[0] - m) / Math.max(1e-6, W - 2 * m)) * 3) : d[4]);
+      else if (p.mode === "Alternate") a += st * ((p.layout === "Random" ? i : d[4] + d[5]) % 2 ? -0.5 : 0.5);
+      else if (p.mode === "Random") a += (arng() - 0.5) * Math.PI;
+      else if (p.mode === "Noise") a += (noise2(d[0] * 0.02, d[1] * 0.02, seed + 5) - 0.5) * Math.PI * 1.6;
+      d[3] = a;
+    });
+    return out.map((d) => [d[0], d[1], d[2], d[3]]);
+  },
+
+  overlay(p, ctx) {
+    try {
+      const W = (ctx && ctx.W) || 297, H = (ctx && ctx.H) || 210;
+      const m = Math.max(0, Math.min(+(p && p.margin) || 0, Math.min(W, H) / 2 - 1));
+      const g = [{ kind: "rect", x: m, y: m, w: W - 2 * m, h: H - 2 * m }];
+      const discs = this && typeof this._discs === "function" ? this._discs(p, ctx) : [];
+      for (const d of discs.slice(0, 400)) g.push({ kind: "circle", cx: d[0], cy: d[1], r: d[2] });
+      return g;
+    } catch (e) { return []; }
+  },
+
+  compute(ins, p, ctx) {
+    const W = ctx.W, H = ctx.H;
+    const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0));
+    const m = Math.max(0, Math.min(cl(p.margin, 0, 1e4), Math.min(W, H) / 2 - 1));
+    const pen = Math.max(0, Math.min(11, Math.round(+p.layer || 0)));
+    const penD = Math.max(0, Math.min(11, Math.round(+p.penDisc || 0)));
+    const recolor = p.penMode === "Disc pen";
+    const gap = cl(p.gap, 0, 100);
+    const discs = this._discs(p, ctx);
+    const STEP = 0.5;
+
+    /* ---- the field: wired paths, or built-in stripes across the margin box ---- */
+    let field;
+    const src = ins && ins[0] && Array.isArray(ins[0].paths) ? ins[0] : null;
+    if (src && src.paths.length) {
+      field = src.paths.filter((q) => q && q.pts && q.pts.length >= 2).map((q) => ({ pts: resample(q.pts, !!q.closed, STEP), layer: q.layer, closed: !!q.closed }));
+    } else {
+      field = [];
+      const sp = cl(p.spacing, 0.3, 200);
+      const a = (+p.stripeAngle || 0) * Math.PI / 180;
+      const dx = Math.cos(a), dy = Math.sin(a);           /* stripe direction */
+      const nx = -dy, ny = dx;                             /* across stripes */
+      const cx = W / 2, cy = H / 2;
+      const bw = W - 2 * m, bh = H - 2 * m;
+      const Rr = Math.hypot(bw, bh) / 2 + sp;
+      let flip = false;
+      for (let d = -Rr; d <= Rr; d += sp) {
+        const ox = cx + nx * d, oy = cy + ny * d;
+        /* clip the infinite stripe to the margin box */
+        let t0 = -Infinity, t1 = Infinity;
+        for (const [o, dir, lo, hi] of [[ox, dx, m, W - m], [oy, dy, m, H - m]]) {
+          if (Math.abs(dir) < 1e-9) { if (o < lo || o > hi) { t0 = 1; t1 = 0; } continue; }
+          const ta = (lo - o) / dir, tb = (hi - o) / dir;
+          t0 = Math.max(t0, Math.min(ta, tb)); t1 = Math.min(t1, Math.max(ta, tb));
+        }
+        if (t1 - t0 < 0.5) continue;
+        const A = [ox + dx * t0, oy + dy * t0], B = [ox + dx * t1, oy + dy * t1];
+        field.push({ pts: resample(flip ? [B, A] : [A, B], false, STEP), layer: pen, closed: false });
+        flip = !flip;
+      }
+    }
+
+    /* ---- clipping helpers ---- */
+    const paths = [];
+    let budget = 115000;
+    /* drop points that sit on the straight line between their neighbours */
+    const simplify = (pts) => {
+      if (pts.length <= 2) return pts;
+      const out = [pts[0]];
+      for (let i = 1; i < pts.length - 1; i++) {
+        const a = out[out.length - 1], b = pts[i], c = pts[i + 1];
+        const ux = c[0] - a[0], uy = c[1] - a[1], L = Math.hypot(ux, uy) || 1;
+        const dev = Math.abs((b[0] - a[0]) * uy - (b[1] - a[1]) * ux) / L;
+        if (dev > 0.02) out.push(b);
+      }
+      out.push(pts[pts.length - 1]);
+      return out;
+    };
+    const emit = (pts, layer) => {
+      const s = simplify(pts);
+      if (s.length < 2 || budget <= 0) return;
+      budget -= s.length;
+      paths.push({ pts: s, closed: false, layer });
+    };
+    /* first crossing parameter t in (0,1) of segment a->b with circle (c, r); null if none */
+    const cross = (a, b, c, r) => {
+      const dx = b[0] - a[0], dy = b[1] - a[1], fx = a[0] - c[0], fy = a[1] - c[1];
+      const A = dx * dx + dy * dy, B = 2 * (fx * dx + fy * dy), C = fx * fx + fy * fy - r * r;
+      const disc = B * B - 4 * A * C;
+      if (A < 1e-12 || disc < 0) return null;
+      const s = Math.sqrt(disc);
+      const t1 = (-B - s) / (2 * A), t2 = (-B + s) / (2 * A);
+      if (t1 > 1e-9 && t1 < 1 - 1e-9) return t1;
+      if (t2 > 1e-9 && t2 < 1 - 1e-9) return t2;
+      return null;
+    };
+    const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+    /* which disc (index) contains point q at radius scale rs, or -1 */
+    let near = discs;   /* discs whose bbox meets the current polyline (set per polyline) */
+    const inDisc = (q, rOff) => {
+      for (let i = 0; i < near.length; i++) { const d = near[i]; if (Math.hypot(q[0] - d[0], q[1] - d[1]) < d[2] + rOff) return d[4]; }
+      return -1;
+    };
+    discs.forEach((d, i) => { d[4] = i; });
+    const bboxOf = (pts) => { let bx0 = Infinity, bx1 = -Infinity, by0 = Infinity, by1 = -Infinity; for (const pt of pts) { if (pt[0] < bx0) bx0 = pt[0]; if (pt[0] > bx1) bx1 = pt[0]; if (pt[1] < by0) by0 = pt[1]; if (pt[1] > by1) by1 = pt[1]; } return [bx0, by0, bx1, by1]; };
+    for (const q of field) q.bb = bboxOf(q.pts);
+    /* walk a polyline, cutting it into runs by a predicate with exact circle crossings */
+    const runs = (pts, closed, keep, circleOf, rOff) => {
+      const P = closed ? [...pts, pts[0]] : pts;
+      const out = [];
+      let cur = [];
+      let prevIn = keep(P[0]);
+      if (prevIn) cur.push(P[0]);
+      for (let i = 1; i < P.length; i++) {
+        const a = P[i - 1], b = P[i];
+        const nowIn = keep(b);
+        if (nowIn === prevIn) { if (nowIn) cur.push(b); continue; }
+        /* boundary crossed: find the circle involved and the exact point */
+        const ci = circleOf(a, b);
+        let x = null;
+        if (ci >= 0) { const d = discs[ci]; const t = cross(a, b, d, d[2] + rOff); if (t !== null) x = lerp(a, b, t); }
+        if (!x) x = lerp(a, b, 0.5);
+        if (prevIn) { cur.push(x); if (cur.length >= 2) out.push(cur); cur = []; }
+        else { cur = [x, b]; }
+        prevIn = nowIn;
+      }
+      if (cur.length >= 2) out.push(cur);
+      return out;
+    };
+
+    /* ---- outside the discs: field runs where no disc (grown by gap) contains the point ---- */
+    for (const q of field) {
+      near = discs.filter((d) => !(q.bb[2] < d[0] - d[2] - gap || q.bb[0] > d[0] + d[2] + gap || q.bb[3] < d[1] - d[2] - gap || q.bb[1] > d[1] + d[2] + gap));
+      if (!near.length) { emit(q.closed ? [...q.pts, q.pts[0]] : q.pts, q.layer); if (budget <= 0) break; continue; }
+      const outside = (pt) => inDisc(pt, gap) < 0;
+      const circleOf = (a, b) => { const ia = inDisc(a, gap), ib = inDisc(b, gap); return ia >= 0 ? ia : ib; };
+      for (const r of runs(q.pts, q.closed, outside, circleOf, gap)) emit(r, q.layer);
+      if (budget <= 0) break;
+    }
+    /* ---- inside each disc: clip the field to the disc (shrunk by gap), rotate about its centre ---- */
+    for (let di = 0; di < discs.length && budget > 0; di++) {
+      const d = discs[di], ri = d[2] - gap;
+      if (ri <= 0.2) continue;
+      const ca = Math.cos(d[3]), sa = Math.sin(d[3]);
+      const inside = (pt) => Math.hypot(pt[0] - d[0], pt[1] - d[1]) < ri;
+      for (const q of field) {
+        if (q.bb[2] < d[0] - ri || q.bb[0] > d[0] + ri || q.bb[3] < d[1] - ri || q.bb[1] > d[1] + ri) continue;
+        for (const r of runs(q.pts, q.closed, inside, () => di, -gap)) {
+          emit(r.map(([x, y]) => { const px = x - d[0], py = y - d[1]; return [d[0] + px * ca - py * sa, d[1] + px * sa + py * ca]; }), recolor ? penD : q.layer);
+        }
+      }
+    }
+    /* ---- rims ---- */
+    if (p.rim) for (const d of discs) {
+      const n = Math.max(24, Math.min(160, Math.round(d[2] * 2.2)));
+      const ring = [];
+      for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; ring.push([d[0] + Math.cos(a) * d[2], d[1] + Math.sin(a) * d[2]]); }
+      if (budget > 0) { budget -= n; paths.push({ pts: ring, closed: true, layer: recolor ? penD : pen }); }
+    }
+    return { paths };
+  },
 };
 ```
 
