@@ -43,8 +43,20 @@ const decode = value => value.replace(/&(#x[\da-f]+|#\d+|amp|lt|gt|quot|apos|#39
 });
 const plain = value => decode(value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim());
 
-async function assertExportSourceMatches(source) {
-  const bytes = await fs.readFile(path.resolve(HERE, '..', source.path));
+/** Captured provenance may be older than the running app (every release bumps APP_VERSION) but never newer or malformed. */
+function versionNotNewer(captured, current) {
+  const parse = value => (typeof value === 'string' && /^\d+\.\d+$/.test(value) ? value.split('.').map(Number) : null);
+  const a = parse(captured), b = parse(current);
+  return Boolean(a && b && (a[0] < b[0] || (a[0] === b[0] && a[1] <= b[1])));
+}
+function normaliseAppVersion(bytes, source, capturedVersion) {
+  // The capture-time hash of src/App.jsx was taken with APP_VERSION = "<captured>"; only that constant may differ.
+  if (source.path !== 'src/App.jsx' || !capturedVersion) return bytes;
+  return Buffer.from(bytes.toString('utf8').replace(/APP_VERSION = "\d+\.\d+"/, `APP_VERSION = "${capturedVersion}"`), 'utf8');
+}
+
+async function assertExportSourceMatches(source, capturedVersion) {
+  const bytes = normaliseAppVersion(await fs.readFile(path.resolve(HERE, '..', source.path)), source, capturedVersion);
   const hash = value => createHash('sha256').update(value).digest('hex');
   const review = source.reviewedChange;
   if (!review) {
@@ -239,7 +251,7 @@ const screenshotHashes = new Set();
 let captureManifest;
 try {
   captureManifest = JSON.parse(await fs.readFile(path.join(HERE, 'assets/screenshots/capture-manifest.json'), 'utf8'));
-  check(captureManifest.appVersion === manifest.version, 'Screenshot capture version must match the generated source manifest.');
+  check(versionNotNewer(captureManifest.appVersion, manifest.version), `Screenshot capture version (${captureManifest.appVersion}) must be a valid version no newer than the generated source manifest (${manifest.version}).`);
   check(JSON.stringify(captureManifest.captures.map(capture => capture.file).sort()) === JSON.stringify(captureKeys.map(key => `${key}.png`).sort()), 'Capture manifest must cover exactly the published screenshots.');
   check((await fs.readFile(path.join(SITE, 'assets/screenshots/capture-manifest.json'), 'utf8')) === (await fs.readFile(path.join(HERE, 'assets/screenshots/capture-manifest.json'), 'utf8')), 'Published capture provenance must match its source.');
 } catch (error) { check(false, `Capture manifest is missing or invalid (${error.message}).`); }
@@ -540,14 +552,14 @@ for (const [assetKey, tutorial] of exportBundles) {
       assert.deepEqual(await fs.readFile(path.join(SITE, provenanceRelative)), provenanceBytes, 'published SVG provenance matches its source');
       const provenance = JSON.parse(provenanceBytes.toString('utf8'));
       assert.equal(provenance.source, 'Actual Muusia browser export');
-      assert.equal(provenance.appVersion, manifest.version);
+      assert.ok(versionNotNewer(provenance.appVersion, manifest.version), `export captured with app ${provenance.appVersion}, which must be a valid version no newer than ${manifest.version}`);
       assert.equal(provenance.patch, tutorial.example);
       assert.equal(provenance.file, relative);
       assert.equal(provenance.sha256, createHash('sha256').update(bytes).digest('hex'), 'SVG checksum matches recorded browser export');
       assert.equal(provenance.patchSha256, createHash('sha256').update(await fs.readFile(path.join(HERE, tutorial.example))).digest('hex'), 'physical test patch matches captured export');
       assert.equal(provenance.selectedNode, 'Merge');
       assert.deepEqual(provenance.canvas, { W: 297, H: 210 });
-      for (const source of provenance.sourceFiles || []) await assertExportSourceMatches(source);
+      for (const source of provenance.sourceFiles || []) await assertExportSourceMatches(source, provenance.appVersion);
       check(true, '');
       continue;
     }
@@ -575,7 +587,7 @@ for (const [assetKey, tutorial] of exportBundles) {
     assert.deepEqual(await fs.readFile(path.join(SITE, provenanceRelative)), provenanceBytes, 'published export provenance matches source');
     const provenance = JSON.parse(provenanceBytes.toString('utf8'));
     assert.equal(provenance.source, 'Actual Muusia browser export');
-    assert.equal(provenance.appVersion, manifest.version);
+    assert.ok(versionNotNewer(provenance.appVersion, manifest.version), `export captured with app ${provenance.appVersion}, which must be a valid version no newer than ${manifest.version}`);
     assert.equal(provenance.patch, tutorial.example);
     assert.equal(provenance.bundle, relative);
     assert.equal(provenance.sha256, createHash('sha256').update(bytes).digest('hex'), 'ZIP checksum matches recorded browser export');
@@ -590,7 +602,7 @@ for (const [assetKey, tutorial] of exportBundles) {
     assert.deepEqual(provenance.settings.visiblePens, [1], 'recorded test exported both sheets while Red was hidden in preview');
     assert.deepEqual(provenance.files.map(file => file.name).sort(), filenames);
     for (const file of provenance.files) assert.equal(file.sha256, createHash('sha256').update(entries[file.name]).digest('hex'), `${file.name}: recorded original SVG checksum`);
-    for (const source of provenance.sourceFiles || []) await assertExportSourceMatches(source);
+    for (const source of provenance.sourceFiles || []) await assertExportSourceMatches(source, provenance.appVersion);
     check(true, '');
   } catch (error) { check(false, `${assetKey}: invalid reference SVG export (${error.message}).`); }
 }

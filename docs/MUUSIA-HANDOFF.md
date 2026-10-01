@@ -124,6 +124,13 @@ text are **English**.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
   verify with `grep -o 'APP_VERSION = "[^"]*"' src/App.jsx`.
+- Learn check: `npm run build` also builds the Learn site (`build:learn`), and the
+  deploy workflow then runs `npm run check:learn` (learn/validate.mjs, ~18k checks:
+  links, assets, patch integrity, screenshot + export provenance). **Run it locally
+  after the build, before committing** — a red check:learn means Pages will not
+  deploy. Captures may be older than APP_VERSION (never newer); any real change to
+  src/App.jsx export code, stack-view.jsx or the listed node files breaks the export
+  provenance and needs a recapture or a reviewedChange entry (learn/README.md).
 - Deploy: git push → GitHub Pages via CI (`.github/workflows/deploy.yml`),
   which serves **only the built `dist/`** — repo `docs/` is never online.
   Anything that must be reachable on Pages goes in `public/` (Vite copies it
