@@ -1,13 +1,31 @@
-# MUUSIA v2.106 — Node Reference
+# MUUSIA v2.107 — Node Reference
 
-All 302 built-in nodes. Conventions used below: most generators accept a **Style**
+All 303 built-in nodes. Conventions used below: most generators accept a **Style**
 input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (187)
+## Generators (188)
+
+**Hair Web** — a tangle of thousands of hairline arcs strung between anchor
+points: dark star bursts where the strands meet and a grey haze between, after
+the pen-plotter network drawings where every connection is one thin curve.
+Anchors: *Layout* Grid (*Columns* × *Rows*, *Jitter*), Random (*Count*, kept
+apart) or Ring (*Count*), pulled in from the edge by *Anchor inset* so the
+outer arcs have room. *Strands* sets how many arcs are drawn. Each strand is a
+cubic curve from one anchor to another, bowed sideways by *Bulge* (× distance)
+with *Bulge variation*; *S-curves* turns a share into twisted S-shapes,
+*Loops* sends a share out of an anchor and back into it as a petal. *Locality*
+prefers nearby partners (0 = any anchor, 1 = neighbours only), *Hubs* makes
+some anchors far busier than others so a few nodes go black. *Light share*
+draws that fraction of strands on the *Light pen* for depth. Every strand
+starts and ends exactly on an anchor, consecutive strands run in opposite
+directions, and a strand that would leave *Margin* is redrawn with a smaller
+bow rather than clipped. Seeded; wire Frame into *Seed* for a boiling
+animation. Pen choice matters: 0.1–0.2 mm keeps the haze grey, a broad nib
+needs far fewer strands.
 
 **Data Chart** — plottable charts from your own data. Load a CSV, TSV or JSON
 file with the file button (first column labels, further columns numeric

@@ -34,7 +34,7 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **300 files** (302 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **301 files** (303 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
@@ -119,7 +119,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (300) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (301) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1648,6 +1648,19 @@ text are **English**.
   afterwards; a generator whose specimen may not fit must check the body-only
   bbox before building details (Fruits went from 2.7 s to 0 ms on skipped
   sizes). Docs era: tools/era/patch-docs-eight-nodes.mjs.
+
+- **2.107** New node **Hair Web** (`hairweb`, organic; 303 nodes, 188
+  generators): thousands of hairline cubic-Bezier arcs between anchors (Grid /
+  Random / Ring with weights), Bulge ± variation, S-curves, petal Loops back
+  into the same anchor, Locality (distance falloff on neighbour spacing, 1 =
+  neighbours only), Hubs (weight = rng^(3·hubs)), Light share on a second pen,
+  strands redrawn with a smaller bow instead of clipped at the margin,
+  alternating direction for pen travel. `_anchors()` shared by compute +
+  overlay (points). Validator tools/validate-hairweb.mjs (59 checks):
+  endpoints on anchors, loop share, straight-chord / bow oracles, locality-1
+  neighbour test (either end may be the origin since strands alternate
+  direction), hub unevenness, light-share fraction. Docs era:
+  tools/era/patch-docs-hairweb.mjs.
 
 ## Hard-won pitfalls (keep)
 
