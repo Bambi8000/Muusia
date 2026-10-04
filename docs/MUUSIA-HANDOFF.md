@@ -1795,6 +1795,24 @@ according to the session's actual capabilities:
   `/tmp/muusia-iris-six-qa/`. This continues the unpublished `codex/iris-node`
   pilot at app version 2.109; no hardware was run.
 
+- **2.110** 2026-10-04 Astra release integration, authorized by Daniel: promote
+  the Iris pilot (`96eeeac`, `17cec53`) to the built-in main release. This
+  supersedes the local-only status of the two pilot entries above. Iris supports
+  one to six independently selected pens, Human / Cat / Goat / Gecko-inspired
+  pupils, open or hatched pupils, centre rays, seeded fibres and physical-size
+  controls. Help includes Iris · Six colours, Iris · A3 study and Iris · 420 mm.
+  302 node files / 304 total built-ins. APP_VERSION 2.109 → 2.110 is the only
+  additional engine-file change; machine profiles and export behavior stay as
+  previously verified. Regenerated the source bundle, catalog and Learn outputs;
+  the study gallery now links to public Muusia and requires v2.110 or later.
+  Release checks: 244 Iris checks, all 13 Help examples, catalog validation,
+  production build and 18,073 Learn checks pass. The existing reference SVGs
+  pass scoped provenance without recapture. Real six-pen browser exports were
+  checked in the pilot as documented above; no hardware was run. Next: a dedicated
+  Iris Learn lesson and real screenshots. Refresh Claude's project snapshot from
+  the final main commit, then verify its manifest; Pages publication is verified
+  against that exact pushed commit by the integrating session.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

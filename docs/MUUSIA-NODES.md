@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 304 built-in nodes (including the local Iris pilot). Conventions used below:
+All 304 built-in nodes. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
