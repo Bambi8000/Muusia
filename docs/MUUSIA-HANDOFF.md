@@ -1669,6 +1669,36 @@ text are **English**.
   direction), hub unevenness, light-share fraction. Docs era:
   tools/era/patch-docs-hairweb.mjs.
 
+- **2.108** Machine profiles phase 1 — explicit export workflow
+  (docs/MUUSIA-MACHINE-PROFILES-CLAUDE-HANDOFF.md). New module
+  `src/machine.js` (pure, no React): DEFAULT_MACHINE / DEFAULT_MACHINE_B moved
+  here as the single source; DEFAULT_SVG_MACHINE (own small template: no
+  Klipper commands, no Moonraker URL, work area unset = 0, never a 330×240
+  default); `workflow: "gcode" | "svg-external"` (missing = legacy gcode);
+  normalizeMachine / normalizeMachines (patch lists: valid entries kept,
+  invalid skipped with per-entry messages, all-invalid → caller keeps its
+  list, machineFormat > 2 rejected), readMachineFile (v1 / bare → legacy, v2,
+  unsupported version rejected), writeMachineFile (v2, minApp on svg-external,
+  session id stripped), assignIds / nextId (running machine-N), clampIdx,
+  convertWorkflow, machineCtx, gcodeRefusal. App.jsx: every G-code route
+  (normal export, Mega preview + zip, animation frames, Stack, laser jig ×4)
+  goes through toGcodeGated / jigGcodeGated and returns the ;-comment refusal
+  for svg-external; buttons disabled with a reason; Stack hides its G-code zip
+  via new gcodeEnabled prop; DRO gets no URL; profile switch or workflow
+  change clears the generated preview; patches carry machineFormat: 2; MACHINE
+  SETUP has a Workflow select and an svg-external branch (manufacturer, model,
+  work area with "not set", source URL, verified-on, external-program
+  instructions, min app version) with all G-code sections hidden. Validator
+  tools/validate-machine.mjs (62 checks: legacy identity round trip, field
+  whitelist, rejects, ids, clamping, patch lists, file versions, conversion,
+  ctx). Era: tools/era/patch-machine-workflow.mjs (22 anchored edits, JSX
+  parse-checked). **Learn coordination (AGENTS §3/§5):** this changes
+  src/App.jsx and src/stack-view.jsx, both pinned by the Learn export
+  provenance — the physical-plot and svg-workflow exports and the Machine
+  Setup screenshots must be recaptured against this build before the commit is
+  pushed; geometry is unchanged, only provenance and the Machine Setup
+  pictures move. Phase 2 (Inkscape-layer SVG per pen) is separate work.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

@@ -133,7 +133,7 @@ function drawSheet(canvas, ps, W, H, PENS, dispW, dispH) {
   return truncated;
 }
 
-export default function StackView({ PENS, T, mono, disp, W, H, frameCount, primaryPS, evalFrame, exportText, buildZip, projName, fontStrokes, sheetsCount, onClose }) {
+export default function StackView({ PENS, T, mono, disp, W, H, frameCount, primaryPS, evalFrame, exportText, buildZip, projName, fontStrokes, sheetsCount, onClose, gcodeEnabled = true }) {
   const [mode, setMode] = useState("frames");        /* "frames" | "pens" */
   const [frameSheets, setFrameSheets] = useState([]); /* [{ label, ps }] built lazily */
   const [gap, setGap] = useState(10);                 /* sheet spacing, mm */
@@ -458,7 +458,7 @@ export default function StackView({ PENS, T, mono, disp, W, H, frameCount, prima
           )}
 
           <div style={{ ...row, display: "flex", gap: 6 }}>
-            {["svg", "dxf", "gcode"].map((k) => (
+            {(gcodeEnabled ? ["svg", "dxf", "gcode"] : ["svg", "dxf"]).map((k) => (
               <button key={k} onClick={() => exportZip(k)} disabled={loading || !sheets.length}
                 style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: loading || !sheets.length ? T.dim : T.text, fontSize: 10, fontFamily: mono, cursor: "pointer" }}
                 title={`One ZIP with ${sheets.length || "N"} per-sheet ${k.toUpperCase()} files`}>

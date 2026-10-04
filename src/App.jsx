@@ -11,6 +11,7 @@ import LiveInput from "./live-input.jsx";
 import { makeAnalyzeButton, intakeImage } from "./analyze.js";
 import CatalogBrowser from "./catalog-browser.jsx";
 import StackView from "./stack-view.jsx";
+import { DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
 /* ============================================================
@@ -882,7 +883,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.107"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.108"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1779,27 +1780,8 @@ export default function App() {
       : (megaMode === "Gap" ? megaC * canvasW + (megaC - 1) * megaSeam : megaC * canvasW - (megaC - 1) * megaSeam))
     : canvasW;
   const megaH = megaOn ? (megaRoll ? rollLen : (megaMode === "Gap" ? megaR * canvasH + (megaR - 1) * megaSeam : megaR * canvasH - (megaR - 1) * megaSeam)) : canvasH;
-  const DEFAULT_MACHINE = {
-    name: "A — Servo Z (multi-tip brush)",
-    workW: 330, workH: 240, originX: 0, originY: 0, flipY: false, pauseCmd: "M0", tgPen: false,
-    startG: "G21 ; mm\nG90 ; absolute\nG28 ; home",
-    endG: "G0 X0 Y0",
-    zMode: "servo", servoName: "pen", servoUp: 90, servoDown: 35,
-    penUp: 3, penDown: 0, feedDraw: 1800, feedTravel: 6000, zFeed: 600,
-    zHop: 1.5, zHopOn: true, penDelayDown: 120, penDelayUp: 80,
-    rotOn: false, rotStepper: "pen_rotate", rotThresh: 20,
-    dipOn: false, dipX: 320, dipY: 20, dipZ: -2, dipEvery: 800, dipDwell: 600,
-    maintOn: false, maintEvery: 4000, maintMsg: "Advance chalk / re-sharpen", maintPark: false, maintX: 20, maintY: 20,
-    laserOn: false, laserOffX: 0, laserOffY: 0, laserOnCmd: "SET_PIN PIN=laser VALUE=1", laserOffCmd: "SET_PIN PIN=laser VALUE=0",
-    moonrakerUrl: "ws://192.168.0.57:7125/websocket",
-    canvasCheckOn: false,
-  };
-  const DEFAULT_MACHINE_B = {
-    ...DEFAULT_MACHINE,
-    name: "B — Bed Z + rotation",
-    zMode: "bed", rotOn: true,
-  };
-  const [machines, setMachines] = useState([DEFAULT_MACHINE, DEFAULT_MACHINE_B]);
+  /* machine templates live in src/machine.js (DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_SVG_MACHINE) */
+  const [machines, setMachines] = useState(() => assignIds([DEFAULT_MACHINE, DEFAULT_MACHINE_B]));
   const [helpFor, setHelpFor] = useState(null); /* node id whose help tooltip is open */
   const [setupFor, setSetupFor] = useState(null); /* node id in slider-setup mode */
   const [nodeNicks, setNodeNicks] = useState(() => {
@@ -1831,8 +1813,13 @@ export default function App() {
   const prof = machines[Math.min(machineIdx, machines.length - 1)];
   const setProf = (fn) => setMachines((ms) => ms.map((m, i) =>
     i === Math.min(machineIdx, ms.length - 1) ? (typeof fn === "function" ? fn(m) : fn) : m));
+  /* export-workflow gate: every G-code route goes through these two; an svg-external profile gets the refusal text */
+  const gcodeProf = isGcodeWorkflow(prof);
+  const toGcodeGated = (ps, c) => (gcodeProf ? toGcode(ps, c, prof) : gcodeRefusal(prof));
+  const jigGcodeGated = (positions, pr, w, h, label) => (gcodeProf ? jigGcode(positions, pr, w, h, label) : { text: gcodeRefusal(prof), warnings: ["G-code export is disabled for an External SVG profile"] });
+  const setWorkflow = (wf) => setProf((pr) => convertWorkflow(pr, wf));
   const exportMachine = () => {
-    const blob = new Blob([JSON.stringify({ app: "muusia-machine", v: 1, prof }, null, 1)], { type: "application/json" });
+    const blob = new Blob([writeMachineFile(prof)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = (prof.name || "machine").replace(/[^a-z0-9]+/gi, "-").toLowerCase() + ".muusia-machine.json";
@@ -1841,15 +1828,14 @@ export default function App() {
   const importMachine = (text) => {
     try {
       const data = JSON.parse(text);
-      const p = data.prof || data;
-      /* yhdista oletuksiin ettei puutu kenttia -> vanhat profiilit paivittyvat */
-      const merged = { ...DEFAULT_MACHINE, ...p };
-      setMachines((ms) => [...ms, merged]);
+      const r = readMachineFile(data);           /* v1 / bare -> legacy gcode; v2 -> as declared; invalid -> error, list untouched */
+      if (r.error) { alert("Could not read machine profile: " + r.error); return; }
+      setMachines((ms) => [...ms, { ...r.prof, id: nextId(ms) }]);
       setMachineIdx(machines.length);
     } catch (e) { alert("Could not read machine profile: " + e.message); }
   };
   const addMachine = () => {
-    setMachines((ms) => [...ms, { ...prof, name: (prof.name || "machine") + " copy" }]);
+    setMachines((ms) => [...ms, { ...prof, id: nextId(ms), name: (prof.name || "machine") + " copy" }]);
     setMachineIdx(machines.length);
   };
   const deleteMachine = () => {
@@ -1911,7 +1897,7 @@ export default function App() {
     const iv = setInterval(() => setFrameIdx((i) => (i + 1) % Math.max(1, frameCount)), 170);
     return () => clearInterval(iv);
   }, [animPlay, frameCount]);
-  const ctx = useMemo(() => ({ W: megaW, H: megaH, frameIdx, frameCount, machine: { originX: prof.originX || 0, originY: prof.originY || 0, flipY: !!prof.flipY, laserOffX: prof.laserOffX || 0, laserOffY: prof.laserOffY || 0, workW: prof.workW || 0, workH: prof.workH || 0 } }), [megaW, megaH, frameIdx, frameCount, prof]);
+  const ctx = useMemo(() => ({ W: megaW, H: megaH, frameIdx, frameCount, machine: machineCtx(prof) }), [megaW, megaH, frameIdx, frameCount, prof]);
   const evalResult = useMemo(() => {
     let level = root, res = evalLevel(root, ctx, null);
     for (const gid of stack) {
@@ -2564,9 +2550,9 @@ export default function App() {
     if (kind === "dxf") return `999\n${note}\n` + toDXF(t0, sheetCtx);
     return kind === "svg"
       ? toSVG(t0, sheetCtx).replace("?>\n", `?>\n<!-- ${note} -->\n`)
-      : `; ${note}\n` + toGcode(t0, sheetCtx, prof);
+      : `; ${note}\n` + toGcodeGated(t0, sheetCtx);
   };
-  const doExport = () => { setGcode(megaOn ? megaPreview("gcode") : toGcode(exportPS(), ctx, prof)); setExportKind("gcode"); setCopied(false); };
+  const doExport = () => { setGcode(megaOn ? megaPreview("gcode") : toGcodeGated(exportPS(), ctx)); setExportKind("gcode"); setCopied(false); };
   const doExportSVG = () => { setGcode(megaOn ? megaPreview("svg") : toSVG(exportPS(), ctx)); setExportKind("svg"); setCopied(false); };
   const doExportDXF = () => { setGcode(megaOn ? megaPreview("dxf") : toDXF(exportPS(), ctx)); setExportKind("dxf"); setCopied(false); };
   const downloadMega = (kind) => {
@@ -2576,7 +2562,7 @@ export default function App() {
       const sheetCtx = { W: t.W ?? canvasW, H: t.H ?? canvasH, frameIdx, frameCount };
       return {
         name: `${projName || "patch"}-${tileTag(i)}${kind === "svg" ? ".svg" : kind === "dxf" ? ".dxf" : ".gcode"}`,
-        text: kind === "svg" ? toSVG(t, sheetCtx) : kind === "dxf" ? toDXF(t, sheetCtx) : toGcode(t, sheetCtx, prof)
+        text: kind === "svg" ? toSVG(t, sheetCtx) : kind === "dxf" ? toDXF(t, sheetCtx) : toGcodeGated(t, sheetCtx)
       };
     });
     const blob = new Blob([buildZip(files)], { type: "application/zip" });
@@ -2622,12 +2608,12 @@ export default function App() {
         perTile.forEach((pos, i) => {
           if (!pos.length) return;
           const rr = Math.floor(i / megaCols);
-          const g = jigGcode(pos, prof, tileW, rowH(rr), `manual - ${tileTag(i)} (${i + 1}/${megaCols * megaRows})`);
+          const g = jigGcodeGated(pos, prof, tileW, rowH(rr), `manual - ${tileTag(i)} (${i + 1}/${megaCols * megaRows})`);
           g.warnings.forEach((w) => notes.push(`tile ${i + 1}: ${w}`));
           files.push({ name: `${projName || "patch"}-${tileTag(i)}-jig.gcode`, text: g.text });
         });
       } else {
-        const g = jigGcode(manualMags.map(([x, y]) => [Math.round(x * 10) / 10, Math.round(y * 10) / 10]), prof, canvasW, canvasH, "manual - sheet 1/1");
+        const g = jigGcodeGated(manualMags.map(([x, y]) => [Math.round(x * 10) / 10, Math.round(y * 10) / 10]), prof, canvasW, canvasH, "manual - sheet 1/1");
         g.warnings.forEach((w) => notes.push(w));
         files.push({ name: `${projName || "patch"}-jig.gcode`, text: g.text });
       }
@@ -2659,7 +2645,7 @@ export default function App() {
         const r = magnetPlacement(t, t.W ?? canvasW, t.H ?? canvasH, opts);
         if (r.error) notes.push(`tile ${i + 1} ${tileTag(i)}: ${r.error}`);
         if (r.positions.length) {
-          const g = jigGcode(r.positions, prof, t.W ?? canvasW, t.H ?? canvasH, `${tileTag(i)} (${i + 1}/${tiles.length})`);
+          const g = jigGcodeGated(r.positions, prof, t.W ?? canvasW, t.H ?? canvasH, `${tileTag(i)} (${i + 1}/${tiles.length})`);
           g.warnings.forEach((w) => notes.push(`tile ${i + 1}: ${w}`));
           files.push({ name: `${projName || "patch"}-${tileTag(i)}-jig.gcode`, text: g.text });
         }
@@ -2668,7 +2654,7 @@ export default function App() {
       const r = magnetPlacement(exportPS(), canvasW, canvasH, opts);
       if (r.error) notes.push(r.error);
       if (r.positions.length) {
-        const g = jigGcode(r.positions, prof, canvasW, canvasH, "sheet 1/1");
+        const g = jigGcodeGated(r.positions, prof, canvasW, canvasH, "sheet 1/1");
         g.warnings.forEach((w) => notes.push(w));
         files.push({ name: `${projName || "patch"}-jig.gcode`, text: g.text });
       }
@@ -2713,7 +2699,7 @@ export default function App() {
       const out = res.out[primaryNode.id];
       let ps = out && out[0] && out[0].paths ? out[0] : EMPTY;
       if (routeOpt) ps = routeOptimize(ps, preserveDir);
-      const text = kind === "svg" ? toSVG(ps, ctxF) : kind === "dxf" ? toDXF(ps, ctxF) : toGcode(ps, ctxF, prof);
+      const text = kind === "svg" ? toSVG(ps, ctxF) : kind === "dxf" ? toDXF(ps, ctxF) : toGcodeGated(ps, ctxF);
       const ext = kind === "svg" ? ".svg" : kind === "dxf" ? ".dxf" : ".gcode";
       files.push({ name: `${projName || "patch"}-f${String(f).padStart(3, "0")}${ext}`, text });
       f++;
@@ -2752,8 +2738,10 @@ export default function App() {
     }
   };
   /* --- patchin tallennus / lataus --- */
+  /* a generated file belongs to the profile that made it: switching profile or workflow clears the preview */
+  useEffect(() => { setGcode(null); }, [machineIdx, prof.workflow]);
   const buildPatchJSON = () =>
-    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels, kind: megaKind, rollW, rollLen, rollStrips, rollSeg } : null, prof, machines, machineIdx, customNodes, root }, null, 1);
+    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels, kind: megaKind, rollW, rollLen, rollStrips, rollSeg } : null, prof, machines, machineIdx, machineFormat: MACHINE_FILE_VERSION, customNodes, root }, null, 1);
   const savePatch = () => {
     const data = buildPatchJSON();
     try {
@@ -2796,12 +2784,13 @@ export default function App() {
       setRoot(data.root);
       if (data.canvas) { setCanvasW(data.canvas.W || 300); setCanvasH(data.canvas.H || 200); }
       if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); setMegaMarkPen(data.mega.markPen || 0); setMegaLabels(!!data.mega.labels); setMegaKind(data.mega.kind || "Sheets"); setRollW(data.mega.rollW || 530); setRollLen(data.mega.rollLen || 2400); setRollStrips(data.mega.rollStrips || 2); setRollSeg(data.mega.rollSeg || 800); } else { setMegaOn(false); }
-      if (Array.isArray(data.machines) && data.machines.length) {
-        setMachines(data.machines.map((m) => ({ ...DEFAULT_MACHINE, ...m })));
-        setMachineIdx(Math.min(data.machineIdx || 0, data.machines.length - 1));
-      } else if (data.prof) {
-        setMachines([{ ...DEFAULT_MACHINE, ...data.prof }]);
-        setMachineIdx(0);
+      {
+        /* machines (non-empty) wins, else legacy prof, else the current list stays; invalid entries are skipped, never emptying the list */
+        const nm = normalizeMachines(data.machines, data.machineIdx, data.machineFormat);
+        const unsupported = !nm.machines && nm.errors.some((e) => /Unsupported machine format/.test(e));
+        if (nm.machines) { setMachines(nm.machines); setMachineIdx(nm.machineIdx); }
+        else if (data.prof && !unsupported) { const r = normalizeMachine(data.prof); if (r.prof) { setMachines(assignIds([r.prof])); setMachineIdx(0); } else nm.errors.push(r.error); }
+        if (nm.errors.length && !silent) alert("Machine profiles in this patch were skipped:\n" + nm.errors.join("\n"));
       }
       if (data.jig) { setJigMode(data.jig.mode === "Manual" ? "Manual" : "Auto"); setManualMags(Array.isArray(data.jig.magnets) ? data.jig.magnets.filter((q) => Array.isArray(q) && q.length === 2) : []); }
       else { setJigMode("Auto"); setManualMags([]); }
@@ -2963,7 +2952,7 @@ export default function App() {
           MUUSIA
           <span style={{ color: T.dim, fontWeight: 500, fontSize: 11, marginLeft: 8 }}>{"v" + APP_VERSION}</span>
         </div>
-        <DroPanel url={prof.moonrakerUrl} />
+        <DroPanel url={gcodeProf ? prof.moonrakerUrl : ""} />
         <LiveInput nodes={lvl.nodes} selIds={selIds} setParam={setParam} setParams={setParamsMulti} histRef={histRef} overlay={bigPreview} />
         <button style={toolBtn(selIds.length > 0)} onClick={duplicateSelected} title="Cmd/Ctrl+D">Duplicate ({selIds.length})</button>
         <button style={toolBtn(selIds.length >= 2)} onClick={groupSelected} title="Cmd/Ctrl+G">Group</button>
@@ -3713,7 +3702,7 @@ export default function App() {
                 onChange={(e) => { setAnimPlay(false); setFrameIdx(Number(e.target.value)); }}
                 style={{ width: "100%", accentColor: T.accent }} />
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                <button onClick={() => exportAllFrames("gcode")} disabled={!primaryPS.paths.length}
+                <button onClick={() => exportAllFrames("gcode")} disabled={!primaryPS.paths.length || !gcodeProf} title={gcodeProf ? "" : "External SVG profile \u2014 use SVG"}
                   style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                   G-code {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
                 </button>
@@ -3760,6 +3749,48 @@ export default function App() {
                   <input type="text" value={prof.name} onChange={(e) => setProf((pr) => ({ ...pr, name: e.target.value }))}
                     style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
                 </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                  <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Workflow</div>
+                  <select value={gcodeProf ? "gcode" : "svg-external"} onChange={(e) => setWorkflow(e.target.value)}
+                    style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }}>
+                    <option value="gcode">G-code — Muusia generates the machine file</option>
+                    <option value="svg-external">External SVG plotter — SVG goes to the plotter's own software</option>
+                  </select>
+                </div>
+                {!gcodeProf && (
+                  <>
+                    <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.5, margin: "2px 0 8px" }}>{SVG_WORKFLOW_HELP}</div>
+                    {[["manufacturer", "Manufacturer"], ["model", "Model"]].map(([k, l]) => (
+                      <div key={k} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                        <div style={{ fontSize: 10, color: T.dim, width: 110 }}>{l}</div>
+                        <input type="text" value={prof[k] || ""} placeholder="optional" onChange={(e) => setProf((pr) => ({ ...pr, [k]: e.target.value }))}
+                          style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
+                      </div>
+                    ))}
+                    {profNum("workW", "Work area W mm")}
+                    {profNum("workH", "Work area H mm")}
+                    <div style={{ fontSize: 9, color: T.dim, marginBottom: 6 }}>
+                      {prof.workW > 0 && prof.workH > 0
+                        ? `Work area ${prof.workW}\u00D7${prof.workH} mm \u2014 canvas ${canvasW}\u00D7${canvasH} mm ${canvasW <= prof.workW && canvasH <= prof.workH ? "fits" : "\u26A0 is larger"} (comparison only; place the paper in your plotter software)`
+                        : "Work area not set \u2014 enter the verified travel of your plotter (0 = unknown). No default is assumed."}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                      <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Source URL</div>
+                      <input type="text" value={prof.sourceUrl || ""} placeholder="where these values come from (optional)" onChange={(e) => setProf((pr) => ({ ...pr, sourceUrl: e.target.value }))}
+                        style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                      <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Verified on</div>
+                      <input type="text" value={prof.verifiedOn || ""} placeholder="YYYY-MM-DD (optional)" onChange={(e) => setProf((pr) => ({ ...pr, verifiedOn: e.target.value }))}
+                        style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
+                    </div>
+                    <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.5, marginBottom: 4 }}>
+                      {prof.sourceUrl ? "Values from the source above." : "Own definition \u2014 not manufacturer-verified."} Saved in this patch and in exported profiles (file format v{MACHINE_FILE_VERSION}); needs Muusia {MACHINE_MIN_APP} or newer \u2014 older versions would merge it into G-code defaults. Machine Setup edits live in this session until you save the patch, export the profile or Set default.
+                    </div>
+                  </>
+                )}
+                {gcodeProf && (
+                  <>
                 {profNum("workW", "Work area W mm")}
                 {profNum("workH", "Work area H mm")}
                 {profNum("originX", "Origin X mm (canvas on bed)")}
@@ -3871,9 +3902,11 @@ export default function App() {
                 <textarea value={prof.endG} spellCheck={false}
                   onChange={(e) => setProf((pr) => ({ ...pr, endG: e.target.value }))}
                   style={{ width: "100%", height: 40, background: "#12151B", color: "#9FB3D1", border: `1px solid ${T.line}`, borderRadius: 4, fontFamily: mono, fontSize: 10, padding: 6, resize: "vertical", lineHeight: 1.5 }} />
+                  </>
+                )}
               </>
             )}
-            {mchOpen && (
+            {mchOpen && gcodeProf && (
               <>
             <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "10px 0 6px" }}>
               <input type="checkbox" checked={prof.rotOn} onChange={(e) => setProf((p) => ({ ...p, rotOn: e.target.checked }))} style={{ accentColor: T.accent }} />
@@ -3945,13 +3978,14 @@ export default function App() {
                 Preserve direction
               </label>
             </div>
-            <button onClick={doExport} disabled={!primaryPS.paths.length}
+            <button onClick={doExport} disabled={!primaryPS.paths.length || !gcodeProf}
+              title={gcodeProf ? "" : "This machine profile uses the External SVG workflow \u2014 export SVG and open it in your plotter software"}
               style={{
                 width: "100%", marginTop: 8, padding: "8px 0", borderRadius: 5, border: "none",
-                background: primaryPS.paths.length ? T.accent : T.line, color: primaryPS.paths.length ? "#0D1117" : T.dim,
-                fontFamily: disp, fontWeight: 700, fontSize: 12, cursor: primaryPS.paths.length ? "pointer" : "default", letterSpacing: "0.03em",
+                background: primaryPS.paths.length && gcodeProf ? T.accent : T.line, color: primaryPS.paths.length && gcodeProf ? "#0D1117" : T.dim,
+                fontFamily: disp, fontWeight: 700, fontSize: 12, cursor: primaryPS.paths.length && gcodeProf ? "pointer" : "default", letterSpacing: "0.03em",
               }}>
-              GENERATE G-CODE (selected node)
+              {gcodeProf ? "GENERATE G-CODE (selected node)" : "G-CODE OFF \u2014 External SVG profile: export SVG below"}
             </button>
             <button onClick={doExportSVG} disabled={!primaryPS.paths.length}
               style={{
@@ -4125,8 +4159,8 @@ export default function App() {
                 <span style={{ color: T.dim }}>mm</span>
               </div>}
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <button onClick={downloadJig}
-                  style={{ background: T.panel2, border: `1px solid ${T.line}`, color: T.text, borderRadius: 4, fontSize: 10, padding: "5px 10px", cursor: "pointer", fontFamily: mono }}>
+                <button onClick={downloadJig} disabled={!gcodeProf} title={gcodeProf ? "" : "Laser jig G-code needs a G-code profile"}
+                  style={{ background: T.panel2, border: `1px solid ${T.line}`, color: gcodeProf ? T.text : T.dim, borderRadius: 4, fontSize: 10, padding: "5px 10px", cursor: gcodeProf ? "pointer" : "default", fontFamily: mono }}>
                   {megaOn ? `Download ${megaCols * megaRows} jigs (.zip)` : "Download jig .gcode"}
                 </button>
                 {jigMode === "Auto" && <label style={{ display: "flex", alignItems: "center", gap: 5, cursor: "pointer", fontSize: 10, color: T.dim }}>
@@ -4262,7 +4296,7 @@ export default function App() {
       {stackOpen && (
         <StackView PENS={PENS} T={T} mono={mono} disp={disp} W={canvasW} H={canvasH}
           frameCount={frameCount} primaryPS={primaryPS}
-          exportText={(kind, ps, ctxE) => kind === "svg" ? toSVG(ps, ctxE) : kind === "dxf" ? toDXF(ps, ctxE) : toGcode(ps, ctxE, prof)}
+          exportText={(kind, ps, ctxE) => kind === "svg" ? toSVG(ps, ctxE) : kind === "dxf" ? toDXF(ps, ctxE) : toGcodeGated(ps, ctxE)} gcodeEnabled={gcodeProf}
           buildZip={buildZip} projName={projName} fontStrokes={fontStrokes}
           sheetsCount={(() => { let m = 0; const walk = (g) => { for (const nd of g.nodes) { if (nd.type === "sheets") { const c = new Set(g.edges.filter((ed) => ed.to === nd.id && typeof ed.toPort === "number").map((ed) => ed.toPort)).size; if (c > m) m = c; } if (nd.type === "morphlayers" && nd.params && nd.params.output === "Sheets") { const c2 = Math.round(nd.params.layers) || 0; if (c2 > m) m = c2; } if (nd.type === "group" && nd.data) walk(nd.data); } }; walk(root); return m; })()}
           evalFrame={(f, n) => {
