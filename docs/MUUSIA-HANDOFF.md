@@ -1778,6 +1778,23 @@ according to the session's actual capabilities:
   content and reference exports unchanged. Next: Daniel's visual review, then
   release integration/version bump and a dedicated Iris Learn lesson/captures.
 
+- **W / local node pilot** 2026-10-04 Iris colour extension, on Daniel's request:
+  add Four pens, Five pens and Six pens to Colour mode. Independently selectable
+  Midtone, Outer and Highlight pens interleave through the existing fibres.
+  All six modes preserve geometry; the three original modes were compared with
+  the `96eeeac` source across all four species (12 byte-identical outputs).
+  New Help example Iris · Six colours and a seventh gallery study use pens
+  0/4/1/6/5/10 (black/orange/blue/teal/purple/ochre). Node reference, search
+  catalog and generated source bundle updated. No engine or exporter changes.
+  `validate-iris`: 244 checks, including six-pen species/centre rays, individual
+  pen choices, shared inks, missing new parameters and extreme budgets.
+  All 13 Help examples pass. Catalog → build → Learn passes (18,073 checks).
+  Fresh browser A3 SVG: 3,037 paths, six separate pen groups; A4 G-code in the
+  default 330 × 240 mm profile: five pen-change pauses, finite coordinates,
+  no bounds warning. Actual export text and UI capture retained locally in
+  `/tmp/muusia-iris-six-qa/`. This continues the unpublished `codex/iris-node`
+  pilot at app version 2.109; no hardware was run.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

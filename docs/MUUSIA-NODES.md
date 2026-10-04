@@ -22,8 +22,14 @@ keeps the requested size and can extend off-sheet. A3 at 10 mm margins fits a
 *Fibres* changes density; *Flow* curves the strands; *Texture* adds shorter
 secondary fibres and broken collarette/rim rings; *Edge fray* roughens the ends.
 *Monochrome* uses Main pen only. *Two pens* adds Inner pen around the pupil;
-*Three pens* also uses Accent pen for selected outer fibres and rings. Colour
-changes preserve the geometry and use Muusia's actual pen layers. *Rotation °*
+*Three pens* also uses Accent pen for selected outer fibres and rings.
+*Four pens* adds Midtone pen through the middle fibres; *Five pens* adds Outer
+pen near the rim; *Six pens* threads Highlight pen through selected fibres.
+All six pen choices are independent: choose their pen numbers on the node,
+then edit the actual ink colours in Muusia's Pens palette. The same pen can
+serve multiple roles. Colour changes preserve the geometry and use Muusia's
+actual pen layers; existing one-, two- and three-pen patches keep their output.
+Help → Iris · Six colours loads a ready-made six-pen A3 study. *Rotation °*
 turns the whole design; *Centre X/Y %* positions it, clamped to the margin in
 Fit mode. Seeded and Style-compatible. Help includes A3 and 420 mm examples.
 Start with a fine pen and a small crop: the default A3 study draws about 98 m

@@ -70,18 +70,43 @@ const straight = run({ centre: 'Centre rays', texture: 0, flow: 0, fray: 0 });
 check(straight.paths.every(p => p.pts.every(([x,y]) => Math.abs((x-210)*(p.pts.at(-1)[1]-148.5) - (y-148.5)*(p.pts.at(-1)[0]-210)) < 1e-7)), 'zero flow produces straight rays');
 check(straight.paths.every(p => Math.abs(Math.hypot(p.pts.at(-1)[0]-210,p.pts.at(-1)[1]-148.5) - 138.5) < 1e-8), 'zero fray reaches exact radius');
 const segments = r => r.paths.flatMap(p => p.pts.slice(1).map((pt,i) => JSON.stringify([p.pts[i],pt]))).sort();
-for (const colours of ['Monochrome', 'Two pens', 'Three pens']) {
-  const r = run({ colours, layer: 2, innerPen: 5, accentPen: 8 });
+const colourModes = ['Monochrome', 'Two pens', 'Three pens', 'Four pens', 'Five pens', 'Six pens'];
+const testPens = [2,5,8,3,7,11];
+for (const [index,colours] of colourModes.entries()) {
+  const r = run({ colours, layer: 2, innerPen: 5, accentPen: 8, midtonePen: 3, outerPen: 7, highlightPen: 11 });
   valid(r, colours);
-  const layers = [...new Set(r.paths.map(p => p.layer))].sort();
-  assert.deepEqual(layers, colours === 'Monochrome' ? [2] : colours === 'Two pens' ? [2,5] : [2,5,8]); checks++;
+  const layers = [...new Set(r.paths.map(p => p.layer))].sort((a,b)=>a-b);
+  assert.deepEqual(layers, testPens.slice(0,index+1).sort((a,b)=>a-b)); checks++;
   assert.deepEqual(segments(r), segments(baseline)); checks++;
 }
+const six = run({colours:'Six pens'});
+assert.deepEqual(run({colours:'Six pens'}),six); checks++;
+for (const species of ['Cat','Goat','Gecko']) {
+  const r=run({colours:'Six pens',species});
+  valid(r, `${species} in six colours`);
+  check(new Set(r.paths.map(p=>p.layer)).size===6, `${species}: all six inks used`);
+}
+const sixRays=run({colours:'Six pens',centre:'Centre rays',texture:0});
+assert.deepEqual(segments(sixRays),segments(rays)); checks++;
+check(new Set(sixRays.paths.map(p=>p.layer)).size===6, 'six inks used without pupil or rings');
+for (const key of ['midtonePen','outerPen','highlightPen']) {
+  const r=run({colours:'Six pens',[key]:11});
+  check(r.paths.some(p=>p.layer===11), `${key} selects the requested ink`);
+  assert.deepEqual(segments(r),segments(baseline)); checks++;
+  assert.deepEqual(run({colours:'Three pens',[key]:11}),run({colours:'Three pens'})); checks++;
+}
+const shared=run({colours:'Six pens',layer:8,innerPen:8,accentPen:8,midtonePen:8,outerPen:8,highlightPen:8});
+assert.deepEqual(shared,run({layer:8})); checks++;
+const missingParams={...defaults,colours:'Six pens'};
+delete missingParams.midtonePen; delete missingParams.outerPen; delete missingParams.highlightPen;
+assert.deepEqual(def.compute([undefined],missingParams,ctx),six); checks++;
 for (const p of [
   { fibres: 1e9, texture: 1, diameter: 1200, sizing: 'Exact diameter', pupil: 0.55, hatchGap: 0 },
   { fibres: -20, flow: -2, fray: 5, layer: -8, innerPen: 999, colours: 'Three pens' },
   { fibres: NaN, diameter: Infinity, pupil: NaN, seed: NaN, margin: NaN, rotation: Infinity },
   { species: 'Gecko', fibres: 3000, texture: 1, pupil: 0.55, rotation: 180, colours: 'Three pens' },
+  { species: 'Gecko', fibres: 3000, texture: 1, diameter: 1200, sizing: 'Exact diameter', pupil: 0.55, hatchGap: 0.15, colours: 'Six pens' },
+  { colours:'Six pens',midtonePen:NaN,outerPen:1e9,highlightPen:-999 },
 ]) valid(run(p), 'numeric wire extremes');
 for (const [key,value] of Object.entries({ diameter: 200, pupil: 0.4, pupilFill: 'Open', hatchGap: 1.1, fibres: 500, flow: 0, texture: 0, fray: 1, rotation: 37, layer: 6 })) {
   check(JSON.stringify(run({ [key]: value })) !== JSON.stringify(baseline), `${key} changes output`);

@@ -15,6 +15,14 @@
 
 export const EXAMPLES = [
   {
+    name: "Iris · Six colours", desc: "A3 iris with six separate pen layers: black, orange, blue, teal, purple and ochre. Colour mode → Six pens; choose each colour on the node and customise the inks in Pens.",
+    canvas: { W: 420, H: 297 },
+    make: (defaults) => ({
+      nodes: [{ id: 9001, type: "iris", x: 30, y: 20, params: { ...defaults("iris"), colours: "Six pens", layer: 0, innerPen: 4, accentPen: 1, midtonePen: 6, outerPen: 5, highlightPen: 10 } }],
+      edges: [],
+    }),
+  },
+  {
     name: "Iris · A3 study", desc: "A 277 mm iris on A3. Try Human, Cat, Goat or Gecko, or switch Centre to Centre rays. Three real pen layers: teal fibres, orange inner fibres, black accents.",
     canvas: { W: 420, H: 297 },
     make: (defaults) => ({

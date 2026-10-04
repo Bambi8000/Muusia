@@ -20797,7 +20797,7 @@ export default {
   name: "Iris",
   cat: "gen",
   group: "nature",
-  desc: "Large iris studies made from seeded, interleaved radial fibres. Human, Cat, Goat and Gecko are stylised pupil shapes, not anatomical simulations. Centre rays removes the pupil and starts every fibre at the centre. Diameter is in mm; Fit inside paper reduces it to respect Margin, while Exact diameter allows deliberate cropping/oversize artwork. A complete A3 iris fits at 277 mm with 10 mm margins; a 420 mm iris needs a larger sheet. Fibres controls line density, Flow bends the strands, Texture adds a broken collarette and outer rings, and Edge fray loosens the rim. Monochrome uses only Main pen. Two pens adds Inner pen around the pupil; Three pens also adds Accent pen in outer fibres and rings. Pupil hatch uses real pen strokes with a physical Hatch gap, never a filled bitmap. Set colours in Muusia's Pens palette. Seed reproduces the drawing. Export the selected Iris to SVG or G-code; test a small crop with your actual nib before a large plot.",
+  desc: "Large iris studies made from seeded, interleaved radial fibres. Human, Cat, Goat and Gecko are stylised pupil shapes, not anatomical simulations. Centre rays removes the pupil and starts every fibre at the centre. Diameter is in mm; Fit inside paper reduces it to respect Margin, while Exact diameter allows deliberate cropping/oversize artwork. A complete A3 iris fits at 277 mm with 10 mm margins; a 420 mm iris needs a larger sheet. Fibres controls line density, Flow bends the strands, Texture adds a broken collarette and outer rings, and Edge fray loosens the rim. Monochrome uses only Main pen. Two pens adds Inner pen around the pupil; Three pens also adds Accent pen in outer fibres and rings. Four pens adds Midtone pen between the inner band and rim; Five pens adds Outer pen at the rim; Six pens threads Highlight pen through selected fibres. Each pen is independently selectable, and colour modes preserve the drawing geometry. Pupil hatch uses real pen strokes with a physical Hatch gap, never a filled bitmap. Set colours in Muusia's Pens palette. Seed reproduces the drawing. Export the selected Iris to SVG or G-code; test a small crop with your actual nib before a large plot.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
@@ -20812,10 +20812,13 @@ export default {
     { key: "flow", label: "Flow", type: "slider", min: 0, max: 1, step: 0.01, def: 0.55 },
     { key: "texture", label: "Texture", type: "slider", min: 0, max: 1, step: 0.01, def: 0.55 },
     { key: "fray", label: "Edge fray", type: "slider", min: 0, max: 1, step: 0.01, def: 0.3 },
-    { key: "colours", label: "Colour mode", type: "select", options: ["Monochrome", "Two pens", "Three pens"], def: "Monochrome" },
+    { key: "colours", label: "Colour mode", type: "select", options: ["Monochrome", "Two pens", "Three pens", "Four pens", "Five pens", "Six pens"], def: "Monochrome" },
     { key: "layer", label: "Main pen", type: "pen", def: 0 },
     { key: "innerPen", label: "Inner pen", type: "pen", def: 4 },
     { key: "accentPen", label: "Accent pen", type: "pen", def: 1 },
+    { key: "midtonePen", label: "Midtone pen", type: "pen", def: 6 },
+    { key: "outerPen", label: "Outer pen", type: "pen", def: 5 },
+    { key: "highlightPen", label: "Highlight pen", type: "pen", def: 10 },
     { key: "rotation", label: "Rotation °", type: "slider", min: -180, max: 180, step: 1, def: 0 },
     { key: "cx", label: "Centre X %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
     { key: "cy", label: "Centre Y %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
@@ -20872,9 +20875,11 @@ export default {
     const seed = Math.round(this._number(p.seed, 17, -2147483648, 2147483647));
     const flow = this._number(p.flow, 0.55, 0, 1), texture = this._number(p.texture, 0.55, 0, 1);
     const fray = this._number(p.fray, 0.3, 0, 1);
-    const pen = key => Math.round(this._number(p[key], 0, 0, 11));
-    const main = pen("layer"), inner = p.colours === "Two pens" || p.colours === "Three pens" ? pen("innerPen") : main;
-    const accent = p.colours === "Three pens" ? pen("accentPen") : main;
+    const pen = (key, fallback = 0) => Math.round(this._number(p[key], fallback, 0, 11));
+    const colourCount = Math.max(1, ["Monochrome", "Two pens", "Three pens", "Four pens", "Five pens", "Six pens"].indexOf(p.colours) + 1);
+    const main = pen("layer"), inner = colourCount >= 2 ? pen("innerPen") : main;
+    const accent = colourCount >= 3 ? pen("accentPen") : main;
+    const midtone = pen("midtonePen", 6), outer = pen("outerPen", 5), highlight = pen("highlightPen", 10);
     const rng = mulberry32(seed);
     const paths = [];
     let budget = 112000;
@@ -20905,7 +20910,12 @@ export default {
         const clearance = rays ? 0 : Math.min(0.006, 0.45 / R);
         const r = hole + clearance + (1 - hole - clearance) * t;
         const pt = at(a, r);
-        const layer = t < split ? inner : t > 0.58 && accentFibre ? accent : main;
+        // Extra colours interleave with the original fibres. No new random draws
+        // or geometric segments: split existing paths into contiguous pen runs.
+        let layer = t < split ? inner : t > 0.58 && accentFibre ? accent : main;
+        if (colourCount >= 4 && t >= split && i % 3 !== 0 && !(t > 0.58 && accentFibre)) layer = midtone;
+        if (colourCount >= 5 && t > 0.72 && !accentFibre) layer = outer;
+        if (colourCount >= 6 && i % 11 < 2 && t > split * 0.6) layer = highlight;
         if (pts.length && layer !== lastPen) {
           // Shared endpoint at a colour boundary, with no overlapping segment.
           const joint = pts[pts.length - 1];
