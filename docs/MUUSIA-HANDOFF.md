@@ -4,6 +4,10 @@ Read this first when resuming Muusia development in a new chat. It captures the
 current state, the conventions that must not be broken, and how work is done.
 The repo itself is the source of truth; this file is the map.
 
+Read `docs/MUUSIA-AGENTS.md` and `docs/MUUSIA-WORKSTATE.json` before editing.
+Claude and Astra can both author nodes; ownership is per task and file scope.
+The shared agreement controls startup, integration, validation and project sync.
+
 ## What Muusia is
 
 A browser-based React node-graph editor for generative pen-plotter art, targeting a
@@ -129,8 +133,9 @@ text are **English**.
   links, assets, patch integrity, screenshot + export provenance). **Run it locally
   after the build, before committing** — a red check:learn means Pages will not
   deploy. Captures may be older than APP_VERSION (never newer); any real change to
-  src/App.jsx export code, stack-view.jsx or the listed node files breaks the export
-  provenance and needs a recapture or a reviewedChange entry (learn/README.md).
+  tracked export/evaluation scope, machine.js or the listed helper/node dependencies
+  needs an actual browser recapture (learn/README.md). Schema 2 does not hash the
+  whole App.jsx and does not use the obsolete reviewedChange exception.
 - Deploy: git push → GitHub Pages via CI (`.github/workflows/deploy.yml`),
   which serves **only the built `dist/`** — repo `docs/` is never online.
   Anything that must be reachable on Pages goes in `public/` (Vite copies it
@@ -156,41 +161,34 @@ text are **English**.
    and every parameter's *liveness* plus any invariant that matters (symmetry,
    no-overlap gap, monotonic width, graph connectivity...). Run before build.
 4. `npm run build` is the syntax gate — errors point at the exact node file.
-5. Update `docs/MUUSIA-NODES.md` (paragraph + counts) + the HANDOFF version
-   history **immediately after every push** — the standing doc-batch rule
-   (agreed v2.38): docs never lag a release.
+5. Update `docs/MUUSIA-NODES.md` (paragraph + counts), tags/catalog and the
+   HANDOFF version history **in the same release commit, before push**. Both
+   Claude and Astra follow the shared release gate in MUUSIA-AGENTS.md.
 
 ## Working conventions (collaboration)
 
-- **Command sequences, always in full:** every procedure — release, patch,
-  test run, file moves — is delivered as complete copy-paste-ready zsh-safe
-  command blocks with expected outputs stated, never described in prose only.
-  No `#` comments in interactive commands (zsh).
-- **Complete files over diffs** when an edit is complex or error-prone:
-  deliver the whole replacement file rather than fragments to hand-merge.
-- **Docs never lag a release:** the doc batch (NODES.md paragraph + counts,
-  HANDOFF version history, NODE-API when the API moved) happens immediately
-  after every push — see the node authoring recipe above.
-- **Session start:** refresh project files (HANDOFF, NODES, NODES-SRC via
-  `make-src-bundle.mjs`, NODE-API, App.jsx, analyze.js) so work never runs
-  against stale copies.
+`docs/MUUSIA-AGENTS.md` is the shared workflow. These delivery conventions apply
+according to the session's actual capabilities:
 
-- **Doc batches as era scripts:** version-numbered doc updates (NODES.md
-  counts/paragraph anchors, HANDOFF history, NODE-API) ship as a one-shot
-  script in tools/era/ (patch-docs-vXXX.mjs) with OK/MISS/SKIP reporting —
-  no manual file surgery. Run once from the repo root, commit the script
-  with the docs. Scripts must **resolve doc paths** (search for
-  MUUSIA-*.md/.json rather than assuming the repo root — they live in
-  `docs/`) and must **compute counts and versions from disk** (APP_VERSION
-  read from App.jsx, node counts from src/defs/nodes plus the inline pair);
-  a hardcoded path or version is how a doc batch either MISS-aborts or,
-  worse, files an entry under the wrong release.
-- **File delivery (revised v2.62):** Daniel downloads to ~/Downloads and the
-  session's command block does the moving — a find-based `mv` into
-  nodes-lab/, tools/ and tools/era/, chained straight into validation and
-  bake, so no step is left to hand. Lab nodes must be plain ({...}) object
-  literals — bake.mjs rejects IIFEs; share compute/overlay logic via a
-  this._helper method (the engine calls both as methods on the def).
+- Both authors may build nodes; one task owns each active file scope in
+  `docs/MUUSIA-WORKSTATE.json`. One integrator handles the release.
+- A repository-capable agent performs authorized work directly and reports the
+  result. A web-only Claude session supplies complete, zsh-safe command blocks
+  (no interactive `#` comments), expected outputs and its snapshot base commit.
+- Use complete files when suitable or an idempotent anchored era patch for a
+  stale-copy-sensitive engine/doc change. Integrate against the actual checkout;
+  a full replacement must never overwrite newer unrelated work.
+- Update docs with the implementation before push. Era doc patches remain useful
+  for web-delivered batches; routine direct repository doc edits do not require a
+  throwaway patch script. Derive versions/counts from disk, never old chat text.
+- Run `tools/project-files.sh` after integration, and upload/replace its files in
+  the Claude project before continuing there. The snapshot manifest records HEAD,
+  APP_VERSION, dirty state, original paths and hashes. The command itself does not
+  upload files. It includes machine.js, all app modules and the current Learn gate.
+- Downloaded deliveries are integrated from explicitly identified files into
+  their intended paths, then validated and baked as needed. Do not select an
+  unrelated file just because it is the newest matching download. Lab nodes are
+  plain `({...})` object literals; bake.mjs rejects IIFEs.
 
 ## Architecture — do not break these
 
@@ -1737,6 +1735,20 @@ text are **English**.
   dated G-code software check remain v2.106 evidence; current machine-workflow
   screenshots are still pending. Lesson 07 now selects the workflow explicitly
   and labels those historical images. No hardware was run.
+
+- **W** 2026-10-04 Shared workflow: Daniel authorizes Astra node work alongside
+  Learn. Replace identity-based ownership with per-task file scopes in
+  `MUUSIA-WORKSTATE.json`, one writer per checkout and one release integrator.
+  Both authors use the same node/visual/validation recipe and catalog → build →
+  Learn gate. Claude web work starts from a manifest-backed project snapshot and
+  delivers its base commit; stale copies never overwrite newer engine work.
+  `tools/project-files.sh [directory]` now prepares all current app modules,
+  bundled nodes, shared docs, Learn checks and existing hardware references with
+  exact source paths/checksums in MUUSIA-SOURCE-SNAPSHOT.json. It does not upload.
+  Proof: export to a temporary directory, verify every manifest hash and rerun
+  the exporter while preserving an unrelated file. Catalog validation, build
+  and Learn (18,073 checks) pass; the release gate remains unchanged. No app
+  version bump or node implementation in this workflow change.
 
 ## Hard-won pitfalls (keep)
 
