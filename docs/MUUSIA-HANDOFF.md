@@ -1698,6 +1698,23 @@ text are **English**.
   Setup screenshots must be recaptured against this build before the commit is
   pushed; geometry is unchanged, only provenance and the Machine Setup
   pictures move. Phase 2 (Inkscape-layer SVG per pen) is separate work.
+- **2.109** Gentle profile + first-lift dwell (hardware incident 2026-10-04:
+  a 0.35 mm technical-pen tip broke at job start — MECH-HANDOFF §9.3).
+  Exporter: a `penDelayUp` settle dwell now follows the very first pen-up,
+  before the first travel; previously `SET_SERVO` and `G0 ... F9000` were
+  adjacent lines and the gantry accelerated while the servo was still lifting
+  the spring-loaded pen. New template **C — Gentle (technical pen)** in
+  src/machine.js: Draw F1200 / Travel F3000 / Z F300, settle 300 / 350 ms,
+  startG `GENTLE_ON` + `PLOT_GO`, endG `GENTLE_OFF`. Klipper side shipped
+  as the Viivain commit before this one (tools/era/patch-plot-go.mjs):
+  `PLOT_GO` leaves the fixed Z block pen-up with dwell, Z to block top + 6 mm,
+  10 mm/s to an apron at work (10, 0), then PLOT_HEIGHT — it REPLACES a bare
+  PLOT_HEIGHT in every profile startG and is the RESUME hook;
+  `GENTLE_ON/OFF` set and restore SET_VELOCITY_LIMIT (OFF also via
+  `user_cancel_macro`); `block_h` 8.0 → 8.5 (tape under the block). Saved
+  profiles live in patch files, so existing Viivain profiles swap PLOT_HEIGHT →
+  PLOT_GO by hand. Rule: nothing lowers Z and nothing travels fast while over
+  the block. Era: tools/era/patch-gentle-profile.mjs.
 
 ## Hard-won pitfalls (keep)
 

@@ -41,6 +41,18 @@ export const DEFAULT_MACHINE_B = {
   name: "B — Bed Z + rotation",
   zMode: "bed", rotOn: true,
 };
+/* Gentle: fragile tips (0.35 mm technical pens). Slow feeds, long settles,
+   and the Viivain Klipper macros (klipper/printer.cfg): GENTLE_ON caps accel +
+   corner velocity for the job, PLOT_GO leaves the fixed Z block pen-up and slow
+   before lowering to plot height (it replaces a bare PLOT_HEIGHT in startG),
+   GENTLE_OFF restores the limits (CANCEL_PRINT runs it too). MECH-HANDOFF 9.3. */
+export const DEFAULT_MACHINE_C = {
+  ...DEFAULT_MACHINE,
+  name: "C — Gentle (technical pen)",
+  feedDraw: 1200, feedTravel: 3000, zFeed: 300, penDelayDown: 300, penDelayUp: 350,
+  startG: "G21 ; mm\nG90 ; absolute\nCLEAR_PAUSE\nGENTLE_ON ; 50 mm/s, 250 mm/s2, SCV 2 for fragile tips\nPLOT_GO ; leave the Z block pen-up and slow, then plot height",
+  endG: "GENTLE_OFF ; restore printer.cfg motion limits\nG0 X0 Y0 F3000",
+};
 
 /* The External SVG template: built from its own small object, never from DEFAULT_MACHINE.
    workW / workH 0 means "not set" — the user enters the verified travel of their own plotter. */

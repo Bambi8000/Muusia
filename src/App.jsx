@@ -11,7 +11,7 @@ import LiveInput from "./live-input.jsx";
 import { makeAnalyzeButton, intakeImage } from "./analyze.js";
 import CatalogBrowser from "./catalog-browser.jsx";
 import StackView from "./stack-view.jsx";
-import { DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
+import { DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
 /* ============================================================
@@ -883,7 +883,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.108"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.109"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -964,6 +964,9 @@ function toGcode(ps, ctx, prof) {
   };
   if (zServo) servoTo(prof.servoUp, "pen up (servo)");
   else lines.push(`G1 Z${f2(prof.penUp)} F${prof.zFeed} ; pen up (bed-Z)`);
+  /* the servo must have ARRIVED before the first travel: without this the
+     first G0 left with the tip still on the Z block (MECH-HANDOFF 9.3) */
+  if (prof.penDelayUp > 0) lines.push(`G4 P${Math.round(prof.penDelayUp)} ; settle before first travel`);
 
   let rotCur = null;
   const rot = (angDeg, note) => {
@@ -1780,8 +1783,8 @@ export default function App() {
       : (megaMode === "Gap" ? megaC * canvasW + (megaC - 1) * megaSeam : megaC * canvasW - (megaC - 1) * megaSeam))
     : canvasW;
   const megaH = megaOn ? (megaRoll ? rollLen : (megaMode === "Gap" ? megaR * canvasH + (megaR - 1) * megaSeam : megaR * canvasH - (megaR - 1) * megaSeam)) : canvasH;
-  /* machine templates live in src/machine.js (DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_SVG_MACHINE) */
-  const [machines, setMachines] = useState(() => assignIds([DEFAULT_MACHINE, DEFAULT_MACHINE_B]));
+  /* machine templates live in src/machine.js (DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE) */
+  const [machines, setMachines] = useState(() => assignIds([DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C]));
   const [helpFor, setHelpFor] = useState(null); /* node id whose help tooltip is open */
   const [setupFor, setSetupFor] = useState(null); /* node id in slider-setup mode */
   const [nodeNicks, setNodeNicks] = useState(() => {
