@@ -10,6 +10,7 @@ import { inflateSync } from 'node:zlib';
 import { unzipSync, strFromU8 } from 'fflate';
 import { tutorials, nodeGuides } from './content.mjs';
 import { PILOT_KEYS, DEFINITIONS, examples, evaluateExample } from './lib/fixtures.mjs';
+import { assertExportSourcesMatch } from './lib/export-provenance.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.resolve(HERE, '../dist');
@@ -49,35 +50,6 @@ function versionNotNewer(captured, current) {
   const a = parse(captured), b = parse(current);
   return Boolean(a && b && (a[0] < b[0] || (a[0] === b[0] && a[1] <= b[1])));
 }
-function normaliseAppVersion(bytes, source, capturedVersion) {
-  // The capture-time hash of src/App.jsx was taken with APP_VERSION = "<captured>"; only that constant may differ.
-  if (source.path !== 'src/App.jsx' || !capturedVersion) return bytes;
-  return Buffer.from(bytes.toString('utf8').replace(/APP_VERSION = "\d+\.\d+"/, `APP_VERSION = "${capturedVersion}"`), 'utf8');
-}
-
-async function assertExportSourceMatches(source, capturedVersion) {
-  const bytes = normaliseAppVersion(await fs.readFile(path.resolve(HERE, '..', source.path)), source, capturedVersion);
-  const hash = value => createHash('sha256').update(value).digest('hex');
-  const review = source.reviewedChange;
-  if (!review) {
-    assert.equal(hash(bytes), source.sha256, `${source.path}: export source matches captured code`);
-    return;
-  }
-  // Keep the original capture hash. Only this exact Help-copy edit may differ.
-  assert.equal(source.path, 'src/App.jsx', 'Only the reviewed App Help description may differ from capture');
-  assert.equal(review.scope, 'help-copy-only');
-  assert.match(review.date, /^\d{4}-\d{2}-\d{2}$/);
-  assert.ok(nonempty(review.reason), 'A reviewed change must explain why export behavior is unchanged');
-  assert.deepEqual(review.replacement, {
-    before: 'Three step-by-step tutorials and twelve illustrated node guides.',
-    after: 'Step-by-step tutorials and illustrated node guides.',
-  });
-  assert.equal(hash(bytes), review.sha256, 'Current App source matches the reviewed hash');
-  const text = bytes.toString('utf8');
-  assert.equal(text.split(review.replacement.after).length, 2, 'The reviewed Help replacement occurs exactly once');
-  assert.equal(hash(text.replace(review.replacement.after, review.replacement.before)), source.sha256,
-    'Reversing only the Help description change exactly restores the captured source hash');
-}
 
 async function walk(dir) {
   const files = [];
@@ -100,6 +72,8 @@ function tags(html) {
 
 const fresh = spawnSync(process.execPath, [path.join(HERE, 'generate-assets.mjs'), '--check'], { encoding: 'utf8' });
 check(fresh.status === 0, `Generated assets are stale or invalid.\n${fresh.stdout}${fresh.stderr}`);
+const provenanceTests = spawnSync(process.execPath, ['--test', path.join(HERE, 'test/export-provenance.test.mjs')], { encoding: 'utf8' });
+check(provenanceTests.status === 0, `Export provenance regression tests failed. Run node --test learn/test/export-provenance.test.mjs and repair the reported selector or mutation fixture; do not refresh capture hashes to bypass a test failure.\n${provenanceTests.error?.message || ''}\n${provenanceTests.stdout}${provenanceTests.stderr}`);
 check(tutorials.length > 0 && tutorials.length === Object.keys(manifest.tutorials).length, 'Each published tutorial must have a generated example and vice versa.');
 check(JSON.stringify(tutorials.map(tutorialAssetKey).sort()) === JSON.stringify(Object.keys(manifest.tutorials).sort()), 'Tutorial asset keys must cover the generated tutorial examples exactly.');
 check(manifest.nodes.length === PILOT_KEYS.length, 'The pilot must contain every planned node reference.');
@@ -559,7 +533,7 @@ for (const [assetKey, tutorial] of exportBundles) {
       assert.equal(provenance.patchSha256, createHash('sha256').update(await fs.readFile(path.join(HERE, tutorial.example))).digest('hex'), 'physical test patch matches captured export');
       assert.equal(provenance.selectedNode, 'Merge');
       assert.deepEqual(provenance.canvas, { W: 297, H: 210 });
-      for (const source of provenance.sourceFiles || []) await assertExportSourceMatches(source, provenance.appVersion);
+      await assertExportSourcesMatch(provenance, assetKey);
       check(true, '');
       continue;
     }
@@ -602,7 +576,7 @@ for (const [assetKey, tutorial] of exportBundles) {
     assert.deepEqual(provenance.settings.visiblePens, [1], 'recorded test exported both sheets while Red was hidden in preview');
     assert.deepEqual(provenance.files.map(file => file.name).sort(), filenames);
     for (const file of provenance.files) assert.equal(file.sha256, createHash('sha256').update(entries[file.name]).digest('hex'), `${file.name}: recorded original SVG checksum`);
-    for (const source of provenance.sourceFiles || []) await assertExportSourceMatches(source, provenance.appVersion);
+    await assertExportSourcesMatch(provenance, assetKey);
     check(true, '');
   } catch (error) { check(false, `${assetKey}: invalid reference SVG export (${error.message}).`); }
 }

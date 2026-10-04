@@ -1716,6 +1716,28 @@ text are **English**.
   PLOT_GO by hand. Rule: nothing lowers Z and nothing travels fast while over
   the block. Era: tools/era/patch-gentle-profile.mjs.
 
+- **L** 2026-10-04 Learn: owner-authorized repair of export provenance after
+  v2.108–2.109. Replace the whole-App checksum with explicit export-source
+  scopes and the machine module; unrelated App edits and plain version bumps
+  must not require recapturing an unchanged SVG. Keep artifact, patch and
+  geometry checks. Actual changes to a tracked export or machine scope still
+  require a fresh UI export and provenance review. Local proof remains
+  `npm run check:learn` after the shared catalog/build gate (AGENTS §1).
+  Announced shared-file addition: list the existing `rolldown` 1.1.4 parser
+  explicitly in devDependencies for AST selectors; package scripts and the
+  deployment workflow stay unchanged. Focused selector regression tests run
+  through the existing `check:learn` command.
+  This supersedes the legacy `reviewedChange` advice in Build / release
+  routine: schema 2 requires actual recapture after a tracked export change,
+  and does not accept a whole-App checksum or Help-copy exception.
+  SVG recapture and machine-workflow screenshot status are recorded in
+  `learn/README.md`; do not infer fresh screenshots from a passing source check.
+  Both reference SVG artifacts were freshly downloaded through the v2.109
+  Chrome UI at `4f39746` and are byte-for-byte unchanged. All PNGs and the
+  dated G-code software check remain v2.106 evidence; current machine-workflow
+  screenshots are still pending. Lesson 07 now selects the workflow explicitly
+  and labels those historical images. No hardware was run.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

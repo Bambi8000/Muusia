@@ -442,7 +442,7 @@ export const tutorials = [
     graphScreenshot: "assets/screenshots/tutorial-physical-plot.png",
     overviewImage: "assets/details/physical-plot.svg",
     overviewCaption: "Close view: the square is 20 × 20 mm on a 297 × 210 mm page. Coloured measurement labels explain the test and are not included in the exported drawing.",
-    validationNote: "Software checks completed; physical plot pending. The example geometry and exports have been checked in software. No machine model or physical pen test has been verified for this lesson; the machine setup shown is an illustration, not a calibrated device preset.",
+    validationNote: "Reference geometry and SVG checked in software; physical plot pending. The Machine Setup and G-code screenshots show Muusia v2.106, before the Workflow selector was added. The G-code demonstration was checked in that version. No machine model or physical pen test has been verified for this lesson; the shown profile is an illustration, not a calibrated device preset.",
     learn: ["Separate document size from the machine’s usable work area", "Choose SVG or a compatible G-code workflow", "Prepare a named machine profile when using Muusia G-code", "Check a physical test for scale, orientation and clean pen-up moves"],
     prerequisite: "Use the prepared example; no new nodes need to be built. You can complete the software preparation without a connected machine. For the physical stages, use your plotter’s setup instructions, its supported software, one pen, paper and a ruler. Machine calibration time is separate from this lesson.",
     quickReference: [
@@ -450,15 +450,15 @@ export const tutorials = [
       { label: "Document", value: "A4 wide; 297 × 210 mm; export and plot at 1:1" },
       { label: "Reference drawing", value: "20 × 20 mm square; right-pointing triangle; three separate horizontal lines" },
       { label: "Artwork bounds", value: "Canvas X 20–79.7 mm; Y 20–60.5 mm, before machine placement or axis conversion" },
-      { label: "SVG route", value: "Step 5, then steps 8–9. Machine placement, pen lift and speed are set in the plotter’s supported software." },
-      { label: "G-code route", value: "Steps 6–7, then steps 8–9. Verify controller compatibility and every active machine setting; the supplied A/B profiles are examples." },
+      { label: "SVG route", value: "Step 5, then steps 8–9. Choose the External SVG workflow; set placement, pen lift and speed in the plotter’s supported software." },
+      { label: "G-code route", value: "Steps 6–7, then steps 8–9. Choose the G-code workflow and verify controller compatibility and every active machine setting; the supplied profiles are examples." },
       { label: "G-code units", value: "Work area, origin and bed Z: mm. Draw F, Travel F and Z feed F: mm/min. Servo angles: degrees. Settling delays: ms." },
       { label: "Physical checks", value: "Square measures 20 mm both ways; marker orientation matches the preview; gaps between strokes remain unmarked." }
     ],
     steps: [
       {
         title: "Choose the route your machine supports",
-        body: "Use the SVG route when your plotting software accepts SVG, including the manufacturer’s AxiDraw or NextDraw workflow. Use the G-code route only with a controller whose commands and pen-lift mechanism match Muusia’s output. Its current machine setup is oriented towards custom Klipper configurations; A and B are not universal plotter presets. Complete steps 2–4, then follow step 5 for SVG or steps 6–7 for G-code. Both routes finish at steps 8–9.",
+        body: "Use the SVG route when your plotting software accepts SVG, including the manufacturer’s AxiDraw or NextDraw workflow. Use the G-code route only with a controller whose commands and pen-lift mechanism match Muusia’s output. Its G-code templates are oriented towards custom Klipper configurations, not universal plotter presets. Complete steps 2–4, then follow step 5 for SVG or steps 6–7 for G-code. Both routes finish at steps 8–9.",
         checkpoint: "You know which software will receive the exported file and which route applies to your machine."
       },
       {
@@ -480,16 +480,16 @@ export const tutorials = [
       },
       {
         title: "SVG route — hand off a drawing at its actual size",
-        body: "Select Merge, click EXPORT SVG (laser / vector), then Download .svg. Open the file in the software recommended for your exact plotter. Preserve its millimetre size and use 100% or 1:1 scale; avoid fitting the artwork to the page. Confirm that the square is 20 × 20 mm and that the triangle’s orientation and the job placement match your intended paper layout. Configure pen lift, speed and the machine origin in that plotting software. Continue at step 8.",
-        tip: "Muusia’s Machine Setup origin and Flip Y settings are not applied to this SVG. The reference SVG download below contains the same test geometry. Stroke colour does not automatically select or exchange a physical pen.",
+        body: "Open MACHINE SETUP, click + to copy the current profile, give it a distinct Machine name and set Workflow to External SVG plotter — SVG goes to the plotter’s own software. This profile disables G-code generation. Select Merge, click EXPORT SVG (laser / vector), then Download .svg. Open the file in the software recommended for your exact plotter. Preserve its millimetre size and use 100% or 1:1 scale; avoid fitting the artwork to the page. Confirm the 20 × 20 mm square, triangle orientation and page placement. Configure pen lift, speed and the machine origin in that plotting software. Continue at step 8.",
+        tip: "The External SVG profile stores optional manufacturer/model details and a work area for comparison; leave unverified dimensions unset. It does not calibrate or control the plotter. Muusia’s G-code origin and Flip Y settings are not applied to this SVG. The reference download contains the same test geometry; stroke colour does not exchange a physical pen.",
         checkpoint: "The plotting software shows the test at its intended size and position, ready for its documented machine setup."
       },
       {
         title: "G-code route — create a profile for the verified setup",
-        body: "Open MACHINE SETUP. Click +, labelled Add machine (copies current), then give the copy a distinct Machine name. Enter the verified Work area W mm and Work area H mm for your setup. Set Origin X mm (canvas on bed) and Origin Y mm (canvas on bed) to the intended page placement. Choose Flip Y (machine Y up) according to the controller’s coordinate system. Review the page-on-bed diagram and resolve any fit warning before continuing.",
+        body: "Open MACHINE SETUP. Click +, labelled Add machine (copies current), then give the copy a distinct Machine name. Set Workflow to G-code — Muusia generates the machine file so the G-code controls are available. Enter the verified Work area W mm and Work area H mm for your setup. Set Origin X mm (canvas on bed) and Origin Y mm (canvas on bed) to the intended page placement. Choose Flip Y (machine Y up) according to the controller’s coordinate system. Review the page-on-bed diagram and resolve any fit warning before continuing.",
         image: "assets/screenshots/machine-setup.png",
-        imageAlt: "Muusia Machine Setup with profile selection, work area, canvas origin, axis direction and pen-lift settings",
-        imageCaption: "The real Machine Setup controls. Displayed values belong to an example profile and have not been calibrated for your plotter.",
+        imageAlt: "Historical Muusia v2.106 Machine Setup with work area, canvas origin, axis direction and pen-lift settings, before the Workflow selector",
+        imageCaption: "Muusia v2.106, before the Workflow selector. Current versions show Workflow below Machine name. These example values have not been calibrated for your plotter.",
         tip: "Copying a profile also copies its start and end commands and optional features. Renaming it does not make those settings correct for another machine.",
         checkpoint: "The copied profile has a clear name, verified work dimensions and an intentional page position and Y-axis convention."
       },
@@ -497,8 +497,8 @@ export const tutorials = [
         title: "G-code route — verify the lift commands and save the file",
         body: "Choose the verified Z MODE: A — Servo lifts the pen or B — Bed Z lifts the pen. Set the corresponding lift/contact values, Draw F, Travel F and settling delays from your calibrated setup. Review Pause command, START G-CODE, END G-CODE and every enabled optional feature. Servo mode emits Klipper SET_SERVO commands; bed mode uses G1 Z moves. These commands and the lifting scheme must match the controller and mechanism. Use ⇡ to export the profile, click Save for the patch, then select Merge and choose GENERATE G-CODE (selected node). Inspect the generated commands, then click Download .gcode.",
         image: "assets/screenshots/physical-export-gcode.png",
-        imageAlt: "Muusia’s generated G-code preview for the five-path test using a profile named Learn — example only",
-        imageCaption: "A local demonstration export. Its five drawing paths and pen-up moves were checked in the generated text; the profile values are not calibration instructions and no machine was run.",
+        imageAlt: "Historical Muusia v2.106 G-code preview for the five-path test using the Learn — example only profile, before the Workflow selector",
+        imageCaption: "Muusia v2.106 demonstration: its five drawing paths and pen-up moves were checked then. Current generated commands include later exporter changes. These values are not calibration instructions; no machine was run.",
         tip: "Check the start commands explicitly: a copied default may contain G28 homing. Generating or downloading the file does not run it. Bounds warnings are checks on the generated text, not a guarantee that the machine will prevent an unsuitable move.",
         checkpoint: "The profile is saved separately, and the reviewed G-code matches the actual controller, pen mechanism and intended job bounds."
       },

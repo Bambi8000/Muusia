@@ -1,11 +1,11 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.106",
-  "date": "2026-09-29",
+  "appVersion": "2.109",
+  "date": "2026-10-04",
   "patch": "examples/tutorial-svg-workflow.muusia.json",
   "patchSha256": "e968c8b6da958130ce8869e9927339b02255cde5febf7cddbe234d2886c2c1b7",
   "bundle": "examples/svg-workflow-per-pen.zip",
-  "originalDownload": "Export a two-colour SVG set-sheets-svg.zip",
+  "originalDownload": "Export a two-colour SVG set-sheets-svg (1).zip",
   "sha256": "f0ce3fe36c406929766f68e644cdf3c4866602be463e5276172b001a500eca42",
   "selectedNode": "Merge",
   "settings": {
@@ -20,7 +20,17 @@
     "exportedPens": [
       1,
       2
-    ]
+    ],
+    "workflow": "svg-external",
+    "profileName": "Learn — External SVG example",
+    "workArea": {
+      "W": 330,
+      "H": 240,
+      "manufacturerVerified": false
+    },
+    "megaCanvas": false,
+    "optimizeRoute": false,
+    "preserveDirection": true
   },
   "files": [
     {
@@ -42,22 +52,57 @@
   ],
   "sourceFiles": [
     {
+      "path": "src/machine.js",
+      "selector": "file",
+      "sha256": "d8ca1e4d06375c691e55d07757e478cecda6ed7d3f9ccbc2b4300559126df885"
+    },
+    {
       "path": "src/App.jsx",
-      "sha256": "3b1be506671867f8c0a03d6917b1a33bf473a26be46d7dcb8938bede03988205",
-      "reviewedChange": {
-        "date": "2026-09-29",
-        "scope": "help-copy-only",
-        "sha256": "bcb07e68e3820bc64e73c46eb884d39a1f426e84d4ee95942af659a49b3b47c0",
-        "reason": "Removed fixed tutorial and node-guide counts from the Help description. Reversing this single text replacement exactly reproduces the captured source hash; export code is unchanged.",
-        "replacement": {
-          "before": "Three step-by-step tutorials and twelve illustrated node guides.",
-          "after": "Step-by-step tutorials and illustrated node guides."
-        }
-      }
+      "selector": "app-export-core",
+      "sha256": "2623b6874663c6b5676feb600c585db91d2d74b31e0cf39f432e301d331bcef2"
+    },
+    {
+      "path": "src/App.jsx",
+      "selector": "app-export-data-and-actions",
+      "sha256": "fa983d378ff0649f3c19b9266105829ae9ea22cb8637bc31d688546751acebbd"
+    },
+    {
+      "path": "src/App.jsx",
+      "selector": "app-stack-export-props",
+      "sha256": "9bd615b01159119d79387d9d225bea7e46f6324941e81a6b352a39151ab8cbef"
     },
     {
       "path": "src/stack-view.jsx",
-      "sha256": "9069fd75c94d918925e0512dcf1452cd4d6a54c5e6e499b307078ef2d0781fc8"
+      "selector": "stack-export-pipeline",
+      "sha256": "c2552e735b13ff86f26906a749f849afda4c6a612c761bb5f5b4d5ceb77713d1"
+    },
+    {
+      "path": "src/defs/helpers.js",
+      "selector": "export-helpers",
+      "sha256": "c6590a314dd64c332743f33b5f7a3c13f19146de83c7bb9f426c64702b917238"
+    },
+    {
+      "path": "src/defs/nodes/grid.js",
+      "selector": "file",
+      "sha256": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2"
+    },
+    {
+      "path": "src/defs/nodes/aaltoilu.js",
+      "selector": "file",
+      "sha256": "3ddf01da7770ca6195ac5d04519c430b64cd198e9c1418fb29c388d25d378d3d"
+    },
+    {
+      "path": "src/defs/nodes/radat.js",
+      "selector": "file",
+      "sha256": "9c6716d5af57da2589ea4194f16811de3838eeeeeaad2df8a15a2025f58cac38"
+    },
+    {
+      "path": "src/defs/nodes/merge.js",
+      "selector": "file",
+      "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
     }
-  ]
+  ],
+  "sourceCommit": "4f39746b7e1f5cd824350e31a71fd69eeffca244",
+  "sourceProvenanceVersion": 2,
+  "captureMethod": "Chrome browser UI: Load the recorded patch, select Merge, choose External SVG workflow, then use the SVG download control. No machine connection or hardware execution."
 }

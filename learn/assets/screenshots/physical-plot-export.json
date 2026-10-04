@@ -1,7 +1,7 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.106",
-  "date": "2026-09-29",
+  "appVersion": "2.109",
+  "date": "2026-10-04",
   "patch": "examples/tutorial-physical-plot.muusia.json",
   "patchSha256": "15ebd55b8b7161642b77f84156aa3fde9bc71a5fb90d40b5bfbb33efdb48365f",
   "file": "examples/physical-plot.svg",
@@ -15,41 +15,54 @@
     "optimizeRoute": false,
     "preserveDirection": true,
     "megaCanvas": false,
-    "pen": 0
+    "pen": 0,
+    "workflow": "svg-external",
+    "profileName": "Learn — External SVG example",
+    "workArea": {
+      "W": 330,
+      "H": 240,
+      "manufacturerVerified": false
+    }
   },
   "sourceFiles": [
     {
+      "path": "src/machine.js",
+      "selector": "file",
+      "sha256": "d8ca1e4d06375c691e55d07757e478cecda6ed7d3f9ccbc2b4300559126df885"
+    },
+    {
       "path": "src/App.jsx",
-      "sha256": "3b1be506671867f8c0a03d6917b1a33bf473a26be46d7dcb8938bede03988205",
-      "reviewedChange": {
-        "date": "2026-09-29",
-        "scope": "help-copy-only",
-        "sha256": "bcb07e68e3820bc64e73c46eb884d39a1f426e84d4ee95942af659a49b3b47c0",
-        "reason": "Removed fixed tutorial and node-guide counts from the Help description. Reversing this single text replacement exactly reproduces the captured source hash; export code is unchanged.",
-        "replacement": {
-          "before": "Three step-by-step tutorials and twelve illustrated node guides.",
-          "after": "Step-by-step tutorials and illustrated node guides."
-        }
-      }
+      "selector": "app-export-core",
+      "sha256": "2623b6874663c6b5676feb600c585db91d2d74b31e0cf39f432e301d331bcef2"
+    },
+    {
+      "path": "src/App.jsx",
+      "selector": "app-export-data-and-actions",
+      "sha256": "fa983d378ff0649f3c19b9266105829ae9ea22cb8637bc31d688546751acebbd"
     },
     {
       "path": "src/defs/helpers.js",
-      "sha256": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
+      "selector": "export-helpers",
+      "sha256": "c6590a314dd64c332743f33b5f7a3c13f19146de83c7bb9f426c64702b917238"
     },
     {
       "path": "src/defs/nodes/container.js",
+      "selector": "file",
       "sha256": "fb9b11583906d0c0678f8df117224aa41899aef9a13123b1f1bdf1b058a7d801"
     },
     {
       "path": "src/defs/nodes/grid.js",
+      "selector": "file",
       "sha256": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2"
     },
     {
       "path": "src/defs/nodes/move_scale.js",
+      "selector": "file",
       "sha256": "6ee2ad58f72358b5a84556610610caee43220877cd047588e955847d6ebf15c3"
     },
     {
       "path": "src/defs/nodes/merge.js",
+      "selector": "file",
       "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
     }
   ],
@@ -63,7 +76,15 @@
     "rapidMovesPenUp": true,
     "homingCommandPresent": false,
     "endPenUp": true,
-    "hardwareExecuted": false
+    "hardwareExecuted": false,
+    "appVersion": "2.106",
+    "date": "2026-09-29",
+    "sourceAppSha256": "3b1be506671867f8c0a03d6917b1a33bf473a26be46d7dcb8938bede03988205",
+    "status": "Historical software check; not rerun during this SVG recapture. Does not verify the later first-lift settle dwell."
   },
-  "physicalPlotVerified": false
+  "physicalPlotVerified": false,
+  "sourceCommit": "4f39746b7e1f5cd824350e31a71fd69eeffca244",
+  "sourceProvenanceVersion": 2,
+  "originalDownload": "Prepare your first physical plot (1).svg",
+  "captureMethod": "Chrome browser UI: Load the recorded patch, select Merge, choose External SVG workflow, then use the SVG download control. No machine connection or hardware execution."
 }
