@@ -693,6 +693,48 @@ and `SET_TMC_FIELD STEPPER=… FIELD=en_pwm_mode VALUE=1` are runtime and
 reversible with `FIRMWARE_RESTART`; if neither changes the sound but `M84`
 does, listen to the PSU (coil whine under load).
 
+### 9.3 Broken technical pen - leaving the fixed Z block (2026-10-04)
+
+A 0.35 mm technical-pen tip snapped at job start. The block top carried many
+colours of streaks from one point (the home position) running ~50 mm to the
+block's corner, where a doubled, over-the-edge tape made a small step: every
+job start had dragged its pen across the block, and the needle was the first
+tip that could not take it. Speed was the trigger, not the cause.
+
+Numbers: servo lift (pen-down to pen-up tip) is **~10 mm**; the block is
+8.0 mm plus 0.5 mm of double-sided tape = **8.5 mm** (`block_h` corrected from
+8.0, which had put work Z0 half a millimetre above the steel). A lifted pen at
+plot height clears the block top by **~1.5 mm** - no margin for pen seating,
+felt-tip preload or tape. The profile startG was `G21 / G90 / CLEAR_PAUSE /
+PLOT_HEIGHT / RESPOND timelapse`, so Z dropped 8 mm with the pen still on the
+block; then the exporter emitted `SET_SERVO ... ANGLE=135` with no dwell and
+`G0 ... F9000` on the next line, so the gantry accelerated while the servo
+was still swinging the spring-loaded pen. At 500 mm/s2 a 300-400 ms swing is
+25-40 mm of dragging - the length of the streaks.
+
+Fix, all four parts shipped together:
+- **`PLOT_GO`** (printer.cfg): PEN_UP with dwell, Z to block top + 6 mm, XY at
+  10 mm/s to an apron at work (10, 0), then PLOT_HEIGHT. Called from every
+  profile's startG **instead of PLOT_HEIGHT**, and by RESUME
+  (`user_resume_macro`) so a pen change restores with a flat move at plot
+  height rather than a diagonal from the block top. Idempotent when already
+  off the block.
+- **`GENTLE_ON` / `GENTLE_OFF`** (printer.cfg): SET_VELOCITY_LIMIT 50 mm/s,
+  250 mm/s2, SCV 2 for the job; OFF restores `[printer]` values and also runs
+  from CANCEL_PRINT (`user_cancel_macro`), because SET_VELOCITY_LIMIT persists
+  until restart.
+- **Muusia** exporter: a settle dwell (`penDelayUp`) after the very first
+  pen-up, before the first travel; new preset **C - Gentle (technical pen)**
+  (F1200 / F3000, settle 300 / 350, GENTLE_ON + PLOT_GO in startG, GENTLE_OFF
+  in endG). Existing saved profiles must swap PLOT_HEIGHT -> PLOT_GO by hand
+  (profiles live in the patch file, not in the app).
+- Block edges stripped of over-the-edge tape: a smooth surface costs a dragged
+  tip its coating, a step costs the needle.
+
+Rule from this: **nothing lowers Z and nothing travels fast while over the
+block.** The block does not reach the paper area (it ends ~20 mm before work
+X0), so the only exposure is the departure - and that is PLOT_GO's job.
+
 ## 10. Related project docs (software side — not needed for mechanics)
 - MUUSIA-MAGNET-JIG-SPEC.md — the Safe Areas / laser magnet-jig software feature.
 - MUUSIA-HANDOFF.md — the Muusia app (node-graph editor) architecture.
