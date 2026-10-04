@@ -703,6 +703,11 @@
   "terrain",
   "wave"
  ],
+ "iris": [
+  "nature",
+  "organic",
+  "texture"
+ ],
  "jitter": [
   "deform",
   "warp"

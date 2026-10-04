@@ -1,13 +1,34 @@
-# MUUSIA v2.108 — Node Reference
+# MUUSIA — Node Reference
 
-All 303 built-in nodes. Conventions used below: most generators accept a **Style**
-input (wire a Stroke node to get dashes etc.) and have **Margin**, **Seed** and
+All 304 built-in nodes (including the local Iris pilot). Conventions used below:
+most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
+and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (188)
+## Generators (189)
+
+**Iris** — large, seeded eye studies drawn as organic radial fibres. *Eye shape*
+chooses Human (round), Cat (vertical almond), Goat (horizontal rounded rectangle)
+or Gecko (decorative notched slit); these are animal-inspired designs, not an
+anatomical simulation. *Centre rays* removes the pupil and starts every fibre
+at the centre. *Pupil size* controls the opening; *Pupil finish* Open leaves it
+blank, Hatched adds real horizontal pen strokes at *Hatch gap mm*. *Diameter mm*
+is limited by the sheet and *Margin mm* in Fit inside paper mode. Exact diameter
+keeps the requested size and can extend off-sheet. A3 at 10 mm margins fits a
+277 mm circle; a complete 420 mm iris needs e.g. a 440 × 440 mm canvas/sheet.
+*Fibres* changes density; *Flow* curves the strands; *Texture* adds shorter
+secondary fibres and broken collarette/rim rings; *Edge fray* roughens the ends.
+*Monochrome* uses Main pen only. *Two pens* adds Inner pen around the pupil;
+*Three pens* also uses Accent pen for selected outer fibres and rings. Colour
+changes preserve the geometry and use Muusia's actual pen layers. *Rotation °*
+turns the whole design; *Centre X/Y %* positions it, clamped to the margin in
+Fit mode. Seeded and Style-compatible. Help includes A3 and 420 mm examples.
+Start with a fine pen and a small crop: the default A3 study draws about 98 m
+of strokes, and Centre rays deliberately overlaps many strokes at one point.
+Implementation is bounded to 112,000 points before an optional Style input.
 
 **Hair Web** — a tangle of thousands of hairline arcs strung between anchor
 points: dark star bursts where the strands meet and a grey haze between, after

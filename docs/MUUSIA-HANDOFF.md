@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **301 files** (303 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **302 files** (304 nodes total with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 180, Modifiers 75). ESM format:
+  Generators 181, Modifiers 75). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -123,7 +123,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (301) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (302) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1749,6 +1749,34 @@ according to the session's actual capabilities:
   the exporter while preserving an unrelated file. Catalog validation, build
   and Learn (18,073 checks) pass; the release gate remains unchanged. No app
   version bump or node implementation in this workflow change.
+
+- **W / local node pilot** 2026-10-04 Astra: **Iris** (`iris`, gen/nature) on
+  `codex/iris-node`, based on `3fb34aa`. Not merged to main or published; app
+  version remains 2.109 until a release integrator chooses the next version.
+  Seeded radial fibres, Human / Cat / Goat / Gecko-inspired pupils, Open or
+  Hatched pupil, Centre rays, 1–3 actual pen layers, physical diameter and
+  fit/exact sizing. A3 fits a 277 mm iris with 10 mm margins; 420 mm needs a
+  larger sheet. No engine/helper/exporter changes. 302 node files / 304 total,
+  189 generators including hidden ones. Node imported with Node ⇣ in the real
+  app, then baked, lab source removed and fresh-load built-in checked.
+  `tools/validate-iris.mjs`: 181 checks with real helpers, including determinism,
+  numerical wire extremes, shape/bounds/budget invariants, pupil clearance,
+  Style behavior and colour changes preserving geometry. Default A3:
+  1,389 paths / 80,637 points, about 98 m of drawing, ~9 ms compute locally.
+  Help has Iris · A3 study and Iris · 420 mm examples. Catalog, source bundle,
+  tags and node reference updated. `tools/render-iris.mjs [directory]` creates
+  six reproducible SVG/patch studies and a local review gallery; these generated
+  SVGs are artwork, not browser-export provenance. Animal forms are stylised;
+  the Gecko slit is continuous, unlike fully constricted separate apertures.
+  Actual browser SVG output: Cat, A3, 2,533 paths, separate pens 0/4/6.
+  G-code software check on A4 in default 330 × 240 mm profile: finite output,
+  pen-change pauses for 4/6, no bounds warning. A3 correctly warns against that
+  smaller profile. No physical plot or device connection. Local QA artifacts:
+  `/tmp/muusia-iris-qa/verification.json`; gallery and real UI capture:
+  `/tmp/muusia-iris-pilot/`. Catalog → build → Learn gate passes (18,073 Learn
+  checks); all 12 Help examples pass structural validation. Existing Learn
+  content and reference exports unchanged. Next: Daniel's visual review, then
+  release integration/version bump and a dedicated Iris Learn lesson/captures.
 
 ## Hard-won pitfalls (keep)
 

@@ -15,6 +15,22 @@
 
 export const EXAMPLES = [
   {
+    name: "Iris · A3 study", desc: "A 277 mm iris on A3. Try Human, Cat, Goat or Gecko, or switch Centre to Centre rays. Three real pen layers: teal fibres, orange inner fibres, black accents.",
+    canvas: { W: 420, H: 297 },
+    make: (defaults) => ({
+      nodes: [{ id: 9001, type: "iris", x: 30, y: 20, params: { ...defaults("iris"), colours: "Three pens", layer: 6, innerPen: 4, accentPen: 0 } }],
+      edges: [],
+    }),
+  },
+  {
+    name: "Iris · 420 mm", desc: "A full 420 mm iris on a 440 × 440 mm sheet. Monochrome, 1,400 fibres and an open pupil. This circle is wider than the short side of A3; use a larger sheet or Mega Canvas.",
+    canvas: { W: 440, H: 440 },
+    make: (defaults) => ({
+      nodes: [{ id: 9001, type: "iris", x: 30, y: 20, params: { ...defaults("iris"), diameter: 420, fibres: 1400, pupilFill: "Open" } }],
+      edges: [],
+    }),
+  },
+  {
     name: "1 · Stamps", desc: "A yellow style wire (Dashed) feeds Tracks; Stamp rides the paths with triangles.",
     make: (defaults) => ({
       nodes: [
