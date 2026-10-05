@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 306 built-in nodes (including the local Coral and Arc Mounds batch). Conventions used below:
+All 306 built-in nodes in Muusia v2.111. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -56,8 +56,7 @@ calculation boundary does not appear in the circular drawing. A bounded memo
 reuses that field for pen, width, band, size and placement edits; changing Form,
 Seed, Density, Growth or Edge texture recalculates it and can take a few seconds.
 Style-compatible, with a 112,000-point limit before Style. Help includes
-Coral · Brain study and Coral · Radial colours. Local node batch: not released
-until the planned multi-node commit/push.
+Coral · Brain study and Coral · Radial colours.
 
 **Iris** — large, seeded eye studies drawn as organic radial fibres. *Eye shape*
 chooses Human (round), Cat (vertical almond), Goat (horizontal rounded rectangle)

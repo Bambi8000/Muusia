@@ -38,7 +38,7 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **304 files** (306 nodes total, including the local Coral and Arc Mounds batch, with
+- `src/defs/nodes/*.js` — one file per node, **304 files** (306 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
@@ -123,7 +123,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (304, including local Coral and Arc Mounds) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (304, including Coral and Arc Mounds) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -2216,6 +2216,31 @@ according to the session's actual capabilities:
   An explicit permission question is pending; do not retry the push until
   Daniel answers. Refresh the local Claude snapshot after this commit; that
   preparation is not a verified Claude web-project upload.
+
+- **2.111** 2026-10-05 Astra release integration, explicitly authorized by
+  Daniel after the final Rolls review: promote `3401f39` and `ab5e48d` from
+  `codex/coral-node-batch` to `main` in `Bambi8000/Muusia`, then publish via the
+  existing Pages workflow. Remote main was still `e81eff1` when fetched; no
+  concurrent changes or merge conflicts. The previous push-approval blocker
+  is resolved by Daniel's instruction to commit and publish the full batch.
+  Release includes **Coral**, **Arc Mounds** with Soft bodies and Rolls, Image's
+  Organic dots / Short strokes / Cross stitches / Square weave and blue Drawing
+  input, Concrete Poetry's 14 motions including Shift and recursive glyph Zoom,
+  and Ribbon Angular with mixed-turn No crossings routes. Image's Learn guide
+  and actual node capture are included; the other Learn lessons are unchanged.
+  304 node files / 306 total built-ins / 191 generators / 32 Help examples.
+  APP_VERSION 2.110 → 2.111; no export-engine or machine-profile change in this
+  integration. Regenerated source/catalog/Learn metadata and updated local
+  review galleries to link to public Muusia with a v2.111 requirement.
+  Focused release checks: Coral 178, Image art 2,339, Drawing input 93,
+  Image merge/rasterise regressions, Concrete Poetry 1,581, Ribbon Angular 760
+  plus original Ribbon checks, Arc Mounds 451 and all 32 Help examples.
+  Shared catalog/build/Learn gate passed (18,114 Learn checks). Actual browser
+  export evidence for this batch is recorded in the preceding entries; the
+  version bump does not alter their geometry. No hardware run.
+  After push, verify the Pages run for the exact release commit and the public
+  v2.111 app/Learn result. Refresh the clean local Claude project snapshot;
+  a local snapshot is not a verified upload to Claude's web project.
 
 ## Hard-won pitfalls (keep)
 
