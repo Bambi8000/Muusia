@@ -10,6 +10,7 @@ import DroPanel from "./dro.jsx";
 import LiveInput from "./live-input.jsx";
 import { makeAnalyzeButton, intakeImage } from "./analyze.js";
 import CatalogBrowser from "./catalog-browser.jsx";
+import { compareNodeRecency, nodeRecencyLabel } from "./node-recency.js";
 import StackView from "./stack-view.jsx";
 import { DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
@@ -883,7 +884,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.111"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.112"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -2396,6 +2397,7 @@ export default function App() {
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
         focusNav(e.key);
       }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.shiftKey && e.key.toLowerCase() === "n") { e.preventDefault(); setQuickAdd({ cat: null, recent: true, query: "", sel: 0 }); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "t") { e.preventDefault(); tidyNodes(); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "b") { e.preventDefault(); setCatalogOpen((v) => !v); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "a") { e.preventDefault(); setQuickAdd({ cat: null, fav: true, query: "", sel: 0 }); }
@@ -2967,6 +2969,7 @@ export default function App() {
         <button style={toolBtn(histLens[0] > 0)} onClick={undo} title="Undo (Cmd/Ctrl+Z)">↶</button>
         <button style={toolBtn(histLens[1] > 0)} onClick={redo} title="Redo (Cmd/Ctrl+Shift+Z)">↷</button>
         <button style={toolBtn(lvl.nodes.length > 1)} onClick={tidyNodes} title="T — arrange nodes left→right by dataflow · 2+ selected: tidy only the selection">Tidy</button>
+        <button style={toolBtn(true)} onClick={() => setQuickAdd({ cat: null, recent: true, query: "", sel: 0 })} title="Shift+N — all nodes, most recently updated first">Latest nodes</button>
         <button style={toolBtn(true)} onClick={() => setCatalogOpen(true)} title="B — browse every node as a live thumbnail: deep search, category + tag filters, Surprise me">Catalog</button>
         <button style={toolBtn(true)} onClick={() => setStackOpen(true)} title="S — 3D layer stack: preview frames or pens as stacked plexi/glass sheets">Stack</button>
         <div style={{ width: 1, height: 18, background: T.line }} />
@@ -3060,6 +3063,7 @@ export default function App() {
                 ["Add nodes", [
                   ["G / M / D / C / X", "quick-add: Gen / Mod / Dec / Comb / Math"],
                   ["N or Cmd/Ctrl+K", "quick-add: all nodes (deep search)"],
+                  ["Shift+N", "latest nodes: recently updated first"],
                   ["\u2191 \u2193 + Enter", "pick and place in quick-add"],
                   ["A", "favorites + most used (\u2606/\u2605, Tab)"],
                   ["B", "visual node catalog"],
@@ -3827,8 +3831,11 @@ export default function App() {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Pause command</div>
-                  <input type="text" value={prof.pauseCmd} onChange={(e) => setProf((pr) => ({ ...pr, pauseCmd: e.target.value }))}
+                  <input type="text" aria-label="Pause command" value={prof.pauseCmd} onChange={(e) => setProf((pr) => ({ ...pr, pauseCmd: e.target.value }))}
                     style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11, fontFamily: mono }} />
+                </div>
+                <div style={{ fontSize: 10, color: T.dim, lineHeight: 1.5, margin: "2px 0 8px" }}>
+                  Pen changes use the pause command above. With the supplied Viivain / Klipper configuration, M0 already homes all axes through PLOT_START before you seat the next pen on the block. Resume leaves the block through PLOT_GO. Homing behaviour on other machines depends on their own pause command.
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <div style={{ fontSize: 10, color: T.dim, flex: 1 }}>Announce pen colour (Telegram tgalarm)</div>
@@ -4241,6 +4248,7 @@ export default function App() {
                 "Space \u2014 toggle large preview (with route simulator).",
                 "F \u2014 focus mode: the selected node docks left as a live card and a large preview fills the rest. \u2190/\u2192 walk the wire chain, \u2191/\u2193 hop between sibling inputs, L locks the watched node so you can edit one node while watching another (e.g. tune a Merge input while watching the Merge).",
                 "T \u2014 tidy: arrange nodes left\u2192right by dataflow (2+ selected: only the selection).",
+                "Shift+N \u2014 Latest nodes: all nodes ordered by their latest update, with dates. Search filters the list; arrow keys and Enter add a node.",
                 "B \u2014 visual node catalog (live thumbnails, tag filters, Surprise me) \u00B7 A \u2014 favorites: starred nodes + Most used (\u2606/\u2605 on quick-add rows and catalog cards, Tab toggles the highlighted row) \u00B7 ? \u2014 keyboard shortcuts popover.",
                 "Cmd/Ctrl+Z \u2014 undo \u00B7 Shift+Cmd/Ctrl+Z \u2014 redo.",
                 "Cmd/Ctrl+D \u2014 duplicate selection \u00B7 Cmd/Ctrl+G \u2014 group selection into a subgraph.",
@@ -4363,7 +4371,7 @@ export default function App() {
             return s > 0 ? [t, d, s, snip] : null;
           })
           .filter(Boolean)
-          .sort((a, b) => b[2] - a[2] || a[1].name.localeCompare(b[1].name));
+          .sort((a, b) => quickAdd.recent ? compareNodeRecency(a, b) : b[2] - a[2] || a[1].name.localeCompare(b[1].name));
         let list = baseList;
         if (quickAdd.fav) {
           if (!terms.length) {
@@ -4386,14 +4394,15 @@ export default function App() {
           addNode(type); /* empty-space placement, same as palette click */
           setQuickAdd(null);
         };
-        const catLabel = quickAdd.fav ? "Favorites" : quickAdd.cat === null ? "All nodes" : (CATS[quickAdd.cat] ? CATS[quickAdd.cat].label : quickAdd.cat);
+        const catLabel = quickAdd.recent ? "Latest nodes" : quickAdd.fav ? "Favorites" : quickAdd.cat === null ? "All nodes" : (CATS[quickAdd.cat] ? CATS[quickAdd.cat].label : quickAdd.cat);
         return (
           <div onClick={() => setQuickAdd(null)}
             style={{ position: "fixed", inset: 0, background: "rgba(10,12,16,0.5)", zIndex: 95, display: "flex", justifyContent: "center", alignItems: "flex-start", paddingTop: "18vh" }}>
             <div onClick={(e) => e.stopPropagation()}
-              style={{ width: 320, background: T.panel, border: `1px solid ${T.line}`, borderRadius: 8, boxShadow: "0 16px 48px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+              style={{ width: quickAdd.recent ? 380 : 320, maxWidth: "94vw", background: T.panel, border: `1px solid ${T.line}`, borderRadius: 8, boxShadow: "0 16px 48px rgba(0,0,0,0.5)", overflow: "hidden" }}>
               <div style={{ padding: "8px 12px 4px", fontSize: 9, color: T.dim, letterSpacing: "0.1em" }}>{catLabel.toUpperCase()}</div>
-              <input autoFocus type="text" value={quickAdd.query} placeholder="Search nodes…"
+              {quickAdd.recent && <div style={{ padding: "0 12px 8px", fontSize: 10, color: T.dim }}>All nodes · most recently updated first · {list.length} results</div>}
+              <input autoFocus type="text" aria-label="Search nodes" value={quickAdd.query} placeholder="Search nodes…"
                 onChange={(e) => setQuickAdd((q) => ({ ...q, query: e.target.value, sel: 0 }))}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") { setQuickAdd(null); }
@@ -4403,7 +4412,7 @@ export default function App() {
                   else if (e.key === "Tab" && list[sel]) { e.preventDefault(); toggleFav(list[sel][0]); }
                 }}
                 style={{ width: "100%", background: T.panel2, color: T.text, border: "none", borderBottom: `1px solid ${T.line}`, padding: "8px 12px", fontSize: 13, fontFamily: mono, outline: "none", boxSizing: "border-box" }} />
-              {!terms.length && !quickAdd.fav && (
+              {!terms.length && !quickAdd.fav && !quickAdd.recent && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderBottom: `1px solid ${T.line}` }}>
                   {CATALOG_TAGS.map(([tg, c]) => (
                     <span key={tg} onClick={() => setQuickAdd((q) => ({ ...q, query: tg, sel: 0 }))}
@@ -4413,13 +4422,13 @@ export default function App() {
                   ))}
                 </div>
               )}
-              <div style={{ maxHeight: 300, overflowY: "auto", padding: 6 }}>
+              <div role="listbox" aria-label={catLabel} style={{ maxHeight: quickAdd.recent ? "55vh" : 300, overflowY: "auto", padding: 6 }}>
                 {list.map(([type, d, _s, snip, sec], i) => (
                   <React.Fragment key={type}>
                     {sec && sec !== (list[i - 1] || [])[4] && (
                       <div style={{ padding: "6px 8px 1px", fontSize: 8, color: T.dim, letterSpacing: "0.12em" }}>{sec}</div>
                     )}
-                    <div onClick={() => addSelected(type)}
+                    <div role="option" aria-selected={i === sel} ref={el => { if (el && i === sel && quickAdd.recent) el.scrollIntoView({ block: "nearest" }); }} onClick={() => addSelected(type)}
                     onMouseEnter={() => setQuickAdd((q) => ({ ...q, sel: i }))}
                     style={{
                       display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", borderRadius: 4, cursor: "pointer",
@@ -4432,6 +4441,7 @@ export default function App() {
                         {d.name}
                         {nodeNicks[type] && <span style={{ color: T.accent, marginLeft: 6, fontSize: 11 }}>· {nodeNicks[type]}</span>}
                       </div>
+                      {quickAdd.recent && <div style={{ fontSize: 9, color: T.dim }}>{nodeRecencyLabel(type)}</div>}
                       {snip && <div style={{ fontSize: 9, color: T.dim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{snip}</div>}
                     </div>
                     <div style={{ fontSize: 9, color: T.dim }}>{(CATS[d.cat] || {}).label || d.cat}</div>
@@ -4445,6 +4455,7 @@ export default function App() {
                 ))}
                 {!list.length && <div style={{ padding: 10, fontSize: 11, color: T.dim }}>{quickAdd.fav && !terms.length ? "No favorites yet \u2014 star nodes with \u2606 in any quick-add list or on catalog cards, or type to search all nodes." : "No matches"}</div>}
               </div>
+              {quickAdd.recent && <div style={{ padding: "8px 12px", borderTop: `1px solid ${T.line}`, fontSize: 10, color: T.dim }}>↑↓ browse · Enter add · Esc close</div>}
             </div>
           </div>
         );

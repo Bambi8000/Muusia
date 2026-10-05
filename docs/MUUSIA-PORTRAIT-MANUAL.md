@@ -14,7 +14,8 @@ white.
 
 1. Choose image… (JPEG/PNG; EXIF is corrected, the photo is resized to
    1280 px and frozen into the node — it travels inside the patch).
-2. Press **Analyze face** (needs an http origin, not file://; first run
+2. For **Scribble**, **Tonal**, **Spiral** or **TSP**, skip analysis and select
+   the mode directly. For feature modes, press **Analyze face** (needs an http origin, not file://; first run
    downloads ~92 MB of models once, then they are cached). The frozen
    analysis carries landmark chains, hair/glasses/skin/neck regions, a
    texture-detected beard, flow fields, and every face in the photo.
@@ -23,8 +24,10 @@ white.
 4. Pick a mode, tune, plot. A new photo invalidates the old analysis;
    re-analyze after every image change.
 
-Chain into **Travel Sort** before export — high-nerve drawings produce
-thousands of short paths.
+High-nerve drawings can produce thousands of short paths: **Travel Sort**
+helps their G-code route (enable **Show direction** to see ordering). Travel
+Sort does not change SVG or DXF exports. Scribble already has one path and
+does not need route sorting.
 
 ## Modes
 
@@ -34,11 +37,68 @@ thousands of short paths.
 | Features+tonal | yes* | Feature lines + hair/beard flow first, tonal shading under them (feature ink is pre-deposited, shading avoids the lines). |
 | Features only | yes* | The feature layer alone — contours, hair, beard. |
 | One line | yes | The Picasso portrait: pruned chains of every face linked into ONE unbroken line, transitions arc over cheeks/forehead. Empty without an analysis. |
+| Scribble | no | One continuous, irregular looping stroke. Residual tone drives density; local gradients tighten loops around dark details. |
 | Spiral | no | One Archimedean spiral, wave amplitude from darkness. |
 | TSP | no | One line through a darkness-weighted dot cloud (Quality = 2-opt budget). |
 
 *Degrades to pure Tonal bit-identically when the analysis is missing or
 invalid.
+
+## Continuous Scribble portraits
+
+Choose a tightly cropped JPEG/PNG portrait with a plain, light background, then
+set **Mode → Scribble**. It uses the photo directly: **Analyze face is optional
+and does not affect this mode**. The original Tonal default and all older modes
+are preserved, so existing patches retain their appearance.
+
+- **Scribble density (0.2–3)** increases the amount of drawn ink. Start at 1.
+- **Loop size mm (0.6–18)** sets the scale of the looping gesture. Try 2–3 mm
+  for fine features, 5–8 mm for a loose portrait. Actual loops vary in size and
+  tighten near image edges; this is a gesture scale, not a fixed diameter.
+- **Wander (0–1)** loosens loop shapes, directions and connecting strokes.
+- **Feature contrast (0–1)** suppresses flat midtones and reinforces dark
+  details. Lower it to retain more skin shading; raise it for open cheeks.
+- **Gamma** changes source darkness (above 1 makes the drawing lighter).
+  **White cutoff** removes light regions from the target ink field.
+- **Pen width mm / Ink strength** estimate how much ink a pass deposits.
+  Use your intended pen width: a thinner pen requires more travel for the
+  same target tone. These controls do not change the physical pen or the
+  app's SVG stroke-width setting.
+- **Detail** changes the working image resolution. **Quality** increases the
+  search per gesture. **Focus** boosts ink inside the guide ellipse.
+- **Seed** changes the route and handwriting; **Pen** chooses one ink slot.
+
+The result is one open polyline, including every connection between loops.
+Connections also contribute to the simulated ink. White cutoff suppresses loop
+placement, but a connecting line can cross a highlight or the gap between
+separate shapes. It is not a clipping mask: strict white gaps would require
+lifting the pen. This is tone-based drawing, not face recognition or automatic
+background removal; a busy background is also drawn.
+
+The route is deterministic. Compute has fixed search, travel and working-point
+limits; dense routes are simplified as a whole to stay below 118,000 output
+points. At extreme settings these limits can stop additional density from
+adding detail. Smaller loops are not always a better likeness. Use a close
+crop and compare seeds before committing to a long plot.
+
+Plain Scribble output keeps one pen-down stroke in SVG and G-code. A dashed
+**Style**, clipping/cutting modifiers or device-side processing can split it.
+The G-code includes initial/final pen-up moves; machine maintenance settings
+may add their own pauses. The paper test remains the judge of ink coverage.
+
+Starting settings (A3; select Pen yourself):
+
+| Look | Density | Loop mm | Wander | Feature contrast | Gamma | Pen mm |
+|---|---:|---:|---:|---:|---:|---:|
+| Fine thread | 1.1 | 2.4 | 0.25 | 0.7 | 1.05 | 0.3 |
+| Loose gesture | 0.8 | 6.5 | 0.75 | 0.75 | 1.1 | 0.3 |
+| Ink in the shadows | 2 | 3.8 | 0.45 | 0.65 | 0.95 | 0.3 |
+
+Help → **Portrait · Continuous scribble** sets up an A3 node ready for your
+photo. Developers can recreate the three live studies with
+`node tools/portrait-scribble-preview.mjs [output-dir] [vite-origin]` and serve
+the output directory locally. The review sheet uses the real node and the
+same image intake as Muusia, with editable patch and SVG downloads.
 
 ## Parameters
 

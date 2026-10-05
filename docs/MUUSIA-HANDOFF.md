@@ -2242,6 +2242,144 @@ according to the session's actual capabilities:
   v2.111 app/Learn result. Refresh the clean local Claude project snapshot;
   a local snapshot is not a verified upload to Claude's web project.
 
+- **W** 2026-10-05 Astra — **Portrait: continuous Scribble**. Daniel asked
+  for looping, one-line photo portraits in the existing Portrait node, using
+  his five references as visual direction. Added **Scribble** alongside the
+  six existing modes; Tonal remains the default and old compute branches are
+  unchanged. New controls: Scribble density, Loop size mm, Wander and Feature
+  contrast. Existing image intake, Gamma/cutoff, Detail/Quality, Focus,
+  Pen width/Ink strength, Margin, Seed and one Pen apply. No Analyze face or
+  new model is needed. Legacy-only controls are hidden in this mode.
+  Seeded irregular partial loops follow tonal gradients and spend a residual
+  ink field. Cubic connecting strokes count as deposited ink too. Exactly one
+  open path for a nonblank image, empty for white/cutoff-only inputs; crossings
+  over white gaps are intentional to keep continuity. Bounded search/working
+  geometry and whole-route simplification keep plain output <=118k points.
+  Wired dashed Style may split the line. No engine/machine/export edits.
+  Added the manual/spec extension, searchable catalog paragraph/tags, Help
+  **Portrait · Continuous scribble** (33 examples total) and reproducible
+  `tools/portrait-scribble-preview.mjs`. Local gallery:
+  `http://127.0.0.1:5193/` (Vite dependency `http://127.0.0.1:5186/`), with
+  Fine thread / Loose gesture / Ink in the shadows, local photo upload,
+  editable patches and computed review SVGs. Existing repository photo
+  fixture used for visual QA; no reference screenshot was traced.
+  Validation: **209** focused Scribble checks including lab/baked parity,
+  **96** legacy Portrait checks, all 33 examples; shared catalog → build →
+  **18,114 Learn checks** passed. Graduated lab file removed. Actual fresh-app
+  load shows Scribble controls and a single output; imported gallery patch
+  matches. Actual browser exports checked point-for-point to <=0.005 mm:
+  SVG A3 **1 path / 117,574 points / 88.05 m**; G-code A4 wide **1 path /
+  99,579 points**, one pen-down event, zero pen changes, no bounds warnings,
+  final pen up. A4 was used for G-code to fit the existing 330 × 240 machine;
+  no hardware run. Evidence, full captured files and source hashes:
+  `/tmp/muusia-portrait-scribble-qa/verification.json`.
+  SVG SHA-256 `eac1d6b326686ec7817948f1e67716742facc8fc13352ba8d4ab2cc913f813e1`;
+  G-code `0368f3147e29fb6f330c686121bc0d3bca5707eb21a537067618d152597284c6`.
+  **Local, uncommitted review** on `codex/portrait-continuous-scribble`, base
+  `34e8fcc7c560cc5e797ab89bfe47b6daae6c39dd`; APP_VERSION/main/Pages stay at
+  v2.111. Review likeness with Daniel's own cropped photo next. On authorized
+  integration, bump the release once, remove the ready claim, run the gates
+  and refresh Claude's project after commit. Claude currently has the clean
+  v2.111 snapshot; this uncommitted feature has not been uploaded there.
+
+- **W** 2026-10-05 Astra — **Latest nodes and pen-change homing audit**.
+  Added **Latest nodes** to the toolbar and **Shift+N** to the keyboard/Help
+  lists. The searchable quick-add list contains all selectable nodes, ordered
+  by the latest node-source update; dates include improvements to existing
+  nodes. Arrow keys browse, Enter adds, Escape closes. Normal N/category/
+  favorites menus keep their previous sorting. Unknown custom-node dates sort
+  after recorded built-ins. Hidden/internal node definitions remain hidden.
+  `tools/make-node-recency.mjs` records Git history plus local source updates
+  in `src/defs/node-recency-data.js`; unchanged source hashes preserve their dates.
+  Run it after future node edits. `validate-catalog` rejects stale/missing
+  metadata, so the list cannot silently miss new node changes. Source history
+  begins with the repository import for older nodes, not their invention date.
+  Daniel confirmed **Viivain / Klipper + M0**. A read-only Moonraker config
+  query on 2026-10-05 verified the actual running configuration: M0 lifts the
+  pen, PAUSE_BASE saves the position, PLOT_START executes G28 and sets up the
+  block/paper origin; the RESUME hook is PLOT_GO. Thus pen changes already
+  re-home. Added this explanation beside Pause command in Machine Setup;
+  **no extra G28, exporter change, profile migration or firmware edit**.
+  The app text explicitly describes the supplied Viivain configuration,
+  rather than claiming every machine's M0 does this. Drift is not diagnosed:
+  homing before seating cannot prevent movement during seating or drift later
+  within a long colour layer. No movement, printer command or restart issued.
+  Validation: recency checks cover all **304** source definitions; real browser
+  shows **302** selectable nodes, Portrait/Arc Mounds/latest batch first,
+  search preserves recency, arrows/Enter add, empty results and Escape work,
+  Shift+N works and typing in a project-name field does not open the menu.
+  Actual exporter function checked with 1/2/6 pens: 0/1/5 M0 changes, each
+  preceded by pen-up and settle; Travel Stop Pen change also emits M0.
+  Shared catalog → build → **18,114 Learn checks** passed, including both
+  unchanged reference-export provenance checks; no recapture was required.
+  **Local, uncommitted**, sequential with Portrait on
+  `codex/portrait-continuous-scribble`, base
+  `34e8fcc7c560cc5e797ab89bfe47b6daae6c39dd`. APP_VERSION stays 2.111.
+  On authorized integration, bump once for the whole release, remove ready
+  claims and refresh Claude's project snapshot after the commit.
+
+- **W** 2026-10-05 Astra — **Colour Scribble**. New `colour_scribble`
+  generator in Organic & Flow, inspired by Daniel's four coloured-hatching
+  references. Compositions **Knot / Burst / River / Islands** place bundles
+  of parallel pen gestures; **Hatching / Arcs / Zigzags / Mixed** chooses
+  their shape. Controls cover bundle count and line density, physical length
+  and width, spread, size variation, disorder, curvature, wandering threads,
+  rotation/centre, margin, seed and **1–6 independent pens**. Colour changes
+  preserve every geometric point; all marks are open, unfilled vector paths.
+  Per-bundle seeded random streams isolate placement from density/pen changes.
+  Segment clipping respects the page margin without artificial boundary
+  strokes. Sampling is budgeted across the whole composition (base output
+  <110k points before Style); malformed numeric wires are bounded. Standard
+  Style input and preview region/centre guides. No app/engine/export change.
+  Four A3 landscape Help examples added (**37 total**), reference/tags,
+  generated source/catalog/recency refreshed (**305 node files / 307 total
+  definitions / 192 generators**). `tools/render-colour-scribble.mjs` creates
+  four computed SVGs, editable patches and a local gallery at
+  `http://127.0.0.1:5194/`. These review SVGs are separate from browser capture
+  evidence. Graduated lab file removed after parity verification.
+  Validation: **315** focused checks including lab/baked parity (**314** with
+  the graduated lab removed); determinism, all 16 composition/gesture pairs,
+  clipping, bounds, malformed/extreme parameters, style, colour invariance,
+  source recency and all 37 examples passed. Fresh browser load, Help example,
+  node selection, composition/gesture controls and Latest nodes verified;
+  no browser console errors. Catalog → build → **18,114 Learn checks** passed.
+  Actual browser SVG: A3 420×297, **1,455 paths / 29,692 points / six pen
+  groups**. Actual G-code: A4 297×210 (fits the 330×240 default test profile),
+  **1,455 paths / 29,618 points / five M0 pen changes**, no bounds warning.
+  Both compared point-for-point with the node output, max error <0.005 mm;
+  route optimisation was off. No hardware run. Files, hashes and source
+  provenance: `/tmp/muusia-colour-scribble-qa/verification.json`.
+  SVG SHA-256 `ed07753594c8ffee7259bae6d426748e105494f9d150e42999fec75281e7d587`;
+  G-code `35235333f5e643f27a9b8ecd51ac16749a123803570b00268fbb1c6a7380d0e1`.
+  **Local, uncommitted**, alongside Portrait and Latest nodes on
+  `codex/portrait-continuous-scribble`, base
+  `34e8fcc7c560cc5e797ab89bfe47b6daae6c39dd`. Version remains 2.111 until the
+  final authorized release. Refresh Claude after integration, not from an
+  unlabeled dirty tree.
+
+- **2.112** 2026-10-05 Astra release integration, authorized by Daniel's
+  “julkaise”. Integrates the three accepted W2026-10-05 changes above:
+  Portrait's continuous **Scribble** mode, **Latest nodes** (Shift+N), and
+  **Colour Scribble** (Knot / Burst / River / Islands; four gestures; 1–6 pens).
+  Help contains 37 examples; the catalog contains 307 definitions from 305 node
+  files. Existing Portrait modes remain compatible. Machine Setup explains the
+  supplied Viivain M0 → PLOT_START → G28 behaviour; no exporter, machine profile
+  or firmware change, and no physical homing/plot test was performed.
+  Release prep renames generated recency metadata to
+  `src/defs/node-recency-data.js` so Claude's flat project snapshot can also
+  include `src/node-recency.js` without a filename collision. The recency
+  generator suppresses expected missing-HEAD-file diagnostics for new nodes.
+  APP_VERSION is 2.112; catalog, source bundle and Learn manifest regenerated.
+  Focused release checks: 208 Portrait Scribble, 96 legacy Portrait, 314 Colour
+  Scribble, 305 current recency records and 37 examples pass. Prior real-browser
+  SVG/G-code captures and their checksums are recorded in the entries above;
+  version/metadata changes do not affect those exporters. Shared gate passed:
+  catalog validation → build → check:learn (18,114 checks, 28 English pages).
+  Release base: `34e8fcc7c560cc5e797ab89bfe47b6daae6c39dd`. Completed claims are
+  removed in this integration. The release task must push the integration to
+  main, verify the exact Pages run and public 2.112 result, then refresh the
+  clean Claude snapshot. Preparation alone must not be reported as an upload.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

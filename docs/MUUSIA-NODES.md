@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 306 built-in nodes in Muusia v2.111. Conventions used below:
+All 307 built-in nodes in Muusia v2.112. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -8,7 +8,29 @@ accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (191)
+## Generators (192)
+
+**Colour Scribble** — overlapping bundles of coloured pen strokes, with four
+compositions: **Knot** gathers a compact tangle, **Burst** sends curved marks
+out from a centre, **River** follows a winding current, and **Islands** spreads
+small clusters across the sheet. **Gesture** chooses Hatching, Arcs, Zigzags or
+Mixed (hatching and arcs). *Bundles* counts gestures; *Lines per bundle* sets
+their density. *Stroke length mm* and *Bundle width mm* set physical mark size.
+*Spread* opens the composition, *Size variation* mixes large and small bundles,
+*Disorder* loosens alignment, and *Curvature* bends arcs. *Loose threads* adds
+longer wandering lines (angular for Islands and Zigzags). *Rotation* turns the
+whole composition around *Centre X/Y %*. *Colours* 1–6 and the six independent
+pen selectors change colour assignment without moving any points. Repeated
+pen choices deliberately merge colour groups. Overlaps are actual strokes,
+not fills or simulated transparency. Everything is clipped to *Margin mm*;
+clipping splits excursions without drawing artificial lines along the edge.
+*Seed* reproduces the work. Dense settings coarsen curve sampling across all
+bundles to keep the base drawing below 110,000 points, before wired Style.
+The margin rectangle and centre are non-exporting preview guides. Help has
+**Colour Scribble · Knot**, **Burst**, **River** and **Islands** on A3 landscape.
+Use a fine pen for clear intersections; increasing density also increases plot
+time. G-code groups the selected pen indices for changes; SVG keeps separate
+pen groups. No image or face analysis is involved.
 
 **Arc Mounds** — a field of soft overlapping bodies, drawn entirely with curved
 pen strokes. *Form* selects the original **Soft bodies** (ellipsoids) or
@@ -2634,7 +2656,15 @@ frame; use Triangle for seamless loops.
 release as fractions of the loop. Starts and ends at zero, ideal for animations
 that appear, hold, and fade.
 
-**Portrait** (gen / textimg) draws a photo the way a portraitist works. Load a
+**Portrait** (gen / textimg) draws a photo the way a portraitist works. New mode
+Scribble turns a photo into one continuous wandering line without face analysis:
+irregular loops build the shadows and local gradients tighten facial details.
+Scribble density, Loop size mm, Wander and Feature contrast control its
+handwriting; Gamma, White cutoff, Focus, Pen width, Ink strength and Seed also
+apply. Cutoff suppresses loops but connecting strokes may cross white space.
+One Pen is used; a dashed Style can split the path. Plain backgrounds and close
+crops work best. The bounded route is simplified to at most 118k points.
+Load a
 photo (JPEG/PNG; EXIF-corrected, resized to 1280 px, frozen to the node) and
 press Analyze face to freeze a face analysis into the node - landmark chains,
 parsed hair/glasses/skin regions and a hair flow field, all carried inside the

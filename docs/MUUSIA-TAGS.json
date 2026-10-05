@@ -244,6 +244,15 @@
   "mesh",
   "region"
  ],
+ "colour_scribble": [
+  "abstract",
+  "colour",
+  "scribble",
+  "hatch",
+  "organic",
+  "seed",
+  "texture"
+ ],
  "comets": [
   "chaos",
   "flow",
@@ -1146,9 +1155,11 @@
   "structural"
  ],
  "portrait": [
+  "connect",
   "flow",
   "halftone",
   "image",
+  "organic",
   "portrait",
   "texture"
  ],

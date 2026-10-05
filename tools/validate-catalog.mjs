@@ -17,6 +17,7 @@ import fs from "fs";
 import path from "path";
 import { pathToFileURL } from "url";
 import { buildCatalog } from "./make-catalog.mjs";
+import { validateNodeRecency } from "./validate-node-recency.mjs";
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "src/defs/catalog.js");
@@ -58,5 +59,9 @@ else console.log("ok   tags well-formed");
 const empty = Object.entries(CATALOG).filter(([, e]) => !e.t).map(([k]) => k);
 if (empty.length) console.log("WARN " + empty.length + " nodes without a NODES.md paragraph (search falls back to name/desc/tags): " + empty.join(", "));
 else console.log("ok   every node has search text");
+
+const staleRecency = await validateNodeRecency();
+if (staleRecency.length) { console.log("FAIL node recency: " + staleRecency.join(", ") + " — run: node tools/make-node-recency.mjs"); fail = 1; }
+else console.log("ok   node recency matches all current definitions");
 
 process.exit(fail);

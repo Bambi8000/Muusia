@@ -1,7 +1,8 @@
 # Muusia — Portrait Mode Feature Spec (handoff)
 
-Status: **design complete, not implemented.** Agreed with Daniel in a design chat
-(August 2026). This document is self-contained; verify implementation details
+Status: **historical design; core modes implemented.** Agreed with Daniel in a design chat
+(August 2026). Scribble was added locally on 2026-10-05; see the current node
+manual and implementation for the released/local state. This document is self-contained; verify implementation details
 against the current v2.x source (image-node conventions, inspector, export panel,
 NODE-API) before coding. Intended home: `docs/MUUSIA-PORTRAIT-SPEC.md`.
 
@@ -310,3 +311,25 @@ Checklist for `tools/validate-portrait.mjs`:
    independent of the round counter.
 5. Glasses layer: auto-include above a confidence threshold vs always manual
    checkbox.
+
+## 2026-10-05 extension: continuous Scribble
+
+Daniel requested dense, one-line scribble portraits in the existing node.
+Scribble is an additional tone-driven mode, independent of face analysis.
+Seeded irregular partial loops follow local gradients and consume a residual
+ink field; cubic connections between gestures are deposited into the same
+field. It returns exactly one open path on the selected pen for nonempty
+images. Blank/cutoff-only images return no paths. White cutoff gates target
+ink, not the connecting stroke: hard white gaps conflict with continuity.
+
+Controls: Scribble density, Loop size mm, Wander, Feature contrast; the existing
+Detail, Quality, Gamma, White cutoff, Pen width, Ink strength, Focus, Margin,
+Seed and Pen also apply. Legacy-only controls are hidden in Scribble. No new
+ML models, engine changes, input pins or image format changes. Bounded working
+field (long side 180–280 cells), 6,000 gestures, 100 m travel target and 236k
+working-point limits; whole-stroke simplification to at most 118k output points.
+Style is applied afterwards and may intentionally split the stroke.
+
+Validation: `tools/validate-portrait-scribble.mjs`, existing
+`tools/validate-portrait.mjs`, actual UI and browser exports. See the manual
+for input limitations, presets and the reproducible local review sheet.

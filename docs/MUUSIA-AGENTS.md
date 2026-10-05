@@ -88,7 +88,11 @@ explicit scope in the work state.
    after verifying the built-in replacement; explicitly stage new ignored node
    paths if necessary. Test a fresh app load, representative parameters and
    relevant SVG/G-code exports. A running import-only demo is not a shipped node.
-4. Add catalog/tags, node documentation and a small reproducible example. For a
+4. Run `node tools/make-node-recency.mjs` after node edits so **Latest nodes**
+   (Shift+N) shows the latest source changes. Commit `src/defs/node-recency-data.js`;
+   the catalog gate checks its source hashes. These dates describe updates,
+   including new modes in old nodes, rather than original creation dates.
+   Add catalog/tags, node documentation and a small reproducible example. For a
    tutorial-oriented node, add the Learn reference, real screenshots and lesson
    in a separately scoped follow-up or the same agreed task. Never fabricate
    screenshots or silently change existing tutorial geometry.

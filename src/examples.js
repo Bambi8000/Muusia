@@ -15,6 +15,31 @@
 
 export const EXAMPLES = [
   {
+    name: "Colour Scribble · Knot", desc: "A compact tangle of six coloured inks. Gesture mixes straight hatching and curved bundles. Try Spread, Size variation and Disorder to open up or loosen the knot. Lines per bundle changes density. Colours 1 makes the same drawing monochrome. All marks are real pen paths.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "colour_scribble", x: 30, y: 20, params: { ...defaults("colour_scribble"), ...{"layout": "Knot", "gesture": "Mixed", "bundles": 110, "density": 13, "length": 32, "width": 10, "spread": 0.65, "variation": 0.65, "disorder": 0.55, "curve": 0.45, "threads": 0.2, "rotation": 0, "cx": 50, "cy": 50, "margin": 10, "seed": 41, "colours": 6, "layer": 1, "pen2": 7, "pen3": 6, "pen4": 4, "pen5": 5, "pen6": 10} } }], edges: [] }),
+  },
+  {
+    name: "Colour Scribble · Burst", desc: "Curved bundles escape from a loose centre. Length sets the size of the marks in millimetres; Curvature bends them, and Loose threads adds longer wandering strokes. Try a fine pen and lower Density for more white space.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "colour_scribble", x: 30, y: 20, params: { ...defaults("colour_scribble"), ...{"layout": "Burst", "gesture": "Arcs", "bundles": 100, "density": 6, "length": 48, "width": 5, "spread": 0.85, "variation": 0.65, "disorder": 0.35, "curve": 0.75, "threads": 0.35, "rotation": 0, "cx": 50, "cy": 50, "margin": 10, "seed": 19, "colours": 6, "layer": 1, "pen2": 7, "pen3": 6, "pen4": 4, "pen5": 5, "pen6": 10} } }], edges: [] }),
+  },
+  {
+    name: "Colour Scribble · River", desc: "Colourful hatching bundles form a winding stream. Composition River sets the route, Rotation turns it, and Spread opens it across the paper. The six selectable pens are assigned to whole bundles without changing geometry.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "colour_scribble", x: 30, y: 20, params: { ...defaults("colour_scribble"), ...{"layout": "River", "gesture": "Mixed", "bundles": 170, "density": 15, "length": 29, "width": 10, "spread": 0.9, "variation": 0.65, "disorder": 0.55, "curve": 0.25, "threads": 0.05, "rotation": -12, "cx": 50, "cy": 50, "margin": 10, "seed": 13, "colours": 6, "layer": 1, "pen2": 7, "pen3": 6, "pen4": 4, "pen5": 5, "pen6": 10} } }], edges: [] }),
+  },
+  {
+    name: "Colour Scribble · Islands", desc: "Scattered islands of coloured hatching with angular threads between the dense patches. Seed rebuilds the islands, Size variation mixes small and large marks, and Loose threads controls the roaming lines. All strokes are clipped to Margin.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "colour_scribble", x: 30, y: 20, params: { ...defaults("colour_scribble"), ...{"layout": "Islands", "gesture": "Hatching", "bundles": 135, "density": 13, "length": 24, "width": 9, "spread": 0.95, "variation": 0.65, "disorder": 0.55, "curve": 0.45, "threads": 0.6, "rotation": 0, "cx": 50, "cy": 50, "margin": 10, "seed": 31, "colours": 6, "layer": 1, "pen2": 7, "pen3": 6, "pen4": 4, "pen5": 5, "pen6": 10} } }], edges: [] }),
+  },
+  {
+    name: "Portrait · Continuous scribble", desc: "Choose image on the Portrait node, then keep Mode → Scribble. One continuous line builds the darks with irregular loops; no Analyze face step is needed. Start with a close crop and a light, plain background. Scribble density adds ink, Loop size changes the gesture, Wander loosens it, and Feature contrast opens the light areas. Pen width should match your pen. White cutoff suppresses loops, but the connecting line can cross white areas. A3 portrait, one pen.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "portrait", x: 30, y: 20, params: { ...defaults("portrait"), mode: "Scribble", scribbleSize: 2.4, scribbleDensity: 1.1, scribbleWander: 0.25, scribbleFeatures: 0.7, detail: 0.8, penW: 0.3, gamma: 1.05 } }], edges: [] }),
+  },
+  {
     name: "Arc Mounds · Billows", desc: "An A3 field of soft, overlapping bodies made entirely from curved pen strokes. Size contrast mixes small and large forms. Body curves adds asymmetry and waists; Curve scale changes how broadly they bend. Foreground shapes hide the lines behind them. Arc pitch sets density; Seed changes the composition. No solid fills are plotted.",
     canvas: { W: 297, H: 420 },
     make: defaults => ({ nodes: [{ id: 9001, type: "arc_mounds", x: 30, y: 20, params: { ...defaults("arc_mounds") } }], edges: [] }),

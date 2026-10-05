@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (304 files, generated)
+# MUUSIA v2.29 — Node Sources (305 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -8467,6 +8467,164 @@ export default {
       }
     }
     return applyStyle({ paths }, ins[0]);
+  },
+};
+```
+
+## colour_scribble.js
+
+```js
+import { Pin, EMPTY, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+  key: "colour_scribble",
+  name: "Colour Scribble",
+  cat: "gen",
+  group: "organic",
+  desc: "Overlapping coloured bundles of pen strokes: a compact Knot, flying Burst, winding River or scattered Islands. Gesture chooses straight Hatching, bending Arcs, angular Zigzags or a Mixed drawing. Bundles controls the number of gestures; Lines per bundle changes their density without moving their centres. Stroke length and Bundle width are physical millimetres. Spread opens the composition, Size variation mixes small and large marks, and Disorder loosens their alignment. Curvature bends Arcs and Mixed strokes; Loose threads adds wandering lines between the dense patches. One to six independently chosen pens colour whole bundles, with the same geometry in mono and colour. Rotation turns the composition around Centre X/Y. Every mark is an open, unfilled plotter path clipped to Margin. Seed reproduces the drawing. Dense settings reduce curve sampling evenly to stay within the point budget. Use a fine pen to keep overlapping colours readable; SVG colours become separate pen groups, not transparency effects.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "layout", label: "Composition", type: "select", options: ["Knot", "Burst", "River", "Islands"], def: "Knot" },
+    { key: "gesture", label: "Gesture", type: "select", options: ["Hatching", "Arcs", "Zigzags", "Mixed"], def: "Mixed" },
+    { key: "bundles", label: "Bundles", type: "slider", min: 10, max: 300, step: 1, def: 110 },
+    { key: "density", label: "Lines per bundle", type: "slider", min: 2, max: 36, step: 1, def: 13 },
+    { key: "length", label: "Stroke length mm", type: "slider", min: 3, max: 100, step: 1, def: 32 },
+    { key: "width", label: "Bundle width mm", type: "slider", min: 1, max: 30, step: 0.5, def: 10 },
+    { key: "spread", label: "Spread", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.65 },
+    { key: "variation", label: "Size variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.65 },
+    { key: "disorder", label: "Disorder", type: "slider", min: 0, max: 1, step: 0.05, def: 0.55 },
+    { key: "curve", label: "Curvature", type: "slider", min: 0, max: 1, step: 0.05, def: 0.45, showIf: p => p.gesture === "Arcs" || p.gesture === "Mixed" },
+    { key: "threads", label: "Loose threads", type: "slider", min: 0, max: 1, step: 0.05, def: 0.2 },
+    { key: "rotation", label: "Rotation °", type: "slider", min: -180, max: 180, step: 1, def: 0 },
+    { key: "cx", label: "Centre X %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
+    { key: "cy", label: "Centre Y %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 40, step: 1, def: 10 },
+    { key: "seed", label: "Seed", type: "seed", def: 41 },
+    { key: "colours", label: "Colours", type: "slider", min: 1, max: 6, step: 1, def: 6 },
+    { key: "layer", label: "Pen 1", type: "pen", def: 1 },
+    { key: "pen2", label: "Pen 2", type: "pen", def: 7, showIf: p => p.colours >= 2 },
+    { key: "pen3", label: "Pen 3", type: "pen", def: 6, showIf: p => p.colours >= 3 },
+    { key: "pen4", label: "Pen 4", type: "pen", def: 4, showIf: p => p.colours >= 4 },
+    { key: "pen5", label: "Pen 5", type: "pen", def: 5, showIf: p => p.colours >= 5 },
+    { key: "pen6", label: "Pen 6", type: "pen", def: 10, showIf: p => p.colours >= 6 },
+  ],
+  _num(v, d, lo, hi) { return Math.max(lo, Math.min(hi, Number.isFinite(+v) ? +v : d)); },
+  _region(p, ctx) {
+    const W = this._num(ctx.W, 297, 0, 10000), H = this._num(ctx.H, 420, 0, 10000);
+    const m = this._num(p.margin, 10, 0, Math.min(W, H) / 2);
+    return { W, H, m, x0: m, y0: m, x1: W - m, y1: H - m,
+      cx: W * this._num(p.cx, 50, 0, 100) / 100, cy: H * this._num(p.cy, 50, 0, 100) / 100 };
+  },
+  overlay(p, ctx) {
+    const r = this._region(p, ctx);
+    return [{ kind: "rect", x: r.m, y: r.m, w: r.x1-r.m, h: r.y1-r.m }, { kind: "point", x: r.cx, y: r.cy }];
+  },
+  // Segment clipping splits strokes at the page boundary; no edge clamping
+  // or artificial line joining across excursions outside the drawing area.
+  _clip(pts, r) {
+    const pieces = []; let cur = [];
+    const flush = () => { if (cur.length > 1) pieces.push(cur); cur = []; };
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i-1], b = pts[i], dx = b[0]-a[0], dy = b[1]-a[1];
+      let lo = 0, hi = 1;
+      const edges = [[-dx,a[0]-r.x0],[dx,r.x1-a[0]],[-dy,a[1]-r.y0],[dy,r.y1-a[1]]];
+      for (const [d,q] of edges) {
+        if (Math.abs(d) < 1e-12) { if (q < 0) { hi = -1; break; } }
+        else if (d < 0) lo = Math.max(lo,q/d); else hi = Math.min(hi,q/d);
+      }
+      if (lo > hi || hi-lo < 1e-10) { flush(); continue; }
+      const u = [a[0]+lo*dx,a[1]+lo*dy], v = [a[0]+hi*dx,a[1]+hi*dy];
+      if (Math.hypot(v[0]-u[0],v[1]-u[1]) < 1e-8) continue;
+      if (cur.length && Math.hypot(cur.at(-1)[0]-u[0],cur.at(-1)[1]-u[1]) > 1e-7) flush();
+      if (!cur.length) cur.push(u); cur.push(v);
+      if (hi < 1-1e-10) flush();
+    }
+    flush(); return pieces;
+  },
+  compute(ins, p, ctx) {
+    const r = this._region(p, ctx), rw = r.x1-r.x0, rh = r.y1-r.y0;
+    if (rw < 0.01 || rh < 0.01) return EMPTY;
+    const n = Math.round(this._num(p.bundles,110,1,300)), density = Math.round(this._num(p.density,13,2,36));
+    const seed = Math.round(this._num(p.seed,41,-2147483648,2147483647));
+    const spread = this._num(p.spread,0.65,0.05,1.5), variation = this._num(p.variation,0.65,0,1);
+    const disorder = this._num(p.disorder,0.55,0,1), curve = this._num(p.curve,0.45,0,1), threads = this._num(p.threads,0.2,0,1);
+    const length = this._num(p.length,32,0.5,600), width = this._num(p.width,10,0.1,150);
+    const angle = this._num(p.rotation,0,-36000,36000)*Math.PI/180, co = Math.cos(angle), si = Math.sin(angle);
+    const colours = Math.round(this._num(p.colours,6,1,6));
+    const palette = [p.layer,p.pen2,p.pen3,p.pen4,p.pen5,p.pen6].map((v,i)=>Math.round(this._num(v,[1,7,6,4,5,10][i],0,11)));
+    const world = ([x,y]) => [r.cx+x*co-y*si,r.cy+x*si+y*co];
+    const paths = [];
+    // Worst-case clipping can double the number of sampled points. Budget
+    // all bundles up front so dense settings still draw the whole composition.
+    const maxSegments = Math.max(2, Math.min(80,Math.floor(50000/(n*(density+2)))-1));
+    const add = (pts, layer) => { for (const part of this._clip(pts.map(world),r)) paths.push({pts:part,closed:false,layer}); };
+    const islandsRng = mulberry32(seed+907);
+    const islands = Array.from({length:9},()=>[(islandsRng()*2-1)*rw*0.43,(islandsRng()*2-1)*rh*0.43]);
+    for (let i = 0; i < n; i++) {
+      // Per-bundle streams make edits to density, pens and threads independent
+      // of the placement of every later bundle.
+      const rng = mulberry32(seed+Math.imul(i+1,104729));
+      const a = rng()*Math.PI*2, rad = Math.pow(rng(),0.85);
+      let x, y, direction, scale = 1;
+      if (p.layout === "River") {
+        const u = rng()*2-1, branch = rng()<0.23 ? 1 : -1;
+        x = u*rw*0.43;
+        y = rh*(0.20*Math.sin(u*2.9+0.5)+branch*0.06*Math.cos(u*5)+(rng()-0.5)*0.11);
+        direction = Math.atan2(rh*(0.58*Math.cos(u*2.9+0.5)-branch*0.3*Math.sin(u*5)),rw*0.43);
+      } else if (p.layout === "Islands") {
+        const centre = islands[i%islands.length];
+        x = centre[0]+Math.cos(a)*rad*rw*0.075; y = centre[1]+Math.sin(a)*rad*rh*0.055;
+        direction = a+Math.PI/3; scale = 0.5+0.65*(0.5+0.5*Math.sin(i%9*2.7));
+      } else if (p.layout === "Burst") {
+        const tail = rng()<0.24, distance = tail ? 0.24+rad*0.34 : rad*0.23;
+        x = Math.cos(a)*rw*distance; y = Math.sin(a)*rh*distance;
+        direction = a+0.6; scale = tail ? 0.45+rad*0.3 : 1;
+      } else {
+        x = Math.cos(a)*rad*rw*(0.30+0.07*Math.sin(a*3));
+        y = Math.sin(a)*rad*rh*(0.27+0.04*Math.cos(a*5));
+        direction = a+Math.PI/2;
+      }
+      x *= spread; y *= spread;
+      const turn = direction+(rng()-0.5)*Math.PI*2*disorder;
+      const dx = Math.cos(turn), dy = Math.sin(turn), nx = -dy, ny = dx;
+      scale *= 1+variation*(Math.pow(rng(),1.5)*2.8-0.8);
+      const len = length*scale, wide = width*scale*(0.65+rng()*0.7);
+      const bend = (rng()*2-1)*curve*len*0.65, slant = (rng()-0.5)*len*0.4;
+      const kind = p.gesture === "Mixed" ? (rng()<0.65 ? "Arcs" : "Hatching") : p.gesture;
+      const colourIndex = i%colours, layer = palette[colourIndex];
+      const segments = kind === "Hatching" ? 1 : kind === "Zigzags" ? Math.min(6,maxSegments) : Math.min(maxSegments,Math.max(4,Math.ceil(len/0.8)));
+      for (let j = 0; j < density; j++) {
+        const lrng = mulberry32(seed+Math.imul(i+1,104729)+Math.imul(j+1,8191));
+        const q = j/(density-1)-0.5;
+        const profile = 0.65+0.35*Math.cos(q*Math.PI)+(lrng()-0.5)*disorder*0.2;
+        const off = q*wide, shift = q*slant+(lrng()-0.5)*disorder*len*0.12;
+        const l = len*profile, fan = q*disorder*0.22;
+        const pts = [];
+        for (let k = 0; k <= segments; k++) {
+          const t = k/segments, along = (t-0.5)*l+shift;
+          let cross = off+fan*along;
+          if (kind === "Arcs") cross += bend*4*t*(1-t)*(1+q*0.3);
+          if (kind === "Zigzags") cross += (k%2 ? 1 : -1)*l*0.12;
+          pts.push([x+dx*along+nx*cross,y+dy*along+ny*cross]);
+        }
+        // Alternating direction reduces travel if the generated order is kept.
+        if (j%2) pts.reverse(); add(pts,layer);
+      }
+      const trng = mulberry32(seed+Math.imul(i+1,65537));
+      if (trng()<threads) {
+        const pts = [], flight = len*(1.8+trng()*2), curl = (trng()-0.5)*flight;
+        const steps = Math.max(2,Math.min(maxSegments,Math.ceil(flight/2)));
+        const angular = p.layout === "Islands" || kind === "Zigzags";
+        for (let k = 0; k <= steps; k++) {
+          const t = k/steps, u = t*flight;
+          const v = angular ? (Math.sin(t*31)*0.08+t*0.3)*curl : Math.sin(t*Math.PI/2)*curl;
+          pts.push([x+dx*u+nx*v,y+dy*u+ny*v]);
+        }
+        add(pts,layer);
+      }
+    }
+    return applyStyle({paths},ins[0]);
   },
 };
 ```
@@ -34769,20 +34927,24 @@ export default {
   fileImage: true,
   faceAnalysis: true,
   fileAccept: ".jpg,.jpeg,.png",
-  desc: "Draws a photo the way a portraitist works. Modes Features+tonal and Features only read the frozen face analysis (Analyze face button): landmark chains become smoothed splines pruned in importance order by Line economy (max = all contours, min = just the eyes), the face oval splits into a high-importance jaw arc and an early-dropping upper arc, glasses come from the parsed region behind their own checkbox, and hair is drawn as FLOW, not outline - streamlines seeded in the hair mask along the frozen flow field, density from image darkness. Feature lines take the node's Pen; tonal rounds continue on the next pens with the feature ink already deposited, so shading automatically avoids the lines. Without a valid analysis the feature modes degrade to pure Tonal. Tonal works with no ML at all: several ROUNDS over the same sheet, each hatching only where the image is still darker than the ink already placed (a digital residual), the 'squint' blur narrowing round by round - big masses first, detail last. Round = pen: with Pen assignment Cycle the G-code pauses at every round and you decide at the machine whether to continue. Hatch mode Flow follows tonal contours, Cross-hatch rotates 45/135/90 degrees per round, Mix alternates. Ink strength calibrates the simulated pen darkness (plot a small hatch swatch first). The Focus ellipse multiplies detail weight inside it. Strokes hard-stop at the White cutoff boundary so eye whites and catchlights stay clean. Mode One line is the Picasso portrait: the pruned feature chains are ordered by a small endpoint tour and linked with light arcs bulging over the cheeks and forehead - one unbroken line, requiring an analysis (empty without one). Sketch nerve brings the Tresset look: contours re-stated by nervous slightly-offset passes and shading strokes that wobble - 0 is the clean drawing, bit-identical to before. Modes Spiral and TSP draw the whole image as ONE unbroken line from tone alone. Chain into Travel Sort as usual; layer boundaries are preserved.",
+  desc: "Draws a photo the way a portraitist works. Scribble builds a likeness from one continuous wandering line: irregular loops pile into shadows and thin out across highlights. No Analyze face step is needed. Scribble density controls ink coverage; Loop size sets gesture size; Wander loosens the handwriting; Feature contrast favours dark details over flat skin tone. Gamma and White cutoff tune the source. A plain background works best. Cutoff suppresses loops, but connecting strokes may still cross white areas to keep the line unbroken. One Pen is used; a wired Style with dashes can split the line. The 118k point budget bounds very dense work. Modes Features+tonal and Features only read the frozen face analysis (Analyze face button): landmark chains become smoothed splines pruned in importance order by Line economy (max = all contours, min = just the eyes), the face oval splits into a high-importance jaw arc and an early-dropping upper arc, glasses come from the parsed region behind their own checkbox, and hair is drawn as FLOW, not outline - streamlines seeded in the hair mask along the frozen flow field, density from image darkness. Feature lines take the node's Pen; tonal rounds continue on the next pens with the feature ink already deposited, so shading automatically avoids the lines. Without a valid analysis the feature modes degrade to pure Tonal. Tonal works with no ML at all: several ROUNDS over the same sheet, each hatching only where the image is still darker than the ink already placed (a digital residual), the 'squint' blur narrowing round by round - big masses first, detail last. Round = pen: with Pen assignment Cycle the G-code pauses at every round and you decide at the machine whether to continue. Hatch mode Flow follows tonal contours, Cross-hatch rotates 45/135/90 degrees per round, Mix alternates. Ink strength calibrates the simulated pen darkness (plot a small hatch swatch first). The Focus ellipse multiplies detail weight inside it. Strokes hard-stop at the White cutoff boundary so eye whites and catchlights stay clean. Mode One line is the Picasso portrait: the pruned feature chains are ordered by a small endpoint tour and linked with light arcs bulging over the cheeks and forehead - one unbroken line, requiring an analysis (empty without one). Sketch nerve brings the Tresset look: contours re-stated by nervous slightly-offset passes and shading strokes that wobble - 0 is the clean drawing, bit-identical to before. Modes Spiral and TSP draw the whole image as ONE unbroken line from tone alone. Travel Sort can improve multi-path G-code travel; it does not affect SVG or DXF. Single-line modes already have one route.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
     { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
-    { key: "mode", label: "Mode", type: "select", options: ["Tonal", "Features+tonal", "Features only", "One line", "Spiral", "TSP"], def: "Tonal" },
-    { key: "economy", label: "Line economy", type: "slider", min: 0, max: 1, step: 0.01, def: 0.7 },
-    { key: "glassesOn", label: "Glasses lines", type: "check", def: true },
-    { key: "nerve", label: "Sketch nerve", type: "slider", min: 0, max: 1, step: 0.01, def: 0 },
-    { key: "rounds", label: "Rounds", type: "slider", min: 1, max: 8, step: 1, def: 4 },
+    { key: "mode", label: "Mode", type: "select", options: ["Tonal", "Features+tonal", "Features only", "One line", "Scribble", "Spiral", "TSP"], def: "Tonal" },
+    { key: "scribbleDensity", label: "Scribble density", type: "slider", min: 0.2, max: 3, step: 0.05, def: 1, showIf: p => p.mode === "Scribble" },
+    { key: "scribbleSize", label: "Loop size mm", type: "slider", min: 0.6, max: 18, step: 0.1, def: 5, showIf: p => p.mode === "Scribble" },
+    { key: "scribbleWander", label: "Wander", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35, showIf: p => p.mode === "Scribble" },
+    { key: "scribbleFeatures", label: "Feature contrast", type: "slider", min: 0, max: 1, step: 0.05, def: 0.55, showIf: p => p.mode === "Scribble" },
+    { key: "economy", label: "Line economy", type: "slider", min: 0, max: 1, step: 0.01, def: 0.7, showIf: p => p.mode !== "Scribble" },
+    { key: "glassesOn", label: "Glasses lines", type: "check", def: true, showIf: p => p.mode !== "Scribble" },
+    { key: "nerve", label: "Sketch nerve", type: "slider", min: 0, max: 1, step: 0.01, def: 0, showIf: p => p.mode !== "Scribble" },
+    { key: "rounds", label: "Rounds", type: "slider", min: 1, max: 8, step: 1, def: 4, showIf: p => p.mode !== "Scribble" },
     { key: "detail", label: "Detail", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5 },
     { key: "penW", label: "Pen width mm", type: "slider", min: 0.2, max: 2, step: 0.05, def: 0.5 },
     { key: "ink", label: "Ink strength", type: "slider", min: 0.2, max: 3, step: 0.05, def: 1 },
-    { key: "hatch", label: "Hatch mode", type: "select", options: ["Flow", "Cross-hatch", "Mix"], def: "Flow" },
+    { key: "hatch", label: "Hatch mode", type: "select", options: ["Flow", "Cross-hatch", "Mix"], def: "Flow", showIf: p => p.mode !== "Scribble" },
     { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
     { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.9, step: 0.01, def: 0.1 },
     { key: "focusX", label: "Focus X %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
@@ -34790,7 +34952,7 @@ export default {
     { key: "focusRX", label: "Focus RX %", type: "slider", min: 2, max: 60, step: 0.5, def: 24 },
     { key: "focusRY", label: "Focus RY %", type: "slider", min: 2, max: 60, step: 0.5, def: 16 },
     { key: "focusBoost", label: "Focus boost", type: "slider", min: 0, max: 3, step: 0.05, def: 0 },
-    { key: "penAssign", label: "Pen assignment", type: "select", options: ["Same", "Cycle", "Start+1"], def: "Cycle" },
+    { key: "penAssign", label: "Pen assignment", type: "select", options: ["Same", "Cycle", "Start+1"], def: "Cycle", showIf: p => p.mode !== "Scribble" },
     { key: "quality", label: "Quality", type: "slider", min: 1, max: 8, step: 1, def: 3 },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
     { key: "seed", label: "Seed", type: "seed", def: 77 },
@@ -34879,6 +35041,183 @@ export default {
       const d = a + (b - a) * fu + (c - a) * fv + (a - b - c + d0) * fu * fv;
       return Math.pow(Math.max(0, Math.min(1, d)), gamma);
     };
+
+    /* ================= single-line mode: SCRIBBLE =================
+       Tone-guided irregular loops, joined BEFORE ink deposition. Every bridge
+       is ink, too: it participates in the same residual as the loops. No ML,
+       runtime image access or pen lifts. The existing modes below are untouched. */
+    if (p.mode === "Scribble") {
+      const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+      const density = clamp(p.scribbleDensity ?? 1, 0.2, 3);
+      const loop = clamp(p.scribbleSize ?? 5, 0.6, 18);
+      const freedom = clamp(p.scribbleWander ?? 0.35, 0, 1);
+      const emphasis = clamp(p.scribbleFeatures ?? 0.55, 0, 1);
+      const detail = clamp(p.detail, 0, 1);
+      const rng = mulberry32((p.seed | 0) * 7919 + 421);
+      // A capped image-space field keeps A1 and A4 equally responsive.
+      const cell = Math.max(0.35, Math.max(iw, ih) / (180 + detail * 100));
+      const gw = Math.max(2, Math.ceil(iw / cell)), gh = Math.max(2, Math.ceil(ih / cell));
+      const n = gw * gh, tone = new Float32Array(n), target = new Float32Array(n);
+      const ink = new Float32Array(n), gx = new Float32Array(n), gy = new Float32Array(n);
+      const cdf = new Float64Array(n);
+      const idx = (x, y) => {
+        const u = Math.floor((x - x0) / cell), v = Math.floor((y - y0) / cell);
+        return u < 0 || v < 0 || u >= gw || v >= gh ? -1 : v * gw + u;
+      };
+      const at = (a, x, y) => a[clamp(y, 0, gh - 1) * gw + clamp(x, 0, gw - 1)];
+      for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+        const d = darkAt(x0 + (x + 0.5) * cell, y0 + (y + 0.5) * cell);
+        tone[y * gw + x] = Math.max(0, (d - cut) / (1 - cut));
+      }
+      let mass = 0;
+      const fx = W * p.focusX / 100, fy = H * p.focusY / 100;
+      const rx = Math.max(1, W * p.focusRX / 100), ry = Math.max(1, H * p.focusRY / 100);
+      for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+        const i = y * gw + x, d = tone[i];
+        gx[i] = (at(tone, x + 1, y) - at(tone, x - 1, y)) / 2;
+        gy[i] = (at(tone, x, y + 1) - at(tone, x, y - 1)) / 2;
+        const edge = Math.hypot(gx[i], gy[i]);
+        const q = ((x0 + (x + 0.5) * cell - fx) / rx) ** 2 + ((y0 + (y + 0.5) * cell - fy) / ry) ** 2;
+        const focus = 1 + Math.max(0, p.focusBoost) * Math.max(0, 1 - q);
+        // Suppress flat skin tone while retaining narrow dark facial details.
+        target[i] = d <= 0 ? 0 : density * Math.min(1.4, Math.pow(d, 1 + emphasis * 1.8) + emphasis * edge * 2.2) * focus;
+        mass += target[i]; cdf[i] = mass;
+      }
+      if (mass < 0.01) return applyStyle({ paths: [] }, ins[0]);
+      const pick = () => {
+        const v = rng() * mass; let a = 0, b = n - 1;
+        while (a < b) { const mid = (a + b) >> 1; if (cdf[mid] < v) a = mid + 1; else b = mid; }
+        return [x0 + ((a % gw) + 0.15 + rng() * 0.7) * cell, y0 + (Math.floor(a / gw) + 0.15 + rng() * 0.7) * cell];
+      };
+      const maxLength = Math.min(100000, mass * cell * cell / (penW * inkK) * 1.12);
+      const WORK_BUDGET = POINT_BUDGET * 2;
+      const pts = [], step = Math.max(0.28, cell * 0.65, Math.min(1.6, maxLength / (POINT_BUDGET * 0.8)));
+      let travelled = 0;
+      // Ink units are area per cell. Splat each segment into a small footprint
+      // so a revisited loop cannot fool the residual by falling between pixels.
+      const add = (q) => {
+        const prev = pts[pts.length - 1];
+        if (prev) {
+          const len = Math.hypot(q[0] - prev[0], q[1] - prev[1]);
+          if (len < 1e-7) return;
+          travelled += len;
+          const steps = Math.max(1, Math.ceil(len / (cell * 0.5)));
+          const dep = len * penW * inkK / (steps * cell * cell);
+          for (let k = 1; k <= steps; k++) {
+            const xx = prev[0] + (q[0] - prev[0]) * k / steps;
+            const yy = prev[1] + (q[1] - prev[1]) * k / steps;
+            const u = (xx - x0) / cell - 0.5, v = (yy - y0) / cell - 0.5;
+            const ix = Math.floor(u), iy = Math.floor(v), ax = u - ix, ay = v - iy;
+            for (let dy = 0; dy <= 1; dy++) for (let dx = 0; dx <= 1; dx++) {
+              if (ix + dx < 0 || ix + dx >= gw || iy + dy < 0 || iy + dy >= gh) continue;
+              ink[(iy + dy) * gw + ix + dx] += dep * (dx ? ax : 1 - ax) * (dy ? ay : 1 - ay);
+            }
+          }
+        }
+        pts.push(q);
+      };
+      const reward = (x, y) => {
+        const i = idx(x, y);
+        if (i < 0) return -3;
+        return Math.max(-0.9, target[i] - ink[i]) - (tone[i] === 0 ? 0.22 : 0);
+      };
+      let current = pick(), heading = rng() * Math.PI * 2;
+      const maxLoops = 6000, candidates = 22 + Math.round(clamp(p.quality, 1, 8)) * 3;
+      let stale = 0;
+      for (let iter = 0; iter < maxLoops && pts.length < WORK_BUDGET - 250 && travelled < maxLength; iter++) {
+        let best = null, bestScore = -Infinity;
+        for (let c = 0; c < candidates; c++) {
+          let center;
+          if (c < candidates * 0.7 && iter) {
+            const a = rng() * Math.PI * 2, r = loop * (0.4 + rng() * (3 + freedom * 5));
+            center = [current[0] + Math.cos(a) * r, current[1] + Math.sin(a) * r];
+          } else center = pick();
+          const ci = idx(...center);
+          if (ci < 0 || target[ci] <= ink[ci] + 0.015) continue;
+          const edge = Math.hypot(gx[ci], gy[ci]);
+          const angle = Math.atan2(gy[ci], gx[ci]) + Math.PI / 2 + (rng() - 0.5) * (0.4 + freedom * 2);
+          const a = Math.min(iw, ih, loop * (0.4 + rng() * 1.15)) / (1 + edge * emphasis * 18);
+          const b = a * (0.25 + rng() * (0.45 + freedom * 0.3));
+          const ca = Math.cos(angle), sa = Math.sin(angle);
+          const dx = current[0] - center[0], dy = current[1] - center[1];
+          const phase = Math.atan2((-dx * sa + dy * ca) / b, (dx * ca + dy * sa) / a);
+          const sign = rng() < 0.5 ? 1 : -1, wob = 0.025 + freedom * 0.07, off = rng() * 6.28;
+          const turns = 0.65 + rng() * 0.65;
+          const point = t => {
+            const ph = phase + sign * t * Math.PI * 2 * turns;
+            const rr = 1 + wob * Math.sin(ph * 3 + off) + wob * 0.4 * Math.cos(ph * 5 - off);
+            const u = Math.cos(ph) * a * rr, v = Math.sin(ph) * b * rr;
+            return [center[0] + u * ca - v * sa, center[1] + u * sa + v * ca];
+          };
+          let gain = 0, valid = true;
+          for (let k = 0; k < 20; k++) {
+            const q = point(k / 20);
+            if (q[0] < x0 || q[0] > x0 + iw - 0.01 || q[1] < y0 || q[1] > y0 + ih - 0.01) { valid = false; break; }
+            gain += reward(...q);
+          }
+          if (!valid) continue;
+          const start = point(0), dist = Math.hypot(start[0] - current[0], start[1] - current[1]);
+          let bridge = 0;
+          if (iter) for (let k = 1; k <= 7; k++) bridge += Math.min(0, reward(current[0] + (start[0] - current[0]) * k / 7, current[1] + (start[1] - current[1]) * k / 7));
+          const score = (gain / 20 + bridge / 7 * Math.min(2, dist / (a * 8))) / (1 + dist / (loop * (2 + freedom * 4)));
+          if (score > bestScore) { bestScore = score; best = { point, start, a, b }; }
+        }
+        if (!best || bestScore < 0.008) {
+          if (++stale > 28) break;
+          // Search farther after exhaustion; never teleport the pen.
+          continue;
+        }
+        stale = 0;
+        const { point, start, a, b } = best;
+        const loopSteps = Math.min(180, Math.max(12, Math.ceil(Math.PI * (a + b) * 1.3 / step)));
+        const bridgeDistance = Math.hypot(start[0] - current[0], start[1] - current[1]);
+        const bridgeHandle = Math.min(bridgeDistance * 0.28, loop * (0.5 + freedom));
+        const bridgeSteps = Math.max(2, Math.ceil((bridgeDistance + 2 * bridgeHandle) / step));
+        // Stop at a complete gesture, never jump over a truncated connector.
+        if (pts.length + loopSteps + (pts.length ? bridgeSteps : 1) > WORK_BUDGET) break;
+        if (!pts.length) add(start);
+        else {
+          const d = Math.hypot(start[0] - current[0], start[1] - current[1]);
+          const q1 = point(0.01), endAngle = Math.atan2(q1[1] - start[1], q1[0] - start[0]);
+          const handle = Math.min(d * 0.28, loop * (0.5 + freedom));
+          const c1 = [clamp(current[0] + Math.cos(heading) * handle, x0, x0 + iw), clamp(current[1] + Math.sin(heading) * handle, y0, y0 + ih)];
+          const c2 = [clamp(start[0] - Math.cos(endAngle) * handle, x0, x0 + iw), clamp(start[1] - Math.sin(endAngle) * handle, y0, y0 + ih)];
+          const steps = Math.max(2, Math.ceil((d + 2 * handle) / step));
+          for (let k = 1; k <= steps; k++) {
+            const t = k / steps, u = 1 - t;
+            add([u ** 3 * current[0] + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t ** 3 * start[0], u ** 3 * current[1] + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t ** 3 * start[1]]);
+          }
+        }
+        const steps = loopSteps;
+        for (let k = 1; k <= steps; k++) {
+          const q = point(k / steps);
+          // Numerical guard between candidate samples; keep the whole curve in its fit box.
+          add([clamp(q[0], x0, x0 + iw), clamp(q[1], y0, y0 + ih)]);
+        }
+        current = pts[pts.length - 1];
+        const prev = pts[pts.length - 2]; heading = Math.atan2(current[1] - prev[1], current[0] - prev[0]);
+      }
+      // Simplify the completed stroke globally before applying the public budget.
+      // Keeping the whole route avoids a half-finished face when loops are tiny.
+      let output = pts, tolerance = 0.025;
+      while (output.length > POINT_BUDGET) {
+        const keep = new Uint8Array(pts.length), stack = [[0, pts.length - 1]];
+        keep[0] = keep[pts.length - 1] = 1;
+        while (stack.length) {
+          const [a, b] = stack.pop(), A = pts[a], B = pts[b];
+          const dx = B[0] - A[0], dy = B[1] - A[1], dd = dx * dx + dy * dy;
+          let best = tolerance * tolerance, k = -1;
+          for (let i = a + 1; i < b; i++) {
+            const t = dd ? clamp(((pts[i][0] - A[0]) * dx + (pts[i][1] - A[1]) * dy) / dd, 0, 1) : 0;
+            const e = (pts[i][0] - A[0] - t * dx) ** 2 + (pts[i][1] - A[1] - t * dy) ** 2;
+            if (e > best) { best = e; k = i; }
+          }
+          if (k >= 0) { keep[k] = 1; stack.push([a, k], [k, b]); }
+        }
+        output = pts.filter((_, i) => keep[i]); tolerance *= 1.6;
+      }
+      return applyStyle({ paths: output.length < 2 ? [] : [{ pts: output, closed: false, layer: clamp(Math.round(p.layer), 0, PENS.length - 1) }] }, ins[0]);
+    }
 
     /* ================= single-line mode: SPIRAL ================= */
     if (p.mode === "Spiral") {
