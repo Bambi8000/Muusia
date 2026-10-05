@@ -30,6 +30,11 @@ export const EXAMPLES = [
     make: defaults => ({ nodes: [{ id: 9001, type: "arc_mounds", x: 30, y: 20, params: { ...defaults("arc_mounds"), colours: 3, layer: 5, pen2: 7, pen3: 6 } }], edges: [] }),
   },
   {
+    name: "Arc Mounds · Rolls", desc: "Long, round-ended rolls with curved ribs across their bodies. Form → Rolls keeps the original Soft bodies option available. Body curves and Curve scale bend the tubes; Fullness changes their thickness. Use Single to isolate a roll, or Colours for up to six whole-body pens.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "arc_mounds", x: 30, y: 20, params: { ...defaults("arc_mounds"), form: "Rolls", size: 240, fullness: 1, tilt: 16, sizeContrast: 0.65, bodyCurves: 0.9, curveScale: 260, pitch: 1.8, flow: 35 } }], edges: [] }),
+  },
+  {
     name: "Ribbon · No crossings", desc: "An open six-colour sharp ribbon with mixed left and right turns that avoids itself. Angular layout → No crossings checks the full band width, including the corners. Clearance mm adds space between separate spans. Seed finds a new route; Turns is a maximum, so a wide band or large gap may produce fewer turns. Width and clearance scale together if the composition needs to fit the page. Choose a gap suitable for your actual pen width.",
     canvas: { W: 297, H: 420 },
     make: (defaults) => ({

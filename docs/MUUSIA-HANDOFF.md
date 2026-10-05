@@ -2190,6 +2190,33 @@ according to the session's actual capabilities:
   fetch current main, recheck the shared gate and refresh/upload Claude's project
   after release. Historical local entries above describe earlier batch stages.
 
+- **W / Arc Mounds — Rolls** 2026-10-05 Astra: Daniel asked to retain the
+  existing forms and add a more elongated option. **Form → Rolls** adds long,
+  round-ended tubes with transverse ribs to the same node; **Soft bodies** is
+  still the default, including patches without the new parameter. Original
+  Field/Single hashes are frozen in the validator and unchanged. Rolls projects
+  a capped cylinder, clips hidden strokes against exact capsule silhouettes,
+  then applies the existing invertible body warp. Field/Single, size contrast,
+  fullness, curve controls, 1–6 pens and Style all work in the new form.
+  **Arc Mounds · Rolls** is Help example 4 (32 examples total); gallery study 2
+  at `http://127.0.0.1:5192/#rolls`. Existing six studies remain unchanged.
+  A3 example: 1,263 paths / 72,197 points. Lab/baked equality verified and lab
+  removed. 451 Arc Mounds checks, 32 examples, catalog, build and 18,114 Learn
+  checks passed. Fresh app: Field, Single and Focus inspected. Actual browser
+  SVG A3 and G-code A4 landscape match current node coordinates within 0.005 mm;
+  capture evidence/source hashes: `/tmp/muusia-arc-rolls-qa/`. SVG SHA-256:
+  `e3ed83d63874789eb51e41ca78ef45957ee6083e4887f229cfe813314dfbdb9e`.
+  G-code: 885 paths / 54,943 points including closed returns, no bounds warnings,
+  travel/ending pen-up; SHA-256
+  `ad3f216c7eea467a67f80b65455e17a9659391c5e29244f1a442b1f9c30e96e5`.
+  No hardware run. This is a local follow-up to batch commit `3401f39` on
+  `codex/coral-node-batch`; main/Pages and APP_VERSION 2.110 remain unchanged.
+  **Delivery blocker:** automatic approval review rejected the earlier GitHub
+  push as insufficiently explicit authorization for that repository/payload.
+  An explicit permission question is pending; do not retry the push until
+  Daniel answers. Refresh the local Claude snapshot after this commit; that
+  preparation is not a verified Claude web-project upload.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

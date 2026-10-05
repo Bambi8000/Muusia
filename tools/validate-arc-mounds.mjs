@@ -54,6 +54,8 @@ for(const pen of [0,1]){
  })),'no back strokes cross foreground body');
 }
 const start=performance.now(),base=run();valid(base);const cold=performance.now()-start;
+eq(hash(base),'8d77e5fe0701fc82719be849054cea95ad510034b580e07033dac239474eb4ee','original Soft bodies field is byte-identical');
+eq(hash(run({layout:'Single'})),'eafa914ef4215b53366d0e8bc8e2e5e5f5291120129797e98c116531ee1ec0cc','original Single is byte-identical');
 eq(hash(run()),hash(base),'seeded replay');
 for(const p of [{seed:19},{layout:'Single'},{layout:'Single',size:1200,fullness:1.3,tilt:60},{bodyCurves:0},{bodyCurves:1,curveScale:60},{pitch:0.6,size:55,overlap:0.8},{sizeContrast:1,variation:1,seed:3},{sizeContrast:0,variation:0}])valid(run(p),p);
 for(const c of [{W:210,H:297},{W:297,H:210},{W:70,H:50}])valid(run({margin:3},c),{margin:3},c);
@@ -83,4 +85,40 @@ eq(run({margin:100},{W:30,H:20}).paths,[],'empty paper returns empty');
 valid(run({size:1e9,fullness:-900,overlap:999,pitch:-5,tilt:1e8,colours:999,layer:999,bodyCurves:999,curveScale:-3}));
 const style=stroke.compute([],Object.fromEntries(stroke.params.map(p=>[p.key,p.key==='dash'?2:p.key==='gap'?1:p.def])),ctx);
 check(hash(run({layout:'Single'},ctx,style))!==hash(run({layout:'Single'})),'real Style input applied');
+// Rolls: analytic stadium clipping plus surface and depth checks.
+const capsule={cx:0,cy:0,rx:5,ry:2,c:1,s:0,roll:true,cap:2,shaft:3,box:[-5,-2,5,2]};
+eq(def._insideInterval([-10,0],[10,0],capsule),[0.25,0.75],'capsule through both end caps');
+eq(def._insideInterval([0,-4],[0,4],capsule),[0.25,0.75],'capsule through cylindrical middle');
+eq(def._insideInterval([-6,2],[6,2],capsule),null,'capsule tangent retained');
+eq(def._insideInterval([0,-10],[0,10],{...capsule,c:0,s:1}),[0.25,0.75],'rotated capsule');
+eq(def._clip([[-10,0],[10,0]],false,[capsule],box),[{pts:[[-10,0],[-5,0]],closed:false},{pts:[[5,0],[10,0]],closed:false}],'capsule removal leaves no connecting chord');
+eq(def._insideInterval([-1,0],[1,0],capsule),[0,1],'inside cylindrical middle');
+const onRoll=(q,b)=>{
+ const x=(q[0]-b.cx)*b.c+(q[1]-b.cy)*b.s,y=-(q[0]-b.cx)*b.s+(q[1]-b.cy)*b.c;
+ return (Math.max(0,Math.abs(x)-b.shaft)/b.cap)**2+(y/b.ry)**2;
+};
+for(const flow of [5,35,80])for(const tilt of [0,60]){
+ const p={...defaults,form:'Rolls',layout:'Single',bodyCurves:0,size:1200,fullness:1.3,flow,tilt};
+ const bodies=def._bodies(p,r),b=bodies[0],drawing=run(p);valid(drawing,p);
+ check(b.rx/b.ry>2,'roll is elongated');
+ check(drawing.paths.every(path=>path.pts.every(q=>onRoll(q,b)<=1+1e-7)),'all ribs lie on capsule surface');
+ check(drawing.paths.every(path=>path.pts.every(([x,y])=>x>=b.box[0]-1e-8&&y>=b.box[1]-1e-8&&x<=b.box[2]+1e-8&&y<=b.box[3]+1e-8)),'rotated capsule bounds contain geometry');
+}
+const rollBack={...capsule,cx:80,cy:80,rx:55,ry:16,cap:15,shaft:40,flow:0.6,index:0,box:[25,64,135,96]};
+const rollFront={...rollBack,cx:108,cy:90,flow:0.8,index:1,box:[53,74,163,106]};
+const rollScene=def._draw({...defaults,colours:2,layer:0,pen2:1},region,[rollBack,rollFront],2,0.8);
+check(rollScene.paths.some(p=>p.layer===0)&&rollScene.paths.some(p=>p.layer===1),'both roll layers visible');
+check(rollScene.paths.filter(p=>p.layer===0).every(p=>p.pts.every((q,i)=>{
+ const prev=p.pts[(i+p.pts.length-1)%p.pts.length];
+ return (i||p.closed?[0,0.25,0.5,0.75,1]:[1]).every(t=>onRoll([prev[0]+t*(q[0]-prev[0]),prev[1]+t*(q[1]-prev[1])],rollFront)>=1-1e-7);
+})),'back ribs never cross foreground roll');
+const rolls=run({form:'Rolls'});valid(rolls,{form:'Rolls'});eq(hash(rolls),hash(run({form:'Rolls'})),'rolls replay');
+check(hash(rolls)!==hash(base),'form changes geometry');
+for(const p of [{pitch:0.6,size:30,overlap:0.8},{bodyCurves:1,curveScale:60,sizeContrast:1},{layout:'Single',bodyCurves:1},{flow:80,tilt:60,fullness:0.25}])valid(run({form:'Rolls',...p}),p);
+const rollColours=run({form:'Rolls',colours:6});valid(rollColours);
+eq(geometry(rollColours),geometry(rolls),'roll colours preserve geometry');
+check(rollColours.paths.every(p=>[0,5,7,6,3,9].includes(p.layer)),'rolls use selected pens; occlusion can hide whole bodies');
+const sixBodies=Array.from({length:6},(_,i)=>({...capsule,cx:50,cy:20+i*30,rx:20,ry:5,shaft:15,cap:5,flow:0.6,index:i,box:[30,15+i*30,70,25+i*30]}));
+eq(new Set(def._draw({...defaults,colours:6},region,sixBodies,2,0.9).paths.map(p=>p.layer)).size,6,'six unobscured rolls use all six selected pens');
+check(hash(run({form:'Rolls',layout:'Single'},ctx,style))!==hash(run({form:'Rolls',layout:'Single'})),'Rolls accepts actual Style');
 console.log(`Arc Mounds: ${checks} checks passed; default ${base.paths.length} paths / ${base.paths.reduce((n,p)=>n+p.pts.length,0)} points; ${cold.toFixed(0)} ms cold.`);

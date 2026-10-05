@@ -11,14 +11,17 @@ accept value wires. *(mm)* means millimetres on the canvas.
 ## Generators (191)
 
 **Arc Mounds** — a field of soft overlapping bodies, drawn entirely with curved
-pen strokes. Each form begins as an ellipsoid with visible surface ribs;
+pen strokes. *Form* selects the original **Soft bodies** (ellipsoids) or
+**Rolls** (elongated cylinders with rounded ends and transverse ribs);
 foreground bodies clip away the lines behind them. There are no solid fills.
 *Field* fills the sheet; *Single* isolates one body. *Mound width mm* sets its
 starting scale, *Fullness* its plumpness, *Overlap* the row spacing, and
 *Variation* changes placement, proportions and rib direction. *Size contrast*
 mixes tiny and large bodies; zero makes equal widths before the shared warp.
 *Body curves* adds soft asymmetric silhouettes and narrower waists. *Curve
-scale mm* sets their spatial rhythm; zero Body curves restores rounded ovals.
+scale mm* sets their spatial rhythm; zero Body curves restores smooth ovals
+or straight rolls. Rolls uses Fullness for tube thickness and the same width,
+layout, overlap and pen controls. Existing patches retain Soft bodies.
 This smooth, invertible deformation applies to all visible linework together,
 so foreground occlusion remains coherent. *Arc flow °* rotates the ribs around
 the surface, while *Tilt °* turns the body on the page (seeded variation in
@@ -31,7 +34,7 @@ coarsen pitch and sampling until output fits 110,000 points before Style, rather
 than stopping part-way through the page. Extreme fields increase the base size
 to bound the number of forms. Actual pen width determines the darkest line
 clusters. Help includes **Arc Mounds · Billows**, **Arc Mounds · Soft body** and
-**Arc Mounds · Three inks**.
+**Arc Mounds · Three inks**, plus **Arc Mounds · Rolls**.
 
 **Coral** — seeded, circular coral studies made from closed vector contours.
 *Brain coral* grows winding ridges with a Gray–Scott reaction-diffusion model;

@@ -9,6 +9,7 @@ const defaults=Object.fromEntries(arc_mounds.params.map(p=>[p.key,p.def]));
 const common={...defaults};
 const studies=[
  ['billows','Soft bodies','Small curves nestle against fuller bodies. Linework only; no solid areas.',{}],
+ ['rolls','Rolls','Long, softly bending bodies with rounded ends and transverse ribs.',{form:'Rolls',size:240,fullness:1,tilt:16,sizeContrast:0.65,bodyCurves:0.9,curveScale:260,pitch:1.8,flow:35}],
  ['large','Size contrast','Tiny mounds and generous forms share the same field.',{size:170,fullness:0.95,pitch:2.2,seed:31,sizeContrast:1,bodyCurves:0.9,curveScale:230}],
  ['wind','Turning arcs','Tilt and Arc flow turn the ribbed surfaces in different directions.',{size:155,tilt:48,flow:28,seed:5,bodyCurves:1,curveScale:150}],
  ['single','One mound','A soft asymmetric body with fuller lobes and a narrowing waist.',{layout:'Single',size:260,fullness:1.15,flow:36,tilt:15,pitch:2,bodyCurves:0.9,curveScale:260}],

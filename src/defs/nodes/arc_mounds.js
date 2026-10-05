@@ -5,10 +5,11 @@ export default {
   name: "Arc Mounds",
   cat: "gen",
   group: "organic",
-  desc: "A field of rounded, overlapping mounds drawn entirely with curved pen strokes. The arcs wrap around each mound like ribs on a shell. Foreground mounds hide the lines behind them without plotting a solid fill. Field covers the page; Single isolates one form. Mound width sets the scale, Fullness changes the plumpness, Overlap packs the rows, and Variation breaks up their rhythm. Size contrast mixes small and large bodies; Body curves and Curve scale add soft asymmetry, fuller lobes and narrower waists. Arc pitch sets the spacing across the facing part of each mound; the lines curve closer together at the ends. Arc flow turns the rib pattern, Tilt varies the mound angles, and Seed rebuilds the composition. Silhouette adds the visible outside rims. One to six pens colour whole mounds while preserving geometry. Everything is clipped to Margin. Very dense settings coarsen the arcs evenly to respect the point budget.",
+  desc: "A field of rounded, overlapping mounds drawn entirely with curved pen strokes. The arcs wrap around each mound like ribs on a shell. Foreground mounds hide the lines behind them without plotting a solid fill. Form selects Soft bodies or Rolls: long, round-ended tubes with transverse ribs. Body curves bends both forms. Field covers the page; Single isolates one form. Mound width sets the scale, Fullness changes the plumpness, Overlap packs the rows, and Variation breaks up their rhythm. Size contrast mixes small and large bodies; Body curves and Curve scale add soft asymmetry, fuller lobes and narrower waists. Arc pitch sets the spacing across the facing part of each mound; the lines curve closer together at the ends. Arc flow turns the rib pattern, Tilt varies the mound angles, and Seed rebuilds the composition. Silhouette adds the visible outside rims. One to six pens colour whole mounds while preserving geometry. Everything is clipped to Margin. Very dense settings coarsen the arcs evenly to respect the point budget.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "form", label: "Form", type: "select", options: ["Soft bodies", "Rolls"], def: "Soft bodies" },
     { key: "layout", label: "Layout", type: "select", options: ["Field", "Single"], def: "Field" },
     { key: "size", label: "Mound width mm", type: "slider", min: 30, max: 350, step: 1, def: 145 },
     { key: "fullness", label: "Fullness", type: "slider", min: 0.25, max: 1.3, step: 0.05, def: 0.7 },
@@ -41,15 +42,23 @@ export default {
   },
   _bodies(p,r) {
     const rng=mulberry32(this._num(p.seed,17,-1e9,1e9)*7919+431),bodies=[];
-    const full=this._num(p.fullness,0.7,0.2,1.5),variation=this._num(p.variation,0.4,0,1);
+    const roll=p.form==="Rolls",full=this._num(p.fullness,0.7,0.2,1.5)*(roll?0.35:1),variation=this._num(p.variation,0.4,0,1);
     const overlap=this._num(p.overlap,0.5,0.05,0.85),tilt=this._num(p.tilt,24,0,80)*Math.PI/180;
     const contrast=this._num(p.sizeContrast,0.85,0,1);
     let size=this._num(p.size,145,10,1200);
     const add=(cx,cy,w,index,single=false)=>{
       let rx=w/2,ry=rx*full*(1+(rng()-0.5)*variation*0.5);
       const a=single?tilt:(rng()-0.5)*2*tilt,c=Math.cos(a),s=Math.sin(a);
-      if(single){const scale=Math.min(1,(r.x1-r.x0)/(2*Math.hypot(rx*c,ry*s)),(r.y1-r.y0)/(2*Math.hypot(rx*s,ry*c)));rx*=scale;ry*=scale;}
+      if(single&&!roll){const scale=Math.min(1,(r.x1-r.x0)/(2*Math.hypot(rx*c,ry*s)),(r.y1-r.y0)/(2*Math.hypot(rx*s,ry*c)));rx*=scale;ry*=scale;}
       const flow=this._num(p.flow,42,5,80)+(single?0:(rng()-0.5)*variation*36);
+      if(roll){
+        const angle=Math.max(5,Math.min(80,flow))*Math.PI/180;
+        let cap=rx/(3*Math.cos(angle)+1),shaft=rx-cap;
+        let ex=Math.abs(c)*shaft+Math.hypot(cap*c,ry*s),ey=Math.abs(s)*shaft+Math.hypot(cap*s,ry*c);
+        if(single){const scale=Math.min(1,(r.x1-r.x0)/(2*ex),(r.y1-r.y0)/(2*ey));rx*=scale;ry*=scale;cap*=scale;shaft*=scale;ex*=scale;ey*=scale;}
+        if(cx+ex<r.x0||cx-ex>r.x1||cy+ey<r.y0||cy-ey>r.y1)return;
+        bodies.push({cx,cy,rx,ry,c,s,flow:angle,index,roll,cap,shaft,box:[cx-ex,cy-ey,cx+ex,cy+ey]});return;
+      }
       const ex=Math.hypot(rx*c,ry*s),ey=Math.hypot(rx*s,ry*c);
       if(cx+ex<r.x0||cx-ex>r.x1||cy+ey<r.y0||cy-ey>r.y1)return;
       bodies.push({cx,cy,rx,ry,c,s,flow:Math.max(5,Math.min(80,flow))*Math.PI/180,index,box:[cx-ex,cy-ey,cx+ex,cy+ey]});
@@ -73,6 +82,27 @@ export default {
   _point(b,x,y) {return [b.cx+b.c*x-b.s*y,b.cy+b.s*x+b.c*y];},
   // Exact segment/ellipse interval in the body's local coordinates.
   _insideInterval(a,z,b) {
+    if(b.roll){
+      const x=(a[0]-b.cx)*b.c+(a[1]-b.cy)*b.s,y=-(a[0]-b.cx)*b.s+(a[1]-b.cy)*b.c;
+      const dx=(z[0]-a[0])*b.c+(z[1]-a[1])*b.s,dy=-(z[0]-a[0])*b.s+(z[1]-a[1])*b.c;
+      // A projected capsule is convex: its rectangle and two elliptical
+      // caps have a single combined inside interval along any segment.
+      let low=1,high=0,lo=0,hi=1;
+      for(const [v,d,min,max] of [[x,dx,-b.shaft,b.shaft],[y,dy,-b.ry,b.ry]]){
+        if(Math.abs(d)<1e-15){if(v<=min||v>=max){hi=-1;break;}}
+        else{let t0=(min-v)/d,t1=(max-v)/d;if(t0>t1)[t0,t1]=[t1,t0];lo=Math.max(lo,t0);hi=Math.min(hi,t1);}
+      }
+      if(hi>lo+1e-10){low=lo;high=hi;}
+      for(const center of [-b.shaft,b.shaft]){
+        const ax=(x-center)/b.cap,ay=y/b.ry,vx=dx/b.cap,vy=dy/b.ry;
+        const A=vx*vx+vy*vy,B=2*(ax*vx+ay*vy),C=ax*ax+ay*ay-1;
+        if(A<1e-20){if(C<0)return [0,1];continue;}
+        const D=B*B-4*A*C;if(D<=0)continue;
+        const root=Math.sqrt(D),start=Math.max(0,(-B-root)/(2*A)),end=Math.min(1,(-B+root)/(2*A));
+        if(end>start+1e-10){low=Math.min(low,start);high=Math.max(high,end);}
+      }
+      return high>low+1e-10?[low,high]:null;
+    }
     const ax=((a[0]-b.cx)*b.c+(a[1]-b.cy)*b.s)/b.rx,ay=(-(a[0]-b.cx)*b.s+(a[1]-b.cy)*b.c)/b.ry;
     const dx=((z[0]-a[0])*b.c+(z[1]-a[1])*b.s)/b.rx,dy=(-(z[0]-a[0])*b.s+(z[1]-a[1])*b.c)/b.ry;
     const A=dx*dx+dy*dy,B=2*(ax*dx+ay*dy),C=ax*ax+ay*ay-1;
@@ -119,6 +149,11 @@ export default {
     for(let i=0;i<bodies.length;i++){
       const b=bodies[i],blockers=bodies.slice(i+1).filter(o=>o.box[0]<=b.box[2]&&o.box[2]>=b.box[0]&&o.box[1]<=b.box[3]&&o.box[3]>=b.box[1]);
       const push=(pts,closed)=>{for(const path of this._clip(pts,closed,blockers,r)){paths.push({...path,layer:pens[b.index%n]});points+=path.pts.length;}};
+      if(b.roll){
+        this._rollArcs(b,pitch,step,p.outline!==false,push);
+        if(points>110000)return {paths,points,overflow:true};
+        continue;
+      }
       const sy=Math.sin(b.flow),cy=Math.cos(b.flow),count=Math.max(4,Math.min(240,Math.ceil((1+cy)*b.rx/pitch)));
       for(let j=1;j<count;j++){
         // Even projected spacing on the facing equator avoids a black rim
@@ -141,6 +176,43 @@ export default {
       if(points>110000)return {paths,points,overflow:true};
     }
     return {paths,points,overflow:false};
+  },
+  _rollArcs(b,pitch,step,outline,push) {
+    // Orthographic ribs on a cylinder with spherical ends. Its axis runs
+    // from -3 to +3; only the visible side of each cross-section is drawn.
+    const sy=Math.sin(b.flow),cy=Math.cos(b.flow),min=-4*cy,max=3*cy+1;
+    const count=Math.max(6,Math.min(400,Math.ceil((max-min)*b.cap/pitch)));
+    for(let j=1;j<count;j++){
+      const x=min+(max-min)*j/count;
+      let u;
+      if(x< -3*cy+sy){const q=x+3*cy;u=-3+q*cy-Math.sqrt(Math.max(0,1-q*q))*sy;}
+      else if(x>3*cy+sy){const q=x-3*cy;u=3+q*cy-Math.sqrt(Math.max(0,1-q*q))*sy;}
+      else u=(x-sy)/cy;
+      const delta=Math.sign(u)*Math.max(0,Math.abs(u)-3),radius=Math.sqrt(Math.max(0,1-delta*delta));
+      if(radius<1e-8)continue;
+      const q=delta*sy/(radius*cy);if(q>=1)continue;
+      const closed=q<=-1,angle=closed?Math.PI:Math.acos(q);
+      const segments=Math.max(12,Math.min(240,Math.ceil(2*angle*Math.max(b.cap*sy,b.ry)*radius/step))),pts=[];
+      for(let k=0;k<=segments-(closed?1:0);k++){
+        const t=-angle+2*angle*k/segments;
+        pts.push(this._point(b,b.cap*(u*cy+radius*Math.cos(t)*sy),b.ry*radius*Math.sin(t)));
+      }
+      push(pts,closed);
+    }
+    if(outline){
+      const segments=Math.max(16,Math.min(160,Math.ceil(Math.PI*Math.max(b.cap,b.ry)/step))),pts=[];
+      for(const side of [1,-1])for(let k=0;k<=segments;k++){
+        const t=(side===1?-Math.PI/2:Math.PI/2)+Math.PI*k/segments;
+        pts.push(this._point(b,side*b.shaft+b.cap*Math.cos(t),b.ry*Math.sin(t)));
+      }
+      // Sample the long edges too, so Body curves bends them smoothly.
+      const dense=[];
+      for(let i=0;i<pts.length;i++){
+        const a=pts[i],z=pts[(i+1)%pts.length],n=Math.max(1,Math.ceil(Math.hypot(z[0]-a[0],z[1]-a[1])/step));
+        for(let k=0;k<n;k++)dense.push([a[0]+(z[0]-a[0])*k/n,a[1]+(z[1]-a[1])*k/n]);
+      }
+      push(dense,true);
+    }
   },
   _warp(paths,p,r) {
     const amount=this._num(p.bodyCurves,0.75,0,1);if(amount===0)return paths;
