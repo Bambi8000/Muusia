@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (302 files, generated)
+# MUUSIA v2.29 — Node Sources (304 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -543,6 +543,181 @@ export default {
       const yb = (Hh * Math.max(10, Math.min(95, Number(p.baseY) || 70))) / 100;
       return [{ kind: "poly", pts: [[12, yb], [W - 12, yb]] }];
     } catch (e) { return []; }
+  },
+};
+```
+
+## arc_mounds.js
+
+```js
+import { Pin, EMPTY, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+  key: "arc_mounds",
+  name: "Arc Mounds",
+  cat: "gen",
+  group: "organic",
+  desc: "A field of rounded, overlapping mounds drawn entirely with curved pen strokes. The arcs wrap around each mound like ribs on a shell. Foreground mounds hide the lines behind them without plotting a solid fill. Field covers the page; Single isolates one form. Mound width sets the scale, Fullness changes the plumpness, Overlap packs the rows, and Variation breaks up their rhythm. Size contrast mixes small and large bodies; Body curves and Curve scale add soft asymmetry, fuller lobes and narrower waists. Arc pitch sets the spacing across the facing part of each mound; the lines curve closer together at the ends. Arc flow turns the rib pattern, Tilt varies the mound angles, and Seed rebuilds the composition. Silhouette adds the visible outside rims. One to six pens colour whole mounds while preserving geometry. Everything is clipped to Margin. Very dense settings coarsen the arcs evenly to respect the point budget.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "layout", label: "Layout", type: "select", options: ["Field", "Single"], def: "Field" },
+    { key: "size", label: "Mound width mm", type: "slider", min: 30, max: 350, step: 1, def: 145 },
+    { key: "fullness", label: "Fullness", type: "slider", min: 0.25, max: 1.3, step: 0.05, def: 0.7 },
+    { key: "overlap", label: "Overlap", type: "slider", min: 0.1, max: 0.8, step: 0.05, def: 0.5, showIf: p => p.layout !== "Single" },
+    { key: "variation", label: "Variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.4 },
+    { key: "sizeContrast", label: "Size contrast", type: "slider", min: 0, max: 1, step: 0.05, def: 0.85 },
+    { key: "bodyCurves", label: "Body curves", type: "slider", min: 0, max: 1, step: 0.05, def: 0.75 },
+    { key: "curveScale", label: "Curve scale mm", type: "slider", min: 60, max: 400, step: 1, def: 180, showIf: p => p.bodyCurves > 0 },
+    { key: "pitch", label: "Arc pitch mm", type: "slider", min: 0.6, max: 6, step: 0.1, def: 2 },
+    { key: "flow", label: "Arc flow °", type: "slider", min: 5, max: 80, step: 1, def: 42 },
+    { key: "tilt", label: "Tilt °", type: "slider", min: 0, max: 60, step: 1, def: 24 },
+    { key: "outline", label: "Silhouette", type: "check", def: true },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 50, step: 1, def: 10 },
+    { key: "seed", label: "Seed", type: "seed", def: 17 },
+    { key: "colours", label: "Colours", type: "slider", min: 1, max: 6, step: 1, def: 1 },
+    { key: "layer", label: "Pen", type: "pen", def: 0 },
+    { key: "pen2", label: "Pen 2", type: "pen", def: 5, showIf: p => p.colours >= 2 },
+    { key: "pen3", label: "Pen 3", type: "pen", def: 7, showIf: p => p.colours >= 3 },
+    { key: "pen4", label: "Pen 4", type: "pen", def: 6, showIf: p => p.colours >= 4 },
+    { key: "pen5", label: "Pen 5", type: "pen", def: 3, showIf: p => p.colours >= 5 },
+    { key: "pen6", label: "Pen 6", type: "pen", def: 9, showIf: p => p.colours >= 6 },
+  ],
+  _num(v,d,lo,hi) { return Math.max(lo,Math.min(hi,Number.isFinite(+v)?+v:d)); },
+  _region(p,ctx) {
+    const W=this._num(ctx.W,210,1,10000),H=this._num(ctx.H,297,1,10000),m=this._num(p.margin,10,0,Math.min(W,H)/2);
+    return {W,H,m,x0:m,y0:m,x1:W-m,y1:H-m};
+  },
+  overlay(p,ctx) {
+    const r=this._region(p,ctx);return [{kind:"rect",x:r.x0,y:r.y0,w:r.x1-r.x0,h:r.y1-r.y0}];
+  },
+  _bodies(p,r) {
+    const rng=mulberry32(this._num(p.seed,17,-1e9,1e9)*7919+431),bodies=[];
+    const full=this._num(p.fullness,0.7,0.2,1.5),variation=this._num(p.variation,0.4,0,1);
+    const overlap=this._num(p.overlap,0.5,0.05,0.85),tilt=this._num(p.tilt,24,0,80)*Math.PI/180;
+    const contrast=this._num(p.sizeContrast,0.85,0,1);
+    let size=this._num(p.size,145,10,1200);
+    const add=(cx,cy,w,index,single=false)=>{
+      let rx=w/2,ry=rx*full*(1+(rng()-0.5)*variation*0.5);
+      const a=single?tilt:(rng()-0.5)*2*tilt,c=Math.cos(a),s=Math.sin(a);
+      if(single){const scale=Math.min(1,(r.x1-r.x0)/(2*Math.hypot(rx*c,ry*s)),(r.y1-r.y0)/(2*Math.hypot(rx*s,ry*c)));rx*=scale;ry*=scale;}
+      const flow=this._num(p.flow,42,5,80)+(single?0:(rng()-0.5)*variation*36);
+      const ex=Math.hypot(rx*c,ry*s),ey=Math.hypot(rx*s,ry*c);
+      if(cx+ex<r.x0||cx-ex>r.x1||cy+ey<r.y0||cy-ey>r.y1)return;
+      bodies.push({cx,cy,rx,ry,c,s,flow:Math.max(5,Math.min(80,flow))*Math.PI/180,index,box:[cx-ex,cy-ey,cx+ex,cy+ey]});
+    };
+    if(p.layout==="Single"){add(r.W/2,r.H/2,size,0,true);return bodies;}
+    // Increase the physical scale on extreme inputs instead of dropping a
+    // corner of the composition when the body count grows too large.
+    for(let i=0;i<12;i++){
+      const cols=Math.ceil((r.x1-r.x0)/(size*0.82))+4,rows=Math.ceil((r.y1-r.y0)/(size*full*(1-overlap)))+4;
+      if(cols*rows<=160)break;size*=1.3;
+    }
+    const dx=size*0.82,dy=size*full*(1-overlap),cols=Math.ceil((r.x1-r.x0)/dx)+2,rows=Math.ceil((r.y1-r.y0)/dy)+2;
+    let index=0;
+    for(let row=-1;row<=rows;row++)for(let col=-1;col<=cols;col++){
+      const cx=r.x0+(col+(row%2?0.5:0))*dx+(rng()-0.5)*dx*0.5*variation;
+      const cy=r.y0+row*dy+(rng()-0.5)*dy*0.5*variation;
+      add(cx,cy,size*Math.exp((rng()-0.5)*2.6*contrast),index++);
+    }
+    return bodies;
+  },
+  _point(b,x,y) {return [b.cx+b.c*x-b.s*y,b.cy+b.s*x+b.c*y];},
+  // Exact segment/ellipse interval in the body's local coordinates.
+  _insideInterval(a,z,b) {
+    const ax=((a[0]-b.cx)*b.c+(a[1]-b.cy)*b.s)/b.rx,ay=(-(a[0]-b.cx)*b.s+(a[1]-b.cy)*b.c)/b.ry;
+    const dx=((z[0]-a[0])*b.c+(z[1]-a[1])*b.s)/b.rx,dy=(-(z[0]-a[0])*b.s+(z[1]-a[1])*b.c)/b.ry;
+    const A=dx*dx+dy*dy,B=2*(ax*dx+ay*dy),C=ax*ax+ay*ay-1;
+    if(A<1e-20)return C<0?[0,1]:null;
+    const D=B*B-4*A*C;if(D<=0)return null;
+    const root=Math.sqrt(D),lo=Math.max(0,(-B-root)/(2*A)),hi=Math.min(1,(-B+root)/(2*A));
+    return hi>lo+1e-10?[lo,hi]:null;
+  },
+  _clip(pts,closed,blockers,r) {
+    const paths=[];let run=[];
+    const near=(a,b)=>a&&b&&Math.hypot(a[0]-b[0],a[1]-b[1])<1e-7;
+    const flush=()=>{if(run.length>=2)paths.push(run);run=[];};
+    for(let i=0;i<pts.length-(closed?0:1);i++){
+      const a=pts[i],b=pts[(i+1)%pts.length],dx=b[0]-a[0],dy=b[1]-a[1];
+      let lo=0,hi=1,valid=true;
+      for(const [v,d,min,max] of [[a[0],dx,r.x0,r.x1],[a[1],dy,r.y0,r.y1]]){
+        if(Math.abs(d)<1e-15){if(v<min||v>max)valid=false;}
+        else{let t0=(min-v)/d,t1=(max-v)/d;if(t0>t1)[t0,t1]=[t1,t0];lo=Math.max(lo,t0);hi=Math.min(hi,t1);}
+      }
+      if(!valid||hi-lo<1e-10){flush();continue;}
+      const cuts=[];
+      for(const o of blockers){
+        if(Math.max(a[0],b[0])<o.box[0]||Math.min(a[0],b[0])>o.box[2]||Math.max(a[1],b[1])<o.box[1]||Math.min(a[1],b[1])>o.box[3])continue;
+        const iv=this._insideInterval(a,b,o);if(iv&&iv[1]>lo&&iv[0]<hi)cuts.push([Math.max(lo,iv[0]),Math.min(hi,iv[1])]);
+      }
+      cuts.sort((a,b)=>a[0]-b[0]);let cursor=lo;
+      const emit=(start,end)=>{
+        if(end-start<1e-10)return;
+        const p=[a[0]+dx*start,a[1]+dy*start],q=[a[0]+dx*end,a[1]+dy*end];
+        if(!near(run[run.length-1],p)){flush();run.push(p);}if(!near(run[run.length-1],q))run.push(q);
+      };
+      for(const [start,end] of cuts){if(start>cursor)emit(cursor,start);flush();cursor=Math.max(cursor,end);}
+      if(cursor<hi)emit(cursor,hi);if(hi<1-1e-10)flush();
+    }
+    flush();
+    if(closed&&paths.length>1&&near(paths[paths.length-1].at(-1),paths[0][0])){
+      const tail=paths.pop();paths[0]=tail.concat(paths[0].slice(1));
+    }
+    return paths.map(pts=>{const loop=near(pts[0],pts.at(-1));if(loop)pts.pop();return {pts,closed:loop};}).filter(p=>p.pts.length>=2);
+  },
+  _draw(p,r,bodies,pitch,step) {
+    const paths=[];let points=0;
+    const n=Math.round(this._num(p.colours,1,1,6)),pens=[p.layer,p.pen2,p.pen3,p.pen4,p.pen5,p.pen6].slice(0,n).map((v,i)=>Math.round(this._num(v,[0,5,7,6,3,9][i],0,11)));
+    for(let i=0;i<bodies.length;i++){
+      const b=bodies[i],blockers=bodies.slice(i+1).filter(o=>o.box[0]<=b.box[2]&&o.box[2]>=b.box[0]&&o.box[1]<=b.box[3]&&o.box[3]>=b.box[1]);
+      const push=(pts,closed)=>{for(const path of this._clip(pts,closed,blockers,r)){paths.push({...path,layer:pens[b.index%n]});points+=path.pts.length;}};
+      const sy=Math.sin(b.flow),cy=Math.cos(b.flow),count=Math.max(4,Math.min(240,Math.ceil((1+cy)*b.rx/pitch)));
+      for(let j=1;j<count;j++){
+        // Even projected spacing on the facing equator avoids a black rim
+        // caused by uniformly spaced sphere slices crowding at the silhouette.
+        const x=-cy+(1+cy)*j/count,u=x*cy-Math.sqrt(Math.max(0,1-x*x))*sy;
+        const v=Math.sqrt(Math.max(0,1-u*u)),q=u*sy/(v*cy);
+        if(q>=1)continue;
+        const closed=q<=-1,angle=closed?Math.PI:Math.acos(q),segments=Math.max(12,Math.min(240,Math.ceil(2*angle*Math.max(b.rx,b.ry)*v/step)));
+        const pts=[];
+        for(let k=0;k<=segments-(closed?1:0);k++){
+          const t=-angle+2*angle*k/segments;
+          pts.push(this._point(b,b.rx*(u*cy+v*Math.cos(t)*sy),b.ry*v*Math.sin(t)));
+        }
+        push(pts,closed);
+      }
+      if(p.outline!==false){
+        const count=Math.max(32,Math.min(320,Math.ceil(2*Math.PI*Math.max(b.rx,b.ry)/step)));
+        push(Array.from({length:count},(_,k)=>this._point(b,b.rx*Math.cos(k*2*Math.PI/count),b.ry*Math.sin(k*2*Math.PI/count))),true);
+      }
+      if(points>110000)return {paths,points,overflow:true};
+    }
+    return {paths,points,overflow:false};
+  },
+  _warp(paths,p,r) {
+    const amount=this._num(p.bodyCurves,0.75,0,1);if(amount===0)return paths;
+    const W=r.x1-r.x0,H=r.y1-r.y0,size=this._num(p.size,145,10,1200);
+    const scale=this._num(p.curveScale,180,30,1200),seed=this._num(p.seed,17,-1e9,1e9);
+    const phase=(seed*0.754877666)%6.283185307,ax=Math.min(W*0.24,size*0.32)*amount,ay=Math.min(H*0.2,size*0.22)*amount;
+    // Two smooth boundary-pinned shears. Each stage is strictly monotone
+    // along its own axis (amplitude < extent/pi), so it cannot fold the
+    // surface or invalidate the hidden-line ordering calculated beforehand.
+    return paths.map(path=>({...path,pts:path.pts.map(([x,y])=>{
+      const u=(x-r.x0)/W,v=(y-r.y0)/H;
+      const xx=x+ax*Math.sin(Math.PI*u)*Math.sin((y-r.y0)*2*Math.PI/scale+phase);
+      const yy=y+ay*Math.sin(Math.PI*v)*Math.sin((xx-r.x0)*2*Math.PI/(scale*1.2)+phase*1.73);
+      return [xx,yy];
+    })}));
+  },
+  compute(ins,p,ctx) {
+    const r=this._region(p,ctx);if(r.x1-r.x0<1||r.y1-r.y0<1)return EMPTY;
+    const bodies=this._bodies(p,r);let pitch=this._num(p.pitch,2,0.35,20),step=0.9,result;
+    for(let attempt=0;attempt<12;attempt++){
+      result=this._draw(p,r,bodies,pitch,step);
+      if(!result.overflow)return applyStyle({paths:this._warp(result.paths,p,r)},ins[0]);
+      pitch*=1.5;step*=1.2;
+    }
+    return EMPTY;
   },
 };
 ```
@@ -8347,28 +8522,47 @@ import { Pin, EMPTY, mulberry32, applyStyle, SFONT } from "../helpers.js";
 export default {
   key: "concrete",
     name: "Concrete Poetry", cat: "gen", group: "textimg",
+    desc: "Living typography made from real pen strokes. Choose Columns for repeated phrases, then select one of fourteen Motion modes. Zoom builds a growing letter or phrase from more fixed-size copies of each letter. Zoom uses a centred text block (| starts a new line), not Layout; Size mm is always the small letter size. Max rows sets the largest letter grid, Cell spacing sets its pitch. The grid grows in whole-cell steps. In & out returns to its starting size; Zoom in/out restart at the loop boundary. Region limits stamp centres and centres the composition. Very large Zoom output stops at the point budget without enlarging the small letters. Shift keeps a filled field of fixed letter cells while their order changes: Rows and Columns wrap cyclically; Shuffle follows a seeded permutation. Use Fill region for a full text field. Shift skips spaces and unsupported characters and changes in whole-letter steps. Timeline follows Muusia’s ANIMATE controls automatically; Phase input uses Phase 0–1, which can be wired. Cycles sets whole motion repeats. Row lag and Letter lag send motion through the text. Word collapse removes letters toward Short text when it is a subsequence of the phrase; otherwise it condenses the whole phrase. Outer edges aligns alternate columns to opposite edges. Travel mm sets displacement; Amount sets effect strength. Clip to page clips animated strokes to the margin box. Other motions use Region for initial placement; moving letters can leave its outline. Motion Off preserves the four original layouts. Very dense animated text outside Zoom increases the effective font size and keeps a stable selection of complete glyphs under the point budget. Text is uppercase single-stroke geometry; export the current frame or an SVG frame set.",
     ins: [Pin("paths", "Region (optional)"), Pin("style", "Style")], outs: [Pin("paths")],
     params: [
       { key: "text", label: "Text (| = line, space = word)", type: "text", def: "WORD IS IMAGE" },
-      { key: "mode", label: "Layout", type: "select", options: ["Fill region", "Spiral", "Wave", "Scatter words"], def: "Fill region" },
+      { key: "mode", label: "Layout", type: "select", options: ["Fill region", "Spiral", "Wave", "Scatter words", "Columns"], def: "Fill region", showIf: p => p.motion !== "Zoom" },
+      { key: "columns", label: "Columns", type: "slider", min: 1, max: 4, step: 1, def: 2, showIf: p => p.mode === "Columns" && p.motion !== "Zoom" },
+      { key: "gutter", label: "Column gap mm", type: "slider", min: 0, max: 40, step: 1, def: 12, showIf: p => p.mode === "Columns" && p.motion !== "Zoom" },
+      { key: "align", label: "Column alignment", type: "select", options: ["Outer edges", "Left", "Centre"], def: "Outer edges", showIf: p => p.mode === "Columns" && p.motion !== "Zoom" },
+      { key: "motion", label: "Motion", type: "select", options: ["Off", "Row squeeze", "Word collapse", "Wave", "Breathing", "Accordion", "Row slide", "Ripple", "Orbit", "Vortex", "Swarm", "Letter flip", "Typewriter", "Shift", "Zoom"], def: "Off" },
+      { key: "zoomRows", label: "Max rows", type: "slider", min: 2, max: 80, step: 1, def: 32, showIf: p => p.motion === "Zoom" },
+      { key: "zoomSpacing", label: "Cell spacing ×", type: "slider", min: 1.05, max: 2.5, step: 0.05, def: 1.25, showIf: p => p.motion === "Zoom" },
+      { key: "zoomCycle", label: "Zoom cycle", type: "select", options: ["In & out", "Zoom in", "Zoom out"], def: "In & out", showIf: p => p.motion === "Zoom" },
+      { key: "shiftPattern", label: "Shift pattern", type: "select", options: ["Rows", "Columns", "Shuffle"], def: "Rows", showIf: p => p.motion === "Shift" },
+      { key: "clock", label: "Motion clock", type: "select", options: ["Timeline", "Phase input"], def: "Timeline", showIf: p => p.motion && p.motion !== "Off" },
+      { key: "phase", label: "Phase 0–1", type: "slider", min: 0, max: 1, step: 0.01, def: 0, showIf: p => p.motion && p.motion !== "Off" },
+      { key: "cycles", label: "Cycles", type: "slider", min: 1, max: 8, step: 1, def: 1, showIf: p => p.motion && p.motion !== "Off" },
+      { key: "amount", label: "Amount", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8, showIf: p => p.motion && !["Off", "Shift", "Zoom"].includes(p.motion) },
+      { key: "distance", label: "Travel mm", type: "slider", min: 0, max: 50, step: 1, def: 12, showIf: p => ["Wave", "Row slide", "Ripple", "Orbit", "Swarm"].includes(p.motion) },
+      { key: "rowLag", label: "Row lag", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.06, showIf: p => p.motion && !["Off", "Zoom"].includes(p.motion) && (p.motion !== "Shift" || !p.shiftPattern || p.shiftPattern === "Rows") },
+      { key: "letterLag", label: "Letter lag", type: "slider", min: 0, max: 0.3, step: 0.01, def: 0.025, showIf: p => ["Wave", "Breathing", "Orbit", "Swarm", "Letter flip"].includes(p.motion) },
+      { key: "shortText", label: "Short text (collapse)", type: "text", def: "WORD", showIf: p => p.motion === "Word collapse" },
+      { key: "clip", label: "Clip to page", type: "check", def: true, showIf: p => p.motion && p.motion !== "Off" },
       { key: "size", label: "Size mm", type: "slider", min: 2, max: 40, step: 0.5, def: 7 },
-      { key: "sizeVar", label: "Size variation (scatter)", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5 },
-      { key: "track", label: "Tracking", type: "slider", min: 0.6, max: 2.5, step: 0.05, def: 1 },
-      { key: "lineh", label: "Line height ×", type: "slider", min: 0.9, max: 3, step: 0.05, def: 1.35 },
-      { key: "turns", label: "Turns (spiral)", type: "slider", min: 1, max: 14, step: 0.5, def: 5 },
-      { key: "waveAmp", label: "Wave amp mm", type: "slider", min: 0, max: 60, step: 1, def: 16 },
-      { key: "waveLen", label: "Wave length mm", type: "slider", min: 20, max: 400, step: 5, def: 130 },
-      { key: "count", label: "Words (scatter)", type: "slider", min: 5, max: 400, step: 5, def: 80 },
+      { key: "sizeVar", label: "Size variation (scatter)", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5, showIf: p => p.mode === "Scatter words" && p.motion !== "Zoom" },
+      { key: "track", label: "Tracking", type: "slider", min: 0.6, max: 2.5, step: 0.05, def: 1, showIf: p => p.motion !== "Zoom" },
+      { key: "lineh", label: "Line height ×", type: "slider", min: 0.9, max: 3, step: 0.05, def: 1.35, showIf: p => p.motion !== "Zoom" },
+      { key: "turns", label: "Turns (spiral)", type: "slider", min: 1, max: 14, step: 0.5, def: 5, showIf: p => p.mode === "Spiral" && p.motion !== "Zoom" },
+      { key: "waveAmp", label: "Wave amp mm", type: "slider", min: 0, max: 60, step: 1, def: 16, showIf: p => p.mode === "Wave" && p.motion !== "Zoom" },
+      { key: "waveLen", label: "Wave length mm", type: "slider", min: 20, max: 400, step: 5, def: 130, showIf: p => p.mode === "Wave" && p.motion !== "Zoom" },
+      { key: "count", label: "Words (scatter)", type: "slider", min: 5, max: 400, step: 5, def: 80, showIf: p => p.mode === "Scatter words" && p.motion !== "Zoom" },
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
-      { key: "seed", label: "Seed", type: "seed", def: 151 },
+      { key: "seed", label: "Seed", type: "seed", def: 151, showIf: p => p.motion !== "Zoom" },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
-    compute(ins, p, ctx) {
+    _layout(ins, p, ctx, collect=false) {
       const { W, H } = ctx;
       const L = Math.round(p.layer);
       const m = p.margin;
       const text = String(p.text || "").toUpperCase();
-      const paths = [];
+      const shiftCell=collect&&p.motion==="Shift"?Math.max(0,...[...text].map(ch=>(SFONT[ch]||SFONT[" "]).w))+2:0;
+      const paths = [], glyphs=[];
       /* alue: suljetut sisaantulopolut tai marginaalilaatikko */
       const regions = ins[0] && ins[0].paths ? ins[0].paths.filter((q) => q.closed && q.pts.length > 2) : [];
       const inside = (x, y) => {
@@ -8391,22 +8585,27 @@ export default {
           if (x > bx1) bx1 = x; if (y > by1) by1 = y;
         }
       }
+      if(collect){
+        bx0=Math.max(m,bx0);by0=Math.max(m,by0);bx1=Math.min(W-m,bx1);by1=Math.min(H-m,by1);
+        if(bx1<=bx0 || by1<=by0)return [];
+      }
       /* glyyfin piirto: sijainti + rotaatio + skaala; palauttaa etenemismitan */
-      const drawGlyph = (ch, x, y, size, ang, guard) => {
+      const drawGlyph = (ch, x, y, size, ang, guard, meta={}) => {
         const g = SFONT[ch] || SFONT[" "];
         const sc = size / 10;
-        const adv = (g.w + 2) * sc * p.track;
+        const adv = (shiftCell || g.w + 2) * sc * p.track * (meta.baseSx || 1);
         const ca = Math.cos(ang), sa = Math.sin(ang);
         /* guard: piirra vain jos glyyfin keskikohta on alueen sisalla */
         const gcx = x + (adv / 2) * ca - (size / 2) * -sa;
         const gcy = y + (adv / 2) * sa + (size / 2) * -ca;
         if (guard && !inside(x + (adv / 2) * ca, y + (adv / 2) * sa - (size * 0.4) * ca * 0)) return adv;
         if (guard && !inside(gcx, gcy)) return adv;
+        if(collect){glyphs.push({ch,x,y,size,ang,adv,index:glyphs.length,row:0,col:0,slot:0,anchor:bx0,...meta});return adv;}
         for (const stroke of g.s) {
           if (stroke.length < 2) continue;
           paths.push({
             pts: stroke.map(([gx, gy]) => {
-              const lx = gx * sc, ly = (gy - 10) * sc; /* baseline y=0 */
+              const lx = gx * sc * (meta.baseSx || 1), ly = (gy - 10) * sc; /* baseline y=0 */
               return [x + lx * ca - ly * sa, y + lx * sa + ly * ca];
             }),
             closed: false, layer: L,
@@ -8415,9 +8614,24 @@ export default {
         return adv;
       };
       const lineText = text.replace(/\|/g, " ");
-      if (p.mode === "Fill region") {
+      if(p.mode === "Columns"){
+        const phrases=text.split("|").map(s=>s.trim()).filter(Boolean);
+        if(!phrases.length)return collect?[]:EMPTY;
+        const cols=Math.round(p.columns),gap=Math.min(p.gutter,(bx1-bx0)/Math.max(1,cols)*0.8);
+        const cw=(bx1-bx0-gap*(cols-1))/cols;
+        let row=0;
+        for(let y=by0+p.size;y<=by1;y+=p.size*p.lineh,row++)for(let col=0;col<cols;col++){
+          const phrase=phrases[row%phrases.length];
+          const natural=[...phrase].reduce((sum,ch)=>sum+(shiftCell || (SFONT[ch]||SFONT[" "]).w+2)*p.size/10*p.track,0);
+          const baseSx=Math.min(1,cw/Math.max(natural,0.01)),width=natural*baseSx;
+          const left=bx0+col*(cw+gap),right=p.align==='Outer edges'&&col%2===1;
+          let x=left+(right?cw-width:p.align==='Centre'?(cw-width)/2:0);
+          const anchor=right?left+cw:p.align==='Centre'?left+cw/2:left;
+          for(let slot=0;slot<phrase.length;slot++)x+=drawGlyph(phrase[slot],x,y,p.size,0,true,{row,col,slot,phrase,baseSx,anchor,right});
+        }
+      }else if (p.mode === "Fill region") {
         /* rivit toistuvaa tekstia; glyyfi piirtyy vain alueen sisalla */
-        const src2 = lineText + "  ";
+        const src2 = lineText + (shiftCell ? "" : "  ");
         let row = 0;
         for (let y = by0 + p.size; y <= by1; y += p.size * p.lineh, row++) {
           /* rivioffset ettei sama sana pinoudu */
@@ -8427,7 +8641,7 @@ export default {
           while (x < bx1 && guardCount++ < 600) {
             const ch = src2[ci % src2.length];
             ci++;
-            x += drawGlyph(ch, x, y, p.size, 0, true);
+            x += drawGlyph(ch, x, y, p.size, 0, true,{row,slot:ci-1,phrase:src2});
           }
         }
       } else if (p.mode === "Spiral") {
@@ -8437,7 +8651,7 @@ export default {
         const loopGap = Math.max(p.size * p.lineh, maxR / Math.max(1, p.turns));
         const rAt = (th) => maxR - (th / (Math.PI * 2)) * loopGap;
         let th = 0, ci = 0;
-        const srcT = lineText + " \u00B7 ";
+        const srcT = lineText + (shiftCell ? "" : " \u00B7 ");
         let guardCount = 0;
         while (rAt(th) > p.size && guardCount++ < 3000) {
           const r = rAt(th);
@@ -8446,13 +8660,13 @@ export default {
           const ch = srcT[ci % srcT.length];
           ci++;
           const g = SFONT[ch] || SFONT[" "];
-          const adv = (g.w + 2) * (p.size / 10) * p.track;
+          const adv = (shiftCell || g.w + 2) * (p.size / 10) * p.track;
           /* tangentin suunta + kaarevuuskorjattu kulma-askel */
-          drawGlyph(ch, x, y, p.size, th + Math.PI / 2, false);
+          drawGlyph(ch, x, y, p.size, th + Math.PI / 2, false,{slot:ci-1,phrase:srcT});
           th += adv / Math.max(2, r);
         }
       } else if (p.mode === "Wave") {
-        const src2 = lineText + "  ";
+        const src2 = lineText + (shiftCell ? "" : "  ");
         let row = 0;
         for (let y0 = by0 + p.size; y0 <= by1; y0 += p.size * p.lineh, row++) {
           let ci = Math.round(row * 3.7) % src2.length;
@@ -8465,13 +8679,13 @@ export default {
             const slope = Math.cos(ph) * p.waveAmp * 0.5 * (Math.PI * 2 / p.waveLen);
             const ch = src2[ci % src2.length];
             ci++;
-            x += drawGlyph(ch, x, y, p.size, Math.atan(slope), true) * Math.cos(Math.atan(slope) * 0.5);
+            x += drawGlyph(ch, x, y, p.size, Math.atan(slope), true,{row,slot:ci-1,phrase:src2}) * Math.cos(Math.atan(slope) * 0.5);
           }
         }
       } else {
         /* Scatter: sanat hajallaan alueen sisalla */
         const words = lineText.split(/\s+/).filter(Boolean);
-        if (!words.length) return EMPTY;
+        if (!words.length) return collect ? [] : EMPTY;
         const rng = mulberry32(p.seed * 6689 + 127);
         let placed = 0, guard = 0;
         while (placed < Math.round(p.count) && guard++ < p.count * 25) {
@@ -8482,15 +8696,283 @@ export default {
           const y0 = by0 + rng() * (by1 - by0);
           if (!inside(x0, y0)) continue;
           let x = x0;
-          for (const ch of word) {
-            x += drawGlyph(ch, x, y0 + (x - x0) * Math.tan(ang) * 0, size, ang, true);
+          for (let slot=0;slot<word.length;slot++) {
+            x += drawGlyph(word[slot], x, y0 + (x - x0) * Math.tan(ang) * 0, size, ang, true,{row:placed,slot,phrase:word,anchor:x0});
           }
           placed++;
         }
       }
-      return applyStyle({ paths }, ins[1]);
+      return collect ? glyphs : applyStyle({ paths }, ins[1]);
     },
-  
+    // Keep the legacy layout's operation order intact when motion is disabled.
+    compute(ins, p, ctx) {
+      const num=(v,d,lo,hi)=>Math.max(lo,Math.min(hi,Number.isFinite(+v)?+v:d));
+      const motion=p.motion||"Off",amount=["Shift","Zoom"].includes(motion)?1:num(p.amount,0.8,0,1);
+      if(p.mode!=="Columns"&&(motion==="Off"||amount===0))return this._layout(ins,p,ctx);
+      const W=num(ctx.W,210,1,10000),H=num(ctx.H,297,1,10000);
+      const q={...p,text:String(p.text||"").slice(0,2000),motion,amount,
+        margin:num(p.margin,12,0,Math.min(W,H)/2),size:num(p.size,7,2,200),
+        track:num(p.track,1,0.6,2.5),lineh:num(p.lineh,1.35,0.9,3),
+        sizeVar:num(p.sizeVar,0.5,0,0.95),turns:num(p.turns,5,1,14),
+        waveAmp:num(p.waveAmp,16,0,60),waveLen:num(p.waveLen,130,20,400),
+        count:Math.round(num(p.count,80,0,400)),seed:num(p.seed,151,-1e9,1e9),
+        columns:Math.round(num(p.columns,2,1,4)),gutter:num(p.gutter,12,0,40),
+        align:p.align||"Outer edges",layer:Math.round(num(p.layer,0,0,11))};
+      if(motion==="Shift")q.text=[...q.text.toUpperCase()].filter(ch=>!/[\s|]/.test(ch)&&SFONT[ch]?.s.some(s=>s.length>1)).join("");
+      if(!q.text.trim()||W<=2*q.margin||H<=2*q.margin)return EMPTY;
+      const tau=2*Math.PI,cycles=Math.round(num(p.cycles,1,1,8));
+      const timeline=p.clock==="Phase input"?0:num(ctx.frameIdx,0,-1e6,1e6)/num(ctx.frameCount,1,1,1e6);
+      const raw=num(p.phase,0,0,1)+timeline*cycles;
+      // Canonicalise the seam, including negative frame indices, before sin/cos.
+      const phase=Math.round(((raw%1+1)%1)*1e12)/1e12%1,theta=phase*tau;
+      if(motion==="Zoom"){
+        const paths=[];
+        for(const g of this._zoomGlyphs(ins,q,{W,H},phase)){
+          const font=SFONT[g.ch],sc=g.size/10;
+          for(const stroke of font.s){
+            if(stroke.length<2)continue;
+            const pts=stroke.map(([x,y])=>[g.x+(x-g.mx)*sc,g.y+(y-g.my)*sc]);
+            const parts=p.clip===false?[pts]:this._clip(pts,q.margin,W-q.margin,q.margin,H-q.margin);
+            for(const part of parts)paths.push({pts:part,closed:false,layer:q.layer});
+          }
+        }
+        return applyStyle({paths},ins[1]);
+      }
+      // Bound layout work on large sheets before collecting complete glyphs.
+      q.size=Math.max(q.size,Math.sqrt((W-2*q.margin)*(H-2*q.margin)/18000));
+      if(q.mode==="Columns"){
+        const longest=Math.max(...q.text.split("|").map(s=>s.length));
+        q.size=Math.max(q.size,(H-2*q.margin)*q.columns*longest/(18000*q.lineh));
+      }
+      let glyphs=this._layout(ins,q,{...ctx,W,H},true);
+      if(!glyphs.length)return EMPTY;
+      const rowLag=num(p.rowLag,0.06,0,0.5),letterLag=num(p.letterLag,0.025,0,0.3);
+      const travel=num(p.distance,12,0,50)*amount;
+      const active=motion!=="Off"&&amount>0;
+      if(active&&motion==="Shift")glyphs=this._shiftGlyphs(glyphs,q,phase);
+      const groups=new Map(),short=String(p.shortText??"WORD").toUpperCase();
+      for(const g of glyphs){
+        const key=g.row+":"+g.col;
+        if(!groups.has(key))groups.set(key,[]);
+        groups.get(key).push(g);
+      }
+      for(const row of groups.values()){
+        const ph=theta+row[0].row*rowLag*tau+row[0].col*Math.PI;
+        const collapse=(1-Math.cos(ph))/2;
+        const phrase=row[0].phrase||q.text.toUpperCase(),kept=new Set();
+        let cursor=0,matched=true;
+        for(const ch of short){const at=phrase.indexOf(ch,cursor);if(at<0){matched=false;break;}kept.add(at);cursor=at+1;}
+        let removed=0;
+        for(let i=0;i<row.length;i++){
+          const g=row[i];g.rank=i;g.total=row.length;g.rowPhase=ph;
+          g.weight=active&&motion==="Word collapse"&&matched
+            ?(kept.has(g.slot%phrase.length)?1:1-amount*collapse):1;
+          g.removed=removed;g.matched=matched;
+          removed+=g.adv*(1-g.weight);
+        }
+        for(const g of row)g.realign=g.right?removed:q.align==="Centre"&&q.mode==="Columns"?removed/2:0;
+      }
+      // Clipping can turn each segment into its own two-point stroke. Reserve
+      // that worst-case cost; the same complete glyphs survive in every frame.
+      const cost=g=>Math.max(0,(SFONT[g.ch]||SFONT[" "]).s.reduce((n,s)=>n+Math.max(0,s.length-1)*2,0));
+      const shiftCost=motion==="Shift"?Math.max(...glyphs.map(cost)):0;
+      const total=glyphs.reduce((n,g)=>n+(shiftCost||cost(g)),0),stride=Math.max(1,Math.ceil(total/112000));
+      const paths=[];let budget=112000;
+      const cx=W/2,cy=H/2,radius=Math.max(1,Math.min(W,H)/2-q.margin);
+      for(const g of glyphs){
+        const reserve=shiftCost||cost(g);if(g.index%stride||reserve>budget)continue;budget-=reserve;
+        const ca=Math.cos(g.ang),sa=Math.sin(g.ang),baseSx=g.baseSx||1;
+        let x=g.x+g.adv/2*ca+g.size/2*sa,y=g.y+g.adv/2*sa-g.size/2*ca;
+        let sx=1,sy=1,angle=g.ang;
+        const ph=g.rowPhase,lp=ph+g.slot*letterLag*tau;
+        const dx=x-cx,dy=y-cy,r=Math.hypot(dx,dy),u=r/radius;
+        if(active)switch(motion){
+          case "Row squeeze": {
+            sx=1-amount*0.8*(1-Math.cos(ph))/2;x=g.anchor+(x-g.anchor)*sx;break;
+          }
+          case "Word collapse": {
+            if(g.matched){
+              sx=g.weight;sy=Math.sqrt(g.weight);
+              const shift=(q.mode==="Spiral"?0:g.realign-g.removed)-g.adv*(1-sx)/2;
+              x+=shift*ca;y+=shift*sa;
+            }else{sx=1-amount*0.8*(1-Math.cos(ph))/2;x=g.anchor+(x-g.anchor)*sx;}
+            break;
+          }
+          case "Wave": y+=travel*Math.sin(lp);angle+=amount*0.35*Math.cos(lp);break;
+          case "Breathing": {
+            const scale=1+amount*0.22*Math.sin(ph);x=cx+dx*scale;y=cy+dy*scale;
+            sx=sy=1+amount*0.35*Math.sin(lp);break;
+          }
+          case "Accordion": {
+            const scale=1-amount*0.75*(1-Math.cos(theta))/2;
+            y=cy+dy*scale;sy=scale;angle+=amount*0.15*Math.sin(ph);break;
+          }
+          case "Row slide": x+=travel*Math.sin(ph);break;
+          case "Ripple": {
+            const offset=travel*Math.sin(theta-u*tau+g.row*rowLag*tau);
+            if(r>1e-8){x+=dx/r*offset;y+=dy/r*offset;}
+            break;
+          }
+          case "Orbit": x+=travel*Math.cos(lp);y+=travel*Math.sin(lp);break;
+          case "Vortex": {
+            const a=amount*1.5*Math.sin(theta+g.row*rowLag*tau)*(1-Math.min(u,1)*0.65);
+            x=cx+dx*Math.cos(a)-dy*Math.sin(a);y=cy+dx*Math.sin(a)+dy*Math.cos(a);angle+=a;break;
+          }
+          case "Swarm": {
+            const rng=mulberry32(q.seed*6761+g.index*101),e=(1-Math.cos(lp))/2;
+            x+=(rng()*2-1)*travel*2*e;y+=(rng()*2-1)*travel*2*e;angle+=(rng()*2-1)*amount*1.8*e;break;
+          }
+          case "Letter flip": sx=1-amount+amount*Math.cos(lp);break;
+          case "Typewriter": {
+            const reveal=(1-Math.cos(ph))/2*g.total;
+            sx=sy=1-amount+amount*Math.max(0,Math.min(1,reveal-g.rank));break;
+          }
+        }
+        if(Math.abs(sx)<1e-7||Math.abs(sy)<1e-7)continue;
+        const c=Math.cos(angle),s=Math.sin(angle);
+        for(const stroke of (SFONT[g.ch]||SFONT[" "]).s){
+          if(stroke.length<2)continue;
+          const pts=stroke.map(([gx,gy])=>{
+            const lx=(gx*g.size/10*baseSx-g.adv/2+(g.shiftPad||0))*sx,ly=((gy-10)*g.size/10+g.size/2)*sy;
+            return [x+lx*c-ly*s,y+lx*s+ly*c];
+          });
+          const pieces=p.clip===false?[pts]:this._clip(pts,q.margin,W-q.margin,q.margin,H-q.margin);
+          for(const part of pieces)paths.push({pts:part,closed:false,layer:q.layer});
+        }
+      }
+      return applyStyle({paths},ins[1]);
+    },
+    // Rasterise the enlarged stroke font into letter cells, then draw each cell
+    // at the original size. A set merges joints/corners, avoiding double plotting.
+    _zoomGlyphs(ins,p,ctx,phase){
+      const num=(v,d,lo,hi)=>Math.max(lo,Math.min(hi,Number.isFinite(+v)?+v:d));
+      const size=num(p.size,7,2,200),pitch=size*num(p.zoomSpacing,1.25,1.05,2.5);
+      const maxRows=Math.round(num(p.zoomRows,32,2,120));
+      const t=Math.round(((phase%1+1)%1)*1e12)/1e12%1;
+      const progress=p.zoomCycle==="Zoom in"?t:p.zoomCycle==="Zoom out"?1-t:(1-Math.cos(t*Math.PI*2))/2;
+      const rows=1+Math.round((maxRows-1)*(Math.round(progress*1e12)/1e12));
+      const lines=String(p.text||"").slice(0,2000).toUpperCase().split(/[|\n]/);
+      const fonts=new Map();
+      for(const ch of lines.join("")){
+        if(fonts.has(ch)||!SFONT[ch]?.s.some(s=>s.length>1))continue;
+        const font=SFONT[ch],pts=font.s.flat(),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+        const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+        fonts.set(ch,{ch,x0,y0,mx:(x0+x1)/2,my:(y0+y1)/2,w:x1-x0,h:y1-y0,
+          cols:1+Math.round((rows-1)*(x1-x0)/10),
+          cost:font.s.reduce((n,s)=>n+Math.max(0,s.length-1)*2,0)});
+      }
+      if(!fonts.size)return [];
+      const regions=(ins[0]?.paths||[]).filter(r=>r.closed&&r.pts.length>2);
+      let x0=p.margin,y0=p.margin,x1=ctx.W-p.margin,y1=ctx.H-p.margin;
+      if(regions.length){
+        let rx0=Infinity,ry0=Infinity,rx1=-Infinity,ry1=-Infinity;
+        for(const r of regions)for(const [x,y] of r.pts){rx0=Math.min(rx0,x);ry0=Math.min(ry0,y);rx1=Math.max(rx1,x);ry1=Math.max(ry1,y);}
+        x0=Math.max(x0,rx0);y0=Math.max(y0,ry0);x1=Math.min(x1,rx1);y1=Math.min(y1,ry1);
+      }
+      if(x1<=x0||y1<=y0)return [];
+      const inside=(x,y)=>{
+        if(!regions.length)return true;
+        let hit=false;
+        for(const r of regions)for(let i=0,j=r.pts.length-1;i<r.pts.length;j=i++){
+          const a=r.pts[i],b=r.pts[j];
+          if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])hit=!hit;
+        }
+        return hit;
+      };
+      const gap=Math.max(1,Math.round(rows*0.2)),space=Math.max(1,Math.round(rows*0.5));
+      const height=(lines.length*rows+(lines.length-1)*gap)*pitch;
+      const top=(y0+y1-height)/2+pitch/2,result=[];
+      let budget=112000,work=0;
+      for(let line=0;line<lines.length;line++){
+        const chars=[...lines[line]],width=chars.reduce((n,ch)=>n+(fonts.get(ch)?.cols??space)+gap,0)-gap;
+        let left=(x0+x1-width*pitch)/2+pitch/2;
+        const y=top+line*(rows+gap)*pitch;
+        for(let letter=0;letter<chars.length;letter++){
+          const f=fonts.get(chars[letter]),x=left;
+          left+=((f?.cols??space)+gap)*pitch;
+          if(!f)continue;
+          // Skip off-page macro letters before walking their stroke grid.
+          if(p.clip!==false&&(x+(f.cols-1)*pitch+size<x0||x-size>x1||y+(rows-1)*pitch+size<y0||y-size>y1))continue;
+          const cells=new Set();
+          const add=(col,row)=>cells.add(Math.round(col)+":"+Math.round(row));
+          if(rows===1)add(0,0);
+          else for(const stroke of SFONT[f.ch].s)for(let k=1;k<stroke.length;k++){
+            const ax=(stroke[k-1][0]-f.x0)/Math.max(1,f.w)*(f.cols-1),ay=(stroke[k-1][1]-f.y0)/Math.max(1,f.h)*(rows-1);
+            const bx=(stroke[k][0]-f.x0)/Math.max(1,f.w)*(f.cols-1),by=(stroke[k][1]-f.y0)/Math.max(1,f.h)*(rows-1);
+            const steps=Math.max(1,Math.ceil(Math.max(Math.abs(bx-ax),Math.abs(by-ay))*2));
+            for(let k=0;k<=steps;k++){
+              if(++work>200000)return result;
+              add(ax+(bx-ax)*k/steps,ay+(by-ay)*k/steps);
+            }
+          }
+          for(const cell of cells){
+            const [col,row]=cell.split(":").map(Number),cx=x+col*pitch,cy=y+row*pitch;
+            if(p.clip!==false&&(cx+size<x0||cx-size>x1||cy+size<y0||cy-size>y1))continue;
+            if(!inside(cx,cy))continue;
+            if(f.cost>budget)return result;
+            budget-=f.cost;
+            result.push({ch:f.ch,x:cx,y:cy,size,mx:f.mx,my:f.my,line,letter,col,row});
+          }
+        }
+      }
+      return result;
+    },
+    // Permute complete letters between fixed cells. Every destination has one
+    // source, including at wraparound; no interpolation through empty cells.
+    _shiftGlyphs(glyphs,p,phase){
+      const result=glyphs.map(g=>({...g})),groups=new Map(),ranks=new Map();
+      const pattern=p.shiftPattern||"Rows";
+      for(let i=0;i<glyphs.length;i++){
+        const g=glyphs[i],row=g.row+":"+g.col,rank=ranks.get(row)||0;
+        ranks.set(row,rank+1);
+        const key=pattern==="Shuffle"?"all":pattern==="Columns"?g.col+":"+rank:row;
+        if(!groups.has(key))groups.set(key,[]);
+        groups.get(key).push(i);
+      }
+      // A spiral has no vertical columns: cycle its single continuous sequence.
+      const cycles=[...groups.values()].every(g=>g.length===1)?[glyphs.map((_,i)=>i)]:[...groups.values()];
+      for(const indices of cycles){
+        const order=indices.slice();
+        if(pattern==="Shuffle"){
+          const rng=mulberry32(p.seed*7919+47);
+          for(let i=order.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+        }
+        const lag=pattern==="Rows"?glyphs[order[0]].row*(Number.isFinite(+p.rowLag)?Math.max(0,Math.min(0.5,+p.rowLag)):0.06):0;
+        const t=Math.round((((phase+lag)%1+1)%1)*1e12)/1e12%1;
+        const offset=Math.floor(t*order.length+1e-8)%order.length;
+        for(let i=0;i<order.length;i++){
+          const g=result[order[i]],ch=glyphs[order[(i+offset)%order.length]].ch;
+          g.ch=ch;
+          g.shiftPad=(g.adv-((SFONT[ch]||SFONT[" "]).w+2)*g.size/10*p.track*(g.baseSx||1))/2;
+        }
+      }
+      return result;
+    },
+    // Segment clipping preserves pen lifts across excursions outside the page.
+    _clip(pts,x0,x1,y0,y1){
+      const out=[];let current=[];
+      const flush=()=>{if(current.length>1)out.push(current);current=[];};
+      for(let i=1;i<pts.length;i++){
+        const a=pts[i-1],b=pts[i],dx=b[0]-a[0],dy=b[1]-a[1];
+        let lo=0,hi=1,ok=true;
+        for(const [p,q] of [[-dx,a[0]-x0],[dx,x1-a[0]],[-dy,a[1]-y0],[dy,y1-a[1]]]){
+          if(Math.abs(p)<1e-14){if(q<0){ok=false;break;}}
+          else if(p<0)lo=Math.max(lo,q/p);else hi=Math.min(hi,q/p);
+        }
+        if(!ok||lo>=hi){flush();continue;}
+        const start=[a[0]+lo*dx,a[1]+lo*dy],end=[a[0]+hi*dx,a[1]+hi*dy];
+        const last=current[current.length-1];
+        if(!last||Math.hypot(last[0]-start[0],last[1]-start[1])>1e-8){flush();current.push(start);}
+        current.push(end);if(hi<1)flush();
+      }
+      flush();return out;
+    },
+    overlay(p,ctx,ins){
+      const m=Math.max(0,Math.min(Number(p.margin)||0,Math.min(ctx.W,ctx.H)/2));
+      const guides=[{kind:"rect",x:m,y:m,w:ctx.W-2*m,h:ctx.H-2*m}];
+      for(const region of (ins?.[0]?.paths||[]).filter(r=>r.closed).slice(0,32))guides.push({kind:"poly",pts:region.pts});
+      return guides;
+    },
 };
 ```
 
@@ -9328,6 +9810,184 @@ export default {
       return { paths };
     }
   
+};
+```
+
+## coral.js
+
+```js
+import { Pin, mulberry32, noise2, applyStyle, signedArea } from "../helpers.js";
+
+export default {
+  key: "coral",
+  name: "Coral",
+  cat: "gen",
+  group: "nature",
+  desc: "Organic coral medallions traced as continuous vector contours. Brain coral and Cells use a seeded reaction-diffusion field for winding ridges and small islands. Radial coral uses warped radial waves with a textured centre. Density sets the number of features, Growth changes their development, Ridge width expands or narrows them, and Edge texture loosens the circular rim. Contour bands draws nested pen lines, not a solid fill. One to six selectable pens can colour whole contours by radius or by contour without changing geometry. Diameter is in mm: Fit inside paper respects Margin, Exact diameter allows oversized work. A3 fits 277 mm with 10 mm margins. Seed reproduces the pattern. High Density and Growth take longer to recompute. Stylised coral, not a biological simulation.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "form", label: "Form", type: "select", options: ["Brain coral", "Radial coral", "Cells"], def: "Brain coral" },
+    { key: "diameter", label: "Diameter mm", type: "slider", min: 20, max: 600, step: 1, def: 277 },
+    { key: "sizing", label: "Sizing", type: "select", options: ["Fit inside paper", "Exact diameter"], def: "Fit inside paper" },
+    { key: "density", label: "Density", type: "slider", min: 8, max: 32, step: 1, def: 24 },
+    { key: "growth", label: "Growth", type: "slider", min: 0, max: 1, step: 0.05, def: 0.65 },
+    { key: "width", label: "Ridge width", type: "slider", min: 0, max: 1, step: 0.01, def: 0.85 },
+    { key: "edge", label: "Edge texture", type: "slider", min: 0, max: 1, step: 0.05, def: 0.25 },
+    { key: "bands", label: "Contour bands", type: "slider", min: 1, max: 4, step: 1, def: 1 },
+    { key: "colours", label: "Colours", type: "slider", min: 1, max: 6, step: 1, def: 1 },
+    { key: "colouring", label: "Colour placement", type: "select", options: ["By contour", "By radius"], def: "By contour" },
+    { key: "layer", label: "Main pen", type: "pen", def: 0 },
+    { key: "pen2", label: "Pen 2", type: "pen", def: 6 },
+    { key: "pen3", label: "Pen 3", type: "pen", def: 4 },
+    { key: "pen4", label: "Pen 4", type: "pen", def: 1 },
+    { key: "pen5", label: "Pen 5", type: "pen", def: 5 },
+    { key: "pen6", label: "Pen 6", type: "pen", def: 10 },
+    { key: "rotation", label: "Rotation °", type: "slider", min: -180, max: 180, step: 1, def: 0 },
+    { key: "cx", label: "Centre X %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
+    { key: "cy", label: "Centre Y %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 40, step: 1, def: 10 },
+    { key: "seed", label: "Seed", type: "seed", def: 23 },
+  ],
+  _number(value, fallback, lo, hi) {
+    return Math.max(lo, Math.min(hi, Number.isFinite(Number(value)) ? Number(value) : fallback));
+  },
+  _region(p, ctx) {
+    const W = this._number(ctx.W, 297, 0, 100000), H = this._number(ctx.H, 210, 0, 100000);
+    const margin = this._number(p.margin, 10, 0, Math.min(W, H) / 2);
+    let R = this._number(p.diameter, 277, 1, 1200) / 2;
+    let cx = W * this._number(p.cx, 50, 0, 100) / 100, cy = H * this._number(p.cy, 50, 0, 100) / 100;
+    if (p.sizing !== "Exact diameter") {
+      R = Math.min(R, Math.max(0, Math.min(W, H) / 2 - margin));
+      cx = Math.max(margin + R, Math.min(W - margin - R, cx));
+      cy = Math.max(margin + R, Math.min(H - margin - R, cy));
+    }
+    return { R, cx, cy, rotation: this._number(p.rotation, 0, -36000, 36000) * Math.PI / 180 };
+  },
+  overlay(p, ctx) {
+    const { R, cx, cy } = this._region(p, ctx);
+    return R > 0 ? [{ kind: "circle", cx, cy, r: R }, { kind: "point", x: cx, y: cy }] : [];
+  },
+  _field(p) {
+    // Gray-Scott update: https://www.karlsims.com/rd.html. Own deterministic
+    // initial condition, radial wave field and contour extraction.
+    const N = Math.round(this._number(p.density, 24, 8, 32)) * 6 + 34, size = N * N;
+    const seed = Math.round(this._number(p.seed, 23, -2147483648, 2147483647));
+    const cacheKey=JSON.stringify([N,seed,p.form,this._number(p.growth,0.65,0,1),this._number(p.edge,0.25,0,1)]);
+    // One bounded memo entry, keyed by every field dependency. Geometry remains
+    // a deterministic function of inputs; pen/size edits avoid re-simulating.
+    if(this._fieldMemo && this._fieldMemo.key===cacheKey)return this._fieldMemo.field;
+    const rng = mulberry32(seed), cells = p.form === "Cells", radial = p.form === "Radial coral";
+    let A = new Float32Array(size).fill(1), B = new Float32Array(size);
+    let nextA = new Float32Array(size), nextB = new Float32Array(size);
+    // Many irregularly placed colonies mature together, avoiding one big empty
+    // ring while keeping seeded local variation instead of a visible square grid.
+    for (let j = 0; j < Math.round(size / 65); j++) {
+      const x = 3 + rng() * (N - 6), y = 3 + rng() * (N - 6), r = 0.9 + rng() * 1.4;
+      for (let iy = Math.floor(y-r); iy <= Math.ceil(y+r); iy++) for (let ix = Math.floor(x-r); ix <= Math.ceil(x+r); ix++) {
+        if(ix > 0 && iy > 0 && ix < N-1 && iy < N-1 && (ix-x)**2+(iy-y)**2 < r*r) { const k=iy*N+ix; A[k]=0; B[k]=0.8+rng()*0.2; }
+      }
+    }
+    const f = cells ? 0.0367 : 0.035, kill = cells ? 0.0649 : 0.06;
+    const steps = Math.round(350 + 900 * this._number(p.growth, 0.65, 0, 1));
+    for(let t=0;t<(radial ? 0 : steps);t++) {
+      for(let y=1;y<N-1;y++) for(let x=1;x<N-1;x++) {
+        const k=y*N+x,a=A[k],b=B[k],ab=a*b*b;
+        const la=-a+0.2*(A[k-1]+A[k+1])+0.2*(A[k-N]+A[k+N])+0.05*(A[k-N-1]+A[k+N+1])+0.05*(A[k-N+1]+A[k+N-1]);
+        const lb=-b+0.2*(B[k-1]+B[k+1])+0.2*(B[k-N]+B[k+N])+0.05*(B[k-N-1]+B[k+N+1])+0.05*(B[k-N+1]+B[k+N-1]);
+        nextA[k]=Math.max(0,Math.min(1,a+0.25*la-ab+f*(1-a)));
+        nextB[k]=Math.max(0,Math.min(1,b+0.125*lb+ab-(kill+f)*b));
+      }
+      // Fixed reservoir boundary sits outside the output disc.
+      for(let i=0;i<N;i++) { nextA[i]=nextA[(N-1)*N+i]=nextA[i*N]=nextA[i*N+N-1]=1; }
+      [A,nextA]=[nextA,A]; [B,nextB]=[nextB,B];
+    }
+    const edge = this._number(p.edge,0.25,0,1);
+    for(let y=0;y<N;y++) for(let x=0;x<N;x++) {
+      const dx=(2*x-(N-1))/(N-33),dy=(2*y-(N-1))/(N-33),r=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
+      if(radial) {
+        const count=(N-34)/3;
+        const growth=this._number(p.growth,0.65,0,1);
+        const phase=a*count + (5+growth*12)*(noise2(dx*4+13,dy*4+29,seed)-0.5) + 2*Math.sin(r*12+a*3);
+        const blend=Math.max(0,Math.min(1,(r-0.12)/0.25)),mix=blend*blend*(3-2*blend);
+        B[y*N+x]=0.22+0.18*(mix*Math.cos(phase)+(1-mix)*(2*noise2(dx*12+5,dy*12+9,seed+17)-1));
+      }
+      const rim=0.98-edge*0.08*noise2(8+Math.cos(a)*8,11+Math.sin(a)*8,seed+71);
+      const fade=Math.max(0,Math.min(1,(rim-r)/0.035));
+      B[y*N+x]*=fade*fade*(3-2*fade);
+    }
+    const field={ N, span:N-33, values:B };
+    this._fieldMemo={key:cacheKey,field};
+    return field;
+  },
+  _contours(field, level) {
+    const {N,values:v}=field, points=new Map(), links=new Map();
+    const connect=(a,b)=>{ if(!links.has(a))links.set(a,[]); if(!links.has(b))links.set(b,[]); links.get(a).push(b); links.get(b).push(a); };
+    for(let y=0;y<N-1;y++) for(let x=0;x<N-1;x++) {
+      const k=y*N+x, vals=[v[k],v[k+1],v[k+N+1],v[k+N]];
+      const hits=[];
+      // Grid-edge ids stitch exactly. Rounded coordinate keys can join unrelated
+      // nearby curves at high density or tiny paper sizes.
+      const keys=[2*k,2*(k+1)+1,2*(k+N),2*k+1];
+      const corners=[[x,y],[x+1,y],[x+1,y+1],[x,y+1]];
+      for(let e=0;e<4;e++) {
+        const j=(e+1)%4,a=vals[e],b=vals[j];
+        if((a>level)===(b>level))continue;
+        const key=keys[e],t=(level-a)/(b-a);
+        if(!points.has(key))points.set(key,[corners[e][0]+t*(corners[j][0]-corners[e][0]),corners[e][1]+t*(corners[j][1]-corners[e][1])]);
+        hits.push([e,key]);
+      }
+      if(hits.length===2)connect(hits[0][1],hits[1][1]);
+      else if(hits.length===4) {
+        // Bilinear asymptotic decider for saddle cells, not a fixed diagonal.
+        const q=(vals[0]-level)*(vals[2]-level)-(vals[1]-level)*(vals[3]-level);
+        if(q>=0){ connect(hits[0][1],hits[1][1]); connect(hits[2][1],hits[3][1]); }
+        else { connect(hits[0][1],hits[3][1]); connect(hits[1][1],hits[2][1]); }
+      }
+    }
+    const visited=new Set(), paths=[];
+    for(const start of links.keys()) {
+      if(visited.has(start))continue;
+      const pts=[]; let cur=start,prev=-1;
+      while(!visited.has(cur)) {
+        visited.add(cur); pts.push(points.get(cur));
+        const choices=links.get(cur),next=choices.find(k=>k!==prev);
+        if(next===undefined)break;
+        prev=cur;cur=next;
+      }
+      if(cur===start && pts.length>=5)paths.push(pts);
+    }
+    return paths;
+  },
+  compute(ins,p,ctx) {
+    const {R,cx,cy,rotation}=this._region(p,ctx);
+    if(R<0.5)return {paths:[]};
+    const field=this._field(p), bands=Math.round(this._number(p.bands,1,1,4));
+    const level=0.32-0.17*this._number(p.width,0.85,0,1);
+    const colours=Math.round(this._number(p.colours,1,1,6));
+    const pens=[['layer',0],['pen2',6],['pen3',4],['pen4',1],['pen5',5],['pen6',10]].map(([key,def])=>Math.round(this._number(p[key],def,0,11)));
+    const paths=[],co=Math.cos(rotation),si=Math.sin(rotation);
+    let budget=112000;
+    for(let band=0;band<bands;band++) {
+      const contours=this._contours(field,level+band*0.025);
+      for(let i=0;i<contours.length;i++) {
+        const raw=contours[i];
+        // One corner-cutting pass rounds sampling-grid corners. Convex weights
+        // keep every point inside the already bounded circular footprint.
+        const smooth=[];
+        for(let j=0;j<raw.length;j++) { const a=raw[j],b=raw[(j+1)%raw.length]; smooth.push([a[0]*0.75+b[0]*0.25,a[1]*0.75+b[1]*0.25],[a[0]*0.25+b[0]*0.75,a[1]*0.25+b[1]*0.75]); }
+        if(smooth.length>budget)continue;
+        let radius=0;
+        const pts=smooth.map(([x,y])=>{x=(2*x-(field.N-1))/field.span*R;y=(2*y-(field.N-1))/field.span*R;radius+=Math.hypot(x,y)/R;return [cx+x*co-y*si,cy+x*si+y*co];});
+        // All loops are clockwise. They represent traced contours, with no
+        // implicit solid-fill or exporter-specific winding interpretation.
+        if(signedArea(pts)<0)pts.reverse();
+        const colour=p.colouring==='By radius'?Math.min(colours-1,Math.floor(radius/pts.length*colours)):(i+band)%colours;
+        paths.push({pts,closed:true,layer:pens[colour]});budget-=pts.length;
+      }
+    }
+    return applyStyle({paths},ins[0]);
+  },
 };
 ```
 
@@ -19538,31 +20198,310 @@ export default {
 ## image.js
 
 ```js
-import { Pin, EMPTY, mulberry32, noise2, applyStyle, pathLength } from "../helpers.js";
+import { Pin, EMPTY, PENS, mulberry32, noise2, pathLength, applyStyle } from "../helpers.js";
 
 export default {
   key: "image",
-    name: "Image", cat: "gen", group: "textimg", fileImage: true,
-    ins: [Pin("style", "Style")], outs: [Pin("paths")],
+    name: "Image", cat: "gen", group: "textimg", fileImage: true, imageMax: 640,
+    desc: "Turn a photo or a wired drawing into real pen paths. Connect any blue Paths output to Drawing; Auto uses the connected drawing, otherwise the loaded image. Source can force Image (file) or Drawing (wired). Drawing stroke mm sets the width used to interpret source lines, not the output pen width. Fill closed shapes uses even-odd interiors per source pen, preserving nested holes. Open lines stay strokes. Drawing keeps its canvas position and is clipped to Margin; source pen colours supply the image colours. Empty wired drawings stay empty. Dense drawings reduce raster detail across the whole sheet. Organic dots turns tone into varied circles, with Outline, Spiral fill or Concentric rings. Short strokes follows image contours, a flow field or a fixed angle; Shadow passes adds ink in darker areas. Cross stitches makes a woven interpretation. Square weave converts tone into the area of staggered squares, with Outline, Hatch fill or alternating Woven fill. Set Jitter to 0 for regular rows; Square layout also offers an aligned Grid. These four modes support 1–6 selected pens: Source colours chooses the closest ink from your Pens palette, Tone bands assigns light-to-dark ranges (Main pen is lightest). Colours change pen assignments without changing geometry. Spacing, Strength, Gamma and White cutoff tune the image; Jitter loosens the rows. Fill / pen pitch should match your pen width. Very dense settings thin marks across the whole image to stay within the point budget. New images load at up to 640 px; reload an older photo for more detail. The five earlier render modes retain their original geometry and single-pen behavior. No image is uploaded to a server.",
+    // Keep Style at port 0 so existing patches keep their connections.
+    ins: [Pin("style", "Style"), Pin("paths", "Drawing")], outs: [Pin("paths")],
     params: [
+      { key: "source", label: "Source", type: "select", options: ["Auto", "Image (file)", "Drawing (wired)"], def: "Auto" },
       { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
-      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)"], def: "Scanline wave" },
+      { key: "drawingWidth", label: "Drawing stroke mm", type: "slider", min: 0.2, max: 12, step: 0.1, def: 1.8, showIf: p => p.source !== "Image (file)" },
+      { key: "drawingFill", label: "Fill closed shapes", type: "check", def: false, showIf: p => p.source !== "Image (file)" },
+      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)", "Organic dots", "Short strokes", "Cross stitches", "Square weave"], def: "Scanline wave" },
       { key: "cell", label: "Cell / spacing mm", type: "slider", min: 0.8, max: 12, step: 0.1, def: 2.4 },
       { key: "strength", label: "Strength", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.8 },
       { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
       { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.06 },
       { key: "invert", label: "Invert", type: "check", def: false },
-      { key: "levels", label: "Contour levels", type: "slider", min: 1, max: 6, step: 1, def: 3 },
-      { key: "low", label: "Lowest threshold", type: "slider", min: 0.05, max: 0.9, step: 0.05, def: 0.25 },
-      { key: "high", label: "Highest threshold", type: "slider", min: 0.1, max: 0.95, step: 0.05, def: 0.75 },
-      { key: "minlen", label: "Min contour mm", type: "slider", min: 0, max: 30, step: 1, def: 5 },
+      { key: "levels", label: "Contour levels", type: "slider", min: 1, max: 6, step: 1, def: 3, showIf: p => p.mode === "Contours (trace)" },
+      { key: "low", label: "Lowest threshold", type: "slider", min: 0.05, max: 0.9, step: 0.05, def: 0.25, showIf: p => p.mode === "Contours (trace)" },
+      { key: "high", label: "Highest threshold", type: "slider", min: 0.1, max: 0.95, step: 0.05, def: 0.75, showIf: p => p.mode === "Contours (trace)" },
+      { key: "minlen", label: "Min contour mm", type: "slider", min: 0, max: 30, step: 1, def: 5, showIf: p => p.mode === "Contours (trace)" },
+      { key: "dotfill", label: "Dot fill", type: "select", options: ["Spiral fill", "Outline", "Concentric rings"], def: "Spiral fill", showIf: p => p.mode === "Organic dots" },
+      { key: "squarefill", label: "Square fill", type: "select", options: ["Hatch fill", "Outline", "Woven fill"], def: "Hatch fill", showIf: p => p.mode === "Square weave" },
+      { key: "squarelayout", label: "Square layout", type: "select", options: ["Staggered", "Grid"], def: "Staggered", showIf: p => p.mode === "Square weave" },
+      { key: "direction", label: "Stroke direction", type: "select", options: ["Image contours", "Flow field", "Fixed angle"], def: "Image contours", showIf: p => ["Short strokes", "Cross stitches"].includes(p.mode) },
+      { key: "angle", label: "Base angle °", type: "slider", min: -180, max: 180, step: 1, def: 75, showIf: p => ["Short strokes", "Cross stitches"].includes(p.mode) },
+      { key: "flow", label: "Follow / flow", type: "slider", min: 0, max: 1, step: 0.05, def: 0.75, showIf: p => ["Short strokes", "Cross stitches"].includes(p.mode) && p.direction !== "Fixed angle" },
+      { key: "passes", label: "Shadow passes", type: "slider", min: 1, max: 4, step: 1, def: 3, showIf: p => ["Short strokes", "Cross stitches"].includes(p.mode) },
+      { key: "jitter", label: "Jitter", type: "slider", min: 0, max: 0.45, step: 0.05, def: 0.25, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) },
+      { key: "pitch", label: "Fill / pen pitch mm", type: "slider", min: 0.15, max: 2, step: 0.05, def: 0.3, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) },
+      { key: "colours", label: "Colours", type: "slider", min: 1, max: 6, step: 1, def: 1, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) },
+      { key: "colourmap", label: "Colour mapping", type: "select", options: ["Source colours", "Tone bands"], def: "Source colours", showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours > 1 },
+      { key: "pen2", label: "Pen 2", type: "pen", def: 4, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 2 },
+      { key: "pen3", label: "Pen 3", type: "pen", def: 6, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 3 },
+      { key: "pen4", label: "Pen 4", type: "pen", def: 1, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 4 },
+      { key: "pen5", label: "Pen 5", type: "pen", def: 5, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 5 },
+      { key: "pen6", label: "Pen 6", type: "pen", def: 10, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 6 },
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
       { key: "seed", label: "Seed", type: "seed", def: 139 },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
+    _artNumber(v, fallback, lo, hi) {
+      return Math.max(lo, Math.min(hi, Number.isFinite(Number(v)) ? Number(v) : fallback));
+    },
+    _artFit(p, ctx, img) {
+      const n = this._artNumber;
+      const W = n(ctx.W, 297, 0, 100000), H = n(ctx.H, 210, 0, 100000);
+      const m = n(p.margin, 12, 0, Math.min(W, H) / 2);
+      if (!img || !Number.isInteger(img.w) || !Number.isInteger(img.h) || img.w < 1 || img.h < 1 || img.w * img.h > 2560000 || !img.g || img.g.length !== img.w * img.h || W - 2*m < 1 || H - 2*m < 1) return null;
+      const sc = Math.min((W - 2*m) / img.w, (H - 2*m) / img.h);
+      return { W, H, m, sc, w: img.w*sc, h: img.h*sc, x: (W-img.w*sc)/2, y: (H-img.h*sc)/2 };
+    },
+    _usesDrawing(p, ins) {
+      return p.source === "Drawing (wired)" || (p.source !== "Image (file)" && ins?.[1] != null);
+    },
+    _drawingFrame(p, ctx, resolution=640) {
+      const n=this._artNumber, W=n(ctx.W,297,0,100000), H=n(ctx.H,210,0,100000);
+      const m=n(p.margin,12,0,Math.min(W,H)/2), w=W-2*m,h=H-2*m;
+      if(w<1 || h<1)return null;
+      const scale=resolution/Math.max(w,h);
+      const dims={w:Math.max(1,Math.round(w*scale)),h:Math.max(1,Math.round(h*scale))};
+      return { ...dims, fit:this._artFit({...p,margin:m},ctx,{...dims,g:{length:dims.w*dims.h}}) };
+    },
+    _drawingImage(p,ctx,src,frameOnly=false) {
+      if(!src?.paths?.length)return null;
+      const n=this._artNumber, initial=this._drawingFrame(p,ctx);
+      if(!initial)return null;
+      const width=n(p.drawingWidth,1.8,0.1,30), segments=[],polys=[];
+      const {fit:f}=initial;
+      // Clip before raster work: huge off-page coordinates must not expand loops.
+      const clip=(a,b)=>{
+        let t0=0,t1=1;const dx=b[0]-a[0],dy=b[1]-a[1];
+        if(!Number.isFinite(dx)||!Number.isFinite(dy))return null;
+        for(const [v,q] of [[-dx,a[0]-f.x+width],[dx,f.x+f.w+width-a[0]],[-dy,a[1]-f.y+width],[dy,f.y+f.h+width-a[1]]]){
+          if(Math.abs(v)<1e-12){if(q<0)return null;}
+          else{const t=q/v;if(v<0)t0=Math.max(t0,t);else t1=Math.min(t1,t);if(t0>t1)return null;}
+        }
+        return [[a[0]+dx*t0,a[1]+dy*t0],[a[0]+dx*t1,a[1]+dy*t1]];
+      };
+      let length=0;
+      for(const path of src.paths){
+        if(!Array.isArray(path?.pts)||path.pts.length<2)continue;
+        const pts=path.pts,valid=pt=>Array.isArray(pt)&&Number.isFinite(pt[0])&&Number.isFinite(pt[1]);
+        const layer=Math.round(n(path.layer,0,0,11));
+        if(p.drawingFill && path.closed && pts.length>=3 && pts.every(valid))polys.push({pts,layer});
+        const count=pts.length-(path.closed?0:1);
+        for(let i=0;i<count;i++){
+          const a=pts[i],b=pts[(i+1)%pts.length];if(!valid(a)||!valid(b))continue;
+          const s=clip(a,b);if(!s)continue;
+          segments.push({a:s[0],b:s[1],layer});length+=Math.hypot(s[1][0]-s[0][0],s[1][1]-s[0][1]);
+        }
+      }
+      if(!segments.length&&!polys.length)return null;
+      // Keep dense source drawings responsive by reducing the entire raster,
+      // never dropping the final paths or one side of the composition.
+      const estimate=(length*width+segments.length*width*width)*640*640/Math.max(f.w*f.h,1);
+      const resolution=Math.max(96,Math.min(640,Math.floor(640*Math.sqrt(6000000/Math.max(estimate,1)))));
+      const {w,h,fit}=this._drawingFrame(p,ctx,resolution), size=w*h;
+      if(frameOnly)return {w,h,fit};
+      const layers=new Map(), field=layer=>{if(!layers.has(layer))layers.set(layer,new Float32Array(size));return layers.get(layer);};
+      const px=x=>(x-fit.x)/fit.sc,py=y=>(y-fit.y)/fit.sc;
+      if(p.drawingFill){
+        // Even-odd interiors per source pen preserve nested holes, independent
+        // of winding. Open paths remain strokes; pen-up travel is never drawn.
+        const rows=new Map();
+        for(const {pts,layer} of polys){
+          if(!rows.has(layer))rows.set(layer,Array.from({length:h},()=>[]));
+          const scan=rows.get(layer);
+          for(let i=0;i<pts.length;i++){
+            const a=pts[i],b=pts[(i+1)%pts.length];if(a[1]===b[1])continue;
+            const lo=Math.max(0,Math.ceil(py(Math.min(a[1],b[1]))-0.5)),hi=Math.min(h-1,Math.ceil(py(Math.max(a[1],b[1]))-0.5)-1);
+            for(let y=lo;y<=hi;y++){
+              const yy=fit.y+(y+0.5)*fit.sc,t=(yy-a[1])/(b[1]-a[1]);
+              const x=px(a[0]*(1-t)+b[0]*t);if(Number.isFinite(x))scan[y].push(x);
+            }
+          }
+        }
+        for(const [layer,scan]of rows){const cov=field(layer);
+          for(let y=0;y<h;y++){
+            const xs=scan[y].sort((a,b)=>a-b);
+            for(let i=0;i+1<xs.length;i+=2){
+              const lo=Math.max(0,Math.floor(xs[i])),hi=Math.min(w-1,Math.ceil(xs[i+1])-1);
+              for(let x=lo;x<=hi;x++)cov[y*w+x]=Math.max(cov[y*w+x],Math.min(x+1,xs[i+1])-Math.max(x,xs[i]));
+            }
+          }
+        }
+      }
+      const radius=width/(2*fit.sc),reach=radius+0.5;
+      for(const {a,b,layer}of segments){
+        const ax=px(a[0]),ay=py(a[1]),bx=px(b[0]),by=py(b[1]),dx=bx-ax,dy=by-ay,len2=dx*dx+dy*dy,cov=field(layer);
+        const lo=Math.max(0,Math.ceil(Math.min(ay,by)-reach-0.5)),hi=Math.min(h-1,Math.floor(Math.max(ay,by)+reach-0.5));
+        for(let y=lo;y<=hi;y++){
+          const cy=y+0.5;
+          let t0=0,t1=1;
+          if(Math.abs(dy)>1e-12){const u=(cy-reach-ay)/dy,v=(cy+reach-ay)/dy;t0=Math.max(0,Math.min(u,v));t1=Math.min(1,Math.max(u,v));if(t0>t1)continue;}
+          const x0=ax+dx*t0,x1=ax+dx*t1;
+          const left=Math.max(0,Math.ceil(Math.min(x0,x1)-reach-0.5)),right=Math.min(w-1,Math.floor(Math.max(x0,x1)+reach-0.5));
+          for(let x=left;x<=right;x++){
+            const cx=x+0.5,t=len2>1e-18?Math.max(0,Math.min(1,((cx-ax)*dx+(cy-ay)*dy)/len2)):0;
+            const coverage=Math.max(0,Math.min(1,reach-Math.hypot(cx-ax-dx*t,cy-ay-dy*t)));
+            const k=y*w+x;cov[k]=Math.max(cov[k],coverage);
+          }
+        }
+      }
+      const rgb=new Float32Array(size*3).fill(255),g=new Float32Array(size);
+      for(const [layer,cov]of [...layers].sort((a,b)=>a[0]-b[0])){
+        const colour=[1,3,5].map(k=>parseInt(PENS[layer].c.slice(k,k+2),16));
+        for(let i=0;i<size;i++)if(cov[i])for(let k=0;k<3;k++)rgb[i*3+k]=rgb[i*3+k]*(1-cov[i])+colour[k]*cov[i];
+      }
+      for(let i=0;i<size;i++)g[i]=1-(0.299*rgb[i*3]+0.587*rgb[i*3+1]+0.114*rgb[i*3+2])/255;
+      return {w,h,g,rgb};
+    },
+    overlay(p, ctx, ins, node) {
+      const fit = this._usesDrawing(p,ins) ? this._drawingImage(p,ctx,ins?.[1],true)?.fit : this._artFit(p, ctx, node?.data?.img);
+      return fit ? [{ kind: "rect", x: fit.x, y: fit.y, w: fit.w, h: fit.h }] : [];
+    },
+    _artSampler(img, fit) {
+      const rgb = img.rgb?.length === img.w * img.h * 3;
+      const sample = (x, y, channel = -1) => {
+        const u = Math.max(0, Math.min(img.w-1, (x-fit.x)/fit.sc-0.5));
+        const v = Math.max(0, Math.min(img.h-1, (y-fit.y)/fit.sc-0.5));
+        const ix=Math.floor(u), iy=Math.floor(v), fx=u-ix, fy=v-iy;
+        const at=(a,b)=>{
+          const k=Math.min(img.h-1,b)*img.w+Math.min(img.w-1,a);
+          const value=channel<0 ? img.g[k] : rgb ? img.rgb[k*3+channel]/255 : 1-img.g[k];
+          return Number.isFinite(value) ? Math.max(0,Math.min(1,value)) : channel<0 ? 0 : 1;
+        };
+        return at(ix,iy)*(1-fx)*(1-fy)+at(ix+1,iy)*fx*(1-fy)+at(ix,iy+1)*(1-fx)*fy+at(ix+1,iy+1)*fx*fy;
+      };
+      return { sample, rgb: Boolean(rgb) };
+    },
+    _artCompute(ins, p, ctx, img) {
+      const fit=this._artFit(p,ctx,img);
+      if(!fit)return EMPTY;
+      const n=this._artNumber, {sample,rgb}=this._artSampler(img,fit);
+      const seed=Math.round(n(p.seed,139,-2147483648,2147483647));
+      const rng=mulberry32(seed*5479+101);
+      const cell=n(p.cell,2.4,0.4,30), strength=n(p.strength,0.8,0.1,1);
+      const gamma=n(p.gamma,1,0.3,3), cutoff=n(p.cutoff,0.06,0,0.98);
+      const jitter=n(p.jitter,0.25,0,0.45), pitch=n(p.pitch,0.3,0.15,2);
+      const colours=Math.round(n(p.colours,1,1,6));
+      const pens=[['layer',0],['pen2',4],['pen3',6],['pen4',1],['pen5',5],['pen6',10]].slice(0,colours).map(([key,def])=>Math.round(n(p[key],def,0,11)));
+      const palette=pens.map(i=>{const hex=PENS[i].c;return [1,3,5].map(k=>parseInt(hex.slice(k,k+2),16)/255);});
+      const tone=(x,y)=>Math.pow(p.invert ? 1-sample(x,y) : sample(x,y),gamma);
+      const ink=(x,y,d)=>{
+        if(colours===1)return pens[0];
+        if(p.colourmap!=='Source colours' || !rgb)return pens[Math.min(colours-1,Math.floor(d*colours))];
+        const c=[0,1,2].map(k=>sample(x,y,k));
+        let best=0,dist=Infinity;
+        palette.forEach((q,i)=>{const e=0.299*(c[0]-q[0])**2+0.587*(c[1]-q[1])**2+0.114*(c[2]-q[2])**2;if(e<dist){dist=e;best=i;}});
+        return pens[best];
+      };
+      const dots=p.mode==='Organic dots', cross=p.mode==='Cross stitches', squares=p.mode==='Square weave';
+      // Cap candidate work across the WHOLE fitted image, never stop at a row.
+      const step=Math.max(cell,Math.sqrt(fit.w*fit.h/14000));
+      const dy=squares ? step : step*Math.sqrt(3)/2, marks=[];
+      for(let row=0,y=fit.y+dy/2;y<fit.y+fit.h;y+=dy,row++) {
+        const stagger=!(squares && p.squarelayout==='Grid');
+        for(let col=0,x=fit.x+step*(stagger && row%2?1:0.5);x<fit.x+fit.w;x+=step,col++) {
+          const xx=x+(rng()-0.5)*step*jitter, yy=y+(rng()-0.5)*dy*jitter;
+          const d=tone(xx,yy), variation=0.8+0.2*rng();
+          if(d<=cutoff)continue;
+          const edge=Math.min(xx-fit.x,fit.x+fit.w-xx,yy-fit.y,fit.y+fit.h-yy);
+          // Keep each mark inside the image; neighbour spacing is resolved below.
+          const r=Math.min(edge,cell*0.46*strength*Math.sqrt(d)*(squares?1:variation),step*0.49);
+          if(r<0.055)continue;
+          marks.push({x:xx,y:yy,d,r,row,col,layer:ink(xx,yy,d),index:marks.length});
+        }
+      }
+      if(dots || squares){
+        const grid=new Map(),key=(x,y)=>x+","+y;
+        for(const m of marks){const k=key(Math.floor(m.x/step),Math.floor(m.y/step));if(!grid.has(k))grid.set(k,[]);grid.get(k).push(m);}
+        for(const m of marks){
+          const gx=Math.floor(m.x/step),gy=Math.floor(m.y/step);
+          for(let y=gy-1;y<=gy+1;y++)for(let x=gx-1;x<=gx+1;x++)for(const q of grid.get(key(x,y))||[]){
+            if(q!==m)m.r=Math.min(m.r,0.46*(squares ? Math.max(Math.abs(m.x-q.x),Math.abs(m.y-q.y)) : Math.hypot(m.x-q.x,m.y-q.y)));
+          }
+        }
+      }
+      // Random priority is seeded and independent of ink. If the point budget
+      // is reached, marks thin across the whole sheet rather than cropping it.
+      for(let i=marks.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[marks[i],marks[j]]=[marks[j],marks[i]];}
+      const chosen=[];let budget=112000;
+      const angle=n(p.angle,75,-36000,36000)*Math.PI/180;
+      const flow=n(p.flow,0.75,0,1), passes=Math.round(n(p.passes,3,1,4));
+      const direction=(x,y)=>{
+        if(p.direction==='Fixed angle')return angle;
+        const a=angle+(noise2(x*0.016,y*0.016,seed+41)-0.5)*flow*3;
+        if(p.direction==='Flow field')return a;
+        // A local structure tensor combines gradients as unoriented axes.
+        // Double-angle blending avoids flips where the image tangent wraps pi.
+        const e=Math.max(fit.sc,cell*0.55);let jxx=0,jyy=0,jxy=0;
+        for(const [ox,oy] of [[0,0],[-e,0],[e,0],[0,-e],[0,e]]){
+          const gx=sample(x+ox+e,y+oy)-sample(x+ox-e,y+oy);
+          const gy=sample(x+ox,y+oy+e)-sample(x+ox,y+oy-e);
+          jxx+=gx*gx;jyy+=gy*gy;jxy+=gx*gy;
+        }
+        const weight=Math.min(1,Math.hypot(jxx-jyy,2*jxy)*8)*flow;
+        const tangent=0.5*Math.atan2(2*jxy,jxx-jyy)+Math.PI/2;
+        return 0.5*Math.atan2((1-weight)*Math.sin(2*a)+weight*Math.sin(2*tangent),(1-weight)*Math.cos(2*a)+weight*Math.cos(2*tangent));
+      };
+      const segment=(x,y,a,len)=>{
+        const vx=Math.cos(a),vy=Math.sin(a);let half=len/2;
+        // Symmetric clipping preserves the direction, unlike XY clamping.
+        if(Math.abs(vx)>1e-8)half=Math.min(half,(x-fit.x)/Math.abs(vx),(fit.x+fit.w-x)/Math.abs(vx));
+        if(Math.abs(vy)>1e-8)half=Math.min(half,(y-fit.y)/Math.abs(vy),(fit.y+fit.h-y)/Math.abs(vy));
+        return half>0.025 ? [[x-vx*half,y-vy*half],[x+vx*half,y+vy*half]] : null;
+      };
+      for(const m of marks){
+        const paths=[];
+        const add=(pts,closed=false)=>{if(pts?.length>=2)paths.push({pts,closed,layer:m.layer});};
+        if(squares){
+          const r=m.r, corners=[[-r,-r],[r,-r],[r,r],[-r,r]];
+          const woven=p.squarefill==='Woven fill' && (m.row+m.col)%2===1;
+          const place=pts=>pts.map(([x,y])=>woven ? [m.x-y,m.y+x] : [m.x+x,m.y+y]);
+          if(p.squarefill==='Outline')add(place(corners),true);
+          else{
+            // Trace the boundary, then fill with one continuous serpentine.
+            // Interior rows are no further apart than the physical pen pitch.
+            const pts=[...corners,[-r,-r]], rows=Math.max(1,Math.ceil(2*r/pitch)-1);
+            for(let j=1;j<=rows;j++){
+              const y=-r+j*2*r/(rows+1), left=j%2? -r : r;
+              pts.push([left,y],[-left,y]);
+            }
+            add(place(pts));
+          }
+        }else if(dots){
+          const count=r=>Math.max(8,Math.min(64,Math.ceil(2*Math.PI*r/0.65)));
+          const ring=r=>{const N=count(r);add(Array.from({length:N},(_,i)=>{const a=i/N*2*Math.PI;return [m.x+Math.cos(a)*r,m.y+Math.sin(a)*r];}),true);};
+          if(p.dotfill==='Outline')ring(m.r);
+          else if(p.dotfill==='Concentric rings'){
+            ring(m.r);for(let r=m.r-pitch;r>pitch*0.3;r-=pitch)ring(r);
+          }else{
+            // One continuous Archimedean spiral, followed by its outside rim.
+            // Pitch is in mm and should approximately match the physical pen.
+            const turns=Math.max(0.65,m.r/pitch), steps=Math.min(900,Math.max(8,Math.ceil(Math.PI*m.r*turns/0.65)));
+            const pts=Array.from({length:steps+1},(_,i)=>{const t=i/steps,r=m.r*t,a=t*turns*2*Math.PI;return [m.x+Math.cos(a)*r,m.y+Math.sin(a)*r];});
+            const lastAngle=turns*2*Math.PI,N=count(m.r);
+            for(let i=1;i<=N;i++){const a=lastAngle+i/N*2*Math.PI;pts.push([m.x+Math.cos(a)*m.r,m.y+Math.sin(a)*m.r]);}
+            add(pts);
+          }
+        }else{
+          const a=direction(m.x,m.y),len=cell*strength*(0.16+0.92*m.d);
+          const N=1+Math.floor(m.d*(passes-0.001));
+          for(let k=0;k<N;k++){
+            const offset=(k-(N-1)/2)*Math.min(pitch,cell*0.2);
+            const x=m.x-Math.sin(a)*offset,y=m.y+Math.cos(a)*offset;
+            add(segment(x,y,a,len));
+            if(cross)add(segment(x,y,a+Math.PI/2,len*(0.4+0.6*m.d)));
+          }
+        }
+        const cost=paths.reduce((sum,q)=>sum+q.pts.length,0);
+        if(cost<=budget){chosen.push({index:m.index,paths});budget-=cost;}
+        if(budget<2)break;
+      }
+      chosen.sort((a,b)=>a.index-b.index);
+      return applyStyle({paths:chosen.flatMap(m=>m.paths)},ins[0]);
+    },
     compute(ins, p, ctx, node) {
-      const img = node && node.data && node.data.img;
+      const img = this._usesDrawing(p,ins) ? this._drawingImage(p,ctx,ins?.[1]) : node?.data?.img;
       if (!img) return EMPTY;
+      if (["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode)) return this._artCompute(ins, p, ctx, img);
       if (p.mode === "Contours (trace)") {
         /* verbatim traceimg body — merged 2.51; traceimg is a hidden alias */
       const { W, H } = ctx;
@@ -36131,33 +37070,239 @@ export default {
 ## ribbon.js
 
 ```js
-import { Pin, noise2, applyStyle } from "../helpers.js";
+import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "ribbon",
   name: "Ribbon",
   cat: "gen",
   group: "geometric",
-  desc: "A band of parallel filament lines following a noise-wandering spine, pinching and swelling with Width variation. Shape Line runs the spine left to right across the sheet; Shape Ring closes it into a loop around the canvas center (Ring radius sets the base size, Wander makes the loop breathe) with seamless periodic noise, every filament a closed pen stroke. Tip: Ring + high Width variation gives a hand-drawn wreath.",
+  desc: "A band of parallel filament lines following a noise-wandering spine, pinching and swelling with Width variation. Shape Line runs the spine left to right across the sheet; Shape Ring closes it into a loop around the canvas center (Ring radius sets the base size, Wander makes the loop breathe) with seamless periodic noise, every filament a closed pen stroke. Angular adds long straight spans and sharp offset corners: Free folds makes a seeded crossing path, Zigzag alternates across the sheet, and Star closes a polygonal star. No crossings grows an open seeded route with mixed left/right turns while checking the whole band and Clearance mm between separate spans; Turns is a maximum, so wide bands may make fewer turns. Clearance scales with width when fitting the page. Sharp joins use mitres, shortened to bevels past Corner limit. Crossings overprint; use Woven Ribbon for over/under gaps. Angular Fill Lines draws individual filaments; Stripes fills 1–6 pen bands with parallel strokes at Pen pitch. Stripe gap leaves white space between bands. Colours also assigns bands to Line and Ring filaments. Angular fits the whole band into Margin, shrinking width and pitch together only when necessary. Dense settings increase pitch to stay within the point budget. Use a pen matching the final pitch for solid-looking stripes; preview colours are opaque and real ink mixing depends on the pens and paper. Original one-pen Line and Ring geometry is unchanged.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "shape", label: "Shape", type: "select", options: ["Line", "Ring"], def: "Line" },
-    { key: "ringR", label: "Ring radius %", type: "slider", min: 20, max: 100, step: 1, def: 70 },
-    { key: "wander", label: "Wander mm", type: "slider", min: 0, max: 120, step: 1, def: 45 },
-    { key: "wscale", label: "Wander scale", type: "slider", min: 0.2, max: 4, step: 0.1, def: 1 },
+    { key: "shape", label: "Shape", type: "select", options: ["Line", "Ring", "Angular"], def: "Line" },
+    { key: "angularLayout", label: "Angular layout", type: "select", options: ["Free folds", "No crossings", "Zigzag", "Star"], def: "Free folds", showIf: p => p.shape === "Angular" },
+    { key: "turns", label: "Turns", type: "slider", min: 1, max: 40, step: 1, def: 9, showIf: p => p.shape === "Angular" && p.angularLayout !== "Star" },
+    { key: "clearance", label: "Clearance mm", type: "slider", min: 0, max: 40, step: 0.5, def: 6, showIf: p => p.shape === "Angular" && p.angularLayout === "No crossings" },
+    { key: "starPoints", label: "Star points", type: "slider", min: 5, max: 21, step: 2, def: 7, showIf: p => p.shape === "Angular" && p.angularLayout === "Star" },
+    { key: "join", label: "Corners", type: "select", options: ["Sharp", "Bevel"], def: "Sharp", showIf: p => p.shape === "Angular" },
+    { key: "miterLimit", label: "Corner limit", type: "slider", min: 1, max: 8, step: 0.25, def: 3, showIf: p => p.shape === "Angular" && p.join !== "Bevel" },
+    { key: "angularFill", label: "Angular fill", type: "select", options: ["Stripes", "Lines"], def: "Stripes", showIf: p => p.shape === "Angular" },
+    { key: "pitch", label: "Pen pitch mm", type: "slider", min: 0.15, max: 2, step: 0.05, def: 0.35, showIf: p => p.shape === "Angular" && p.angularFill !== "Lines" },
+    { key: "stripeGap", label: "Stripe gap mm", type: "slider", min: 0, max: 5, step: 0.1, def: 0.4, showIf: p => p.shape === "Angular" && p.angularFill !== "Lines" && p.colours > 1 },
+    { key: "rotate", label: "Rotate °", type: "slider", min: -180, max: 180, step: 1, def: 0, showIf: p => p.shape === "Angular" },
+    { key: "ringR", label: "Ring radius %", type: "slider", min: 20, max: 100, step: 1, def: 70, showIf: p => p.shape === "Ring" },
+    { key: "wander", label: "Wander mm", type: "slider", min: 0, max: 120, step: 1, def: 45, showIf: p => p.shape !== "Angular" },
+    { key: "wscale", label: "Wander scale", type: "slider", min: 0.2, max: 4, step: 0.1, def: 1, showIf: p => p.shape !== "Angular" },
     { key: "width", label: "Width mm", type: "slider", min: 2, max: 80, step: 0.5, def: 28 },
-    { key: "widthVar", label: "Width variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8 },
-    { key: "lines", label: "Lines", type: "slider", min: 1, max: 60, step: 1, def: 24 },
+    { key: "widthVar", label: "Width variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8, showIf: p => p.shape !== "Angular" },
+    { key: "lines", label: "Lines", type: "slider", min: 1, max: 60, step: 1, def: 24, showIf: p => p.shape !== "Angular" || p.angularFill === "Lines" },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
-    { key: "seed", label: "Seed", type: "seed", def: 27 },
+    { key: "seed", label: "Seed", type: "seed", def: 27, showIf: p => p.shape !== "Angular" || !p.angularLayout || ["Free folds", "No crossings"].includes(p.angularLayout) },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
+    { key: "colours", label: "Colours", type: "slider", min: 1, max: 6, step: 1, def: 1 },
+    { key: "pen2", label: "Pen 2", type: "pen", def: 5, showIf: p => p.colours >= 2 },
+    { key: "pen3", label: "Pen 3", type: "pen", def: 7, showIf: p => p.colours >= 3 },
+    { key: "pen4", label: "Pen 4", type: "pen", def: 9, showIf: p => p.colours >= 4 },
+    { key: "pen5", label: "Pen 5", type: "pen", def: 6, showIf: p => p.colours >= 5 },
+    { key: "pen6", label: "Pen 6", type: "pen", def: 3, showIf: p => p.colours >= 6 },
   ],
+  _pens(p) {
+    const n=Math.round(Math.max(1,Math.min(6,Number.isFinite(+p.colours)?+p.colours:1)));
+    return [p.layer,p.pen2,p.pen3,p.pen4,p.pen5,p.pen6].slice(0,n).map((v,i)=>Math.round(Math.max(0,Math.min(11,Number.isFinite(+v)?+v:i))));
+  },
+  overlay(p, ctx) {
+    if(p.shape!=="Angular")return [];
+    const W=Number.isFinite(+ctx.W)?Math.max(1,+ctx.W):210,H=Number.isFinite(+ctx.H)?Math.max(1,+ctx.H):297;
+    const m=Math.max(0,Math.min(Number.isFinite(+p.margin)?+p.margin:12,Math.min(W,H)/2));
+    return [{kind:"rect",x:m,y:m,w:W-2*m,h:H-2*m}];
+  },
+  // Offset a polyline by signed normal distance. Mitre intersections preserve
+  // parallel spacing on both adjoining spans; capped corners become bevels.
+  _offset(spine,d,closed,join,limit,safe=false) {
+    const count=spine.length,normals=[];
+    for(let i=0;i<(closed?count:count-1);i++){
+      const a=spine[i],b=spine[(i+1)%count],dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1;
+      normals.push([-dy/len,dx/len]);
+    }
+    const out=[];
+    const add=(p,n)=>{const q=[p[0]+n[0]*d,p[1]+n[1]*d],last=out[out.length-1];if(!last||Math.hypot(q[0]-last[0],q[1]-last[1])>1e-10)out.push(q);};
+    for(let i=0;i<count;i++){
+      const p=spine[i];
+      if(!closed&&(i===0||i===count-1)){add(p,normals[i===0?0:normals.length-1]);continue;}
+      const a=normals[(i-1+normals.length)%normals.length],b=normals[i%normals.length];
+      const den=1+a[0]*b[0]+a[1]*b[1];
+      const mitre=den>1e-9?[(a[0]+b[0])/den,(a[1]+b[1])/den]:null;
+      // Inside joins must meet at the mitre in the non-crossing layout:
+      // beveling both sides would loop back across the incoming stroke.
+      const inside=safe&&d*(a[0]*b[1]-a[1]*b[0])>0;
+      if(mitre&&(inside||join!=="Bevel"&&Math.hypot(...mitre)<=limit))add(p,mitre);
+      else{add(p,a);add(p,b);}
+    }
+    return out;
+  },
+  // The padded strip is a chain of convex quads. Non-adjacent quads must
+  // be disjoint; adjacent ones share only their transverse join edge.
+  _clearStrip(spine,radius) {
+    // Reserve each corner's full tangent reach on both adjoining spans.
+    // Opposite turns can cancel in a sharp envelope but still let a bevel
+    // run past the next inside join; absolute reaches prevent that fold-back.
+    const reach=spine.map((p,i)=>{
+      if(i===0||i===spine.length-1)return 0;
+      const a=spine[i-1],b=spine[i+1],ux=p[0]-a[0],uy=p[1]-a[1],vx=b[0]-p[0],vy=b[1]-p[1];
+      const dot=Math.max(-1,Math.min(1,(ux*vx+uy*vy)/(Math.hypot(ux,uy)*Math.hypot(vx,vy))));
+      return radius*Math.sqrt((1-dot)/Math.max(1e-12,1+dot));
+    });
+    for(let i=1;i<spine.length;i++)if(Math.hypot(spine[i][0]-spine[i-1][0],spine[i][1]-spine[i-1][1])<=reach[i-1]+reach[i]+1e-7)return false;
+    const left=this._offset(spine,radius,false,"Sharp",1e9);
+    const right=this._offset(spine,-radius,false,"Sharp",1e9);
+    const quads=[];
+    for(let i=0;i<spine.length-1;i++){
+      const q=[left[i],right[i],right[i+1],left[i+1]];
+      for(let k=0;k<4;k++){
+        const a=q[k],b=q[(k+1)%4],c=q[(k+2)%4];
+        if((b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0])<=1e-7)return false;
+      }
+      quads.push(q);
+    }
+    const separate=(a,b)=>{
+      for(const poly of [a,b])for(let k=0;k<4;k++){
+        const v=poly[k],w=poly[(k+1)%4],nx=v[1]-w[1],ny=w[0]-v[0];
+        let amin=Infinity,amax=-Infinity,bmin=Infinity,bmax=-Infinity;
+        for(const p of a){const t=p[0]*nx+p[1]*ny;amin=Math.min(amin,t);amax=Math.max(amax,t);}
+        for(const p of b){const t=p[0]*nx+p[1]*ny;bmin=Math.min(bmin,t);bmax=Math.max(bmax,t);}
+        if(amax<bmin-1e-7||bmax<amin-1e-7)return true;
+      }
+      return false;
+    };
+    // Only the final two quads change when a point is appended. The prefix
+    // was accepted on the previous iteration, so do not recheck its pairs.
+    for(let i=Math.max(0,quads.length-2);i<quads.length;i++)for(let j=0;j<i-1;j++){
+      if(!separate(quads[i],quads[j]))return false;
+    }
+    return true;
+  },
+  _clearRoute(aw,ah,width,gap,turns,rng) {
+    const radius=(width+gap)/2,point=()=>[(rng()-0.5)*aw*0.9,(rng()-0.5)*ah*0.9];
+    let best=[[-aw*0.4,0],[aw*0.4,0]],bestScore=0;
+    const minLength=Math.min(aw,ah)*0.16,maxLength=Math.min(aw,ah)*0.55;
+    for(let trial=0;trial<12;trial++){
+      const start=point(),side=Math.floor(rng()*4);
+      // Start at an edge and seek open space, rather than trapping both ends
+      // near the middle of an inward coil.
+      start[side%2]=(side<2?-1:1)*(side%2?ah:aw)*0.44;
+      const route=[start];let length=0,heading=0,lastTurn=0,sameTurns=0;
+      for(let step=0;step<turns+1;step++){
+        const a=route[route.length-1],prev=route[route.length-2];let chosen=null,score=-Infinity;
+        for(let attempt=0;attempt<80;attempt++){
+          const b=point(),dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy);
+          if(len<Math.max(1e-5,minLength)||len>maxLength)continue;
+          let angle=0,turn=0;
+          if(prev){
+            const px=a[0]-prev[0],py=a[1]-prev[1],dot=(px*dx+py*dy)/(Math.hypot(px,py)*len);
+            if(dot< -0.8||dot>0.92)continue;
+            angle=Math.atan2(px*dy-py*dx,px*dx+py*dy);turn=Math.sign(angle);
+            // Keep the heading within an open fan. Limit repeated same-side
+            // bends, but allow two in succession so it is not a rigid zigzag.
+            if(Math.abs(heading+angle)>Math.PI*0.85||turn===lastTurn&&sameTurns>=2)continue;
+          }
+          if(!this._clearStrip([...route,b],radius))continue;
+          let room=Math.min(aw,ah);
+          for(let i=0;i<route.length-1;i++){
+            const u=route[i],v=route[i+1],vx=v[0]-u[0],vy=v[1]-u[1];
+            const t=Math.max(0,Math.min(1,((b[0]-u[0])*vx+(b[1]-u[1])*vy)/(vx*vx+vy*vy)));
+            room=Math.min(room,Math.hypot(b[0]-u[0]-t*vx,b[1]-u[1]-t*vy));
+          }
+          const rank=room/Math.min(aw,ah)+(turn&&turn!==lastTurn?0.6:0)+rng()*0.45;
+          if(rank>score){chosen={b,len,angle,turn};score=rank;}
+        }
+        if(!chosen)break;
+        route.push(chosen.b);length+=chosen.len;heading+=chosen.angle;
+        sameTurns=chosen.turn===lastTurn?sameTurns+1:1;lastTurn=chosen.turn;
+      }
+      const score=route.length+length/(100*(aw+ah));
+      if(route.length>=2&&score>bestScore){best=route;bestScore=score;}
+      if(best.length===turns+2)break;
+    }
+    return best;
+  },
+  _angular(p,ctx) {
+    const num=(v,d,lo,hi)=>Math.max(lo,Math.min(hi,Number.isFinite(+v)?+v:d));
+    const W=num(ctx.W,210,1,10000),H=num(ctx.H,297,1,10000),m=num(p.margin,12,0,Math.min(W,H)/2);
+    const aw=W-2*m,ah=H-2*m;
+    if(aw<=0||ah<=0)return EMPTY;
+    const turns=Math.round(num(p.turns,9,1,80)),width=num(p.width,28,0.1,400);
+    const limit=num(p.miterLimit,3,1,8),palette=this._pens(p),rng=mulberry32(num(p.seed,27,-1e9,1e9)*7919+317);
+    const safe=p.angularLayout==="No crossings";
+    const spine=[];let closed=false;
+    if(safe){
+      spine.push(...this._clearRoute(aw,ah,width,num(p.clearance,6,0,200),turns,rng));
+    }else if(p.angularLayout==="Star"){
+      const n=2*Math.round((num(p.starPoints,7,5,41)-1)/2)+1,skip=(n-1)/2;
+      const r=Math.min(aw,ah)*0.45;
+      for(let i=0;i<n;i++){const a=-Math.PI/2+i*skip*2*Math.PI/n;spine.push([Math.cos(a)*r,Math.sin(a)*r]);}
+      closed=true;
+    }else if(p.angularLayout==="Zigzag"){
+      for(let i=0;i<turns+2;i++)spine.push([(i%2?1:-1)*aw*0.4,(i/(turns+1)-0.5)*ah*0.9]);
+    }else{
+      const point=()=>[(rng()-0.5)*aw*0.9,(rng()-0.5)*ah*0.9];
+      spine.push(point());
+      for(let i=0;i<turns+1;i++){
+        const a=spine[spine.length-1],prev=spine[spine.length-2];let best=null,score=-Infinity;
+        for(let attempt=0;attempt<64;attempt++){
+          const b=point(),dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy);
+          if(len<1e-6)continue;
+          let dot=0;
+          if(prev){const px=a[0]-prev[0],py=a[1]-prev[1];dot=(px*dx+py*dy)/(Math.hypot(px,py)*len);}
+          const valid=(!prev||dot>-0.85&&dot<0.85)&&len>Math.min(aw,ah)*0.32;
+          const rank=(valid?10000:0)+len-Math.max(0,Math.abs(dot)-0.85)*1000;
+          if(rank>score){best=b;score=rank;}
+          if(valid)break;
+        }
+        if(best)spine.push(best);
+      }
+    }
+    const angle=num(p.rotate,0,-36000,36000)*Math.PI/180,ca=Math.cos(angle),sa=Math.sin(angle);
+    const rotated=spine.map(([x,y])=>[x*ca-y*sa,x*sa+y*ca]);
+    if(rotated.length<2)return EMPTY;
+    // Reserve the two outer rails for fitting, even in the one-line case.
+    const rails=[this._offset(rotated,-width/2,closed,p.join,limit,safe),this._offset(rotated,width/2,closed,p.join,limit,safe)];
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    for(const pts of rails)for(const [x,y] of pts){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+    const scale=Math.min(1,aw/Math.max(1e-9,x1-x0),ah/Math.max(1e-9,y1-y0)),cx=(x0+x1)/2,cy=(y0+y1)/2;
+    const paths=[],maxTracks=Math.max(1,Math.min(2048,Math.floor(110000/(rotated.length*2))));
+    const emit=(d,layer)=>{
+      const pts=this._offset(rotated,d,closed,p.join,limit,safe).map(([x,y])=>[W/2+(x-cx)*scale,H/2+(y-cy)*scale]);
+      if(pts.length>=2)paths.push({pts,closed,layer});
+    };
+    if(p.angularFill==="Lines"){
+      const count=Math.round(num(p.lines,24,1,Math.min(400,maxTracks)));
+      for(let k=0;k<count;k++)emit(count===1?0:(k/(count-1)-0.5)*width,palette[Math.min(palette.length-1,Math.floor(k*palette.length/count))]);
+    }else{
+      const bandWidth=width/palette.length,gap=num(p.stripeGap,0.4,0,bandWidth*0.9);
+      const perBand=Math.max(2,Math.floor(maxTracks/palette.length));
+      const pitch=Math.max(num(p.pitch,0.35,0.1,20),bandWidth/(perBand-1));
+      for(let band=0;band<palette.length;band++){
+        const start=-width/2+band*bandWidth+(band?gap/2:0),end=-width/2+(band+1)*bandWidth-(band<palette.length-1?gap/2:0);
+        const n=Math.max(1,Math.ceil((end-start)/pitch));
+        for(let j=0;j<=n;j++){
+          // Adjacent zero-gap bands share an edge: assign it once, to the latter.
+          if(j===n&&band<palette.length-1&&gap===0)continue;
+          emit(start+(end-start)*j/n,palette[band]);
+        }
+      }
+    }
+    return {paths};
+  },
   compute(ins, p, ctx) {
+    if (p.shape === "Angular") return applyStyle(this._angular(p, ctx), ins[0]);
     const { W, H } = ctx;
     const K = Math.round(p.lines);
     const L = Math.round(p.layer);
     const paths = [];
+    const palette = this._pens(p);
+    const penAt = k => palette.length === 1 ? L : palette[Math.min(palette.length - 1, Math.floor(k * palette.length / K))];
 
     if (p.shape === "Ring") {
       /* ---- suljettu lenkki: periodinen kohina, ei saumaa ---- */
@@ -36195,7 +37340,7 @@ export default {
           const w = widthAt((i / N) * TAU);
           return [pt[0] + normals[i][0] * f * w, pt[1] + normals[i][1] * f * w];
         });
-        paths.push({ pts, closed: true, layer: L });
+        paths.push({ pts, closed: true, layer: penAt(k) });
       }
       return applyStyle({ paths }, ins[0]);
     }
@@ -36226,7 +37371,7 @@ export default {
         const w = widthAt(i / N);
         return [pt[0] + normals[i][0] * f * w, pt[1] + normals[i][1] * f * w];
       });
-      paths.push({ pts, closed: false, layer: L });
+      paths.push({ pts, closed: false, layer: penAt(k) });
     }
     return applyStyle({ paths }, ins[0]);
   },

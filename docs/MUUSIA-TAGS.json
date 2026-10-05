@@ -24,6 +24,13 @@
   "retro",
   "repeat"
  ],
+ "arc_mounds": [
+  "organic",
+  "round",
+  "hatch",
+  "layer",
+  "pens"
+ ],
  "array": [
   "combine",
   "grid"
@@ -245,12 +252,14 @@
   "scatter"
  ],
  "concrete": [
+  "animation",
   "clip",
   "image",
   "region",
   "scatter",
   "spiral",
-  "text"
+  "text",
+  "typography"
  ],
  "conformal": [
   "geometric",
@@ -281,6 +290,12 @@
  ],
  "copypoints": [
   "combine"
+ ],
+ "coral": [
+  "nature",
+  "organic",
+  "texture",
+  "pattern"
  ],
  "cracked_paint": [
   "connect",
@@ -1203,8 +1218,11 @@
   "penout"
  ],
  "ribbon": [
+  "angular",
   "geometric",
+  "hatch",
   "noise",
+  "pens",
   "round"
  ],
  "ribbontype": [

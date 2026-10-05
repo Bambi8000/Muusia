@@ -1,7 +1,7 @@
 {
   "appVersion": "2.106",
   "date": "2026-09-29",
-  "source": "Actual Muusia browser UI after English port-label correction",
+  "source": "Actual Muusia browser UI; top-level version/date apply unless an individual capture overrides them.",
   "canvas": {
     "W": 297,
     "H": 210
@@ -156,17 +156,22 @@
       "nodeKey": "image",
       "file": "image.png",
       "patch": "examples/image.muusia.json",
-      "width": 1120,
-      "height": 900,
-      "sha256": "839b5c20810ddff8570b103a899bb79258bb2497da245337355bc8d22f1e374c",
+      "width": 844,
+      "height": 818,
+      "sha256": "e62d77a893d354d3dd12f7faee35877f94eae3fd011265043afdc69abd7c8a55",
       "view": "focus",
       "frameIndex": 0,
       "requestedViewport": {
-        "width": 1120,
-        "height": 900
+        "width": 844,
+        "height": 818
       },
       "zoom": 1,
-      "selectedNode": "Image"
+      "selectedNode": "Image",
+      "appVersion": "2.110",
+      "date": "2026-10-05",
+      "sourceCommit": "e81eff14f8c1b3d718737b741367b827bcba80b5",
+      "workingTree": "Local Coral + Image batch; Drawing input and source controls added",
+      "sourceNodeSha256": "1d8a357fc1f2b1d03f31f17ce76d87c60c4cbd6760b0170abea417b2b4ea21cc"
     },
     {
       "nodeKey": "polystudio",

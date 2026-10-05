@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **302 files** (304 nodes total with
+- `src/defs/nodes/*.js` — one file per node, **304 files** (306 nodes total, including the local Coral and Arc Mounds batch, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 181, Modifiers 75). ESM format:
+  Generators 191, Modifiers 76). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -123,7 +123,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (302) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (304, including local Coral and Arc Mounds) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -1812,6 +1812,383 @@ according to the session's actual capabilities:
   Iris Learn lesson and real screenshots. Refresh Claude's project snapshot from
   the final main commit, then verify its manifest; Pages publication is verified
   against that exact pushed commit by the integrating session.
+
+- **W / local node batch** 2026-10-04 Astra: **Coral** (`coral`, gen/nature)
+  is ready for Daniel's visual review on `codex/coral-node-batch`, based on
+  `e81eff14f8c1b3d718737b741367b827bcba80b5`. Daniel requested several nodes
+  before the next commit/push: this is the first, still uncommitted and unpublished.
+  APP_VERSION remains 2.110; bump once when the complete batch is integrated.
+  Brain coral and Cells use a seeded Gray–Scott field; Radial coral uses warped
+  radial waves with a textured centre. Closed marching-squares contours have
+  exact edge stitching, a saddle decider and smoothed corners. Controls cover
+  density, growth, ridge width, edge texture, 1–4 actual contour bands, 1–6 pens
+  by whole contour or average radius, mm diameter, fit/exact sizing and placement.
+  A3 with 10 mm margins fits a 277 mm bounding circle. A one-entry field cache
+  avoids resimulation for pen/size/width/band changes; new fields can take a few
+  seconds, particularly at high Density/Growth. 112,000-point pre-Style budget.
+  Prototype imported through Node ⇣, baked with bake.mjs, matched to the source,
+  and lab copy removed; fresh built-in Help examples and actual Focus preview
+  checked. No engine/helper/exporter changes. Help includes Coral · Brain study
+  and Coral · Radial colours. Catalog/tags/node reference/source bundle updated;
+  303 node files / 305 total built-ins. `tools/render-coral.mjs` generates six
+  reproducible A3 studies and editable patches; local gallery at port 5188.
+  Validation: 178 Coral checks with real helpers; all 15 Help examples; catalog,
+  production build and all 18,073 Learn checks pass. Existing Learn reference
+  SVGs retain their valid scoped provenance. Actual final six-pen browser SVG:
+  A3 420 × 297 mm, 167 closed paths / 29,720 points in six pen groups, all
+  coordinates match node output within SVG's 0.005 mm rounding. SHA-256
+  `6df9cd990826851233c5ba3b33ee29d00a51b583f1133caba430cb070d4ffa04`.
+  Actual A4 297 × 210 mm G-code in the 330 × 240 mm Servo Z profile, route
+  optimization off: 30,586 lines, 167 pen-downs, five pen-change pauses, finite
+  in-bounds motion, all XY travels with the pen up, no bounds warning. SHA-256
+  `eeb5eb28035c7eb510fba655202426b8595890b9d0e22a80c5fbc5610a5770c3`.
+  Local export files, source-hash manifest and UI capture are in
+  `/tmp/muusia-coral-qa/`; review drawings in `/tmp/muusia-coral-pilot/`.
+  No hardware was run. Next: Daniel's next node in this batch, then a single
+  release integration, shared gate, commit/push and Claude project refresh.
+  Keep the work-state claim until batch integration; Claude's uploaded snapshot
+  still describes the released e81eff1 state, not this local work.
+
+- **W / local node batch** 2026-10-04 Astra: extend the existing **Image** node
+  (`image`), as Daniel requested, rather than adding another image-import node.
+  Same uncommitted `codex/coral-node-batch` based on e81eff1; Coral is retained,
+  APP_VERSION stays 2.110, total remains 305. New Render choices: Organic dots,
+  Short strokes and Cross stitches. Organic dots offers Outline / Spiral fill /
+  Concentric rings, seeded jitter and neighbour-aware circle spacing. Strokes
+  follow a local image structure tensor, seeded flow or a fixed angle; shadow
+  passes add parallel strokes, and cross stitches add the perpendicular family.
+  New modes select 1–6 pens using nearest actual Pens colours or light-to-dark
+  tone bands; grayscale-only old image data falls back to tone bands. Colour
+  changes preserve geometry. Work/point limits distribute reduced detail across
+  the whole fitted image, never truncate at one row. Dense filled work can thin
+  noticeably; increase spacing, or start with the A4 Help presets.
+  `imageMax: 640` uses the existing RGB intake seam; no engine/helper/exporter
+  changes. Confirmed a real Choose image import, Save and reload: 640 × 640
+  pixels, 409,600 grayscale values and 1,228,800 RGB values from the repository's
+  existing portrait fixture. Earlier saved images keep their stored resolution
+  until reloaded. The five earlier modes are byte-identical on a frozen baseline
+  fixture; the original Trace Image alias sweep still passes. Mode-specific
+  controls hide irrelevant fields. Baked the existing key through the lab/HMR
+  route and deleted the verified lab copy; did not import a duplicate built-in.
+  Added two Help templates (choose your own photo) and `tools/render-image-art.mjs`
+  for six reproducible studies/patches from decoded image data. Local review is
+  at port 5189; studies use the real browser-decoded photo, A4, 12 mm margins.
+  Checked actual Focus views for dots, short strokes and colours. Node docs,
+  search catalog and source bundle updated. Learn's first build correctly stopped
+  at `image.levels: conditional field needs an explicit explanation`; added
+  node-scoped visibility notes and updated the existing Image guide. Refreshed
+  its real Scanline wave screenshot at default 1280 × 720, with per-capture
+  v2.110/date/working-tree hash metadata. Existing Learn geometry is unchanged.
+  Validation: 1,516 new Image assertions, original Image/Trace oracles, all 17
+  Help templates, catalog and application build pass. Rebuilt Learn after its
+  content/capture updates: all 18,105 checks pass, including both unchanged
+  reference-export provenances. Browser six-ink dot SVG: A4 portrait, 4,870 paths,
+  86,580 points, six pen groups; every point matches node output within 0.005 mm.
+  SHA-256 `cd71c46eeb11ee75200338d0db8c58045714836618beede490310a02bc4d3190`.
+  Browser G-code: A4 landscape within the 330 × 240 mm Servo Z profile, route
+  optimization off, 106,091 lines, 4,870 drawing paths and five pen-change pauses;
+  every point matches the wide-canvas node output within 0.005 mm, finite motion,
+  all rapid XY moves pen-up, finishes pen-up, no bounds warning. SHA-256
+  `2e9df76fbfc5d1e9efc9ce06bd77bbf3cde2fecb54d363472abc5349958220fa`.
+  Evidence/manifest in `/tmp/muusia-image-qa/`, gallery `/tmp/muusia-image-art/`.
+  No hardware run. No commit, push, publication or Claude upload in this turn.
+  Next: Daniel reviews this second batch item or supplies the next one; integrate
+  the final batch once, rerun the shared release gate, then refresh Claude.
+
+- **W / local Image square extension** 2026-10-04 Astra: Daniel's staggered-square
+  reference adds **Square weave** to the existing Image Render menu. Darkness
+  controls square area; Square layout selects Staggered or aligned Grid. Jitter
+  0 gives regular rows. Square fill offers Outline, a continuous serpentine Hatch
+  fill, or Woven fill alternating horizontal/vertical hatches. Centreline bounds
+  stay separate even at maximum jitter; physical ink coverage depends on pen
+  width. The existing 1–6 pens, Source colours / Tone bands and point budget apply.
+  No new node, engine or export contract. Lab/bake verified and lab copy removed.
+  Added Image · Square weave in Help, English node/Learn controls and two review
+  studies at `http://127.0.0.1:5189/#squares` (eight studies total). Existing Image
+  Scanline wave capture still records its actual earlier source hash; it was not
+  relabelled as a new screenshot, and its shown control layout is unchanged.
+  Validation: 2,338 Image assertions including square area, staggering, bounds,
+  hatch pitch, non-overlap, colour geometry and the byte-identical previous eight
+  render modes; Image/Trace legacy oracles, all 18 Help examples, catalog, build
+  and all 18,109 Learn checks pass. Real browser fresh load, Outline/Grid change
+  and six-colour Woven fill checked. Browser SVG: 210 × 297 mm, 2,005 paths,
+  41,053 points, six ink groups, every point within 0.005 mm of node output;
+  SHA-256 `31da66c57f99414c11fce22e9c7f23d323dfdde36606f99c2f45ca36d2a638c2`.
+  Browser G-code: A4 wide, 49,104 lines, 2,005 drawing paths, five pen changes,
+  all XY rapids pen-up, ends pen-up, no bounds warning, point match within
+  0.005 mm; SHA-256
+  `af30f7232ba1691a27d6e646cfc394417b41e16a57783d5f5bbde4bfe03d5471`.
+  Evidence: `/tmp/muusia-image-square-qa/verification.json`, both browser exports
+  and actual UI capture. No hardware run. Same local `codex/coral-node-batch`,
+  base e81eff1 and APP_VERSION 2.110; no commit/push/publication/Claude upload.
+  Next: finish Daniel's node batch, integrate/version once, run the release gate
+  and refresh Claude's project after the resulting commit.
+
+- **W / local Image Drawing input** 2026-10-05 Astra: appended a blue **Drawing**
+  Paths input to Image (port 1); Style stays at port 0, preserving old patch wires.
+  Source Auto uses a connected drawing, otherwise the stored image; Image (file)
+  and Drawing (wired) explicitly select either source. Empty connected drawings
+  never fall back to stale photos. All nine render modes use this source seam.
+  Pure node-local rasterisation, no DOM or engine/export changes: clipped round
+  strokes with adjustable Drawing stroke mm, optional even-odd closed fills per
+  source pen (including nested holes), source RGB from actual Pens, no pen-up
+  connectors, original canvas placement inside the margin. Output Style remains
+  separate. Dense drawings reduce the full raster from 640 toward 96 px rather
+  than truncating source paths; the overlay uses the same adaptive fit. Very fine
+  drawing details can disappear: increase Drawing stroke mm or reduce mark spacing.
+  Added Image · Drawing to blocks Help example and two wired studies to the existing
+  gallery (`http://127.0.0.1:5189/#drawing-blocks`, ten studies total). Verified the
+  actual blue-wire drag from Lissajous into Drawing; output changed from 0 to 2,063
+  paths, and changing source Freq X 3 → 5 changed it to 2,802, then restored it.
+  Verified explicit Image (file) with no photo gives 0 and Auto restores the wire.
+  Source-free old photo modes are byte-identical, including the prior Square weave.
+  Validation: 93 Drawing-input assertions, 2,339 art/legacy assertions, Image/Trace
+  oracles and all 19 Help examples. Catalog, app build and all 18,114 Learn checks
+  pass. Image guide/conditional controls and actual 844 × 818 Focus PNG refreshed
+  on 2026-10-05, recorded local source hash, unchanged Scanline wave geometry.
+  Browser wired SVG: A4 wide, 2,063 paths / 31,669 points on Pen 0, all coordinates
+  match the real graph within 0.005 mm; SHA-256
+  `96386f84cc0cb7a724873dc848a4f410b3f135a72316824443ed1eb084929a5e`.
+  Browser G-code: 39,937 lines, 2,063 drawing paths, 2,064 pen-up XY travels,
+  ends pen-up, no bounds warnings, point match within 0.005 mm; SHA-256
+  `d1a4b7c422b0f0f77233275ea24e3aa1bdf5640b094acf4c7e857751032ba7bd`.
+  Evidence and current source hashes in `/tmp/muusia-image-input-qa/verification.json`.
+  No hardware run. Same uncommitted `codex/coral-node-batch`, base e81eff1,
+  APP_VERSION 2.110. No push/publication/Claude upload; finish Daniel's batch,
+  integrate/version once, rerun release gate and refresh Claude after commit.
+
+- **W / local Concrete Poetry motion** 2026-10-05 Astra: extended the existing
+  `concrete` node, retaining its key, Region/Style ports and all four legacy
+  layouts with byte-identical Motion Off output. Added Columns (1–4 columns,
+  alternating outer anchors, left/centre alignment, `|` row phrases) and twelve
+  real-geometry motions: Row squeeze, Word collapse, Wave, Breathing, Accordion,
+  Row slide, Ripple, Orbit, Vortex, Swarm, Letter flip and Typewriter. Word collapse
+  reflows an ordered subsequence such as THURSDAY 1 OCTOBER 2026 → THU 1 OCT 26;
+  removed letters shrink away. Non-subsequence targets use whole-row compression.
+  Timeline reads ctx.frameIdx / ctx.frameCount directly, Phase input is manual or
+  wired, integer Cycles loops without a seam, lags distribute the movement, and
+  Swarm is seeded. Margin clipping splits strokes without drawing connectors.
+  Point budget is 112,000 before Style; dense/long compositions adapt size and
+  retain a fixed glyph subset across frames. Region sets initial placement;
+  moving letters may leave its outline. Single-stroke uppercase font retained.
+  Added Poetry · Living columns / Living waves Help examples, animation/text tags,
+  full node docs, catalog/source regeneration, and two copy-only corrections in
+  App.jsx explaining built-in Timeline motion (no engine/export logic changed).
+  Local review gallery: `http://127.0.0.1:5190/`, generated by
+  `tools/render-concrete-motion.mjs`: 12 modes × 32 genuine computed SVG frames,
+  play/pause/scrub and editable patches. Not fabricated screenshots or export proof.
+  Validation: 831 focused assertions using actual helpers, all 5 layouts × 12
+  modes, frozen legacy hashes, deterministic seeds, period/Phase equivalence,
+  clipping, subsequence reflow, dense/long text limits and real Style input;
+  21 Help examples; catalog, app build and 18,114 Learn checks pass. Lab source
+  baked, body equality verified, graduated copy removed. Real browser fresh Help
+  load, Play advancing at 36 frames, Focus and Phase 0.25 checked. Browser SVGs
+  at frame indices 0 / 9: A4 portrait, 3,360 / 3,400 paths and 15,704 / 15,900
+  points; every coordinate matches the node within 0.005 mm. Phase 0.25 SVG is
+  byte-identical to Timeline frame 9/36. Capture SHA-256s:
+  `0370400aeaa521f38f2167650838f108c1ab4e0eebf46d65f182277371f6df18`
+  and `fe9c8a261c826cfcc43009beb7c13ea8abb14e07893706f2a47615365a4f65e1`.
+  Evidence: `/tmp/muusia-poetry-qa/` exports, verification and actual UI JPEG.
+  Multi-file download and hardware plotting were not exercised in this task.
+  Still local `codex/coral-node-batch`, base e81eff1, APP_VERSION 2.110; no
+  commit/push/publication/Claude upload. Finish Daniel's node batch, integrate
+  and version once, rerun the release gate and refresh Claude after commit.
+
+- **W / local Concrete Poetry Shift** 2026-10-05 Astra: on Daniel's follow-up,
+  added **Shift** as the thirteenth motion in the existing `concrete` node.
+  It permutes letters between fixed, uniformly spaced cells: **Rows**, **Columns**
+  or seeded **Shuffle**. Every destination gets one letter; order changes in whole
+  letter steps, with no disappearing-letter transition. Use Fill region for a
+  full text field. Spaces, `|` and unsupported glyphs are omitted in Shift only;
+  narrow letters are centred in their cells. Row lag applies to Rows, Amount is
+  hidden for Shift. The stable glyph budget reserves the largest glyph cost per
+  cell so changing letters cannot change the selected cells. Very dense text
+  still follows the documented adaptive-size / fixed-subset limit.
+  Added **Poetry · Shift field** to Help (22 examples total), expanded the local
+  motion gallery to 13 × 32 computed frames, updated node docs and regenerated
+  catalog/source bundle. Baked body equality checked, graduated lab removed.
+  Validation: 1,139 focused assertions, including analytic row/column order,
+  per-frame occupancy and letter-inventory conservation, seeded shuffle,
+  periodicity, whitespace handling, A3 budget, all 5 layouts × 13 motions and
+  frozen legacy output. Catalog, build and 18,114 Learn checks pass.
+  Actual browser: fresh Help load, Play advancing at 36 frames, all three Shift
+  patterns and Focus checked. Actual SVG exports at frame indices 0 / 9 are A4
+  portrait, 2,289 / 2,276 paths, 10,028 / 10,024 points; all coordinates match the
+  baked node within export rounding (0.005 mm). SHA-256s:
+  `7e3feed95e3f2a2e689371e23c0c5c4208e378d910e54cbda2f8ce25fb7f1f94`
+  and `fff305927133317e1b52e27651bd65633dc03b1d4dfe4aaa3a4981c405c1836d`.
+  Evidence and source hashes: `/tmp/muusia-poetry-shift-qa/verification.json`;
+  captures and actual Focus JPEG in the same directory. Gallery remains
+  `http://127.0.0.1:5190/`, app `http://127.0.0.1:5186/`.
+  Same uncommitted node batch, base e81eff1, APP_VERSION 2.110. No release or
+  Claude upload yet; integrate/version and refresh Claude after the batch commit.
+
+- **W / local Concrete Poetry Zoom** 2026-10-05 Astra: added **Zoom** as the
+  fourteenth motion on Daniel's request: one N grows into a large N built from
+  additional small Ns, keeping each small letter's physical size unchanged.
+  Every character in a phrase uses copies of itself. Zoom uses a centred text
+  block, spaces separate words, `|` starts a line; the existing Layout controls
+  are hidden for this motion. **Max rows**, **Cell spacing ×**, and **Zoom cycle**
+  control the cell grid and direction. **In & out** returns to one letter;
+  **Zoom in/out** restart at their cycle boundary. Growth is in whole-cell steps.
+  Timeline / Phase / Cycles work with the existing animation engine. Region
+  centres the block and admits stamp centres inside it; page clipping remains
+  optional. No glyph scaling, DOM, raster source or engine changes. Stroke-grid
+  cells are deduplicated at joints; a 112,000-point reserve and bounded sampling
+  stop extreme jobs without enlarging their small letters.
+  Added **Poetry · Zoom letter / Zoom word** Help examples (24 total), updated
+  docs/catalog/source bundle and the local gallery (14 motions × 32 frames).
+  Validation: 1,581 focused assertions include fixed-size emitted N geometry,
+  count growth, complete large-N rails/diagonal, O counter, no duplicate cells,
+  words/lines, cycle directions, Region/Style, budget, input purity, all earlier
+  motions and legacy hashes. Fresh browser Help load, 48-frame Play, both examples,
+  all cycle controls and manual Phase checked. Actual SVG frame 0 / 24 captures:
+  A4 portrait, 1 / 105 paths, 4 / 420 points; all coordinates match the built-in
+  node within 0.005 mm. SHA-256s:
+  `335c8d76e69b59d4767a120a3b15a539003245c8b09a2ab6928ef2ac310f151a`
+  and `471c8348964cdeaaa75798df7765bd71d0b75e5bdbc58e4126ba89fafed1f53b`.
+  Evidence, current source hashes and actual UI captures are in
+  `/tmp/muusia-poetry-zoom-qa/`. Catalog, build and 18,114 Learn checks pass.
+  Lab/built-in equality verified and graduated lab removed. Same local batch,
+  base e81eff1, APP_VERSION 2.110; no commit/push/publication/Claude upload yet.
+  Integrate/version once at the end of Daniel's batch and refresh Claude then.
+
+- **W / local Ribbon Angular** 2026-10-05 Astra: extended the existing `ribbon`
+  node on Daniel's sharp, multicolour ribbon reference. Kept Woven Ribbon separate:
+  its lattice-based over/under gaps are a different tool from Ribbon's overprinted
+  parallel bands. No third node or combined mega-node was added. **Shape Angular**
+  offers seeded **Free folds**, regular **Zigzag**, and a closed **Star** route;
+  straight segments meet at exact offset mitres or **Bevel** corners. **Corner
+  limit** bevels excessive mitres, **Turns / Star points / Rotate** shape the
+  route. **Angular fill** Lines uses individual filaments; **Stripes** uses real
+  parallel strokes at **Pen pitch mm**, with **Stripe gap mm** between colour
+  bands. **Colours** selects up to six explicit pens and also colours the existing
+  Line/Ring filaments without changing their geometry. Original defaults and
+  missing new fields preserve the old one-pen results exactly.
+  Angular fits the full outer envelope within Margin, uniformly shrinking only
+  if needed; width and pitch shrink together. Dense bands coarsen pitch under
+  the point budget. Preview/export colours are opaque; real ink mixing depends
+  on the pens/paper. Crossings intentionally keep both strokes, without weave
+  occlusion. Existing Style port index 0 and node key retained; no engine edits.
+  Added three Help examples: **Ribbon · Sharp stripes / Sharp zigzag / Star loop**
+  (27 total examples), docs/tags and generated catalog/source. Six local review
+  studies with editable patches: `http://127.0.0.1:5191/`, generated by
+  `tools/render-ribbon-angular.mjs`; these are computed review artwork, not export
+  evidence. App remains `http://127.0.0.1:5186/`.
+  Validation: 352 focused assertions cover analytic offsets/closure, capped
+  corners, all layouts/fills/joins and 1–6 pens, seeds, rotation, full envelope
+  bounds, extreme budgets, Style and frozen Line/Ring hashes. Existing Ribbon
+  validator and all 27 examples pass. Fresh real-app Help load, shape/layout/
+  corner/fill controls and Focus checked. Browser SVG: A3 portrait, six matching
+  pen groups, 92 paths / 1,288 points; SHA-256
+  `1f82257372abd564d6d843d531e2bd8bb14b9570bdbb199c72aa47957d757d66`.
+  The current machine profile is 330 × 240 mm: A3 G-code correctly warned of
+  out-of-bounds moves. Recaptured the G-code verification at A4 landscape:
+  92 paths / 1,012 points, six pens, five pen-change pauses, all travel pen-up,
+  ending pen-up, no bounds warnings; SHA-256
+  `7e73ebf85fbdb3c2138989e84e5e7a6f6104adc26edb57763e7e1f4afcc1f582`.
+  Both verified exports match actual node coordinates within 0.005 mm. No
+  hardware run or machine-setting change. Evidence/source hashes and screenshots:
+  `/tmp/muusia-ribbon-qa/verification.json`. Catalog, build and 18,114 Learn checks
+  pass. Lab body equality checked and graduated copy removed. Same uncommitted
+  `codex/coral-node-batch`, base e81eff1, APP_VERSION 2.110. Finish the node batch,
+  integrate/version once, then commit/push and refresh Claude under Daniel's scope.
+
+- **W / local Ribbon palette** 2026-10-05 Astra: Daniel requested colours
+  distinct from the reference. Ribbon's three Help examples and six local gallery
+  studies now use Purple, Magenta, Gray, Teal, Green and Black (five in Star;
+  the monochrome study stays Black). New node extra-pen defaults use the same
+  colour family; the original one-pen Black default and saved pen choices remain.
+  No geometry or global pen palette changes. Rebuilt gallery patches/SVGs and
+  source bundle, checked the gallery visually, and passed 352 Ribbon assertions,
+  all 27 Help examples, catalog/build and 18,114 Learn checks. The browser export
+  hashes in the previous entry describe the earlier palette; no new machine
+  export or hardware run was needed for this colour-only update. Still local on
+  `codex/coral-node-batch`; include with the pending batch integration.
+
+- **W / local Ribbon No crossings** 2026-10-05 Astra: added Angular layout
+  **No crossings**, a deterministic seeded route that rejects collisions of the
+  complete padded band, including its corner envelope. **Clearance mm** reserves
+  space between non-adjacent spans; **Turns** is a maximum and crowded settings
+  can produce a shorter route. Clearance shrinks with the width when page fitting
+  is needed. The convex strip test prevents fold-backs; inner corners meet at a
+  mitre, while Sharp/Bevel and Corner limit control outside joins in this layout.
+  Existing layouts and legacy Line/Ring results are unchanged. Added **Ribbon ·
+  No crossings** in Help (28 examples) and as the first local gallery study
+  (seven studies). No new node or engine changes. Node source graduated through
+  lab/bake and equality checked before deleting the lab copy.
+  Validation: 496 assertions including an independent emitted-segment collision
+  oracle across seeds/widths/corners, extreme crowded cases, full-band clearance,
+  deterministic generation, bounds and legacy hashes; original Ribbon validator,
+  all 28 Help examples, catalog/build and 18,114 Learn checks pass. Fresh app load,
+  No crossings and Sharp/Bevel controls visually checked. Actual browser exports:
+  A3 SVG 92 paths / 1,058 points, six pen groups, SHA-256
+  `e2cfbfbffded3f8f55f4fed345f1e14f0c8df9e2dfb36ce7664d21806b276c91`;
+  A4 landscape G-code 92 paths / 828 points, five pen-change pauses, all travel
+  pen-up, ends pen-up, no bounds warnings, SHA-256
+  `8510d5bc4315cc24e50b323ccef6ce50447bc5dfa59f6e57cd68d0b0f54381f2`.
+  Both match actual node coordinates within 0.005 mm. Evidence/source hashes and
+  app screenshot: `/tmp/muusia-ribbon-no-crossings-qa/`. No hardware run.
+  Same local uncommitted batch on `codex/coral-node-batch`, APP_VERSION 2.110.
+
+- **W / local Ribbon open turns** 2026-10-05 Astra: Daniel requested that
+  No crossings need not turn inward. The route now starts near an edge, seeks
+  open space with shorter spans, mixes left/right bends and limits repeated
+  same-side turns and accumulated winding. The A3 example retains nine turns
+  in an open meandering composition. Full-band clearance still applies. Added
+  absolute corner-tangent reservations: tight opposite turns must leave enough
+  span for the outside bevel and the next inside join. No new node/control or
+  engine edit. Help/gallery copy and generated source/catalog updated.
+  Validation: 760 Ribbon assertions (including mixed turn signs, bounded winding,
+  collision/clearance and tight-corner regressions), legacy Ribbon checks, all
+  28 examples and catalog/build/Learn pass. Fresh Muusia load and Focus checked.
+  New browser SVG A3: 92 paths / 1,012 points, six pens, SHA-256
+  `84330e2a2d74c8e601ec7baaf10efcc2ed20da2d6ee922313bb7174a7732c5eb`;
+  G-code A4 landscape: 92 paths / 920 points, five pen changes, no bounds warnings,
+  travel/ending pen-up, SHA-256
+  `567ba119f74a2ef890a5b173c77584db377481533ca78f04c240257a6667610d`.
+  Both match current node coordinates within 0.005 mm. Evidence and screenshot:
+  `/tmp/muusia-ribbon-open-turns-qa/`. Previous No crossings captures describe the
+  superseded inward-prone route. Lab/baked equality verified; lab removed.
+  Same local uncommitted batch, no hardware run or publication.
+
+- **W / Arc Mounds and completed node batch** 2026-10-05 Astra: added
+  **Arc Mounds** (`arc_mounds`, gen/organic), Daniel's final node in this batch.
+  Rounded overlapping bodies contain only curved pen paths, with analytic
+  segment/ellipse foreground clipping and no opaque fills. Field and Single,
+  physical width, fullness, overlap, seeded variation, arc flow/tilt, pitch,
+  optional silhouette and 1–6 whole-body pens. Daniel's follow-up requested
+  stronger size modulation and more sensual forms: **Size contrast** now spans
+  small and large bodies; **Body curves / Curve scale mm** add soft asymmetry,
+  fuller lobes and narrower waists through two boundary-pinned invertible shears.
+  The warp preserves depth ordering and page bounds. Dense settings regenerate
+  with coarser pitch/sampling for a full-page 110,000-point pre-Style budget.
+  Lab/baked equality verified before lab deletion. Three Help examples added
+  (31 total); docs/tags/catalog/source updated, 304 node files / 306 built-ins,
+  191 generators. Six visual studies/patches: `http://127.0.0.1:5192/` generated
+  by `tools/render-arc-mounds.mjs`. Fresh built-in app/Focus checked. Default A3
+  drawing: 1,589 paths / 103,259 points; cold computation about 0.2 s locally.
+  Validation: 309 Arc Mounds assertions cover analytic occlusion, rotated ellipse
+  and page clipping, curve continuity, bounds/budget, no filled payloads, warp
+  invertibility, size contrast, pen-independent geometry and actual Style.
+  Browser three-ink SVG A3 matches actual geometry within 0.005 mm, SHA-256
+  `f59df635666d49b08ec9887618189d44d35d07737babf8eb6171bec8b42c0a66`.
+  A4 landscape G-code: 826 paths / 52,302 points including closed returns, three
+  pens / two changes, no bounds warnings, travel and ending pen-up; SHA-256
+  `ad8ed1fba1cb312e0cb925f89d7613472d38925cd39b6849faf6823cac95c42d`.
+  Capture verification/source hashes and screenshot: `/tmp/muusia-arc-mounds-qa/`.
+  No hardware run. Final batch regressions: Coral 178, Image art 2,339 + Drawing
+  input 93 + original merge/rasterise checks, Concrete Poetry 1,581, Ribbon 760
+  + original Ribbon checks, 31 Help examples, catalog/build and Learn.
+  Daniel authorized commit/push after the node batch: deliver on
+  `codex/coral-node-batch`, based on e81eff1. This feature-branch delivery includes
+  Coral, Image art/Drawing input, Concrete Poetry's 14 motions, Ribbon Angular
+  with open non-crossing routes, Arc Mounds, and the Image Learn update.
+  Main/Pages remain unchanged; APP_VERSION stays 2.110 until final main/release
+  integration, where it should be bumped once. Refresh the local Claude snapshot
+  after the commit; do not claim a web-project upload. A later integrator should
+  fetch current main, recheck the shared gate and refresh/upload Claude's project
+  after release. Historical local entries above describe earlier batch stages.
 
 ## Hard-won pitfalls (keep)
 

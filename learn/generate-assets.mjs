@@ -170,6 +170,28 @@ const comparisons = {
 const CATEGORY = { gen: 'Generators', mod: 'Modifiers', dec: 'Decorators', duo: 'Combiners', math: 'Math', route: 'Routing' };
 const GROUP = { geometric: 'Geometric', deform: 'Deform', textimg: 'Text & Image', space: 'Space', penout: 'Pen & Output', transform: 'Transform', fillstyle: 'Fill & Style' };
 const visibilityNotes = {
+  "image.levels": "Shown only when Render is Contours (trace).",
+  "image.low": "Shown only when Render is Contours (trace).",
+  "image.high": "Shown only when Render is Contours (trace).",
+  "image.minlen": "Shown only when Render is Contours (trace).",
+  "image.drawingWidth": "Shown when Source is Auto or Drawing (wired); affects wired drawings only.",
+  "image.drawingFill": "Shown when Source is Auto or Drawing (wired); affects wired drawings only.",
+  "image.squarefill": "Shown only when Render is Square weave.",
+  "image.squarelayout": "Shown only when Render is Square weave.",
+  "image.dotfill": "Shown only when Render is Organic dots.",
+  "image.direction": "Shown for Short strokes and Cross stitches.",
+  "image.angle": "Shown for Short strokes and Cross stitches.",
+  "image.flow": "Shown for Short strokes and Cross stitches unless Stroke direction is Fixed angle.",
+  "image.passes": "Shown for Short strokes and Cross stitches.",
+  "image.jitter": "Shown for Organic dots, Short strokes, Cross stitches and Square weave.",
+  "image.pitch": "Shown for Organic dots, Short strokes, Cross stitches and Square weave.",
+  "image.colours": "Shown for Organic dots, Short strokes, Cross stitches and Square weave.",
+  "image.colourmap": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is greater than 1.",
+  "image.pen2": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 2.",
+  "image.pen3": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 3.",
+  "image.pen4": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 4.",
+  "image.pen5": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 5.",
+  "image.pen6": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 6.",
   sides: 'Shown for Prism, Antiprism, Pyramid, and Bipyramid.',
   freq: 'Shown for Geodesic sphere.',
   hatchAng: 'Shown when Face fill is Face hatch.',
@@ -204,8 +226,9 @@ for (const key of PILOT_KEYS) {
   const params = def.params.map(p => {
     const { showIf, ...metadata } = p;
     if (!showIf) return { ...metadata, default: p.def, conditional: false, visibleByDefault: true };
-    assert.ok(visibilityNotes[p.key], `${key}.${p.key}: conditional field needs an explicit explanation`);
-    return { ...metadata, default: p.def, conditional: true, visibilityNote: visibilityNotes[p.key], visibleByDefault: showIf(defaults(key)) };
+    const visibilityNote = visibilityNotes[`${key}.${p.key}`] || visibilityNotes[p.key];
+    assert.ok(visibilityNote, `${key}.${p.key}: conditional field needs an explicit explanation`);
+    return { ...metadata, default: p.def, conditional: true, visibilityNote, visibleByDefault: showIf(defaults(key)) };
   });
   manifest.nodes.push({
     key, name: def.name, category: CATEGORY[def.cat], categoryKey: def.cat,

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "2.110",
-  "sourceCommit": "17cec53be849ea819a717867a4f34690f7821f6f",
+  "sourceCommit": "e81eff14f8c1b3d718737b741367b827bcba80b5",
   "canvas": {
     "W": 297,
     "H": 210
@@ -66,7 +66,7 @@
     "inputs": [
       {
         "path": "learn/generate-assets.mjs",
-        "sha256": "efab1ce69cbd83cd80eef621edd472c3a2affceee53d2194ca515ced03c21f83"
+        "sha256": "b29bea5a552af39307f51b8f774d3587944bfdbab0cb174ba37357f6e16f7453"
       },
       {
         "path": "learn/lib/fixtures.mjs",
@@ -114,7 +114,7 @@
       },
       {
         "path": "src/defs/nodes/image.js",
-        "sha256": "6bb690da33f34eeee517e7ad7ac747f177ccc3b0af760dd498634962bdcdd741"
+        "sha256": "1d8a357fc1f2b1d03f31f17ce76d87c60c4cbd6760b0170abea417b2b4ea21cc"
       },
       {
         "path": "src/defs/nodes/polystudio.js",
@@ -452,7 +452,7 @@
       },
       {
         "path": "examples/image.muusia.json",
-        "sha256": "e203dfc2b41a6f477f910d9dae8818ef4550384243c1edb2e43a665119759182"
+        "sha256": "d4f35a2243af0c0791437fee71002e50ab29ded32a0be1968b38914958f09539"
       },
       {
         "path": "examples/polystudio.muusia.json",
@@ -2181,12 +2181,49 @@
       "groupKey": "textimg",
       "params": [
         {
+          "key": "source",
+          "label": "Source",
+          "type": "select",
+          "options": [
+            "Auto",
+            "Image (file)",
+            "Drawing (wired)"
+          ],
+          "def": "Auto",
+          "default": "Auto",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
           "key": "file",
           "label": "Image (PNG/JPG)",
           "type": "file",
           "def": "",
           "default": "",
           "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "drawingWidth",
+          "label": "Drawing stroke mm",
+          "type": "slider",
+          "min": 0.2,
+          "max": 12,
+          "step": 0.1,
+          "def": 1.8,
+          "default": 1.8,
+          "conditional": true,
+          "visibilityNote": "Shown when Source is Auto or Drawing (wired); affects wired drawings only.",
+          "visibleByDefault": true
+        },
+        {
+          "key": "drawingFill",
+          "label": "Fill closed shapes",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": true,
+          "visibilityNote": "Shown when Source is Auto or Drawing (wired); affects wired drawings only.",
           "visibleByDefault": true
         },
         {
@@ -2198,7 +2235,11 @@
             "Halftone dots",
             "Hatch levels",
             "Flow shade",
-            "Contours (trace)"
+            "Contours (trace)",
+            "Organic dots",
+            "Short strokes",
+            "Cross stitches",
+            "Square weave"
           ],
           "def": "Scanline wave",
           "default": "Scanline wave",
@@ -2271,8 +2312,9 @@
           "step": 1,
           "def": 3,
           "default": 3,
-          "conditional": false,
-          "visibleByDefault": true
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Contours (trace).",
+          "visibleByDefault": false
         },
         {
           "key": "low",
@@ -2283,8 +2325,9 @@
           "step": 0.05,
           "def": 0.25,
           "default": 0.25,
-          "conditional": false,
-          "visibleByDefault": true
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Contours (trace).",
+          "visibleByDefault": false
         },
         {
           "key": "high",
@@ -2295,8 +2338,9 @@
           "step": 0.05,
           "def": 0.75,
           "default": 0.75,
-          "conditional": false,
-          "visibleByDefault": true
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Contours (trace).",
+          "visibleByDefault": false
         },
         {
           "key": "minlen",
@@ -2307,8 +2351,210 @@
           "step": 1,
           "def": 5,
           "default": 5,
-          "conditional": false,
-          "visibleByDefault": true
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Contours (trace).",
+          "visibleByDefault": false
+        },
+        {
+          "key": "dotfill",
+          "label": "Dot fill",
+          "type": "select",
+          "options": [
+            "Spiral fill",
+            "Outline",
+            "Concentric rings"
+          ],
+          "def": "Spiral fill",
+          "default": "Spiral fill",
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Organic dots.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "squarefill",
+          "label": "Square fill",
+          "type": "select",
+          "options": [
+            "Hatch fill",
+            "Outline",
+            "Woven fill"
+          ],
+          "def": "Hatch fill",
+          "default": "Hatch fill",
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Square weave.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "squarelayout",
+          "label": "Square layout",
+          "type": "select",
+          "options": [
+            "Staggered",
+            "Grid"
+          ],
+          "def": "Staggered",
+          "default": "Staggered",
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Square weave.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "direction",
+          "label": "Stroke direction",
+          "type": "select",
+          "options": [
+            "Image contours",
+            "Flow field",
+            "Fixed angle"
+          ],
+          "def": "Image contours",
+          "default": "Image contours",
+          "conditional": true,
+          "visibilityNote": "Shown for Short strokes and Cross stitches.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "angle",
+          "label": "Base angle °",
+          "type": "slider",
+          "min": -180,
+          "max": 180,
+          "step": 1,
+          "def": 75,
+          "default": 75,
+          "conditional": true,
+          "visibilityNote": "Shown for Short strokes and Cross stitches.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "flow",
+          "label": "Follow / flow",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.75,
+          "default": 0.75,
+          "conditional": true,
+          "visibilityNote": "Shown for Short strokes and Cross stitches unless Stroke direction is Fixed angle.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "passes",
+          "label": "Shadow passes",
+          "type": "slider",
+          "min": 1,
+          "max": 4,
+          "step": 1,
+          "def": 3,
+          "default": 3,
+          "conditional": true,
+          "visibilityNote": "Shown for Short strokes and Cross stitches.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "jitter",
+          "label": "Jitter",
+          "type": "slider",
+          "min": 0,
+          "max": 0.45,
+          "step": 0.05,
+          "def": 0.25,
+          "default": 0.25,
+          "conditional": true,
+          "visibilityNote": "Shown for Organic dots, Short strokes, Cross stitches and Square weave.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pitch",
+          "label": "Fill / pen pitch mm",
+          "type": "slider",
+          "min": 0.15,
+          "max": 2,
+          "step": 0.05,
+          "def": 0.3,
+          "default": 0.3,
+          "conditional": true,
+          "visibilityNote": "Shown for Organic dots, Short strokes, Cross stitches and Square weave.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "colours",
+          "label": "Colours",
+          "type": "slider",
+          "min": 1,
+          "max": 6,
+          "step": 1,
+          "def": 1,
+          "default": 1,
+          "conditional": true,
+          "visibilityNote": "Shown for Organic dots, Short strokes, Cross stitches and Square weave.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "colourmap",
+          "label": "Colour mapping",
+          "type": "select",
+          "options": [
+            "Source colours",
+            "Tone bands"
+          ],
+          "def": "Source colours",
+          "default": "Source colours",
+          "conditional": true,
+          "visibilityNote": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is greater than 1.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pen2",
+          "label": "Pen 2",
+          "type": "pen",
+          "def": 4,
+          "default": 4,
+          "conditional": true,
+          "visibilityNote": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 2.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pen3",
+          "label": "Pen 3",
+          "type": "pen",
+          "def": 6,
+          "default": 6,
+          "conditional": true,
+          "visibilityNote": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 3.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pen4",
+          "label": "Pen 4",
+          "type": "pen",
+          "def": 1,
+          "default": 1,
+          "conditional": true,
+          "visibilityNote": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 4.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pen5",
+          "label": "Pen 5",
+          "type": "pen",
+          "def": 5,
+          "default": 5,
+          "conditional": true,
+          "visibilityNote": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 5.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pen6",
+          "label": "Pen 6",
+          "type": "pen",
+          "def": 10,
+          "default": 10,
+          "conditional": true,
+          "visibilityNote": "Shown for Organic dots, Short strokes, Cross stitches and Square weave when Colours is at least 6.",
+          "visibleByDefault": false
         },
         {
           "key": "margin",
@@ -2345,6 +2591,10 @@
         {
           "type": "style",
           "label": "Style"
+        },
+        {
+          "type": "paths",
+          "label": "Drawing"
         }
       ],
       "outputs": [
@@ -2395,7 +2645,10 @@
             "key": "image",
             "name": "Image",
             "params": {
+              "source": "Auto",
               "file": "tonal-shapes.png",
+              "drawingWidth": 1.8,
+              "drawingFill": false,
               "mode": "Scanline wave",
               "cell": 2.4,
               "strength": 0.8,
@@ -2406,6 +2659,22 @@
               "low": 0.25,
               "high": 0.75,
               "minlen": 5,
+              "dotfill": "Spiral fill",
+              "squarefill": "Hatch fill",
+              "squarelayout": "Staggered",
+              "direction": "Image contours",
+              "angle": 75,
+              "flow": 0.75,
+              "passes": 3,
+              "jitter": 0.25,
+              "pitch": 0.3,
+              "colours": 1,
+              "colourmap": "Source colours",
+              "pen2": 4,
+              "pen3": 6,
+              "pen4": 1,
+              "pen5": 5,
+              "pen6": 10,
               "margin": 20,
               "seed": 139,
               "layer": 0
@@ -2416,7 +2685,10 @@
         "outputId": 9001
       },
       "exampleParams": {
+        "source": "Auto",
         "file": "tonal-shapes.png",
+        "drawingWidth": 1.8,
+        "drawingFill": false,
         "mode": "Scanline wave",
         "cell": 2.4,
         "strength": 0.8,
@@ -2427,6 +2699,22 @@
         "low": 0.25,
         "high": 0.75,
         "minlen": 5,
+        "dotfill": "Spiral fill",
+        "squarefill": "Hatch fill",
+        "squarelayout": "Staggered",
+        "direction": "Image contours",
+        "angle": 75,
+        "flow": 0.75,
+        "passes": 3,
+        "jitter": 0.25,
+        "pitch": 0.3,
+        "colours": 1,
+        "colourmap": "Source colours",
+        "pen2": 4,
+        "pen3": 6,
+        "pen4": 1,
+        "pen5": 5,
+        "pen6": 10,
         "margin": 20,
         "seed": 139,
         "layer": 0

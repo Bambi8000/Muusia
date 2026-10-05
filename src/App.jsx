@@ -3719,7 +3719,7 @@ export default function App() {
                 </button>
               </div>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
-                Add a Frame node (math) and wire its outputs into any parameter. Files download one per frame.
+                Concrete Poetry’s Timeline motion follows Play directly. For other parameters, wire a Frame node (math). Files download one per frame.
               </div>
             </div>
             <div style={{ fontSize: 10, color: T.text, letterSpacing: "0.08em", flex: 1 }}>
@@ -4264,7 +4264,7 @@ export default function App() {
                 "Set frame count in ANIMATE, add a Frame node (Math category), wire its outputs into any parameter.",
                 "t ramps 0\u21921 across frames; wave & ping-pong are seamless loops; frame # feeds Seeds for per-paper randomness.",
                 "\u25B6 previews the animation live. G-code / SVG / DXF \u00D7 N downloads one file per frame \u2014 plot each on its own paper, scan, assemble.",
-                "Anything not wired to Frame is identical on every frame. Add Reg Marks for scan alignment.",
+                "Concrete Poetry’s Timeline motion follows ANIMATE without a Frame wire. Other parameters need a frame-driven source to change. Add Reg Marks for scan alignment.",
               ]],
               ["CUSTOM NODES", [
                 "Node \u2913 imports a node definition file (.js). See MUUSIA-NODE-API.md \u2014 you can hand that spec to an AI and import the result.",

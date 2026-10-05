@@ -83,7 +83,7 @@ for (const mode of ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shad
   ok(traceimg.hidden === true, "B4: traceimg is hidden");
   ok(!image.hidden, "B4: image is visible");
   const opts = image.params.find((pd) => pd.key === "mode").options;
-  ok(deep(opts, ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)"]), "B4: mode options = original four + Contours appended");
+  ok(deep(opts.slice(0, 5), ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)"]), "B4: original five mode options retain their order (new art modes may follow)");
   for (const k of ["levels", "low", "high", "minlen"]) ok(image.params.some((pd) => pd.key === k), `B4: image param ${k} present`);
 }
 

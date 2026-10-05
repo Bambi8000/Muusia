@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 304 built-in nodes. Conventions used below:
+All 306 built-in nodes (including the local Coral and Arc Mounds batch). Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -8,7 +8,53 @@ accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (189)
+## Generators (191)
+
+**Arc Mounds** — a field of soft overlapping bodies, drawn entirely with curved
+pen strokes. Each form begins as an ellipsoid with visible surface ribs;
+foreground bodies clip away the lines behind them. There are no solid fills.
+*Field* fills the sheet; *Single* isolates one body. *Mound width mm* sets its
+starting scale, *Fullness* its plumpness, *Overlap* the row spacing, and
+*Variation* changes placement, proportions and rib direction. *Size contrast*
+mixes tiny and large bodies; zero makes equal widths before the shared warp.
+*Body curves* adds soft asymmetric silhouettes and narrower waists. *Curve
+scale mm* sets their spatial rhythm; zero Body curves restores rounded ovals.
+This smooth, invertible deformation applies to all visible linework together,
+so foreground occlusion remains coherent. *Arc flow °* rotates the ribs around
+the surface, while *Tilt °* turns the body on the page (seeded variation in
+Field, a fixed angle in Single). *Arc pitch mm* sets spacing across the facing
+part of a mound; curves crowd nearer at its ends. *Silhouette* adds visible rims.
+*Colours* 1–6 assigns independently chosen pens to whole bodies without changing
+geometry. All paths clip to *Margin mm*. Single fits inside the page; field
+shapes may continue beyond the clipped edge. Very dense settings uniformly
+coarsen pitch and sampling until output fits 110,000 points before Style, rather
+than stopping part-way through the page. Extreme fields increase the base size
+to bound the number of forms. Actual pen width determines the darkest line
+clusters. Help includes **Arc Mounds · Billows**, **Arc Mounds · Soft body** and
+**Arc Mounds · Three inks**.
+
+**Coral** — seeded, circular coral studies made from closed vector contours.
+*Brain coral* grows winding ridges with a Gray–Scott reaction-diffusion model;
+*Cells* uses a different growth regime for separated islands. *Radial coral*
+uses warped radial waves with a textured centre. These are artistic forms, not
+biological simulations. *Density* sets feature count (rounded to an integer),
+*Growth* changes pattern development or radial wave distortion, *Ridge width*
+chooses a wider/narrower contour level, and *Edge texture* loosens the rim.
+*Contour bands* adds 1–4 nested isolines; these are actual pen paths, not a solid
+fill or stroke-width setting. *Colours* selects 1–6 independently chosen pens;
+*By contour* cycles whole loops through them, while *By radius* uses each loop's
+average distance from the centre. Nested bands can use different inks. Colour
+changes preserve all geometry; ink colours themselves are edited in Pens.
+*Diameter mm*, *Centre X/Y %* and *Rotation °* set physical size and placement.
+Fit inside paper respects *Margin mm*; Exact diameter allows oversize work.
+An A3 sheet with 10 mm margins fits a 277 mm bounding circle; the textured rim
+sits just inside that bound. Simulation runs on a padded field so the square
+calculation boundary does not appear in the circular drawing. A bounded memo
+reuses that field for pen, width, band, size and placement edits; changing Form,
+Seed, Density, Growth or Edge texture recalculates it and can take a few seconds.
+Style-compatible, with a 112,000-point limit before Style. Help includes
+Coral · Brain study and Coral · Radial colours. Local node batch: not released
+until the planned multi-node commit/push.
 
 **Iris** — large, seeded eye studies drawn as organic radial fibres. *Eye shape*
 chooses Human (round), Cat (vertical almond), Goat (horizontal rounded rectangle)
@@ -631,14 +677,50 @@ around the blank spot, then glue the object back in. Chain into Wind Tunnel's
 Obstacle or Container. The sheet plane is perspective-corrected but object
 height adds a small safe-side parallax, so tall objects trace slightly large.
 
-**Image** — raster import (PNG/JPG, downsampled to grayscale). Render modes:
-*Scanline wave* (darkness raises amplitude and frequency of horizontal waves),
-*Halftone dots*, *Hatch levels* (four cross-hatch passes gated by darkness),
-*Flow shade* (noise streamlines seeded and lengthened by darkness), and
-*Contours (trace)* — 1-6 tonal threshold levels traced as vector contour lines
-with a minimum-contour speck filter (the former Trace Image node, merged in 2.51;
-gamma, strength, cutoff and seed have no effect in this mode). Gamma, invert,
-white cutoff.
+**Image** — turn a local PNG/JPG or any wired path drawing into vector pen
+marks. Connect a blue output to *Drawing*. *Source* Auto prioritises a connected
+drawing and otherwise uses the file; Image (file) and Drawing (wired) force the
+source. An empty connected drawing stays empty. *Drawing stroke mm* controls
+the source interpretation width, not the output pen width. *Fill closed shapes*
+uses even-odd interiors per source pen, retaining nested holes; open paths remain
+strokes. Source colours samples the incoming Pens colours. Drawings keep their
+canvas position, clipped to Margin; no automatic bounding-box enlargement. Very
+dense drawings use a coarser intermediate raster across the whole canvas. The
+purple Style input still styles the output and old Style wires remain valid.
+
+New imports retain grayscale and RGB at up to 640 px on the long side;
+reload an older stored photo to gain detail. *Organic dots* makes varied circles
+on softly jittered rows, with non-overlapping neighbours. *Dot fill* chooses
+Outline, a continuous Spiral fill, or Concentric rings. Darker tones make larger
+circles. *Short strokes* draws short straight marks with direction from Image
+contours (a local image-gradient field), Flow field or Fixed angle. *Base angle*
+sets the fallback direction; *Follow / flow* controls its variation. *Shadow
+passes* adds parallel strokes in dark regions. *Cross stitches* adds a second,
+perpendicular stroke family. *Square weave* makes tonal squares: their area
+follows darkness. *Square layout* offers Staggered or Grid; set Jitter to 0 for
+regular rows. *Square fill* offers Outline, a continuous Hatch fill, or Woven
+fill with alternating horizontal/vertical hatching. Neighbouring squares stay
+separate, including with jitter. These four new modes support *Colours* 1–6 with
+independently selected pens. *Source colours* chooses the closest colour from
+those actual inks in Pens; some chosen pens may be unused if the source has no
+matching colours. *Tone bands* maps light-to-dark tone ranges from the main Pen
+through Pen 6; grayscale-only old image data uses this fallback. Changing colour
+assignments leaves geometry unchanged. *Cell / spacing mm*, Strength, Gamma,
+White cutoff and Invert control tone and detail. *Jitter* loosens the rows.
+*Fill / pen pitch mm* sets spiral/ring, square-hatch or parallel-stroke spacing; match
+it to the physical pen when seeking a filled appearance. Dense settings cap
+candidate work and thin whole marks across the image to stay below 112,000
+points before Style, so increase spacing if the result becomes too sparse.
+The image fits the margin box with its aspect ratio intact; the selected node
+shows that fitted region. Help includes Image · Organic dots, Image · Short
+strokes and Image · Square weave (choose a photo after loading a template).
+Image · Drawing to blocks demonstrates a live Lissajous → Image wire, without
+an image file. The five earlier modes
+retain their original geometry and single-pen behavior: *Scanline wave*,
+*Halftone dots*, *Hatch levels*, *Flow shade* and *Contours (trace)*. Contours
+uses 1–6 tonal thresholds and a minimum-contour speck filter; gamma, strength,
+cutoff and seed have no effect there. Image Rasterise remains the separate CMYK
+workflow; Stipple remains the adaptive packed-dot alternative.
 
 **Image Underlay** — shows an image behind the preview without ever plotting it —
 a tracing reference for drawing over a physical print. Without calibration the
@@ -702,6 +784,54 @@ shape wired into the Region input — a poem in the shape of anything), *Spiral*
 (text winds inward along an Archimedean spiral, letters rotated to the tangent),
 *Wave* (undulating baselines, letters lean with the slope), *Scatter words* (seeded
 dada scatter with size/rotation variation).
+
+*Columns* repeats a phrase in 1–4 columns; `|` separates alternating row phrases.
+Long phrases compress horizontally to fit their column. *Outer edges* anchors
+alternating columns left/right; *Left* and *Centre* are also available.
+*Motion* adds fourteen treatments: **Zoom, Shift, Row squeeze, Word collapse,
+Wave, Breathing, Accordion, Row slide, Ripple, Orbit, Vortex, Swarm, Letter flip,
+Typewriter**. These change actual stroke geometry, including exported frames.
+*Zoom* builds a growing letter from fixed-size copies of itself: N becomes a big
+N made of small Ns, and each letter in a word uses its own character. *Size mm*
+stays constant throughout the animation. *Max rows* sets the height of the largest
+letter grid; *Cell spacing ×* controls the gap between its small letters. Growth
+happens in whole-cell steps. Zoom uses a single centred text block instead of
+Layout; spaces separate words and `|` starts another centred line. *In & out*
+grows and returns to one copy per character (Phase 0 → 0.5 → 1); *Zoom in* and
+*Zoom out* go one way and restart at the cycle boundary. Timeline, Cycles and
+Phase work as in the other motions. Amount, lags and Layout controls do not
+apply. The Region input centres the block in its bounds and admits only stamp
+centres inside the region; Clip to page clips strokes at the page margins.
+Large text can leave the page; lower Max rows to keep a whole phrase visible.
+Zoom never increases the small font size to reduce load: very large jobs stop
+at the 112,000-point / bounded-work limit. Unsupported characters leave spaces.
+Help examples: **Poetry · Zoom letter** and **Poetry · Zoom word**.
+*Shift* keeps a filled set of fixed letter cells while their order changes in
+whole-letter steps. *Rows* wraps each row cyclically (with Row lag), *Columns*
+cycles vertically, and *Shuffle* follows a Seed-controlled permutation. Each
+occupied cell receives exactly one letter; letters are neither faded out nor
+duplicated. Use *Fill region* for a full text field. Spaces, `|` and unsupported
+characters are omitted in Shift, and cells have uniform advances even for narrow
+letters. Cycles sets the number of complete permutations per loop; Phase selects
+the current order. Amount does not apply to Shift. The normal point budget still
+applies to extremely dense fields. Help example: **Poetry · Shift field**.
+*Timeline* follows ANIMATE / Play directly (no Frame node required); choose
+24–36 frames for a smoother loop. *Phase input* uses only the Phase 0–1 slider or
+its green numeric input. In Timeline mode Phase offsets the loop; integer
+*Cycles* repeats it within the frame set. Phase 0 and 1 are the same moment.
+*Amount* controls strength, *Travel mm* controls displacement where relevant,
+and *Row lag* / *Letter lag* stagger the motion through the text. *Word collapse*
+shrinks and removes letters toward *Short text* when that text is an ordered
+subsequence of the phrase (e.g. `THURSDAY 1 OCTOBER 2026` → `THU 1 OCT 26`);
+otherwise it condenses the whole phrase. *Swarm* disperses/reassembles letters
+with repeatable Seed. *Clip to page* splits moving strokes at the margin box;
+except in Zoom, the Region input determines initial placement, not an animated
+clipping mask.
+Dense active compositions other than Zoom adapt their effective font size and retain a stable
+selection of complete glyphs within 112,000 points before Style. *Motion Off*
+preserves the four original layouts byte-for-byte, including existing patches.
+Help examples: **Poetry · Living columns** and **Poetry · Living waves**. Pause
+to export one drawing, or use SVG/G-code × frames for one file per frame.
 
 **Point Cloud** — 3D point clouds projected to the sheet. Source: a file
 (.xyz/.csv/.txt with x y z per line, or ascii PLY) or a built-in parametric
@@ -1053,6 +1183,38 @@ around the canvas center (Ring radius sets the base size, Wander makes the loop
 breathe; the noise is sampled periodically so there is no seam) with every filament a
 closed stroke. At lines = 1 it is a clean single guide curve — a good Spine for
 Ruler or Follow Lines.
+
+*Angular* creates long straight spans with sharp turns. *Free folds* is a seeded
+crossing path; *Turns* controls its length. *Zigzag* alternates across the sheet,
+and *Star* is a closed polygonal star with an odd number of *Star points*.
+*Rotate* turns the composition. *Corners* Sharp intersects parallel offset
+segments at each turn; *Corner limit* changes excessively long mitres into short
+bevels. Bevel always uses the shortened corner. Crossings deliberately overprint;
+use **Woven Ribbon** when you want over/under gaps. The nodes remain separate:
+Ribbon covers smooth/straight parallel bands; Woven Ribbon covers lattice weaving.
+
+*No crossings* grows an open seeded route with mixed left and right turns,
+keeping the complete band apart, including its corners. It starts near an edge,
+seeks open space and avoids repeatedly curling inward. *Clearance mm* reserves extra space between separate spans. *Turns*
+is a maximum: a wide band or large clearance may produce fewer turns. It checks
+a padded strip, not just the centre line. In this layout inside corners always
+meet cleanly; Sharp/Bevel and Corner limit control the outside tips. Clearance
+scales with width when the whole composition needs to shrink to fit the page;
+choose a gap suitable for the physical pen. Existing Free folds, Zigzag and Star
+retain their original behaviour.
+
+*Angular fill* Lines uses the existing Lines count, one continuous filament per
+line. Stripes fills the width with real parallel pen strokes at *Pen pitch mm*.
+*Colours* selects 1–6 independently chosen pens across the band; *Stripe gap mm*
+leaves space between colours. Matching the pen width to the final pitch produces
+solid-looking bands. The whole Angular band fits inside Margin, shrinking width
+and pitch together only if needed. Extremely dense settings increase the pitch
+to stay below the point budget. Preview colours are opaque; real ink mixing at
+crossings depends on the pens and paper. Colours also assigns pen bands to the
+existing Line and Ring filaments without changing their geometry. One-pen Line
+and Ring output, including old patches with no Colours field, is unchanged.
+Help examples: **Ribbon · No crossings**, **Ribbon · Sharp stripes**, **Ribbon · Sharp zigzag**, and
+**Ribbon · Star loop**.
 
 **Halftone** — dot/pattern shading driven by a noise field.
 
