@@ -5,11 +5,21 @@ export default {
   name: "Ribbon",
   cat: "gen",
   group: "geometric",
-  desc: "A band of parallel filament lines following a noise-wandering spine, pinching and swelling with Width variation. Shape Line runs the spine left to right across the sheet; Shape Ring closes it into a loop around the canvas center (Ring radius sets the base size, Wander makes the loop breathe) with seamless periodic noise, every filament a closed pen stroke. Angular adds long straight spans and sharp offset corners: Free folds makes a seeded crossing path, Zigzag alternates across the sheet, and Star closes a polygonal star. No crossings grows an open seeded route with mixed left/right turns while checking the whole band and Clearance mm between separate spans; Turns is a maximum, so wide bands may make fewer turns. Clearance scales with width when fitting the page. Sharp joins use mitres, shortened to bevels past Corner limit. Crossings overprint; use Woven Ribbon for over/under gaps. Angular Fill Lines draws individual filaments; Stripes fills 1–6 pen bands with parallel strokes at Pen pitch. Stripe gap leaves white space between bands. Colours also assigns bands to Line and Ring filaments. Angular fits the whole band into Margin, shrinking width and pitch together only when necessary. Dense settings increase pitch to stay within the point budget. Use a pen matching the final pitch for solid-looking stripes; preview colours are opaque and real ink mixing depends on the pens and paper. Original one-pen Line and Ring geometry is unchanged.",
+  desc: "A band of parallel filament lines following a noise-wandering spine, pinching and swelling with Width variation. Shape Line runs the spine left to right across the sheet; Shape Ring closes it into a loop around the canvas center (Ring radius sets the base size, Wander makes the loop breathe) with seamless periodic noise, every filament a closed pen stroke. Angular adds long straight spans and sharp offset corners: Free folds makes a seeded crossing path, Zigzag alternates across the sheet, and Star closes a polygonal star. No crossings grows an open seeded route with mixed left/right turns while checking the whole band and Clearance mm between separate spans; Turns is a maximum, so wide bands may make fewer turns. Clearance scales with width when fitting the page. Sharp joins use mitres, shortened to bevels past Corner limit. Crossings overprint; use Woven Ribbon for over/under gaps. Angular Fill Lines draws individual filaments; Stripes fills 1–6 pen bands with parallel strokes at Pen pitch. Stripe gap leaves white space between bands. Colours also assigns bands to Line and Ring filaments. Angular fits the whole band into Margin, shrinking width and pitch together only when necessary. Dense settings increase pitch to stay within the point budget. Use a pen matching the final pitch for solid-looking stripes; preview colours are opaque and real ink mixing depends on the pens and paper. Organic adds flowing Pleated sheets with edge-on fold seams, or Channels whose filaments bend around pockets. Bends steers the spine, Flares places broad swells, Width variation pinches the bundle, Fine tails narrows its ends and Edge ripple adds a shared waviness. Fold turns twists Pleated sheets; their crossings overprint. Channels leaves pockets Open, outlines them or shades them with real hatching at Pocket pitch. Width is the maximum band width before shrink-only page fitting. Organic fits inside Margin and uses the same 1–6 selected pens. Existing Line, Ring and Angular geometry is unchanged.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "shape", label: "Shape", type: "select", options: ["Line", "Ring", "Angular"], def: "Line" },
+    { key: "shape", label: "Shape", type: "select", options: ["Line", "Ring", "Angular", "Organic"], def: "Line" },
+    { key: "organicForm", label: "Organic form", type: "select", options: ["Pleated", "Channels"], def: "Pleated", showIf: p => p.shape === "Organic" },
+    { key: "bends", label: "Bends", type: "slider", min: 1, max: 6, step: 0.25, def: 3, showIf: p => p.shape === "Organic" },
+    { key: "flares", label: "Flares", type: "slider", min: 1, max: 7, step: 1, def: 3, showIf: p => p.shape === "Organic" },
+    { key: "twist", label: "Fold turns", type: "slider", min: 0, max: 3, step: 0.05, def: 1.1, showIf: p => p.shape === "Organic" && p.organicForm !== "Channels" },
+    { key: "taper", label: "Fine tails", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8, showIf: p => p.shape === "Organic" },
+    { key: "ripple", label: "Edge ripple mm", type: "slider", min: 0, max: 4, step: 0.1, def: 0.6, showIf: p => p.shape === "Organic" },
+    { key: "pockets", label: "Pockets", type: "slider", min: 0, max: 7, step: 1, def: 3, showIf: p => p.shape === "Organic" && p.organicForm === "Channels" },
+    { key: "pocketSize", label: "Pocket size", type: "slider", min: 0.1, max: 0.9, step: 0.05, def: 0.65, showIf: p => p.shape === "Organic" && p.organicForm === "Channels" && p.pockets > 0 },
+    { key: "pocketFill", label: "Pocket fill", type: "select", options: ["Open", "Outline", "Hatch"], def: "Open", showIf: p => p.shape === "Organic" && p.organicForm === "Channels" && p.pockets > 0 },
+    { key: "pocketPitch", label: "Pocket pitch mm", type: "slider", min: 0.15, max: 2, step: 0.05, def: 0.3, showIf: p => p.shape === "Organic" && p.organicForm === "Channels" && p.pockets > 0 && p.pocketFill === "Hatch" },
     { key: "angularLayout", label: "Angular layout", type: "select", options: ["Free folds", "No crossings", "Zigzag", "Star"], def: "Free folds", showIf: p => p.shape === "Angular" },
     { key: "turns", label: "Turns", type: "slider", min: 1, max: 40, step: 1, def: 9, showIf: p => p.shape === "Angular" && p.angularLayout !== "Star" },
     { key: "clearance", label: "Clearance mm", type: "slider", min: 0, max: 40, step: 0.5, def: 6, showIf: p => p.shape === "Angular" && p.angularLayout === "No crossings" },
@@ -19,11 +29,11 @@ export default {
     { key: "angularFill", label: "Angular fill", type: "select", options: ["Stripes", "Lines"], def: "Stripes", showIf: p => p.shape === "Angular" },
     { key: "pitch", label: "Pen pitch mm", type: "slider", min: 0.15, max: 2, step: 0.05, def: 0.35, showIf: p => p.shape === "Angular" && p.angularFill !== "Lines" },
     { key: "stripeGap", label: "Stripe gap mm", type: "slider", min: 0, max: 5, step: 0.1, def: 0.4, showIf: p => p.shape === "Angular" && p.angularFill !== "Lines" && p.colours > 1 },
-    { key: "rotate", label: "Rotate °", type: "slider", min: -180, max: 180, step: 1, def: 0, showIf: p => p.shape === "Angular" },
+    { key: "rotate", label: "Rotate °", type: "slider", min: -180, max: 180, step: 1, def: 0, showIf: p => ["Angular", "Organic"].includes(p.shape) },
     { key: "ringR", label: "Ring radius %", type: "slider", min: 20, max: 100, step: 1, def: 70, showIf: p => p.shape === "Ring" },
     { key: "wander", label: "Wander mm", type: "slider", min: 0, max: 120, step: 1, def: 45, showIf: p => p.shape !== "Angular" },
-    { key: "wscale", label: "Wander scale", type: "slider", min: 0.2, max: 4, step: 0.1, def: 1, showIf: p => p.shape !== "Angular" },
-    { key: "width", label: "Width mm", type: "slider", min: 2, max: 80, step: 0.5, def: 28 },
+    { key: "wscale", label: "Wander scale", type: "slider", min: 0.2, max: 4, step: 0.1, def: 1, showIf: p => !["Angular", "Organic"].includes(p.shape) },
+    { key: "width", label: "Width mm", type: "slider", min: 2, max: 160, step: 0.5, def: 28 },
     { key: "widthVar", label: "Width variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8, showIf: p => p.shape !== "Angular" },
     { key: "lines", label: "Lines", type: "slider", min: 1, max: 60, step: 1, def: 24, showIf: p => p.shape !== "Angular" || p.angularFill === "Lines" },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
@@ -41,7 +51,7 @@ export default {
     return [p.layer,p.pen2,p.pen3,p.pen4,p.pen5,p.pen6].slice(0,n).map((v,i)=>Math.round(Math.max(0,Math.min(11,Number.isFinite(+v)?+v:i))));
   },
   overlay(p, ctx) {
-    if(p.shape!=="Angular")return [];
+    if(!["Angular","Organic"].includes(p.shape))return [];
     const W=Number.isFinite(+ctx.W)?Math.max(1,+ctx.W):210,H=Number.isFinite(+ctx.H)?Math.max(1,+ctx.H):297;
     const m=Math.max(0,Math.min(Number.isFinite(+p.margin)?+p.margin:12,Math.min(W,H)/2));
     return [{kind:"rect",x:m,y:m,w:W-2*m,h:H-2*m}];
@@ -223,7 +233,76 @@ export default {
     }
     return {paths};
   },
+  // Smooth ribbon coordinates shared by filaments and pocket boundaries.
+  _organicSurface(p,ctx) {
+    const num=(v,d,lo,hi)=>Math.max(lo,Math.min(hi,Number.isFinite(+v)?+v:d));
+    const W=num(ctx.W,210,0,10000),H=num(ctx.H,297,0,10000),m=num(p.margin,12,0,Math.min(W,H)/2),aw=W-2*m,ah=H-2*m;
+    if(aw<1||ah<1)return null;
+    const seed=num(p.seed,27,-1e9,1e9),rng=mulberry32(seed*1427+83),TAU=2*Math.PI;
+    const bends=num(p.bends,3,1,8),flares=Math.round(num(p.flares,3,1,8)),width=num(p.width,28,.1,400),wander=num(p.wander,45,0,300),variation=num(p.widthVar,.8,0,1),taper=num(p.taper,.8,0,1),ripple=num(p.ripple,.6,0,8),twist=num(p.twist,1.1,0,6);
+    const phase=rng()*TAU,phase2=rng()*TAU,len=ah*.94,channels=p.organicForm==='Channels';
+    const lobes=Array.from({length:flares},(_,i)=>({t:(i+.6+rng()*.8)/(flares+.4),spread:(.23+rng()*.1)/flares,gain:.7+rng()*.3}));
+    const centre=t=>[wander*(.8*Math.sin(t*Math.PI*bends+phase)+.2*Math.sin(t*Math.PI*bends*1.8+phase2)),(t-.5)*len];
+    const frame=t=>{
+      const c=centre(t),dt=.0001,a=centre(t-dt),b=centre(t+dt),dx=(b[0]-a[0])/(2*dt),dy=len,d2x=(b[0]-2*c[0]+a[0])/(dt*dt),speed=Math.hypot(dx,dy),normal=[dy/speed,-dx/speed],tangent=[dx/speed,dy/speed];
+      let bloom=0;for(const l of lobes)bloom+=l.gain*Math.exp(-.5*((t-l.t)/l.spread)**2);
+      bloom=1-Math.exp(-bloom*2);
+      const floor=Math.max(.004,(1-variation)**3),tail=(1-taper)+taper*Math.sin(Math.PI*Math.max(0,Math.min(1,t)))**1.4;
+      let w=width*(floor+(1-floor)*((1-variation)+variation*bloom**2.5))*tail;
+      w=Math.max(width*.002,w);
+      // Smooth curvature limit avoids offset cusps in the planar channel mode.
+      // Pleats intentionally turn edge-on and can overlap like the reference.
+      if(channels){const curvature=Math.abs(dy*d2x)/(speed**3);w/=Math.pow(1+(w*.5*curvature/.8)**4,.25);}
+      const ph=twist*(TAU*t+.75*Math.sin(TAU*t*flares+phase2)),wav=ripple*Math.sin(TAU*t*(9+bends)+phase)*Math.sin(Math.PI*t)+(channels?0:w*.24*variation*Math.min(1,wander/20)*Math.sin(TAU*t*flares+phase));
+      return {c:[c[0]+normal[0]*wav,c[1]+normal[1]*wav],normal,tangent,w,ph};
+    };
+    const point=(t,v)=>{const f=frame(t);let across=v*f.w/2,along=0;
+      if(!channels){across*=Math.cos(f.ph);along=v*f.w*.32*Math.sin(f.ph);}
+      return [f.c[0]+f.normal[0]*across+f.tangent[0]*along,f.c[1]+f.normal[1]*across+f.tangent[1]*along];
+    };
+    const pockets=[],np=channels?Math.round(num(p.pockets,3,0,8)):0,ps=num(p.pocketSize,.65,.05,.9);
+    for(let i=0;i<np;i++)pockets.push({t:(i+1)/(np+1),span:.34/(np+1),v:(i%2?1:-1)*(.15+rng()*.2),r:ps*.6});
+    const interval=(t,q)=>{const u=(t-q.t)/q.span;return Math.abs(u)<1?q.r*(1-u*u)**2:0;};
+    const deflect=(t,v)=>{for(const q of pockets){const r=interval(t,q);if(r>0)v=v<=q.v?-1+(v+1)*(q.v-r+1)/(q.v+1):q.v+r+(v-q.v)*(1-q.v-r)/(1-q.v);}return v;};
+    return {W,H,m,aw,ah,len,width,frame,point,pockets,interval,deflect,num};
+  },
+  _organic(p,ctx) {
+    const s=this._organicSurface(p,ctx);if(!s)return EMPTY;
+    const {W,H,aw,ah,point,num}=s,palette=this._pens(p),K=Math.round(num(p.lines,24,1,200));
+    // Reserve room for pocket boundaries and hatching. Every full filament
+    // gets the same sampling, and changing only pens cannot change geometry.
+    const N=Math.min(Math.floor(90000/K)-1,Math.max(360,Math.min(1800,Math.ceil((s.len+num(p.wander,45,0,300)*num(p.bends,3,1,8)*4)/.45))));
+    const penAt=v=>palette[Math.min(palette.length-1,Math.floor(Math.max(0,Math.min(1,(v+1)/2))*palette.length))];
+    const raw=[];
+    for(let k=0;k<K;k++){const v=K===1?0:2*k/(K-1)-1,pts=[];for(let i=0;i<=N;i++){const t=i/N;pts.push(point(t,s.deflect(t,v)));}raw.push({pts,closed:false,layer:penAt(v)});}
+    const pockets=s.pockets.map(q=>{const pts=[],M=64;for(let j=0;j<=M;j++){const t=q.t-q.span+2*q.span*j/M;pts.push(point(t,q.v-s.interval(t,q)));}for(let j=M-1;j>0;j--){const t=q.t-q.span+2*q.span*j/M;pts.push(point(t,q.v+s.interval(t,q)));}return{pts,closed:true,layer:penAt(q.v)};});
+    const a=num(p.rotate,0,-36000,36000)*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),rot=([x,y])=>[x*ca-y*sa,x*sa+y*ca];
+    // Dense outer rails anchor fitting even for a single centreline. Actual
+    // samples cover between-rail extrema; colours and fill do not affect fit.
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    const extend=q=>{x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);y0=Math.min(y0,q[1]);y1=Math.max(y1,q[1]);};
+    for(let i=0;i<=1800;i++)for(const v of [-1,1])extend(rot(point(i/1800,v)));
+    for(const path of [...raw,...pockets])for(const q of path.pts)extend(rot(q));
+    const scale=Math.min(1,aw/Math.max(1e-9,x1-x0),ah/Math.max(1e-9,y1-y0)),cx=(x0+x1)/2,cy=(y0+y1)/2;
+    const fit=q=>{const [x,y]=rot(q);return[W/2+(x-cx)*scale,H/2+(y-cy)*scale];};
+    const paths=raw.map(path=>({...path,pts:path.pts.map(fit)}));
+    if(p.pocketFill==='Outline'||p.pocketFill==='Hatch'){
+      const polys=pockets.map(path=>({...path,pts:path.pts.map(fit)}));paths.push(...polys);
+      if(p.pocketFill==='Hatch'){
+        const heights=polys.map(p=>Math.max(...p.pts.map(q=>q[1]))-Math.min(...p.pts.map(q=>q[1])));
+        const pitch=Math.max(num(p.pocketPitch,.3,.1,10),heights.reduce((a,b)=>a+b,0)/3500);let budget=10000;
+        for(const path of polys){const lo=Math.min(...path.pts.map(q=>q[1])),hi=Math.max(...path.pts.map(q=>q[1]));
+          for(let y=lo+pitch/2;y<hi&&budget>=2;y+=pitch){const xs=[];
+            for(let i=0,j=path.pts.length-1;i<path.pts.length;j=i++){const a=path.pts[j],b=path.pts[i];if((a[1]<=y&&b[1]>y)||(b[1]<=y&&a[1]>y))xs.push(a[0]+(y-a[1])*(b[0]-a[0])/(b[1]-a[1]));}
+            xs.sort((a,b)=>a-b);for(let i=1;i<xs.length&&budget>=2;i+=2)if(xs[i]-xs[i-1]>1e-6){paths.push({pts:[[xs[i-1],y],[xs[i],y]],closed:false,layer:path.layer});budget-=2;}
+          }
+        }
+      }
+    }
+    return {paths};
+  },
   compute(ins, p, ctx) {
+    if (p.shape === "Organic") return applyStyle(this._organic(p, ctx), ins[0]);
     if (p.shape === "Angular") return applyStyle(this._angular(p, ctx), ins[0]);
     const { W, H } = ctx;
     const K = Math.round(p.lines);

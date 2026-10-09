@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "engineScopeSha256": "345ce385f3b9a971d7fcce3437fb88f3e1690da855dcd8fdacae2fd82b48b4c7",
+  "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "patchSha256": "2be81471658098ce44d70061250bd562366729914243f13b0b280be7a347ab24",
+  "sourceHashes": {
+    "src/defs/nodes/frame.js": "4c9e5949a74dcdb7e0d6423b4b2a06fec919002081b526b76e0cedbe6558dc27",
+    "src/defs/nodes/matem.js": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5",
+    "src/defs/nodes/grid_hairs.js": "2d687dd332b147f67054eaca3dc07f372ae078a07fa58436fdf5b5646c54bddc",
+    "src/defs/nodes/crop.js": "3bfc534cce7fb1276e0b40e8d2884809097e51067a9e25457bf55d79f62af47c",
+    "src/defs/nodes/array.js": "7d058dc208f3636ff426651bdfb51036aec7873cc5de141fc4160c4dec9a7b58",
+    "src/defs/nodes/move_scale.js": "6ee2ad58f72358b5a84556610610caee43220877cd047588e955847d6ebf15c3",
+    "src/defs/nodes/container.js": "fb9b11583906d0c0678f8df117224aa41899aef9a13123b1f1bdf1b058a7d801",
+    "src/defs/nodes/solids.js": "bd2ef1be2b57c15dcceb5080980842a89f39935dcccf0eceac7c30bbbea938ee",
+    "src/defs/nodes/merge.js": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf",
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
+  },
+  "capturedAt": "2026-10-09",
+  "method": "Loaded the project through Muusia Load in a fresh headless Google Chrome browser at 127.0.0.1:5201 (Playwright fallback because the in-app browser automation service was unavailable). Selected Merge, Frames 36, Optimize route off. Read the actual SVG export panel at frame indices 0, 7 (reported 08/36) and 18; compared ordered path data and page dimensions. No downloaded-byte checksum or frame-batch/hardware claim.",
+  "exports": [
+    {
+      "frames": 36,
+      "frame": 0,
+      "fnv": "9e6eb719",
+      "paths": 1020,
+      "points": 7710,
+      "page": [
+        "140mm",
+        "140mm"
+      ]
+    },
+    {
+      "frames": 36,
+      "frame": 7,
+      "fnv": "4bc4d452",
+      "paths": 1000,
+      "points": 7728,
+      "page": [
+        "140mm",
+        "140mm"
+      ]
+    },
+    {
+      "frames": 36,
+      "frame": 18,
+      "fnv": "6675cb91",
+      "paths": 981,
+      "points": 7708,
+      "page": [
+        "140mm",
+        "140mm"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 307 built-in nodes in Muusia v2.112. Conventions used below:
+All 310 built-in nodes in Muusia v2.112. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -8,7 +8,77 @@ accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (192)
+## Generators (195)
+
+**Shan Shui Landscape** — mountains, trees, pagodas and fishing boats using
+adapted [shan-shui-inf](https://github.com/LingDong-/shan-shui-inf) geometry by
+Lingdong Huang (MIT; [source notice](MUUSIA-SHAN-SHUI-NOTICE.md)). *Landscape*:
+River valley, Mountain range or Islands. *Mountains* counts near landforms;
+*Distant peaks* adds the background range. *Relief %* scales mountain height,
+*Trees %* controls vegetation density, *Buildings* adds pagodas, *Boats* adds
+fishing boats, *Water %* controls ripples and *Texture %* controls rock strokes.
+Overlapping scenery can hide some features. *Lines → Fine lines* follows brush
+centrelines; *Brush outlines* draws the original brush boundaries. *Hidden lines*
+removes strokes behind foreground silhouettes before export, so SVG and G-code
+retain the same occlusion. All output is pen geometry; the original grey washes,
+opaque fills and paper texture are omitted. *Colours* 1–6 cycles selected pens
+through land, distant peaks, trees, buildings, water and boats, preserving all
+geometry. Disabled/hidden features may leave fewer pen groups. *Seed* repeats the
+local scene, not the website's exact seed. *Margin mm* clips strokes to the sheet.
+Best on landscape paper; extreme page ratios centre a bounded composition rather
+than stretching it. Dense scenes simplify and thin whole paths to at most 110k
+base points before optional Style. Three A3 Help examples are included.
+
+**Primitive Image** — approximate a photo with geometric shapes, using seeded
+random candidates and hill climbing to reduce weighted pixel error. An independent
+JavaScript implementation inspired by [fogleman/primitive](https://github.com/fogleman/primitive),
+adapted to physical ink on white paper. Choose an image and **Triangles**,
+**Rectangles**, **Ellipses**, **Circles** or **Mixed**. *Max shapes* is an upper
+limit (1–300 at compute time); fitting can finish early if another shape cannot
+improve the image. **Search** Draft / Balanced / Fine trades computation for a
+more thorough search, not a guarantee of a better fit on every image. Start with
+150 shapes. *Shape scale %* controls the search sizes; *Gamma* shapes darkness,
+and *Max ink coverage* caps each shape's contribution. Lower coverage leaves
+more room for later refinements; *Seed* gives another repeatable interpretation.
+**Tone hatch** draws real parallel strokes; **Cross hatch** divides coverage
+between two perpendicular directions. **Outlines** draws the fitted polygons
+without tonal filling. *Pen width mm* sets hatch pitch for your physical nib;
+the app/SVG preview uses its standard stroke width. *Hatch angle* and
+*Angle variation* change strokes without re-running the fit. *Reveal %* shows
+an exact prefix of the accepted shapes and can receive a Frame value wire.
+**Colours** 1–6 selects actual pens from the palette; the optimiser chooses the
+best of those inks for each shape, so it may use fewer colours. Duplicate pen
+choices merge. One unique pen fits grayscale; several pens use source RGB when
+available. Palette edits change fitting, rather than simply recolouring an old
+result. Ink overprinting is modelled as multiplicative darkening, so grouping by
+pen does not change the approximation. This is a coverage model, not calibrated
+ink mixing: real pens/paper affect the result, and there is no opaque white
+paint to erase previous marks. White areas need no strokes. Shapes and hatching
+stay in the aspect-fitted image inside *Margin mm*. Very dense hatching widens
+spacing uniformly to stay below 100,000 base points before Style; Reveal uses
+the full drawing's spacing to keep animation stable. All image processing stays
+local. Help includes a geometric portrait template and a six-ink mosaic template;
+choose your own photo in either. The existing Image node is unchanged.
+
+**Grid Hairs** — a grid of small pen-stroke groups. *Cell width mm* and
+*Cell height mm* independently size the cells; complete cells are centred inside
+*Margin mm*. **Tufts** shares a direction within each cell, **Crosshatch** mixes
+two perpendicular directions, **Scatter** turns strokes freely, and **Flow**
+gives neighbouring cells a shared direction field at *Flow size (cells)*.
+*Lines per cell* sets the maximum density; *Density variation* thins selected
+cells while retaining at least one stroke. *Length %* is relative to the smaller
+cell dimension, with *Length variation* shortening individual hairs. *Angle*,
+*Direction scatter* and *Bend* adjust alignment and curvature. Every stroke,
+including curved ones, remains inside its own cell; *Cell gap mm* leaves white
+space between groups. A gap as large as the smaller cell dimension removes the
+hairs. **Draw grid** adds real cell borders with *Grid pen*. The selected node's
+dashed guides are preview-only. *Colours* 1–6 assigns selectable pens to whole
+cells without changing geometry; duplicate pen choices combine colour groups.
+*Seed* reproduces the field. Very fine grids coarsen uniformly to at most 4096
+cells (256 per axis); dense output reduces hairs or curve samples uniformly to
+stay under 110,000 base points before Style. Help includes A3 **Crosshatch**,
+**Tufts**, **Scatter** and six-ink **Flow** examples. The existing free-placed
+Hairs node is unchanged.
 
 **Colour Scribble** — overlapping bundles of coloured pen strokes, with four
 compositions: **Knot** gathers a compact tangle, **Burst** sends curved marks
@@ -712,6 +782,22 @@ canvas position, clipped to Margin; no automatic bounding-box enlargement. Very
 dense drawings use a coarser intermediate raster across the whole canvas. The
 purple Style input still styles the output and old Style wires remain valid.
 
+*Rams contour* makes long parallel lines that bend and gather around tonal
+features, like a line relief. *Cell / spacing mm* sets the base pitch; *Contour
+depth mm* sets the relief distance and *Strength* scales it. *Contour angle*
+rotates the stroke direction. *Contour smoothing mm* softens fine detail before
+line shaping; *Gamma* changes the tonal response. Neighbouring lines remain
+ordered even across steep transitions. This is a sculptural interpretation,
+not calibrated grayscale reproduction. *White cutoff* splits strokes around
+light areas; *Keep white background* retains the full line field instead.
+*Min stroke mm* removes tiny fragments. Use a well-lit portrait against a plain
+light background: there is no face recognition or automatic background removal.
+This mode also accepts the blue Drawing input, uses one selected *Pen*, and
+ignores Seed. Dense settings coarsen sampling across the full image to stay
+below 104,000 points before Style. Very fine spacing may merge physically with
+a thick pen. Help includes Image · Rams contour (choose a photo) and
+Image · Drawing contours (a ready wired Lissajous example).
+
 New imports retain grayscale and RGB at up to 640 px on the long side;
 reload an older stored photo to gain detail. *Organic dots* makes varied circles
 on softly jittered rows, with non-overlapping neighbours. *Dot fill* chooses
@@ -1032,7 +1118,8 @@ a stark rhythm generator (feed it to Stretch).
 **Solids** — wireframe 3-D: Sphere (lat/lon rings; *Solid* hides the back
 hemisphere, *Transparent* shows all), Cube, Tetra/Octa/Icosa/Dodecahedron (edges
 derived from geometry). Rotate X/Y/Z, perspective 0–1, position. Rotations are
-value-drivable — the animation star.
+value-drivable — the animation star. Visible sphere arcs remain continuous across
+each ring's sampling seam and are clipped at the back-visibility boundary.
 
 **Mountains** — fBm heightfield rendered as ridge lines with true hidden-line removal
 (screen-space horizon buffer). Perspective (rows converge and compress with depth),
@@ -1237,8 +1324,30 @@ to stay below the point budget. Preview colours are opaque; real ink mixing at
 crossings depends on the pens and paper. Colours also assigns pen bands to the
 existing Line and Ring filaments without changing their geometry. One-pen Line
 and Ring output, including old patches with no Colours field, is unchanged.
-Help examples: **Ribbon · No crossings**, **Ribbon · Sharp stripes**, **Ribbon · Sharp zigzag**, and
-**Ribbon · Star loop**.
+
+*Organic* makes flowing sheets and narrow waists, in two forms. **Pleated** turns
+the sheet edge-on with *Fold turns*, creating dark seams from overlapping real
+filaments. **Channels** bends filaments around *Pockets*; *Pocket size* changes
+the openings. *Pocket fill* Open leaves only the surrounding strokes, Outline
+adds the pocket boundaries, and Hatch draws their interiors at *Pocket pitch mm*
+(actual spacing after page fitting). Choose a matching nib for solid-looking
+dark patches. No screen-only fill is exported.
+
+*Bends* controls the wandering spine, *Flares* the broad swells, *Width variation*
+the narrowing between them, *Fine tails* the taper at both ends, and *Edge ripple
+mm* the shared waviness. *Wander mm* sets lateral movement and *Rotate* turns the
+whole composition. *Width mm* is the band's maximum nominal width, before
+shrink-only page fitting; Channels narrows it further at tight spine bends to
+avoid offset cusps. Pleated crossings deliberately overprint. *Lines* counts
+complete filaments (internally capped at 200); *Colours* 1–6 and the pen selectors
+recolour the geometry without moving any stroke. Dense settings reduce sampling
+and may widen pocket hatch pitch to keep base output below 110k points before
+Style. Margin shows the fitting box. Existing Line, Ring and Angular results,
+including old patches without the new fields, are unchanged.
+
+Help examples: **Ribbon · Organic pleats**, **Ribbon · Open channels**,
+**Ribbon · Ink pockets**, **Ribbon · Six ink pleats**, **Ribbon · No crossings**,
+**Ribbon · Sharp stripes**, **Ribbon · Sharp zigzag**, and **Ribbon · Star loop**.
 
 **Halftone** — dot/pattern shading driven by a noise field.
 

@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **304 files** (306 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **306 files** (308 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 191, Modifiers 76). ESM format:
+  Generators 193, Modifiers 76). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -123,7 +123,7 @@ text are **English**.
 
 - `npm run build` → `dist/index.html` (vite + vite-plugin-singlefile; standalone,
   offline). `npm run dev` for live work.
-- Node count check: `ls src/defs/nodes | wc -l` (304, including Coral and Arc Mounds) — the old
+- Node count check: `ls src/defs/nodes | wc -l` (308, including Grid Hairs, Primitive Image and Shan Shui Landscape) — the old
   `grep -c 'cat: "'` on App.jsx is dead.
 - Version: single `APP_VERSION` constant in App.jsx (UI header + G-code stamp).
   Bump with `sed -i '' 's/APP_VERSION = "2.XX"/APP_VERSION = "2.YY"/' src/App.jsx`,
@@ -2379,6 +2379,405 @@ according to the session's actual capabilities:
   removed in this integration. The release task must push the integration to
   main, verify the exact Pages run and public 2.112 result, then refresh the
   clean Claude snapshot. Preparation alone must not be reported as an upload.
+
+- **W** 2026-10-07 Astra — **Grid Hairs**. New `grid_hairs` generator in
+  Organic & Flow. Independent cell width/height in millimetres, **Tufts /
+  Crosshatch / Scatter / Flow**, line count, density and length variation,
+  direction scatter, Flow scale, bend, cell gap, margin and seed. Optional
+  exported grid with its own pen; **1–6 selectable pens** colour whole cells
+  without changing geometry. Standard Style input and preview-only grid guides.
+  Straight strokes are clipped analytically to their own cells; curved strokes
+  use contained Bezier control points. Full cells are centred within the margin.
+  Independent cell/hair random streams preserve existing strokes when density
+  increases within budget. Extreme fine grids coarsen uniformly; generation
+  budgets the whole field to 4,096 cells and 110k points before Style, rather
+  than truncating midway across the page. No engine/helper/exporter changes.
+  Four A3 Help examples (**41 total**), node reference, tags, catalog, recency
+  and source bundle updated: **306 node files / 308 definitions / 193 generators**.
+  `tools/render-grid-hairs.mjs` generates four computed SVG studies, editable
+  patches and a gallery in `/tmp/muusia-grid-hairs/`. These are visual review
+  outputs, not browser-export captures. Graduated lab file removed after parity.
+  Validation: **267** focused checks with lab/baked parity; **266** against the
+  baked source after lab removal. Tests cover containment, all patterns, seed,
+  colour invariance, grid uniqueness, density continuity, bounds/budgets,
+  malformed parameters and the actual Style helper. All 41 examples pass.
+  Catalog validation → build → **18,114 Learn checks** passed. Fresh built-in
+  browser load, all four patterns, editable cell dimensions, curved six-colour
+  Flow and first place in Latest nodes verified. Default A3 Crosshatch produces
+  **7,808 paths / 15,616 points / 56.35 m** of drawing.
+  Actual browser-export text was read from the SVG and G-code panels and its
+  geometry/pen assignments compared with independently computed node output.
+  SVG Flow: **A3 420×297 mm, 8,729 paths / 87,290 points / six pen groups**;
+  canonical rounded-geometry FNV-1a digest **fdece502** matches. G-code Flow:
+  **A4 297×210 mm**, fits the default 330×240 mm profile without bounds warnings,
+  **4,023 paths / 64,368 points / 4,023 pen-downs / five M0 pen changes**;
+  canonical rounded-geometry digest **b31727cb** matches with route optimisation
+  off. These digests compare geometry, not downloaded-file bytes or SHA-256
+  provenance. No hardware movement or plot test. Preview restored to A3.
+  **Local, uncommitted**, first node of Daniel's next batch on
+  `codex/grid-hairs-batch`, base `fec272df737c684cfd6c0934ce024b9af662fce7`.
+  APP_VERSION remains 2.112. Continue the requested node batch; bump once,
+  commit/push and refresh Claude's clean snapshot only at its final integration.
+
+- **W** 2026-10-07 Astra — **Image / Rams contour**. Adds the tenth Render
+  option to the existing Image node, with no new node or engine changes. Long
+  parallel strokes form a sculptural line relief from an imported photo or the
+  existing blue Drawing input. Cell / spacing sets base pitch; Contour depth
+  (mm) and Strength set relief, Contour angle rotates the field, Contour smoothing
+  (mm) filters tone, and Gamma shapes it. White cutoff splits strokes around
+  light regions unless Keep white background is enabled; Min stroke removes
+  short fragments. One selected pen, existing Style input. Seed is hidden and
+  unused. This is tonal geometry, not face recognition, automatic background
+  removal or calibrated grayscale reproduction; plain light backgrounds work best.
+  Implementation: bounded tone grid, physical Gaussian smoothing, monotone
+  relief phase via pooled adjacent violators, then level-curve sampling and
+  exact image-box clipping. Neighbouring lines stay ordered across sharp tonal
+  transitions. Sampling and line count adapt over the full image, bounded to
+  104k points before Style. All nine prior modes preserve their geometry.
+  Two Help examples added (**43 total**): a photo template and ready wired
+  Lissajous relief. Reference/tags/catalog/recency/source bundle updated. Learn's
+  Image prose and six conditional-control notes are updated, with generated
+  manifest/example parameters. The first build correctly rejected missing
+  `image.ramsAngle` visibility documentation; this was resolved, not bypassed.
+  Existing Learn example geometry and captured screenshots were not changed.
+  Validation: **257** focused Rams checks with lab/baked parity, **256** after
+  removing the graduated lab; **2,339** Image art checks (nine frozen geometry
+  outputs), **100** Drawing checks, Trace Image alias oracles and all **43**
+  examples pass. Catalog → build → **18,125 Learn checks** passed. Actual browser
+  photo import, angled/deep relief controls, and the wired example were inspected.
+  A fresh app reload and saved-patch load restore the same 192-path preview;
+  the browser reported no console errors.
+  Actual SVG panel: A3 297×420, **192 paths / 17,112 points**, Pen 0; canonical
+  rounded-geometry FNV-1a **d3f012dd** matches independent node output. G-code:
+  A4 297×210, **132 paths / 16,985 points**, **64166b98** matches; route optimisation
+  off, default 330×240 profile, no bounds warning or pen changes. No hardware run.
+  These are DOM geometry comparisons, not downloaded byte/SHA-256 captures.
+  Source hashes, settings and results: `/tmp/muusia-image-rams/browser-qa.json`.
+  `tools/render-image-rams.mjs` makes four review SVGs and editable patches from
+  decoded photo data outside the repository; gallery at local port 5197. No
+  personal photo is added to the repository. Preview app remains on port 5195.
+  **Local, uncommitted**, second item after Grid Hairs in `codex/grid-hairs-batch`,
+  base `fec272df737c684cfd6c0934ce024b9af662fce7`. APP_VERSION remains 2.112.
+  Continue Daniel's node batch before the single final version bump, commit,
+  push and Claude snapshot refresh.
+
+- **W** 2026-10-07 Astra — **Primitive Image**. New `primitive_image`
+  generator in Text & Image, inspired by Daniel's link to
+  https://github.com/fogleman/primitive. Independent JavaScript implementation;
+  no copied Go source, new dependency, server or engine edit. Seeded random
+  geometric candidates + hill climbing minimise weighted pixel SSE. Triangles,
+  Rectangles, Ellipses, Circles and Mixed; 150 shapes by default, capped at 300,
+  three bounded search qualities. Fit resolution tops out at 88 pixels on the
+  long side; image intake at 480. A per-image WeakMap caches only the latest fit;
+  palette/shape/search/tone edits invalidate it, while rendering and Reveal do not.
+  Unlike the original's opaque/translucent screen fills, the white-paper model
+  uses multiplicative overprinted ink. Tone hatch / Cross hatch turn fitted
+  coverage into real clipped pen strokes; Outlines is a separate geometric
+  interpretation without tonal reproduction. One unique pen fits grayscale;
+  multiple selected pens fit RGB to actual palette colours. Up to six selected
+  inks, possibly fewer used when others do not reduce error. No opaque white
+  erasing or promise of calibrated physical ink mixing. Coverage defaults to
+  0.3 to leave room for later refinement. Pen width determines physical hatch
+  spacing; app/SVG preview stroke width remains the existing standard and can
+  look heavier than a thin real nib. Dense output uniformly widens spacing to
+  stay under 100k base points before Style. Reveal uses full-fit spacing for an
+  exact prefix even when coarsening, suitable for a Frame value wire.
+  Added two image-choice Help templates (**45 examples total**), node reference,
+  tags, catalog, recency and source bundle. **307 node files / 309 definitions /
+  194 generators**. Prototype/baked parity passed before lab removal; built-in
+  definition explicitly staged. Fresh app load, Latest nodes entry, saved patch,
+  direct photo import, monochrome and six-colour previews inspected. Four review
+  SVGs/patches at `/tmp/muusia-primitive-image`, generated by
+  `tools/render-primitive-image.mjs`; gallery local port 5198. Photo data remains
+  outside the repository. The defaults on the review photo reduce the fitting
+  grid's SSE by 92.3%; this is a mathematical score, not a print quality claim.
+  Validation: **238 focused checks** with prototype parity, **237** after lab
+  removal; independent full SSE and polygon pixel replay, strict positive gains,
+  all shapes/renders, source/palette changes, exact Reveal/count prefixes, Style,
+  finite bounded paths and oversized-sheet budget (94,992 points). All **45**
+  examples pass. Catalog → build → **18,125 Learn checks** green. Existing export
+  reference captures remain valid; no Learn checks bypassed.
+  Browser SVG: A3 297×420, **4,907 paths / 9,814 points / six pen groups**,
+  canonical rounded-geometry FNV-1a **063b3570** matches independent output.
+  G-code: A4 297×210, **3,326 paths / 6,652 points / five M0 changes**, digest
+  **9c0ae09f** matches with route optimisation off, default 330×240 profile,
+  no bounds warnings. Geometry read from the real export panels, not downloaded
+  byte/SHA-256 captures. Settings and source hashes:
+  `/tmp/muusia-primitive-image/browser-qa.json`. No hardware run.
+  **Local, uncommitted**, third item in `codex/grid-hairs-batch`, base
+  `fec272df737c684cfd6c0934ce024b9af662fce7`. APP_VERSION remains 2.112.
+  Continue Daniel's batch, then one final version bump, commit/push and Claude
+  snapshot refresh. No project upload or publication in this step.
+
+- **W** 2026-10-07 Astra — **Shan Shui Landscape**. New `shan_shui` generator
+  in Nature, using actual adapted geometry from Lingdong Huang's MIT-licensed
+  https://github.com/LingDong-/shan-shui-inf at
+  `9f754d2b2e73495db7883d4d4055a7b0903b0454`. Source provenance and full license
+  are in `docs/MUUSIA-SHAN-SHUI-NOTICE.md`; the runtime definition also preserves
+  the full license in the built app. Reuses PolyTools, Util, stroke/blob/texture,
+  Tree, Mount, Arch, Man and water. No new dependency or App.jsx/helper edit.
+  Replaces browser SVG serialization with real path/mask commands, infinite
+  scrolling with three bounded compositions, and the global random/p5 noise
+  code with local seeded randomness and the existing Muusia noise helper.
+  Seeds reproduce the local node, not the upstream website's exact scene.
+  River valley / Mountain range / Islands; controls for near/distant peaks,
+  relief, vegetation, pagodas, fishing boats, ripples and rock texture. Fine lines
+  follows brush centrelines; Brush outlines retains brush boundaries. Reverse
+  painter-order clipping removes covered strokes behind white silhouettes;
+  disabling Hidden lines exposes all strokes. No white paint or grey wash is
+  exported. Sheet clipping splits paths rather than drawing border bridges.
+  Up to six selected pens map to land/background/trees/buildings/water/boats,
+  preserving geometry. Cache stores only the latest unstyled geometry; output
+  clones keep consumer mutations isolated. Base output capped at 110k points
+  with scene-wide path thinning for unusually dense settings, before Style.
+  Prototype inspected in the real app through a saved patch with an embedded
+  custom definition, then baked. Strict prototype/baked parity passed; lab copy
+  removed after fresh built-in verification and the new node explicitly staged.
+  Added three A3 Help examples (**48 total**), tags, reference, catalog, recency
+  and source bundle. **308 node files / 310 definitions / 195 generators**.
+  Validation: **264 focused checks** including prototype parity (**263** after
+  lab removal), finite raw upstream geometry, deterministic output, no global
+  mutation, independent occlusion/clip cases, meaningful controls, all layouts
+  and line modes, six-pen geometry invariance, Style, cache and dense scenes.
+  All 48 examples pass; catalog → build → **18,125 Learn checks** green, existing
+  reference exports still valid. Fresh app: Latest nodes entry, three Help
+  examples, live Mountain range change and built-in saved-patch load inspected;
+  no console errors. Four actual SVG studies and editable patches are generated
+  by `tools/render-shan-shui.mjs` at `/tmp/muusia-shan-shui`, local gallery 5199.
+  Browser SVG: six-ink Islands, A3 420×297, **2,506 paths / 15,929 base points /
+  548 closed paths / six pen groups**, rounded geometry FNV-1a **540d39df**.
+  Browser G-code: A4 297×210, **2,484 paths / 14,690 base points / five M0 changes**,
+  digest **705c743b**, route optimisation off, default 330×240 servo profile,
+  no bounds warnings. Both match independently computed node geometry; closed
+  paths repeat their first point in the digest (16,477 and 15,224 points).
+  These are real export-panel geometry comparisons, not downloaded byte hashes.
+  Settings/source hashes: `/tmp/muusia-shan-shui/browser-qa.json`. No hardware run.
+  **Local, uncommitted**, fourth item in `codex/grid-hairs-batch`, base
+  `fec272df737c684cfd6c0934ce024b9af662fce7`. APP_VERSION remains 2.112. Continue
+  Daniel's batch, then one final version bump, commit/push and Claude snapshot
+  refresh. No publication or project upload in this step.
+
+- **W** 2026-10-07 Astra — **Ribbon / Organic**. Extended the existing `ribbon`
+  after comparing Ribbon, Follow Lines and Smoke against Daniel's two flowing
+  line-bundle references. No additional node, dependency, helper or App.jsx edit.
+  Shape → Organic adds **Pleated** sheets with edge-on fold seams and **Channels**
+  with filaments deflected around pockets. Bends/Wander set the route, Flares
+  and Width variation shape broad swells and narrow waists, Fine tails tapers
+  the ends, Edge ripple adds shared waviness and Fold turns twists the sheet.
+  Pocket fill Open/Outline/Hatch uses actual pen paths; Pocket pitch is measured
+  after page fitting. Optional 1–6 pens change layer assignment only. Whole
+  geometry rotates and shrinks only as necessary to fit Margin. No opaque fill
+  hides overlaps: pleated crossings overprint. Base filaments have a 90k-point
+  budget, with separate bounded pocket geometry; dense hatching widens its pitch.
+  Existing Line/Ring/Angular defaults and geometry are unchanged. Width's UI
+  range now reaches 160 mm for broad organic sheets; its default remains 28 mm.
+  Four A3 Help examples (**52 total**) cover broad pleats, open channels, real
+  pocket hatching and six inks. Updated node reference, tags, catalog, recency
+  and source bundle. Node totals remain **308 files / 310 definitions**.
+  Validation: **1,545 focused checks**, including six frozen pre-change legacy
+  geometry hashes, finite bounded output, determinism, parameter effects,
+  independent pocket cross-sections, hatch containment, physical width/pitch,
+  palette invariance and the real Style helper. Existing Ribbon and Angular
+  validators pass (Angular **760** checks). All **52 examples**, catalog, build
+  and **18,125 Learn checks** pass. Real app: conditional controls, updated
+  Latest nodes date, Help loading and previews inspected; no console errors.
+  Render tool `tools/render-ribbon-organic.mjs` uses the same Help examples and
+  generates actual SVGs and editable patches in `/tmp/muusia-ribbon-organic`
+  (local gallery port 5200). Broadened example settings after visual review.
+  Browser export check: Ink pockets with six pens, SVG A3 297×420 gives
+  **691 paths / 66,524 base points / 3 closed boundaries / six pen groups**,
+  rounded geometry FNV-1a **4a8ee756** (66,527 points with closure returns).
+  G-code A4 297×210 gives **370 paths / 53,498 base points / five M0 changes**,
+  digest **9be4077a** (53,501 points), route optimisation off, default 330×240
+  servo profile, no bounds warnings. Both match independently computed node
+  geometry. These compare real export-panel geometry, not downloaded byte hashes.
+  Source/settings hashes: `/tmp/muusia-ribbon-organic/browser-qa.json`.
+  No hardware run. **Local, uncommitted**, fifth item in `codex/grid-hairs-batch`,
+  base `fec272df737c684cfd6c0934ce024b9af662fce7`; APP_VERSION stays 2.112.
+  Continue the batch, then bump once, commit/push and refresh Claude's snapshot.
+
+- **W** 2026-10-07 Astra — **24–48 frame animation design audit**. Daniel asked
+  for proposals for every existing node, not an animation implementation.
+  `docs/animation-audit/index.html` is a local, searchable Finnish report with
+  all **310 built-in definitions** (308 node files plus inline Group/Route,
+  including four hidden definitions), actual control labels/source links,
+  physical sheet workflow, implementation priorities and eight interactive
+  previews. `proposals.tsv` is the authored review; `audit.json` records the
+  source snapshot and full descriptors. Categories: 95 current-control
+  candidates, 107 requiring careful trials, 58 proposed extensions, 47 workflow
+  utilities and three legacy compatibility entries. These are design judgments,
+  not 310 completed loop validations.
+  - `tools/probe-animation-audit.mjs` ran the actual Lissajous, Grid → Wave,
+    Grid Hairs, Iris, Murmuration, Plaid, Ribbon Organic and Concrete Poetry
+    definitions at **24 and 48 frames**. All eight reproduce deterministically
+    and return from virtual phase 1 to phase 0 within 1e-7 mm. Seven retain
+    path/point structure; Concrete's clipped text changes between 90–98 paths
+    and requires visual review rather than point-correspondence claims.
+    Full-geometry lengths are recorded; preview-only simplification is 0.1 mm.
+    Source hashes bind the probes to their node/helper versions.
+  - `tools/build-animation-audit.mjs` verifies exact 310-key coverage, unique
+    entries, referenced parameter keys, local links and probe source evidence.
+    Browser checks passed for recipe selection, playback, 24/48 switching,
+    search, status filter, all 310 rendered entries and sheet-time calculator;
+    no browser console errors. No physical plots or animation export parity
+    tests were performed. No app or node source changes, no version bump, no
+    commit/push; prior uncommitted node batch remains intact.
+  - Recommended next implementation: append a normalized **Loop phase i/N**
+    output to Frame without changing existing ports; current `t=i/(N-1)` repeats
+    the loop endpoint. Existing exact workaround uses rot ° / 36 / 10. Add
+    preview fps, presets and seam inspection. First physical pilot: one-pen
+    Grid → Wave, 24 frames, Frame Grid Animate / Map canvas / 4×3, two sheets
+    (outer ANIMATE Frames = 2). Morph Layers already exists but has a 12-layer
+    cap and a linear Sheets progression; extend it rather than add a rival node.
+  - Concrete engine follow-ups identified but deliberately not fixed in this
+    proposal task: `exportAllFrames` omits the normal `machine` evaluation
+    context; frame-export buttons are disabled by the current empty frame even
+    if later frames contain art. Verify both before a large plot batch. Existing
+    frame ZIP export is already implemented; the older roadmap bullet below
+    is stale. Base fec272df737c684cfd6c0934ce024b9af662fce7, APP_VERSION 2.112
+    plus unpublished grid-hairs batch. No Claude web-project upload this turn.
+
+- **W** 2026-10-09 Astra — **Six non-rotation animation examples**. Daniel
+  wanted interesting motion across different nodes after trying Plaid's rotation.
+  `docs/animation-examples/index.html` presents six interactive loops: Moire Disc
+  Spiral → Zigzag Path travelling wave, two sliding Moire Discs, Grid → Lens,
+  Text → Chop → Explosion reassembly, Concrete Poetry Shift, and a deforming
+  Manual Blob Mesh. Includes six editable `.muusia.json` projects, four-frame
+  contact sheets, playback/scrubbing, 24/36/48 selection, seam playback and
+  pen-down distance estimates. All use one pen on a fixed 140×140 mm canvas;
+  existing node implementations and the camera angles are unchanged.
+  - `node tools/build-animation-examples.mjs` passes all six at 24, 36 and
+    48 frames: deterministic nonempty geometry, finite points, page bounds,
+    valid graph pins/parameters, at least six distinct frames, and virtual
+    phase 1 matching phase 0 within 1e-7 mm. It extracts the actual App graph
+    evaluator and SVG exporter. Only the virtual endpoint substitutes Frame's
+    otherwise-clamped outputs; every stored frame uses the real Frame node.
+    Preview simplification is 0.06 mm; downloaded projects use full geometry.
+  - All six projects were loaded through the real browser UI. Eight real SVG
+    export-panel captures (six starting frames plus Spiral and Blob midpoints
+    at frame index 18/36) match path counts, point counts and ordered path-data
+    FNV-1a. `browser-checks.json` binds captures to sources, selected engine/
+    exporter scopes and patch hashes. Initial route-optimised captures changed
+    path ordering; recaptured with Optimize route off rather than weakening
+    the check. No downloaded-byte checksum, frame-ZIP or hardware claim.
+  - Gallery selection, frame count, scrub, playback and seam controls checked
+    in browser, with no console errors; local links and data checked by builder.
+    Instructions use actual Load / ANIMATE / SVG × N labels. Frame count is
+    not persisted by current project format; set it after loading. Existing
+    machine profiles are preserved by these patches. See the audit entry above
+    for outstanding generic animation-export engine work.
+  - Local only at port 5201; base fec272df737c684cfd6c0934ce024b9af662fce7,
+    APP_VERSION 2.112. No source change, version bump, commit, push or Claude
+    upload. Keep with the existing uncommitted batch for eventual integration.
+
+- **W** 2026-10-09 Astra — **Grid Hairs + Solids composite loop**. Daniel
+  requested background noise with a rotating Solids shape. Added the separate
+  `docs/animation-composite/` test and `tools/build-animation-composite.mjs`;
+  no node or engine implementation changed. A 24 mm Grid Hairs strip repeats
+  via Crop → Array, moves down one period via Move / Scale, then is cropped
+  to a 120×120 mm window on a 140×140 mm page. Container keeps the background
+  outside a 40 mm radius circle. Solids produces a 76 mm sphere with fixed
+  X/Z tilt and a full Y rotation; Merge combines both branches. Both movements
+  use Frame's rot ° output. The circular mask is specific to this sphere;
+  adjust it when changing the foreground size or shape.
+  - Local preview includes 24/36/48-frame playback, scrub, seam playback,
+    independent layer visibility, the editable project, a first-frame SVG
+    and a four-frame contact sheet. Preview switches do not modify the project.
+    Graphs preserve the user's machine profile; set Frames after loading and
+    select the final Merge. Seeds remain fixed; no random per-frame flicker.
+  - Builder uses the real App evaluator and SVG exporter. All 24/36/48 runs
+    pass graph contracts, determinism, nonempty finite one-pen output, bounds,
+    both branches moving and foreground clearance. Virtual endpoint matches
+    within 0.000391 mm (below Crop/Container bisection precision); comparison
+    uses bidirectional stroke distances because resampling can insert a
+    redundant collinear vertex. Sphere visibility and border clipping change
+    path counts naturally: roughly 978–1052 paths and 6.02 m drawn per frame.
+  - Real browser Load → Merge → Frames 36, Optimize route off: SVG export
+    panel frame indices 0 / 18 match ordered path FNVs 50710267 / 670812ba,
+    1024 / 994 paths, 7673 / 7672 points and 140×140 mm page. Capture provenance
+    is bound to patch, node/helper hashes and selected evaluator/export scopes
+    in `browser-checks.json`. Existing six-example captures remain untouched.
+    Preview controls and layer toggles checked; app/gallery console clean.
+    No frame-batch download, downloaded-byte checksum or physical-plot claim.
+  - Local only on port 5201, base fec272df737c684cfd6c0934ce024b9af662fce7,
+    APP_VERSION 2.112. Keep with the current uncommitted batch; no commit,
+    push, publication or Claude snapshot refresh in this task.
+
+- **L** 2026-10-09 Astra — **English animation studies in Learn**. Daniel
+  requested the animation gallery and all earlier animation studies in the
+  tutorials. Added three built Learn pages: six editable motion examples,
+  Grid Hairs + Solids combined motion, and the full 310-node survey with eight
+  interactive probes, readiness/category search, English TSV, Frame Grid
+  production guidance and a measured-time calculator. Linked from the overview,
+  tutorial index, global navigation, sidebar and relevant node guides. The node
+  library's catalogue total now comes from CATALOG instead of the stale 298.
+  - `learn/animation/` owns English prose/templates and the build/validation
+    integration. Original Finnish studies remain intact under docs/. The six
+    gallery project names are translated; every root graph and canvas is
+    unchanged. The already-English composite patch, SVGs, measurements and
+    original browser evidence are copied unchanged. Generated English provenance
+    distinguishes source byte hashes, original compact-JSON capture hashes and
+    published patch byte hashes. SVG record hashes describe ordered path data,
+    not downloaded-file checksums.
+  - The existing `check:learn` now includes animation translation coverage,
+    preview/graph identity, dynamic assets and scoped source/capture checks.
+    Gates use the relevant node/helpers and selected evaluator/SVG-exporter
+    code, never all of App.jsx. The 310-node survey remains a dated snapshot;
+    its full-App review fingerprint does not become a release gate. A change
+    to a working example's tracked dependency needs affected browser recapture,
+    not an overwritten hash. See learn/README.md for maintenance instructions.
+  - Shared catalogue/build/Learn gate passed: 31 reachable English pages and
+    19,497 general Learn checks, plus animation assertions for 310 translations,
+    eight probes and seven projects. Browser checks covered navigation, gallery
+    frame count/scrub/play/join, composite layer controls, all eight audit
+    previews, search/readiness/show-all (310 results) and the sheet-time
+    calculator. Existing 28 screenshots and two reference exports stay intact.
+  - App version remains 2.112; base fec272df737c684cfd6c0934ce024b9af662fce7.
+    Local preview at 127.0.0.1:5183/learn/. Seven foundation lessons and eighteen
+    illustrated node guides are distinct from the three studies; this does not
+    claim 310 finished guides, new app animation controls or physical plotting.
+    Include the original study assets and English source in eventual batch
+    integration. No commit, push, deployment or Claude snapshot upload here.
+
+- **N + L** 2026-10-09 Astra — **Solids sphere ring seam repair**. Daniel
+  spotted interrupted latitude lines in frame 08/36 of the Grid Hairs + Solids
+  example. The hidden-back emitter treated a closed ring as a linear array,
+  omitting its last-to-first edge and splitting visible arcs at that seam.
+  It now starts traversal behind the sphere, visits every cyclic edge and
+  clips crossings to the existing visibility plane. Transparent spheres and
+  all five other solids retain their exact pre-fix geometry.
+  - `tools/validate-solids.mjs` checks 350 sphere views, including all frames
+    of 24/36/48 loops at three perspective settings, axis-aligned views and
+    maximum ring density. Open endpoints must lie at the projected visibility
+    rim; six pre-fix geometry hashes protect unaffected shapes/styles.
+  - Rebuilt the original composite and its English Learn copy. Re-captured
+    actual app SVG panels at indices 0, 7 and 18 in fresh headless Chrome via
+    Playwright (in-app automation service was unavailable). Ordered path data,
+    point counts and 140 mm square page match the offline evaluator/exporter:
+    `9e6eb719` / `4bc4d452` / `6675cb91` FNV. The reported frame is now an
+    explicit capture case in both composite and Learn validation. The original
+    provenance check first rejected the stale Solids source hash as intended;
+    fresh browser exports resolved it. No hash-only override was used.
+  - Composite 24/36/48 loop, bounds, masking and real export checks pass;
+    shared catalogue/build/Learn gates pass (19,497 general checks plus
+    animation assertions). Visually checked frame 08/36 without the background
+    in both previews; English frame-count switching and both layer toggles
+    pass without browser errors. Updated catalogue, recency and source bundle.
+    APP_VERSION remains 2.112 on base fec272df737c684cfd6c0934ce024b9af662fce7;
+    this repair stays in the current uncommitted batch. No physical-plot,
+    frame-batch download, commit, push or publication claim.
+
+- **2.113** 2026-10-09 Astra — publish the completed art-node batch and
+  English animation studies through the existing Muusia / Learn Pages site.
+  Includes Grid Hairs, Primitive Image, Shan Shui Landscape, Image Rams contour,
+  Ribbon Organic Pleated / Channels and the Solids sphere seam repair. Learn
+  adds six motion examples, a combined two-motion example and the 310-node
+  survey with eight interactive probes, linked from the existing tutorials.
+  Three composite browser SVG captures include the repaired frame 08/36.
+  All six affected node validators and the catalogue/build/Learn gate pass.
+  Release baseline fec272df737c684cfd6c0934ce024b9af662fce7; completed claims
+  are cleared in this integration. Reindeer/Murmuration is a subsequent task
+  and is not part of this release. No physical plotting validation is claimed.
 
 ## Hard-won pitfalls (keep)
 

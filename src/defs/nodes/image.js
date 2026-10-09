@@ -3,7 +3,7 @@ import { Pin, EMPTY, PENS, mulberry32, noise2, pathLength, applyStyle } from "..
 export default {
   key: "image",
     name: "Image", cat: "gen", group: "textimg", fileImage: true, imageMax: 640,
-    desc: "Turn a photo or a wired drawing into real pen paths. Connect any blue Paths output to Drawing; Auto uses the connected drawing, otherwise the loaded image. Source can force Image (file) or Drawing (wired). Drawing stroke mm sets the width used to interpret source lines, not the output pen width. Fill closed shapes uses even-odd interiors per source pen, preserving nested holes. Open lines stay strokes. Drawing keeps its canvas position and is clipped to Margin; source pen colours supply the image colours. Empty wired drawings stay empty. Dense drawings reduce raster detail across the whole sheet. Organic dots turns tone into varied circles, with Outline, Spiral fill or Concentric rings. Short strokes follows image contours, a flow field or a fixed angle; Shadow passes adds ink in darker areas. Cross stitches makes a woven interpretation. Square weave converts tone into the area of staggered squares, with Outline, Hatch fill or alternating Woven fill. Set Jitter to 0 for regular rows; Square layout also offers an aligned Grid. These four modes support 1–6 selected pens: Source colours chooses the closest ink from your Pens palette, Tone bands assigns light-to-dark ranges (Main pen is lightest). Colours change pen assignments without changing geometry. Spacing, Strength, Gamma and White cutoff tune the image; Jitter loosens the rows. Fill / pen pitch should match your pen width. Very dense settings thin marks across the whole image to stay within the point budget. New images load at up to 640 px; reload an older photo for more detail. The five earlier render modes retain their original geometry and single-pen behavior. No image is uploaded to a server.",
+    desc: "Turn a photo or a wired drawing into real pen paths. Connect any blue Paths output to Drawing; Auto uses the connected drawing, otherwise the loaded image. Source can force Image (file) or Drawing (wired). Drawing stroke mm sets the width used to interpret source lines, not the output pen width. Fill closed shapes uses even-odd interiors per source pen, preserving nested holes. Open lines stay strokes. Drawing keeps its canvas position and is clipped to Margin; source pen colours supply the image colours. Empty wired drawings stay empty. Dense drawings reduce raster detail across the whole sheet. Organic dots turns tone into varied circles, with Outline, Spiral fill or Concentric rings. Short strokes follows image contours, a flow field or a fixed angle; Shadow passes adds ink in darker areas. Cross stitches makes a woven interpretation. Square weave converts tone into the area of staggered squares, with Outline, Hatch fill or alternating Woven fill. Set Jitter to 0 for regular rows; Square layout also offers an aligned Grid. These four modes support 1–6 selected pens: Source colours chooses the closest ink from your Pens palette, Tone bands assigns light-to-dark ranges (Main pen is lightest). Colours change pen assignments without changing geometry. Spacing, Strength, Gamma and White cutoff tune the image; Jitter loosens the rows. Fill / pen pitch should match your pen width. Very dense settings thin marks across the whole image to stay within the point budget. New images load at up to 640 px; reload an older photo for more detail. Rams contour turns tone into long, ordered lines: tonal transitions bend and gather neighbouring lines. Cell / spacing sets the base line spacing; Contour depth sets the relief in millimetres and Strength scales it. Contour angle rotates the line direction, and Contour smoothing softens fine detail. This is a sculptural interpretation of tones, not a calibrated grayscale reproduction. White cutoff removes light areas unless Keep white background is enabled. Use a well-lit portrait with a plain light background; this is tone-based shaping, not face recognition or automatic background removal. A single selected pen draws every contour. Seed is not used by Rams contour. The five earlier render modes retain their original geometry and single-pen behavior. No image is uploaded to a server.",
     // Keep Style at port 0 so existing patches keep their connections.
     ins: [Pin("style", "Style"), Pin("paths", "Drawing")], outs: [Pin("paths")],
     params: [
@@ -11,12 +11,17 @@ export default {
       { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
       { key: "drawingWidth", label: "Drawing stroke mm", type: "slider", min: 0.2, max: 12, step: 0.1, def: 1.8, showIf: p => p.source !== "Image (file)" },
       { key: "drawingFill", label: "Fill closed shapes", type: "check", def: false, showIf: p => p.source !== "Image (file)" },
-      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)", "Organic dots", "Short strokes", "Cross stitches", "Square weave"], def: "Scanline wave" },
+      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)", "Organic dots", "Short strokes", "Cross stitches", "Square weave", "Rams contour"], def: "Scanline wave" },
       { key: "cell", label: "Cell / spacing mm", type: "slider", min: 0.8, max: 12, step: 0.1, def: 2.4 },
       { key: "strength", label: "Strength", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.8 },
       { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
       { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.06 },
       { key: "invert", label: "Invert", type: "check", def: false },
+      { key: "ramsAngle", label: "Contour angle °", type: "slider", min: -90, max: 90, step: 1, def: 0, showIf: p => p.mode === "Rams contour" },
+      { key: "ramsDepth", label: "Contour depth mm", type: "slider", min: 0, max: 40, step: 0.5, def: 14, showIf: p => p.mode === "Rams contour" },
+      { key: "ramsSmooth", label: "Contour smoothing mm", type: "slider", min: 0, max: 6, step: 0.1, def: 1.2, showIf: p => p.mode === "Rams contour" },
+      { key: "ramsMin", label: "Min stroke mm", type: "slider", min: 0, max: 12, step: 0.5, def: 1, showIf: p => p.mode === "Rams contour" },
+      { key: "ramsWhite", label: "Keep white background", type: "check", def: false, showIf: p => p.mode === "Rams contour" },
       { key: "levels", label: "Contour levels", type: "slider", min: 1, max: 6, step: 1, def: 3, showIf: p => p.mode === "Contours (trace)" },
       { key: "low", label: "Lowest threshold", type: "slider", min: 0.05, max: 0.9, step: 0.05, def: 0.25, showIf: p => p.mode === "Contours (trace)" },
       { key: "high", label: "Highest threshold", type: "slider", min: 0.1, max: 0.95, step: 0.05, def: 0.75, showIf: p => p.mode === "Contours (trace)" },
@@ -38,7 +43,7 @@ export default {
       { key: "pen5", label: "Pen 5", type: "pen", def: 5, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 5 },
       { key: "pen6", label: "Pen 6", type: "pen", def: 10, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 6 },
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
-      { key: "seed", label: "Seed", type: "seed", def: 139 },
+      { key: "seed", label: "Seed", type: "seed", def: 139, showIf: p => p.mode !== "Rams contour" },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
     _artNumber(v, fallback, lo, hi) {
@@ -298,9 +303,118 @@ export default {
       chosen.sort((a,b)=>a.index-b.index);
       return applyStyle({paths:chosen.flatMap(m=>m.paths)},ins[0]);
     },
+    _ramsCompute(ins, p, ctx, img) {
+      const fit=this._artFit(p,ctx,img); if(!fit)return EMPTY;
+      const n=this._artNumber, {sample}=this._artSampler(img,fit);
+      const cell=n(p.cell,2.4,0.4,30), strength=n(p.strength,0.8,0,1);
+      const gamma=n(p.gamma,1,0.3,3), cutoff=n(p.cutoff,0.06,0,0.98);
+      const smoothing=n(p.ramsSmooth,1.2,0,12), angle=n(p.ramsAngle,0,-180,180)*Math.PI/180;
+      const minLength=n(p.ramsMin,1,0,30), layer=Math.round(n(p.layer,0,0,11));
+      const cs=Math.cos(angle),sn=Math.sin(angle),cx=fit.x+fit.w/2,cy=fit.y+fit.h/2;
+      const U=Math.abs(cs)*fit.w+Math.abs(sn)*fit.h,V=Math.abs(sn)*fit.w+Math.abs(cs)*fit.h;
+      const xy=(u,v)=>[cx+cs*u-sn*v,cy+sn*u+cs*v];
+      const inside=(x,y)=>x>=fit.x-1e-8&&x<=fit.x+fit.w+1e-8&&y>=fit.y-1e-8&&y<=fit.y+fit.h+1e-8;
+      const tone=(x,y)=>Math.pow(p.invert ? 1-sample(x,y) : sample(x,y),gamma);
+      // Work in coordinates along/across the strokes. Tone displaces a
+      // relief phase field; a positive derivative keeps its level curves
+      // ordered, even at steep tonal transitions.
+      const nx=Math.max(24,Math.min(640,Math.ceil(U/Math.max(0.45,fit.sc))+1));
+      const ny=Math.max(24,Math.min(640,Math.ceil(V/Math.max(0.45,fit.sc))+1));
+      const du=U/(nx-1),dv=V/(ny-1);
+      let field=new Float64Array(nx*ny);
+      for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+        const [x,y]=xy(-U/2+i*du,-V/2+j*dv);
+        if(inside(x,y))field[j*nx+i]=tone(x,y);
+      }
+      // Separable Gaussian on the tone field; replicated boundaries keep a
+      // uniform source uniform. Smoothing is a physical distance, not pixels.
+      const blur=(data,horizontal,sigma)=>{
+        if(sigma<0.15)return data;
+        const radius=Math.min(48,Math.ceil(3*sigma)),kernel=[];let sum=0;
+        for(let k=-radius;k<=radius;k++){const w=Math.exp(-k*k/(2*sigma*sigma));kernel.push(w);sum+=w;}
+        const out=new Float64Array(data.length);
+        for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+          let v=0;for(let k=-radius;k<=radius;k++){
+            const x=horizontal?Math.max(0,Math.min(nx-1,i+k)):i;
+            const y=horizontal?j:Math.max(0,Math.min(ny-1,j+k));
+            v+=data[y*nx+x]*kernel[k+radius];
+          }out[j*nx+i]=v/sum;
+        }return out;
+      };
+      field=blur(blur(field,true,smoothing/du),false,smoothing/dv);
+      const depth=n(p.ramsDepth,14,0,100)*strength;
+      const phase=new Float64Array(field.length);
+      let bottom=-Infinity,top=Infinity;
+      for(let i=0;i<nx;i++){
+        // Isotonic projection of the relief coordinate leaves a minimum
+        // positive slope. Pooled adjacent violators resolves steep dark edges
+        // without folded or crossing contours, while bounding displacement.
+        const blocks=[];
+        for(let j=0;j<ny;j++){
+          const v=-V/2+j*dv,value=0.82*v-depth*field[j*nx+i];
+          blocks.push({sum:value,count:1,start:j});
+          while(blocks.length>1){
+            const b=blocks.at(-1),a=blocks.at(-2);
+            if(a.sum/a.count<=b.sum/b.count)break;
+            blocks.pop();a.sum+=b.sum;a.count+=b.count;
+          }
+        }
+        for(const b of blocks)for(let j=b.start;j<b.start+b.count;j++)phase[j*nx+i]=b.sum/b.count+0.18*(-V/2+j*dv);
+        top=Math.min(top,phase[i]);bottom=Math.max(bottom,phase[(ny-1)*nx+i]);
+      }
+      // Budget both sampling and possible white/background splits over the
+      // entire image. No early exit that loses its bottom or right side.
+      const spacing=Math.max(cell,(bottom-top)/420);
+      const first=Math.ceil(top/spacing-0.5),last=Math.floor(bottom/spacing-0.5);
+      const lineCount=Math.max(0,last-first+1);
+      const steps=Math.max(12,Math.min(nx-1,Math.floor(52000/Math.max(1,lineCount))-1));
+      const position=(u,level)=>{
+        const fx=(u+U/2)/du,ix=Math.min(nx-2,Math.max(0,Math.floor(fx))),t=Math.max(0,Math.min(1,fx-ix));
+        const at=j=>phase[j*nx+ix]*(1-t)+phase[j*nx+ix+1]*t;
+        if(level<at(0)||level>at(ny-1))return null;
+        let lo=0,hi=ny-1;
+        while(hi-lo>1){const mid=(lo+hi)>>1;if(at(mid)<level)lo=mid;else hi=mid;}
+        const v=-V/2+(lo+(level-at(lo))/(at(hi)-at(lo)))*dv;
+        return xy(u,v);
+      };
+      const clip=(a,b)=>{
+        let lo=0,hi=1;const dx=b[0]-a[0],dy=b[1]-a[1];
+        for(const [v,q]of [[-dx,a[0]-fit.x],[dx,fit.x+fit.w-a[0]],[-dy,a[1]-fit.y],[dy,fit.y+fit.h-a[1]]]){
+          if(Math.abs(v)<1e-12){if(q<0)return null;}
+          else {const t=q/v;if(v<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);if(lo>hi)return null;}
+        }
+        return [[a[0]+dx*lo,a[1]+dy*lo],[a[0]+dx*hi,a[1]+dy*hi]];
+      };
+      const paths=[];let run=[];
+      const flush=()=>{if(run.length>=2&&pathLength(run,false)>=minLength)paths.push({pts:run,closed:false,layer});run=[];};
+      for(let line=first;line<=last;line++){
+        const level=(line+0.5)*spacing;let previous=null;
+        for(let i=0;i<=steps;i++){
+          const point=position(-U/2+i*U/steps,level);
+          if(point&&previous){
+            const segment=clip(previous,point);
+            if(segment){
+              let [a,b]=segment;
+              const da=p.ramsWhite?1:tone(...a)-cutoff,db=p.ramsWhite?1:tone(...b)-cutoff;
+              if(da>0||db>0){
+                if(da<=0||db<=0){const t=da/(da-db),cross=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];if(da<=0)a=cross;else b=cross;}
+                if(Math.hypot(b[0]-a[0],b[1]-a[1])>1e-8){
+                  if(run.length&&Math.hypot(run.at(-1)[0]-a[0],run.at(-1)[1]-a[1])>1e-7)flush();
+                  if(!run.length)run.push(a);run.push(b);
+                }
+                if(db<=0)flush();
+              }else flush();
+            }else flush();
+          }else flush();
+          previous=point;
+        }flush();
+      }
+      return applyStyle({paths},ins[0]);
+    },
     compute(ins, p, ctx, node) {
       const img = this._usesDrawing(p,ins) ? this._drawingImage(p,ctx,ins?.[1]) : node?.data?.img;
       if (!img) return EMPTY;
+      if (p.mode === "Rams contour") return this._ramsCompute(ins, p, ctx, img);
       if (["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode)) return this._artCompute(ins, p, ctx, img);
       if (p.mode === "Contours (trace)") {
         /* verbatim traceimg body — merged 2.51; traceimg is a hidden alias */

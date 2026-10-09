@@ -15,6 +15,84 @@
 
 export const EXAMPLES = [
   {
+    name: "Ribbon · Organic pleats", desc: "A soft ribbon swells into broad pleats and narrows into dark seams. Shape → Organic, form → Pleated. Fold turns rotates the sheet edge-on; Flares changes the swell pattern. Width variation and Fine tails pinch it to thin ends, while Edge ripple adds a shared waviness. Every filament is a continuous pen stroke; crossings overprint.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "ribbon", x: 30, y: 20, params: { ...defaults("ribbon"), shape: "Organic", width: 160, lines: 38, widthVar: 0.65, wander: 55, twist: 0.75, ripple: 1.4, bends: 2.5, flares: 4 } }], edges: [] }),
+  },
+  {
+    name: "Ribbon · Open channels", desc: "Parallel filaments bend around four empty pockets. Shape → Organic, form → Channels. Pockets and Pocket size control the openings; Pocket fill → Open leaves only the surrounding lines. Bends steers the route, Flares shapes the swells, and Width variation makes narrow waists. The whole band fits the page margins.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "ribbon", x: 30, y: 20, params: { ...defaults("ribbon"), shape: "Organic", organicForm: "Channels", width: 130, lines: 32, widthVar: 0.65, wander: 70, ripple: 1.5, bends: 2, pockets: 4, pocketSize: 0.75 } }], edges: [] }),
+  },
+  {
+    name: "Ribbon · Ink pockets", desc: "Flowing lines surround dark islands. Pocket fill → Hatch draws their interiors with real pen strokes; Pocket pitch is the physical spacing in millimetres. Use a matching nib for a solid-looking fill, or choose Outline for lighter pockets. There are no screen-only black fills. Changing Colours assigns up to six selected pens across the ribbon.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "ribbon", x: 30, y: 20, params: { ...defaults("ribbon"), shape: "Organic", organicForm: "Channels", width: 130, lines: 36, widthVar: 0.8, wander: 60, ripple: 1.5, bends: 2, pockets: 3, pocketSize: 0.75, pocketFill: "Hatch", pocketPitch: 0.3, seed: 18 } }], edges: [] }),
+  },
+  {
+    name: "Ribbon · Six ink pleats", desc: "Sixty continuous filaments make a folded ribbon in six selected inks. Change the pen choices without changing the geometry. Fold turns controls the pinched crossings, Rotate turns the complete drawing, and Width mm sets the band width before any shrink needed to fit the page. Ink mixing at crossings depends on the pens and paper.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "ribbon", x: 30, y: 20, params: { ...defaults("ribbon"), shape: "Organic", width: 160, lines: 60, widthVar: 0.55, wander: 55, twist: 1.15, ripple: 1.4, bends: 2.5, flares: 5, colours: 6, seed: 18 } }], edges: [] }),
+  },
+  {
+    name: "Shan Shui · River valley", desc: "A mountain-and-water landscape built with adapted shan-shui-inf geometry by Lingdong Huang. Fine lines makes delicate pen strokes; Hidden lines removes geometry behind the mountains. Try Seed, Relief, Trees and Texture to change the scenery. Buildings adds pagodas and Boats adds fishing boats. A3 landscape, one black pen.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "shan_shui", x: 30, y: 20, params: { ...defaults("shan_shui") } }], edges: [] }),
+  },
+  {
+    name: "Shan Shui · Islands in six inks", desc: "Low shores, trees, pagodas and boats in six selected inks. Pens follow land, distant peaks, trees, buildings, water and boats; fewer colours cycle those categories through the selected pens. Change colours without changing the drawing. Turning a feature off can also remove its pen group. Hidden lines keeps the landscape layered even in SVG or G-code.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "shan_shui", x: 30, y: 20, params: { ...defaults("shan_shui"), layout: "Islands", seed: 27, mountains: 5, colours: 6, trees: 55, buildings: 2, boats: 2 } }], edges: [] }),
+  },
+  {
+    name: "Shan Shui · Brush outlines", desc: "The boundaries of the original variable-width brush marks become real closed pen paths. Compare Lines → Fine lines for lighter, faster plotting. Texture controls rock strokes and Trees controls vegetation. The drawing has no solid washes or paper texture: every visible mark is a pen route. Start with a fine nib.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "shan_shui", x: 30, y: 20, params: { ...defaults("shan_shui"), lines: "Brush outlines", texture: 20, trees: 25 } }], edges: [] }),
+  },
+  {
+    name: "Primitive Image · Geometric portrait", desc: "Choose a photo on Primitive Image. The optimiser tries triangles and refines the ones that reduce image error. Tone hatch converts each fitted tone into actual pen strokes. Start with 150 shapes and a 0.3 mm pen; use Search, Shape scale and Seed for different interpretations. Reveal shows the drawing building up. All fitting happens locally.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "primitive_image", x: 30, y: 20, params: { ...defaults("primitive_image") } }], edges: [] }),
+  },
+  {
+    name: "Primitive Image · Six-ink mosaic", desc: "Choose a colourful photo. Mixed searches triangles, rectangles, ellipses and circles using six selected pen colours. The optimiser may use fewer than six if some inks do not improve the image. Overlaps darken white paper through real strokes. Try Cross hatch or Outlines, which is a geometric interpretation without tonal fills. Changing pen colours can change the fitted shapes.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "primitive_image", x: 30, y: 20, params: { ...defaults("primitive_image"), shape: "Mixed", count: 180, colours: 6 } }], edges: [] }),
+  },
+  {
+    name: "Image · Rams contour", desc: "Choose a well-lit portrait on Image. Rams contour makes long parallel lines that bend around tonal features. Cell / spacing sets the line spacing; Contour depth and Strength set the relief. Contour smoothing softens detail, Contour angle turns the strokes, and White cutoff clears light areas. Use a plain light background; this mode does not remove backgrounds automatically. One selected pen, A3 portrait.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "image", x: 30, y: 20, params: { ...defaults("image"), source: "Image (file)", mode: "Rams contour", cell: 1.7, gamma: 1.15, strength: 0.8, ramsDepth: 14, ramsSmooth: 1.2 } }], edges: [] }),
+  },
+  {
+    name: "Image · Drawing contours", desc: "A blue Lissajous wire supplies Image’s Drawing input. Rams contour turns the thickened curve into a line relief. Keep white background shows the surrounding field; turn it off to retain only the source marks. Change the Lissajous frequencies, Drawing stroke mm, Contour depth and angle to reshape the result. No image file needed.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lissajous", x: 30, y: 20, params: { ...defaults("lissajous"), fx: 3, fy: 4, turns: 1, margin: 26, layer: 0 } },
+      { id: 9002, type: "image", x: 350, y: 20, params: { ...defaults("image"), source: "Auto", mode: "Rams contour", cell: 1.8, drawingWidth: 6, strength: 0.8, ramsDepth: 10, ramsSmooth: 1.5, ramsWhite: true, ramsAngle: 20 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 1 }] }),
+  },
+  {
+    name: "Grid Hairs · Crosshatch", desc: "Small crossed strokes in square cells. Cell width and Cell height set the physical grid; Lines per cell sets density. Try Direction scatter and Length variation for a looser surface. Cell gap separates the groups. Seed repeats the same drawing.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "grid_hairs", x: 30, y: 20, params: { ...defaults("grid_hairs"), ...{} } }], edges: [] }),
+  },
+  {
+    name: "Grid Hairs · Tufts", desc: "Parallel bundles in tall cells, with actual grey grid lines. Draw grid can be switched off; selected-node guides never export. Change Cell width and Cell height independently, or use Bend to curve the hairs.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "grid_hairs", x: 30, y: 20, params: { ...defaults("grid_hairs"), ...{"pattern": "Tufts", "cellW": 12, "cellH": 20, "count": 12, "densityVar": 0.15, "length": 150, "scatter": 8, "gap": 2, "drawGrid": true, "seed": 17} } }], edges: [] }),
+  },
+  {
+    name: "Grid Hairs · Scatter", desc: "Freely turned strokes remain inside each square cell. Density variation mixes dense and sparse groups; Cell gap reveals the grid through white space. Length is a percentage of the smaller cell dimension.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "grid_hairs", x: 30, y: 20, params: { ...defaults("grid_hairs"), ...{"pattern": "Scatter", "cellW": 16, "cellH": 16, "count": 15, "densityVar": 0.6, "length": 100, "gap": 2, "seed": 53} } }], edges: [] }),
+  },
+  {
+    name: "Grid Hairs · Flow", desc: "Six pens follow a flowing direction field, one pen per cell. Flow size sets how many cells share a broad turn; Bend curves the hairs. Colours changes only the selected pens, keeping the geometry. All hairs stay inside their own cells.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "grid_hairs", x: 30, y: 20, params: { ...defaults("grid_hairs"), ...{"pattern": "Flow", "cellW": 10, "cellH": 10, "count": 10, "scatter": 9, "bend": 0.65, "gap": 1, "colours": 6, "layer": 5, "pen2": 7, "pen3": 6, "pen4": 4, "pen5": 10, "pen6": 0, "seed": 28} } }], edges: [] }),
+  },
+  {
     name: "Colour Scribble · Knot", desc: "A compact tangle of six coloured inks. Gesture mixes straight hatching and curved bundles. Try Spread, Size variation and Disorder to open up or loosen the knot. Lines per bundle changes density. Colours 1 makes the same drawing monochrome. All marks are real pen paths.",
     canvas: { W: 420, H: 297 },
     make: defaults => ({ nodes: [{ id: 9001, type: "colour_scribble", x: 30, y: 20, params: { ...defaults("colour_scribble"), ...{"layout": "Knot", "gesture": "Mixed", "bundles": 110, "density": 13, "length": 32, "width": 10, "spread": 0.65, "variation": 0.65, "disorder": 0.55, "curve": 0.45, "threads": 0.2, "rotation": 0, "cx": 50, "cy": 50, "margin": 10, "seed": 41, "colours": 6, "layer": 1, "pen2": 7, "pen3": 6, "pen4": 4, "pen5": 5, "pen6": 10} } }], edges: [] }),

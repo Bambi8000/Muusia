@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "2.112",
-  "sourceCommit": "34e8fcc7c560cc5e797ab89bfe47b6daae6c39dd",
+  "version": "2.113",
+  "sourceCommit": "fec272df737c684cfd6c0934ce024b9af662fce7",
   "canvas": {
     "W": 297,
     "H": 210
@@ -66,7 +66,7 @@
     "inputs": [
       {
         "path": "learn/generate-assets.mjs",
-        "sha256": "b29bea5a552af39307f51b8f774d3587944bfdbab0cb174ba37357f6e16f7453"
+        "sha256": "e0dfb5c4ee5f5c7936a7aae4acb79169697f621e760c125e619ea78ef7c76324"
       },
       {
         "path": "learn/lib/fixtures.mjs",
@@ -114,7 +114,7 @@
       },
       {
         "path": "src/defs/nodes/image.js",
-        "sha256": "1d8a357fc1f2b1d03f31f17ce76d87c60c4cbd6760b0170abea417b2b4ea21cc"
+        "sha256": "3f10f98b6613ba4bda72ffa86e523b9b2ba67596141ca1590bbcec331aa3c4f4"
       },
       {
         "path": "src/defs/nodes/polystudio.js",
@@ -452,7 +452,7 @@
       },
       {
         "path": "examples/image.muusia.json",
-        "sha256": "d4f35a2243af0c0791437fee71002e50ab29ded32a0be1968b38914958f09539"
+        "sha256": "c4ccaedaeb99702fa8127ec2ab985e867d962c6958733b2de9cfe9f6056ee804"
       },
       {
         "path": "examples/polystudio.muusia.json",
@@ -2239,7 +2239,8 @@
             "Organic dots",
             "Short strokes",
             "Cross stitches",
-            "Square weave"
+            "Square weave",
+            "Rams contour"
           ],
           "def": "Scanline wave",
           "default": "Scanline wave",
@@ -2302,6 +2303,68 @@
           "default": false,
           "conditional": false,
           "visibleByDefault": true
+        },
+        {
+          "key": "ramsAngle",
+          "label": "Contour angle °",
+          "type": "slider",
+          "min": -90,
+          "max": 90,
+          "step": 1,
+          "def": 0,
+          "default": 0,
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Rams contour.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "ramsDepth",
+          "label": "Contour depth mm",
+          "type": "slider",
+          "min": 0,
+          "max": 40,
+          "step": 0.5,
+          "def": 14,
+          "default": 14,
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Rams contour.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "ramsSmooth",
+          "label": "Contour smoothing mm",
+          "type": "slider",
+          "min": 0,
+          "max": 6,
+          "step": 0.1,
+          "def": 1.2,
+          "default": 1.2,
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Rams contour.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "ramsMin",
+          "label": "Min stroke mm",
+          "type": "slider",
+          "min": 0,
+          "max": 12,
+          "step": 0.5,
+          "def": 1,
+          "default": 1,
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Rams contour.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "ramsWhite",
+          "label": "Keep white background",
+          "type": "check",
+          "def": false,
+          "default": false,
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Rams contour.",
+          "visibleByDefault": false
         },
         {
           "key": "levels",
@@ -2574,7 +2637,8 @@
           "type": "seed",
           "def": 139,
           "default": 139,
-          "conditional": false,
+          "conditional": true,
+          "visibilityNote": "Hidden for Rams contour, which is determined entirely by the source tones and contour controls.",
           "visibleByDefault": true
         },
         {
@@ -2655,6 +2719,11 @@
               "gamma": 1,
               "cutoff": 0.06,
               "invert": false,
+              "ramsAngle": 0,
+              "ramsDepth": 14,
+              "ramsSmooth": 1.2,
+              "ramsMin": 1,
+              "ramsWhite": false,
               "levels": 3,
               "low": 0.25,
               "high": 0.75,
@@ -2695,6 +2764,11 @@
         "gamma": 1,
         "cutoff": 0.06,
         "invert": false,
+        "ramsAngle": 0,
+        "ramsDepth": 14,
+        "ramsSmooth": 1.2,
+        "ramsMin": 1,
+        "ramsWhite": false,
         "levels": 3,
         "low": 0.25,
         "high": 0.75,

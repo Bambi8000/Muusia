@@ -40,17 +40,28 @@ export default {
       const PHI = (1 + Math.sqrt(5)) / 2;
       if (p.shape === "Sphere") {
         const emit = (ring3d) => {
-          /* jaa nakyviin kaariin (takapinta piiloon) */
+          const ring = ring3d.map(rot);
+          const horizon = r * 0.02;
+          const hidden = ring.findIndex(v => v[2] > horizon);
+          if (p.sstyle === "Transparent" || hidden < 0) {
+            paths.push({ pts: ring.map(proj), closed: true, layer: L });
+            return;
+          }
+          // Start behind the sphere and visit every cyclic edge. A visible arc
+          // may cross the ring's array seam; it must not be split there.
           let run = [];
           const flush = () => { if (run.length > 1) paths.push({ pts: run, closed: false, layer: L }); run = []; };
-          for (const v of ring3d) {
-            const R = rot(v);
-            const visible = p.sstyle === "Transparent" || R[2] <= r * 0.02;
-            if (visible) run.push(proj(R));
-            else flush();
+          for (let i = 0; i < ring.length; i++) {
+            const a = ring[(hidden + i) % ring.length];
+            const b = ring[(hidden + i + 1) % ring.length];
+            const aVisible = a[2] <= horizon, bVisible = b[2] <= horizon;
+            if (aVisible !== bVisible) {
+              const t = (horizon - a[2]) / (b[2] - a[2]);
+              run.push(proj([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]), horizon]));
+            }
+            if (bVisible) run.push(proj(b));
+            else if (aVisible) flush();
           }
-          if (run.length === ring3d.length) paths.push({ pts: run, closed: true, layer: L });
-          else flush();
         };
         const N = 72;
         for (let la = 1; la < Math.round(p.lat); la++) {

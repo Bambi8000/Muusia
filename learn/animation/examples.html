@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Animation examples · Muusia Learn</title>
+<style>
+:root{color-scheme:light;--paper:#faf9f5;--ink:#233940;--soft:#656d6b;--rule:#c9cdc6;--accent:#bb4b32}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,sans-serif}a{color:inherit;text-underline-offset:4px}button,select,input{font:inherit}button,select{color:inherit;background:transparent;border:1px solid var(--rule);padding:8px 13px;border-radius:2px;cursor:pointer}button:hover,a:hover{color:var(--accent)}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:4px}header{max-width:1440px;margin:auto;padding:28px 44px 26px;border-bottom:1px solid var(--rule)}.overline{display:flex;justify-content:space-between;gap:20px;font-size:12px;letter-spacing:.1em;text-transform:uppercase}h1{font:500 clamp(36px,4.6vw,68px)/1.04 Georgia,serif;letter-spacing:-.025em;margin:36px 0 20px;max-width:860px}.intro{max-width:750px;margin:0;color:var(--soft);font-size:18px}.layout{display:grid;grid-template-columns:265px minmax(360px,1fr) 310px;max-width:1440px;margin:auto;min-height:660px}.index{padding:24px 20px 28px 44px;border-right:1px solid var(--rule)}.index h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;margin:0 0 22px}.choice{display:grid;grid-template-columns:28px 1fr;gap:10px;text-align:left;width:100%;padding:17px 0;border:0;border-top:1px solid var(--rule);line-height:1.35;border-radius:0}.choice[aria-pressed=true]{color:var(--accent)}.choice span:first-child{font:italic 19px Georgia,serif}.choice b{font-size:15px;font-weight:500}.choice small{display:block;color:var(--soft);font-size:11px;margin-top:6px}.stage{padding:24px 28px 28px;min-width:0}.stage-head{display:flex;justify-content:space-between;gap:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase}.stage-head output{font-variant-numeric:tabular-nums}canvas{width:100%;aspect-ratio:1;display:block;margin:15px 0;background:#fff;border:1px solid #e6e7e1;touch-action:pan-y}.controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.controls label{display:flex;gap:6px;align-items:center;font-size:12px}#play{min-width:96px;background:var(--ink);color:white;border-color:var(--ink)}.scrub{display:flex;align-items:center;gap:12px;margin:16px 0 8px;font-size:12px}#scrub{width:100%;accent-color:var(--accent)}.seam{font-size:12px;color:var(--soft);margin:6px 0}.details{padding:28px 32px 28px 25px;border-left:1px solid var(--rule)}.kind{color:var(--accent);font-size:11px;letter-spacing:.1em;text-transform:uppercase}.details h2{font:500 30px/1.13 Georgia,serif;margin:14px 0 18px}.details p{font-size:14px}.details h3{font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:26px 0 9px}.details .chain{font-size:12px;color:var(--soft);padding:0 0 20px;border-bottom:1px solid var(--rule)}.stats{font:14px/1.7 ui-monospace,monospace;border-block:1px solid var(--rule);padding:14px 0;margin:22px 0}.download{display:block;background:var(--ink);color:#fff;text-decoration:none;text-align:center;padding:11px 6px;font-size:14px}.download:hover{background:var(--accent);color:#fff}.strip-link{display:block;text-align:center;margin-top:12px;font-size:12px}.below{max-width:1440px;margin:auto;padding:35px 44px 55px;border-top:1px solid var(--rule);display:grid;grid-template-columns:1fr 1fr;gap:60px}.below h2{font:500 27px/1.2 Georgia,serif;margin:0 0 17px}.below p,.below li{font-size:14px;max-width:620px}ol{padding-left:22px}li{padding:3px 0}.note{color:var(--soft)}footer{border-top:1px solid var(--rule);padding:20px 44px;font-size:12px;color:var(--soft)}code{font-size:.92em}#error{padding:30px;color:#9d301c}@media(max-width:1150px){.layout{grid-template-columns:225px 1fr}.index{padding-left:28px}.details{grid-column:1/-1;border-left:0;border-top:1px solid var(--rule);display:grid;grid-template-columns:1fr 1fr;gap:0 45px;padding:26px 32px}.details .summary{grid-row:1/4}.details .stats{margin-top:0}.details h2{font-size:32px}}@media(max-width:700px){header{padding:22px}.overline{font-size:10px;letter-spacing:.02em}h1{margin-top:28px}.intro{font-size:16px}.layout{display:flex;flex-direction:column}.index{padding:18px 22px;border:0;display:grid;grid-template-columns:1fr 1fr;gap:0 22px}.index h2{grid-column:1/-1;margin-bottom:10px}.choice{padding:11px 0;grid-template-columns:20px 1fr;gap:5px}.choice b{font-size:13px}.choice small{font-size:10px}.stage{padding:15px 22px 25px}.details{display:block;padding:26px 22px}.details .stats{margin:22px 0}.below{display:block;padding:28px 22px}.below>div+div{margin-top:32px}footer{padding:22px}}
+/* Keep the playback controls within a typical laptop viewport. */
+@media(min-width:701px){header{padding-top:20px;padding-bottom:20px}h1{font-size:46px;margin:18px 0 12px;max-width:none}.intro{font-size:16px;max-width:950px}canvas{width:min(100%,calc(100vh - 355px));margin-inline:auto}.layout{min-height:570px}}
+
+/* Shared Learn navigation, deliberately quiet beside the drawing. */
+.learn-nav{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:20px;font-size:12px}.skip-link{position:absolute;left:-10000px;top:4px}.skip-link:focus{left:12px;z-index:10;background:white;padding:12px}
+</style></head><body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header>
+<nav class="learn-nav" aria-label="Learn navigation"><a href="../index.html">Muusia / Learn</a><a href="../tutorials/index.html">Tutorials</a><a href="combine-movements/index.html">Combine movements</a><a href="node-motion/index.html">All-node motion study</a><a href="../../index.html" target="_blank" rel="noopener">Open Muusia ↗</a></nav>
+<div class="overline"><span>Animation / Examples 01–06</span><span>24 · 36 · 48 frames</span></div>
+<h1>Movement comes from within.</h1><p class="intro">Six loops made with different nodes: travelling waves, stretching surfaces, fragments and shifting letters. Open any example in Muusia and make it your own.</p>
+</header><main id="main"><div id="error" hidden role="alert"></div>
+<div class="layout"><nav class="index" aria-label="Animation examples"><h2>Choose a movement</h2><div id="choices" style="display:contents"></div></nav>
+<section class="stage" aria-label="Animation preview"><div class="stage-head"><span>140 × 140 mm / 1 pen</span><output id="counter" aria-label="Current frame">01 / 36</output></div>
+<canvas id="drawing" width="1000" height="1000" role="img" aria-label="Animated line drawing"></canvas>
+<div class="controls"><button id="play" type="button">Play</button><label>Frames <select id="count"><option>24</option><option selected>36</option><option>48</option></select></label><label>Speed <select id="fps"><option value="8" selected>8 fps</option><option value="12">12 fps</option><option value="6">6 fps</option></select></label><button id="seam" type="button" aria-pressed="false">Inspect the join</button></div>
+<div class="scrub"><label for="scrub">Frame</label><input id="scrub" type="range" min="0" max="35" value="0" step="1" aria-label="Choose animation frame"></div><p id="seam-note" class="seam">Join mode repeats the last three and first three frames of the loop.</p></section>
+<aside class="details" aria-label="Example details"><div class="summary"><span id="kind" class="kind"></span><h2 id="title"></h2><p id="description"></p><p id="chain" class="chain"></p><h3>What moves</h3><p id="recipe"></p><h3>Try a variation</h3><p id="change"></p></div><div><h3>For the plotter</h3><p id="plot"></p><div id="stats" class="stats"></div></div><div><a id="download" class="download" download>Download Muusia project ↓</a><a id="strip" class="strip-link" target="_blank" rel="noopener">Compare four frames ↗</a></div></aside></div>
+<section class="below"><div><h2>Open the movement in Muusia</h2><ol><li>Download a project. Save your current work, then choose <strong>Load</strong> in Muusia and open the <code>.muusia.json</code> file.</li><li>Select the last drawing node: its name appears at the end of the example's chain.</li><li>Below the preview, set <strong>ANIMATE → Frames</strong> to the same count as this page (24, 36 or 48), then press <strong>▶</strong> (Play preview).</li><li>Export with <strong>SVG × 36</strong> (the number follows your frame count). Start with a small plotting test to check pen width and registration.</li></ol><p class="note">Muusia does not save the animation frame count in these project files. Set it after loading. The projects keep your current machine profile and set a 140 × 140 mm canvas. Their geometry does not depend on the machine profile.</p><p>Next: <a href="combine-movements/index.html">combine a falling background with a rotating solid</a>, or use the <a href="node-motion/index.html#paper">physical plotting workflow</a> to arrange frames on sheets.</p></div>
+<div><h2>The join is part of the movement</h2><p>These examples use existing nodes. Frame's <strong>rot °</strong> output is divided by 36 and then by 10 to produce a 0–1 loop phase. This controls the shape's parameters. The viewing angle of the whole drawing stays fixed.</p><p>In a 24-frame sequence, the last phase is 23/24. The next phase, 1, matches phase 0, so do not append a duplicate of the first frame. LFO controls back-and-forth movements; seeds stay fixed throughout.</p><p class="note">Previews were calculated from the downloadable graphs using Muusia's evaluator. Checks cover 24/36/48 frames, deterministic output, page bounds and the virtual endpoint. Preview lines are simplified by at most 0.06 mm; projects retain full geometry. Distances include pen-down drawing only, not travel or machine time. Browser SVG exports were checked; physical plotting has not yet been tested.</p><p><a href="node-motion/index.html#experiments">Eight earlier motion experiments</a> · <a href="node-motion/index.html#nodes">Ideas for all 310 nodes</a></p></div></section>
+</main><footer>Study prepared 8 October 2026 · Muusia 2.112 plus the node batch described in the records · <a href="checks.json">Geometry checks</a> · <a href="browser-checks.json">Browser export records</a> · <a href="provenance.json">English edition provenance</a></footer>
+<script type="module">
+const $=id=>document.getElementById(id);
+try{
+ const response=await fetch('./data.json');if(!response.ok)throw Error('Could not load the examples');
+ const examples=await response.json();
+ let current=0,frame=0,N=36,playing=false,seam=false,last=0;
+ const ctx=$('drawing').getContext('2d');
+ const cache=new Map();
+ const path=(item,i)=>{
+   const sourceN=N===24?48:N,sourceI=N===24?i*2:i,key=item.key+':'+sourceN+':'+sourceI;
+   if(!cache.has(key))cache.set(key,new Path2D(item.frames[sourceN][sourceI]));
+   return cache.get(key);
+ };
+ function paint(){
+   const item=examples[current],canvas=$('drawing');
+   ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);
+   ctx.scale(canvas.width/140,canvas.height/140);ctx.strokeStyle='#233940';ctx.lineWidth=.26;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke(path(item,frame));
+   $('counter').textContent=String(frame+1).padStart(2,'0')+' / '+N;
+   $('scrub').value=frame;$('drawing').setAttribute('aria-label',item.title+', frame '+(frame+1)+' / '+N);
+ }
+ function stats(){
+   const item=examples[current],run=item.runs.find(r=>r.frames===N);
+   $('stats').replaceChildren();
+   const lines=[`${run.pathsMin===run.pathsMax?run.pathsMin:run.pathsMin+'–'+run.pathsMax} ${run.pathsMax===1?'path':'paths'} / frame`,`${(run.meanLengthMm/1000).toFixed(1)} m / frame · about ${(run.totalLengthMm/1000).toFixed(0)} m / loop`,`Recommended: ${item.recommended} frames`];
+   for(const s of lines){const div=document.createElement('div');div.textContent=s;$('stats').append(div);}
+ }
+ function setPlaying(value){playing=value;$('play').textContent=value?'Pause':'Play';last=0;}
+ function setExample(index){
+   current=index;frame=0;seam=false;$('seam').setAttribute('aria-pressed','false');
+   const item=examples[index];
+   for(const [id,key] of [['title','title'],['kind','kind'],['description','description'],['chain','chain'],['recipe','controls'],['change','change'],['plot','plot']])$(id).textContent=item[key];
+   $('download').href=`patches/${item.key}.muusia.json`;$('strip').href=`${item.key}.svg`;
+   $('download').setAttribute('aria-label','Download Muusia project: '+item.title);
+   for(const [i,b] of [...$('choices').children].entries())b.setAttribute('aria-pressed',String(i===index));
+   history.replaceState(null,'','#'+item.key);stats();paint();
+ }
+ for(const [i,item] of examples.entries()){
+   const b=document.createElement('button');b.type='button';b.className='choice';b.setAttribute('aria-pressed','false');
+   const number=document.createElement('span');number.textContent=String(i+1).padStart(2,'0');
+   const text=document.createElement('span'),title=document.createElement('b'),sub=document.createElement('small');title.textContent=item.title;sub.textContent=item.chain;text.append(title,sub);b.append(number,text);
+   b.onclick=()=>setExample(i);$('choices').append(b);
+ }
+ $('play').onclick=()=>setPlaying(!playing);
+ $('count').onchange=()=>{N=+$('count').value;frame=seam?N-3:0;$('scrub').max=N-1;stats();paint();};
+ $('fps').onchange=()=>{last=0;};
+ $('scrub').oninput=()=>{setPlaying(false);frame=+$('scrub').value;paint();};
+ $('seam').onclick=()=>{seam=!seam;$('seam').setAttribute('aria-pressed',String(seam));frame=seam?N-3:0;paint();setPlaying(true);};
+ document.addEventListener('visibilitychange',()=>{last=0;});
+ function tick(t){
+   if(playing&&!document.hidden&&t-last>=1000/+$('fps').value){
+     if(last){frame=(frame+1)%N;if(seam&&frame===3)frame=N-3;paint();}last=t;
+   }
+   requestAnimationFrame(tick);
+ }
+ const index=examples.findIndex(x=>x.key===location.hash.slice(1));setExample(Math.max(0,index));
+ requestAnimationFrame(tick);
+}catch(error){$('error').hidden=false;$('error').textContent=error.message+'. Reload this page through the Muusia website or a local web server.';}
+</script>
+</body></html>

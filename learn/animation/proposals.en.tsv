@@ -1,0 +1,311 @@
+key	idea	note
+aaltoilu	Send a travelling wave through the drawing while keeping Wavelength fixed.	Phase is in radians: one cycle is 0–2π. A good first 24-frame experiment.
+adsr	Build an appear–hold–disappear movement, for example on Carve’s endpoint.	Check speed at the seam as well as matching values. A cosine is simpler for gentle breathing.
+aggregate	Grow the structure piece by piece, then retrace the growth backwards.	Keep the module and Seed fixed. Use half the loop forwards and half backwards without duplicating endpoint frames.
+align	Align the source drawing before animating it.	Recentering each frame’s changing bounds can cancel the intended movement or shift the whole picture.
+antenna	Use a small Tilt change to sway the antenna booms.	Proposed: Wind phase and amplitude acting on the same masts and cables. Keep mast count and Seed fixed.
+arc_mounds	Let a Single form breathe; Rolls can suggest a slowly moving body.	Start with one form. Field placement and occlusion can change. Proposed: fixed placement and a shared Body phase.
+array	Open and close the gaps between copies, or spread them into a fan.	Keep Copies fixed. Allow enough space for the outermost copies to stay on the page.
+arvo	Provide a shared base value to which Math adds the loop movement.	Value is not a clock. Use Frame or LFO to supply changing values.
+asciiart	Turn a light character field dense and back, or convert an animated drawing to ASCII.	Keep Columns and the grid fixed. Character changes are discrete; 24 frames suit an intentionally stepped effect.
+asteroids	Rotate the existing asteroid field with Rotate.	Proposed: persistent asteroid identities, orbital paths, spin phase and a closed ship route. Changing Seed makes the field flicker.
+attractor	Use a small parameter cycle to reshape a chaotic drawing and return it to its start.	Adjacent frames can differ dramatically; automatic fitting may change scale. Start with a small range. A fixed camera would help.
+barcode	Move a fixed barcode back and forth behind a Crop window.	Proposed: individual bar heights and phases with a fixed bar count. Width and spacing can change which bars fit at the end.
+belt	Move a line marker along a fixed belt to make its mechanism readable.	Proposed: Belt phase, moving markers and pulley spoke angles. The existing Loop setting means a closed belt, not an animation loop.
+bg_fill	Bring Magnet poles together and apart, or breathe the fold depth in Drape or Pleat.	Keep mode and line density fixed. Clipping may split strokes. Proposed: a separate Noise or Flow phase for each mode.
+bitcrush	Quantise the drawing into angular steps and restore it.	This is deliberately stepped. Keep Sample rate fixed to distinguish snapping from resampling changes.
+blobmesh	In Manual mode, move or resize one metaball within the soft volume.	Keep ball count and mesh resolution fixed. Plot the paths output or use Mesh Slice. Watch the node’s automatic fitting.
+blobrings	Stretch and tilt the same ring forms in turn.	Placement collisions and changing ring counts can cause jumps. Proposed: frozen centres and persistent ring identities.
+bluesprig	Sway a finished blueberry sprig with Lens, Wave or Rotate.	Proposed: branch-specific wind phases and swinging berries. Do not alternate leaf and berry choices each frame.
+braille	Breathe the dots in place, or slide the entire line of text.	Keep text and character positions fixed. This art experiment is not a Braille legibility test; punching holes is unnecessary.
+bridges	Grow connections between fixed points and retract them.	Lock the points and Rule. Moving points can change K-nearest or Delaunay connections; Source order is more predictable.
+broken_grid	Shorten and shift the same grid lines to open and close the surface.	Keep Cell, Density and Seed fixed. Threshold changes make lines appear or disappear in steps.
+brush_z	Move a brush-pressure wave along the same line.	Requires supported Z pressure and a tested physical range. SVG/DXF does not carry this pressure motion; use real line geometry for an ordinary pen.
+burr_cluster	Open the seams of a fixed spiky mass and extend its spikes.	Proposed: breathing per lobe with fixed centres. Reduce fills for an initial 48-frame test.
+cables	Pass the same cable bundle through a Wave modifier.	Proposed: a closed noise phase for the guiding field. Waviness changes integrated routes, so a small adjustment need not create a small movement.
+cagedipole	Reveal the antenna array with a gentle change in viewing angle.	Start with a small Yaw oscillation. Check automatic fitting before trying a complete rotation.
+cagewarp	Breathe a cage deformation from zero to maximum and back.	Keep Seed and Cage cells fixed. Pin edges preserves the page edges; useful for animating many static generators.
+calib_sheet	Plot a calibration sheet before a long animation run.	Keep dimensions and start/end crosses fixed. Its purpose is to reveal scale and alignment errors, not to animate.
+cardsheet	Lay out prepared content on small cards.	Use Frame Grid for collecting animation frames. Card Sheet alone does not evaluate different times.
+carve	Write a drawing into view, then erase it along the same strokes.	End t 0→1 is a one-way reveal. For a loop, use an out-and-back value or a moving window on a closed path; open paths need a deliberate return.
+caustics	Vary Threshold to make light streaks denser and sparser.	Proposed: periodic water-surface phase. Changing Seed does not produce continuous water; contours may still appear and disappear.
+cellular_mosaic	Break apart the same tiled drawing and assemble it again.	Keep Scale and Seed fixed so the fragments retain their identities.
+chain	Rotate chain links in their own planes, changing the over/under relationships.	Keep Links and hatch spacing fixed. Inspect moving occlusion boundaries; 48 frames suit a full turn better.
+chipdie	Reveal a fixed chip drawing with Carve or a moving Crop window.	Proposed: pulses along conductors and block-by-block reveal. Animating density rebuilds the structure.
+chop	Let fixed fragments travel with an upstream animation.	Proposed: Chop offset in millimetres to move gaps and colour divisions along a path. Length changes the number of pieces.
+chrono	Make a walking or running loop using Animate → Single instant.	Check the gait endpoints. Jumps and somersaults are events; give them a return or a rest interval.
+circpack	Generate a fixed circle packing and deform the finished result.	Proposed: vary radii around fixed accepted centres. Min/Max radius or Seed can rebuild the entire packing.
+circuit	Reveal a fixed conductor network with Carve and retract it.	Proposed: a signal pulse travelling by path distance. Keep Blocks, Traces and Seed fixed.
+clockface	Rotate the clock-face pattern through one full turn.	Twelve identical sectors can appear stationary. Distinguish one sector or try a small Keystone oscillation instead.
+clouds	Float a cloud layer slowly from side to side.	Proposed: persistent cloud identities, closed drift paths and breathing lobes. Size changes can alter overlaps and placement.
+cmyk_registration	Separate the coloured registration artwork and bring it together again.	Treat this as moving content. Add separate static Reg Marks outside it. Multiple colours increase pen-change work.
+coil	Contract and expand the spring wound around a path.	Keep Pitch fixed. Proposed: a phase that slides the coils along the host path.
+collect_frames	Send a short sequence to separate outputs.	The current maximum is 16. For 24–48 frames use Frame Grid Animate, whose Total reaches 64.
+color_mesh	Move light around a folded surface and animate its hatch shadows.	Keep Facets, Relief and Seed fixed. Shading changes line counts in steps; start with sparse hatching and 48 frames.
+colour_scribble	Let the same coloured scribble breathe and bend.	Keep Bundles, Lines per bundle and Seed fixed. Start with Arcs. Automatic fitting may conceal changes in overall spread.
+comets	Bend and extend comet tails together.	Keep Count, Tail lines and Seed fixed. A full turn of the light direction needs margin and a check of fitting behaviour.
+concrete	Use Motion modes such as Wave, Orbit, Row squeeze, Shift and Zoom In & out.	Timeline already uses i/N. Shift and Zoom change whole letters; one-way Zoom and Typewriter need a deliberate restart.
+conformal	In Power z^n mode, bend the grid with a small exponent oscillation.	Avoid singular settings. Clipping and subdivision thresholds can flicker; turn labels off for the art experiment.
+container	Move a revealing window, breathe a circle or rotate a triangle.	Add registration marks afterwards. In Wired region mode animate the boundary. The Keep menu is not a numeric animation control.
+contour_field	Soften and sharpen a fixed height field with Roughness.	Proposed: a periodic height-field coordinate. Varying Seed produces boiling, not a smooth loop; keep it fixed.
+conway	Run Game of Life forwards and reverse the same evolution.	24–48 generations rarely form a natural loop. Alternatively find an oscillator whose period divides the frame count.
+copypoints	Grow and tilt motifs placed on persistent points.	Keep points, Spacing and Probability fixed. Proposed: a phase delay per instance for travelling motion.
+coral	Widen and narrow coral ridges within the same field.	Keep Density, Growth and Seed fixed; Growth can trigger expensive simulation. Proposed: periodic field phase with stable connections.
+cracked_paint	Open and close the same cracks.	Keep Flake size, Chips and Seed fixed. Hatch lines may appear in steps; avoid dense black fills in every test frame.
+crop	Sweep a rectangular window over a drawing, or expand and contract it.	Content outside the window is removed. Add registration marks afterwards and keep the page size fixed.
+crossstitch	Reveal cross-stitch text with Carve or Crop.	Keep the hole grid fixed. Use Stitches for the artwork; Holes is a production aid, not a required animation layer.
+ctrl	Design a movement by hand with a controller.	Proposed: record channels as keyframes, close the loop and interpolate. Live input does not currently guarantee repeatable frame export.
+cull	Reveal and remove fixed lines in a repeatable random order.	Keep Seed fixed. This is a stepped dissolve; changing Every Nth can replace many paths at once.
+cycloidm	Change the drawing machine’s initial phase to reshape its rosette.	Keep crank ratios fixed and start with a small Phase range. Non-integer speed ratios or table rotation may not close after 2π.
+datachart	Reveal a prepared chart with Carve.	Proposed: interpolate data keyframes against fixed axes. The current Data text field is not a numeric animation input.
+dazzle	Pass a fixed camouflage pattern through Wave.	Proposed: hatch Phase and Angle on persistent regions. Changing Patches or Seed breaks continuity.
+delaunay	Move source points to make the triangulation change its connections.	Edge flips are discrete. For smooth stretching, triangulate fixed points first and deform the resulting network afterwards.
+diagram	Breathe the diagram’s circles while preserving its network.	Proposed: signals along arrows. Freeze nodes and routes so changing size does not rebuild connections.
+dice_pips	Cycle through die values 1–6 or change them rhythmically.	This is a state sequence, not a morph. Pip size can breathe at a fixed value; six states divide 24 and 48 evenly.
+diffgrowth	Grow a closed line into a coral-like form and shrink it back.	Keep the initial seed and forces fixed. Point insertion is discrete; try 48 frames over a limited iteration range.
+diffpens	Use another pen to highlight differences from the original drawing.	Exact can classify an entire shifted drawing as new. Distance thresholds can flicker too; this is not a temporal motion tracker.
+displaceimg	Use a fixed image to raise and lower features in a line field.	Keep the image, sampling and direction fixed. Pair with Grid for a 48-frame photographic relief.
+double_pendulum	Build up a pendulum trace and retract it.	A chaotic trajectory rarely closes. Use a prepared trace with Carve; a moving physical pendulum needs a separately chosen periodic segment.
+drape	Tilt a cloth slowly over its hidden supports.	Keep Shapes, Count and Density fixed. Height or tension can change the solution; a fixed camera scale would help.
+duga	Reveal the radar array’s depth with a small camera sway.	Start with Light detail. Dense latticework takes time to plot. Check automatic fitting; a complete turn is unnecessary.
+echo	Wind and unwind a sequence of copies.	Keep Copies fixed. Canvas center provides a stable pivot; Path centroid may move with an animated source.
+empty_fill	Rotate hatching around static gaps, or breathe the clearance around them.	Contour mode can change line counts. Keep Spacing fixed for a calmer line field.
+endcaps	Pulse arrowheads or circular caps at the ends of moving lines.	Keep Where and Style fixed. A fragmented source can change the number of caps.
+eraser	Move an empty circle across the drawing, then reveal the same content again.	Add registration marks afterwards. Keep the eraser shape fixed and watch page-edge clipping.
+explosion	Scatter a drawing’s parts and return them to their original positions.	Keep Seed fixed and the zone large enough. Animating the zone can abruptly include new pieces.
+fabric	Breathe the cloth by changing fold depth and sag.	Flag does not imply a built-in clock. Proposed: Wave phase travelling through the same weave grid.
+fadeout	Extend and shorten brush fades at the ends of the same paths.	Physical Z motion requires a suitable machine. A 2D SVG cannot reproduce the same ink fade; start with a small test.
+fan	Distribute a movement to several parameters with different base values.	Fan alone does not create a time delay. Use several LFOs with different Phase values, or a future loop controller.
+fingerprint	Deform a fixed fingerprint using Cage Warp.	Proposed: fixed centres and a periodic field coordinate. Ring gap and Seed rebuild ridges rather than moving the same ridge continuously.
+fish	Tilt a fixed shoal using Heading.	Proposed: Tail phase, body bending and per-fish delays with persistent identities. Rotating the whole shoal does not itself resemble swimming.
+fit_canvas	Fit the source drawing before constructing the animation.	Current fitting uses each frame’s bounds. Proposed: shared bounds for the whole 24–48-frame sequence or fixed canvas mapping.
+flash_distort	Slide the same strips in different directions and reassemble the image.	Keep Segments, Width mode and Seed fixed. Check clipping at the edges.
+flow	Vary Curl slightly to make the flow pattern move.	Paths can change substantially. Proposed: periodic field Phase and persistent starting points, using a closed noise trajectory instead of changing Seed.
+flow_traces	Generate the route map once and reveal it with Carve.	Proposed: pulses travelling along traces. Flow angle or Swirl can change discrete route choices across the map.
+fmrose	Open and close the FM flower without changing its base frequencies.	Keep fc, fm and Rings fixed. Rotation can add another movement, although symmetry may hide it.
+fold	Fold the drawing into a window and straighten it again.	The fold boundary intentionally reverses direction. Keep Window and sampling fixed; 48 frames make the movement easier to follow.
+followlines	Breathe and bend a bundle of lines.	Repeated offsets can amplify a small change. Keep Count and Step fixed. Proposed: a shared continuous drift phase.
+fourier	Change a simple ellipse into the original contour and back.	Harmonics is rounded to an integer. Proposed: blend the last harmonic continuously so detail emerges smoothly.
+frame	Provide a shared clock for a 24–48-frame loop.	wave loop and rot ° use i/N; t uses i/(N−1). Proposed: a separate Loop phase output without changing existing ports.
+frame_grid	Collect 24 or 48 frames into numbered plotter sheets.	Use Animate, Map canvas and Total 24/48. A 4×3 layout needs 2/4 sheets; 3×2 needs 4/8. Set outer ANIMATE Frames to the sheet count. Avoid Fit each.
+frame_split	Split one drawing into reveal stages or moving line windows.	It does not evaluate the full graph at new times. Build-up needs a return sequence or an animated Carve to loop.
+fray	Sway loose threads around their fixed attachment points.	Keep Spacing, Seed and thread choices fixed. Crossings None may change search decisions; Allowed is more predictable over time.
+fresnel	Move or breathe a lens that refracts a line surface.	Zone boundaries create intentional jumps. Keep Radius and Zone width fixed to follow the same rings.
+fruits	Breathe a completed fruit arrangement using Lens.	Proposed: fruit rotation and a morph between whole and cut forms with fixed placement. Cut and Kind are discrete choices.
+fur	Extend and lower the same hairs.	Keep Spacing and Seed fixed. Proposed: shared wind direction and phase; Angle jitter only increases random deviation.
+galaxy	Reveal a galaxy’s depth with a slow camera orbit.	Keep Stars, Arm count and Seed fixed. Yaw is a camera change, not internal star orbits. Proposed: Orbital phase; check fitting stability.
+gcode_in	Import an earlier drawing as paths and animate them downstream.	Keep True scale and the same file. Machine commands are not animation controls; Z data needs a compatible downstream chain.
+girih	Open and close the star network by changing its contact angle.	Keep Tiling and Cell fixed. Start with a small angle range that preserves valid intersections.
+glitch	Strengthen and remove the same glitch pattern.	Keep Amount, Skip and Seed fixed to preserve the breaks. This is a deliberate distortion, not gentle natural movement.
+glitch3d	Raise a corrupted paper surface into depth and lower it again.	Keep Bands and Seed fixed. Camera fitting and strip boundaries can produce jumps.
+glitch_loom	Shift the same woven rows and bring them together again.	Keep Pitch, Fray choices and Seed fixed. Leave room for movement because the edges are clipped.
+glyphtone	Change symbols in a fixed halftone grid as the tones change.	Glyph changes are discrete. Keep Cell, Jitter, Seed and the source image fixed throughout the sequence.
+granulate	Separate and rotate the same line fragments, then restore them.	Keep Grain, Density and Seed fixed. Large Rotation values can make the result hard to read.
+gravity	Drop grid fragments and lift them back into place.	Keep Release, stamp count and Seed fixed. Reverse falling is an intentional out-and-back effect, not a naturally repeating simulation.
+gravity_cascade	Reveal prepared gravity traces with Carve.	Pull and Damping change chaotic integration. Proposed: a moving particle following a cached closed trajectory.
+grid	Keep the grid fixed and add Wave, Lens or Cage Warp.	Do not animate line counts for a smooth loop. A sparse grid is an excellent first plotting test.
+grid_hairs	Tilt the hairs in each cell as if in the wind.	Keep Cell width/height, Lines per cell and Seed fixed. Shared Angle works now; a per-cell Wind phase would be a useful extension.
+growth	Grow an organic loop and retract it.	Keep forces, Seed and bounds fixed. Simulation cost repeats for each frame; cached growth would improve the workflow.
+gull_tracks	Reveal a fixed sequence of footprints in order.	Proposed: Reveal per footprint and a walking phase. Changing Steps can rebuild the route; revealing a prepared route is steadier.
+gyroid	Rotate the 3D gyroid, or breathe Iso over a small range.	Keep Cells, Slices and Detail fixed. Check the seam and hidden-line cuts; start with sparse sections and 48 frames.
+hairs	Tilt and raise a Fixed angle hair field.	Keep Count, Seed and Region fixed. Flow mode would benefit from a separate time-dependent field phase.
+hairweb	Bulge and twist the same thread network.	Keep Anchors, Strands and Seed fixed. Start with a few hundred threads; thousands across 48 frames are a large plotting job.
+halftone	Breathe the dots in the same point texture.	Keep Cell, Scale and Seed fixed. Max K is discrete and should stay fixed in a smooth experiment.
+handdrawn	Change a precise drawing into a hand-drawn one and back.	Keep Seed fixed. Changing source samples can make noise alignment flicker; proposed: a time-based noise phase.
+hands	Wave a wrist and open the fingers.	Pose is a menu. Proposed: interpolation between anatomical poses and individual finger Curl. Keep hand count and placement fixed.
+harmonograph	Breathe the mixture of two pendulum traces.	Keep frequencies, Detune, Duration and sampling fixed. Proposed: initial phases that cycle without changing the duration.
+hatch	Sway the hatch direction within the same closed shape.	Line counts and endpoints change. Keep Spacing fixed and inspect a preview; fine hatching can flicker.
+hersheytext	Slide text or expand and contract it.	Keep the text and line breaks fixed. Concrete Poetry is a better starting point for individual letter motion.
+himmeli	Sway the himmeli like a hanging ornament.	Keep Model and Complexity fixed. Use 48 frames and shared camera scale for a full turn; a small sway suits 24 frames.
+hyperbolic_truchet	Compress ring spacing towards the centre and open it again.	Keep Rings, Segments and Seed fixed. Proposed: seamless circulation and tile identities; changing arc directions is a separate stepped mode.
+image	Breathe a Rams contour relief, or convert an animated blue Drawing input into dots or blocks.	Keep Cell, the image and drawing area fixed. Dots/Squares change fill strokes in steps. Proposed: image-transform phase and per-frame caching.
+image_rasterise	Separate photographic colour plates and register them again.	Keep Cell and angles fixed. Four pens per frame take work. Actual registration marks should remain separate and stationary.
+image_underlay	Use a static reference for capture or tracing.	Underlay is not exported as drawing paths. Changing its opacity or calibration corners does not create a plotter animation.
+ink_burst	Extend and retract the same ink tendrils.	Keep Tendrils, Seed and structural choices fixed. Fragment thresholds may flicker; begin with a small range.
+ink_relief	Reduce overlapping ink consistently across the sequence.	Adaptive Thin decisions can vary between frames. Compare the processed sequence with the original before a long plotting run.
+interference	Breathe the wavelength around fixed wave sources.	Proposed: Waves Phase and orbiting sources; Terrain needs periodic noise coordinates. Contours may merge or split.
+iris	Dilate and contract the pupil while fibres bend around it.	Keep Species, Fibres and Seed fixed. Start with 250–400 fibres and an open pupil; plotting a dark pupil 48 times adds work.
+jitter	Increase a persistent noise deformation from zero and return.	Keep Seed, Scale and source sampling fixed. Changing Seed creates deliberate boiling, not continuous motion.
+joinends	Reduce pen lifts in each frame.	Use the same Gap/Angle settings throughout. Nearby endpoint pairings can change; check for visible flicker from new joins.
+julia	Move the Julia parameter around a small circle in the complex plane.	Use two LFOs a quarter-cycle apart. Keep Zoom, Bands and Iterations fixed. Fractal topology changes are natural and computation can be expensive.
+kaleidoscope	Rotate a sector of a fixed source drawing.	Keep Sectors fixed. A single-sector cycle works only if mirroring and source content actually match at the seam.
+kierto	Rotate any drawing through one complete turn.	Use Frame rot °, a fixed pivot and enough corner clearance. Symmetry can make rotation appear stationary or reversed.
+knottube	Rotate a knot in 3D so its front and back exchange places.	Keep knot type, frequencies and strand count fixed. Check hidden-line boundaries; start with 48 frames and sparse lines.
+kolam	Breathe the curves of a kolam without changing its crossings.	Keep grid, Turns, Strands and Seed fixed. Proposed: a marker travelling along a closed strand.
+lace	Rotate a fixed lace drawing, or breathe it with Move / Scale.	Rings, Sectors and detail choices are discrete. Internal movement needs a phase for individual motifs.
+lathe	Expand and contract the turned form.	Keep Sheds, Rings and Shape fixed. Tilt suggests depth but is not a complete 3D camera orbit.
+lens	Move a glass-like bulge across a grid, or breathe it in place.	Keep Radius fixed for a moving lens. High Strength can fold lines over one another; start small.
+lettering	Extend the letters’ 3D sides and change their direction.	Keep Text, Font and fill density fixed. Hatch count changes may flicker; Outline is a lighter test mode.
+lfo	Drive breathing, part of a rotation or periodic noise in another node.	Feed it i/N, not the endpoint-inclusive i/(N−1). Sine is smooth; Triangle reverses sharply, while Saw and Square intentionally jump.
+lichen	Breathe a fixed lichen surface using a downstream deformation.	Proposed: persistent colonies and Growth/Flow phase. Density and Seed can replace the entire patch layout.
+linezones	Open and close line gaps in a fixed region layout.	Keep Zones, Pitch and Seed fixed. Verify Phase units and periodicity before using it for a full loop.
+lissajous	Cycle a Lissajous curve into a form that appears spatial.	Use Phase 0–2π, integer fx/fy, Damp 0 and fixed Turns. One continuous path makes this a useful first plotter loop.
+loom	Let a woven surface sag and straighten, or slide its layers.	Keep Density and Seed fixed. Moiré can flicker strongly; test at the intended scan size.
+lsystem	Open and close branch angles within one fixed generation.	Keep Preset, Iteration and Seed fixed. Auto-fit may pump the scale. Animating generations is a separate stepped effect.
+magnet	Move a magnet around a closed path and pull the line field with it.	Use phase-shifted LFOs for the two coordinates, with Radius and Strength fixed. A static reference makes the motion clearer.
+map_import	Move a magnifier, revealing window or wave over a map.	Keep imported data and Fit fixed. Add movement downstream; roads and buildings do not contain time information themselves.
+mask	Existing patches can still use an animated mask to clip content.	Hidden compatibility node. Use Container for new animation work.
+matem	Convert phase into an angle or a distance in millimetres.	Current recipe: Frame rot ° → Math divide by 36 → Math divide by 10 → LFO t. This gives i/N without a duplicate endpoint.
+mathknot	Rotate a projected knot on the page.	Keep fp/fq and Tube fixed. For a real 3D camera movement, use Knot Tube. Gap is not animation speed.
+merge	Combine animated drawings with static backgrounds or registration marks.	A fixed background still has to be plotted on each physical frame. Preserve pens and drawing order throughout the sequence.
+mesh	Change the same structural grid from regular to irregular and back.	Keep Rows/Cols, diagonals and Seed fixed. Proposed: time-dependent noise phase for travelling movement.
+meshslice	Move a cross-section through a form and back.	Frames (ANIMATE) selects layer slices, not a ready-made loop. Single slice with Slice control is stepped; continuous Z position would help.
+metaballs	Merge and separate cell-like forms.	Keep Blobs, Seed and resolution fixed. Contours naturally change connections; use 48 frames and a fixed drawing area.
+mini_squares	Move a fixed square field in perspective or deform it with a wave.	Proposed: Scale phase on persistent squares. Cell, Max size and Density can change packing and line counts.
+minicanvas	Place smaller prepared drawings on a sheet.	It does not collect different times by itself. Use Frame Grid Animate for an automatic 24–48-frame sequence.
+mirror8	Move a mirror axis slowly to change the symmetry.	Keep Mode fixed. Copies may leave the page; use a final Crop and add static marks afterwards.
+mm_paper	Use a light fixed grid to help evaluate capture alignment.	There is no need to plot dense millimetre paper on every frame. Four edge marks are usually a lighter production aid.
+moire_disc	Overlap two discs and move one while keeping the other fixed.	Rotating concentric Rings has no visible effect. Use Hatch/Mesh for rotation, or translate the rings. Keep Pitch fixed and test sparsely.
+mooncraters	Tilt the crater landscape in 3D.	Keep Craters, Size and Seed fixed. Preserve camera and relief scale to avoid unintended breathing.
+morphlayers	Use the existing interpolation between two drawings.	Layers currently stops at 12 and Sheets runs forwards only. Proposed: continuous Phase, Loop/Ping-pong and fixed correspondence in this same node.
+mosaic	Reveal or deform a fixed mosaic downstream.	A changing source region can create new tiles each frame. Proposed: locked tiling and a transform phase for each tile.
+mountains	Breathe a mountain range’s height or sway its view.	Keep Rows, Scale and Seed fixed. Proposed: periodic terrain phase or camera movement over a fixed height field.
+move_scale	Slide, breathe or orbit any drawing.	Canvas center or Custom point avoids drift from changing content bounds. Scale Y 0 follows the X scale.
+murmuration	Fly a flock around a closed route while retaining each bird’s identity.	Time uses i/N and internal noise is periodic. Try 48 frames, 60–120 birds, short trails and generous margins.
+mushroom	Reveal mushroom gills with a camera sway.	Keep Species, Count and Seed fixed. Increase gill spacing for the test and check automatic fitting.
+myceliumfill	Thicken the same network like living tissue.	Keep Strands, connections and Seed fixed. Thickening can concentrate overlapping ink at junctions.
+myco_net	Write a prepared mycelium network into view and retract it with Carve.	Branching and Length change how the network grows. Proposed: cached growth history and Reveal preserving the same branches.
+nanotubes	Rotate the carbon lattice in 3D.	Keep structure, n and length fixed. Front half reduces drawing but changes visible edges. Begin with a sparse Fullerene.
+needlepunch	Prepare alignment or production holes for animation sheets.	Not the recommended primary technique for a first animation. Physical punching needs an appropriate tool and backing; SVG does not perform a Z plunge.
+negspace	Move Shape through a fixed Fill to reveal negative space.	Keep Clearance and sampling fixed. Clipping can create many short paths and pen lifts.
+nested_circles	Bring discs together and apart, changing their woven over/under structure.	Keep Count, Radius and Spacing fixed. Occlusion changes are part of the effect; use 48 frames and adequate line spacing.
+net	Let a fishing net sag and straighten.	Keep Cell, Pattern, Jitter and Seed fixed. A light choice for a 24-frame breathing loop.
+network	Untangle a network and reverse the process.	Keep Nodes, Links and Seed fixed. Simulation is stepped; proposed: interpolation through a cached layout history.
+numerals	Move or reveal a fixed numeral drawing.	Value is text, not a directly animated number input. Proposed: numeric input and digit-morph phase for a counter.
+occlude	Hide an animated background behind closed foreground shapes.	Keep front/back ordering intentional. Inspect clipping boundaries and add registration marks afterwards.
+offset	Spread parallel copies apart and return them together.	Keep Copies fixed. Large offsets can introduce cusps and cleanup changes; start with a small spacing range.
+op_tunnel	Move the vanishing point around a small ellipse.	Keep Sides, Seed and Glitches fixed. Proposed: Depth phase for continuous inward travel without an end-frame jump.
+orbit_scribble	Breathe the same winding scribble.	Keep Strands, Loops and Seed fixed. Proposed: a travelling orbit phase over a fixed time interval, rather than reshaping the full route.
+organicrings	Breathe the central opening and undulate the ring edges.	Keep Rings and detail choices fixed. Proposed: a bulge phase travelling along each persistent ring.
+origami	Breathe a fixed crease pattern with Lens or Cage Warp.	Splits changes the structure. Actual folding needs persistent facets, hinge angles and a Folding phase control.
+origami_glitch_fold	Move a fold line across an image and restore it.	Abrupt reflection across the fold is intentional. Keep the pivot fixed; 48 frames make the fold direction easier to follow.
+outline	Thicken and thin a drawing using real outline geometry.	Inner and outer edges can meet at large widths. Filling is possible but increases plotting time.
+parallel_lines	Raise and lower the canopy formed by parallel lines.	Keep Spacing, Levels and Seed fixed. Proposed: shared Wind phase without rebuilding the terraces.
+patternfill	Sway a hatch, dash or chevron pattern in the same region.	Keep Pattern, Spacing and Seed fixed. Check random motif placement; if necessary clip a fixed fill field with the animated shape.
+pcbtracks	Reveal prepared circuit-board traces in sequence.	Proposed: Trace phase and Pulse length for a travelling signal. Tracks, Chips and Grid are not smooth time controls.
+pebble	Reveal a Mesh-mode pebble with a slow camera sway.	For Spiral shells, prefer Warp or Carve. Keep Mode, Eyes and Turns fixed; check placement and fitting.
+pencycle	Change colour groups rhythmically on the same drawing.	Changing Group repartitions paths rather than advancing one palette step. Proposed: integer Palette offset. Consider the number of pen changes.
+pendulum	Reshape a pendulum trace by varying its initial phase.	Keep Arms, speeds and duration fixed. Coupling means a 2π loop needs testing; a small out-and-back phase is a safer starting point.
+perfmesh	Rotate a perforated form to reveal its rear openings.	Keep hole count and Seed fixed. Occlusion and dense lines make this a later 48-frame project rather than a first test.
+persp_hall	Sway a corridor’s vanishing point to suggest camera movement.	Keep Gap, ledges and doors fixed. Proposed: closed forward camera travel through a repeating corridor.
+photo_trace	Create a calibrated source shape from a photo and animate it downstream.	Freeze calibration, image and threshold. This is not automatic video segmentation; aligning a captured sequence is a separate step.
+phyllo	Vary the golden angle slightly to open and close spiral families.	Keep Count and C fixed. Start with a very small range; outer points move quickly under larger changes and may flicker.
+pins	Tilt a field of pins together as if in the wind.	Keep Pins, Chaos and Seed fixed. The random layout must remain identical between frames.
+plaid	Move several grids in depth to create changing moiré.	Phase 0–1 turns the camera through 360°; Bob adds periodic tilt. Fitting is phase-independent and per-line randomness is persistent. Keep Grids fixed.
+pleat	Compress the folds of a paper-like ribbon and open them again.	Keep Lines, preset and fold structure fixed. Large changes may cross lines; use 48 frames.
+pointcloud	Rotate the same cloud around its Y axis with Yaw.	Keep the file and Max points fixed. Dots or short strokes are lighter to plot; compute wire neighbours once in 3D.
+polkadots	Let dots breathe in size while their centres stay still.	Keep Spacing, layout and Seed fixed. Check how Random placement depends on size; Square and Hex are clearer starting points.
+polystudio	Rotate a solid with Rotate Y or open its faces with Explode.	Keep the shape fixed. Use no fill or a sparse hatch for a manageable first plot.
+portrait	Reveal a prepared continuous-line portrait with Carve.	Changing Seed, Detail or density redraws the portrait rather than animating its expression. A persistent scribble phase or landmark morph would need new support.
+potato	Deform a fixed arrangement gently with Lens.	Proposed: closed harmonic motion around persistent centres. Changing size can rebuild the non-overlapping packing.
+powerpole	Vary camera yaw or cable sag around a fixed structure.	Keep the model and anchors fixed. Check automatic fitting across the entire movement.
+primitive_image	Reveal the paths of one completed image approximation.	Keep the image, Count, Search, Seed and palette fixed. Re-optimising the image every frame does not preserve individual shapes.
+radat	Breathe the wobble or drift of a fixed set of loops.	Keep Loops, Gap and Seed fixed. A noise amplitude change is not a travelling phase.
+radial_burst	Pulse ray length or wave amplitude around a stationary centre.	Keep the ray spacing and structure fixed. A travelling wave phase on persistent rays would be a useful extension.
+randlines	Grow and shrink lines in Fixed length mode.	Keep Count, Seed and directions fixed. Free mode uses a different construction and needs a separate continuity check.
+raydrape	Sweep the ray angle through a small range.	Intersection points can jump or disappear. Inspect the whole loop before drawing a large batch.
+rayfill	Open and close the gap around the ray centre.	Keep centres, placement and Seed fixed. Shared centres are easier to control than recalculating separate centroids.
+rectcollage	Explode a fixed set of rectangular pieces and return them.	Proposed: interpolate each persistent piece between its original and collage position. Changing Seed or Pieces creates a different arrangement.
+reedsnow	Sway the reeds with Lean and Bend.	Keep Count, Seed, Fallen and Broken fixed. Delayed wind motion for each stem would be a useful addition.
+regmarks	Keep registration marks stationary throughout the series.	Add them after moving or cropping the artwork, with identical pen, positions and size. Remove them only in the final video crop.
+retromesh	Breathe the throat or flare while the camera stays fixed.	Keep Rings and Spokes fixed. Keep Seed fixed in Laser floor mode too.
+reverse	Use a fixed path direction for every frame.	This reverses drawing order, not the visible geometry. Direction-sensitive Brush Z or Fade Out effects need consistent settings.
+ribbon	Breathe Organic / Pleated width and folds, or vary the pockets in Channels.	Keep Bends, Flares, Pockets, Lines and Seed fixed. Twist is not a loop phase, so an integer change need not close a loop. A dedicated Fold phase with fixed fitting is proposed.
+ribbontype	Stretch or slant the same filament letters.	Keep the text and filament density fixed. Width or Gap can change path counts; delayed motion per glyph would need additional support.
+ripple	Pulse the strength of the water distortion.	A travelling Ripple phase is proposed. Keep Seed, Breakup and the waterline fixed.
+ripple_chain	Let a chain of pearls swell and drift.	Size-dependent spacing can change the pearl count. Persistent anchors and a separate ring phase would make smoother loops.
+river	Play a cached growth sequence forwards and backwards.	Simulation steps are not naturally periodic. Resampling the evolving history may still introduce jumps.
+roadmap	Reveal a fixed street map or animate a marker along a route.	A route-distance control is proposed. Districts, Spacing and Seed change the map itself.
+rootveg	Sway a prepared drawing, with stronger motion in the greens.	A wind phase should preserve each root. Avoid rerunning placement as sizes change.
+roundcanvas	Move the distortion or offset of a fixed round mask.	Keep Radius, Lobes and Seed fixed. Add stationary registration marks after the effect.
+ruler	Keep the ruler as a static measurement reference.	Spacing changes the ticks and numbers. Use a separate marker for a moving pointer.
+runes	Reveal a fixed rune field with a moving wave.	A Glyph phase or Shift mode could reorder the same alphabet. Changing Seed rebuilds the text.
+sand_line_hatch	Change density in deliberate steps.	Keep Lines, Grain length and Seed fixed. Probability thresholds can flicker; a periodic phase would be better for smooth movement.
+sand_painting	Move raking waves around a fixed arrangement of stones.	A Rake phase that preserves the stones is proposed. Concentric paths can join or split as their geometry changes.
+satunnainen	Use repeatable random values as fixed variations between objects.	Connecting Frame # to Seed produces a deliberate boiling effect, not smooth motion.
+scaffolding	Rotate the view around fixed scaffolding.	Keep Bays, Lifts, Shape and Seed fixed. Line rendering is lighter to plot than tubes.
+scan	Reveal a fixed diagnostic-style drawing through a moving window.	An anatomical slice or pulse on one persistent specimen is proposed. Detail and Seed do not represent adjacent slices.
+scatter	Move and rotate a stable set of fragments.	Keep direction, Seed and source geometry fixed. Changing the source can change fragment identities.
+scribbletype	Breathe the messiness or legibility of the same text.	Keep Text, Alphabet, Loops and Seed fixed. A dedicated scribble phase could preserve the underlying strokes more reliably.
+sdfcontours	Move contour halos by changing their starting level.	Keep Count, Step and Cell fixed. Contours can merge or split; this is an expected structural change.
+seams	Keep closed-path starting points consistent across frames.	This changes where a stroke starts, not its visible XY position. Keep overlap fixed to avoid changing ink density at the seam.
+setpen	Remap an existing multicolour drawing before export.	Set a simple colour on the source node itself. Palette-index changes make stepped colour sequences and affect the physical pen workflow.
+shade	Orbit a light using two phase-offset LFOs for its X and Y position.	Keep Levels and Pitch fixed. Threshold-based hatching can appear or disappear abruptly.
+shan_shui	Reveal a fixed landscape or sway the view gently.	Persistent landscape layers, a boat on a closed route and a water phase are proposed. Relief, Trees and Seed can rebuild the scene.
+shaper	Reshape time to change the easing or repeat a motion.	Easing cannot make incompatible end poses join. Use an integer number of repetitions for a loop.
+sheets	Select a wired sheet or frame using an integer control.	This selects existing inputs rather than evaluating time. Frame Grid is better for collecting an animation.
+signature	Print Frame # + 1 outside the final image area.	Keep the numbering for capture and assembly. Crop it from the video to prevent a flickering signature.
+simplify	Reduce points with a fixed tolerance across the series.	Inspect corners that change adaptively. Animating the tolerance itself can cause visible jumps.
+singlemarker	Move a marker around a circle or ellipse.	A useful clock and alignment test. Coordinates are canvas millimetres, not a live machine position readout.
+skew	Sway the horizontal and vertical skew around the canvas centre.	Keep the pivot fixed and avoid angles near 90°.
+skyline	Breathe building heights in a fixed skyline.	Keep Seed and the building layout fixed. Storey counts change in steps; separate layer offsets are better for smooth parallax.
+sliderule	Slide the cursor over stationary scales.	Keep the scales fixed. Some markings use logarithmic rather than linear mapping.
+smear	Breathe the smear length or move its zone.	Keep Zone mode fixed and inspect boundaries. Keep sampling consistent; zone edges can introduce abrupt changes.
+smoke	Sway an existing smoke form with Wind.	Drift is not a periodic clock. Closed noise motion on persistent filaments is proposed; keep Streams and Seed fixed.
+smoke_mesh	Open folds or twist a fixed filament surface.	Keep Sheets, Filaments and Seed fixed. Twist is not a 0–1 clock; a separate fold phase and fixed camera would help.
+smooth	Apply the same smoothing to every frame.	Keep Radius and Iterations fixed. Adaptive treatment of corners can still change the structure.
+snarl	Deform one prepared tangle after generation.	Persistent filaments with a closed coil or noise phase are proposed. Memory and Mess affect the integrated path sensitively.
+snowflake	Sway rows of flakes with Spin and Spin variation.	Keep Count, branches and Seed fixed. In Scatter, zero Spin can select a different random branch; symmetry may also hide a full rotation.
+solids	Rotate a solid around Y through one complete turn.	Keep Size, perspective and centre fixed. A cube is an inexpensive first plotting test.
+soundline	Move a fixed-length sampling window through the sound.	Keep Length fixed and avoid running off the end. Seamless one-way scrolling needs wrapped audio sampling.
+spiro	Breathe the pen offset while the gear system stays fixed.	Keep R, r and Turns fixed. Changing tooth counts changes the curve's period and structure.
+split	Give fixed branches different transformations.	Keep the output count fixed. Use Frame Grid to collect different moments in time.
+splitpens	Separate a fixed palette into physical pen passes.	Preview selection is not an animation control. Preserve pen identities and registration across all frames.
+spore_print	Breathe the central hole or swirl of a gill print.	Keep Primary gills, Gap, Seed and detail fixed. Intermediate branching may still change in steps.
+squiggle	Breathe the squiggle amplitude.	Keep Period and Mode fixed. Travelling motion would require a Phase control.
+stamp	Rotate or scale repeated motifs locally along a path.	Keep Spacing and Seed fixed. Orientation is relative to the supporting path.
+starchart	Rotate a fixed chart or reveal its marks.	Keep Hits, Rings and Seed fixed. An Observation phase is proposed; dense point fields can be expensive to plot.
+starfield	Rotate the view of a fixed 3D star field.	Closed parallax or twinkling with persistent stars would be useful additions. Count and Seed determine star identities.
+stencil	Select regions in deliberate steps.	For example, show six regions over 24 frames. This makes hard cuts; use a moving Container for a smoother reveal.
+steps	Quantise a clock into a fixed number of states.	Choose a step count that divides 24 or 48 and use phase i/N. This is useful for switches and deliberate jumps.
+stipple	Reveal or deform one completed stipple drawing.	Changing Gamma can repack points. Frozen centres with animated dot size or fill would preserve the drawing better.
+stitchtype	Breathe the pixel size of stitched letters.	Keep font, Cell, text and motif fixed. Check whether halo randomness or counts change.
+stone	Deform a fixed stone arrangement gently with Lens.	Persistent stones with moving light or shadow are proposed. Changing size can rebuild non-overlapping packing.
+stretch	Stretch a selected band and let it return.	Keep the band and pivot fixed. Leave room for the tail and crop only after the deformation.
+stripediscs	Rotate stripes inside stationary circles.	Keep stripe spacing fixed. Check small angle steps at 24 frames for moiré aliasing.
+subway	Move a signal or reveal a route on a fixed map.	A route phase with station stops is proposed. Lines, Grid and Seed change the map rather than moving a train.
+superformula	Morph gently between flower and star-like outlines.	Keep m and Rings fixed; vary n1, n2 and n3 within moderate positive ranges to avoid extreme spikes.
+svgimport	Animate transformations of the same imported SVG.	Keep the file and pen mapping fixed. Fonts and CSS do not automatically become plotter paths.
+sweep3d	Advance Phase through 360° in Circle or Helix mode.	This rotates the route rather than moving a profile along its tail. Line mode is unaffected; keep Instances low and fixed.
+switch	Switch between inputs on an integer clock.	Use Steps for deliberate cuts. This is not a morph; continuous Morph Layers support is a separate proposal.
+symmetry	Move a symmetry centre while keeping the fold count fixed.	Animating the source before copying it is another useful way to preserve a stable repeated structure.
+tangle	Breathe the deformation strength around a fixed zone.	Keep Seed and Scale fixed. Moving the affected region can cause abrupt boundary changes.
+testcard	Print one calibration card before the animation batch.	Check line width, hatching and lifts. Do not repeat the full card in every frame; measured drawing time is more useful than a guess.
+textpath	Advance Start % along a closed path.	Use Align Start. Centre alignment can reset the offset; letters may bunch at the end of an open path. Keep text and tracking fixed.
+tiles	Turn tiles or vary the superellipse exponent in a fixed grid.	Keep Rows, Columns, Shape and Seed fixed. Super N only affects Superellipse mode.
+tileshuffle	Change tile order in a deliberate stepped sequence.	Amount selects a permutation rather than a continuous path. Interpolated tile routes with collision handling and a closed return are proposed.
+topolar	Turn a drawing around a polar centre with Start angle.	Use 0–360° and keep Turns and Inner radius fixed. Many turns can accumulate ink near the centre.
+torn	Open and close the gap in a fixed torn form.	Keep Fling, Snap, Detail and Seed fixed. Boundaries can change discretely; begin with a small Gape range.
+traceimg	Use Image → Contours for the legacy tracing workflow.	This hidden compatibility alias is not a separate animation tool. Keep the image and sampling grid fixed.
+travelsort	Optimise the route of each frame for production.	Use Show direction to inspect it. Travel Sort does not affect SVG or DXF exports and is not a visible animation effect.
+travelstop	Add production pauses where the plotting workflow needs them.	These pauses control the machine workflow, not the animated image.
+trimext	Grow or shorten the ends of existing strokes.	Short paths may disappear. This can work well with hairs, arrows and other repeated marks.
+truchet	Breathe tile scale or rounding in a fixed pattern.	Keep Tile, Seed, Fill and Mode fixed. Loop mode describes a geometric pattern, not an animation clock.
+truchet_multi	Deform one fixed subdivided tile pattern.	Persistent subdivision and a tile-turn phase are proposed. Changing Seed changes the structure.
+trunks	Sway tree trunks with Lean.	Keep Count, Width and Seed fixed. A wind phase that increases towards the crown would be a useful addition.
+tubes	Rotate or change the radius of a fixed tube bundle.	Keep Count, Seed, Surface and Density fixed. Drift is not periodic time; hidden-line visibility changes with the view.
+turtle	Rotate the drawing through a full turn with Start angle.	Keep the program and Seed fixed and check automatic fitting. The text program is not a numeric animation input.
+tvnoise	Vary density in deliberate steps on a fixed grid.	A repeatable sequence of seeds makes intentional noise boiling. A moving Band phase is proposed for smoother motion.
+typegrating	Shift or slant the type beneath a fixed grating.	Keep Pitch and Mode fixed. Interference and clipping are part of the effect; a separate raster phase would help.
+typerain	Reveal a fixed text field through a moving window.	Row and Column phase controls could wrap the same letters through a fixed grid. Density and Seed do not make a continuous falling motion.
+tyylita	Apply one shared style to moving paths.	An animated Stroke phase can affect the drawing, but may create additional paths and pen lifts.
+videotest	Use a static calibration pattern or deform it as artwork.	Keep calibration areas fixed. Zone plates can alias in both physical plotting and video capture.
+view3d	Rotate a flat drawing or relief with Yaw and Roll.	Keep bounds and perspective fixed. Avoid singular views; an edge-on drawing can legitimately disappear.
+viiva	Move a dashed style through one dash-plus-gap period.	For dashes the period is in millimetres, not automatically 0–1. Set jitter and variation to zero; check the period of other styles separately.
+vision_chart	Use a fixed chart as a graphic source.	Do not treat an animation as an acuity test. Persistent dots would be needed for a stable pseudoiso animation.
+volcano	Breathe the height or dip of a fixed volcanic surface.	Keep Render, Spacing, flutes and Seed fixed. Inspect hidden-line changes over 48 frames.
+voronoi	Deform a fixed Voronoi diagram with Lens or Cage.	Persistent site identities moving on closed routes are proposed. Cells and Seed create a new diagram.
+warp	Move the corners while preserving their order and a convex outline.	Avoid a collapsed or crossed quadrilateral. For a grid warp, breathe amplitude with Seed fixed.
+water	Breathe the wave amplitude of a fixed water field.	Periodic Wave phase or closed noise motion is proposed. Keep Lines, Wavelength, Choppiness and Seed fixed.
+wave_hatch	Breathe amplitude or lean in a fixed hatch field.	A shared travelling Phase is proposed. Keep Band, Pitch and Seed fixed; path counts may still change.
+whale	Change heading or tilt gently.	A Tail or Flipper phase, and delayed tentacle motion for the octopus, would add internal movement. Keep species, count and Seed fixed.
+windtunnel	Sweep the wind angle through a small range.	Keep Lines fixed. Flow separation may change routes; moving markers along fixed streamlines would be more stable.
+wood	Breathe eccentricity or wobble in a fixed grain pattern.	Keep Rings, Cracks and Seed fixed. A grain phase or eccentricity angle is proposed.
+worm	Deform a prepared worm after generation.	A gait phase with delayed feet on a persistent spine is proposed. Wander and Seed rebuild the shape.
+woven_ribbon	Open spacing or splits in a fixed woven route.	Keep Grid, Steps and Seed fixed. A travelling weave phase should preserve the route rather than generate new random turns.
+zen_garden	Breathe raking-wave amplitude around fixed stones.	Keep stones, rings and spacing fixed. A dedicated Rake phase is proposed.
+zigzag	Vary the existing phase to move different rows by different amounts.	Phase 0–1 is multiplied by row index, leaving the first row stationary. It is not a global phase; that would need a separate control.
+zigzag_path	Run Phase from 0 to 1 for one wave cycle.	For a closed path, use a whole number of wavelengths. Keep Wavelength and Seed fixed. Sine gives smooth motion; Coil can change the path count.
+zine	Arrange a 24–48-frame flipbook as a separate folding project.	This does not automatically evaluate the timeline. Collect the frames with Frame Grid first.
+group	Package a shared clock and movement controls as a reusable group.	Promote clear control names and keep one shared clock. Nested frame evaluation cannot be stacked without checking its context.
+reititys	Use Travel Sort or the export optimiser for current routing workflows.	This hidden legacy routing node is not an image animation effect.

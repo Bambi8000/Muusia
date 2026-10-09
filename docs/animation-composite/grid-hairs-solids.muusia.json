@@ -1,0 +1,277 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Grid Hairs + rotating Solids",
+  "canvas": {
+    "W": 140,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "frame",
+        "x": 20,
+        "y": 20,
+        "params": {}
+      },
+      {
+        "id": 102,
+        "type": "matem",
+        "x": 270,
+        "y": 20,
+        "params": {
+          "op": "A ÷ B",
+          "a": 1,
+          "b": 15
+        }
+      },
+      {
+        "id": 103,
+        "type": "matem",
+        "x": 520,
+        "y": 20,
+        "params": {
+          "op": "A − B",
+          "a": 1,
+          "b": 24
+        }
+      },
+      {
+        "id": 104,
+        "type": "matem",
+        "x": 1020,
+        "y": 20,
+        "params": {
+          "op": "A + B",
+          "a": 1,
+          "b": 17
+        }
+      },
+      {
+        "id": 108,
+        "type": "grid_hairs",
+        "x": 20,
+        "y": 420,
+        "params": {
+          "cellW": 8,
+          "cellH": 8,
+          "pattern": "Crosshatch",
+          "count": 7,
+          "densityVar": 0.35,
+          "length": 95,
+          "lengthVar": 0.45,
+          "angle": 0,
+          "scatter": 22,
+          "flowScale": 5,
+          "bend": 0,
+          "gap": 0.6,
+          "margin": 6,
+          "drawGrid": false,
+          "gridPen": 9,
+          "seed": 28,
+          "colours": 1,
+          "layer": 0,
+          "pen2": 6,
+          "pen3": 4,
+          "pen4": 5,
+          "pen5": 7,
+          "pen6": 10
+        }
+      },
+      {
+        "id": 109,
+        "type": "crop",
+        "x": 270,
+        "y": 420,
+        "params": {
+          "x": 6,
+          "y": 6,
+          "w": 128,
+          "h": 24,
+          "keep": "Inside"
+        }
+      },
+      {
+        "id": 110,
+        "type": "array",
+        "x": 520,
+        "y": 420,
+        "params": {
+          "count": 7,
+          "dx": 0,
+          "dy": 24,
+          "drot": 0,
+          "dscale": 0,
+          "jit": 0,
+          "penPer": false,
+          "seed": 16
+        }
+      },
+      {
+        "id": 111,
+        "type": "move_scale",
+        "x": 770,
+        "y": 420,
+        "params": {
+          "dx": 0,
+          "dy": -24,
+          "scale": 100,
+          "scaleY": 0,
+          "origin": "Content center",
+          "ox": 150,
+          "oy": 100
+        }
+      },
+      {
+        "id": 112,
+        "type": "crop",
+        "x": 1020,
+        "y": 420,
+        "params": {
+          "x": 10,
+          "y": 10,
+          "w": 120,
+          "h": 120,
+          "keep": "Inside"
+        }
+      },
+      {
+        "id": 113,
+        "type": "container",
+        "x": 1270,
+        "y": 420,
+        "params": {
+          "shape": "Circle",
+          "cx": 70,
+          "cy": 70,
+          "rw": 120,
+          "rh": 90,
+          "cr": 40,
+          "rot": 0,
+          "keep": "Outside",
+          "gap": 0,
+          "draw": false,
+          "regionPen": 1
+        }
+      },
+      {
+        "id": 114,
+        "type": "solids",
+        "x": 1270,
+        "y": 1180,
+        "params": {
+          "shape": "Sphere",
+          "size": 76,
+          "rx": 27,
+          "ry": 17,
+          "rz": 12,
+          "persp": 0,
+          "lat": 9,
+          "lon": 12,
+          "sstyle": "Solid (hide back)",
+          "px": 70,
+          "py": 70,
+          "layer": 0
+        }
+      },
+      {
+        "id": 115,
+        "type": "merge",
+        "x": 1520,
+        "y": 420,
+        "params": {
+          "count": 2,
+          "penPer": false
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e105",
+        "from": 101,
+        "fromPort": 4,
+        "to": 102,
+        "toPort": 0
+      },
+      {
+        "id": "e106",
+        "from": 102,
+        "fromPort": 0,
+        "to": 103,
+        "toPort": 0
+      },
+      {
+        "id": "e107",
+        "from": 101,
+        "fromPort": 4,
+        "to": 104,
+        "toPort": 0
+      },
+      {
+        "id": "e116",
+        "from": 108,
+        "fromPort": 0,
+        "to": 109,
+        "toPort": 0
+      },
+      {
+        "id": "e117",
+        "from": 109,
+        "fromPort": 0,
+        "to": 110,
+        "toPort": 0
+      },
+      {
+        "id": "e118",
+        "from": 110,
+        "fromPort": 0,
+        "to": 111,
+        "toPort": 0
+      },
+      {
+        "id": "e119",
+        "from": 103,
+        "fromPort": 0,
+        "to": 111,
+        "toPort": "p:dy"
+      },
+      {
+        "id": "e120",
+        "from": 111,
+        "fromPort": 0,
+        "to": 112,
+        "toPort": 0
+      },
+      {
+        "id": "e121",
+        "from": 112,
+        "fromPort": 0,
+        "to": 113,
+        "toPort": 0
+      },
+      {
+        "id": "e122",
+        "from": 104,
+        "fromPort": 0,
+        "to": 114,
+        "toPort": "p:ry"
+      },
+      {
+        "id": "e123",
+        "from": 113,
+        "fromPort": 0,
+        "to": 115,
+        "toPort": 0
+      },
+      {
+        "id": "e124",
+        "from": 114,
+        "fromPort": 0,
+        "to": 115,
+        "toPort": 1
+      }
+    ],
+    "outputId": 115
+  }
+}

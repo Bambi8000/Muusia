@@ -170,6 +170,12 @@ const comparisons = {
 const CATEGORY = { gen: 'Generators', mod: 'Modifiers', dec: 'Decorators', duo: 'Combiners', math: 'Math', route: 'Routing' };
 const GROUP = { geometric: 'Geometric', deform: 'Deform', textimg: 'Text & Image', space: 'Space', penout: 'Pen & Output', transform: 'Transform', fillstyle: 'Fill & Style' };
 const visibilityNotes = {
+  "image.ramsAngle": "Shown only when Render is Rams contour.",
+  "image.ramsDepth": "Shown only when Render is Rams contour.",
+  "image.ramsSmooth": "Shown only when Render is Rams contour.",
+  "image.ramsMin": "Shown only when Render is Rams contour.",
+  "image.ramsWhite": "Shown only when Render is Rams contour.",
+  "image.seed": "Hidden for Rams contour, which is determined entirely by the source tones and contour controls.",
   "image.levels": "Shown only when Render is Contours (trace).",
   "image.low": "Shown only when Render is Contours (trace).",
   "image.high": "Shown only when Render is Contours (trace).",

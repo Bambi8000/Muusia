@@ -1,6 +1,6 @@
 # Muusia Learn
 
-An English companion guide to Muusia: seven complete tutorials, eighteen illustrated node guides, twenty-eight real UI screenshots, reproducible SVG comparisons, twenty-six downloadable patches and two reference export artifacts from the actual app: a per-pen SVG ZIP and a single test SVG. The site is static and has no runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
+An English companion guide to Muusia: seven complete tutorials, eighteen illustrated node guides, twenty-eight real UI screenshots, reproducible SVG comparisons, twenty-six downloadable patches and two reference export artifacts from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a 310-node motion survey and eight earlier interactive probes. The studies add seven editable project downloads (33 patches in all). The site is static and has no external runtime network dependencies; animation data is fetched from the same site. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
 
 ## Build and preview
 
@@ -30,11 +30,12 @@ After changing guide content or styles, `npm run build:learn` rebuilds only the 
 - `generated/manifest.json`: versioned source metadata and artifact provenance. Generated, never hand-edited.
 - `assets/screenshots/`: eighteen node captures, six tutorial graph captures, two Stack workflow captures and two machine/export captures from the actual Muusia application, plus their capture manifest and SVG-export provenance. There are no synthetic node cards or replacement connection diagrams.
 - `build.mjs`, `site.css`, `site.js`: static page generation, responsive presentation and local node-library search. No external fonts or dependencies.
+- `animation/`: English templates, authored motion/recipe text and all 310 proposal translations; its builder preserves the source studies’ geometry, graphs and capture evidence.
 - `validate.mjs`: broken links, missing assets, page coverage, patch integrity and screenshot/provenance validation; also rejects Finnish Style labels, synthetic diagram references and the removed logo markup in published HTML.
 
 ## Reproducibility and screenshot capture
 
-All examples use A4 landscape (297 × 210 mm) and the default pen palette. Geometry is generated with the actual node definitions, not approximated from descriptions. Comparison captions name the changed control. Frame uses 12 frames, and frame 2 is pictured; animation settings must be set after loading because Muusia does not save them in patches.
+The seven foundation tutorials and eighteen illustrated node examples use A4 landscape (297 × 210 mm) and the default pen palette. The additional animation studies use a fixed 140 × 140 mm canvas and one pen. Geometry is generated with the actual node definitions, not approximated from descriptions. Comparison captions name the changed control. Frame uses 12 frames, and frame 2 is pictured; animation settings must be set after loading because Muusia does not save them in patches.
 
 The two-pen tutorial chooses colours directly on the generators: Grid uses Pen 1 · Blue and feeds Wave, while Tracks uses Pen 2 · Red. Wave and Tracks feed Merge inputs 1 and 2, with Pen change per input off. Its variation changes Grid’s Pen to 3 · Green. The separate Set Pen example takes that finished multi-pen composition from Merge and uses Recolor All → To pen 0 · Black to put the whole drawing on one pen. Its comparisons show the original two-pen input, all-black output and all-green output.
 
@@ -86,7 +87,7 @@ Copy those fields into the corresponding `assets/screenshots/*-export.json` reco
 
 ## Current scope
 
-The current build contains 28 static pages: the overview, tutorial index, node reference index, seven tutorials and eighteen node guides. Downloads include eighteen node patches, seven complete tutorial patches and one blank starter, plus the captured per-pen SVG ZIP and single test SVG.
+The current local build contains 31 static pages: the overview, tutorial index, node reference index, seven tutorials, eighteen node guides and three animation studies. Downloads include eighteen node patches, seven complete tutorial patches, one blank starter and seven animation projects, plus the captured per-pen SVG ZIP and SVG results. Adding the studies does not claim 310 completed illustrated node guides or an eighth foundation lesson.
 
 Published nodes: Grid, Wave, Tracks, Stroke, Stamp, Set Pen, Merge, Value, Frame, Image, Polyhedron Studio, Travel Sort, Move / Scale, Rotate, Hatch Fill, Container, Random and Math. Other built-ins remain in the in-app catalog and are not represented as finished guides. Group/legacy guides and more advanced tutorials belong to the next stages in `docs/MUUSIA-LEARN-PLAN.md`.
 
@@ -95,3 +96,19 @@ The SVG examples and reference export artifacts are verified locally. The screen
 Image art batch, 2026-10-04–05 (included in v2.111): Image adds Organic dots, Short strokes, Cross stitches and Square weave with up to six pens. The new blue Drawing input accepts paths from any node; Auto gives a connected drawing priority over the stored photo. Drawing stroke mm adjusts source coverage; Fill closed shapes uses even-odd interiors per pen and preserves holes. The purple Style port retains its original index for old patches. The guide and conditional-control reference cover these options; Help includes a Lissajous → Image example.
 
 The existing Scanline wave example preserves its geometry. `image.png` was recaptured in the actual v2.110 development app on 2026-10-05 at its default 844 × 818 viewport, showing the Drawing port and Source controls. Its capture entry overrides the older manifest-level version/date and records the local node hash. Controls continue below the pictured area. All other screenshots keep their recorded capture versions. The previous 2026-10-04 Image screenshot is superseded by this actual capture.
+
+## English animation studies (2026-10-09)
+
+The global Animation link, Learn overview, tutorial index and guide sidebar lead to:
+
+- `animation/index.html`: six motion examples with English controls/instructions, 24/36/48-frame playback, scrubbing, loop-join inspection, contact sheets and project downloads.
+- `animation/combine-movements/index.html`: Grid Hairs moving down behind a rotating Solids sphere, with layer toggles, a project, first-frame SVG and contact sheet.
+- `animation/node-motion/index.html`: the complete dated 310-node design survey, eight original 24/48-frame probes, readiness/category search, all proposals as TSV, Frame Grid plotting/capture instructions, time calculator and a clearly labelled development roadmap.
+
+The original Finnish studies stay under `docs/animation-examples/`, `docs/animation-composite/` and `docs/animation-audit/`. `learn/animation/build.mjs` creates the English edition during the existing Learn build. Teaching text is in `content.mjs`, `proposals.en.tsv` and the three HTML templates; each template's module script is emitted separately as `study.js`. Only each of the six gallery projects' top-level `name` is translated. Every graph, parameter, edge, canvas, preview path and measurement remains identical to its source. The combined project already has an English name and is copied byte-for-byte.
+
+`animation/provenance.json` distinguishes original file-byte SHA-256, original compact-JSON SHA-256 (the hash used by the original browser records), and the English published file-byte hash. Original geometry/browser records are copied unchanged. Their SVG SHA fields cover ordered path data, not downloaded SVG file bytes. The eight earlier probes are offline geometry tests; the gallery has eight browser export comparisons and the combined study has three (including the reported sphere-seam frame 08/36). Physical plotting and frame-batch ZIP capture are not claimed.
+
+`npm run check:learn` now also checks translation coverage, unchanged graph/preview data, dynamically chosen assets, capture bindings and the editable examples' selected evaluator/SVG-exporter scopes plus node/helper dependencies. It does **not** gate on all of App.jsx. The broader survey is a dated snapshot: its historical full App.jsx hash is retained as review metadata only. If a tracked example dependency changes, rerun its original builder and obtain fresh affected browser exports, then rebuild the English edition. Do not merely overwrite capture hashes. An unrelated node update or UI/version edit must not require recapturing these examples.
+
+The proposed loop controls and exporter fixes in the audit remain proposals; integration into Learn changes documentation only. These pages are included in the same Pages build as the application and existing tutorials.

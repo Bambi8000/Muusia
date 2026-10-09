@@ -612,6 +612,14 @@
   "grid",
   "warp"
  ],
+ "grid_hairs": [
+  "grid",
+  "hatch",
+  "organic",
+  "pens",
+  "seed",
+  "texture"
+ ],
  "group": [
   "combine",
   "engine"
@@ -697,6 +705,7 @@
   "halftone",
   "hatch",
   "image",
+  "portrait",
   "terrain"
  ],
  "image_rasterise": [
@@ -1175,6 +1184,13 @@
   "round",
   "structural"
  ],
+ "primitive_image": [
+  "geometric",
+  "hatch",
+  "image",
+  "pens",
+  "seed"
+ ],
  "radat": [
   "geometric",
   "round"
@@ -1230,10 +1246,14 @@
  ],
  "ribbon": [
   "angular",
+  "flow",
+  "folds",
   "geometric",
   "hatch",
   "noise",
+  "organic",
   "pens",
+  "pockets",
   "round"
  ],
  "ribbontype": [
@@ -1350,6 +1370,15 @@
   "hatch",
   "region",
   "round"
+ ],
+ "shan_shui": [
+  "landscape",
+  "nature",
+  "mountains",
+  "trees",
+  "water",
+  "seed",
+  "multicolour"
  ],
  "shaper": [
   "math"

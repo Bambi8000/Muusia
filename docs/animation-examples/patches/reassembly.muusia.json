@@ -1,0 +1,155 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Sana hajoaa ja kokoontuu",
+  "canvas": {
+    "W": 140,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "frame",
+        "x": 20,
+        "y": 20,
+        "params": {}
+      },
+      {
+        "id": 102,
+        "type": "matem",
+        "x": 245,
+        "y": 20,
+        "params": {
+          "op": "A ÷ B",
+          "a": 1,
+          "b": 36
+        }
+      },
+      {
+        "id": 103,
+        "type": "matem",
+        "x": 470,
+        "y": 20,
+        "params": {
+          "op": "A ÷ B",
+          "a": 1,
+          "b": 10
+        }
+      },
+      {
+        "id": 106,
+        "type": "hersheytext",
+        "x": 20,
+        "y": 740,
+        "params": {
+          "text": "TOGE|THER",
+          "size": 17,
+          "track": 100,
+          "lineh": 140,
+          "align": "Center",
+          "centerC": true,
+          "px": 20,
+          "py": 40,
+          "layer": 0
+        }
+      },
+      {
+        "id": 107,
+        "type": "chop",
+        "x": 370,
+        "y": 740,
+        "params": {
+          "length": 4,
+          "lenVar": 0.3,
+          "gap": 0.25,
+          "pens": 1,
+          "start": 0,
+          "assign": "Cycle",
+          "seed": 61
+        }
+      },
+      {
+        "id": 111,
+        "type": "lfo",
+        "x": 20,
+        "y": 350,
+        "params": {
+          "t": 0,
+          "wave": "Sine",
+          "cycles": 1,
+          "phase": 0.75,
+          "min": 0,
+          "max": 23,
+          "seed": 8
+        }
+      },
+      {
+        "id": 108,
+        "type": "explosion",
+        "x": 720,
+        "y": 740,
+        "params": {
+          "zone": "Circle",
+          "cx": 70,
+          "cy": 70,
+          "zw": 200,
+          "zh": 150,
+          "axis": "Horizontal",
+          "strength": 0,
+          "dir": "Outward",
+          "angle": -90,
+          "falloff": "Uniform",
+          "jitter": 0.3,
+          "spread": 55,
+          "seed": 103
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e104",
+        "from": 101,
+        "fromPort": 4,
+        "to": 102,
+        "toPort": 0
+      },
+      {
+        "id": "e105",
+        "from": 102,
+        "fromPort": 0,
+        "to": 103,
+        "toPort": 0
+      },
+      {
+        "id": "e109",
+        "from": 106,
+        "fromPort": 0,
+        "to": 107,
+        "toPort": 0
+      },
+      {
+        "id": "e110",
+        "from": 107,
+        "fromPort": 0,
+        "to": 108,
+        "toPort": 0
+      },
+      {
+        "id": "e112",
+        "from": 103,
+        "fromPort": 0,
+        "to": 111,
+        "toPort": 0
+      },
+      {
+        "id": "e113",
+        "from": 111,
+        "fromPort": 0,
+        "to": 108,
+        "toPort": "p:strength"
+      }
+    ],
+    "outputId": 108
+  }
+}

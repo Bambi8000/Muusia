@@ -1,0 +1,113 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Viiva kuljettaa aaltoa",
+  "canvas": {
+    "W": 140,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "frame",
+        "x": 20,
+        "y": 20,
+        "params": {}
+      },
+      {
+        "id": 102,
+        "type": "matem",
+        "x": 245,
+        "y": 20,
+        "params": {
+          "op": "A ÷ B",
+          "a": 1,
+          "b": 36
+        }
+      },
+      {
+        "id": 103,
+        "type": "matem",
+        "x": 470,
+        "y": 20,
+        "params": {
+          "op": "A ÷ B",
+          "a": 1,
+          "b": 10
+        }
+      },
+      {
+        "id": 106,
+        "type": "moire_disc",
+        "x": 20,
+        "y": 660,
+        "params": {
+          "x": 50,
+          "y": 50,
+          "radius": 48,
+          "content": "Spiral",
+          "pitch": 6,
+          "angle": 0,
+          "sweep": 360,
+          "sectorStart": 0,
+          "disorder": 0,
+          "csize": 2.2,
+          "crings": 1,
+          "rim": false,
+          "seed": 1,
+          "layer": 0
+        }
+      },
+      {
+        "id": 107,
+        "type": "zigzag_path",
+        "x": 710,
+        "y": 660,
+        "params": {
+          "mode": "Sine",
+          "wl": 22,
+          "amp": 2,
+          "varyamp": 0.15,
+          "varywl": 0,
+          "varylen": 40,
+          "phase": 0,
+          "fade": 14,
+          "keepsrc": false,
+          "seed": 5
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e104",
+        "from": 101,
+        "fromPort": 4,
+        "to": 102,
+        "toPort": 0
+      },
+      {
+        "id": "e105",
+        "from": 102,
+        "fromPort": 0,
+        "to": 103,
+        "toPort": 0
+      },
+      {
+        "id": "e108",
+        "from": 106,
+        "fromPort": 0,
+        "to": 107,
+        "toPort": 0
+      },
+      {
+        "id": "e109",
+        "from": 103,
+        "fromPort": 0,
+        "to": 107,
+        "toPort": "p:phase"
+      }
+    ],
+    "outputId": 107
+  }
+}

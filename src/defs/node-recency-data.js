@@ -525,6 +525,11 @@ export const NODE_RECENCY = {
     "order": 65,
     "sha256": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2"
   },
+  "grid_hairs": {
+    "date": "2026-10-07",
+    "order": 72,
+    "sha256": "2d687dd332b147f67054eaca3dc07f372ae078a07fa58436fdf5b5646c54bddc"
+  },
   "growth": {
     "date": "2026-07-22",
     "order": 1,
@@ -591,9 +596,9 @@ export const NODE_RECENCY = {
     "sha256": "a6a19ae16ae71e31a2e48c6615fed01ea26fc1eae5dfc9aa0159c3dc9f578dae"
   },
   "image": {
-    "date": "2026-10-05",
-    "order": 69,
-    "sha256": "1d8a357fc1f2b1d03f31f17ce76d87c60c4cbd6760b0170abea417b2b4ea21cc"
+    "date": "2026-10-07",
+    "order": 72,
+    "sha256": "3f10f98b6613ba4bda72ffa86e523b9b2ba67596141ca1590bbcec331aa3c4f4"
   },
   "image_rasterise": {
     "date": "2026-08-16",
@@ -995,6 +1000,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "7475ee45314bfafad808a5e231eb73ceb23e8a52122eb0a61847a4bc9aee45ae"
   },
+  "primitive_image": {
+    "date": "2026-10-07",
+    "order": 72,
+    "sha256": "16149c09369360044c9765727ad8d49b3df8f712e4b476e27761c607d2deddcb"
+  },
   "radat": {
     "date": "2026-09-29",
     "order": 65,
@@ -1046,9 +1056,9 @@ export const NODE_RECENCY = {
     "sha256": "a47d9d939e1a954688bbd2264b553892035c1549dcaa28775df2365ae3df283b"
   },
   "ribbon": {
-    "date": "2026-10-05",
-    "order": 69,
-    "sha256": "d25d7f5b1bb3e906f3b31c1d7a3343acda57ff5928878d0971c1c132fe9ac2e2"
+    "date": "2026-10-07",
+    "order": 72,
+    "sha256": "62289d9ffd6417651b1c2b5b73188798173cb99d598093a25d4f9d3a764f8005"
   },
   "ribbontype": {
     "date": "2026-09-29",
@@ -1150,6 +1160,11 @@ export const NODE_RECENCY = {
     "order": 17,
     "sha256": "80303879e6bcd572fc26f2e74cde1eb5913e65d51923d0ddc1b838fa325503c2"
   },
+  "shan_shui": {
+    "date": "2026-10-07",
+    "order": 72,
+    "sha256": "b79a71afee947e2cb5bbe568f27257f058b8c9dcebcf84bb9a388da450437b5a"
+  },
   "shaper": {
     "date": "2026-07-22",
     "order": 1,
@@ -1221,9 +1236,9 @@ export const NODE_RECENCY = {
     "sha256": "44ac10d75df5688385b78beb86c76f96a7bdce3983ec92f3f7b73c83df58a94c"
   },
   "solids": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "d638ec23b41e013ad885722f9b8fbe741ae02c8247e753b22ed05076ddcd4e75"
+    "date": "2026-10-09",
+    "order": 72,
+    "sha256": "bd2ef1be2b57c15dcceb5080980842a89f39935dcccf0eceac7c30bbbea938ee"
   },
   "soundline": {
     "date": "2026-08-09",

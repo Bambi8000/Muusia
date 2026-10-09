@@ -1,0 +1,185 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Renkaiden välinen syke",
+  "canvas": {
+    "W": 140,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "frame",
+        "x": 20,
+        "y": 20,
+        "params": {}
+      },
+      {
+        "id": 102,
+        "type": "matem",
+        "x": 245,
+        "y": 20,
+        "params": {
+          "op": "A ÷ B",
+          "a": 1,
+          "b": 36
+        }
+      },
+      {
+        "id": 103,
+        "type": "matem",
+        "x": 470,
+        "y": 20,
+        "params": {
+          "op": "A ÷ B",
+          "a": 1,
+          "b": 10
+        }
+      },
+      {
+        "id": 106,
+        "type": "moire_disc",
+        "x": 20,
+        "y": 740,
+        "params": {
+          "x": 50,
+          "y": 48,
+          "radius": 39,
+          "content": "Rings",
+          "pitch": 2,
+          "angle": 0,
+          "sweep": 360,
+          "sectorStart": 0,
+          "disorder": 0,
+          "csize": 2.2,
+          "crings": 1,
+          "rim": false,
+          "seed": 1,
+          "layer": 0
+        }
+      },
+      {
+        "id": 107,
+        "type": "moire_disc",
+        "x": 370,
+        "y": 740,
+        "params": {
+          "x": 50,
+          "y": 52,
+          "radius": 39,
+          "content": "Rings",
+          "pitch": 2.1,
+          "angle": 0,
+          "sweep": 360,
+          "sectorStart": 0,
+          "disorder": 0,
+          "csize": 2.2,
+          "crings": 1,
+          "rim": false,
+          "seed": 1,
+          "layer": 0
+        }
+      },
+      {
+        "id": 108,
+        "type": "lfo",
+        "x": 20,
+        "y": 350,
+        "params": {
+          "t": 0,
+          "wave": "Sine",
+          "cycles": 1,
+          "phase": 0.75,
+          "min": 39,
+          "max": 51,
+          "seed": 8
+        }
+      },
+      {
+        "id": 111,
+        "type": "lfo",
+        "x": 370,
+        "y": 350,
+        "params": {
+          "t": 0,
+          "wave": "Sine",
+          "cycles": 1,
+          "phase": 0.25,
+          "min": 49,
+          "max": 61,
+          "seed": 8
+        }
+      },
+      {
+        "id": 114,
+        "type": "merge",
+        "x": 720,
+        "y": 740,
+        "params": {
+          "count": 2,
+          "penPer": false
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e104",
+        "from": 101,
+        "fromPort": 4,
+        "to": 102,
+        "toPort": 0
+      },
+      {
+        "id": "e105",
+        "from": 102,
+        "fromPort": 0,
+        "to": 103,
+        "toPort": 0
+      },
+      {
+        "id": "e109",
+        "from": 103,
+        "fromPort": 0,
+        "to": 108,
+        "toPort": 0
+      },
+      {
+        "id": "e110",
+        "from": 108,
+        "fromPort": 0,
+        "to": 106,
+        "toPort": "p:x"
+      },
+      {
+        "id": "e112",
+        "from": 103,
+        "fromPort": 0,
+        "to": 111,
+        "toPort": 0
+      },
+      {
+        "id": "e113",
+        "from": 111,
+        "fromPort": 0,
+        "to": 107,
+        "toPort": "p:x"
+      },
+      {
+        "id": "e115",
+        "from": 106,
+        "fromPort": 0,
+        "to": 114,
+        "toPort": 0
+      },
+      {
+        "id": "e116",
+        "from": 107,
+        "fromPort": 0,
+        "to": 114,
+        "toPort": 1
+      }
+    ],
+    "outputId": 114
+  }
+}
