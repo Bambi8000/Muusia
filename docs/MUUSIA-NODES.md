@@ -1408,13 +1408,28 @@ Sectors, rings, detail, picots on/off, edging depth.
 
 **Knot** — a torus knot p·q drawn flat with real over/under crossings: at every planar self-intersection the strand passing underneath is cut with a gap, so the knot reads as woven. Coprime p/q give true knots; Tube sets the torus thickness.
 
-**Murmuration** — a closed-form starling flock: every bird is a deterministic
+**Murmuration** — choose **Bird flock** or **Reindeer herd**. The original
+closed-form starling flock is unchanged: every bird is a deterministic
 function of (time, index) — flock center follows a guide path, the flock breathes
 (pulse), swirls and stretches along travel. All time terms are sampled on a circle,
 so t=0 ≡ t=1: wire Frame's *t* into Time for a seamless loop. Flock paths: Wander /
 Oval / Figure-8 / Lissajous 2:3 / Trefoil, with a wander-mix for organic drift.
 Bird shapes Dash/Chevron/Dot with size variation for depth; optional flight-history
 trails whose point order equals flight direction.
+Reindeer herd is a ground view with persistent animal identities. Migration
+follows a shared winding route with delayed followers; Milling circulates in
+lanes; Gather & roam contracts and spreads while travelling. A spatial neighbour
+search applies symmetric separation forces plus attraction to the follower's
+moving target. It is a phase-driven loop model, not a biological simulation.
+Neighbour avoidance reduces crowding; Preferred spacing is a soft distance,
+not a collision-free packing guarantee. No animals are culled at page edges.
+Point marks are short physical pen strokes, Circle marks are closed outlines,
+and Dash marks follow each animal's actual motion. Mark size stays stable through
+the loop. Timeline uses frame index / frame count: set 24, 36 or 48 frames and
+press Play. Manual uses Time; for a wired loop use **Frame rot ° → Math ÷ 360 →
+Time**, avoiding the duplicated endpoint of Frame's t output. Evaluation is
+deterministic at any phase and independent of scrubbing/export order. Impossible
+margins return an empty drawing. The margin overlay is never plotted.
 
 **Dazzle Camouflage** — WWI razzle-dazzle: recursive straight-chord splits carve the
 sheet into convex patches; each patch gets hatching at a quantized clashing angle

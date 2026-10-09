@@ -15,6 +15,21 @@
 
 export const EXAMPLES = [
   {
+    name: "Murmuration · Reindeer migration", desc: "A ground herd follows a winding route with delayed followers and local neighbour avoidance. Select Murmuration, set ANIMATE → Frames to 36 and press Play. Time source → Timeline follows the app directly, with no duplicate endpoint. Animal mark chooses Point, Circle or Dash; dashes face the direction of motion. Preferred spacing is a soft target, so very crowded herds may overlap. Keep Seed fixed when exporting frames.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "murmuration", x: 30, y: 20, params: { ...defaults("murmuration"), behaviour: "Reindeer herd", clock: "Timeline", herdMotion: "Migration", herdMark: "Dash", birds: 220, spread: 42, travel: 0.85, scatter: 4 } }], edges: [] }),
+  },
+  {
+    name: "Murmuration · Circling reindeer", desc: "Small circles move around an elliptical herd in different lanes, with waves of compression and local spacing. Set 24, 36 or 48 frames and press Play. Circle marks are real closed outlines, not a screen-only fill. Neighbour avoidance reduces crowding; Group radius and Animals control density. Timeline uses frame index / frame count, and scrubbing or exporting in a different order produces the same animals.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "murmuration", x: 30, y: 20, params: { ...defaults("murmuration"), behaviour: "Reindeer herd", clock: "Timeline", herdMotion: "Milling", herdMark: "Circle", birds: 260, spread: 58, travel: 0.25, spacing: 3, size: 1.3 } }], edges: [] }),
+  },
+  {
+    name: "Murmuration · Gather and roam", desc: "Tiny pen marks gather into a compact herd, open out and travel again. Set 36 frames and press Play. Pulse controls gathering, Travel range changes the shared route, and Scatter adds individual drift. Points are short physical strokes that export to SVG and G-code. To drive the loop with green wires, choose Manual and connect Frame rot ° through Math ÷ 360 to Time.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "murmuration", x: 30, y: 20, params: { ...defaults("murmuration"), behaviour: "Reindeer herd", clock: "Timeline", herdMotion: "Gather & roam", herdMark: "Point", birds: 220, spread: 48, pulse: 1, scatter: 3, travel: 0.7 } }], edges: [] }),
+  },
+  {
     name: "Ribbon · Organic pleats", desc: "A soft ribbon swells into broad pleats and narrows into dark seams. Shape → Organic, form → Pleated. Fold turns rotates the sheet edge-on; Flares changes the swell pattern. Width variation and Fine tails pinch it to thin ends, while Edge ripple adds a shared waviness. Every filament is a continuous pen stroke; crossings overprint.",
     canvas: { W: 297, H: 420 },
     make: defaults => ({ nodes: [{ id: 9001, type: "ribbon", x: 30, y: 20, params: { ...defaults("ribbon"), shape: "Organic", width: 160, lines: 38, widthVar: 0.65, wander: 55, twist: 0.75, ripple: 1.4, bends: 2.5, flares: 4 } }], edges: [] }),

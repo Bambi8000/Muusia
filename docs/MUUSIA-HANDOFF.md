@@ -2779,6 +2779,67 @@ according to the session's actual capabilities:
   are cleared in this integration. Reindeer/Murmuration is a subsequent task
   and is not part of this release. No physical plotting validation is claimed.
 
+- **N** 2026-10-09 Astra — **Reindeer herd in the existing Murmuration node**.
+  After publishing Learn, Daniel requested a moving ground herd drawn as dots,
+  small circles or dashes. Behaviour now selects the unchanged Bird flock or
+  Reindeer herd. Migration uses delayed following around a periodic winding
+  route; Milling circulates with changing lanes/pace; Gather & roam contracts
+  and spreads. A spatial hash finds close neighbours, with symmetric separation
+  and attraction to each animal's moving target. This is a deterministic
+  phase-driven social-force drawing model, not a biological simulation or a
+  collision-free packing guarantee. Animals retain stable identities and sizes;
+  they stay inside the margin without disappearing at edges.
+  - Timeline uses frameIdx/frameCount, so Play and frame exports share the same
+    geometry without repeating the endpoint. Manual accepts Time; the Help
+    recipe uses Frame rot ° → Math ÷ 360 rather than Frame's endpoint-inclusive
+    t. Marks are real pen paths: short nonzero Point strokes, closed Circle
+    outlines and velocity-facing Dashes. New controls include Follow leaders,
+    Preferred spacing and Neighbour avoidance. Bird-only controls are hidden
+    in herd mode; old patches without Behaviour preserve their output.
+  - Three Help examples and the editable local study at
+    `docs/murmuration-herd/index.html` demonstrate movement, mark choice, count,
+    radius, avoidance and 24/36/48 frame counts. The local study imports the
+    actual node through the dev server; it is not part of the public Learn
+    build yet. `tools/render-murmuration.mjs` refreshes three patches and SVG
+    studies; the SVG studies are node renders, distinct from browser exports.
+  - `tools/validate-murmuration.mjs`: 972 frame cases, exact endpoints,
+    small-step seam continuity, identity/count, finite/bounded output, soft
+    separation improvement (crowding energy 359.2 → 16.6), meaningful controls,
+    evaluation-order independence and six pre-change bird geometry hashes.
+    Browser review covered all three motions in the real app. Optional
+    `--browser-captures` compared three actual SVG and Servo-A G-code exports
+    at frame index 7/36 to node geometry at 0.01 mm, including circle closure,
+    stroke order and pen-up rapid travel. Records are in browser-checks.json;
+    no machine was run and no full frame-batch download is claimed.
+  - All 55 Help examples and the catalogue/build/Learn gate pass (19,497
+    general Learn checks plus animation assertions). Typical measured compute
+    cost was about 5 ms at 220 animals and 15 ms at 800 on this machine.
+    Generated catalogue, node-recency, source bundle and Learn manifest updated.
+    Work is local and uncommitted on codex/murmuration-reindeer, based on
+    3284fa7fdffde172f1ce6e4cfbcae3283105c634; version stays 2.113 until release.
+  - Prior publication completed: 3284fa7 is on main, Pages run 37914151226
+    succeeded, the public animation HTML and repaired composite browser record
+    matched the built files, and the public app reports 2.113. A clean Claude
+    snapshot was prepared at /tmp/muusia-v2.113-project-files before starting
+    this node; it has not been uploaded to Claude in this task.
+
+- **2.114** 2026-10-09 Astra — release the approved Reindeer herd update in
+  the existing Murmuration node, based on
+  `3284fa7fdffde172f1ce6e4cfbcae3283105c634`. Includes Migration, Milling and
+  Gather & roam, Point/Circle/Dash marks, timeline loops, delayed following
+  and local neighbour separation. Three ready-made patches are available in
+  the app's Help examples. The editable `docs/murmuration-herd/` study remains
+  a local development page; the public feature is in the main Muusia app.
+  Existing bird geometry is unchanged. APP_VERSION is now 2.114; there is no
+  export-engine or machine-profile change. The earlier 2.113 browser captures
+  document the identical herd geometry and export scopes.
+  Focused validation passes all 972 herd frames, six bird baselines and all
+  55 examples. The ordered catalogue/build/Learn release gate passes, including
+  19,497 Learn checks and the animation study checks. No physical plotting
+  validation is claimed. The completed claim is cleared for integration;
+  verify this release's exact Pages run and public version after pushing, then
+  refresh the clean local Claude project snapshot.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

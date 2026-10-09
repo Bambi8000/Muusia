@@ -951,7 +951,11 @@
  "murmuration": [
   "creature",
   "nature",
-  "round"
+  "round",
+  "animation",
+  "herd",
+  "reindeer",
+  "flock"
  ],
  "mushroom": [
   "3d",

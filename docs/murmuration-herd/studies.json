@@ -1,0 +1,102 @@
+{
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "studies": [
+    {
+      "id": "migration",
+      "motion": "Migration",
+      "mark": "Dash",
+      "params": {
+        "behaviour": "Reindeer herd",
+        "birds": 220,
+        "clock": "Timeline",
+        "time": 0,
+        "herdMotion": "Migration",
+        "following": 0.75,
+        "spacing": 2.6,
+        "separation": 0.85,
+        "travel": 0.85,
+        "path": "Wander",
+        "wander": 0.4,
+        "spread": 42,
+        "pulse": 0.5,
+        "swirl": 1,
+        "scatter": 4,
+        "stretch": 0.6,
+        "shape": "Chevron",
+        "herdMark": "Dash",
+        "size": 1.8,
+        "trail": 0,
+        "margin": 10,
+        "seed": 3,
+        "layer": 0
+      },
+      "paths": 220
+    },
+    {
+      "id": "milling",
+      "motion": "Milling",
+      "mark": "Circle",
+      "params": {
+        "behaviour": "Reindeer herd",
+        "birds": 260,
+        "clock": "Timeline",
+        "time": 0,
+        "herdMotion": "Milling",
+        "following": 0.75,
+        "spacing": 3,
+        "separation": 0.85,
+        "travel": 0.25,
+        "path": "Wander",
+        "wander": 0.4,
+        "spread": 58,
+        "pulse": 0.5,
+        "swirl": 1,
+        "scatter": 8,
+        "stretch": 0.6,
+        "shape": "Chevron",
+        "herdMark": "Circle",
+        "size": 1.3,
+        "trail": 0,
+        "margin": 10,
+        "seed": 3,
+        "layer": 0
+      },
+      "paths": 260
+    },
+    {
+      "id": "gather",
+      "motion": "Gather & roam",
+      "mark": "Point",
+      "params": {
+        "behaviour": "Reindeer herd",
+        "birds": 220,
+        "clock": "Timeline",
+        "time": 0,
+        "herdMotion": "Gather & roam",
+        "following": 0.75,
+        "spacing": 2.6,
+        "separation": 0.85,
+        "travel": 0.7,
+        "path": "Wander",
+        "wander": 0.4,
+        "spread": 48,
+        "pulse": 1,
+        "swirl": 1,
+        "scatter": 3,
+        "stretch": 0.6,
+        "shape": "Chevron",
+        "herdMark": "Point",
+        "size": 1.8,
+        "trail": 0,
+        "margin": 10,
+        "seed": 3,
+        "layer": 0
+      },
+      "paths": 220
+    }
+  ],
+  "sourceSha256": "f0aba72b99da06a7c28ebc951f537f49ebe6d6c1c2734c9749273ff41486a7f9"
+}

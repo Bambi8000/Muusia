@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-10-09",
+  "method": "Fresh headless Chrome, actual Muusia Load/select node, Frames 36, frame index 7; route optimisation off; default Servo A profile with zero origin and flip Y off. SVG ordered paths and G-code pen-down movements match node geometry at 0.01 mm. No hardware or frame-batch claim.",
+  "nodeSha256": "f0aba72b99da06a7c28ebc951f537f49ebe6d6c1c2734c9749273ff41486a7f9",
+  "svgScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "exports": [
+    {
+      "id": "migration",
+      "frame": 7,
+      "frameCount": 36,
+      "paths": 220,
+      "svgSha256": "13efe822921b5f65578af730896c990097b33553981b15b591a274ee7d728ac9",
+      "orderedPathsSha256": "f8c5c1a1c2db0bbfc83cc6326ce7be59f67337d992668e30db64fb9a30d5141c",
+      "gcodeSha256": "47e5a3da0f882ea084b5f3757ee1e6709bcc8ca1a2220a1b23c27bd33f7f2724",
+      "penDownStrokes": 220,
+      "patchSha256": "83864dd3f8e2502bf3b8dade30ee14596ed8c6ed7fb979740544418e9fe813fd"
+    },
+    {
+      "id": "milling",
+      "frame": 7,
+      "frameCount": 36,
+      "paths": 260,
+      "svgSha256": "fff97f643461e3442d81b4be35e3fb891a3e8cd9b88d27eaaa77c297a845a6ad",
+      "orderedPathsSha256": "c1d8ce8010fb98d7a18760726703adfa5499e65c8bc182bd9ff87d3e36f3b7dd",
+      "gcodeSha256": "311b8c3ad80a862767e08462268900ac25d287c57965ce94284be2c2fe4324da",
+      "penDownStrokes": 260,
+      "patchSha256": "109c8ed007ba7314d562973e84be47f2eb98fa9598e73eda93c78993c57c74e4"
+    },
+    {
+      "id": "gather",
+      "frame": 7,
+      "frameCount": 36,
+      "paths": 220,
+      "svgSha256": "80d85e6d1287bebb057e59c8b4555d0794b267d27bb98b5d7135f90be2c28b6f",
+      "orderedPathsSha256": "f1b91149da019cc1130144ed77a97927dcc4b2910b2d21f130e47bb4307378fd",
+      "gcodeSha256": "1f846c8c12069fa3c525f6ccc85900d487cc9b9a684e4cbdfceb7655dc69ca0a",
+      "penDownStrokes": 220,
+      "patchSha256": "e50557f73adb7fb1789f71ec1c005223dc30b2ec116a308722103ca723c0e957"
+    }
+  ]
+}
