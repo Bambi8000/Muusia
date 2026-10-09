@@ -36,6 +36,7 @@ export function parseProject(value: unknown): ProjectDocument {
     margin: number(s.margin, 'margin', 0, 100000), gap: number(s.gap, 'gap', 0, 100000), markSize: number(s.markSize, 'marker size', 8, 15),
     order: choice(s.order, 'frame order', ['Row-major', 'Column-major', 'Boustrophedon']), total: number(s.total, 'total frames', 1, Number.MAX_SAFE_INTEGER, true),
     crop: choice(s.crop, 'crop', ['Frame window', 'Full cell']), pad: number(s.pad, 'padding', 0, 100), paperTone: choice<'light' | 'dark'>(s.paperTone, 'paper color', ['light', 'dark']),
+    markerStyle: s.markerStyle === undefined ? 'hatched' : choice<'hatched' | 'outline'>(s.markerStyle, 'marker style', ['hatched', 'outline']),
     captureMode: legacy ? 'sheet' : choice<CaptureMode>(s.captureMode, 'capture mode', ['sheet', 'frames']),
     clearance: legacy ? 0 : number(s.clearance, 'plot clearance', 0, 10), trim: legacy ? 0 : number(s.trim, 'border trim', 0, 10),
   };

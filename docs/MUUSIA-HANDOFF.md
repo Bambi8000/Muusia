@@ -2840,6 +2840,62 @@ according to the session's actual capabilities:
   verify this release's exact Pages run and public version after pushing, then
   refresh the clean local Claude project snapshot.
 
+- **N** 2026-10-09 Astra — Frame Grid / Liike light registration markers,
+  local on `codex/light-frame-markers`, based on
+  `d61d989779195e361b13f2a1ce38e7ccadb05319`. Version remains 2.114; not
+  committed or published. Adds opt-in **Light outlines** to the existing
+  Frame Grid: four outline squares and two diagonals forming an X at top-left.
+  Marker centres remain 20 mm from sheet edges. Legacy/missing markerStyle
+  retains Hatched squares and photo_trace compatibility. At 15 mm the marker
+  geometry changes from 114 strokes / 1713.3 mm to 6 strokes / 282.4 mm
+  (about 84% less ink distance, excluding travel; no measured plotting-time claim).
+  - Matching Liike Whole sheets marker-style choice, preview, detection,
+    registration labels, settings invalidation and project persistence. Old
+    project files default to hatched. Outline detection checks complete borders
+    and a unique top-left X; wrong, incomplete, mirrored or ambiguous marks
+    require manual placement. Very faint 0.2 mm strokes under severe simulated
+    lighting/perspective can need manual placement. Whole sheets uses photo
+    order; printed-number recognition remains an Individual frames feature.
+  - Help example **Frame Grid · Light A4 markers** provides one frame per A4
+    landscape sheet, 24 frames, margin 30, gap/clearance 0, marker size 8,
+    frame numbers on, cell frames/corner dots off. Existing ready animations
+    need only the matching marker style on both sides, with sheet settings
+    kept consistent. Updated node documentation and Liike README.
+  - Validation: all 151 Liike tests pass, including 23 new real-node outline
+    geometry/detection cases (rotation, perspective, noise, lighting, missing
+    borders/X and persistence); Liike types/lint, Frame Grid validator and all
+    56 examples pass. Ordered catalogue → build → check:learn passes with
+    19,497 Learn checks plus animation assertions. Generated catalogue,
+    recency, node source bundle and Learn manifest refreshed. The rebuilt
+    tracked `public/liike/index.html` must accompany the eventual release.
+  - Fresh isolated browser loaded the Help example and exported actual SVG
+    and Servo-A G-code: all 135 paths match node geometry, SVG exactly at
+    0.01 mm rounding, G-code within 0.006 mm with closures/order preserved
+    and no pen-down rapid travel. The exported SVG raster was imported through
+    the built Liike UI; all four corners and the TL X were found automatically,
+    with no browser page errors. Evidence: `/tmp/muusia-light-export-checks.json`.
+    SVG SHA-256 `dd866a46fbbb77765a53bff8cd86ada3b93ef1426a9967cfc279af1f14963ae4`;
+    G-code SHA-256 `5e8792a2a42f69700a8c76e3bf6cc4a2170805057d3666e280e848b22166e47e`.
+    No physical plot or real-camera photograph has been tested. The user's
+    open public animation was not modified. Ready for local review and a
+    paper/photo trial before relying on a 48-sheet production run.
+
+- **2.115** 2026-10-09 Astra — approved joint release of Muusia and Liike
+  Light outlines registration. Integrates the preceding local entry, based on
+  `d61d989779195e361b13f2a1ce38e7ccadb05319`. The only App.jsx change is the
+  version stamp; export semantics and machine profiles are unchanged. Includes
+  rebuilt `public/liike/index.html`, updated node metadata and the A4 Help
+  example. Existing browser captures document identical geometry under 2.114.
+  Final-tree checks passed: 151 Liike tests, Liike types/lint, Frame Grid and
+  56 examples, then catalogue → build → 19,497 Learn checks plus animation
+  assertions. The completed claim is cleared in the release commit.
+  Verify the exact Pages run and both public app builds after pushing.
+  Refresh the clean Claude project snapshot after commit, replacing changed
+  copies. The snapshot exporter now also includes `LIIKE-README.md`, so the
+  companion app's capture modes and marker settings are documented there.
+  Claude's project manifest was inspected and still described 2.112/fec272d;
+  refresh all snapshot files changed since that baseline, not only this release.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

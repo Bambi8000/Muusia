@@ -42,6 +42,7 @@ const sources = [
   ["docs/MUUSIA-WORKSTATE.json", "MUUSIA-WORKSTATE.json"],
   ["tools/project-files.mjs", "project-files.mjs"],
   ["nodes-lab/README.md", "NODES-LAB-README.md"],
+  ["liike/README.md", "LIIKE-README.md"],
 ];
 
 // Discover app modules so an extraction such as src/export.js is included automatically.

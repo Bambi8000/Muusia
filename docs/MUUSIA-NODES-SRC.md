@@ -15632,7 +15632,7 @@ export default {
   key: "frame_grid",
   name: "Frame Grid",
   cat: "duo",
-  desc: "Animation frame imposition: lays frames into a grid with photo_trace-compatible fiducial markers for camera frame extraction. Animate mode takes the whole animation through ONE input via the frameFan engine seam and pages overflow frames onto further sheets (outer frameIdx = sheet, P n/N tag, global numbering; evaluation cost multiplies by Total frames). Inputs mode gives one pin per cell; Clock mode places a single input into cell frameIdx for per-frame export merging. Canvas maps into every cell with one shared scale so frames stay registered. For per-frame close-up capture, Clearance mm keeps an ink-free band between the drawing and the cell frame line (the shared scale shrinks, registration holds) and Corner dots plots a 3 mm orientation circle outside each cell's top-left corner - the cell frame rectangle becomes the registration quad, the dot the rotation anchor.",
+  desc: "Animation frame imposition: lays frames into a grid with camera fiducial markers. Hatched squares keep photo_trace compatibility. Light outlines use only six pen strokes: four squares, with an X in the top-left one. Choose the matching Light outlines style in Liike Whole sheets mode; keep all four squares clear of artwork. Animate mode takes the whole animation through ONE input via the frameFan engine seam and pages overflow frames onto further sheets (outer frameIdx = sheet, P n/N tag, global numbering; evaluation cost multiplies by Total frames). Inputs mode gives one pin per cell; Clock mode places a single input into cell frameIdx for per-frame export merging. Canvas maps into every cell with one shared scale so frames stay registered. For per-frame close-up capture, Clearance mm keeps an ink-free band between the drawing and the cell frame line (the shared scale shrinks, registration holds) and Corner dots plots a 3 mm orientation circle outside each cell's top-left corner - the cell frame rectangle becomes the registration quad, the dot the rotation anchor.",
 
   ins: (node) => {
     const p = node && node.params;
@@ -15665,6 +15665,7 @@ export default {
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 30 },
     { key: "gap", label: "Gap mm", type: "slider", min: 0, max: 20, step: 0.5, def: 8 },
     { key: "marks", label: "Markers", type: "select", options: ["On", "Off"], def: "On" },
+    { key: "markerStyle", label: "Marker style", type: "select", options: ["Hatched squares", "Light outlines"], def: "Hatched squares", showIf: (p) => p.marks === "On" },
     { key: "markSize", label: "Marker mm", type: "slider", min: 8, max: 15, step: 0.5, def: 15, showIf: (p) => p.marks === "On" },
     { key: "cellFrames", label: "Cell frames", type: "select", options: ["Off", "On"], def: "Off" },
     { key: "inset", label: "Clearance mm", type: "slider", min: 0, max: 10, step: 0.5, def: 0 },
@@ -15771,6 +15772,16 @@ export default {
       const h = L.ms / 2, PITCH = 0.6;
       for (const mk of L.markers) {
         push([[mk.cx - h, mk.cy - h], [mk.cx + h, mk.cy - h], [mk.cx + h, mk.cy + h], [mk.cx - h, mk.cy + h]], true, pen);
+        // Four square outlines, with an X in TL: six strokes in total.
+        // Same centers and size as the legacy markers; Liike's Light outlines
+        // setting recognizes the dark X instead of a hole in a hatched square.
+        if (p.markerStyle === "Light outlines") {
+          if (mk.hole) {
+            push([[mk.cx - h, mk.cy - h], [mk.cx + h, mk.cy + h]], false, pen);
+            push([[mk.cx + h, mk.cy - h], [mk.cx - h, mk.cy + h]], false, pen);
+          }
+          continue;
+        }
         const r = mk.hole ? 0.2 * L.ms : 0;
         const nL = Math.floor((L.ms - 0.6) / PITCH);
         for (let i = 0; i <= nL; i++) {
@@ -15912,7 +15923,7 @@ export default {
         const h = L.ms / 2;
         for (const mk of L.markers) {
           g.push({ kind: "rect", x: mk.cx - h, y: mk.cy - h, w: L.ms, h: L.ms });
-          if (mk.hole) g.push({ kind: "circle", cx: mk.cx, cy: mk.cy, r: 0.2 * L.ms });
+          if (mk.hole && p.markerStyle !== "Light outlines") g.push({ kind: "circle", cx: mk.cx, cy: mk.cy, r: 0.2 * L.ms });
         }
       }
     } catch (e) { /* an overlay must never throw */ }

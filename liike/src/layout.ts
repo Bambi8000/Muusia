@@ -3,11 +3,12 @@ import type { PaperTone } from './paper';
 export type Order = 'Row-major' | 'Column-major' | 'Boustrophedon';
 export type Crop = 'Frame window' | 'Full cell';
 export type CaptureMode = 'sheet' | 'frames';
+export type MarkerStyle = 'hatched' | 'outline';
 export type Rect = { x: number; y: number; w: number; h: number };
 export type SheetSettings = {
   W: number; H: number; cols: number; rows: number; margin: number;
   gap: number; markSize: number; order: Order; total: number; crop: Crop; pad: number;
-  paperTone?: PaperTone;
+  paperTone?: PaperTone; markerStyle?: MarkerStyle;
   captureMode?: CaptureMode; clearance?: number; trim?: number;
 };
 
@@ -16,7 +17,7 @@ export const ORDERS: readonly Order[] = ['Row-major', 'Column-major', 'Boustroph
 export const DEFAULTS: Readonly<SheetSettings> = Object.freeze({
   W: 420, H: 297, cols: 4, rows: 3, margin: 30, gap: 8, markSize: 15,
   order: 'Row-major', total: 12, crop: 'Frame window', pad: 0, paperTone: 'light',
-  captureMode: 'sheet', clearance: 0, trim: 0,
+  captureMode: 'sheet', clearance: 0, trim: 0, markerStyle: 'hatched',
 });
 
 export function validateSettings(p: SheetSettings): string[] {
@@ -28,6 +29,7 @@ export function validateSettings(p: SheetSettings): string[] {
   if (p.W <= 40 || p.H <= 40) issues.push('Sheet dimensions must exceed 40 mm for the fixed corner markers.');
   if (![p.cols, p.rows].every(n => Number.isInteger(n) && n >= 1 && n <= 6)) issues.push('Use 1–6 whole columns and rows.');
   if (p.margin < 0 || p.gap < 0) issues.push('Margin and gap cannot be negative.');
+  if (p.markerStyle !== undefined && !['hatched', 'outline'].includes(p.markerStyle)) issues.push('Choose a marker style.');
   if (p.markSize < 8 || p.markSize > 15) issues.push('Marker size must be between 8 and 15 mm.');
   if (p.W - 40 <= p.markSize || p.H - 40 <= p.markSize) issues.push('Increase the sheet size so corner markers do not overlap.');
   if (!Number.isSafeInteger(p.total) || p.total < 1) issues.push('Total frames must be a positive whole number.');

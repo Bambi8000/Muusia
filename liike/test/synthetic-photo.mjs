@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
+import frameGrid from '../../src/defs/nodes/frame_grid.js';
 
 export const SHEET = { W: 297, H: 210 };
 export const MARKERS = [{ x: 20, y: 20 }, { x: 277, y: 20 }, { x: 277, y: 190 }, { x: 20, y: 190 }];
 
 // Independent SVG polyline rasterizer for the actual Muusia fixture (M/L/Z).
-export function renderSheet({ markSize = 15, holes = 1 } = {}) {
+export function renderSheet({ markSize = 15, holes = 1, markerStyle = 'hatched', penWidth = .3 } = {}) {
   const scale = 4, width = SHEET.W * scale, height = SHEET.H * scale;
   const data = new Uint8ClampedArray(width * height * 4); data.fill(255);
   const put = (x, y, coverage) => {
@@ -17,7 +18,7 @@ export function renderSheet({ markSize = 15, holes = 1 } = {}) {
     const dx = x1 - x0, dy = y1 - y0, length2 = dx * dx + dy * dy;
     for (let y = Math.floor(Math.min(y0, y1) - 1.2); y <= Math.ceil(Math.max(y0, y1) + 1.2); y++) for (let x = Math.floor(Math.min(x0, x1) - 1.2); x <= Math.ceil(Math.max(x0, x1) + 1.2); x++) {
       const t = length2 ? Math.max(0, Math.min(1, ((x + .5 - x0) * dx + (y + .5 - y0) * dy) / length2)) : 0;
-      put(x, y, .3 * scale / 2 + .5 - Math.hypot(x + .5 - x0 - t * dx, y + .5 - y0 - t * dy));
+      put(x, y, penWidth * scale / 2 + .5 - Math.hypot(x + .5 - x0 - t * dx, y + .5 - y0 - t * dy));
     }
   };
   const svg = readFileSync(new URL('./animtest.svg', import.meta.url), 'utf8');
@@ -26,11 +27,18 @@ export function renderSheet({ markSize = 15, holes = 1 } = {}) {
     const n = d.match(/-?\d+(?:\.\d+)?/g).map(Number);
     let points = Array.from({ length: n.length / 2 }, (_, i) => [n[i * 2], n[i * 2 + 1]]);
     const marker = MARKERS.find(m => points.every(([x, y]) => Math.abs(x - m.x) <= 7.6 && Math.abs(y - m.y) <= 7.6));
+    if (marker && markerStyle === 'outline') continue;
     if (marker) points = points.map(([x, y]) => [marker.x + (x - marker.x) * markSize / 15, marker.y + (y - marker.y) * markSize / 15]);
     for (let i = 1; i < points.length; i++) line(points[i - 1], points[i]);
     if (d.endsWith('Z')) line(points.at(-1), points[0]);
   }
-  if (holes === 0) {
+  if (markerStyle === 'outline') {
+    const params = Object.fromEntries(frameGrid.params.map(p => [p.key, p.def]));
+    const paths = frameGrid.compute([], { ...params, markerStyle: 'Light outlines', markSize, total: 1 }, SHEET).paths;
+    const draw = p => { for (let i = 1; i < p.pts.length; i++) line(p.pts[i - 1], p.pts[i]); if (p.closed) line(p.pts.at(-1), p.pts[0]); };
+    paths.filter(p => holes !== 0 || p.closed).forEach(draw);
+    if (holes > 1) paths.filter(p => !p.closed).forEach(p => draw({ ...p, pts: p.pts.map(([x,y]) => [x + SHEET.W - 40, y]) }));
+  } else if (holes === 0) {
     // Repaint TL with the same horizontal hatch, filled through the center.
     const half = markSize / 2;
     for (let y = Math.floor((20 - half - .5) * scale); y <= (20 + half + .5) * scale; y++) for (let x = Math.floor((20 - half - .5) * scale); x <= (20 + half + .5) * scale; x++) data.set([255, 255, 255, 255], (y * width + x) * 4);
@@ -55,8 +63,8 @@ function inverse(m) {
 }
 
 /** Known algebraic warp, independent of the production DLT solver. */
-export function syntheticPhoto({ rotation = 0, mirror = false, markSize = 15, holes = 1, noise = 5, vignette = .25, seed = 123, perspective = [.18, -.10], distractors = true } = {}) {
-  const sheet = renderSheet({ markSize, holes });
+export function syntheticPhoto({ rotation = 0, mirror = false, markSize = 15, holes = 1, noise = 5, vignette = .25, seed = 123, perspective = [.18, -.10], distractors = true, markerStyle = 'hatched', penWidth = .3, sheetRaster } = {}) {
+  const sheet = sheetRaster ?? renderSheet({ markSize, holes, markerStyle, penWidth });
   const width = 1100, height = 1000, scale = 2.55, angle = rotation * Math.PI / 180;
   const c = Math.cos(angle), s = Math.sin(angle), p = perspective[0] / SHEET.W, q = perspective[1] / SHEET.H, r = 1 - (perspective[0] + perspective[1]) / 2;
   const cx = width / 2, cy = height / 2;

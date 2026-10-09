@@ -49,6 +49,32 @@ restores a complete local project, including the original photographs. Remaining
 M7 work is multi-sheet polish and seeded Random order.
 See [KELA-HANDOFF.md](./KELA-HANDOFF.md) for the supplied project specification.
 
+## Light plotter markers
+
+Muusia Frame Grid offers **Marker style → Light outlines**: four outline
+squares at the same 20 mm corner centers, with an X inside the top-left one.
+Only six pen strokes are needed, instead of 114 with 15 mm hatching
+(282.4 mm versus 1713.3 mm of drawing, excluding travel). At 8 mm the outline
+set draws 150.6 mm. This is a geometry saving, not a measured machine time.
+
+In Liike use **Capture mode → Whole sheets** and **Marker style → Light
+outlines**, with the same marker size (8–15 mm), paper and Frame Grid settings.
+For one frame per A4, choose Custom 1 × 1 in both apps. Cell frames and Corner
+dots are unnecessary for this method; keep Frame numbers on for paper order.
+Whole sheets currently uses photo order, so load those single-frame sheets
+in frame-number order. Printed-number recognition belongs to Individual
+frames mode, which still requires the complete cell frame and corner circle.
+
+Photograph all four squares completely, with dark ink on light paper or
+bright ink on dark paper. Keep the outlines separate from the drawing.
+The X identifies TL; manual registration clicks the four square centers,
+starting at the X and continuing clockwise. The detector verifies the four
+outlines, marker size and orientation, then allows manual refinement.
+Tiny or faint strokes in a distant or blurred photo may need manual placement.
+Legacy projects without a marker style use Hatched squares; project files
+preserve the chosen style. No real-plot photograph of the new style has yet
+been validated; tests use actual node paths with simulated camera distortion.
+
 ## Individual frame photographs
 
 Choose **Sheet → Capture mode → Individual frames** to photograph each

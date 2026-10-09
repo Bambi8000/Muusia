@@ -5,7 +5,7 @@ import { analysisLight } from './paper.ts';
 import type { PaperTone } from './paper';
 import type { NumberReading } from './number-detection';
 
-export type DetectionSettings = { W: number; H: number; markSize: number; paperTone?: PaperTone; captureMode?: 'sheet' | 'frames'; cols?: number; rows?: number; margin?: number; gap?: number };
+export type DetectionSettings = { W: number; H: number; markSize: number; markerStyle?: 'hatched' | 'outline'; paperTone?: PaperTone; captureMode?: 'sheet' | 'frames'; cols?: number; rows?: number; margin?: number; gap?: number };
 export type DetectionResult = {
   status: 'found' | 'not-found' | 'ambiguous' | 'mirrored';
   points: Quad | null;
@@ -53,7 +53,7 @@ function holeContrast(gray: Float32Array, w: number, h: number, cx: number, cy: 
   return coreCount && ringCount ? core / coreCount - ring / ringCount : 0;
 }
 
-function components(gray: Float32Array, local: Float32Array, w: number, h: number): Candidate[] {
+function components(gray: Float32Array, local: Float32Array, w: number, h: number, outline = false, original = gray): Candidate[] {
   const n = w * h, mask = new Uint8Array(n), queue = new Int32Array(n);
   for (let i = 0; i < n; i++) mask[i] = gray[i]! < local[i]! - 8 ? 1 : 0;
   const candidates: Candidate[] = [];
@@ -75,9 +75,9 @@ function components(gray: Float32Array, local: Float32Array, w: number, h: numbe
         if (mask[next]) { mask[next] = 0; queue[tail++] = next; }
       }
     }
-    if (x0 === 0 || y0 === 0 || x1 === w - 1 || y1 === h - 1 || tail < n * .00012 || tail > n * .035 || weight === 0) continue;
+    if (x0 === 0 || y0 === 0 || x1 === w - 1 || y1 === h - 1 || tail < n * (outline ? .00004 : .00012) || tail > n * .035 || weight === 0) continue;
     const bw = x1 - x0 + 1, bh = y1 - y0 + 1, aspect = bw / bh, fill = tail / (bw * bh);
-    if (aspect < .55 || aspect > 1.8 || fill < .42) continue;
+    if (aspect < .55 || aspect > 1.8 || fill < (outline ? .10 : .42)) continue;
     // Adaptive means near the paper edge bias a local-contrast centroid toward
     // the sheet interior. Refine against one paper level over the whole marker.
     const pad = Math.max(2, Math.round(Math.max(w, h) / 300));
@@ -106,9 +106,13 @@ function components(gray: Float32Array, local: Float32Array, w: number, h: numbe
       wx += (x + .5) * ink; wy += (y + .5) * ink; weight += ink;
     }
     if (!weight) continue;
-    const x = wx / weight, y = wy / weight;
+    // The sparse marker's mass shifts with illumination and its X. Its
+    // opposing outline extents are much more stable than an ink centroid.
+    const x = outline ? (x0 + x1 + 1) / 2 : wx / weight;
+    const y = outline ? (y0 + y1 + 1) / 2 : wy / weight;
     if (x > w * .3 && x < w * .7 && y > h * .3 && y < h * .7) continue;
-    candidates.push({ x, y, width: bw, height: bh, area: tail, hole: holeContrast(gray, w, h, x, y, Math.min(bw, bh)) });
+    const contrast = holeContrast(outline ? original : gray, w, h, x, y, Math.min(bw, bh));
+    candidates.push({ x, y, width: bw, height: bh, area: tail, hole: outline ? -contrast : contrast });
   }
   return candidates.sort((a, b) => b.area - a.area).slice(0, 24);
 }
@@ -133,16 +137,45 @@ function shapeError(points: Candidate[], settings: DetectionSettings, halo: numb
 }
 
 /** Detect only the four fiducials. Cell geometry is never inferred from artwork. */
+function completeOutlines(points: Candidate[], settings: DetectionSettings, gray: Float32Array, local: Float32Array, w: number, h: number): boolean {
+  const centers: Quad = [{ x: 20, y: 20 }, { x: settings.W - 20, y: 20 }, { x: settings.W - 20, y: settings.H - 20 }, { x: 20, y: settings.H - 20 }];
+  const transform = solveHomography(centers, [points[0]!, points[1]!, points[2]!, points[3]!]), r = settings.markSize / 2;
+  // A bounding box alone could accept a broken square or an X with no border.
+  // Verify every projected edge against the photo, including the blank squares.
+  for (const c of centers) {
+    const corners = [[-r, -r], [r, -r], [r, r], [-r, r]].map(([x, y]) => project(transform, c.x + x!, c.y + y!));
+    for (let side = 0; side < 4; side++) {
+      const a = corners[side]!, b = corners[(side + 1) % 4]!;
+      const length = Math.hypot(b.x - a.x, b.y - a.y), nx = -(b.y - a.y) / length, ny = (b.x - a.x) / length;
+      let covered = 0;
+      for (let j = 0; j < 16; j++) {
+        const t = .12 + .76 * j / 15;
+        let ink = false;
+        for (const offset of [-2, -1, 0, 1, 2]) {
+          const x = Math.floor(a.x + (b.x - a.x) * t + nx * offset), y = Math.floor(a.y + (b.y - a.y) * t + ny * offset);
+          if (x >= 0 && y >= 0 && x < w && y < h && local[y * w + x]! - gray[y * w + x]! > 8) ink = true;
+        }
+        if (ink) covered++;
+      }
+      if (covered < 12) return false;
+    }
+  }
+  return true;
+}
+
 export function detectMarkers(raster: Raster, settings: DetectionSettings): DetectionResult {
   const { width: w, height: h, data } = raster;
   const failure = (message: string, status: DetectionResult['status'] = 'not-found', candidates = 0): DetectionResult => ({ status, points: null, message, candidates });
   if (w < 80 || h < 80 || data.length !== w * h * 4 || ![settings.W, settings.H, settings.markSize].every(Number.isFinite) || settings.W <= 40 || settings.H <= 40 || settings.markSize <= 0) return failure('Check the photo and sheet settings, or place the four markers manually.');
   const gray = new Float32Array(w * h);
   for (let i = 0; i < gray.length; i++) gray[i] = analysisLight(data[i * 4]!, data[i * 4 + 1]!, data[i * 4 + 2]!, data[i * 4 + 3]!, settings.paperTone);
-  const blurRadius = Math.max(1, Math.round(Math.max(w, h) / 600));
+  const outline = settings.markerStyle === 'outline';
+  // Hatch gaps need smoothing; sparse pen outlines need their edge contrast.
+  const blurRadius = outline ? 1 : Math.max(1, Math.round(Math.max(w, h) / 600));
   const blurred = boxMean(gray, w, h, blurRadius);
   const local = boxMean(blurred, w, h, Math.max(12, Math.round(Math.max(w, h) / 30)));
-  const candidates = components(blurred, local, w, h);
+  const anchorName = outline ? 'X' : `${settings.paperTone === 'dark' ? 'dark' : 'white'} hole`;
+  const candidates = components(blurred, local, w, h, outline, gray);
   if (candidates.length < 4) return failure('Could not find four clear markers. Keep all four in view, or place their centers manually.', 'not-found', candidates.length);
   const matches: { points: Candidate[]; error: number; mirroredError: number; score: number; hole: number; holeGap: number }[] = [];
   for (let a = 0; a < candidates.length - 3; a++) for (let b = a + 1; b < candidates.length - 2; b++) for (let c = b + 1; c < candidates.length - 1; c++) for (let d = c + 1; d < candidates.length; d++) {
@@ -168,10 +201,11 @@ export function detectMarkers(raster: Raster, settings: DetectionSettings): Dete
   matches.sort((a, b) => a.score - b.score);
   const best = matches[0];
   if (!best || Math.min(best.error, best.mirroredError) > .24) return failure('The detected shapes do not match this sheet and marker size. Check Sheet settings or place markers manually.', 'not-found', candidates.length);
-  if (best.hole < 12 || best.holeGap < 8) return failure(`The ${settings.paperTone === 'dark' ? 'dark' : 'white'}-hole marker is unclear. Place TL on the marker with the hole, then continue clockwise.`, 'ambiguous', candidates.length);
+  if (best.hole < 12 || best.holeGap < 8) return failure(`The ${anchorName} marker is unclear. Place TL on the marker with the ${anchorName}, then continue clockwise.`, 'ambiguous', candidates.length);
   if (best.mirroredError + .08 < best.error) return failure('The marker geometry suggests a mirrored photo or swapped sheet dimensions. Check the image and Sheet settings; no automatic flip was applied.', 'mirrored', candidates.length);
-  if (Math.abs(best.error - best.mirroredError) < .04) return failure('The sheet orientation is ambiguous. Place the marker with the hole and remaining corners manually.', 'ambiguous', candidates.length);
+  if (Math.abs(best.error - best.mirroredError) < .04) return failure(`The sheet orientation is ambiguous. Place the marker with the ${anchorName} and remaining corners manually.`, 'ambiguous', candidates.length);
   const runnerUp = matches.find((m, i) => i > 0 && m.hole >= 12 && m.holeGap >= 8 && Math.abs(m.score - best.score) < .025 && m.points.some(p => !best.points.includes(p)));
   if (runnerUp) return failure('More than one marker group looks plausible. Place the four centers manually.', 'ambiguous', candidates.length);
+  if (outline && !completeOutlines(best.points, settings, blurred, local, w, h)) return failure('Keep all four square outlines complete and clear of the drawing. Check Marker style and size, or place the centers manually.', 'not-found', candidates.length);
   return { status: 'found', points: best.points.map(({ x, y }) => ({ x, y })) as Quad, candidates: candidates.length, message: 'Four markers found. Check the frame windows and drag any marker to refine it.' };
 }

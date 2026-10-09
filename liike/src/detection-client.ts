@@ -5,7 +5,7 @@ import type { Photo } from './photos';
 
 export const detectionSettingsKey = (settings: DetectionSettings) => settings.captureMode === 'frames'
   ? `frames/${settings.W}/${settings.H}/${settings.cols}/${settings.rows}/${settings.margin}/${settings.gap}/${settings.paperTone ?? 'light'}`
-  : `${settings.W}/${settings.H}/${settings.markSize}/${settings.paperTone ?? 'light'}`;
+  : `${settings.W}/${settings.H}/${settings.markSize}/${settings.paperTone ?? 'light'}${settings.markerStyle === 'outline' ? '/outline' : ''}`;
 
 /** Each job owns its worker; cancellation and completion release the copied raster. */
 export function startDetection(photo: Photo, settings: DetectionSettings, numberOnly = false) {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { buildLayout, DEFAULTS, framesOnSheet, LAYOUTS, ORDERS, validateSettings } from './layout';
-import type { CaptureMode, Crop, Order, Rect, SheetSettings } from './layout';
+import type { CaptureMode, Crop, MarkerStyle, Order, Rect, SheetSettings } from './layout';
 import { individualFrames, photoForMode, requiredPhotos } from './capture';
 import { photoLabel } from './frame-number';
 import { REFERENCE_SETTINGS } from './reference-settings';
@@ -21,11 +21,11 @@ import ProjectBar from './ProjectBar';
 import type { RestoredProject } from './project-archive';
 
 type NumericKey = 'W' | 'H' | 'cols' | 'rows' | 'margin' | 'gap' | 'markSize' | 'total' | 'pad' | 'clearance' | 'trim';
-type Draft = Record<NumericKey, string> & { order: Order; crop: Crop; paperTone: PaperTone; captureMode: CaptureMode };
+type Draft = Record<NumericKey, string> & { order: Order; crop: Crop; paperTone: PaperTone; captureMode: CaptureMode; markerStyle: MarkerStyle };
 const numericKeys: NumericKey[] = ['W', 'H', 'cols', 'rows', 'margin', 'gap', 'markSize', 'total', 'pad', 'clearance', 'trim'];
-const makeDraft = (p: SheetSettings): Draft => ({ ...Object.fromEntries(Object.entries(p).map(([key, value]) => [key, String(value)])), paperTone: p.paperTone ?? 'light', captureMode: p.captureMode ?? 'sheet', clearance: String(p.clearance ?? 0), trim: String(p.trim ?? 0) }) as Draft;
+const makeDraft = (p: SheetSettings): Draft => ({ ...Object.fromEntries(Object.entries(p).map(([key, value]) => [key, String(value)])), paperTone: p.paperTone ?? 'light', markerStyle: p.markerStyle ?? 'hatched', captureMode: p.captureMode ?? 'sheet', clearance: String(p.clearance ?? 0), trim: String(p.trim ?? 0) }) as Draft;
 const readDraft = (d: Draft): SheetSettings => ({
-  order: d.order, crop: d.crop, paperTone: d.paperTone, captureMode: d.captureMode,
+  order: d.order, crop: d.crop, paperTone: d.paperTone, captureMode: d.captureMode, markerStyle: d.markerStyle,
   ...Object.fromEntries(numericKeys.map(key => [key, d[key].trim() === '' ? NaN : Number(d[key])])) as Record<NumericKey, number>,
 });
 const mm = (value: number) => Number(value.toFixed(2)).toLocaleString('en-US');
@@ -47,8 +47,10 @@ function SheetPreview({ settings, sheet, guides }: { settings: SheetSettings; sh
       <text x={window.x + window.w / 2} y={window.y + window.h / 2} fontSize={fontSize} textAnchor="middle" dominantBaseline="central" fill={dark ? '#d7f69f' : byCell.has(index) ? '#526638' : '#92978b'}>{byCell.get(index) ?? '—'}</text>
     </g>)}
     {individualFrames(settings) ? l.cells.map(({ index, cell }) => <g key={index}><rect {...rectProps(cell)} fill="none" stroke={inkColor} strokeWidth=".3" /><circle cx={cell.x - 2.5} cy={cell.y - 2.5} r={1.5} fill="none" stroke={inkColor} strokeWidth=".3" /></g>) : l.markers.map((m, i) => <g key={i}>
-      <rect x={m.x - settings.markSize / 2} y={m.y - settings.markSize / 2} width={settings.markSize} height={settings.markSize} fill="url(#marker-hatch)" stroke={inkColor} strokeWidth=".3" />
-      {m.hole && <circle cx={m.x} cy={m.y} r={settings.markSize * .2} fill={paperColor} stroke={inkColor} strokeWidth=".3" />}
+      <rect x={m.x - settings.markSize / 2} y={m.y - settings.markSize / 2} width={settings.markSize} height={settings.markSize} fill={settings.markerStyle === 'outline' ? 'none' : 'url(#marker-hatch)'} stroke={inkColor} strokeWidth=".3" />
+      {m.hole && (settings.markerStyle === 'outline'
+        ? <path d={`M${m.x-settings.markSize/2},${m.y-settings.markSize/2}l${settings.markSize},${settings.markSize}M${m.x+settings.markSize/2},${m.y-settings.markSize/2}l${-settings.markSize},${settings.markSize}`} fill="none" stroke={inkColor} strokeWidth=".3" />
+        : <circle cx={m.x} cy={m.y} r={settings.markSize * .2} fill={paperColor} stroke={inkColor} strokeWidth=".3" />)}
     </g>)}
   </svg>;
 }
@@ -145,7 +147,7 @@ export default function App() {
       <section className="settings" aria-label="Sheet settings">
         <fieldset><legend><span>01</span> Canvas</legend>
           <label className="field"><span>Capture mode</span><select value={draft.captureMode} onChange={e => chooseCaptureMode(e.target.value as CaptureMode)}><option value="sheet">Whole sheets</option><option value="frames">Individual frames</option></select></label>
-          <p className="hint">{closeup ? "One close-up photo per frame. Include the full cell outline and the small circle outside its top-left corner." : "One photo per sheet. Use the four hatched corner markers."}</p>
+          <p className="hint">{closeup ? "One close-up photo per frame. Include the full cell outline and the small circle outside its top-left corner." : "One photo per sheet. Include all four corner markers and match their style below."}</p>
           <label className="field"><span>Paper color</span><select value={draft.paperTone} onChange={e => update({ paperTone: e.target.value as PaperTone })}><option value="light">White / light</option><option value="dark">Black / dark</option></select></label>
           <div className="field-row"><label className="field"><span>Paper size</span><select value={paper} onChange={e => choosePaper(e.target.value)}><option>A3</option><option>A4</option><option>Custom</option></select></label>
             <label className="field"><span>Orientation</span><select value={settings.H > settings.W ? 'Portrait' : 'Landscape'} disabled={!Number.isFinite(settings.W) || !Number.isFinite(settings.H)} onChange={e => {
@@ -163,8 +165,9 @@ export default function App() {
           <div className="field-row">{numberField('margin', 'Margin · mm', 0, .5)}{numberField('gap', 'Gap · mm', 0, .5)}</div>
           <label className="field"><span>Frame order</span><select disabled={closeup} value={draft.order} onChange={e => update({ order: e.target.value as Order })}>{ORDERS.map(order => <option key={order}>{order}</option>)}</select></label>
           <p className="hint">{closeup ? "Photo order sets the animation order. Add close-ups in frame-number order and rearrange them in Photos." : "Boustrophedon alternates left-to-right and right-to-left on each row."}</p>
+          {!closeup && <label className="field"><span>Marker style</span><select value={draft.markerStyle} onChange={e => update({ markerStyle: e.target.value as MarkerStyle })}><option value="hatched">Hatched squares</option><option value="outline">Light outlines</option></select></label>}
           <div className="field-row">{numberField('total', 'Total frames', 1)}{!closeup && numberField('markSize', 'Marker size · mm', 8, .5, 15)}</div>
-          <p className="hint">{closeup ? "Use Cell frames and Corner dots in Muusia. Sheet corner markers are not needed." : <>Marker centers are fixed at 20 mm from the sheet edges. The {settings.paperTone === 'dark' ? 'dark' : 'white'} hole marks the top-left corner.</>}</p>
+          <p className="hint">{closeup ? "Use Cell frames and Corner dots in Muusia. Sheet corner markers are not needed." : <>Marker centers are fixed at 20 mm from the sheet edges. {settings.markerStyle === 'outline' ? 'The X identifies the top-left square. Match Light outlines in Muusia; cell borders and corner dots are optional.' : `The ${settings.paperTone === 'dark' ? 'dark' : 'white'} hole marks the top-left corner.`}</>}</p>
           {numberField('clearance', 'Plot clearance · mm', 0, .5, 10)}<p className="hint">Match Muusia’s Clearance mm. This is the blank band between the drawing and the cell frame.</p>
         </fieldset>
         <fieldset><legend><span>03</span> Crop</legend>
@@ -191,7 +194,7 @@ export default function App() {
     </>}
     {step === 1 && layout && <PhotosStep library={library} sheets={needed} settings={settings} onUsePhotos={() => update({ total: String(library.photos.length) })} onSortNumbers={() => { library.sortNumbers(); setPhotoIndex(0); setSequence(current => ({ ...current, order: 'Frame number', manual: [] })); }} onBack={() => setStep(0)} onRegister={index => { setPhotoIndex(index); setStep(2); }} />}
     {step === 2 && layout && registrationPhoto && <>
-      <section className="intro"><div><p className="eyebrow">03 / Register the {closeup ? 'frame' : 'sheet'}</p><h1>Find <em>the corners.</em></h1><p>{closeup ? "Use the four corners of the cell outline. Top-left is the corner beside the small external circle." : <>Match the markers in your photo to the sheet. Begin with the marker that has a {settings.paperTone === 'dark' ? 'dark' : 'white'} hole.</>}</p></div><label className="field"><span>Photographed {closeup ? 'frame' : 'sheet'}</span><select value={registrationPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{library.photos.map((photo, i) => <option key={photo.id} value={i}>{photoLabel(photo, i, settings.captureMode)} · {photo.name}{i >= needed ? ' · extra photo' : ''}</option>)}</select></label></section>
+      <section className="intro"><div><p className="eyebrow">03 / Register the {closeup ? 'frame' : 'sheet'}</p><h1>Find <em>the corners.</em></h1><p>{closeup ? "Use the four corners of the cell outline. Top-left is the corner beside the small external circle." : <>Match the markers in your photo to the sheet. Begin with the marker that has {settings.markerStyle === 'outline' ? 'an X' : `a ${settings.paperTone === 'dark' ? 'dark' : 'white'} hole`}.</>}</p></div><label className="field"><span>Photographed {closeup ? 'frame' : 'sheet'}</span><select value={registrationPhotoIndex} onChange={e => setPhotoIndex(Number(e.target.value))}>{library.photos.map((photo, i) => <option key={photo.id} value={i}>{photoLabel(photo, i, settings.captureMode)} · {photo.name}{i >= needed ? ' · extra photo' : ''}</option>)}</select></label></section>
       {availablePhotos.length < needed && <p className="warning">{needed - availablePhotos.length} more photos needed. You can register these photos now and add the rest in Photos.</p>}
       {registrationPhotoIndex >= needed && <p className="warning">This extra photo can be registered now, but is not used in the sequence yet. Increase Total frames in Sheet or move this photo earlier in Photos to include it.</p>}
       <RegistrationStep key={`${registrationPhoto.id}:${settings.captureMode}`} photo={registrationPhoto} settings={settings} sheet={registrationPhotoIndex} setPoints={(id, points) => library.setPoints(id, points, settings.captureMode ?? 'sheet')} detect={library.detect} undoDetection={library.undoDetection} setFrameNumber={library.setFrameNumber} />

@@ -15,6 +15,14 @@
 
 export const EXAMPLES = [
   {
+    name: "Frame Grid · Light A4 markers", desc: "One animation frame per A4 sheet, with six-stroke Light outlines and printed frame numbers. Select Frame Grid, set ANIMATE → Frames to 24, then export all frames. In Liike choose Whole sheets, Light outlines, A4 landscape, Custom 1 × 1, Margin 30, Gap 0, Clearance 0, Marker size 8 and Total frames 24. The square with an X is top-left. Cell frames and Corner dots are not needed. Keep markers clear of artwork; photograph all four completely.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "murmuration", x: 20, y: 20, params: { ...defaults("murmuration"), behaviour: "Reindeer herd", clock: "Timeline", birds: 120, spread: 42, travel: 0.85, scatter: 4 } },
+      { id: 9002, type: "frame_grid", x: 370, y: 20, params: { ...defaults("frame_grid"), total: 24, layout: "Custom", cols: 1, rows: 1, gap: 0, markerStyle: "Light outlines", markSize: 8, numbers: "On" } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Murmuration · Reindeer migration", desc: "A ground herd follows a winding route with delayed followers and local neighbour avoidance. Select Murmuration, set ANIMATE → Frames to 36 and press Play. Time source → Timeline follows the app directly, with no duplicate endpoint. Animal mark chooses Point, Circle or Dash; dashes face the direction of motion. Preferred spacing is a soft target, so very crowded herds may overlap. Keep Seed fixed when exporting frames.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [{ id: 9001, type: "murmuration", x: 30, y: 20, params: { ...defaults("murmuration"), behaviour: "Reindeer herd", clock: "Timeline", herdMotion: "Migration", herdMark: "Dash", birds: 220, spread: 42, travel: 0.85, scatter: 4 } }], edges: [] }),

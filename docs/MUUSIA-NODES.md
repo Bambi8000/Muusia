@@ -2562,7 +2562,15 @@ P n/N tag lands bottom-right. Fill *Inputs* gives one pin per cell
 for per-frame export merging. The whole canvas maps into every cell with ONE
 shared scale so frames stay registered; *Fit each* is the contact-sheet
 alternative. Cell frames, frame numbers, a Label line and a marker pen
-complete the sheet. Evaluation cost multiplies by Total in Animate.
+complete the sheet. Evaluation cost multiplies by Total in Animate. Marker style
+*Light outlines* replaces the hatching with four square outlines and an X in
+TL: six strokes, the same 20 mm centers and adjustable 8–15 mm size. Use
+**Liike → Whole sheets → Marker style → Light outlines** with matching paper,
+grid, margin, gap, clearance and marker size. These need neither Cell frames
+nor Corner dots; Frame numbers remain available. Keep all squares complete
+and clear of artwork. Hatched squares stay the default for existing patches
+and photo_trace compatibility. Custom 1 × 1 makes one frame per sheet; set
+both Total frames and ANIMATE Frames to the animation length.
 
 **Frame Split** — chops ONE drawing into animation frames: N outputs that
 wire straight into Frame Grid. Split by exact *Ink length* (paths cut

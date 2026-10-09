@@ -441,9 +441,9 @@ export const NODE_RECENCY = {
     "sha256": "4c9e5949a74dcdb7e0d6423b4b2a06fec919002081b526b76e0cedbe6558dc27"
   },
   "frame_grid": {
-    "date": "2026-09-15",
-    "order": 47,
-    "sha256": "a1f231247ee987ae8ed6aadbf0415969fa4f2ab3126c876bfc68cf0575fdd267"
+    "date": "2026-10-09",
+    "order": 74,
+    "sha256": "38ad4905a0733ee8496416e3273f468b8a310c7f0827d10e3e7c2062b7ade0cd"
   },
   "frame_split": {
     "date": "2026-09-10",

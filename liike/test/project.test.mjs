@@ -220,3 +220,15 @@ test('older close-up projects adopt numeric order; explicit manual and current p
   document.sequence.order='Frame number';
   assert.equal((await readProject(rewrite(files,document))).project.sequence.order,'Frame number');
 });
+
+test('light marker style survives project save/load; old projects keep hatch interpretation', async () => {
+  const config=state();config.settings.markerStyle='outline';
+  const saved=await readProject(await saveProject(config,[]));
+  assert.equal(saved.project.settings.markerStyle,'outline');
+  const older=structuredClone(saved.project);delete older.settings.markerStyle;
+  assert.equal(parseProject(older).settings.markerStyle,'hatched');
+  for(const value of [null,3,'cross']) {
+    const invalid=structuredClone(older);invalid.settings.markerStyle=value;
+    assert.throws(()=>parseProject(invalid),/marker style/);
+  }
+});
