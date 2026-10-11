@@ -583,6 +583,30 @@ for (const [assetKey, tutorial] of exportBundles) {
   } catch (error) { check(false, `${assetKey}: invalid reference SVG export (${error.message}).`); }
 }
 
+// The colour-pass example must stay identical to the actual app study.
+try {
+  const relative = 'examples/murmuration-tracking.muusia.json';
+  const bytes = await fs.readFile(path.join(SITE, relative));
+  assert.deepEqual(bytes, await fs.readFile(path.resolve(HERE, '../docs/murmuration-tracking/follow-one.muusia.json')));
+  assert.ok(referencedPatches.has(path.join(SITE, relative)), 'printable comparison example is linked');
+  const patch = JSON.parse(bytes), grid = patch.root.nodes.find(n => n.type === 'frame_grid');
+  const herd = patch.root.nodes.find(n => n.type === 'murmuration');
+  assert.deepEqual(patch.canvas, {W: 297, H: 210});
+  assert.ok(grid && herd);
+  assert.equal(grid.params.total, 24);
+  assert.equal(grid.params.scale, 'Map canvas');
+  assert.equal(grid.params.markerStyle, 'Light outlines');
+  assert.equal(herd.params.animal, 17);
+  assert.equal(herd.params.highlightPen, 2);
+  assert.deepEqual(herd.params, examples.murmuration.patch.root.nodes[0].params, 'guide and printable study use the same herd');
+  const page = documents.get(path.join(SITE, 'nodes/murmuration/index.html'));
+  for (const id of ['camera-comparison', 'pen-passes', 'herd-group', 'herd-animal'])
+    assert.ok(page.elements.some(e => e.attributes.id === id), `comparison section ${id}`);
+  const script = await fs.readFile(path.join(SITE, 'assets/murmuration/study.js'), 'utf8');
+  assert.ok(script.length > 1000 && !/from\s*['"](?:\.\.\/)*src\//.test(script), 'comparison is bundled for static hosting');
+  check(true, '');
+} catch (error) { check(false, `Murmuration comparison: ${error.message}`); }
+
 try { await validateAnimation(SITE); check(true, ''); }
 catch (error) { check(false, `Animation studies: ${error.message}`); }
 

@@ -87,7 +87,7 @@ Copy those fields into the corresponding `assets/screenshots/*-export.json` reco
 
 ## Current scope
 
-The current local build contains 31 static pages: the overview, tutorial index, node reference index, seven tutorials, eighteen node guides and three animation studies. Downloads include eighteen node patches, seven complete tutorial patches, one blank starter and seven animation projects, plus the captured per-pen SVG ZIP and SVG results. Adding the studies does not claim 310 completed illustrated node guides or an eighth foundation lesson.
+The current local build contains 32 static pages: the overview, tutorial index, node reference index, seven tutorials, nineteen node guides and three animation studies. Downloads include nineteen node patches, seven complete tutorial patches, one blank starter and seven animation projects, plus the captured per-pen SVG ZIP and SVG results. Adding the studies does not claim 310 completed illustrated node guides or an eighth foundation lesson.
 
 Published nodes: Grid, Wave, Tracks, Stroke, Stamp, Set Pen, Merge, Value, Frame, Image, Polyhedron Studio, Travel Sort, Move / Scale, Rotate, Hatch Fill, Container, Random and Math. Other built-ins remain in the in-app catalog and are not represented as finished guides. Group/legacy guides and more advanced tutorials belong to the next stages in `docs/MUUSIA-LEARN-PLAN.md`.
 
@@ -112,3 +112,38 @@ The original Finnish studies stay under `docs/animation-examples/`, `docs/animat
 `npm run check:learn` now also checks translation coverage, unchanged graph/preview data, dynamically chosen assets, capture bindings and the editable examples' selected evaluator/SVG-exporter scopes plus node/helper dependencies. It does **not** gate on all of App.jsx. The broader survey is a dated snapshot: its historical full App.jsx hash is retained as review metadata only. If a tracked example dependency changes, rerun its original builder and obtain fresh affected browser exports, then rebuild the English edition. Do not merely overwrite capture hashes. An unrelated node update or UI/version edit must not require recapturing these examples.
 
 The proposed loop controls and exporter fixes in the audit remain proposals; integration into Learn changes documentation only. These pages are included in the same Pages build as the application and existing tutorials.
+
+### 2026-10-11 animation pen-pass maintenance
+
+Both reference exports were downloaded again through the actual in-app browser
+from the local 2.115 working tree on `codex/murmuration-pen-passes`, based on
+`b6744ba81089cb377c9d2d5fb77838a98d07151b`. The recorded External SVG profile,
+canvas and export settings were reproduced; both artifacts are byte-identical
+to the previous downloads. Source coverage now also includes `src/frame-export.js`
+and the Animation export order state/imports. This protects the new **All frames
+by pen** path without fingerprinting unrelated App UI. Existing screenshots and
+the historical physical-plot G-code record were not recaptured.
+
+
+### Murmuration guide and camera comparison · 2026-10-11
+
+`nodes/murmuration/index.html#camera-comparison` contains the English edition of
+`docs/murmuration-tracking/`: Follow group beside Follow animal 17, Reindeer /
+Bird, 24 / 48 frames, ground modes, scrubbing and separate base/highlight previews.
+The player starts paused. It runs the actual node, using the existing Rolldown
+dependency to bundle only the node and its used helpers into a standalone browser
+module. The published page does not fetch `/src/` or require a development server.
+The ordinary guide includes real static results, three camera comparisons,
+all conditional controls, a genuine 2.115 Focus screenshot and a single-node patch.
+Its screenshot is frame 1 of 48; controls below the viewport are not shown.
+
+The additional `examples/murmuration-tracking.muusia.json` download is copied
+byte-for-byte from the tested local study. It is a 24-sheet Murmuration → Frame
+Grid patch; set both Total frames and ANIMATE Frames to 48 for a 48-sheet job.
+The guide explains All frames by pen, fixed page coordinates, paper stops and
+Liike's separate role in photo alignment. Three actual 24 × 2 app batch exports
+(SVG/G-code/DXF) are recorded in the source study's `browser-checks.json`.
+Physical two-pass registration remains untested. The Learn validator checks this
+additional patch's identity, key printing settings and its match to the node example.
+The module is rebuilt from source on each Learn build. Regenerate the ordinary
+assets and capture affected UI if the node controls or illustrated fixture change.

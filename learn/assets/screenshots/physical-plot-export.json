@@ -1,7 +1,7 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.109",
-  "date": "2026-10-04",
+  "appVersion": "2.115",
+  "date": "2026-10-11",
   "patch": "examples/tutorial-physical-plot.muusia.json",
   "patchSha256": "15ebd55b8b7161642b77f84156aa3fde9bc71a5fb90d40b5bfbb33efdb48365f",
   "file": "examples/physical-plot.svg",
@@ -31,6 +31,11 @@
       "sha256": "d8ca1e4d06375c691e55d07757e478cecda6ed7d3f9ccbc2b4300559126df885"
     },
     {
+      "path": "src/frame-export.js",
+      "selector": "file",
+      "sha256": "1a01e5140789cba368c865472bae47fbaad6e66b62d04edf0bdc0f7e0e75bc46"
+    },
+    {
       "path": "src/App.jsx",
       "selector": "app-export-core",
       "sha256": "2623b6874663c6b5676feb600c585db91d2d74b31e0cf39f432e301d331bcef2"
@@ -38,7 +43,7 @@
     {
       "path": "src/App.jsx",
       "selector": "app-export-data-and-actions",
-      "sha256": "fa983d378ff0649f3c19b9266105829ae9ea22cb8637bc31d688546751acebbd"
+      "sha256": "42a314b97c1ff86c3d28ee897a7af902d1a337b7715538a7865814653f5f12a4"
     },
     {
       "path": "src/defs/helpers.js",
@@ -83,8 +88,9 @@
     "status": "Historical software check; not rerun during this SVG recapture. Does not verify the later first-lift settle dwell."
   },
   "physicalPlotVerified": false,
-  "sourceCommit": "4f39746b7e1f5cd824350e31a71fd69eeffca244",
+  "sourceCommit": "b6744ba81089cb377c9d2d5fb77838a98d07151b",
   "sourceProvenanceVersion": 2,
-  "originalDownload": "Prepare your first physical plot (1).svg",
-  "captureMethod": "Chrome browser UI: Load the recorded patch, select Merge, choose External SVG workflow, then use the SVG download control. No machine connection or hardware execution."
+  "originalDownload": "Prepare your first physical plot (2).svg",
+  "captureMethod": "Actual in-app browser UI: Load recorded patch, select Merge, External SVG workflow with Learn — External SVG example (330 × 240 mm). Physical plot: Optimize route off, SVG panel → Download. SVG workflow: Stack → Pens, margin 0, Mirror/Numbers/Drill off, red hidden → SVG .zip. Download bytes match the previous references. No machine connection or hardware execution; PNGs unchanged.",
+  "sourceWorkingTree": "codex/murmuration-pen-passes, uncommitted local changes; sourceFiles identify the captured export code"
 }

@@ -120,6 +120,7 @@ function comparison(key, index, label, value, options = {}) {
 function selectOutput(value, outputId) { return { ...value, outputId }; }
 
 const comparisons = {
+  murmuration: ['Fixed', 'Follow group', 'Follow animal'].map((camera, i) => comparison('murmuration', i, `${camera} · frame 9 of 48`, withParams(examples.murmuration, 'murmuration', { camera }), { frameIdx: 8, frameCount: 48 })),
   grid: [8, 16, 24].map((hlines, i) => comparison('grid', i, `${hlines} horizontal lines`, withParams(examples.grid, 'grid', { hlines }))),
   aaltoilu: [0, 4, 8].map((amp, i) => comparison('aaltoilu', i, `Amplitude ${amp} mm`, withParams(examples.aaltoilu, 'aaltoilu', { amp }))),
   radat: [0, 4, 12].map((wob, i) => comparison('radat', i, `Shape noise ${wob}`, withParams(examples.radat, 'radat', { wob }))),
@@ -170,6 +171,22 @@ const comparisons = {
 const CATEGORY = { gen: 'Generators', mod: 'Modifiers', dec: 'Decorators', duo: 'Combiners', math: 'Math', route: 'Routing' };
 const GROUP = { geometric: 'Geometric', deform: 'Deform', textimg: 'Text & Image', space: 'Space', penout: 'Pen & Output', transform: 'Transform', fillstyle: 'Fill & Style' };
 const visibilityNotes = {
+  "murmuration.clock": "Shown for Reindeer herd.",
+  "murmuration.time": "Shown for Bird flock, or when Reindeer herd uses Manual time.",
+  "murmuration.herdMotion": "Shown for Reindeer herd.",
+  "murmuration.following": "Shown for Reindeer herd except Milling.",
+  "murmuration.spacing": "Shown for Reindeer herd.",
+  "murmuration.separation": "Shown for Reindeer herd.",
+  "murmuration.path": "Shown for Bird flock.",
+  "murmuration.wander": "Shown for Bird flock.",
+  "murmuration.swirl": "Shown for Bird flock.",
+  "murmuration.shape": "Shown for Bird flock.",
+  "murmuration.herdMark": "Shown for Reindeer herd.",
+  "murmuration.trail": "Shown for Bird flock.",
+  "murmuration.groundSpacing": "Shown when Ground texture is Sparse dots or Short dashes.",
+  "murmuration.animal": "Shown when Highlight one animal is On or Camera is Follow animal.",
+  "murmuration.highlightPen": "Shown when Highlight one animal is On.",
+
   "image.ramsAngle": "Shown only when Render is Rams contour.",
   "image.ramsDepth": "Shown only when Render is Rams contour.",
   "image.ramsSmooth": "Shown only when Render is Rams contour.",
@@ -346,7 +363,7 @@ for (let y = 0; y < tonal.h; y++) for (let x = 0; x < tonal.w; x++) pixels[y * (
 artifacts.set('assets/source/tonal-shapes.png', Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', header), chunk('IDAT', deflateSync(pixels, { level: 9 })), chunk('IEND', Buffer.alloc(0))]));
 artifacts.set('assets/source/README.md', '# Original image fixture\n\n`tonal-shapes.png` is an original grayscale study created by `makeTonalImage()` in `learn/lib/fixtures.mjs`. It contains a shaded circle, a tonal rectangle, and a gradient bar. The PNG pixels exactly match the raster embedded in `examples/image.muusia.json`. No external images are used.\n');
 
-for (const relative of ['learn/generate-assets.mjs', 'learn/lib/fixtures.mjs', 'src/defs/helpers.js', ...PILOT_KEYS.map(key => `src/defs/nodes/${key}.js`)]) {
+for (const relative of ['learn/generate-assets.mjs', 'learn/lib/fixtures.mjs', 'src/defs/helpers.js', 'src/murmuration-scene.js', 'learn/murmuration/settings.mjs', ...PILOT_KEYS.map(key => `src/defs/nodes/${key}.js`)]) {
   const bytes = await readFile(path.resolve(ROOT, '..', relative));
   manifest.provenance.inputs.push({ path: relative, sha256: createHash('sha256').update(bytes).digest('hex') });
 }

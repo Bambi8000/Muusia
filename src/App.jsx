@@ -12,6 +12,7 @@ import { makeAnalyzeButton, intakeImage } from "./analyze.js";
 import CatalogBrowser from "./catalog-browser.jsx";
 import { compareNodeRecency, nodeRecencyLabel } from "./node-recency.js";
 import StackView from "./stack-view.jsx";
+import { splitFramePens, penFrameName, finishPenPasses } from "./frame-export.js";
 import { DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
@@ -884,7 +885,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.115"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.116"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1894,6 +1895,8 @@ export default function App() {
   /* --- animaatio: freimit --- */
   const [frameCount, setFrameCount] = useState(12);
   const [animBusy, setAnimBusy] = useState(0);
+  const [frameExportOrder, setFrameExportOrder] = useState("frames");
+  const [animExportError, setAnimExportError] = useState("");
   const [frameIdx, setFrameIdx] = useState(0);
   const [animPlay, setAnimPlay] = useState(false);
   useEffect(() => {
@@ -2684,12 +2687,15 @@ export default function App() {
   };
   /* --- kaikkien freimien vienti: uudelleenevaluointi per freimi --- */
   const exportAllFrames = (kind) => {
-    if (!primaryNode) return;
+    if (!primaryNode || animBusy || (kind === "gcode" && !gcodeProf)) return;
+    const byPen = frameExportOrder === "pens";
+    const palette = PENS.map(p => ({ ...p }));
     const n = Math.max(1, frameCount);
     let f = 0;
-    const files = [];
+    let files = [];
     const doOne = () => {
-      const ctxF = { W: megaW, H: megaH, frameIdx: f, frameCount: n };
+      try {
+      const ctxF = { W: megaW, H: megaH, frameIdx: f, frameCount: n, machine: machineCtx(prof) };
       let level = root, res = evalLevel(root, ctxF, null);
       for (const gid of stack) {
         const g = level.nodes.find((nd) => nd.id === gid);
@@ -2703,27 +2709,39 @@ export default function App() {
       }
       const out = res.out[primaryNode.id];
       let ps = out && out[0] && out[0].paths ? out[0] : EMPTY;
-      if (routeOpt) ps = routeOptimize(ps, preserveDir);
-      const text = kind === "svg" ? toSVG(ps, ctxF) : kind === "dxf" ? toDXF(ps, ctxF) : toGcodeGated(ps, ctxF);
-      const ext = kind === "svg" ? ".svg" : kind === "dxf" ? ".dxf" : ".gcode";
-      files.push({ name: `${projName || "patch"}-f${String(f).padStart(3, "0")}${ext}`, text });
+      const serialize = output => {
+        const ordered = routeOpt ? routeOptimize(output, preserveDir) : output;
+        return kind === "svg" ? toSVG(ordered, ctxF) : kind === "dxf" ? toDXF(ordered, ctxF) : toGcodeGated(ordered, ctxF);
+      };
+      if (byPen) {
+        for (const { pen, ps: part } of splitFramePens(ps, palette)) {
+          files.push({ name: penFrameName(projName, pen, f, kind), text: serialize(part), pen, frame: f, pathCount: part.paths.length });
+        }
+      } else {
+        files.push({ name: `${projName || "patch"}-f${String(f).padStart(3, "0")}.${kind}`, text: serialize(ps) });
+      }
       f++;
       setAnimBusy(f < n ? f / n : 0);
       if (f < n) { setTimeout(doOne, 8); return; }
-      try {
-        const single = files.length === 1;
+      if (byPen) files = finishPenPasses(files, { frameCount: n, W: megaW, H: megaH, pens: palette, kind });
+        const single = !byPen && files.length === 1;
         const blob = single
           ? new Blob([files[0].text], { type: kind === "svg" ? "image/svg+xml" : "text/plain" })
           : new Blob([buildZip(files)], { type: "application/zip" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = single ? files[0].name : `${projName || "patch"}-frames-${kind}.zip`;
+        a.download = single ? files[0].name : `${projName || "patch"}-${byPen ? "pen-passes" : "frames"}-${kind}.zip`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-      } catch (err) { /* hiekkalaatikko estaa lataukset */ }
+      } catch (err) {
+        setAnimBusy(0);
+        setAnimExportError(`Export failed: ${err.message || err}`);
+      }
     };
+    setAnimPlay(false);
+    setAnimExportError("");
     setAnimBusy(0.001);
     doOne();
   };
@@ -3686,8 +3704,6 @@ export default function App() {
           </div>
 
           <div style={{ padding: 12, borderBottom: `1px solid ${T.line}` }}>
-            <div onClick={() => setMchOpen((v) => !v)}
-              style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", marginBottom: 8 }}>
               <div style={{ padding: "10px 14px 4px", borderTop: `1px solid ${T.line}` }}>
               <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 11, letterSpacing: "0.12em", color: T.dim, marginBottom: 6 }}>
                 ANIMATE {"\u2014"} frame {String(frameIdx + 1).padStart(String(frameCount).length, "\u2007")}/{frameCount}
@@ -3708,24 +3724,39 @@ export default function App() {
               <input type="range" min={0} max={Math.max(0, frameCount - 1)} step={1} value={frameIdx}
                 onChange={(e) => { setAnimPlay(false); setFrameIdx(Number(e.target.value)); }}
                 style={{ width: "100%", accentColor: T.accent }} />
+              <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, fontSize: 10, color: T.dim }}>
+                Export order
+                <select aria-label="Animation export order" value={frameExportOrder} disabled={animBusy > 0}
+                  onChange={e => setFrameExportOrder(e.target.value)}
+                  style={{ background: T.panel2, color: T.text, border: `1px solid ${T.line}`, padding: 4, fontSize: 10 }}>
+                  <option value="frames">One file per frame</option>
+                  <option value="pens">All frames by pen</option>
+                </select>
+              </label>
+              {frameExportOrder === "pens" && <div style={{ fontSize: 10, color: T.dim, lineHeight: 1.5, marginTop: 5 }}>
+                ZIP: all sheets for one pen, then the next. Reuse the same numbered sheets with a fixed paper stop. Keep markers on the base pen. No fitting or centering between passes. Empty passes are listed and skipped.
+              </div>}
+              {animExportError && <div role="alert" style={{ color: T.accent, fontSize: 10 }}>{animExportError}</div>}
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                <button onClick={() => exportAllFrames("gcode")} disabled={!primaryPS.paths.length || !gcodeProf} title={gcodeProf ? "" : "External SVG profile \u2014 use SVG"}
+                <button onClick={() => exportAllFrames("gcode")} disabled={animBusy > 0 || !primaryPS.paths.length || !gcodeProf} title={gcodeProf ? "" : "External SVG profile \u2014 use SVG"}
                   style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                   G-code {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
                 </button>
-                <button onClick={() => exportAllFrames("svg")} disabled={!primaryPS.paths.length}
+                <button onClick={() => exportAllFrames("svg")} disabled={animBusy > 0 || !primaryPS.paths.length}
                   style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                   SVG {"\u00D7"} {frameCount}
                 </button>
-                <button onClick={() => exportAllFrames("dxf")} disabled={!primaryPS.paths.length}
+                <button onClick={() => exportAllFrames("dxf")} disabled={animBusy > 0 || !primaryPS.paths.length}
                   style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                   DXF {"\u00D7"} {frameCount}
                 </button>
               </div>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
-                Concrete Poetry’s Timeline motion follows Play directly. For other parameters, wire a Frame node (math). Files download one per frame.
+                Murmuration herds and Concrete Poetry follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes.
               </div>
             </div>
+            <div onClick={() => setMchOpen((v) => !v)}
+              style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", marginBottom: 8 }}>
             <div style={{ fontSize: 10, color: T.text, letterSpacing: "0.08em", flex: 1 }}>
                 MACHINE SETUP <span style={{ color: T.dim }}>— {prof.name || "unnamed"}</span>
               </div>

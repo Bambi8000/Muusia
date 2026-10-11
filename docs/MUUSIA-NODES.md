@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 310 built-in nodes in Muusia v2.112. Conventions used below:
+All 310 built-in nodes in Muusia v2.116. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -1430,6 +1430,31 @@ press Play. Manual uses Time; for a wired loop use **Frame rot ° → Math ÷ 36
 Time**, avoiding the duplicated endpoint of Frame's t output. Evaluation is
 deterministic at any phase and independent of scrubbing/export order. Impossible
 margins return an empty drawing. The margin overlay is never plotted.
+**Highlight one animal** assigns **Highlight pen** to the stable **Animal number**
+(1–Animals), including a bird's trail. Off preserves old output exactly. Keep
+Seed and Animals fixed across the sequence. A missing animal number highlights
+nothing; using the same pen intentionally produces a monochrome drawing.
+**Camera → Follow group / Follow animal** follows the world-space herd or selected
+individual. The ground does not rotate with the animal: **Sparse dots / Short
+dashes** are fixed, seeded world marks, seen through a moving page-sized window.
+Ground spacing controls their density and the base Pen draws them. Camera
+following opens the route beyond the page rather than reflecting animals from
+its edges; off-screen strokes are clipped. Follow animal falls back to the group
+centre if that number does not exist. Fixed camera and Ground Off retain the
+original composition. Camera and ground share the periodic route, so the final
+to first frame is the next step of the same loop.
+For separate ink passes choose **ANIMATE → Export order → All frames by pen**.
+The ZIP has pen-number folders, one monochrome job per frame, plus a manifest and
+printing instructions. It skips empty pen/frame jobs and records them as null.
+All files retain the same canvas coordinates and page size: no per-pen fitting.
+For one A4 per frame, use Frame Grid Custom 1 × 1, Map canvas, Light outlines,
+Marker pen matching the base pen, and equal Total frames / ANIMATE Frames.
+Plot every base sheet, change pen once, then run the highlight files on the same
+numbered sheets. Physical paper stops/jigs preserve registration; Liike's photo
+markers cannot position the paper on the plotter. SVG/DXF software must keep the
+page scale and origin, even when a file contains only one tiny animal.
+The normal One file per frame mode remains available; Stack → Pens still splits
+only the currently selected frame.
 
 **Dazzle Camouflage** — WWI razzle-dazzle: recursive straight-chord splits carve the
 sheet into convex patches; each patch gets hatching at a quantized clashing angle

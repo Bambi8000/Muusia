@@ -507,6 +507,25 @@
         "optimizeRoute": false,
         "hardwareExecuted": false
       }
+    },
+    {
+      "nodeKey": "murmuration",
+      "file": "murmuration.png",
+      "patch": "examples/murmuration.muusia.json",
+      "width": 1280,
+      "height": 720,
+      "sha256": "8545856c9bf5a9455148cf2f92030dc5ce086076c402e7eb3c0e116db2df3042",
+      "view": "focus",
+      "frameIndex": 0,
+      "frameCount": 48,
+      "zoom": 1,
+      "selectedNode": "Murmuration",
+      "appVersion": "2.115",
+      "date": "2026-10-11",
+      "sourceCommit": "b6744ba81089cb377c9d2d5fb77838a98d07151b",
+      "sourceWorkingTree": "codex/murmuration-pen-passes; uncommitted",
+      "sourceSha256": "17231aeeaabe6c99c47834fbfb0f4938c4399c664a608770aa6d0bdee30898c3",
+      "note": "Actual browser Focus capture; JPEG converted to PNG without visual edits. Lower controls are outside the viewport."
     }
   ]
 }

@@ -12,7 +12,7 @@ const appPath = 'src/App.jsx';
 const stackPath = 'src/stack-view.jsx';
 const helperPath = 'src/defs/helpers.js';
 const coreNames = ['routeOptimize', 'bindingType', 'groupOutType', 'defIns', 'defOuts', 'numericParams', 'defaultFor', 'evalLevel', 'levelOf', 'CRC_TABLE', 'crc32', 'buildZip', 'sliceMega', 'sliceRoll', 'magnetPlacement', 'jigGcode', 'toGcode', 'toSVG', 'toDXF'];
-const appDataNames = ['canvasW', 'canvasH', 'megaOn', 'megaC', 'megaR', 'megaSeam', 'megaLabels', 'megaMode', 'megaMarks', 'megaMarkPen', 'megaKind', 'rollW', 'rollLen', 'rollStrips', 'rollSeg', 'megaRoll', 'rollPieces', 'megaCols', 'megaRows', 'megaW', 'megaH', 'machines', 'machineIdx', 'prof', 'gcodeProf', 'toGcodeGated', 'jigGcodeGated', 'ctx', 'evalResult', 'results', 'lvl', 'primary', 'primaryNode', 'primaryOut', 'primaryPS', 'routeOpt', 'preserveDir'];
+const appDataNames = ['canvasW', 'canvasH', 'megaOn', 'megaC', 'megaR', 'megaSeam', 'megaLabels', 'megaMode', 'megaMarks', 'megaMarkPen', 'megaKind', 'rollW', 'rollLen', 'rollStrips', 'rollSeg', 'megaRoll', 'rollPieces', 'megaCols', 'megaRows', 'megaW', 'megaH', 'machines', 'machineIdx', 'prof', 'gcodeProf', 'toGcodeGated', 'jigGcodeGated', 'ctx', 'evalResult', 'results', 'lvl', 'primary', 'primaryNode', 'primaryOut', 'primaryPS', 'routeOpt', 'preserveDir', 'frameExportOrder'];
 const appActionNames = ['exportPS', 'megaTiles', 'tileTag', 'megaPreview', 'doExport', 'doExportSVG', 'doExportDXF', 'downloadMega', 'downloadMegaFull', 'downloadJig', 'exportAllFrames', 'download'];
 const stackGlobals = ['MAX_SHEETS', 'DRILL_DIA', 'splitByPens', 'mirrorX', 'translatePS', 'drillMarks'];
 const stackData = ['mode', 'frameSheets', 'margin', 'mirror', 'drill', 'inset', 'numbers', 'markPen', 'fromSheetsNode', 'nFrames', 'unit', 'penSheets', 'sheets', 'loading', 'sheetW', 'sheetH', 'decorate', 'exportZip'];
@@ -81,6 +81,7 @@ function selectedSource(source, file, selector) {
     for (const name of ['PENS', 'pathLength', 'fontStrokes']) importBinding(name, './defs/helpers.js');
   } else if (selector === 'app-export-data-and-actions') {
     bindings(app(), [...appDataNames, ...appActionNames]);
+    for (const name of ['splitFramePens', 'penFrameName', 'finishPenPasses']) importBinding(name, './frame-export.js');
     for (const name of ['DEFAULT_MACHINE', 'DEFAULT_MACHINE_B', 'DEFAULT_MACHINE_C', 'assignIds', 'isGcodeWorkflow', 'gcodeRefusal', 'machineCtx']) importBinding(name, './machine.js');
     effect(app(), '[machineIdx,prof.workflow]');
     // Hash export event wiring and gates, while keeping button wording and styling out of the fingerprint.
@@ -126,6 +127,7 @@ function requiredSources(kind) {
   if (!nodeFiles[kind]) fail(`unknown artifact kind ${kind}; use svg-workflow or physical-plot.`);
   return [
     { path: 'src/machine.js', selector: 'file' },
+    { path: 'src/frame-export.js', selector: 'file' },
     { path: appPath, selector: 'app-export-core' },
     { path: appPath, selector: 'app-export-data-and-actions' },
     ...(kind === 'svg-workflow' ? [{ path: appPath, selector: 'app-stack-export-props' }, { path: stackPath, selector: 'stack-export-pipeline' }] : []),

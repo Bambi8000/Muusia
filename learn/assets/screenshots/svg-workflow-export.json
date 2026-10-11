@@ -1,11 +1,11 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.109",
-  "date": "2026-10-04",
+  "appVersion": "2.115",
+  "date": "2026-10-11",
   "patch": "examples/tutorial-svg-workflow.muusia.json",
   "patchSha256": "e968c8b6da958130ce8869e9927339b02255cde5febf7cddbe234d2886c2c1b7",
   "bundle": "examples/svg-workflow-per-pen.zip",
-  "originalDownload": "Export a two-colour SVG set-sheets-svg (1).zip",
+  "originalDownload": "Export a two-colour SVG set-sheets-svg (2).zip",
   "sha256": "f0ce3fe36c406929766f68e644cdf3c4866602be463e5276172b001a500eca42",
   "selectedNode": "Merge",
   "settings": {
@@ -57,6 +57,11 @@
       "sha256": "d8ca1e4d06375c691e55d07757e478cecda6ed7d3f9ccbc2b4300559126df885"
     },
     {
+      "path": "src/frame-export.js",
+      "selector": "file",
+      "sha256": "1a01e5140789cba368c865472bae47fbaad6e66b62d04edf0bdc0f7e0e75bc46"
+    },
+    {
       "path": "src/App.jsx",
       "selector": "app-export-core",
       "sha256": "2623b6874663c6b5676feb600c585db91d2d74b31e0cf39f432e301d331bcef2"
@@ -64,7 +69,7 @@
     {
       "path": "src/App.jsx",
       "selector": "app-export-data-and-actions",
-      "sha256": "fa983d378ff0649f3c19b9266105829ae9ea22cb8637bc31d688546751acebbd"
+      "sha256": "42a314b97c1ff86c3d28ee897a7af902d1a337b7715538a7865814653f5f12a4"
     },
     {
       "path": "src/App.jsx",
@@ -102,7 +107,8 @@
       "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
     }
   ],
-  "sourceCommit": "4f39746b7e1f5cd824350e31a71fd69eeffca244",
+  "sourceCommit": "b6744ba81089cb377c9d2d5fb77838a98d07151b",
   "sourceProvenanceVersion": 2,
-  "captureMethod": "Chrome browser UI: Load the recorded patch, select Merge, choose External SVG workflow, then use the SVG download control. No machine connection or hardware execution."
+  "captureMethod": "Actual in-app browser UI: Load recorded patch, select Merge, External SVG workflow with Learn — External SVG example (330 × 240 mm). Physical plot: Optimize route off, SVG panel → Download. SVG workflow: Stack → Pens, margin 0, Mirror/Numbers/Drill off, red hidden → SVG .zip. Download bytes match the previous references. No machine connection or hardware execution; PNGs unchanged.",
+  "sourceWorkingTree": "codex/murmuration-pen-passes, uncommitted local changes; sourceFiles identify the captured export code"
 }

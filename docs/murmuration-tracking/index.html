@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Murmuration · Follow the herd</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eeeae2;color:#283631;font:16px/1.6 system-ui,sans-serif}main{max-width:1300px;margin:auto;padding:36px 28px}header{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid #a4aea3;padding-bottom:24px;margin-bottom:24px}h1{font:normal clamp(32px,4vw,58px)/1.08 Georgia,serif;margin:8px 0}small{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#617067}p{max-width:760px}a{color:inherit}nav{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:20px 0}button,select{font:inherit;color:inherit;background:#faf8f3;border:1px solid #a4aea3;border-radius:0;padding:6px 12px;cursor:pointer}button[aria-pressed=true]{background:#283631;color:white}.views{display:grid;grid-template-columns:1fr 1fr;gap:24px}figure{margin:0}svg{display:block;background:#faf8f3;width:100%;border:1px solid #c6c9bf}h2{font-size:19px;font-weight:500;margin:10px 0 0}figcaption{color:#617067;font-size:14px;margin-bottom:20px}input[type=range]{min-width:250px;flex:1;accent-color:#526653}.note{border-top:1px solid #a4aea3;padding-top:16px;margin-top:26px}code{font-size:.9em}@media(max-width:750px){.views{grid-template-columns:1fr}header{display:block}}
+</style>
+<main><header><div><small>Muusia · local motion study</small><h1>Follow the herd.</h1><p>One animal, a moving camera, and a quiet ground texture.<br>The same seeded animals and world return together at the loop seam.</p></div><a href="../../">Open Muusia →</a></header>
+<nav><button id="play">Pause</button><label>Animals <select id="kind"><option>Reindeer herd</option><option>Bird flock</option></select></label><label>Frames <select id="count"><option>24</option><option selected>48</option></select></label><label>Ground <select id="ground"><option>Sparse dots</option><option>Short dashes</option><option>Off</option></select></label><span id="counter"></span></nav>
+<nav><input id="frame" aria-label="Frame" type="range" min="0" max="47" step="1" value="0"><button data-pen="all" aria-pressed="true">Both pens</button><button data-pen="0" aria-pressed="false">Base pass</button><button data-pen="2" aria-pressed="false">Highlight pass</button></nav>
+<div class="views"><figure><svg id="group" viewBox="0 0 297 210" aria-label="Camera follows the group"></svg><h2>Follow group</h2><figcaption>The herd centre stays in view. Ground marks reveal its journey.</figcaption></figure><figure><svg id="animal" viewBox="0 0 297 210" aria-label="Camera follows animal 17"></svg><h2>Follow animal 17</h2><figcaption>The red animal stays centred while its neighbours and the ground move.</figcaption></figure></div>
+<div class="note"><small>Two passes, one pen change</small><p>In Muusia, load <strong>Help → Murmuration · Follow one reindeer</strong>. Choose <strong>ANIMATE → Export order → All frames by pen</strong>. Plot all files in <code>pen-00</code>, change ink, then draw <code>pen-02</code> on the same numbered sheets.</p><p>Use fixed paper stops and unchanged origin, scale and orientation. Frame Grid’s Light outlines and numbers stay on the base pen. For 48 A4 sheets set both Frame Grid Total frames and ANIMATE Frames to 48. Never auto-fit the small highlight files in external plotter software.</p><p>This study uses the actual Murmuration node. Preview marks are pen paths. The app ZIPs were checked in SVG, G-code and DXF; physical registration still needs a paper trial.</p><a href="follow-one.muusia.json" download>Download the 24-sheet example patch</a></div></main>
+<script type="module">
+import def from '../../src/defs/nodes/murmuration.js';
+const defaults=Object.fromEntries(def.params.map(p=>[p.key,p.def]));
+const $=id=>document.getElementById(id);let f=0,playing=true,pen='all',last=0;
+const cache=new Map();
+function render(){const count=+$('count').value,kind=$('kind').value,ground=$('ground').value;
+ for(const [id,camera] of [['group','Follow group'],['animal','Follow animal']]){
+  const key=[count,kind,ground,f,camera].join('|');let ps=cache.get(key);
+  if(!ps){ps=def.compute([],{...defaults,behaviour:kind,clock:'Timeline',time:f/count,birds:120,spread:42,travel:.85,scatter:4,camera,ground,highlight:'On',animal:17,highlightPen:2},{W:297,H:210,frameIdx:f,frameCount:count});cache.set(key,ps);}
+  $(id).innerHTML=ps.paths.filter(p=>pen==='all'||p.layer===+pen).map(p=>`<path d="M${p.pts.map(q=>q.map(v=>v.toFixed(3)).join(',')).join('L')}${p.closed?'Z':''}" fill="none" stroke="${p.layer===2?'#c23a30':'#283631'}" stroke-width=".3" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+ }
+ $('counter').textContent=`Frame ${f+1} / ${count}`;$('frame').value=f;
+}
+$('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';};
+$('frame').oninput=e=>{playing=false;$('play').textContent='Play';f=+e.target.value;render();};
+for(const id of ['kind','count','ground'])$(id).onchange=()=>{f=0;cache.clear();$('frame').max=+$('count').value-1;render();};
+for(const b of document.querySelectorAll('[data-pen]'))b.onclick=()=>{pen=b.dataset.pen;document.querySelectorAll('[data-pen]').forEach(x=>x.setAttribute('aria-pressed',x===b));render();};
+function tick(now){if(playing&&now-last>140){f=(f+1)%+$('count').value;render();last=now;}requestAnimationFrame(tick);}render();requestAnimationFrame(tick);
+</script></html>

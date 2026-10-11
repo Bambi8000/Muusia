@@ -28390,12 +28390,13 @@ export default {
 ## murmuration.js
 
 ```js
+import { sceneCamera, renderMurmurationScene } from "../../murmuration-scene.js";
 import { Pin, hash2, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "murmuration",
     name: "Murmuration",
-    desc: "A bird flock or a ground-level reindeer herd. Reindeer Migration follows a shared winding route with delayed followers and local spacing; Milling circulates, while Gather & roam contracts and spreads. Choose Point, Circle or Dash marks. Timeline follows Play and uses frame index / frame count for a seamless loop without a duplicate endpoint. Manual uses Time; for a wired loop use Frame rot ° → Math ÷ 360 → Time. The same seeded animals persist throughout the loop. Preferred spacing is a soft separation distance, not a collision-free packing guarantee. Existing bird patches keep their original motion.",
+    desc: "A bird flock or a ground-level reindeer herd. Reindeer Migration follows a shared winding route with delayed followers and local spacing; Milling circulates, while Gather & roam contracts and spreads. Choose Point, Circle or Dash marks. Timeline follows Play and uses frame index / frame count for a seamless loop without a duplicate endpoint. Manual uses Time; for a wired loop use Frame rot ° → Math ÷ 360 → Time. The same seeded animals persist throughout the loop. Preferred spacing is a soft separation distance, not a collision-free packing guarantee. Highlight one animal assigns a second pen to a stable Animal number (1–Animals), including its bird trail. Keep Seed and Animals fixed through the loop. An out-of-range number highlights nothing. Use ANIMATE → Export order → All frames by pen for separate monochrome passes. Camera follows the group or selected Animal number across a world-fixed sparse ground texture. Following opens the world beyond the page; the camera window clips visible marks. Ground uses the base Pen. The camera and ground return together at the loop seam. Existing bird patches keep their original motion.",
     cat: "gen",
     group: "creatures",
     ins: [Pin("style", "Style")],
@@ -28424,12 +28425,25 @@ export default {
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
       { key: "seed", label: "Seed", type: "seed", def: 3 },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
+      { key: "camera", label: "Camera", type: "select", options: ["Fixed", "Follow group", "Follow animal"], def: "Fixed" },
+      { key: "ground", label: "Ground texture", type: "select", options: ["Off", "Sparse dots", "Short dashes"], def: "Off" },
+      { key: "groundSpacing", label: "Ground spacing mm", type: "slider", min: 4, max: 35, step: 1, def: 14, showIf: p => p.ground && p.ground !== "Off" },
+      { key: "highlight", label: "Highlight one animal", type: "select", options: ["Off", "On"], def: "Off" },
+      { key: "animal", label: "Animal number (1–Animals)", type: "slider", min: 1, max: 800, step: 1, def: 1, showIf: p => p.highlight === "On" || p.camera === "Follow animal" },
+      { key: "highlightPen", label: "Highlight pen", type: "pen", def: 2, showIf: p => p.highlight === "On" },
     ],
     overlay(p, ctx) {
       const m = Math.max(0, Number(p.margin) || 0);
       return ctx.W > 2 * m && ctx.H > 2 * m ? [{ kind: "rect", x: m, y: m, w: ctx.W - 2 * m, h: ctx.H - 2 * m }] : [];
     },
     compute(ins, p, ctx) {
+      // Identity comes from the seeded animal index, never the visible path
+      // index (birds can be clipped or have a separate trail). Styling keeps it.
+      const selectedAnimal = Math.round(p.animal === undefined ? 1 : Number(p.animal)) - 1;
+      const tracked = p.highlight === "On" ? selectedAnimal : -1;
+      const followingCamera = p.camera === "Follow group" || p.camera === "Follow animal";
+      const highlightPen = Number.isFinite(Number(p.highlightPen)) ? Math.max(0, Math.min(11, Math.round(Number(p.highlightPen)))) : 2;
+      const animalPen = (i, base) => i === tracked ? highlightPen : base;
       if (p.behaviour === "Reindeer herd") {
         const num = (v, fallback, min, max) => Number.isFinite(Number(v)) ? Math.max(min, Math.min(max, Number(v))) : fallback;
         const W = num(ctx.W, 297, 1, 5000), H = num(ctx.H, 210, 1, 5000);
@@ -28449,8 +28463,8 @@ export default {
         const spacing = num(p.spacing, 2.6, 0.1, 20);
         const spread = Math.min(num(p.spread, 55, 1, 500), Math.min(bx, by) * 0.72);
         const scatter = Math.min(num(p.scatter, 8, 0, 100), spread * 0.22);
-        const ax = Math.max(0, bx - spread * 1.2 - scatter - spacing), ay = Math.max(0, by - spread * 1.2 - scatter - spacing);
-        const clampX = x => Math.max(-bx, Math.min(bx, x)), clampY = y => Math.max(-by, Math.min(by, y));
+        const ax = followingCamera ? W * 0.3 : Math.max(0, bx - spread * 1.2 - scatter - spacing), ay = followingCamera ? H * 0.3 : Math.max(0, by - spread * 1.2 - scatter - spacing);
+        const clampX = x => followingCamera ? x : Math.max(-bx, Math.min(bx, x)), clampY = y => followingCamera ? y : Math.max(-by, Math.min(by, y));
         const animals = Array.from({ length: N }, (_, i) => {
           // Sunflower sites give stable, well-spaced identities, without a grid.
           const angle = i * Math.PI * (3 - Math.sqrt(5)) + seed * 0.73;
@@ -28532,17 +28546,20 @@ export default {
         const current = positions(t), before = positions(t - 0.001), after = positions(t + 0.001);
         const L = Math.round(num(p.layer, 0, 0, 11));
         const paths = current.map((q, i) => {
-          const x = q[0] + W / 2, y = q[1] + H / 2, sz = animals[i].size;
+          const x = q[0] + W / 2, y = q[1] + H / 2, sz = animals[i].size, layer = animalPen(i, L);
           if (p.herdMark === "Circle") {
-            return { pts: Array.from({ length: 12 }, (_, j) => [x + Math.cos(j * TWO / 12) * sz / 2, y + Math.sin(j * TWO / 12) * sz / 2]), closed: true, layer: L };
+            return { pts: Array.from({ length: 12 }, (_, j) => [x + Math.cos(j * TWO / 12) * sz / 2, y + Math.sin(j * TWO / 12) * sz / 2]), closed: true, layer };
           }
           let dx = after[i][0] - before[i][0], dy = after[i][1] - before[i][1], len = Math.hypot(dx, dy);
           if (len < 1e-8) { dx = 1; dy = 0; len = 1; }
           // Points are short physical strokes, so SVG and G-code both mark paper.
           const half = p.herdMark === "Point" ? Math.min(0.16, sz * 0.1) : sz / 2;
-          return { pts: [[x - dx / len * half, y - dy / len * half], [x + dx / len * half, y + dy / len * half]], closed: false, layer: L };
+          return { pts: [[x - dx / len * half, y - dy / len * half], [x + dx / len * half, y + dy / len * half]], closed: false, layer };
         });
-        return applyStyle({ paths }, ins[0]);
+        const centre = current.reduce((sum, q) => [sum[0] + q[0] / N, sum[1] + q[1] / N], [W / 2, H / 2]);
+        const animal = current[selectedAnimal]?.map((v, j) => v + (j ? H : W) / 2);
+        const camera = sceneCamera(p, centre, animal, W, H);
+        return renderMurmurationScene(applyStyle({ paths }, ins[0]), p, { W, H }, camera);
       }
       const { W, H } = ctx;
       const L = Math.round(p.layer);
@@ -28564,8 +28581,8 @@ export default {
          Anything periodic in t by construction => t=0 and t=1 identical
          => seamless animation loops. */
       const cW = (W / 2), cH = (H / 2);
-      const travX = Math.max(0, (x1 - x0) / 2 - spread * 0.35) * travel;
-      const travY = Math.max(0, (y1 - y0) / 2 - spread * 0.35) * travel;
+      const travX = (followingCamera ? W * 0.3 : Math.max(0, (x1 - x0) / 2 - spread * 0.35)) * travel;
+      const travY = (followingCamera ? H * 0.3 : Math.max(0, (y1 - y0) / 2 - spread * 0.35)) * travel;
 
       const flockCenter = (t) => {
         const a = TWO * t, c = Math.cos(a), s = Math.sin(a);
@@ -28625,6 +28642,7 @@ export default {
         return [fc[0] + ox, fc[1] + oy];
       };
 
+      const camera = sceneCamera(p, flockCenter(tt), birdsArr[selectedAnimal] ? posAt(tt, birdsArr[selectedAnimal]) : null, W, H);
       const inside = (q) => q[0] >= x0 && q[0] <= x1 && q[1] >= y0 && q[1] <= y1;
       /* glyph reach beyond the bird position, per shape */
       const reachOf = (sz) => p.shape === "Chevron" ? sz * 1.4 : p.shape === "Dash" ? sz * 0.55 : Math.max(0.25, sz * 0.28) + 0.05;
@@ -28632,9 +28650,10 @@ export default {
       const paths = [];
       const trailMm = Math.max(0, p.trail);
 
-      for (const h of birdsArr) {
+      for (const [i, h] of birdsArr.entries()) {
+        const layer = animalPen(i, L);
         const pos = posAt(tt, h);
-        if (!insideR(pos, reachOf(h.sz))) continue;
+        if (!followingCamera && !insideR(pos, reachOf(h.sz))) continue;
         /* heading from the closed-form derivative (periodic, so loop-safe) */
         const e = 0.002;
         const pA = posAt(tt - e, h), pB = posAt(tt + e, h);
@@ -28649,19 +28668,19 @@ export default {
           const dt = 0.0035;
           while (acc < trailMm && guard++ < 36) {
             const prev = posAt(tcur - dt, h);
-            if (!inside(prev)) break;
+            if (!followingCamera && !inside(prev)) break;
             acc += Math.hypot(prev[0] - tp[0][0], prev[1] - tp[0][1]);
             tp.unshift(prev);
             tcur -= dt;
           }
-          if (tp.length >= 2) paths.push({ pts: tp, closed: false, layer: L });
+          if (tp.length >= 2) paths.push({ pts: tp, closed: false, layer });
         }
 
         const sz = h.sz;
         if (p.shape === "Dash") {
           paths.push({
             pts: [[pos[0] - dx * sz / 2, pos[1] - dy * sz / 2], [pos[0] + dx * sz / 2, pos[1] + dy * sz / 2]],
-            closed: false, layer: L,
+            closed: false, layer,
           });
         } else if (p.shape === "Dot") {
           const r = Math.max(0.25, sz * 0.28);
@@ -28670,7 +28689,7 @@ export default {
             const a = (q / 6) * TWO;
             pts.push([pos[0] + Math.cos(a) * r, pos[1] + Math.sin(a) * r]);
           }
-          paths.push({ pts, closed: true, layer: L });
+          paths.push({ pts, closed: true, layer });
         } else {
           /* Chevron: tiny V opening backwards -- the classic distant-starling glyph.
              One 3-point stroke: wingtip -> head -> wingtip (single pen-down). */
@@ -28679,10 +28698,10 @@ export default {
           const c1 = Math.cos(wa), s1 = Math.sin(wa);
           const w1 = [hx + (dx * c1 - dy * s1) * sz, hy + (dx * s1 + dy * c1) * sz];
           const w2 = [hx + (dx * c1 + dy * s1) * sz, hy + (-dx * s1 + dy * c1) * sz];
-          paths.push({ pts: [w1, [hx, hy], w2], closed: false, layer: L });
+          paths.push({ pts: [w1, [hx, hy], w2], closed: false, layer });
         }
       }
-      return applyStyle({ paths }, ins[0]);
+      return renderMurmurationScene(applyStyle({ paths }, ins[0]), p, ctx, camera);
     },
   
 };

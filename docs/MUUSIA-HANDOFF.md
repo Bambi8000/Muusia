@@ -2896,6 +2896,59 @@ according to the session's actual capabilities:
   Claude's project manifest was inspected and still described 2.112/fec272d;
   refresh all snapshot files changed since that baseline, not only this release.
 
+- **2.116 — Murmuration tracking and pen passes** 2026-10-11 Astra —
+  based on `b6744ba81089cb377c9d2d5fb77838a98d07151b`, branch
+  `codex/murmuration-pen-passes`. Publication authorised by Daniel on 2026-10-11.
+  - Murmuration can highlight a stable 1-based animal ID in a selected pen,
+    including bird trails and styled strokes. Missing IDs highlight nothing.
+    Fixed camera, no ground and highlight Off preserve all six legacy bird
+    baselines and the existing herd. Follow group / Follow animal move the
+    camera over a seeded world-fixed Sparse dots / Short dashes texture. The
+    route is periodic, ground uses the base pen, and the page window clips
+    off-screen strokes. Seed and Animals should remain fixed through a loop.
+  - ANIMATE → Export order → All frames by pen writes one monochrome job per
+    nonempty pen/frame to numbered pen folders, with a README and manifest of
+    all frames (null for absent marks). Geometry/page coordinates are retained;
+    marks/numbers are not copied into the highlight pass. The normal combined
+    frame export remains available. Each job keeps machine start/end, homing
+    and configured service actions; there is no inter-colour change inside a
+    single-pen file. Batch evaluation now receives the active machine context,
+    matching preview. Export errors are visible and duplicate exports disabled.
+    ANIMATE was separated from the Machine Setup header so its controls no
+    longer collapse machine settings or squeeze the heading into a side column.
+  - Added `src/frame-export.js`, `src/murmuration-scene.js`, the Help example
+    “Murmuration · Follow one reindeer”, and a local comparison at
+    `docs/murmuration-tracking/index.html`. The example uses 24 A4 landscape
+    sheets; for 48 set both Frame Grid Total frames and ANIMATE Frames to 48.
+    Physical paper stops/jig, fixed origin/scale/orientation and ordered sheets
+    are essential for the second pass. Liike photo alignment cannot place paper
+    on the plotter. No physical plotting was performed.
+  - Validation: 972 legacy/herd frames + six historical hashes; 864 tracking /
+    camera / ground frames, including exact endpoint closure and clipping;
+    48 × 2 pen split/order/empty-frame checks; 57 Help examples; 62 machine checks;
+    export-provenance regression tests. Ordered catalogue → build → check:learn
+    passes (20,555 Learn checks plus animation studies). Fresh app UI exports cover
+    24 × 2 SVG, G-code and DXF jobs; the capture validator records checksums and
+    source hashes in `docs/murmuration-tracking/browser-checks.json`.
+  - Learn now has a nineteenth guide, `learn/nodes/murmuration/index.html`,
+    containing the English live comparison at `#camera-comparison` and the
+    two-pass paper instructions at `#pen-passes`. Added an actual Focus PNG,
+    reproducible stills/control reference, single-node patch and unchanged
+    24-sheet study patch. The existing Rolldown dependency bundles the actual
+    node for static hosting; no development `/src/` URLs are published. The
+    node library, guide navigation, overview and tutorial index link the guide.
+    Browser checks cover playback, bird/reindeer, frame count, ground and
+    isolated pen previews. Learn now has 32 pages and 29 actual PNG captures.
+  - Both Learn reference SVG exports were recaptured through the actual app,
+    External SVG workflow and recorded settings. Bytes remain unchanged.
+    Provenance now covers the new frame-export module and export-order state;
+    no whole-App freshness gate. Existing PNGs/historical hardware checks are
+    not refreshed. Browser captures retain their actual 2.115 working-tree
+    provenance; the 2.116 change after capture is the version label only.
+    The release clears its completed work claim. Verify the exact Pages run
+    and public app/guide, then refresh the clean Claude snapshot including both
+    new app modules. Preparing snapshot files does not itself upload them.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "2.115",
-  "sourceCommit": "d61d989779195e361b13f2a1ce38e7ccadb05319",
+  "version": "2.116",
+  "sourceCommit": "b6744ba81089cb377c9d2d5fb77838a98d07151b",
   "canvas": {
     "W": 297,
     "H": 210
@@ -66,15 +66,23 @@
     "inputs": [
       {
         "path": "learn/generate-assets.mjs",
-        "sha256": "e0dfb5c4ee5f5c7936a7aae4acb79169697f621e760c125e619ea78ef7c76324"
+        "sha256": "c21f83e75092b2c81c7fbf18b9e7d1a2078bbdf24f0165cb84193d51184ba62d"
       },
       {
         "path": "learn/lib/fixtures.mjs",
-        "sha256": "42033e4213576a428a8a9bb5a6b7e5441e4223cf090ae0734cc137d2520428d9"
+        "sha256": "ea64fcf8f503801ef3231c9761c5f80841668a5591523bf881462ed7c699ef30"
       },
       {
         "path": "src/defs/helpers.js",
         "sha256": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
+      },
+      {
+        "path": "src/murmuration-scene.js",
+        "sha256": "2aa2e2aec5d27ae4c82838a1052c3d9f9459920c891d71d86805e2aef1f4e71a"
+      },
+      {
+        "path": "learn/murmuration/settings.mjs",
+        "sha256": "42badb9724218746ef27eea2ec69e8ae5e5dc530e63a8a5dedf795a1a0b4c4ac"
       },
       {
         "path": "src/defs/nodes/grid.js",
@@ -147,9 +155,25 @@
       {
         "path": "src/defs/nodes/matem.js",
         "sha256": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5"
+      },
+      {
+        "path": "src/defs/nodes/murmuration.js",
+        "sha256": "17231aeeaabe6c99c47834fbfb0f4938c4399c664a608770aa6d0bdee30898c3"
       }
     ],
     "artifacts": [
+      {
+        "path": "assets/comparisons/murmuration-0.svg",
+        "sha256": "e5fbfda4d31765a9cec90fc8842b1d4dad7fb49ad74bf09315cebc806fc72ee7"
+      },
+      {
+        "path": "assets/comparisons/murmuration-1.svg",
+        "sha256": "2cd9ee49b01b1c865143877318d6bed2c9aa15e71eaef86396fe60183e221a7d"
+      },
+      {
+        "path": "assets/comparisons/murmuration-2.svg",
+        "sha256": "9537168b6199eeeb58f5f736767860a51d21f93926b761f861fc0c5fb111a6fc"
+      },
       {
         "path": "assets/comparisons/grid-0.svg",
         "sha256": "5fc153832bb1762203d4cce613520cf156a0d2eb4499e059bde0911d4549b711"
@@ -363,6 +387,10 @@
         "sha256": "acc3b5d16b3d538d6d1cbb3b7dd5d866d6ce9360b7ca2d4df3809b9d882a0fd4"
       },
       {
+        "path": "examples/murmuration.muusia.json",
+        "sha256": "6c38bbf4f27c2bffa62a670dea541f9140182cd5edf05b548dbfff2492f8bbf5"
+      },
+      {
         "path": "examples/tutorial-first.muusia.json",
         "sha256": "658658be0e38c0362ee3973900c8cf2d3fb9b5f967496bfb6e232063e4dc56e1"
       },
@@ -537,6 +565,10 @@
       {
         "path": "assets/results/matem.svg",
         "sha256": "549bd3907ab83820c0f907e3ca9977cfc7619f3537fed99c3821b2a325d17654"
+      },
+      {
+        "path": "assets/results/murmuration.svg",
+        "sha256": "ec06e0aa39f6411e125e54d93e3736ce4695df4a0f2cd026e1e19f0c54eee593"
       },
       {
         "path": "assets/results/tutorial-first.svg",
@@ -4612,6 +4644,523 @@
         "drawingMm": 7528.2,
         "travelMm": 5764.4
       }
+    },
+    {
+      "key": "murmuration",
+      "name": "Murmuration",
+      "category": "Generators",
+      "categoryKey": "gen",
+      "group": "Generators",
+      "groupKey": "creatures",
+      "params": [
+        {
+          "key": "behaviour",
+          "label": "Behaviour",
+          "type": "select",
+          "options": [
+            "Bird flock",
+            "Reindeer herd"
+          ],
+          "def": "Bird flock",
+          "default": "Bird flock",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "birds",
+          "label": "Animals",
+          "type": "slider",
+          "min": 10,
+          "max": 600,
+          "step": 1,
+          "def": 220,
+          "default": 220,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "clock",
+          "label": "Time source",
+          "type": "select",
+          "options": [
+            "Timeline",
+            "Manual"
+          ],
+          "def": "Timeline",
+          "default": "Timeline",
+          "conditional": true,
+          "visibilityNote": "Shown for Reindeer herd.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "time",
+          "label": "Time 0–1",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.001,
+          "def": 0,
+          "default": 0,
+          "conditional": true,
+          "visibilityNote": "Shown for Bird flock, or when Reindeer herd uses Manual time.",
+          "visibleByDefault": true
+        },
+        {
+          "key": "herdMotion",
+          "label": "Herd motion",
+          "type": "select",
+          "options": [
+            "Migration",
+            "Milling",
+            "Gather & roam"
+          ],
+          "def": "Migration",
+          "default": "Migration",
+          "conditional": true,
+          "visibilityNote": "Shown for Reindeer herd.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "following",
+          "label": "Follow leaders",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.75,
+          "default": 0.75,
+          "conditional": true,
+          "visibilityNote": "Shown for Reindeer herd except Milling.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "spacing",
+          "label": "Preferred spacing mm",
+          "type": "slider",
+          "min": 0.5,
+          "max": 10,
+          "step": 0.1,
+          "def": 2.6,
+          "default": 2.6,
+          "conditional": true,
+          "visibilityNote": "Shown for Reindeer herd.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "separation",
+          "label": "Neighbour avoidance",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.85,
+          "default": 0.85,
+          "conditional": true,
+          "visibilityNote": "Shown for Reindeer herd.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "travel",
+          "label": "Travel range",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.5,
+          "default": 0.5,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "path",
+          "label": "Flock path",
+          "type": "select",
+          "options": [
+            "Wander",
+            "Oval",
+            "Figure-8",
+            "Lissajous 2:3",
+            "Trefoil"
+          ],
+          "def": "Wander",
+          "default": "Wander",
+          "conditional": true,
+          "visibilityNote": "Shown for Bird flock.",
+          "visibleByDefault": true
+        },
+        {
+          "key": "wander",
+          "label": "Wander mix (guide paths)",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.4,
+          "default": 0.4,
+          "conditional": true,
+          "visibilityNote": "Shown for Bird flock.",
+          "visibleByDefault": true
+        },
+        {
+          "key": "spread",
+          "label": "Group radius mm",
+          "type": "slider",
+          "min": 10,
+          "max": 150,
+          "step": 1,
+          "def": 55,
+          "default": 55,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "pulse",
+          "label": "Pulse (breathing)",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.5,
+          "default": 0.5,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "swirl",
+          "label": "Swirl turns / loop",
+          "type": "slider",
+          "min": -3,
+          "max": 3,
+          "step": 1,
+          "def": 1,
+          "default": 1,
+          "conditional": true,
+          "visibilityNote": "Shown for Bird flock.",
+          "visibleByDefault": true
+        },
+        {
+          "key": "scatter",
+          "label": "Scatter mm",
+          "type": "slider",
+          "min": 0,
+          "max": 30,
+          "step": 0.5,
+          "def": 8,
+          "default": 8,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "stretch",
+          "label": "Stretch along travel",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.6,
+          "default": 0.6,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "shape",
+          "label": "Bird shape",
+          "type": "select",
+          "options": [
+            "Dash",
+            "Chevron",
+            "Dot"
+          ],
+          "def": "Chevron",
+          "default": "Chevron",
+          "conditional": true,
+          "visibilityNote": "Shown for Bird flock.",
+          "visibleByDefault": true
+        },
+        {
+          "key": "herdMark",
+          "label": "Animal mark",
+          "type": "select",
+          "options": [
+            "Point",
+            "Circle",
+            "Dash"
+          ],
+          "def": "Dash",
+          "default": "Dash",
+          "conditional": true,
+          "visibilityNote": "Shown for Reindeer herd.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "size",
+          "label": "Mark size mm",
+          "type": "slider",
+          "min": 0.5,
+          "max": 6,
+          "step": 0.1,
+          "def": 1.8,
+          "default": 1.8,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "trail",
+          "label": "Trail mm",
+          "type": "slider",
+          "min": 0,
+          "max": 25,
+          "step": 0.5,
+          "def": 0,
+          "default": 0,
+          "conditional": true,
+          "visibilityNote": "Shown for Bird flock.",
+          "visibleByDefault": true
+        },
+        {
+          "key": "margin",
+          "label": "Margin mm",
+          "type": "slider",
+          "min": 0,
+          "max": 60,
+          "step": 1,
+          "def": 10,
+          "default": 10,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "seed",
+          "def": 3,
+          "default": 3,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layer",
+          "label": "Pen",
+          "type": "pen",
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "camera",
+          "label": "Camera",
+          "type": "select",
+          "options": [
+            "Fixed",
+            "Follow group",
+            "Follow animal"
+          ],
+          "def": "Fixed",
+          "default": "Fixed",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "ground",
+          "label": "Ground texture",
+          "type": "select",
+          "options": [
+            "Off",
+            "Sparse dots",
+            "Short dashes"
+          ],
+          "def": "Off",
+          "default": "Off",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "groundSpacing",
+          "label": "Ground spacing mm",
+          "type": "slider",
+          "min": 4,
+          "max": 35,
+          "step": 1,
+          "def": 14,
+          "default": 14,
+          "conditional": true,
+          "visibilityNote": "Shown when Ground texture is Sparse dots or Short dashes.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "highlight",
+          "label": "Highlight one animal",
+          "type": "select",
+          "options": [
+            "Off",
+            "On"
+          ],
+          "def": "Off",
+          "default": "Off",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "animal",
+          "label": "Animal number (1–Animals)",
+          "type": "slider",
+          "min": 1,
+          "max": 800,
+          "step": 1,
+          "def": 1,
+          "default": 1,
+          "conditional": true,
+          "visibilityNote": "Shown when Highlight one animal is On or Camera is Follow animal.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "highlightPen",
+          "label": "Highlight pen",
+          "type": "pen",
+          "def": 2,
+          "default": 2,
+          "conditional": true,
+          "visibilityNote": "Shown when Highlight one animal is On.",
+          "visibleByDefault": false
+        }
+      ],
+      "inputs": [
+        {
+          "type": "style",
+          "label": "Style"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/murmuration.muusia.json",
+      "output": "assets/results/murmuration.svg",
+      "screenshot": "assets/screenshots/murmuration.png",
+      "comparisons": [
+        {
+          "label": "Fixed · frame 9 of 48",
+          "src": "assets/comparisons/murmuration-0.svg",
+          "stats": {
+            "paths": 268,
+            "points": 536,
+            "drawingMm": 245.4,
+            "travelMm": 10833.2
+          },
+          "frameIdx": 8,
+          "frameCount": 48
+        },
+        {
+          "label": "Follow group · frame 9 of 48",
+          "src": "assets/comparisons/murmuration-1.svg",
+          "stats": {
+            "paths": 263,
+            "points": 526,
+            "drawingMm": 244.2,
+            "travelMm": 11218.7
+          },
+          "frameIdx": 8,
+          "frameCount": 48
+        },
+        {
+          "label": "Follow animal · frame 9 of 48",
+          "src": "assets/comparisons/murmuration-2.svg",
+          "stats": {
+            "paths": 262,
+            "points": 524,
+            "drawingMm": 244,
+            "travelMm": 11152.7
+          },
+          "frameIdx": 8,
+          "frameCount": 48
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "murmuration",
+            "name": "Murmuration",
+            "params": {
+              "behaviour": "Reindeer herd",
+              "birds": 120,
+              "clock": "Timeline",
+              "time": 0,
+              "herdMotion": "Migration",
+              "following": 0.75,
+              "spacing": 2.6,
+              "separation": 0.85,
+              "travel": 0.85,
+              "path": "Wander",
+              "wander": 0.4,
+              "spread": 42,
+              "pulse": 0.5,
+              "swirl": 1,
+              "scatter": 4,
+              "stretch": 0.6,
+              "shape": "Chevron",
+              "herdMark": "Dash",
+              "size": 1.8,
+              "trail": 0,
+              "margin": 10,
+              "seed": 3,
+              "layer": 0,
+              "camera": "Follow group",
+              "ground": "Sparse dots",
+              "groundSpacing": 14,
+              "highlight": "On",
+              "animal": 17,
+              "highlightPen": 2
+            }
+          }
+        ],
+        "edges": [],
+        "outputId": 9001
+      },
+      "exampleParams": {
+        "behaviour": "Reindeer herd",
+        "birds": 120,
+        "clock": "Timeline",
+        "time": 0,
+        "herdMotion": "Migration",
+        "following": 0.75,
+        "spacing": 2.6,
+        "separation": 0.85,
+        "travel": 0.85,
+        "path": "Wander",
+        "wander": 0.4,
+        "spread": 42,
+        "pulse": 0.5,
+        "swirl": 1,
+        "scatter": 4,
+        "stretch": 0.6,
+        "shape": "Chevron",
+        "herdMark": "Dash",
+        "size": 1.8,
+        "trail": 0,
+        "margin": 10,
+        "seed": 3,
+        "layer": 0,
+        "camera": "Follow group",
+        "ground": "Sparse dots",
+        "groundSpacing": 14,
+        "highlight": "On",
+        "animal": 17,
+        "highlightPen": 2
+      },
+      "outputId": 9001,
+      "stats": {
+        "paths": 265,
+        "points": 530,
+        "drawingMm": 244.5,
+        "travelMm": 12932.6
+      },
+      "frameNote": "Set ANIMATE Frames to 48. The first frame is pictured; animation settings are not saved in patch files.",
+      "frameCount": 48,
+      "frameIdx": 0
     }
   ],
   "tutorials": {
@@ -5390,8 +5939,8 @@
   },
   "blankExample": "examples/blank.muusia.json",
   "validation": {
-    "examples": 25,
-    "nodes": 18,
+    "examples": 26,
+    "nodes": 19,
     "deterministic": true,
     "typedEdges": true,
     "finiteCoordinates": true,

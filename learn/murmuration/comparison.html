@@ -1,0 +1,33 @@
+<section class="section" id="camera-comparison">
+  <span class="eyebrow">Motion study</span><h2>Follow the herd.</h2>
+  <p>The same animal, seen through two moving cameras. Watch the red mark and the ground beneath it, then isolate either pen pass.</p>
+  <div class="herd-study" id="herd-study">
+    <div class="herd-controls">
+      <button type="button" id="herd-play">Play</button>
+      <label>Animals <select id="herd-kind"><option>Reindeer herd</option><option>Bird flock</option></select></label>
+      <label>Frames <select id="herd-count"><option>24</option><option selected>48</option></select></label>
+      <label>Ground <select id="herd-ground"><option>Sparse dots</option><option>Short dashes</option><option>Off</option></select></label>
+    </div>
+    <div class="herd-views">
+      <figure><svg id="herd-group" viewBox="0 0 297 210" role="img" aria-label="Camera follows the group"></svg><figcaption><strong>Follow group</strong><br>The herd centre stays in view. Ground marks reveal its journey.</figcaption></figure>
+      <figure><svg id="herd-animal" viewBox="0 0 297 210" role="img" aria-label="Camera follows animal 17"></svg><figcaption><strong>Follow animal 17</strong><br>The red animal stays centred while its neighbours and the ground move.</figcaption></figure>
+    </div>
+    <div class="herd-controls"><label class="herd-scrubber">Frame <input id="herd-frame" aria-label="Comparison frame" type="range" min="0" max="47" step="1" value="0"></label><output id="herd-counter">Frame 1 / 48</output></div>
+    <div class="herd-controls" role="group" aria-label="Visible pen pass"><button type="button" data-herd-pen="all" aria-pressed="true">Both pens</button><button type="button" data-herd-pen="0" aria-pressed="false">Base pass</button><button type="button" data-herd-pen="2" aria-pressed="false">Highlight pass</button></div>
+    <p class="herd-footnote">Computed by the actual Murmuration node. The player drives the time for both behaviours. The ground uses tiny pen strokes, not bitmap dots.</p>
+    <noscript><p>Enable JavaScript to play the comparison. The stills above and the downloadable patches remain available.</p></noscript>
+  </div>
+</section>
+<section class="section" id="pen-passes">
+  <span class="eyebrow">One frame per A4 sheet</span><h2>Two passes, one pen change.</h2>
+  <p>Keep the colour in your animation without changing ink on every sheet. Export all frames for each pen, then run the complete stack twice.</p>
+  <ol class="recipe-list">
+    <li>Download the <a href="../../examples/murmuration-tracking.muusia.json" download>24-sheet example patch</a> and open it with Muusia’s Load button. It includes Murmuration → Frame Grid, a 297 × 210 mm canvas, Light outlines and frame numbers.</li>
+    <li>Select Frame Grid. Set ANIMATE Frames to 24. For 48 sheets, set both ANIMATE Frames and Frame Grid Total frames to 48. Animation panel settings are not saved in the patch.</li>
+    <li>Keep Frame Grid at a Custom 1 × 1 grid and Map canvas. In ANIMATE choose Export order → All frames by pen, then SVG, G-code or DXF. G-code requires a G-code machine profile.</li>
+    <li>Unzip the export. Plot every numbered file in <code>pen-00</code> with the base pen. This draws the herd, ground, frame numbers and registration marks.</li>
+    <li>Change ink once. Put each numbered sheet back against the same physical paper stops and run its matching file from <code>pen-02</code>. This adds only animal 17. Keep origin, scale and orientation unchanged.</li>
+  </ol>
+  <aside class="callout"><span class="callout-label">Keep the page coordinates</span><p>Do not auto-fit or centre the small highlight files in external plotter software. Both passes use the same page coordinates. The ZIP’s manifest lists any empty frames. Each G-code file retains the profile’s start/end, homing and service commands; the files are separate jobs, not an automatic paper feeder.</p></aside>
+  <p>Try two sheets before drawing the full set. Light outlines help Liike align photographs afterwards; they cannot position paper on the plotter. SVG, G-code and DXF batch exports have been checked in software. Physical two-pass registration has not yet been tested.</p>
+</section>

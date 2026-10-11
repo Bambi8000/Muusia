@@ -811,9 +811,9 @@ export const NODE_RECENCY = {
     "sha256": "6ee2ad58f72358b5a84556610610caee43220877cd047588e955847d6ebf15c3"
   },
   "murmuration": {
-    "date": "2026-10-09",
-    "order": 73,
-    "sha256": "f0aba72b99da06a7c28ebc951f537f49ebe6d6c1c2734c9749273ff41486a7f9"
+    "date": "2026-10-11",
+    "order": 75,
+    "sha256": "17231aeeaabe6c99c47834fbfb0f4938c4399c664a608770aa6d0bdee30898c3"
   },
   "mushroom": {
     "date": "2026-09-14",

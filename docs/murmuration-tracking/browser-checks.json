@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-11",
+  "frames": 24,
+  "canvasMm": {
+    "W": 297,
+    "H": 210
+  },
+  "routeOptimize": true,
+  "preserveDirection": true,
+  "profile": "A \u2014 Servo Z (multi-tip brush)",
+  "scope": "Real app Help example \u2192 Frame Grid \u2192 All frames by pen; 24 sheets, SVG/G-code/DXF ZIP downloads. No hardware execution.",
+  "archives": {
+    "svg": {
+      "sha256": "b4fb6cdf78dbf390611ad888002125db885bd7530dfe69c1adcce6f6eb402e97",
+      "files": 48
+    },
+    "gcode": {
+      "sha256": "571946df99b044668f5e7f515594511d283c12cc211dc3e505fab896b1895807",
+      "files": 48
+    },
+    "dxf": {
+      "sha256": "b4bce53141245ce86cfe16787f46e0c7d5de7c18bdf4aa9ef788d9932aa031d8",
+      "files": 48
+    }
+  },
+  "sourceSha256": {
+    "src/App.jsx": "03ac51eb016332faefffdd1fdb2279875e60fe2bef2285c07c5c7a9b9c29b8d2",
+    "src/frame-export.js": "1a01e5140789cba368c865472bae47fbaad6e66b62d04edf0bdc0f7e0e75bc46",
+    "src/murmuration-scene.js": "2aa2e2aec5d27ae4c82838a1052c3d9f9459920c891d71d86805e2aef1f4e71a",
+    "src/defs/nodes/murmuration.js": "17231aeeaabe6c99c47834fbfb0f4938c4399c664a608770aa6d0bdee30898c3",
+    "src/defs/nodes/frame_grid.js": "38ad4905a0733ee8496416e3273f468b8a310c7f0827d10e3e7c2062b7ade0cd",
+    "src/examples.js": "4cd70ea538a481c233c612db5d5fcee8d7765ebe4956b396dfbf4684980547dc"
+  },
+  "appVersion": "2.115",
+  "releaseNote": "Captured before the 2.116 version-label bump; hashes identify the actual captured working tree."
+}

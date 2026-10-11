@@ -1,0 +1,87 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Follow one reindeer",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "murmuration",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "behaviour": "Reindeer herd",
+          "birds": 120,
+          "clock": "Timeline",
+          "time": 0,
+          "herdMotion": "Migration",
+          "following": 0.75,
+          "spacing": 2.6,
+          "separation": 0.85,
+          "travel": 0.85,
+          "path": "Wander",
+          "wander": 0.4,
+          "spread": 42,
+          "pulse": 0.5,
+          "swirl": 1,
+          "scatter": 4,
+          "stretch": 0.6,
+          "shape": "Chevron",
+          "herdMark": "Dash",
+          "size": 1.8,
+          "trail": 0,
+          "margin": 10,
+          "seed": 3,
+          "layer": 0,
+          "camera": "Follow group",
+          "ground": "Sparse dots",
+          "groundSpacing": 14,
+          "highlight": "On",
+          "animal": 17,
+          "highlightPen": 2
+        }
+      },
+      {
+        "id": 9002,
+        "type": "frame_grid",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "fill": "Animate",
+          "total": 24,
+          "count": 6,
+          "layout": "Custom",
+          "cols": 1,
+          "rows": 1,
+          "order": "Row-major",
+          "scale": "Map canvas",
+          "margin": 30,
+          "gap": 0,
+          "marks": "On",
+          "markerStyle": "Light outlines",
+          "markSize": 8,
+          "cellFrames": "Off",
+          "inset": 0,
+          "cellmarks": "Off",
+          "numbers": "On",
+          "labelText": "",
+          "chrome": "Every frame",
+          "penMark": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      }
+    ]
+  }
+}

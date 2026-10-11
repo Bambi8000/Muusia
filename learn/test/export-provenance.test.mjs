@@ -75,6 +75,8 @@ test('release version, Help copy, and unrelated app or Stack presentation change
 test('machine, serializers, route selection, workflow gate and download wiring changes require recapture', async () => {
   const mutations = [
     ['src/machine.js', 'workW: 330', 'workW: 331'],
+    ['src/frame-export.js', 'a.pen - b.pen || a.frame - b.frame', 'a.frame - b.frame || a.pen - b.pen'],
+    ['src/App.jsx', 'useState("frames")', 'useState("pens")'],
     ['src/App.jsx', 'stroke-width="0.3"', 'stroke-width="0.4"'],
     ['src/App.jsx', 'function toGcode(ps, ctx, prof) {', 'function toGcode(ps, ctx, prof) {\n  prof = { ...prof, flipY: false };'],
     ['src/App.jsx', 'const exportPS = () => (routeOpt ?', 'const exportPS = () => (false ?'],

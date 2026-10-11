@@ -177,3 +177,14 @@ Local Image maintenance, 2026-10-05: the existing guide now covers the blue Draw
 English animation integration, 2026-10-09: Learn now includes all three earlier animation studies. `learn/animation/` supplies the six-example gallery, the Grid Hairs + Solids composite, and the full 310-node survey with eight probes, production guidance and time estimator. Links are present in the tutorial index, overview, global navigation and guide sidebar. The survey clearly separates existing controls from new feature proposals, and records its 2026-10-07 source snapshot. Seven editable animation projects add to the existing 26 guide/tutorial patches; the seven foundation lessons and eighteen illustrated node guides remain separate counts.
 
 Geometry and capture evidence remain sourced from `docs/animation-{examples,composite,audit}/`. English project names are derived without changing graphs or canvas. `check:learn` adds scoped freshness checks for the seven working examples and identity checks for translations, previews and original measurements. Historical full-App hashes in the broad survey remain provenance only. Recapture costs apply only when a used node/helper or selected evaluator/SVG exporter scope changes; unrelated node releases and version/UI edits do not trigger them. The original Finnish studies remain available locally. No new app feature, physical plot, commit or publication is implied by this Learn integration.
+
+
+Murmuration extension, 2026-10-11: the nineteenth illustrated guide incorporates
+an English live camera comparison directly under the node, with a genuine Focus
+capture, three static camera comparisons, the complete control reference, a
+single-node example and a tested 24-sheet Frame Grid example. The player compares
+following the herd with following animal 17; bird/reindeer, 24/48 frames, ground
+texture and pen visibility can be changed. Its actual node code is bundled for
+static hosting. The page explains two pen passes, fixed registration and the
+48-sheet settings. This brings Learn to 32 pages and 29 PNG captures, without
+adding an eighth foundation tutorial. Included in the authorised Muusia 2.116 release.

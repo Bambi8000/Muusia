@@ -1,0 +1,16 @@
+.herd-study{margin:24px 0;padding:20px 0;border-top:1px solid #c6c9bf;border-bottom:1px solid #c6c9bf}
+.herd-controls{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 18px}
+.herd-controls label{display:flex;align-items:center;gap:8px;font-size:14px}
+.herd-controls button,.herd-controls select{font:inherit;color:inherit;background:#faf8f3;border:1px solid #a4aea3;border-radius:0;padding:7px 10px;cursor:pointer}
+.herd-controls button[aria-pressed=true]{background:#283631;color:white}
+.herd-controls :focus-visible{outline:2px solid #ad4930;outline-offset:3px}
+.herd-controls output{font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.herd-controls .herd-scrubber{flex:1;min-width:160px}
+.herd-scrubber input{width:100%;min-width:80px;accent-color:#526653}
+.herd-views{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+.herd-views figure{margin:0;min-width:0}
+.herd-views svg{display:block;width:100%;background:#faf8f3;border:1px solid #c6c9bf}
+.herd-views figcaption{font-size:13px;line-height:1.5;padding-top:8px;color:#617067}
+.herd-views strong{color:#283631;font-weight:600}
+.herd-study .herd-footnote{font-size:13px;color:#617067;margin-bottom:0}
+@media(max-width:850px){.herd-views{grid-template-columns:1fr}}

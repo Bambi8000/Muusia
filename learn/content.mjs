@@ -532,6 +532,36 @@ export const tutorials = [
 ];
 
 export const nodeGuides = {
+  murmuration: {
+    summary: "Animate a flock of birds or a herd of reindeer. Follow the group or one coloured animal while a quiet ground texture makes its movement visible.",
+    useWhen: "You want a looping crowd with persistent individuals: migration, circling or a gathering herd. The camera comparison below shows two ways to frame the same motion.",
+    recipe: [
+      "Load the node example below on its 297 × 210 mm canvas and select Murmuration.",
+      "Keep Behaviour at Reindeer herd and Time source at Timeline. Open ANIMATE, set Frames to 48 and press Play.",
+      "Highlight one animal is On: animal 17 uses pen 2 while the herd and ground use pen 0. Keep Seed and Animals unchanged to follow the same individual.",
+      "Switch Camera between Follow group and Follow animal. Sparse dots stay fixed in the world, so they move across the page as the camera travels."
+    ],
+    controls: [
+      {name: "Behaviour / Herd motion", text: "Bird flock and Reindeer herd have different controls. Reindeer Migration follows a shared route; Milling circles; Gather & roam contracts and expands the group."},
+      {name: "Time source / Time 0–1", text: "Reindeer Timeline follows the ANIMATE playhead directly. Bird flock uses Time 0–1: for a looping app patch connect Frame’s rot ° output through Math ÷ 360 to Time. The comparison player drives this connection’s equivalent value for you."},
+      {name: "Camera / Ground texture", text: "Fixed keeps the camera still. Follow group centres the animals together; Follow animal centres the chosen individual. Sparse dots and Short dashes are real base-pen paths, fixed in the world and clipped to the camera window."},
+      {name: "Highlight one animal / Animal number / Highlight pen", text: "Choose a 1-based animal number and a different pen. Its identity comes from the seed, including any bird trail. Highlighting changes its pen without changing the motion."},
+      {name: "Animals / Group radius mm / Preferred spacing mm", text: "Balance the number of animals, the group’s size and its spacing. Neighbour avoidance is a soft spacing preference, not a guarantee that marks never touch."},
+      {name: "Animal mark / Mark size mm", text: "Reindeer can be Point, Circle or Dash marks. Points are tiny strokes that a pen can actually draw. A small mark is easier to separate from its neighbours."}
+    ],
+    portNotes: "The optional purple Style input changes the strokes. The blue output carries all visible animal and ground paths with their pen assignments. Connect it to Frame Grid for one numbered A4 sheet per frame, or Merge to combine it with another drawing.",
+    screenshotCaption: "The real Murmuration node in Focus mode, with the reindeer example selected. Red dashed guides are preview overlays, not exported lines. More controls continue below the visible part of the card. Press Esc to return to the graph.",
+    outputCaption: "Frame 1 of 48. Animal 17 is red; the other animals and sparse ground marks use the base pen.",
+    comparisonIntro: "These stills use the same animals, seed and frame. Then use the live comparison to see how the group and individual cameras change your sense of movement.",
+    pitfalls: [
+      {q: "Why does the bird flock not move when I press Play?", a: "Bird flock reads Time 0–1. Wire Frame rot ° → Math ÷ 360 → Time. Reindeer with Time source Timeline needs no clock wire."},
+      {q: "Why can I not see my highlighted animal?", a: "Choose a number from 1 to Animals and a Highlight pen different from the base Pen. An out-of-range number highlights nothing; a valid animal can also leave the visible camera window. Follow animal keeps it centred."},
+      {q: "Will this require a pen change on every sheet?", a: "Choose ANIMATE → Export order → All frames by pen. Draw the complete base-pen folder first, change ink once, then draw the highlight folder on the same numbered sheets. The export instructions below explain registration."},
+      {q: "Does the final frame duplicate the first?", a: "No. A 48-frame sequence samples 0/48 through 47/48, then returns to frame 1. The camera and ground share the loop. Keep frame count and all parameters fixed while exporting."}
+    ],
+    related: ["frame", "matem", "merge", "viiva"],
+    tutorials: ["first-physical-plot", "export-two-colour-svg"]
+  },
   grid: {
     summary: "Make evenly spaced straight lines across the canvas. Grid is a clear starting point for learning how modifiers change paths.",
     useWhen: "You need a regular background, parallel lines to deform, or a simple test drawing with predictable spacing.",
