@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import {EXAMPLES} from '../../src/examples.js';
 import {PENS} from '../../src/defs/helpers.js';
-export const TEXT_KEYS=['hersheytext','lettering','concrete','ribbontype','textpath','stitchtype','crossstitch','typegrating','scribbletype','typerain','asciiart','braille','numerals','signature'];
+export const TEXT_KEYS=['type_studio','hersheytext','lettering','concrete','ribbontype','textpath','stitchtype','crossstitch','typegrating','scribbletype','typerain','asciiart','braille','numerals','signature'];
 export const definitions={};
 for(const key of [...TEXT_KEYS,'radat','microbes','grid_hairs'])definitions[key]=(await import(`../../src/defs/nodes/${key}.js`)).default;
 export const defaults=key=>Object.fromEntries(definitions[key].params.map(p=>[p.key,p.def]));
@@ -10,6 +10,7 @@ export function single(key,params={}){return {app:'muusia',v:1,name:definitions[
 export async function fixtures(){
  const read=id=>fs.readFile(new URL(`../../docs/typography-audit/patches/${id}.muusia.json`,import.meta.url),'utf8').then(JSON.parse);
  const projects={
+ type_studio:single('type_studio'),
  hersheytext:single('hersheytext',{text:'TYPE',size:34}),lettering:single('lettering',{text:'FORM',size:44,depth:0,fill:'Outline',weight:32}),
  concrete:single('concrete',{text:'WORDS MOVE',mode:'Columns',columns:2,size:5,motion:'Row squeeze',amount:.8,clock:'Timeline'}),
  ribbontype:await read('ribbon'),textpath:await read('orbit'),stitchtype:await read('stitches'),
@@ -18,6 +19,7 @@ export async function fixtures(){
  typerain:single('typerain',{glyphs:'TYPE/',size:3,density:.45,pens:2}),asciiart:await read('ascii'),
  braille:single('braille',{text:'Muusia',tx:42,ty:55,scale:3}),numerals:single('numerals',{value:'1 12 123 2026',size:26,system:'Cistercian'}),
  signature:single('signature',{text:'YOUR NAME',date:'2026',size:7,layout:'Two lines',font:'Hand'})};
+ for(const ex of EXAMPLES.filter(e=>e.name.startsWith('Type Studio · '))){const number=ex.name.split(' · ')[1].slice(0,2);projects['studio-'+number]={app:'muusia',v:1,name:ex.name,canvas:ex.canvas,root:{...ex.make(defaults),outputId:9201}};}
  const ex=EXAMPLES.find(e=>e.name==='Stitch Type · Letters made of cells');
  projects['custom-motif']={app:'muusia',v:1,name:ex.name,canvas:ex.canvas,root:{...ex.make(defaults),outputId:9002}};
  for(const [id,motion,extra] of [['poetry-shift','Shift',{text:'TYPE',mode:'Fill region',size:5,shiftPattern:'Rows'}],['poetry-zoom','Zoom',{text:'N',size:2.5,zoomRows:28,zoomCycle:'In & out'}]]) projects[id]=single('concrete',{...extra,motion,clock:'Timeline',cycles:1});

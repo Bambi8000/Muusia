@@ -214,3 +214,12 @@ references are sections within one page. Tutorial, library, home and global
 navigation link to the section. Software validation covers actual geometry,
 216 animation frames, legacy Stitch Type parity and complete browser SVG/G-code
 captures of a compact motif example. No physical plot is implied.
+
+Type Studio, 2026-10-11 (authorised v2.119 release): extend the existing
+Typography lesson with the ten treatments selected from the original study,
+a live editable text preview, a downloadable one-node project and a real Muusia
+Focus screenshot. Add Type Studio as the fifteenth text reference, retaining all
+previous text tools and the original audit. Ten Help treatments and the default
+project bring Learn to 80 downloadable patches across the existing 36 pages.
+The release app and Learn use version 2.119; the unchanged development capture
+retains its original 2.118 header.

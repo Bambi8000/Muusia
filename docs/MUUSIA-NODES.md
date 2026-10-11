@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 311 built-in nodes in the Muusia v2.118 release. Conventions used below:
+All 312 built-in nodes in the Muusia v2.119 release. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -8,7 +8,30 @@ accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (196)
+## Generators (197)
+
+**Type Studio** — ten selectable treatments from the typography study, keeping
+its original numbers: 01 Contour type, 02 Living strokes, 03 Patterned face,
+04 Modular squares, 05 Serpentine type, 07 Modular marks, 08 Hairline lettering,
+10 Words inside a word, 11 Falling characters and 12 Text made of text.
+*Text* accepts up to 128 characters; `|` starts a new line. *Letter height mm*
+sets source size before fitting, *Composition scale %* shrinks the complete
+result, and *Align* / *Margin mm* place it on the page. Relevant treatment
+controls appear automatically. Existing Text, Lettering, SDF Contours, Mycelium
+Fill, Pattern Fill, Image, Zigzag Path, Stitch Type, Ribbon Type, Concrete Poetry,
+Gravity and ASCII Art compute the actual geometry. In 07, blue *Motif* repeats a
+complete wired drawing in selected stitch cells; choose One pen, Ring pens or
+Source pens. In 11, *Stamp uses* Characters repeats individual glyphs in text
+order, while Whole text repeats the phrase. Release and Progress use Gravity's
+existing fall solver. 08 uses Ribbon Type's lowercase a–z alphabet (capitals
+fold to lowercase; digits and punctuation are skipped; at most eight lines).
+10 inherits Concrete Poetry's glyph-centre region test; small strokes can cross
+the face boundary. Working surfaces above 420 mm on their longest side use a
+bounded sampling surface before scaling back, so fine detail is resolution
+limited. Output is fitted inside margins and limited to 112k points; optional
+Style is applied last. Numeric controls accept animation wires; there is no
+automatic motion. Ten Help examples and the live English Typography lesson
+provide starting projects.
 
 **Microbes** — individual cells and bacteria: Cell, Coccus, Rod, Spiral, Amoeba
 and Ciliate, plus a Mixed field. *Count* 1 centres a single specimen. *Size mm*

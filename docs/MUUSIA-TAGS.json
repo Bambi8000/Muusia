@@ -1696,6 +1696,14 @@
   "round",
   "scientific"
  ],
+ "type_studio": [
+  "text",
+  "hatch",
+  "contour",
+  "grid",
+  "repeat",
+  "pens"
+ ],
  "typegrating": [
   "chart",
   "clip",

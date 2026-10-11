@@ -21,7 +21,8 @@ export async function validateTypography(site){
  const audit=JSON.parse(await fs.readFile(path.join(site,'typography/research/inventory.json')));assert.equal(audit.length,311);
  const specimens=JSON.parse(await fs.readFile(path.join(site,'typography/research/specimens.json')));assert.equal(specimens.length,12);
  for(const s of specimens){assert.ok((await fs.stat(path.join(site,`typography/research/patches/${s.id}.muusia.json`))).size);assert.ok((await fs.stat(path.join(site,`typography/research/assets/${s.id}.svg`))).size);}
- const lesson=await fs.readFile(path.join(site,'typography/index.html'),'utf8');for(const id of ['type-play','type-motion','type-frames','type-art','type-scrub'])assert.ok(lesson.includes(`id="${id}"`));
+ const lesson=await fs.readFile(path.join(site,'typography/index.html'),'utf8');for(const id of ['type-studio','studio-controls','studio-art','studio-download','type-play','type-motion','type-frames','type-art','type-scrub'])assert.ok(lesson.includes(`id="${id}"`));
  const player=await fs.readFile(path.join(site,'assets/typography/player.js'),'utf8');assert.ok(player.length>1000&&!/from\s*['"](?:\.\.\/)*src\//.test(player));
- console.log('Typography passed: 14 text references, 17 generated projects, 12 preserved study patches, 216 animated frames and complete survey.');
+ const studio=await fs.readFile(path.join(site,'assets/typography/studio-player.js'),'utf8');assert.ok(studio.length>1000&&!/from\s*['"](?:\.\.\/)*src\//.test(studio));
+ console.log('Typography passed: 15 text references, 28 generated projects, 12 preserved study patches, 216 animated frames and complete survey.');
 }

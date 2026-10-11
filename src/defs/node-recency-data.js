@@ -1440,6 +1440,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "610854dea06b4101367e31711e742066787b9ecd2bbe7000f4896828d557eb3f"
   },
+  "type_studio": {
+    "date": "2026-10-11",
+    "order": 78,
+    "sha256": "cfdddcaa73d82ff9684cb099da89c4ed6dedcfc5f8f37a1ab83f4bf6c418d78b"
+  },
   "typegrating": {
     "date": "2026-08-02",
     "order": 17,

@@ -13,7 +13,21 @@
  * - optional `canvas: { W, H }` per entry if the patch depends on sheet size
  */
 
+import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
+
 export const EXAMPLES = [
+  ...TYPE_STUDIO_STYLES.map((mode,i) => ({
+    name: "Type Studio · " + mode,
+    desc: "One node, ten typography treatments with the original study numbers. Edit Text, then switch Type treatment. Only relevant controls are shown. Size and Margin fit the composition to your page. Blue Motif is used by 07 Modular marks; purple Style is applied last. For fine control, the original source nodes remain available.",
+    canvas: { W: 200, H: 140 },
+    make: defaults => ({ nodes: [{ id: 9201, type: "type_studio", x: 40, y: 30, params: {
+      ...defaults("type_studio"), mode,
+      text: ["TYPE","ROOT","FORM","TYPE","LOOP","TYPE","flow","TYPE","A","INK"][i],
+      size: [34,39,46,44,42,39.2,38,50,40,52][i],
+      weight: mode.startsWith("10") ? 40 : mode.startsWith("12") ? 35 : 32,
+      layer: mode.startsWith("08") ? 6 : 0,
+    }}], edges: [] }),
+  })),
   {
     name: "Stitch Type · Letters made of cells", desc: "One Rod microbe becomes the building block of INK. Connect Microbes Paths to Stitch Type Motif (blue input 1); select Stitch Type. Auto uses the wired drawing. Change Motif size, angle and variation; Source pens preserves the source colours. For a simpler mark use Microbes Interior 0, Membrane Single and Filaments 0. The entire input drawing is one mark, so keep Count at 1.",
     canvas: { W: 200, H: 140 },

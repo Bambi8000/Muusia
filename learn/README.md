@@ -200,3 +200,21 @@ segments to the current node, including pen-up rapid moves. The exporter route
 optimization may reorder paths. These evidence files are retained in the source,
 not offered as ready-to-run machine downloads. The development header was still
 v2.117 when captured; source hash pins the new implementation. No physical plot.
+
+### Type Studio · v2.119
+
+The Typography tutorial now starts with a real Type Studio playground: ten
+treatments preserving study numbers 01–05, 07–08 and 10–12. Text survives treatment
+switching; conditional controls, reset and a project download use the actual node
+parameters. `studio-player.js` is bundled with the same node implementation.
+The existing twelve study recipes remain unchanged as historical evidence.
+The text reference now has 15 sections; 11 new current projects (the default node
+and ten Help treatments) bring this subsection to 28 current patches and Learn
+to 80 total patch files. The page count stays 36.
+
+`docs/type-studio/ui.jpg` is a real development Focus screenshot, copied into the
+lesson. Browser SVG/G-code evidence is kept in that same source directory and
+checked by `tools/validate-type-studio.mjs`; these are not machine presets.
+The feature is included in the v2.119 release. The screenshot and browser export
+evidence retain their original v2.118 development header; the captured node
+implementation is unchanged.

@@ -1,0 +1,62 @@
+{
+  "modes": [
+    {
+      "mode": "01 / Contour type",
+      "text": 1,
+      "preview": "14 paths ·   4055 pts"
+    },
+    {
+      "mode": "02 / Living strokes",
+      "text": 1,
+      "preview": "84 paths ·   2625 pts"
+    },
+    {
+      "mode": "03 / Patterned face",
+      "text": 1,
+      "preview": "124 paths ·   5869 pts"
+    },
+    {
+      "mode": "04 / Modular squares",
+      "text": 1,
+      "preview": "1169 paths ·   4676 pts"
+    },
+    {
+      "mode": "05 / Serpentine type",
+      "text": 1,
+      "preview": "8 paths ·   1968 pts"
+    },
+    {
+      "mode": "07 / Modular marks",
+      "text": 1,
+      "preview": "782 paths ·   1564 pts"
+    },
+    {
+      "mode": "08 / Hairline lettering",
+      "text": 1,
+      "preview": "105 paths ·   3345 pts"
+    },
+    {
+      "mode": "10 / Words inside a word",
+      "text": 1,
+      "preview": "746 paths ·   2244 pts"
+    },
+    {
+      "mode": "11 / Falling characters",
+      "text": 1,
+      "preview": "360 paths ·   1035 pts"
+    },
+    {
+      "mode": "12 / Text made of text",
+      "text": 1,
+      "preview": "1106 paths ·   3568 pts"
+    }
+  ],
+  "interactions": [
+    "Mode switching preserves TYPE",
+    "Live tutorial text INK persists across mode changes",
+    "07 One pen / Teal has only #1F8A80 strokes",
+    "Reset retains INK and treatment, restores Ring pens",
+    "Download project clicked"
+  ],
+  "errors": []
+}

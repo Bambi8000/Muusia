@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **309 files** (311 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **310 files** (312 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 196, Modifiers 76). ESM format:
+  Generators 197, Modifiers 76). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -50,7 +50,7 @@ text are **English**.
 - `src/examples.js` — Help beginner examples: `{ name, desc, make(defaults) }`
   factories, node ids 9001+ / edge ids e9101+ (loadExample resets NEXT_ID to
   9500), params as diffs over `defaults(type)`, built-in nodes only, fixed
-  seeds, optional `canvas:{W,H}`. Zero imports — runs in plain Node; check
+  seeds, optional `canvas:{W,H}`. Imports plain-ESM node helpers — runs in plain Node; check
   with `node tools/validate-examples.mjs` before build. New examples arrive
   as module exports (`*-module.json`, whole graph selected) and are converted
   to entries (param-diff + id renumbering).
@@ -3087,6 +3087,53 @@ according to the session's actual capabilities:
     Pages workflow; integration owner verifies the exact release SHA and live
     app/tutorial. Refresh the clean local Claude snapshot after integration;
     a local export does not mean the Claude web project has been uploaded.
+
+- **2.119 — Type Studio and interactive typography tutorial** 2026-10-11 Astra — base
+  `b33f833`, branch `codex/type-studio`; Daniel chose one node for the ten
+  numbered treatments in `docs/typography-audit/index.html#specimens`:
+  01, 02, 03, 04, 05, 07, 08, 10, 11 and 12. Original titles are retained in
+  Type treatment. Text, source size, composition scale, alignment and margin
+  are common; only the selected treatment's controls appear.
+  - `src/defs/type-studio.js` composes actual existing nodes. It is shared by
+    the built-in wrapper and the Learn playground. No source drawing algorithm
+    or engine code was copied or altered. Falling Characters uses Gravity's
+    existing `_layout` for individual glyph stamps, or its compute for whole
+    words. Mode 07 accepts a blue Motif input and ring/source/single-pen choices.
+  - Built-in-only composition exception: the lab object was promoted by adding
+    explicit ESM imports. The stock bake tool only exposes core helpers and
+    rejected `typeStudioParams`; it cannot bake this adapter unaided. The actual
+    built-in module passed validation and a fresh real-app load. The unusable
+    lab-only copy was then removed. Future changes belong in the adapter/wrapper;
+    do not import it as a competing custom node or duplicate dependency code.
+  - Ten Help starters, catalog/tags/recency, source bundle and node reference.
+    Release totals 312 built-ins / 310 node modules / 197 generators /
+    72 Help examples. APP_VERSION 2.118 → 2.119; no engine/exporter change.
+  - Typography lesson: real editable preview, conditional controls, reset,
+    downloaded project, real Focus screenshot and fifteenth text reference.
+    Preserve all twelve historical study recipes. Learn now has 36 pages /
+    80 patch files (28 current typography, 12 historical and 40 prior).
+  - Focused validator checks ten treatments, deterministic geometry, parameter
+    effects, pen assignment, fit, long/empty/unsupported text, invalid input,
+    shared-algorithm parity, custom motif, Style and point budgets: 558,235
+    assertions passed. Ordered catalog → build → check:learn passed with
+    23,574 shared Learn checks plus typography/animation checks. Browser
+    review exercised all ten app/tutor treatments, text retention, pen changes,
+    reset and an actual downloaded INK project (mode 07, 752 paths). No browser
+    errors. All ten drawings were visually inspected.
+  - `docs/type-studio/` records the real 01 / Contour type Help example:
+    14 paths / 4,055 points on 200 × 140 mm. Complete browser SVG and G-code
+    match every output path/segment at export precision; rapid moves keep the
+    pen up. Source/file checksums and the original recipe are recorded. Machine
+    A was the browser default; no hardware was run. Evidence files are not
+    plotting presets. The focused validator also rechecks these exports.
+  - Inherited limits: 08 only a–z, at most eight lines; 10 uses Concrete Poetry's
+    centre-based region test. Fine details can shrink when fitting; larger than
+    420 mm working surfaces use bounded resolution. No automatic timeline
+    motion; green value wires can drive numeric controls.
+  - Daniel approved publication. Regenerated catalog/source bundle/Learn outputs
+    and cleared the work claim for integration. The release owner pushes main,
+    verifies the exact Pages run and public app/tutorial, then refreshes the
+    clean local Claude snapshot. No Claude web-project upload is implied.
 
 ## Hard-won pitfalls (keep)
 

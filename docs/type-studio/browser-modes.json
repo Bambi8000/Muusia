@@ -1,0 +1,222 @@
+[
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Letter height mm",
+      "Composition scale %",
+      "Letter spacing ×",
+      "Align",
+      "Margin mm",
+      "Pen",
+      "Contours",
+      "First contour mm",
+      "Contour step mm",
+      "Field cell mm",
+      "Keep source"
+    ],
+    "mode": "01 / Contour type",
+    "stats": "14 paths · 4,790 points · 123 ms",
+    "text": "TYPE"
+  },
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Letter height mm",
+      "Composition scale %",
+      "Letter spacing ×",
+      "Align",
+      "Margin mm",
+      "Seed",
+      "Pen",
+      "Strands per side",
+      "Base width mm",
+      "Junction boost",
+      "Waviness",
+      "Taper ends mm",
+      "Keep source"
+    ],
+    "mode": "02 / Living strokes",
+    "stats": "84 paths · 3,055 points · 8 ms",
+    "text": "TYPE"
+  },
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Letter height mm",
+      "Composition scale %",
+      "Letter spacing ×",
+      "Align",
+      "Margin mm",
+      "Seed",
+      "Pen",
+      "Face weight %",
+      "Pattern",
+      "Spacing mm",
+      "Angle °",
+      "Offset from edge mm",
+      "Wobble",
+      "Keep outlines"
+    ],
+    "mode": "03 / Patterned face",
+    "stats": "139 paths · 7,221 points · 531 ms",
+    "text": "TYPE"
+  },
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Letter height mm",
+      "Composition scale %",
+      "Letter spacing ×",
+      "Align",
+      "Margin mm",
+      "Seed",
+      "Pen",
+      "Face weight %",
+      "Cell / spacing mm",
+      "Square fill",
+      "Square layout",
+      "Fill / pen pitch mm",
+      "Jitter"
+    ],
+    "mode": "04 / Modular squares",
+    "stats": "1,667 paths · 6,668 points · 43 ms",
+    "text": "TYPE"
+  },
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Letter height mm",
+      "Composition scale %",
+      "Letter spacing ×",
+      "Align",
+      "Margin mm",
+      "Seed",
+      "Pen",
+      "Stroke shape",
+      "Amplitude mm",
+      "Wavelength mm",
+      "Phase",
+      "Stroke variation",
+      "Fade mm"
+    ],
+    "mode": "05 / Serpentine type",
+    "stats": "8 paths · 2,336 points · 6 ms",
+    "text": "TYPE"
+  },
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Letter height mm",
+      "Composition scale %",
+      "Letter spacing ×",
+      "Align",
+      "Margin mm",
+      "Seed",
+      "Font",
+      "Pixel (cells)",
+      "Preset",
+      "Stitch colours",
+      "Motif cells",
+      "Motif size × cell",
+      "Motif angle °",
+      "Turn variation °",
+      "Size variation"
+    ],
+    "mode": "07 / Modular marks",
+    "stats": "782 paths · 1,564 points · 5 ms",
+    "text": "TYPE"
+  },
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Letter height mm",
+      "Composition scale %",
+      "Letter spacing ×",
+      "Align",
+      "Margin mm",
+      "Seed",
+      "Pen",
+      "Ribbon width (x x-height)",
+      "Line gap mm",
+      "Slant deg",
+      "Facets per quarter",
+      "Asymmetry",
+      "Asymmetry amount"
+    ],
+    "mode": "08 / Hairline lettering",
+    "stats": "105 paths · 3,345 points · 7 ms",
+    "text": "TYPE"
+  },
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Letter height mm",
+      "Composition scale %",
+      "Letter spacing ×",
+      "Align",
+      "Margin mm",
+      "Pen",
+      "Face weight %",
+      "Small text (blank = main text)",
+      "Small letter height mm",
+      "Small letter spacing ×",
+      "Small line spacing ×"
+    ],
+    "mode": "10 / Words inside a word",
+    "stats": "1,092 paths · 3,279 points · 33 ms",
+    "text": "TYPE"
+  },
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Composition scale %",
+      "Align",
+      "Margin mm",
+      "Seed",
+      "Pen",
+      "Stamp uses",
+      "Cols",
+      "Rows",
+      "Stamp size",
+      "Release",
+      "Progress (landed share)",
+      "Drift mm",
+      "Spin deg",
+      "Pile"
+    ],
+    "mode": "11 / Falling characters",
+    "stats": "360 paths · 1,035 points · 3 ms",
+    "text": "TYPE"
+  },
+  {
+    "controls": [
+      "Type treatment",
+      "Text (| = new line; max 128)",
+      "Letter height mm",
+      "Composition scale %",
+      "Letter spacing ×",
+      "Align",
+      "Margin mm",
+      "Pen",
+      "Face weight %",
+      "Columns",
+      "Cell aspect (h/w)",
+      "Characters from light to dark",
+      "Gamma",
+      "Threshold",
+      "Char size % of cell"
+    ],
+    "mode": "12 / Text made of text",
+    "stats": "1,524 paths · 5,280 points · 28 ms",
+    "text": "TYPE"
+  }
+]

@@ -1,8 +1,8 @@
-# MUUSIA v2.36
+# MUUSIA v2.119
 
 **A node-graph editor for generative pen-plotter art.**
 
-**Learn Muusia:** the [public learning site](https://bambi8000.github.io/Muusia/learn/) includes seven English tutorials, eighteen node guides, real screenshots and downloadable examples, including per-pen SVG export, numeric controls and preparing a first physical plot through SVG or G-code. See the [guide maintenance instructions](learn/README.md) for details. Build with `npm run build`, run `npm run preview:learn`, and open `/learn/index.html` on the local preview server.
+**Learn Muusia:** the [public learning site](https://bambi8000.github.io/Muusia/learn/) includes seven foundation tutorials, twenty illustrated node guides, animation studies and a typography section covering all fifteen text tools. Try the interactive [Type Studio lesson](https://bambi8000.github.io/Muusia/learn/typography/index.html#type-studio) with ten treatments, then download your text as an editable Muusia project. The guides also cover per-pen SVG export, numeric controls and preparing a first physical plot through SVG or G-code. See the [guide maintenance instructions](learn/README.md) for details. Build with `npm run build`, run `npm run preview:learn`, and open `/learn/index.html` on the local preview server.
 
 Muusia is a browser-based visual programming environment for creating plotter drawings.
 You build images by wiring nodes together: generators produce line work, modifiers
@@ -12,7 +12,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. It ships with **195 built-in nodes** across Generators,
+HTML file you can double-click. It ships with **312 built-in nodes** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
