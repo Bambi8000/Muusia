@@ -1,0 +1,97 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "04 / Modular squares",
+  "canvas": {
+    "W": 200,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "lettering",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "text": "TYPE",
+          "font": "Bold",
+          "size": 44,
+          "weight": 32,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Outline",
+          "hatch": 1.2,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        }
+      },
+      {
+        "id": 102,
+        "type": "image",
+        "x": 300,
+        "y": 40,
+        "params": {
+          "source": "Drawing (wired)",
+          "file": "",
+          "drawingWidth": 0.2,
+          "drawingFill": true,
+          "mode": "Square weave",
+          "cell": 1.8,
+          "strength": 1,
+          "gamma": 1,
+          "cutoff": 0.06,
+          "invert": false,
+          "ramsAngle": 0,
+          "ramsDepth": 14,
+          "ramsSmooth": 1.2,
+          "ramsMin": 1,
+          "ramsWhite": false,
+          "levels": 3,
+          "low": 0.25,
+          "high": 0.75,
+          "minlen": 5,
+          "dotfill": "Spiral fill",
+          "squarefill": "Outline",
+          "squarelayout": "Staggered",
+          "direction": "Image contours",
+          "angle": 75,
+          "flow": 0.75,
+          "passes": 3,
+          "jitter": 0,
+          "pitch": 0.3,
+          "colours": 1,
+          "colourmap": "Source colours",
+          "pen2": 4,
+          "pen3": 6,
+          "pen4": 1,
+          "pen5": 5,
+          "pen6": 10,
+          "margin": 8,
+          "seed": 139,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e103",
+        "from": 101,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 1
+      }
+    ],
+    "outputId": 102
+  }
+}

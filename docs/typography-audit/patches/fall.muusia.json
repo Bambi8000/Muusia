@@ -1,0 +1,72 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "11 / Falling characters",
+  "canvas": {
+    "W": 200,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "hersheytext",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "text": "A",
+          "size": 12,
+          "track": 100,
+          "lineh": 150,
+          "align": "Center",
+          "centerC": true,
+          "px": 20,
+          "py": 40,
+          "layer": 0
+        }
+      },
+      {
+        "id": 102,
+        "type": "gravity",
+        "x": 300,
+        "y": 40,
+        "params": {
+          "cols": 18,
+          "rows": 10,
+          "stamp": "Dot",
+          "stampSize": 0.65,
+          "release": 0.55,
+          "softness": 0.35,
+          "clumps": 0.35,
+          "progress": 0.5,
+          "drift": 8,
+          "spin": 40,
+          "sizeMod": 0,
+          "modulate": "Fallen only",
+          "gridJitter": 0.15,
+          "pile": "Heap",
+          "spread": 0.6,
+          "packing": 0.9,
+          "palette": 1,
+          "assign": "Diagonal",
+          "penA": 0,
+          "penB": 2,
+          "penC": 11,
+          "penD": 10,
+          "margin": 12,
+          "seed": 7
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e103",
+        "from": 101,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 0
+      }
+    ],
+    "outputId": 102
+  }
+}

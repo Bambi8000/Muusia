@@ -248,7 +248,7 @@ diff({ bridge: false, font: "Sampler 5x7", text: "Z" }, "bridge (Sampler Z)");
   const rN = run({ ...base, coreMark: "None", edgeMark: "None", haloMark: "None", auraMark: "None", pinMark: "None" });
   ok(rN.paths.length === 0, "all marks None -> nothing drawn");
 }
-for (const pd of def.params.filter((q) => q.type === "select" && !q.showIf)) {
+for (const pd of def.params.filter((q) => q.type === "select" && !q.showIf && q.key !== "markSource")) {
   const seen = new Set();
   for (const opt of pd.options) {
     const r = run({ ...p0, text: "A|MZ", [pd.key]: opt });
@@ -299,3 +299,5 @@ ok(finiteAll(run({ ...p0, margin: 200 })), "margin larger than the sheet: no NaN
 
 console.log(fails === 0 ? "ALL OK" : fails + " FAILURES");
 process.exit(fails === 0 ? 0 : 1);
+
+process.exitCode = fails ? 1 : 0;

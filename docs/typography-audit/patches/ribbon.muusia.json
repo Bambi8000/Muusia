@@ -1,0 +1,43 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "08 / Hairline lettering",
+  "canvas": {
+    "W": 200,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "ribbontype",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "text": "flow",
+          "xh": 38,
+          "width": 0.28,
+          "gap": 0.65,
+          "stretchX": 1,
+          "stretchY": 1,
+          "slant": 8,
+          "asc": 2.6,
+          "desc": 0.6,
+          "facets": 8,
+          "asym": "None",
+          "asymAmt": 0.4,
+          "seed": 3,
+          "spacing": 0.12,
+          "align": "Center",
+          "baseline": 0.72,
+          "fit": true,
+          "margin": 12,
+          "penCycle": false,
+          "layer": 6
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 101
+  }
+}

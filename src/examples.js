@@ -15,6 +15,14 @@
 
 export const EXAMPLES = [
   {
+    name: "Stitch Type · Letters made of cells", desc: "One Rod microbe becomes the building block of INK. Connect Microbes Paths to Stitch Type Motif (blue input 1); select Stitch Type. Auto uses the wired drawing. Change Motif size, angle and variation; Source pens preserves the source colours. For a simpler mark use Microbes Interior 0, Membrane Single and Filaments 0. The entire input drawing is one mark, so keep Count at 1.",
+    canvas: { W: 200, H: 140 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "microbes", x: 20, y: 20, params: { ...defaults("microbes"), organism: "Rod", count: 1, size: 45, variation: 0, interior: 0, membrane: "Single", filaments: 0, motion: "Still", colours: 1, layer: 6 } },
+      { id: 9002, type: "stitchtype", x: 365, y: 20, params: { ...defaults("stitchtype"), text: "INK", font: "Bold 5x7", px: 2, cell: 4, preset: "Custom", coreMark: "None", edgeMark: "None", haloMark: "None", auraMark: "None", pinMark: "None", rings: 0, motifTurn: 65, motifVary: .2, motifSize: .9, motifPens: "Source pens" } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 1 }] }),
+  },
+  {
     name: "Murmuration · Follow one reindeer", desc: "A moving camera follows the herd over sparse ground dots; animal 17 stays red. Select Frame Grid, set ANIMATE Frames to 24, and Play. Camera can also Follow animal. Keep Seed and Animals fixed. Export order → All frames by pen gives a ZIP: plot pen-00 on every sheet, then pen-02 on the same numbered sheets. Use a paper stop/jig and the same origin, scale and orientation on both passes. Markers and numbers are black only. For 48 sheets, change both Frame Grid Total frames and ANIMATE Frames to 48. In Liike choose Whole sheets and Light outlines.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [

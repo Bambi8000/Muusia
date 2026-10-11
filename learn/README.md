@@ -87,7 +87,7 @@ Copy those fields into the corresponding `assets/screenshots/*-export.json` reco
 
 ## Current scope
 
-The current build contains 33 static pages: the overview, tutorial index, node reference index, seven foundation tutorials, twenty node guides and three animation studies. Its forty editable patches include the extra Murmuration and Microbes studies described below. Adding the studies does not claim a completed illustrated guide for every node or an eighth foundation lesson.
+The current build contains 36 static pages: the overview, tutorial index, node reference index, seven foundation tutorials, twenty node guides, three animation studies and three typography pages. Its 69 editable patches include the extra Murmuration and Microbes studies described below. Adding the studies does not claim a completed illustrated guide for every node or an eighth foundation lesson.
 
 Published nodes: Grid, Wave, Tracks, Stroke, Stamp, Set Pen, Merge, Value, Frame, Image, Polyhedron Studio, Travel Sort, Move / Scale, Rotate, Hatch Fill, Container, Random and Math. Other built-ins remain in the in-app catalog and are not represented as finished guides. Group/legacy guides and more advanced tutorials belong to the next stages in `docs/MUUSIA-LEARN-PLAN.md`.
 
@@ -173,3 +173,30 @@ The guide links from the Learn overview, tutorial index and node library, with
 steps for Frame Grid and All frames by pen. Single-frame SVG and G-code were
 checked in the real app during node development; see `docs/microbes/browser-checks.json`.
 Physical plotting and a Microbes-specific batch ZIP inspection remain unclaimed.
+
+### Typography tutorial and all text tools · v2.118
+
+`typography/index.html` teaches outlined lettering, Pattern Fill, the new blue
+Stitch Type Motif input and Concrete Poetry animation (including Shift and
+fixed-letter Zoom). `typography/nodes/index.html` documents all fourteen existing
+text tools, using real computed illustrations and mode-dependent parameter tables.
+These are fourteen reference sections, not fourteen additional illustrated node
+pages. The separate `typography/research/` companion publishes the 311-node audit
+and twelve original study projects as a dated v2.117 snapshot; its first proposed
+extension is now implemented. The new section adds 17 current example projects
+plus those 12 original projects to the previous 40 downloads.
+
+`learn/typography/` owns its builder, source fixtures, live Concrete Poetry player
+and validators. The player is bundled from the real node, starts paused and offers
+all fourteen motions with 24/36/48 frames. Shift and Zoom switch to appropriate
+recipes; their downloadable patches are separate. Shared validation computes 216
+frames across the three starting recipes and verifies periodic endpoints.
+
+`motif-ui.png` is the actual development Focus view of the Microbes → Stitch Type
+INK example (424 paths). `capture.json` separately records complete browser SVG
+and G-code captures of the smaller I / Pixel 1 variation: 32 paths, 5,120 points,
+200 × 140 mm, pen 6. `validate-capture.mjs` compares all SVG geometry and G-code
+segments to the current node, including pen-up rapid moves. The exporter route
+optimization may reorder paths. These evidence files are retained in the source,
+not offered as ready-to-run machine downloads. The development header was still
+v2.117 when captured; source hash pins the new implementation. No physical plot.

@@ -1,0 +1,58 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "05 / Serpentine type",
+  "canvas": {
+    "W": 200,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "hersheytext",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "text": "LOOP",
+          "size": 42,
+          "track": 100,
+          "lineh": 150,
+          "align": "Center",
+          "centerC": true,
+          "px": 20,
+          "py": 40,
+          "layer": 0
+        }
+      },
+      {
+        "id": 102,
+        "type": "zigzag_path",
+        "x": 300,
+        "y": 40,
+        "params": {
+          "mode": "Coil",
+          "wl": 2.5,
+          "amp": 2,
+          "varyamp": 0.1,
+          "varywl": 0.1,
+          "varylen": 40,
+          "phase": 0,
+          "fade": 3,
+          "keepsrc": false,
+          "seed": 5
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e103",
+        "from": 101,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 0
+      }
+    ],
+    "outputId": 102
+  }
+}

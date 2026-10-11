@@ -1,0 +1,56 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "02 / Living strokes",
+  "canvas": {
+    "W": 200,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "hersheytext",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "text": "ROOT",
+          "size": 39,
+          "track": 100,
+          "lineh": 150,
+          "align": "Center",
+          "centerC": true,
+          "px": 20,
+          "py": 40,
+          "layer": 0
+        }
+      },
+      {
+        "id": 102,
+        "type": "myceliumfill",
+        "x": 300,
+        "y": 40,
+        "params": {
+          "strands": 4,
+          "width": 5,
+          "boost": 0.8,
+          "wav": 0.6,
+          "taper": 5,
+          "keep": true,
+          "seed": 21,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e103",
+        "from": 101,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 0
+      }
+    ],
+    "outputId": 102
+  }
+}

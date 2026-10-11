@@ -1,0 +1,216 @@
+[
+  {
+    "id": "contour",
+    "title": "01 / Contour type",
+    "idea": "The same skeleton becomes a landscape of merging outlines.",
+    "recipe": "Text → SDF Contours",
+    "limitation": "At large offsets, nearby letters merge. This is a field effect, not an independent outline per glyph.",
+    "stats": {
+      "paths": 14,
+      "points": 4065,
+      "inkMetres": 3.6,
+      "pens": 1,
+      "sha256": "63e603e48f74685026b6598193fe5efb891f3128c7d938a52323a4e49a88f299"
+    },
+    "nodes": [
+      "hersheytext",
+      "sdfcontours"
+    ]
+  },
+  {
+    "id": "roots",
+    "title": "02 / Living strokes",
+    "idea": "Thicker junctions and wandering strands make the word feel grown.",
+    "recipe": "Text → Mycelium Fill",
+    "limitation": "Individual pen paths are the unit. Dense intersections and pen-lift count need a physical specimen.",
+    "stats": {
+      "paths": 71,
+      "points": 3665,
+      "inkMetres": 4.06,
+      "pens": 1,
+      "sha256": "a52a55660877209c81156766038c62e294990a34b4b0b6c7ef133e8867c49780"
+    },
+    "nodes": [
+      "hersheytext",
+      "myceliumfill"
+    ]
+  },
+  {
+    "id": "texture",
+    "title": "03 / Patterned face",
+    "idea": "A closed letter silhouette gives texture a precise place to live.",
+    "recipe": "Lettering → Pattern Fill",
+    "limitation": "Use Outline and Depth 0 on Lettering. Pattern Fill preserves nested holes.",
+    "stats": {
+      "paths": 165,
+      "points": 8595,
+      "inkMetres": 4.62,
+      "pens": 1,
+      "sha256": "04e68f72ce7d0a5106c71ad45203225b42939d8b2f5b520ee4cc218bd8340964"
+    },
+    "nodes": [
+      "lettering",
+      "patternfill"
+    ]
+  },
+  {
+    "id": "squares",
+    "title": "04 / Modular squares",
+    "idea": "Letter ink becomes a field of small drawn squares.",
+    "recipe": "Lettering → Image · Drawing → Square weave",
+    "limitation": "Image interprets the drawing as a raster internally, then emits pen paths. The square size limits fine details.",
+    "stats": {
+      "paths": 1709,
+      "points": 6836,
+      "inkMetres": 10.25,
+      "pens": 1,
+      "sha256": "1515b252e836b8bae11167fe36626966c69b54fb6f70c6dba6513e9b61a1a070"
+    },
+    "nodes": [
+      "lettering",
+      "image"
+    ]
+  },
+  {
+    "id": "coil",
+    "title": "05 / Serpentine type",
+    "idea": "Each stroke is replaced by a dense, rounded zigzag.",
+    "recipe": "Text → Zigzag Path · Coil",
+    "limitation": "Amplitude can close small counters. Fine waves cost more plot length than the original skeleton.",
+    "stats": {
+      "paths": 5,
+      "points": 2866,
+      "inkMetres": 1.96,
+      "pens": 1,
+      "sha256": "ea274d88b6c40f193edc83f1933c37da018e22130dc79996e42c0f2133e2d483"
+    },
+    "nodes": [
+      "hersheytext",
+      "zigzag_path"
+    ]
+  },
+  {
+    "id": "orbit",
+    "title": "06 / Along a path",
+    "idea": "An existing drawing becomes a baseline for repeated words.",
+    "recipe": "Tracks → Text on Path",
+    "limitation": "Letters sit on local tangents. They are not warped continuously through the bend.",
+    "stats": {
+      "paths": 72,
+      "points": 360,
+      "inkMetres": 0.84,
+      "pens": 1,
+      "sha256": "8bde36380277a1936bf82f57ea50c18ea22d06766259abc40ed2b8cf07738afc"
+    },
+    "nodes": [
+      "radat",
+      "textpath"
+    ]
+  },
+  {
+    "id": "stitches",
+    "title": "07 / Modular marks",
+    "idea": "The existing stitch engine already separates core, edge and halo.",
+    "recipe": "Stitch Type",
+    "limitation": "This uses the built-in bitmap alphabet. Different mark types can share the same letter layout.",
+    "stats": {
+      "paths": 782,
+      "points": 1564,
+      "inkMetres": 3.97,
+      "pens": 5,
+      "sha256": "d63032f2540c09634f53fbcbd21127e42e6c844c94bbf4822a0eb208ab9d5a41"
+    },
+    "nodes": [
+      "stitchtype"
+    ]
+  },
+  {
+    "id": "ribbon",
+    "title": "08 / Hairline lettering",
+    "idea": "A complete text engine for letters made of parallel ribbons.",
+    "recipe": "Ribbon Type",
+    "limitation": "Current alphabet is lowercase a–z; capitals fold to lowercase and digits / punctuation are skipped.",
+    "stats": {
+      "paths": 90,
+      "points": 2218,
+      "inkMetres": 6.94,
+      "pens": 1,
+      "sha256": "800937d863641b27d408ac732b72334d22a59328b45c363d1eea67539f1ee6f4"
+    },
+    "nodes": [
+      "ribbontype"
+    ]
+  },
+  {
+    "id": "air",
+    "title": "09 / Flow around a word",
+    "idea": "A word becomes an obstacle and organises its surrounding space.",
+    "recipe": "Lettering → Wind Tunnel",
+    "limitation": "Closed obstacles use polygon union. This is an exterior-flow study; enclosed letter counters are blocked.",
+    "stats": {
+      "paths": 23,
+      "points": 5074,
+      "inkMetres": 3.77,
+      "pens": 2,
+      "sha256": "cbeee7773736d2960f9503f6b956c1f87df1a7f73296019e6b1584c1094a12a7"
+    },
+    "nodes": [
+      "lettering",
+      "windtunnel"
+    ]
+  },
+  {
+    "id": "words",
+    "title": "10 / Words inside a word",
+    "idea": "A large letterform holds a field of smaller text.",
+    "recipe": "Lettering → Concrete Poetry · Fill region",
+    "limitation": "Region tests glyph centres, not complete stroke containment. Small letters can cross the large outline at the edges.",
+    "stats": {
+      "paths": 1370,
+      "points": 4117,
+      "inkMetres": 4.04,
+      "pens": 1,
+      "sha256": "d475d917462591b10f206d678f7aa178a16ca949cf09bc2c02e9960ed4144b83"
+    },
+    "nodes": [
+      "lettering",
+      "concrete"
+    ]
+  },
+  {
+    "id": "fall",
+    "title": "11 / Falling characters",
+    "idea": "A single letter can already be used as a stamp in a collapsing grid.",
+    "recipe": "Text “A” → Gravity · Stamp",
+    "limitation": "This repeats the input as one motif. Dissolving an arbitrary sentence letter by letter needs a different, glyph-aware mode.",
+    "stats": {
+      "paths": 360,
+      "points": 900,
+      "inkMetres": 3.01,
+      "pens": 1,
+      "sha256": "65ee395211445f6cb2a67b9dc8066a821f6af13791defa192a21d20a45ed3f6a"
+    },
+    "nodes": [
+      "hersheytext",
+      "gravity"
+    ]
+  },
+  {
+    "id": "ascii",
+    "title": "12 / Text made of text",
+    "idea": "Small plotted characters become the tone of a larger word.",
+    "recipe": "Lettering · Hatch → ASCII Art",
+    "limitation": "Hatching supplies line density. A bare thin outline gives a different, much lighter ASCII interpretation.",
+    "stats": {
+      "paths": 1915,
+      "points": 7165,
+      "inkMetres": 5.14,
+      "pens": 1,
+      "sha256": "2ad4710b2e08ad01d2202ccbd3d66aed0efffc52bed912a8955f6c0a50a8fccb"
+    },
+    "nodes": [
+      "lettering",
+      "asciiart"
+    ]
+  }
+]

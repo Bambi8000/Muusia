@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 311 built-in nodes in the Muusia v2.117 release. Conventions used below:
+All 311 built-in nodes in the Muusia v2.118 release. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -526,10 +526,20 @@ at a corner, so Sampler and Tiny diagonals (Z, N, K, X) stay edge-connected
 instead of falling into corner-touching blocks; Bold is already connected and
 ignores it. Collinear marks are merged into single strokes — the X fill and
 the lattice plot as long diagonals and rules, not thousands of ticks — and the
-*Seed* only moves pins and aura, so the letter itself is stable while the
+*Seed* only moves pins and aura in built-in mode, so the letter itself is stable while the
 decoration re-rolls. Five pens by default: Purple core, Blue edge, Red halo,
 Magenta pins, Orange aura; guides show the margin box, the letter block and
-the outer ring box.
+the outer ring box. Blue **Motif** input (port 1) repeats a complete drawing inside
+selected cells. *Mark source* Auto uses a non-empty wired drawing, Built-in
+ignores it, and Wired motif leaves selected cells empty if no valid motif is
+available. *Motif cells* selects Letter (Core + Edge), Core, Edge, Halo, or All
+rings; unselected decoration is retained. *Motif size × cell*, *Motif angle*,
+*Turn variation*, *Size variation* and *Position variation* keep the complete
+motif inside each cell using a rotation-safe fit. Variation is stable per cell
+and Seed. *Motif colours* Region pens follows the ring pens, Source pens keeps
+the input colours. Style remains port 0 and is applied last. Dense source
+geometry is reduced equally per cell to retain the full text within the point
+budget; use a small source motif for detail.
 
 **Perspective Hall** — one-point perspective corridor built as a real 3D box:
 walls, floor and ceiling (plus optional *Far wall*, stepped *Ledges* and

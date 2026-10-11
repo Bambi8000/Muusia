@@ -1,0 +1,71 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "12 / Text made of text",
+  "canvas": {
+    "W": 200,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "lettering",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "text": "INK",
+          "font": "Bold",
+          "size": 52,
+          "weight": 35,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Hatch",
+          "hatch": 0.4,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        }
+      },
+      {
+        "id": 102,
+        "type": "asciiart",
+        "x": 300,
+        "y": 40,
+        "params": {
+          "source": "Lines (wired)",
+          "filename": "",
+          "cols": 70,
+          "aspect": 1.3,
+          "ramp": "Custom",
+          "rampCustom": ".:TYPE",
+          "gamma": 1,
+          "invert": false,
+          "thresh": 0.03,
+          "charSize": 85,
+          "margin": 12,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e103",
+        "from": 101,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 0
+      }
+    ],
+    "outputId": 102
+  }
+}

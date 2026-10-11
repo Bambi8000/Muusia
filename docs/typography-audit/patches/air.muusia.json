@@ -1,0 +1,72 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "09 / Flow around a word",
+  "canvas": {
+    "W": 200,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "lettering",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "text": "AIR",
+          "font": "Bold",
+          "size": 38,
+          "weight": 27,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Outline",
+          "hatch": 1.2,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        }
+      },
+      {
+        "id": 102,
+        "type": "windtunnel",
+        "x": 300,
+        "y": 40,
+        "params": {
+          "lines": 40,
+          "angle": 0,
+          "influence": 9,
+          "clearance": 1,
+          "hug": 1.5,
+          "waviness": 0.05,
+          "wake": 0.15,
+          "wakeLen": 90,
+          "step": 1,
+          "keep": true,
+          "margin": 12,
+          "seed": 19,
+          "layer": 6
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e103",
+        "from": 101,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 0
+      }
+    ],
+    "outputId": 102
+  }
+}

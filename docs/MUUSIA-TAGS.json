@@ -1548,12 +1548,14 @@
   "round"
  ],
  "stitchtype": [
-  "text",
-  "grid",
-  "weave",
+  "decoration",
   "fill",
+  "grid",
+  "motif",
   "retro",
-  "decoration"
+  "text",
+  "typography",
+  "weave"
  ],
  "stone": [
   "3d",

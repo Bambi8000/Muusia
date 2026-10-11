@@ -1,0 +1,56 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "06 / Along a path",
+  "canvas": {
+    "W": 200,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "radat",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "rings": 1,
+          "gap": 6,
+          "wob": 0,
+          "drift": 0,
+          "seed": 7,
+          "layer": 1
+        }
+      },
+      {
+        "id": 102,
+        "type": "textpath",
+        "x": 300,
+        "y": 40,
+        "params": {
+          "text": "WORDS IN ORBIT ",
+          "size": 6,
+          "track": 100,
+          "align": "Start",
+          "startPct": 0,
+          "baseline": 0,
+          "side": "Along",
+          "repeat": true,
+          "gap": 4,
+          "res": 0.6,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e103",
+        "from": 101,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 0
+      }
+    ],
+    "outputId": 102
+  }
+}

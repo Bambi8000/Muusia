@@ -1306,9 +1306,9 @@ export const NODE_RECENCY = {
     "sha256": "f8c7b48472f20652f2ad3255f340c4b23cfd255682c812729f36cb28f8190755"
   },
   "stitchtype": {
-    "date": "2026-09-21",
-    "order": 52,
-    "sha256": "45b206a0bee72d3140693ea4ce0e8c83b1cdabc47568df002c65b7c681a7294e"
+    "date": "2026-10-11",
+    "order": 77,
+    "sha256": "c18885e83f10c8b8f5d63babf32084b862b01ae853633489786ff6f849ccb3a1"
   },
   "stone": {
     "date": "2026-07-22",

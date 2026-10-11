@@ -3015,6 +3015,79 @@ according to the session's actual capabilities:
     commit's deployment. Refresh the clean Claude snapshot after integration;
     a local snapshot is not a Claude web-project upload.
 
+- **W — typography reuse audit (local research)** 2026-10-11 Astra —
+  base `39fef7d` / v2.117, branch `codex/typography-audit`, requested by Daniel
+  to assess the existing node collection for typography. No app implementation
+  or publication is part of this task.
+  - English interactive report at `docs/typography-audit/index.html`; all 311
+    built-ins screened into eight reuse categories, including 14 existing text
+    tools. Twelve specimen SVGs and editable Muusia patches use actual node
+    computations. `build.mjs` regenerates these and records current source
+    hashes. `proof.html` is the visual contact sheet.
+  - Priorities: retain character / word / line identity and counter-aware face
+    outlines; use graph presets for Lettering materials; add custom marks to
+    Stitch Type; extend Concrete Poetry with whole-glyph motion; improve Ribbon
+    Type alphabet coverage and Text on Path envelope bending. Coral, Microbes
+    and Murmuration letter formations remain later algorithm experiments.
+  - Focused probes executed 18 distinct nodes. Twelve graphs pass parameter /
+    pin checks, non-empty finite geometry, valid pens and repeat determinism.
+    Container's polygon-union region fills counters (nested rings and actual
+    Lettering O); Hatch Fill preserves both. Pattern Fill preserves the nested
+    counter, as does Image's filled Drawing input (per-pen nesting). Wind Tunnel
+    and Zen Garden also need care around holes. Concrete Poetry gates glyph
+    centres rather than clipping complete glyphs. Morph Layers clamps to 12
+    layers: a 48-frame probe gives 12 distinct outputs, frame 12 = frame 48.
+  - All twelve specimens visually reviewed in the browser; inventory category,
+    search and evidence filters checked. Report scripts and local links checked.
+    These are direct node-compute research renders, not browser-export or full
+    app-import validation. No physical plotting or complete 311-node regression
+    claim. App source, public Learn pages and Claude snapshot are unchanged.
+  - Work claim stays ready for Daniel's choice of first typography prototype.
+    This research can later be adapted to Learn, but is not yet a Learn lesson.
+
+- **2.118 — custom Stitch Type motifs and complete typography Learn section**
+  2026-10-11 Astra — integrates the typography research from base `39fef7d`.
+  Daniel selected **Stitch Type: own drawing as a letter building block**, and
+  authorised publication with a tutorial covering every existing text tool.
+  This release supersedes the preceding local-only W entry.
+  - Stitch Type adds a blue **Motif (optional)** input at port 1; Style stays at
+    port 0. Auto / Built-in / Wired motif, Letter / Core / Edge / Halo / All
+    rings, aspect-preserving cell fit, angle, seeded turn/size/position variation,
+    and Region pens / Source pens. Empty Auto retains legacy output. A complete
+    source drawing is one mark; dense motifs share a detail budget across all
+    cells. Existing built-in presets and unwired geometry remain unchanged.
+  - Help adds **Stitch Type · Letters made of cells**, Microbes → Stitch Type
+    INK: 424 paths / 67,840 points. Baked source replaces the graduated lab.
+    311 definitions / 309 modules / 62 Help examples. App.jsx changes only
+    APP_VERSION 2.117 → 2.118; no shared engine, machine or exporter change.
+  - Learn adds three pages: `typography/`, `typography/nodes/` (all 14 text
+    tools, each illustrated, all controls), and `typography/research/` (the
+    earlier 311-node survey and 12 specimens, clearly dated v2.117). Seventeen
+    current projects plus twelve original study projects. Concrete Poetry's
+    real node powers a live 14-motion preview with 24/36/48 frames, Shift and
+    fixed-letter Zoom. Links from home, tutorials, library and global navigation.
+    Learn totals 36 pages / 69 downloadable patch files. Fourteen text references
+    are sections within one page, separate from the twenty classic node guides.
+  - Focused checks: frozen legacy Stitch Type geometry, valid pins, finite and
+    deterministic paths, immutability, region/source pens, rotation-safe cell
+    bounds, all five cell targets, point budgets and Style; existing Stitch
+    validator and all 62 examples pass. Shared ordered catalog → build →
+    check:learn passes (23,510 checks, plus typography checks / 216 motion frames).
+    Old reference-export source scopes remain valid without recapture.
+  - Actual browser evidence: new INK Focus screenshot, plus complete SVG and
+    G-code of the compact I / Pixel 1 variant (32 paths / 5,120 points, pen 6,
+    200 × 140 mm). Checksums/source hash in `learn/typography/capture.json`;
+    SVG points/closures and G-code drawing segments match the real node at
+    export precision, with route reordering allowed and rapid moves pen-up.
+    Development header was v2.117 when captured. No physical plot or calibrated
+    hardware claim. These G-code bytes are evidence, not public machine presets.
+  - Browser review: all 14 illustrated text examples, all reference sections,
+    live Shift geometry change, Zoom frame selection and 48-frame counter,
+    research search and links; no browser errors. Final release uses existing
+    Pages workflow; integration owner verifies the exact release SHA and live
+    app/tutorial. Refresh the clean local Claude snapshot after integration;
+    a local export does not mean the Claude web project has been uploaded.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

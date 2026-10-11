@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-11",
+  "appVersion": "2.117",
+  "development": true,
+  "node": "stitchtype",
+  "sourceSha256": "c18885e83f10c8b8f5d63babf32084b862b01ae853633489786ff6f849ccb3a1",
+  "screenshot": {
+    "file": "motif-ui.png",
+    "sha256": "478be5fbada77fadef9054b8666f03a8fb75369d150c879f426cb6bd9c2fb7b6",
+    "width": 1119,
+    "height": 818,
+    "project": "custom-motif",
+    "view": "Focus"
+  },
+  "exports": {
+    "svg": "motif-export.svg",
+    "svgSha256": "a1f58a88cad97d4ab8e5621c1a50ab6658b3c62e357e46d9f425e41c4c172767",
+    "gcode": "motif-I-export.gcode",
+    "gcodeSha256": "4e392ba17859279020ddedfbf9a5bde39d55cee073ae642b149a0328a5dcf65a",
+    "project": "custom-motif",
+    "overrides": {
+      "text": "I",
+      "px": 1
+    },
+    "paths": 32,
+    "points": 5120,
+    "match": "All SVG points and closures at 0.01 mm; all G-code drawing segments, rapid pen state and ending pen-up verified. Route optimization on.",
+    "physicalPlot": false
+  },
+  "note": "Capture uses the v2.117 development UI with the new Stitch Type implementation. Not a calibrated machine profile or a physical plot."
+}

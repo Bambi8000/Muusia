@@ -200,3 +200,17 @@ index, overview and library link to the new guide. Learn now has 33 pages,
 30 PNG captures and 40 editable projects. The seven foundation lessons remain a
 separate count. Frame Grid and pen-pass instructions cover one frame per sheet;
 physical plotting is not claimed. Included in the authorised v2.117 release.
+
+
+Typography extension, 2026-10-11: the authorised v2.118 release adds an English
+step-by-step typography tutorial, a complete reference to all 14 existing text
+nodes (including Concrete Poetry, Ribbon Type, Text on Path and specialist faces),
+and the earlier 311-node reuse audit with its 12 experiments. Stitch Type now
+accepts a complete drawing as its cell motif, as selected by Daniel. The lesson
+includes an actual Focus capture and editable Microbes → Stitch Type example,
+plus a live Concrete Poetry preview with Shift and fixed-size-letter Zoom.
+The three new pages bring Learn to 36 pages and 69 editable projects; the 14 text
+references are sections within one page. Tutorial, library, home and global
+navigation link to the section. Software validation covers actual geometry,
+216 animation frames, legacy Stitch Type parity and complete browser SVG/G-code
+captures of a compact motif example. No physical plot is implied.

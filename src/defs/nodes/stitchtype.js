@@ -21,8 +21,8 @@ export default {
   name: "Stitch Type",
   cat: "gen",
   group: "textimg",
-  desc: "Bitmap lettering dressed in layered stitch marks, in the manner of an 8-bit sampler chart. Text is set in a pixel font (Sampler 5x7, Bold 5x7 or Tiny 3x5; A-Z, 0-9, ÄÖÅ, punctuation, | = new line) and every font pixel becomes a Pixel x Pixel block of stitch cells. Cells are then classified by distance to the letter boundary and each class is drawn with its own mark and pen: Core (inside, not touching the outside) carries the fill - cross X, plus, diamond, dots, hatch or rings; Edge (the letter's boundary ring) carries a lattice of joined plus marks, an outline, boxes, dots or diagonals; Halo (the ring of cells just outside) carries horizontal or vertical stripes at Halo stripes per cell, dashes, dots or a zigzag, and Aura (the next ring(s) out, Aura rings) scatters seeded dashes, dots, ticks or crosses at Aura fill density. Pins are long seeded bars laid along the halo runs beside the letter stems (Vertical, Horizontal, Both or None, density Pins). Preset Sampler is the reference chart; Circuit, Knit and Dotted are ready variants; Custom exposes every mark selector. Cell mm is the stitch pitch and stays exact unless the block (rings included) cannot fit inside Margin, when it shrinks. Collinear marks are merged into single strokes, so the lattice and the X fill plot as long lines rather than thousands of ticks. Five pens by default: Purple core, Blue edge, Red halo, Magenta pins, Orange aura.",
-  ins: [Pin("style", "Style")],
+  desc: "Bitmap lettering dressed in layered stitch marks, in the manner of an 8-bit sampler chart. Text is set in a pixel font (Sampler 5x7, Bold 5x7 or Tiny 3x5; A-Z, 0-9, ÄÖÅ, punctuation, | = new line) and every font pixel becomes a Pixel x Pixel block of stitch cells. Cells are then classified by distance to the letter boundary and each class is drawn with its own mark and pen: Core (inside, not touching the outside) carries the fill - cross X, plus, diamond, dots, hatch or rings; Edge (the letter's boundary ring) carries a lattice of joined plus marks, an outline, boxes, dots or diagonals; Halo (the ring of cells just outside) carries horizontal or vertical stripes at Halo stripes per cell, dashes, dots or a zigzag, and Aura (the next ring(s) out, Aura rings) scatters seeded dashes, dots, ticks or crosses at Aura fill density. Pins are long seeded bars laid along the halo runs beside the letter stems (Vertical, Horizontal, Both or None, density Pins). Preset Sampler is the reference chart; Circuit, Knit and Dotted are ready variants; Custom exposes every mark selector. Cell mm is the stitch pitch and stays exact unless the block (rings included) cannot fit inside Margin, when it shrinks. Collinear marks are merged into single strokes, so the lattice and the X fill plot as long lines rather than thousands of ticks. Five pens by default: Purple core, Blue edge, Red halo, Magenta pins, Orange aura. Connect any small drawing to the blue Motif input: Auto replaces the chosen cells with that drawing. Motif cells selects Letter, Core, Edge, Halo or All rings. Size fits the complete drawing inside each cell, preserving aspect ratio and leaving space for rotation. Angle, turn, size and position variation are seeded per cell. Region pens uses each cell class colour; Source pens keeps the motif colours. Style remains input 0 and is applied last. Empty Auto input keeps the built-in marks; Wired motif with no drawing leaves the chosen cells empty. Dense motifs are simplified equally in every cell to stay within the point budget; use a small source motif for fine detail.",
+  ins: [Pin("style", "Style"), Pin("paths", "Motif (optional)")],
   outs: [Pin("paths")],
   params: [
     { key: "text", label: "Text (| = new line)", type: "text", def: "MUUSIA" },
@@ -35,6 +35,14 @@ export default {
     { key: "align", label: "Align", type: "select", options: ["Center", "Left", "Right"], def: "Center" },
     { key: "yoff", label: "Y offset mm", type: "slider", min: -140, max: 140, step: 1, def: 0 },
     { key: "preset", label: "Preset", type: "select", options: ["Sampler", "Circuit", "Knit", "Dotted", "Custom"], def: "Sampler" },
+    { key: "markSource", label: "Mark source", type: "select", options: ["Auto", "Built-in", "Wired motif"], def: "Auto" },
+    { key: "motifCells", label: "Motif cells", type: "select", options: ["Letter", "Core", "Edge", "Halo", "All rings"], def: "Letter", showIf: p => p.markSource !== "Built-in" },
+    { key: "motifSize", label: "Motif size × cell", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.85, showIf: p => p.markSource !== "Built-in" },
+    { key: "motifAngle", label: "Motif angle °", type: "slider", min: -180, max: 180, step: 1, def: 0, showIf: p => p.markSource !== "Built-in" },
+    { key: "motifTurn", label: "Turn variation °", type: "slider", min: 0, max: 180, step: 1, def: 0, showIf: p => p.markSource !== "Built-in" },
+    { key: "motifVary", label: "Size variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0, showIf: p => p.markSource !== "Built-in" },
+    { key: "motifJitter", label: "Position variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0, showIf: p => p.markSource !== "Built-in" },
+    { key: "motifPens", label: "Motif colours", type: "select", options: ["Region pens", "Source pens"], def: "Region pens", showIf: p => p.markSource !== "Built-in" },
     { key: "coreMark", label: "Core mark", type: "select", options: ["Cross X", "Plus +", "Diamond", "Dots", "Hatch /", "Hatch \\", "Rings", "None"], def: "Cross X", showIf: (p) => p.preset === "Custom" },
     { key: "edgeMark", label: "Edge mark", type: "select", options: ["Lattice +", "Outline", "Box", "Dots", "Diagonal /", "None"], def: "Lattice +", showIf: (p) => p.preset === "Custom" },
     { key: "haloMark", label: "Halo mark", type: "select", options: ["Stripes -", "Stripes |", "Dashes", "Dots", "Zigzag", "None"], def: "Stripes -", showIf: (p) => p.preset === "Custom" },
@@ -234,6 +242,40 @@ export default {
     return { cols, rows, kind, cell, x0, y0, R, bw, bh, margin, W, H };
   },
 
+  // A whole input drawing is one mark. Centre and bound it before any rotation.
+  _motif(source) {
+    const paths = [];
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const q of source?.paths || []) {
+      if (!Array.isArray(q.pts) || q.pts.length < (q.closed ? 3 : 2) ||
+          !q.pts.every(pt => Array.isArray(pt) && Number.isFinite(pt[0]) && Number.isFinite(pt[1]))) continue;
+      for (const [x, y] of q.pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      paths.push(q);
+    }
+    if (!paths.length) return [];
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    let radius = 0;
+    for (const q of paths) for (const [x, y] of q.pts) radius = Math.max(radius, Math.hypot(x - cx, y - cy));
+    if (!(radius > 1e-9) || !Number.isFinite(radius)) return [];
+    return paths.map(q => ({ closed: !!q.closed, layer: Math.max(0, Math.min(11, Math.round(Number(q.layer) || 0))),
+      pts: q.pts.map(([x, y]) => [(x - cx) / radius, (y - cy) / radius]) }));
+  },
+
+  // Share the available detail across every cell, rather than dropping the
+  // final letters when a complex source drawing exhausts the output budget.
+  _motifDetail(paths, budget) {
+    if (paths.reduce((sum, q) => sum + q.pts.length, 0) <= budget) return paths;
+    const count = Math.min(paths.length, Math.floor(budget / 3));
+    if (!count) return [];
+    const chosen = Array.from({ length: count }, (_, i) => paths[Math.floor(i * paths.length / count)]);
+    let left = budget;
+    return chosen.map((q, i) => {
+      const n = Math.min(q.pts.length, Math.floor(left / (chosen.length - i)));
+      left -= n;
+      return { ...q, pts: Array.from({ length: n }, (_, j) => q.pts[Math.floor(j * (q.closed ? q.pts.length / n : (q.pts.length - 1) / (n - 1)))]) };
+    });
+  },
+
   compute(ins, p, ctx) {
     const L = this._layout(p, ctx);
     if (!L) return EMPTY;
@@ -246,7 +288,17 @@ export default {
     const auraFill = clamp(Number(p.auraFill) || 0, 0, 1);
     const pinFill = clamp(Number(p.pinFill) || 0, 0, 1);
     const preset = this._PRESETS[p.preset];
-    const M = preset || { core: p.coreMark, edge: p.edgeMark, halo: p.haloMark, aura: p.auraMark, pins: p.pinMark };
+    const M = { ...(preset || { core: p.coreMark, edge: p.edgeMark, halo: p.haloMark, aura: p.auraMark, pins: p.pinMark }) };
+    const motif = p.markSource === "Built-in" ? [] : this._motif(ins[1]);
+    const wired = p.markSource === "Wired motif" || motif.length > 0;
+    const target = p.motifCells || "Letter";
+    const selected = k => target === "All rings" ? k >= 1 : target === "Core" ? k === 1 : target === "Edge" ? k === 2 : target === "Halo" ? k === 3 : k === 1 || k === 2;
+    if (wired) {
+      if (selected(1)) M.core = "None";
+      if (selected(2)) M.edge = "None";
+      if (selected(3)) M.halo = "None";
+      if (target === "All rings") { M.aura = "None"; M.pins = "None"; }
+    }
     const BUDGET = 112000;
 
     const K = (c, r) => (c >= 0 && r >= 0 && c < cols && r < rows) ? kind[r * cols + c] : 0;
@@ -401,6 +453,35 @@ export default {
       else if (M.aura === "Dots") dots(auraOn, PA, 0.14);
       else if (M.aura === "Ticks |") dashesV(auraOn, PA, 0.6);
       else if (M.aura === "Crosses x") smallX(auraOn, PA, 0.22);
+    }
+
+    if (wired && motif.length) {
+      const cells = [];
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const k = K(c, r);
+        if (!selected(k)) continue;
+        if (k >= 4 && hash2(c, r, seed + 505 + k) >= auraFill * Math.pow(0.6, k - 4)) continue;
+        cells.push([c, r, k]);
+      }
+      // Motif cells have priority over the decorative rings. Reserve at least
+      // three points per cell before using the remaining budget for detail.
+      const reserve = Math.min(BUDGET, cells.length * 3);
+      while (paths.length && total > BUDGET - reserve) total -= paths.pop().pts.length;
+      const marks = cells.length ? this._motifDetail(motif, Math.floor((BUDGET - total) / cells.length)) : [];
+      const number = (v, fallback, lo, hi) => clamp(Number.isFinite(Number(v)) ? Number(v) : fallback, lo, hi);
+      const size = number(p.motifSize, .85, .05, 1), vary = number(p.motifVary, 0, 0, 1);
+      const jitter = number(p.motifJitter, 0, 0, 1), turn = number(p.motifTurn, 0, 0, 180);
+      const angle = number(p.motifAngle, 0, -36000, 36000);
+      for (const [c, r, k] of cells) {
+        const scale = size * (1 - vary * hash2(c, r, seed + 611));
+        const a = (angle + (hash2(c, r, seed + 613) * 2 - 1) * turn) * Math.PI / 180;
+        const ca = Math.cos(a), sa = Math.sin(a), radius = cell * scale * .5;
+        const slack = cell * (1 - scale) * .5 * jitter;
+        const cx = X(c + .5) + (hash2(c, r, seed + 617) * 2 - 1) * slack;
+        const cy = Y(r + .5) + (hash2(c, r, seed + 619) * 2 - 1) * slack;
+        const layer = k === 1 ? PC : k === 2 ? PE : k === 3 ? PH : PA;
+        for (const q of marks) poly(q.pts.map(([x, y]) => [cx + radius * (x * ca - y * sa), cy + radius * (x * sa + y * ca)]), q.closed, p.motifPens === "Source pens" ? q.layer : layer);
+      }
     }
 
     /* budget: rings are the least important, drop from the end */

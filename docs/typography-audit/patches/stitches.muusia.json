@@ -1,0 +1,49 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "07 / Modular marks",
+  "canvas": {
+    "W": 200,
+    "H": 140
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "stitchtype",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "text": "TYPE",
+          "font": "Sampler 5x7",
+          "px": 2,
+          "cell": 2.8,
+          "bridge": true,
+          "gap": 3,
+          "linegap": 2,
+          "align": "Center",
+          "yoff": 0,
+          "preset": "Sampler",
+          "coreMark": "Cross X",
+          "edgeMark": "Lattice +",
+          "haloMark": "Stripes -",
+          "auraMark": "Dashes",
+          "pinMark": "Vertical",
+          "haloLines": 3,
+          "rings": 1,
+          "auraFill": 0.55,
+          "pinFill": 0.5,
+          "margin": 12,
+          "seed": 7,
+          "penCore": 5,
+          "penEdge": 1,
+          "penHalo": 2,
+          "penPins": 7,
+          "penAura": 4
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 101
+  }
+}
