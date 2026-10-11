@@ -1,0 +1,43 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "single-cell",
+  "canvas": {
+    "W": 210,
+    "H": 297
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "microbes",
+        "x": 30,
+        "y": 20,
+        "params": {
+          "organism": "Cell",
+          "count": 1,
+          "size": 150,
+          "variation": 0,
+          "layout": "Scattered",
+          "membrane": "Double",
+          "interior": 1,
+          "filaments": 0.65,
+          "motion": "Breathe",
+          "amount": 0.65,
+          "clock": "Timeline",
+          "time": 0,
+          "margin": 12,
+          "seed": 42,
+          "colours": 1,
+          "layer": 0,
+          "pen2": 6,
+          "pen3": 4,
+          "pen4": 5,
+          "pen5": 7,
+          "pen6": 10
+        }
+      }
+    ],
+    "edges": []
+  }
+}

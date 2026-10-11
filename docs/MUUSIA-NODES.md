@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 310 built-in nodes in Muusia v2.116. Conventions used below:
+All 311 built-in nodes in the Muusia v2.117 release. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -8,7 +8,24 @@ accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (195)
+## Generators (196)
+
+**Microbes** — individual cells and bacteria: Cell, Coccus, Rod, Spiral, Amoeba
+and Ciliate, plus a Mixed field. *Count* 1 centres a single specimen. *Size mm*
+is the requested longest body dimension before size variation and fitting;
+crowded fields shrink specimens to keep bodies and filaments apart and inside
+*Margin* throughout their motion. Scattered uses seeded spaced positions; Grid
+makes a specimen collection. *Membrane* Single/Double controls the extra inset
+contour; *Interior* adds nuclei or coiled material and small granules. *Filaments*
+adds cilia to Ciliate and tails to Rod. These are stylised biological forms.
+*Colours* 1–6 assigns pens to whole organisms without changing geometry.
+*Motion*: Still, Drift, Breathe or Swimming (drift, turning and waving filaments).
+*Time source* Timeline follows ANIMATE directly; 24–48 frames loop with a fixed
+Seed and Count. Manual Time 0–1 accepts value wires. Identity, paths and pen
+assignment remain stable throughout each loop; there is no simulation history.
+The selected margin guide is not plotted. All actual marks are polylines or
+closed outlines, with Style applied last. Four Help examples cover a mixed field,
+single cell, swimming bacteria and six-specimen collection.
 
 **Shan Shui Landscape** — mountains, trees, pagodas and fishing boats using
 adapted [shan-shui-inf](https://github.com/LingDong-/shan-shui-inf) geometry by

@@ -526,6 +526,28 @@
       "sourceWorkingTree": "codex/murmuration-pen-passes; uncommitted",
       "sourceSha256": "17231aeeaabe6c99c47834fbfb0f4938c4399c664a608770aa6d0bdee30898c3",
       "note": "Actual browser Focus capture; JPEG converted to PNG without visual edits. Lower controls are outside the viewport."
+    },
+    {
+      "nodeKey": "microbes",
+      "file": "microbes.png",
+      "patch": "examples/microbes.muusia.json",
+      "width": 1120,
+      "height": 900,
+      "sha256": "61cba10bc61ace718100fd4c35d78170af44b617a5bba95f13f2d4c3938a1b70",
+      "view": "focus",
+      "frameIndex": 0,
+      "frameCount": 48,
+      "requestedViewport": {
+        "width": 1120,
+        "height": 900
+      },
+      "zoom": 1,
+      "selectedNode": "Microbes",
+      "appVersion": "2.117",
+      "date": "2026-10-11",
+      "sourceCommit": "9fd9c4eedfef3c0796823d5763ea63d5c9e0eb77",
+      "workingTree": "Microbes release and Learn guide",
+      "sourceNodeSha256": "5c5a07b5d7ae0058c7eab3095a23a5ac5660d4ae7ca6c03b0f02880a0e8f4728"
     }
   ]
 }

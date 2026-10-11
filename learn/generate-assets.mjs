@@ -120,6 +120,7 @@ function comparison(key, index, label, value, options = {}) {
 function selectOutput(value, outputId) { return { ...value, outputId }; }
 
 const comparisons = {
+  microbes: ['Cell', 'Rod', 'Ciliate'].map((organism, i) => comparison('microbes', i, `${organism} · one specimen`, withParams(examples.microbes, 'microbes', {organism, count: 1, size: 145, variation: 0, interior: 1, colours: 1}))),
   murmuration: ['Fixed', 'Follow group', 'Follow animal'].map((camera, i) => comparison('murmuration', i, `${camera} · frame 9 of 48`, withParams(examples.murmuration, 'murmuration', { camera }), { frameIdx: 8, frameCount: 48 })),
   grid: [8, 16, 24].map((hlines, i) => comparison('grid', i, `${hlines} horizontal lines`, withParams(examples.grid, 'grid', { hlines }))),
   aaltoilu: [0, 4, 8].map((amp, i) => comparison('aaltoilu', i, `Amplitude ${amp} mm`, withParams(examples.aaltoilu, 'aaltoilu', { amp }))),
@@ -171,6 +172,14 @@ const comparisons = {
 const CATEGORY = { gen: 'Generators', mod: 'Modifiers', dec: 'Decorators', duo: 'Combiners', math: 'Math', route: 'Routing' };
 const GROUP = { geometric: 'Geometric', deform: 'Deform', textimg: 'Text & Image', space: 'Space', penout: 'Pen & Output', transform: 'Transform', fillstyle: 'Fill & Style' };
 const visibilityNotes = {
+  "microbes.amount": "Shown when Motion is not Still.",
+  "microbes.clock": "Shown when Motion is not Still.",
+  "microbes.time": "Shown when Motion is not Still and Time source is Manual.",
+  "microbes.pen2": "Shown when Colours is at least 2.",
+  "microbes.pen3": "Shown when Colours is at least 3.",
+  "microbes.pen4": "Shown when Colours is at least 4.",
+  "microbes.pen5": "Shown when Colours is at least 5.",
+  "microbes.pen6": "Shown when Colours is at least 6.",
   "murmuration.clock": "Shown for Reindeer herd.",
   "murmuration.time": "Shown for Bird flock, or when Reindeer herd uses Manual time.",
   "murmuration.herdMotion": "Shown for Reindeer herd.",

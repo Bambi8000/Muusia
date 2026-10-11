@@ -23,6 +23,26 @@ export const EXAMPLES = [
     ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
   },
   {
+    name: "Microbes · Living microscope", desc: "Eighteen separate cells and bacteria in six inks. Select Microbes and press ANIMATE Play with 24 or 48 frames. Swimming combines small drifts, gentle turning and moving filaments; each organism keeps its identity and pen. For monochrome set Colours to 1. All frames by pen exports complete colour passes.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "microbes", x: 30, y: 20, params: { ...defaults("microbes"), colours: 6 } }], edges: [] }),
+  },
+  {
+    name: "Microbes · Single cell", desc: "One enlarged cell with an inset membrane, a nucleus and small organelles. Count 1 centres the specimen. Size is its requested body dimension in mm before fitting; set Size variation to 0 for a consistent size. Breathe makes a quiet looping study. Interior 0 and Membrane Single leave just the outline.",
+    canvas: { W: 210, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "microbes", x: 30, y: 20, params: { ...defaults("microbes"), organism: "Cell", count: 1, size: 150, variation: 0, interior: 1, motion: "Breathe" } }], edges: [] }),
+  },
+  {
+    name: "Microbes · Swimming bacteria", desc: "A field of rod-shaped bacteria with coiled interiors and waving flagella. Filaments sets tail length and count; Motion amount sets the swimming movement. Keep Seed and Count fixed during a loop. Bodies and tails remain within separate reserved areas throughout the animation.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "microbes", x: 30, y: 20, params: { ...defaults("microbes"), organism: "Rod", count: 14, size: 52, filaments: 1, colours: 3, amount: 1 } }], edges: [] }),
+  },
+  {
+    name: "Microbes · Specimen collection", desc: "Six different microscopic forms in a spaced grid: Cell, Coccus, Rod, Spiral, Amoeba and Ciliate. A still collection in six pens. Pick a single Organism and Count 1 to enlarge any specimen. These are stylised biological drawings, made entirely from plotter paths.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "microbes", x: 30, y: 20, params: { ...defaults("microbes"), count: 6, size: 65, layout: "Grid", variation: 0, motion: "Still", interior: 1, colours: 6 } }], edges: [] }),
+  },
+  {
     name: "Frame Grid · Light A4 markers", desc: "One animation frame per A4 sheet, with six-stroke Light outlines and printed frame numbers. Select Frame Grid, set ANIMATE → Frames to 24, then export all frames. In Liike choose Whole sheets, Light outlines, A4 landscape, Custom 1 × 1, Margin 30, Gap 0, Clearance 0, Marker size 8 and Total frames 24. The square with an X is top-left. Cell frames and Corner dots are not needed. Keep markers clear of artwork; photograph all four completely.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [

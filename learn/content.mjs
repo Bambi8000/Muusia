@@ -532,6 +532,37 @@ export const tutorials = [
 ];
 
 export const nodeGuides = {
+  microbes: {
+    summary: "Draw a single enlarged cell, a collection of bacteria or a living microscope field. Six forms and three looping motions, made entirely from pen strokes.",
+    useWhen: "You want recognisable individual organisms with membranes, internal detail and moving filaments. These are stylised drawings, not anatomical models or a biological simulation.",
+    recipe: [
+      "Download the node example below and open it with Load. Choose A4 wide in the paper presets (297 × 210 mm), then select Microbes to see its output.",
+      "Start with Organism Mixed, Count 18 and Colours 6. For one enlarged specimen, choose Cell, set Count to 1, Size mm to 145 and Size variation to 0.",
+      "Choose Swimming and keep Time source at Timeline. Open ANIMATE, set Frames to 24 or 48 and press Play. No clock wire is needed.",
+      "Try Breathe for changing body shapes or Drift for gentle movement. Keep Seed, Count and other drawing settings fixed while exporting a loop."
+    ],
+    controls: [
+      {name: "Organism / Count", text: "Mixed combines Cell, Coccus, Rod, Spiral, Amoeba and Ciliate. Count 1 centres a single organism. Higher counts create separate specimens; each keeps its identity throughout the animation."},
+      {name: "Size mm / Size variation / Margin mm", text: "Size requests the longest body dimension before variation and fitting. The node reserves space for membranes, filaments and motion, shrinking crowded specimens to keep them apart and inside the margin. Use fewer organisms or a larger canvas for larger final drawings."},
+      {name: "Layout", text: "Scattered uses seeded, spaced positions. Grid arranges a specimen collection. Neither layout is a flock simulation: each organism moves around its own place."},
+      {name: "Membrane / Interior / Filaments", text: "Double adds an inner contour. Interior adds a nucleus and small structures to cell-like forms, or coiled material and granules to bacteria. Filaments adds the ciliate’s fringe and the rods’ tails. All details are drawable paths."},
+      {name: "Motion / Motion amount", text: "Drift moves each specimen, Breathe changes its body, and Swimming combines movement, turning and moving filaments. Still or a zero amount freezes the drawing. Reduce the amount for subtler motion."},
+      {name: "Time source / Time 0–1", text: "Timeline follows ANIMATE. Manual lets you scrub the phase or drive it with a number wire. Phase 1 returns to phase 0; normal frame export stops one sample before that duplicate endpoint."},
+      {name: "Colours / Pen 1–6", text: "One to six selectable pens are assigned to complete organisms, including their internal details. Changing colours preserves the geometry. With one specimen only one pen is used, regardless of the requested colour count."}
+    ],
+    portNotes: "The optional purple Style input changes stroke styling. The blue output carries the organisms and their pen assignments. Connect it to Frame Grid for numbered sheets or to Merge to combine it with another drawing.",
+    screenshotCaption: "The real Microbes node in Focus mode, showing the six-colour example at its first frame. The dashed margin guide is a preview overlay, not a plotted line. More controls continue below the card; press Esc to return to the graph.",
+    outputCaption: "The first frame of the living microscope example: 18 separate organisms, six pens, A4 landscape.",
+    comparisonIntro: "The same requested size, shown with Count 1 and no size variation. Try the other forms and motion modes in the live study below.",
+    pitfalls: [
+      {q: "Why is a specimen smaller than Size mm?", a: "The requested body size is fitted into the available space together with its filaments and motion. Reduce Count, reduce Margin or enlarge the canvas. Size variation also changes individual sizes."},
+      {q: "Why does Play not change the drawing?", a: "Choose a motion other than Still, a nonzero Motion amount and Time source Timeline. Manual time only changes when you adjust or drive Time 0–1."},
+      {q: "Can I draw it with one pen?", a: "Yes. Set Colours to 1 and choose Pen 1 in the node. No Set Pen node is needed for this."},
+      {q: "Are these filled shapes?", a: "No. Membranes, internal structures and filaments are real strokes, suitable for SVG or G-code. Dense detail can take longer to plot; start with a single specimen."}
+    ],
+    related: ["murmuration", "frame", "merge", "viiva"],
+    tutorials: ["first-physical-plot", "export-two-colour-svg"]
+  },
   murmuration: {
     summary: "Animate a flock of birds or a herd of reindeer. Follow the group or one coloured animal while a quiet ground texture makes its movement visible.",
     useWhen: "You want a looping crowd with persistent individuals: migration, circling or a gathering herd. The camera comparison below shows two ways to frame the same motion.",

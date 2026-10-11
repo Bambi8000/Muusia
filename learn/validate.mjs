@@ -11,6 +11,8 @@ import { unzipSync, strFromU8 } from 'fflate';
 import { tutorials, nodeGuides } from './content.mjs';
 import { animationPages } from './animation/content.mjs';
 import { validateAnimation } from './animation/validate.mjs';
+import { MICROBES_STUDIES } from './microbes/build.mjs';
+import { EXAMPLES } from '../src/examples.js';
 import { PILOT_KEYS, DEFINITIONS, examples, evaluateExample } from './lib/fixtures.mjs';
 import { assertExportSourcesMatch } from './lib/export-provenance.mjs';
 
@@ -606,6 +608,32 @@ try {
   assert.ok(script.length > 1000 && !/from\s*['"](?:\.\.\/)*src\//.test(script), 'comparison is bundled for static hosting');
   check(true, '');
 } catch (error) { check(false, `Murmuration comparison: ${error.message}`); }
+
+// The embedded microscope and its downloads must stay in step with the real Help examples.
+try {
+  const def = DEFINITIONS.microbes;
+  const defaults = () => Object.fromEntries(def.params.map(p => [p.key, p.def]));
+  const sourceExamples = EXAMPLES.filter(e => e.name.startsWith('Microbes ·'));
+  assert.equal(sourceExamples.length, MICROBES_STUDIES.length);
+  for (const [i, id] of MICROBES_STUDIES.entries()) {
+    const relative = `examples/microbes-${id}.muusia.json`;
+    const bytes = await fs.readFile(path.join(SITE, relative));
+    assert.deepEqual(bytes, await fs.readFile(path.resolve(HERE, `../docs/microbes/${id}.muusia.json`)));
+    assert.ok(referencedPatches.has(path.join(SITE, relative)), `${id}: linked download`);
+    const patch = JSON.parse(bytes), source = sourceExamples[i];
+    assert.deepEqual(patch.root, source.make(defaults), `${id}: current Help graph`);
+    assert.deepEqual(patch.canvas, source.canvas, `${id}: matching page size`);
+    assert.ok(def.compute([], patch.root.nodes[0].params, {...patch.canvas, frameIdx: 0, frameCount: 48}).paths.length > 0);
+  }
+  assert.deepEqual(examples.microbes.patch.root.nodes[0].params, sourceExamples[0].make(defaults).nodes[0].params, 'guide and player use the same microscope');
+  const page = documents.get(path.join(SITE, 'nodes/microbes/index.html'));
+  for (const id of ['living-study', 'plot-a-loop']) assert.ok(page.elements.some(e => e.attributes.id === id));
+  for (const control of ['study', 'motion', 'colours', 'frames', 'play', 'scrub', 'art', 'species'])
+    assert.ok(page.elements.some(e => e.attributes['data-microbe'] === control), `${control}: working player element`);
+  const script = await fs.readFile(path.join(SITE, 'assets/microbes/study.js'), 'utf8');
+  assert.ok(script.length > 1000 && !/from\s*['"](?:\.\.\/)*src\//.test(script), 'microscope bundled for static hosting');
+  check(true, '');
+} catch (error) { check(false, `Microbes study: ${error.message}`); }
 
 try { await validateAnimation(SITE); check(true, ''); }
 catch (error) { check(false, `Animation studies: ${error.message}`); }

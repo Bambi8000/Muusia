@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **306 files** (308 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **309 files** (311 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 193, Modifiers 76). ESM format:
+  Generators 196, Modifiers 76). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -2948,6 +2948,72 @@ according to the session's actual capabilities:
     The release clears its completed work claim. Verify the exact Pages run
     and public app/guide, then refresh the clean Claude snapshot including both
     new app modules. Preparing snapshot files does not itself upload them.
+
+- **W — Microbes node, local review** 2026-10-11 Astra — based on
+  `9fd9c4eedfef3c0796823d5763ea63d5c9e0eb77`, branch `codex/microbes`.
+  - New Creatures generator `microbes`: Cell, Coccus, Rod, Spiral, Amoeba,
+    Ciliate and Mixed. Count 1 centres a single specimen; counts up to 120,
+    size/variation, scattered or grid layout, single/double membrane, interior,
+    cilia/flagella and 1–6 selectable whole-organism pens. Size is requested
+    body size before fitting, not guaranteed final physical size in a crowded
+    field. Disjoint reserved disks keep complete specimens inside the margin
+    throughout motion. Stylised forms; all output is actual plotter geometry.
+  - Still / Drift / Breathe / Swimming, Timeline or Manual Time. The phase
+    repeats without a duplicate exported endpoint. Identity, point topology
+    and pen assignments are stable; fractional motion strength also has a
+    smooth seam. No simulation history, no new engine/helper/export contract.
+  - Prototyped through Node import, inspected, baked, checked for parity and
+    removed the graduated lab file. Fresh built-in app load and Help examples
+    verified. Four examples and downloadable patches plus a live local study
+    at `docs/microbes/index.html`; `docs/microbes/build.mjs` regenerates patches
+    and actual node-derived SVG studies. Catalogue now has 311 nodes (309
+    module files); generated search, recency and source bundle updated.
+  - Validation: 1,008 animated frames across forms, layouts and 24/48 counts;
+    deterministic geometry, disjoint bounds, stable topology, smooth seams,
+    extreme wires, actual Style, pen/geometry independence, 61 Help examples.
+    Default compute averages about 0.6 ms locally, 297 paths / 6,566 points.
+    Actual browser SVG and G-code export text for frame 19/24 matches every
+    rounded point, closure, A4 page and six pen groups. Evidence and hashes:
+    `docs/microbes/browser-checks.json`; optional capture check is part of
+    `tools/validate-microbes.mjs`. No physical plotting. The in-app batch export
+    button completed but its ZIP was not available for inspection; no verified
+    batch-download claim. Existing batch exporter code is unchanged.
+  - Ordered catalogue → build → check:learn passes (20,555 Learn checks).
+    Existing Learn guides and reference exports are unchanged. The development
+    study is not yet a published Learn guide. APP_VERSION remains 2.116; no
+    commit, push, publication or Claude snapshot refresh for this local work.
+    Next: Daniel's visual review, then integrate into the requested node batch
+    and assign the next release version at integration. Keep the work claim
+    ready until then.
+
+- **2.117 — Microbes and its animated Learn guide** 2026-10-11 Astra —
+  integrates the Microbes work above from base `9fd9c4e` after Daniel's visual
+  approval and explicit request to add tutorials and publish. This release
+  supersedes the local-only status of the preceding W entry.
+  - New Microbes generator plus four Help examples: six forms, one specimen or
+    a spaced field, 1–6 pens and Still/Drift/Breathe/Swimming with smooth 24/48
+    frame loops. 311 built-ins / 309 source modules. No machine/export changes;
+    the only App.jsx edit is APP_VERSION 2.116 → 2.117.
+  - English `learn/nodes/microbes/index.html#living-study`: a shared live player,
+    four downloadable studies, full controls, three specimen comparisons and a
+    genuine first-frame Focus screenshot. Explicit A4 paper-preset and ANIMATE
+    instructions, Frame Grid one-sheet-per-frame and All frames by pen workflow.
+    Links from overview, tutorial index and library. Learn now contains 33 pages,
+    20 illustrated node guides, 30 PNG captures and 40 editable patch downloads.
+  - Validation: 102,301 focused Microbes checks / 1,008 animated frames, all 61
+    Help examples, then ordered catalogue → build → check:learn (21,656 checks).
+    Shared export provenance remains valid without recapture. The new Learn
+    check verifies four downloads against both their source files and current
+    Help graphs, and checks bundled player controls/static hosting.
+  - Real browser review: imported Learn fixture, selected A4 wide and 48 frames,
+    Focus capture in v2.117; player play/pause changes paths, preset/specimen
+    selection, 24/48 controls, monochrome and scrubbing work. At 390 × 844 the
+    page has no horizontal overflow. No browser errors. Earlier single-frame
+    SVG/G-code evidence stays dated v2.116 development. No physical plotting or
+    inspected Microbes batch ZIP is claimed.
+  - Release owner publishes this tested tree to main/Pages and checks that exact
+    commit's deployment. Refresh the clean Claude snapshot after integration;
+    a local snapshot is not a Claude web-project upload.
 
 ## Hard-won pitfalls (keep)
 

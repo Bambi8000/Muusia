@@ -1,0 +1,39 @@
+<section class="section" id="living-study">
+  <span class="eyebrow">Motion study</span><h2>A living microscope.</h2>
+  <p>Play a field of organisms, then select a specimen to study it on its own. Compare drifting, breathing and swimming without changing the drawing’s seed.</p>
+  <div class="microbes-study" data-microbes="learn">
+    <div class="microbes-controls">
+      <label>Study <select data-microbe="study"></select></label>
+      <label>Motion <select data-microbe="motion"><option>Still</option><option>Drift</option><option>Breathe</option><option selected>Swimming</option></select></label>
+      <label>Colours <select data-microbe="colours"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option></select></label>
+      <label>Frames <select data-microbe="frames"><option>24</option><option selected>48</option></select></label>
+      <button type="button" data-microbe="play">Play</button>
+      <output data-microbe="counter">Frame 1 / 48</output>
+    </div>
+    <div class="microbes-paper"><svg data-microbe="art" viewBox="0 0 297 210" role="img" aria-label="Animated microbe field"></svg></div>
+    <input data-microbe="scrub" type="range" min="0" max="47" value="0" aria-label="Microbes animation frame">
+    <output data-microbe="stats"></output>
+    <h3>Meet the specimens</h3><p>Select a form to see it enlarged.</p>
+    <div class="microbes-species" data-microbe="species"></div>
+    <p class="microbes-note">Drawn by the actual Microbes node. This player changes the preview; the four downloads below retain their original settings. After loading in Muusia, choose the listed A4 orientation in the paper presets and set Frames again.</p>
+    <noscript><p>Enable JavaScript to play the study. The stills above and the example patches below remain available.</p></noscript>
+  </div>
+  <h3>Four starting points</h3>
+  <ul>
+    <li><a href="../../examples/microbes-living-microscope.muusia.json" download>Living microscope</a> — 18 organisms, six pens, A4 landscape.</li>
+    <li><a href="../../examples/microbes-single-cell.muusia.json" download>Single cell</a> — one large breathing cell, one pen, A4 portrait.</li>
+    <li><a href="../../examples/microbes-swimming-bacteria.muusia.json" download>Swimming bacteria</a> — rods with moving tails, three pens, A4 landscape.</li>
+    <li><a href="../../examples/microbes-specimen-collection.muusia.json" download>Specimen collection</a> — six forms in a still grid, six pens, A4 landscape.</li>
+  </ul>
+</section>
+<section class="section" id="plot-a-loop">
+  <span class="eyebrow">One frame per sheet</span><h2>Bring the microscope to paper.</h2>
+  <ol class="recipe-list">
+    <li>Load an example, choose its A4 orientation in the paper presets and select Microbes. Choose Timeline and a moving mode, then set ANIMATE Frames to 24 or 48. Check the complete loop before exporting.</li>
+    <li>For one numbered A4 sheet per frame, connect the blue Microbes output to Frame Grid. Use Custom 1 × 1, Map canvas, Light outlines and frame numbers. Set Total frames to match ANIMATE, and select Frame Grid as the final output.</li>
+    <li>For one pen, set Microbes Colours to 1. For several pens, use ANIMATE → Export order → All frames by pen, then export SVG, G-code or DXF. G-code requires your own configured G-code machine profile.</li>
+    <li>Plot all numbered sheets from the first pen’s folder. Change ink, place each sheet against the same physical paper stops and draw its matching file from the next pen’s folder. Repeat for the remaining pens.</li>
+  </ol>
+  <p>Keep paper size, origin, scale and orientation identical in every pass. Do not auto-fit the smaller colour layers in external plotter software. Light outlines help Liike align photographs afterwards; physical paper stops provide registration while plotting.</p>
+  <p>Try two sheets first. The node’s geometry and loop have been checked in software; the full physical paper animation is still to be tested. See <a href="../murmuration/index.html#pen-passes">Murmuration’s pen-pass guide</a> for the numbered-folder workflow and <a href="../../tutorials/first-physical-plot/index.html">your first physical plot</a> for the initial machine test.</p>
+</section>

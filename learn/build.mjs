@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tutorials, nodeGuides } from './content.mjs';
 import { buildAnimation } from './animation/build.mjs';
+import { buildMicrobes } from './microbes/build.mjs';
 import { buildMurmuration } from './murmuration/build.mjs';
 import { CATALOG } from '../src/defs/catalog.js';
 
@@ -11,6 +12,7 @@ const OUT = path.resolve(HERE, '../dist/learn');
 const manifest = JSON.parse(await fs.readFile(path.join(HERE, 'generated/manifest.json'), 'utf8'));
 const nodes = manifest.nodes;
 const murmurationComparison = await fs.readFile(path.join(HERE, 'murmuration/comparison.html'), 'utf8');
+const microbesStudy = await fs.readFile(path.join(HERE, 'microbes/study.html'), 'utf8');
 const byKey = Object.fromEntries(nodes.map(n => [n.key, n]));
 const legacyTutorialAssets = { 'first-drawing': 'first', 'style-and-stamp': 'stamps', 'two-pen-composition': 'two-pens' };
 const tutorialAssetKey = t => t.assetKey || legacyTutorialAssets[t.id] || t.id;
@@ -85,6 +87,7 @@ function animationIndex(base) {
     ${link(base,'animation/combine-movements','<span>02</span><strong>Combine two movements</strong><small>Falling Grid Hairs + rotating Solids</small>','directory-link')}
     ${link(base,'animation/node-motion','<span>03</span><strong>Motion ideas for every node</strong><small>310 proposals · eight experiments · paper workflow</small>','directory-link')}
     ${link(base,'nodes/murmuration','<span>04</span><strong>Follow one animal</strong><small>Murmuration · moving cameras and separate pen passes</small>','directory-link')}
+    ${link(base,'nodes/microbes','<span>05</span><strong>A living microscope</strong><small>Microbes · six specimens, three motions, 24–48 frames</small>','directory-link')}
     </nav><p class="library-scope">Examples use actual node geometry. The survey distinguishes existing controls from proposed features; physical animation plotting is still to be tested.</p></section>`;
 }
 
@@ -173,17 +176,19 @@ function nodePage(n) {
     ? `The working patch in Muusia, with its driving connection visible.${n.key==='frame'?' Red dashed guides are preview overlays, not exported lines.':''}`
     : `Shown in Focus mode (F). Press Esc to return to the full patch.${n.key==='polystudio'?' Red dashed guides are preview overlays, not exported lines.':''}`);
   const body=`<div class="breadcrumbs">${link(base,'nodes','Node library')}<span>/</span><span>${esc(category(n))}</span></div><header class="article-header"><span class="eyebrow">${esc(category(n))} / Node guide</span><h1 class="article-title">${esc(n.name)}</h1><p class="article-summary">${esc(g.summary)}</p><div class="metadata"><span class="badge">${esc(category(n))}</span><span>Tested in Muusia v${esc(manifest.version)}</span></div></header>
+    ${n.key==='microbes'?'<p class="article-summary"><a href="#living-study">Play the microscope study ↓</a> · <a href="#plot-a-loop">Plot an animation ↓</a></p>':''}
     ${n.key==='murmuration'?'<p class="article-summary"><a href="#camera-comparison">Play the camera comparison ↓</a> · <a href="#pen-passes">Plot by pen ↓</a></p>':''}
-    ${mobileContents([['when','When to use it'],['connections','Connections'],['try','Try it'],['controls','Key controls'],['compare','Compare results'],...(n.key==='murmuration'?[['camera-comparison','Camera comparison'],['pen-passes','Plot by pen']]:[]),['pitfalls','Things to know'],['downloads','Download example']])}
+    ${mobileContents([['when','When to use it'],['connections','Connections'],['try','Try it'],['controls','Key controls'],['compare','Compare results'],...(n.key==='microbes'?[['living-study','Living microscope'],['plot-a-loop','Plot an animation']]:[]),...(n.key==='murmuration'?[['camera-comparison','Camera comparison'],['pen-passes','Plot by pen']]:[]),['pitfalls','Things to know'],['downloads','Download example']])}
     ${figure(base,n.output,`${n.name} demonstration drawing`,esc(g.outputCaption||'Made with the downloadable example patch below.'),'output-figure',true)}
     <div class="article-layout"><article class="article-body"><section class="section" id="when"><h2>When to use it</h2><p>${esc(g.useWhen)}</p>${g.exportNote?`<aside class="callout"><span class="callout-label">SVG / DXF export</span><p>${esc(g.exportNote)}</p></aside>`:''}</section><section class="section" id="connections"><h2>Connections</h2>${ports(n,g)}
     ${figure(base,`assets/screenshots/${n.key}.png`,`${n.name} in Muusia, showing its actual controls and preview`,esc(screenshotCaption),'screenshot')}
     </section><section class="section" id="try"><h2>Try it in a small patch</h2><ol class="recipe-list">${g.recipe.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></section><section class="section" id="controls"><h2>Key controls</h2><div class="controls-list">${g.controls.map(c=>`<div class="control-item"><h3>${esc(c.name)}</h3><p>${esc(c.text)}</p></div>`).join('')}</div>${paramTable(n)}</section>
     <section class="section" id="compare"><span class="eyebrow">Look closer</span><h2>Compare settings</h2>${g.comparisonIntro?`<p>${esc(g.comparisonIntro)}</p>`:''}<div class="comparison-grid">${(n.comparisons||[]).map(c=>`<figure class="comparison-card"><a href="${base}${esc(c.src)}" target="_blank" rel="noopener">${img(base,c.src,`${n.name}: ${c.label}`)}</a><figcaption>${esc(c.label)}</figcaption></figure>`).join('')}</div></section>
-    ${n.key==='murmuration'?murmurationComparison:''}
+    ${n.key==='murmuration'?murmurationComparison:n.key==='microbes'?microbesStudy:''}
     <section class="section" id="pitfalls"><h2>Notes</h2>${questions(g.pitfalls)}</section>${downloads(base,n,n.key==='frame'?'Set ANIMATE to 12 frames; frame count is not saved in patch files.':'')}
-    <section class="section" id="related"><h2>Related guides</h2>${['frame','merge','grid','aaltoilu'].includes(n.key)?`<p>Try animated examples in the ${link(base,'animation','animation gallery')} or learn to ${link(base,'animation/combine-movements','combine different movements')}.</p>`:''}<div class="related-links">${g.related.map(k=>nodeLink(base,k)).join('')}</div>${g.tutorials.length?`<p class="related-tutorials">Use it in a tutorial: ${g.tutorials.map(id=>{const t=tutorials.find(x=>x.id===id);return t?link(base,`tutorials/${id}`,esc(t.title)):'';}).filter(Boolean).join(' · ')}</p>`:''}</section></article><nav class="toc" aria-label="On this page"><span class="sidebar-label">In this guide</span><a href="#when">When to use it</a><a href="#connections">Connections</a><a href="#try">Try it</a><a href="#controls">Key controls</a><a href="#compare">Compare results</a>${n.key==='murmuration'?'<a href="#camera-comparison">Camera comparison</a><a href="#pen-passes">Plot by pen</a>':''}<a href="#pitfalls">Things to know</a><a href="#downloads">Download example</a></nav></div>`;
+    <section class="section" id="related"><h2>Related guides</h2>${['frame','merge','grid','aaltoilu'].includes(n.key)?`<p>Try animated examples in the ${link(base,'animation','animation gallery')} or learn to ${link(base,'animation/combine-movements','combine different movements')}.</p>`:''}<div class="related-links">${g.related.map(k=>nodeLink(base,k)).join('')}</div>${g.tutorials.length?`<p class="related-tutorials">Use it in a tutorial: ${g.tutorials.map(id=>{const t=tutorials.find(x=>x.id===id);return t?link(base,`tutorials/${id}`,esc(t.title)):'';}).filter(Boolean).join(' · ')}</p>`:''}</section></article><nav class="toc" aria-label="On this page"><span class="sidebar-label">In this guide</span><a href="#when">When to use it</a><a href="#connections">Connections</a><a href="#try">Try it</a><a href="#controls">Key controls</a><a href="#compare">Compare results</a>${n.key==='microbes'?'<a href="#living-study">Living microscope</a><a href="#plot-a-loop">Plot an animation</a>':''}${n.key==='murmuration'?'<a href="#camera-comparison">Camera comparison</a><a href="#pen-passes">Plot by pen</a>':''}<a href="#pitfalls">Things to know</a><a href="#downloads">Download example</a></nav></div>`;
   const page = document(n.name,g.summary,body,base,'nodes',n.key);
+  if(n.key==='microbes') return page.replace('</head>', `<link rel="stylesheet" href="${base}assets/microbes/study.css"><script type="module" src="${base}assets/microbes/study.js"></script></head>`);
   return n.key==='murmuration' ? page.replace('</head>', `<link rel="stylesheet" href="${base}assets/murmuration/study.css"><script type="module" src="${base}assets/murmuration/study.js"></script></head>`) : page;
 }
 
@@ -194,4 +199,5 @@ const pages = [['',home()],['tutorials',tutorialsIndex()],['nodes',library()],..
 for(const [slug,html] of pages){await fs.mkdir(path.join(OUT,slug),{recursive:true});await fs.writeFile(path.join(OUT,slug,'index.html'),html);}
 const studyCount = await buildAnimation(OUT);
 await buildMurmuration(OUT);
+await buildMicrobes(OUT);
 console.log(`Built Muusia Learn: ${pages.length + studyCount} pages, ${studyCount} animation studies, ${tutorials.length} tutorials, ${nodes.length} node guides → dist/learn`);

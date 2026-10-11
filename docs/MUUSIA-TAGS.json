@@ -883,6 +883,13 @@
   "organic",
   "terrain"
  ],
+ "microbes": [
+  "organic",
+  "creatures",
+  "animation",
+  "round",
+  "pens"
+ ],
  "mini_squares": [
   "animation",
   "flow",

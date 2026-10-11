@@ -1,0 +1,16 @@
+.microbes-study{margin:24px 0;padding:20px 0;border-top:1px solid #b9c5bd;border-bottom:1px solid #b9c5bd}
+.microbes-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:18px}
+.microbes-controls label{display:flex;align-items:center;gap:6px;font-size:14px}
+.microbes-controls button,.microbes-controls select{font:inherit;border:1px solid #a7b6ac;background:#f8faf5;color:#203b36;padding:7px 10px;border-radius:0;max-width:100%;cursor:pointer}
+.microbes-study [data-microbe=play]{background:#203b36;color:white;min-width:75px}
+.microbes-study :focus-visible{outline:2px solid #226c59;outline-offset:3px}
+.microbes-paper{background:#fafbf7;border:1px solid #c6c9bf}
+.microbes-paper svg{display:block;width:100%;max-height:620px}
+.microbes-study [data-microbe=scrub]{width:100%;accent-color:#226c59;margin:12px 0}
+.microbes-study output{font:12px/1.6 monospace;font-variant-numeric:tabular-nums}
+.microbes-species{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.microbes-species button{padding:0;border:0;background:transparent;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0}
+.microbes-species svg{display:block;width:100%;background:#f6f8f2;border:1px solid #bac8bf}
+.microbes-species span{display:block;font-size:13px;line-height:2}
+.microbes-study .microbes-note{font-size:13px;color:#617067}
+@media(max-width:500px){.microbes-species{gap:8px}.microbes-controls{gap:10px}.microbes-controls label{flex-wrap:wrap}}

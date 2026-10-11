@@ -1,6 +1,6 @@
 # Muusia Learn
 
-An English companion guide to Muusia: seven complete tutorials, eighteen illustrated node guides, twenty-eight real UI screenshots, reproducible SVG comparisons, twenty-six downloadable patches and two reference export artifacts from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a 310-node motion survey and eight earlier interactive probes. The studies add seven editable project downloads (33 patches in all). The site is static and has no external runtime network dependencies; animation data is fetched from the same site. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
+An English companion guide to Muusia: seven foundation tutorials, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
 
 ## Build and preview
 
@@ -35,7 +35,7 @@ After changing guide content or styles, `npm run build:learn` rebuilds only the 
 
 ## Reproducibility and screenshot capture
 
-The seven foundation tutorials and eighteen illustrated node examples use A4 landscape (297 × 210 mm) and the default pen palette. The additional animation studies use a fixed 140 × 140 mm canvas and one pen. Geometry is generated with the actual node definitions, not approximated from descriptions. Comparison captions name the changed control. Frame uses 12 frames, and frame 2 is pictured; animation settings must be set after loading because Muusia does not save them in patches.
+The seven foundation tutorials and twenty illustrated node examples use A4 landscape (297 × 210 mm) and the default pen palette. The additional animation studies use a fixed 140 × 140 mm canvas and one pen. Geometry is generated with the actual node definitions, not approximated from descriptions. Comparison captions name the changed control. Frame uses 12 frames, and frame 2 is pictured; animation settings must be set after loading because Muusia does not save them in patches.
 
 The two-pen tutorial chooses colours directly on the generators: Grid uses Pen 1 · Blue and feeds Wave, while Tracks uses Pen 2 · Red. Wave and Tracks feed Merge inputs 1 and 2, with Pen change per input off. Its variation changes Grid’s Pen to 3 · Green. The separate Set Pen example takes that finished multi-pen composition from Merge and uses Recolor All → To pen 0 · Black to put the whole drawing on one pen. Its comparisons show the original two-pen input, all-black output and all-green output.
 
@@ -87,7 +87,7 @@ Copy those fields into the corresponding `assets/screenshots/*-export.json` reco
 
 ## Current scope
 
-The current local build contains 32 static pages: the overview, tutorial index, node reference index, seven tutorials, nineteen node guides and three animation studies. Downloads include nineteen node patches, seven complete tutorial patches, one blank starter and seven animation projects, plus the captured per-pen SVG ZIP and SVG results. Adding the studies does not claim 310 completed illustrated node guides or an eighth foundation lesson.
+The current build contains 33 static pages: the overview, tutorial index, node reference index, seven foundation tutorials, twenty node guides and three animation studies. Its forty editable patches include the extra Murmuration and Microbes studies described below. Adding the studies does not claim a completed illustrated guide for every node or an eighth foundation lesson.
 
 Published nodes: Grid, Wave, Tracks, Stroke, Stamp, Set Pen, Merge, Value, Frame, Image, Polyhedron Studio, Travel Sort, Move / Scale, Rotate, Hatch Fill, Container, Random and Math. Other built-ins remain in the in-app catalog and are not represented as finished guides. Group/legacy guides and more advanced tutorials belong to the next stages in `docs/MUUSIA-LEARN-PLAN.md`.
 
@@ -147,3 +147,29 @@ Physical two-pass registration remains untested. The Learn validator checks this
 additional patch's identity, key printing settings and its match to the node example.
 The module is rebuilt from source on each Learn build. Regenerate the ordinary
 assets and capture affected UI if the node controls or illustrated fixture change.
+
+
+### Microbes guide and living microscope · 2026-10-11
+
+`nodes/microbes/index.html#living-study` embeds the reviewed English local study:
+four presets, six selectable specimens, Still/Drift/Breathe/Swimming, one to six
+colours, 24/48 frames, play/pause and scrubbing. It starts paused and pauses when
+the page is hidden. The same `docs/microbes/study.js` player is bundled with the
+actual node and Help examples for static hosting; no development `/src/` requests.
+The four extra patches are copied byte-for-byte from `docs/microbes/`, whose
+builder regenerates them from Help. `check:learn` checks their identity and current
+Help graph/page parity. The ordinary guide fixture is the six-colour microscope.
+
+`microbes.png` is a real v2.117 Focus capture at 1120 × 900, frame 1 of 48,
+A4 wide, using `examples/microbes.muusia.json`. Canvas size was chosen explicitly
+after loading. Its individual manifest entry records the node hash and capture
+version; older screenshots keep their own provenance. The guide explains that
+crowded specimens shrink to fit, and covers all conditional controls. Three real
+node comparisons show Cell, Rod and Ciliate enlarged. Use the paper preset and
+set ANIMATE Frames after loading; these patch files do not restore those UI
+settings. Four study downloads include one A4 portrait example.
+
+The guide links from the Learn overview, tutorial index and node library, with
+steps for Frame Grid and All frames by pen. Single-frame SVG and G-code were
+checked in the real app during node development; see `docs/microbes/browser-checks.json`.
+Physical plotting and a Microbes-specific batch ZIP inspection remain unclaimed.

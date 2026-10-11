@@ -1,0 +1,25 @@
+{
+  "capturedAt": "2026-10-11T14:17:34.872Z",
+  "baseCommit": "9fd9c4eedfef3c0796823d5763ea63d5c9e0eb77",
+  "appVersion": "2.116",
+  "workingTree": true,
+  "method": "Fresh app load after bake; Help Living microscope; selected Microbes; 24 frames, frame index 18; route optimisation off. Actual browser export textareas saved after EXPORT SVG / GENERATE G-CODE. Servo A defaults, zero origin, flip Y off. SVG and G-code match all rounded points and closures. No hardware or successful batch-download claim.",
+  "frameIndex": 18,
+  "frames": 24,
+  "paths": 297,
+  "pens": [
+    0,
+    4,
+    5,
+    6,
+    7,
+    10
+  ],
+  "svgSha256": "2d78e1f01c78cd806a745c851a664ebc1f67d9f08716444b6424446808b5fd67",
+  "gcodeSha256": "cf2795d420d3c1ea12266e0354826eb78d3a4c3696d52526f9508dc93c77c5dd",
+  "sourceHashes": {
+    "src/defs/nodes/microbes.js": "5c5a07b5d7ae0058c7eab3095a23a5ac5660d4ae7ca6c03b0f02880a0e8f4728",
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
+    "src/examples.js": "ac9dac6fc405788345f296b8f9a62127fccc6dbc311340fb08ffd66b010dcc35"
+  }
+}

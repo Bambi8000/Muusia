@@ -760,6 +760,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "cc6687d8c4d38448c23825be95de808b98bac77ad915d80ce18dd039d859e3e9"
   },
+  "microbes": {
+    "date": "2026-10-11",
+    "order": 76,
+    "sha256": "5c5a07b5d7ae0058c7eab3095a23a5ac5660d4ae7ca6c03b0f02880a0e8f4728"
+  },
   "mini_squares": {
     "date": "2026-08-05",
     "order": 19,

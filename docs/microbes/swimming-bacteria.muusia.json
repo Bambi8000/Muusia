@@ -1,0 +1,43 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "swimming-bacteria",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "microbes",
+        "x": 30,
+        "y": 20,
+        "params": {
+          "organism": "Rod",
+          "count": 14,
+          "size": 52,
+          "variation": 0.45,
+          "layout": "Scattered",
+          "membrane": "Double",
+          "interior": 0.6,
+          "filaments": 1,
+          "motion": "Swimming",
+          "amount": 1,
+          "clock": "Timeline",
+          "time": 0,
+          "margin": 12,
+          "seed": 42,
+          "colours": 3,
+          "layer": 0,
+          "pen2": 6,
+          "pen3": 4,
+          "pen4": 5,
+          "pen5": 7,
+          "pen6": 10
+        }
+      }
+    ],
+    "edges": []
+  }
+}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "2.116",
-  "sourceCommit": "b6744ba81089cb377c9d2d5fb77838a98d07151b",
+  "version": "2.117",
+  "sourceCommit": "9fd9c4eedfef3c0796823d5763ea63d5c9e0eb77",
   "canvas": {
     "W": 297,
     "H": 210
@@ -66,11 +66,11 @@
     "inputs": [
       {
         "path": "learn/generate-assets.mjs",
-        "sha256": "c21f83e75092b2c81c7fbf18b9e7d1a2078bbdf24f0165cb84193d51184ba62d"
+        "sha256": "a05b969458173249b4d6ebe01ee02467ec63653b9aac4fb2d65f6603ab39bfe7"
       },
       {
         "path": "learn/lib/fixtures.mjs",
-        "sha256": "ea64fcf8f503801ef3231c9761c5f80841668a5591523bf881462ed7c699ef30"
+        "sha256": "facd5a7578a9bc4dfb69aa787dbd28959b5fc0f99fb4fa78eab774c1fa0fd418"
       },
       {
         "path": "src/defs/helpers.js",
@@ -159,9 +159,25 @@
       {
         "path": "src/defs/nodes/murmuration.js",
         "sha256": "17231aeeaabe6c99c47834fbfb0f4938c4399c664a608770aa6d0bdee30898c3"
+      },
+      {
+        "path": "src/defs/nodes/microbes.js",
+        "sha256": "5c5a07b5d7ae0058c7eab3095a23a5ac5660d4ae7ca6c03b0f02880a0e8f4728"
       }
     ],
     "artifacts": [
+      {
+        "path": "assets/comparisons/microbes-0.svg",
+        "sha256": "e7db737a5e0c319c8c8b064bb9437645a2d286c563f8d8825a8ddffd865ecf5a"
+      },
+      {
+        "path": "assets/comparisons/microbes-1.svg",
+        "sha256": "84af7c2fd4d76bc4a9b1a49f1e58878ec84b071bf6c3af87a089aaf25d5fb6cb"
+      },
+      {
+        "path": "assets/comparisons/microbes-2.svg",
+        "sha256": "a1f052e722823fb30a601cef933018df588b84b43f87935e01fd5017f54a1f8e"
+      },
       {
         "path": "assets/comparisons/murmuration-0.svg",
         "sha256": "e5fbfda4d31765a9cec90fc8842b1d4dad7fb49ad74bf09315cebc806fc72ee7"
@@ -387,6 +403,10 @@
         "sha256": "acc3b5d16b3d538d6d1cbb3b7dd5d866d6ce9360b7ca2d4df3809b9d882a0fd4"
       },
       {
+        "path": "examples/microbes.muusia.json",
+        "sha256": "a37186e4d7b6c44ae2a3d109656733c84bdd0b238c47f7fea5bf0827066b7dca"
+      },
+      {
         "path": "examples/murmuration.muusia.json",
         "sha256": "6c38bbf4f27c2bffa62a670dea541f9140182cd5edf05b548dbfff2492f8bbf5"
       },
@@ -569,6 +589,10 @@
       {
         "path": "assets/results/murmuration.svg",
         "sha256": "ec06e0aa39f6411e125e54d93e3736ce4695df4a0f2cd026e1e19f0c54eee593"
+      },
+      {
+        "path": "assets/results/microbes.svg",
+        "sha256": "992eea3add713009caf60291190c1ca56e775474f1320e5d4c57a776d41aeb2b"
       },
       {
         "path": "assets/results/tutorial-first.svg",
@@ -5161,6 +5185,381 @@
       "frameNote": "Set ANIMATE Frames to 48. The first frame is pictured; animation settings are not saved in patch files.",
       "frameCount": 48,
       "frameIdx": 0
+    },
+    {
+      "key": "microbes",
+      "name": "Microbes",
+      "category": "Generators",
+      "categoryKey": "gen",
+      "group": "Generators",
+      "groupKey": "creatures",
+      "params": [
+        {
+          "key": "organism",
+          "label": "Organism",
+          "type": "select",
+          "options": [
+            "Mixed",
+            "Cell",
+            "Coccus",
+            "Rod",
+            "Spiral",
+            "Amoeba",
+            "Ciliate"
+          ],
+          "def": "Mixed",
+          "default": "Mixed",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "slider",
+          "min": 1,
+          "max": 120,
+          "step": 1,
+          "def": 18,
+          "default": 18,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "size",
+          "label": "Size mm",
+          "type": "slider",
+          "min": 4,
+          "max": 200,
+          "step": 1,
+          "def": 38,
+          "default": 38,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "variation",
+          "label": "Size variation",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.45,
+          "default": 0.45,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layout",
+          "label": "Layout",
+          "type": "select",
+          "options": [
+            "Scattered",
+            "Grid"
+          ],
+          "def": "Scattered",
+          "default": "Scattered",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "membrane",
+          "label": "Membrane",
+          "type": "select",
+          "options": [
+            "Single",
+            "Double"
+          ],
+          "def": "Double",
+          "default": "Double",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "interior",
+          "label": "Interior",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.6,
+          "default": 0.6,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "filaments",
+          "label": "Filaments",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.65,
+          "default": 0.65,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "motion",
+          "label": "Motion",
+          "type": "select",
+          "options": [
+            "Still",
+            "Drift",
+            "Breathe",
+            "Swimming"
+          ],
+          "def": "Swimming",
+          "default": "Swimming",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "amount",
+          "label": "Motion amount",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "def": 0.65,
+          "default": 0.65,
+          "conditional": true,
+          "visibilityNote": "Shown when Motion is not Still.",
+          "visibleByDefault": true
+        },
+        {
+          "key": "clock",
+          "label": "Time source",
+          "type": "select",
+          "options": [
+            "Timeline",
+            "Manual"
+          ],
+          "def": "Timeline",
+          "default": "Timeline",
+          "conditional": true,
+          "visibilityNote": "Shown when Motion is not Still.",
+          "visibleByDefault": true
+        },
+        {
+          "key": "time",
+          "label": "Time 0–1",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.001,
+          "def": 0,
+          "default": 0,
+          "conditional": true,
+          "visibilityNote": "Shown when Motion is not Still and Time source is Manual.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "margin",
+          "label": "Margin mm",
+          "type": "slider",
+          "min": 0,
+          "max": 60,
+          "step": 1,
+          "def": 12,
+          "default": 12,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "seed",
+          "def": 42,
+          "default": 42,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "colours",
+          "label": "Colours",
+          "type": "slider",
+          "min": 1,
+          "max": 6,
+          "step": 1,
+          "def": 1,
+          "default": 1,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "layer",
+          "label": "Pen 1",
+          "type": "pen",
+          "def": 0,
+          "default": 0,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "pen2",
+          "label": "Pen 2",
+          "type": "pen",
+          "def": 6,
+          "default": 6,
+          "conditional": true,
+          "visibilityNote": "Shown when Colours is at least 2.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pen3",
+          "label": "Pen 3",
+          "type": "pen",
+          "def": 4,
+          "default": 4,
+          "conditional": true,
+          "visibilityNote": "Shown when Colours is at least 3.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pen4",
+          "label": "Pen 4",
+          "type": "pen",
+          "def": 5,
+          "default": 5,
+          "conditional": true,
+          "visibilityNote": "Shown when Colours is at least 4.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pen5",
+          "label": "Pen 5",
+          "type": "pen",
+          "def": 7,
+          "default": 7,
+          "conditional": true,
+          "visibilityNote": "Shown when Colours is at least 5.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "pen6",
+          "label": "Pen 6",
+          "type": "pen",
+          "def": 10,
+          "default": 10,
+          "conditional": true,
+          "visibilityNote": "Shown when Colours is at least 6.",
+          "visibleByDefault": false
+        }
+      ],
+      "inputs": [
+        {
+          "type": "style",
+          "label": "Style"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "paths"
+        }
+      ],
+      "dynamicInputs": false,
+      "example": "examples/microbes.muusia.json",
+      "output": "assets/results/microbes.svg",
+      "screenshot": "assets/screenshots/microbes.png",
+      "comparisons": [
+        {
+          "label": "Cell · one specimen",
+          "src": "assets/comparisons/microbes-0.svg",
+          "stats": {
+            "paths": 15,
+            "points": 494,
+            "drawingMm": 1029.5,
+            "travelMm": 811.3
+          }
+        },
+        {
+          "label": "Rod · one specimen",
+          "src": "assets/comparisons/microbes-1.svg",
+          "stats": {
+            "paths": 15,
+            "points": 565,
+            "drawingMm": 614.5,
+            "travelMm": 582.3
+          }
+        },
+        {
+          "label": "Ciliate · one specimen",
+          "src": "assets/comparisons/microbes-2.svg",
+          "stats": {
+            "paths": 61,
+            "points": 754,
+            "drawingMm": 1172.6,
+            "travelMm": 1260.4
+          }
+        }
+      ],
+      "graph": {
+        "nodes": [
+          {
+            "id": 9001,
+            "key": "microbes",
+            "name": "Microbes",
+            "params": {
+              "organism": "Mixed",
+              "count": 18,
+              "size": 38,
+              "variation": 0.45,
+              "layout": "Scattered",
+              "membrane": "Double",
+              "interior": 0.6,
+              "filaments": 0.65,
+              "motion": "Swimming",
+              "amount": 0.65,
+              "clock": "Timeline",
+              "time": 0,
+              "margin": 12,
+              "seed": 42,
+              "colours": 6,
+              "layer": 0,
+              "pen2": 6,
+              "pen3": 4,
+              "pen4": 5,
+              "pen5": 7,
+              "pen6": 10
+            }
+          }
+        ],
+        "edges": [],
+        "outputId": 9001
+      },
+      "exampleParams": {
+        "organism": "Mixed",
+        "count": 18,
+        "size": 38,
+        "variation": 0.45,
+        "layout": "Scattered",
+        "membrane": "Double",
+        "interior": 0.6,
+        "filaments": 0.65,
+        "motion": "Swimming",
+        "amount": 0.65,
+        "clock": "Timeline",
+        "time": 0,
+        "margin": 12,
+        "seed": 42,
+        "colours": 6,
+        "layer": 0,
+        "pen2": 6,
+        "pen3": 4,
+        "pen4": 5,
+        "pen5": 7,
+        "pen6": 10
+      },
+      "outputId": 9001,
+      "stats": {
+        "paths": 297,
+        "points": 6566,
+        "drawingMm": 3402.7,
+        "travelMm": 3782.8
+      },
+      "frameNote": "Set ANIMATE Frames to 24 or 48; frame count is not saved in patches.",
+      "frameCount": 48,
+      "frameIdx": 0
     }
   ],
   "tutorials": {
@@ -5939,8 +6338,8 @@
   },
   "blankExample": "examples/blank.muusia.json",
   "validation": {
-    "examples": 26,
-    "nodes": 19,
+    "examples": 27,
+    "nodes": 20,
     "deterministic": true,
     "typedEdges": true,
     "finiteCoordinates": true,

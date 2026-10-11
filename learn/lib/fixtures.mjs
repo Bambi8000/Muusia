@@ -17,10 +17,11 @@ import hatch from '../../src/defs/nodes/hatch.js';
 import container from '../../src/defs/nodes/container.js';
 import random from '../../src/defs/nodes/satunnainen.js';
 import math from '../../src/defs/nodes/matem.js';
+import microbes from '../../src/defs/nodes/microbes.js';
 import murmuration from '../../src/defs/nodes/murmuration.js';
 import { MURMURATION_SETTINGS } from '../murmuration/settings.mjs';
 
-export const DEFINITIONS = Object.fromEntries([grid, aaltoilu, radat, viiva, stamp, setpen, merge, arvo, frame, image, polystudio, travelsort, moveScale, rotate, hatch, container, random, math, murmuration].map(def => [def.key, def]));
+export const DEFINITIONS = Object.fromEntries([grid, aaltoilu, radat, viiva, stamp, setpen, merge, arvo, frame, image, polystudio, travelsort, moveScale, rotate, hatch, container, random, math, murmuration, microbes].map(def => [def.key, def]));
 export const PILOT_KEYS = Object.keys(DEFINITIONS);
 export const CANVAS = { W: 297, H: 210 };
 export const defaults = key => Object.fromEntries(DEFINITIONS[key].params.map(param => [param.key, param.def]));
@@ -109,6 +110,7 @@ const physicalPlot = example('Prepare your first physical plot', [
 ], [edge(9003, 9004), edge(9001, 9005, 0), edge(9002, 9005, 1), edge(9004, 9005, 2)], 9005);
 
 export const examples = {
+  microbes: example('Microbes — living microscope', [node(9001, 'microbes', {colours: 6})], [], 9001, {frameCount: 48, frameIdx: 0, frameNote: 'Set ANIMATE Frames to 24 or 48; frame count is not saved in patches.'}),
   murmuration: example('Murmuration — follow one animal', [node(9001, 'murmuration', MURMURATION_SETTINGS)], [], 9001, {frameCount: 48, frameIdx: 0, frameNote: 'Set ANIMATE Frames to 48. The first frame is pictured; animation settings are not saved in patch files.'}),
   'tutorial-first': first,
   'tutorial-stamps': stamps,

@@ -188,3 +188,15 @@ texture and pen visibility can be changed. Its actual node code is bundled for
 static hosting. The page explains two pen passes, fixed registration and the
 48-sheet settings. This brings Learn to 32 pages and 29 PNG captures, without
 adding an eighth foundation tutorial. Included in the authorised Muusia 2.116 release.
+
+
+Microbes extension, 2026-10-11: the twentieth illustrated guide embeds the
+English living-microscope study with six organism forms, four presets, three
+looping motions, 24/48 frames and one to six pens. It includes a genuine v2.117
+Focus screenshot, the full conditional control reference, three static specimen
+comparisons and five working example downloads (one guide fixture plus four
+study presets). The shared local player is bundled for static hosting. Tutorial
+index, overview and library link to the new guide. Learn now has 33 pages,
+30 PNG captures and 40 editable projects. The seven foundation lessons remain a
+separate count. Frame Grid and pen-pass instructions cover one frame per sheet;
+physical plotting is not claimed. Included in the authorised v2.117 release.

@@ -1,0 +1,43 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "specimen-collection",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "microbes",
+        "x": 30,
+        "y": 20,
+        "params": {
+          "organism": "Mixed",
+          "count": 6,
+          "size": 65,
+          "variation": 0,
+          "layout": "Grid",
+          "membrane": "Double",
+          "interior": 1,
+          "filaments": 0.65,
+          "motion": "Still",
+          "amount": 0.65,
+          "clock": "Timeline",
+          "time": 0,
+          "margin": 12,
+          "seed": 42,
+          "colours": 6,
+          "layer": 0,
+          "pen2": 6,
+          "pen3": 4,
+          "pen4": 5,
+          "pen5": 7,
+          "pen6": 10
+        }
+      }
+    ],
+    "edges": []
+  }
+}
