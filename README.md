@@ -1,4 +1,4 @@
-# MUUSIA v2.119
+# MUUSIA v2.120
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -94,6 +94,16 @@ routines). The active profile is used for G-code. Profiles import/export as
 `.muusia-machine.json` via the ⇣/⇡ buttons, and a standalone configurator
 (`muusia-machine-setup.html`) builds them with presets, a bed diagram and a
 lift-time estimate — no JSON editing.
+
+**Test crop.** Sample an A4 or A3 region of a larger drawing at its original
+physical scale. Enable **Test crop** in the normal, large or Focus preview,
+choose paper orientation, move the frame and set **Margin mm** (10 mm by
+default). The dashed inner frame shows the drawing area. **SVG / DXF / G-code
+test 1:1** downloads leave the margin blank, retain the full sample paper size
+and preserve line dimensions and pen layers. The full artwork canvas and
+ordinary exports stay unchanged. Use actual size / 100% in your plotter program.
+G-code follows the active machine profile's **Flip Y (machine Y up)** setting;
+LATU's **Y+ points up** changes only its display.
 
 **Bed-plotter pen lift.** For machines whose Z axis is a heavy bed (e.g. the
 Ultimaker S5), two settings matter: **Z-hop** lifts only slightly between nearby

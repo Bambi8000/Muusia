@@ -13,6 +13,8 @@ import CatalogBrowser from "./catalog-browser.jsx";
 import { compareNodeRecency, nodeRecencyLabel } from "./node-recency.js";
 import StackView from "./stack-view.jsx";
 import { splitFramePens, penFrameName, finishPenPasses } from "./frame-export.js";
+import { cropTestPiece, testCropRect, DEFAULT_TEST_MARGIN } from "./preview-crop.js";
+import PreviewCropControls from "./preview-crop-controls.jsx";
 import { DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
@@ -885,7 +887,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.119"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.120"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1357,14 +1359,16 @@ function ZoomBox({ children, width, height }) {
     </div>
   );
 }
-function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = null, magnets = null, onMagnets = null, placing = false, bg = null, measure = null, onMeasure = null, measuring = false }) {
+function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = null, magnets = null, onMagnets = null, placing = false, bg = null, measure = null, onMeasure = null, measuring = false, testCrop = null, onTestCrop = null }) {
   const sx = (width - pad * 2) / W, sy = (height - pad * 2) / H;
   const s = Math.min(sx, sy);
   const ox = (width - W * s) / 2, oy = (height - H * s) / 2;
   const dragRef = useRef(-1);
   const measDragRef = useRef(-1);
+  const cropDragRef = useRef(null);
   const toMM = (e) => {
-    const r = e.currentTarget.getBoundingClientRect();
+    const svg = e.currentTarget.ownerSVGElement || e.currentTarget;
+    const r = svg.getBoundingClientRect();
     const k = r.width / width; /* CSS transform aware (ZoomBox) */
     return [((e.clientX - r.left) / k - ox) / s, ((e.clientY - r.top) / k - oy) / s];
   };
@@ -1483,7 +1487,13 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
   return (
     <svg width={width} height={height}
       style={{ display: "block", background: T.paper, borderRadius: 4, touchAction: "none", cursor: (measuring && onMeasure && (measure || []).length < 2) || (placing && onMagnets) ? "crosshair" : "default" }}
-      onPointerDown={(placing && onMagnets) || (measuring && onMeasure) ? (e) => {
+      onMouseDown={testCrop && onTestCrop ? e => e.stopPropagation() : undefined}
+      onPointerDown={testCrop && onTestCrop ? (e) => {
+        const [x, y] = toMM(e);
+        if (x < 0 || x > W || y < 0 || y > H) return;
+        e.stopPropagation();
+        onTestCrop({ x: q1(x - testCrop.w / 2), y: q1(y - testCrop.h / 2) });
+      } : (placing && onMagnets) || (measuring && onMeasure) ? (e) => {
         const [mx, my] = toMM(e);
         if (mx < 0 || mx > W || my < 0 || my > H) return;
         if (measuring && onMeasure) {
@@ -1492,7 +1502,12 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
         }
         onMagnets([...(magnets || []), [q1(mx), q1(my)]]);
       } : undefined}
-      onPointerMove={onMagnets || onMeasure ? (e) => {
+      onPointerMove={onMagnets || onMeasure || onTestCrop ? (e) => {
+        if (cropDragRef.current && onTestCrop) {
+          const [x, y] = toMM(e), d = cropDragRef.current;
+          onTestCrop({ x: q1(d.x + x - d.px), y: q1(d.y + y - d.py) });
+          return;
+        }
         const i = dragRef.current, j = measDragRef.current;
         if (i < 0 && j < 0) return;
         const [mx, my] = toMM(e);
@@ -1500,7 +1515,8 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
         if (j >= 0 && onMeasure) { onMeasure((measure || []).map((q, k) => k === j ? [cx, cy] : q)); return; }
         if (i >= 0 && onMagnets) onMagnets(magnets.map((q, k) => k === i ? [cx, cy] : q));
       } : undefined}
-      onPointerUp={onMagnets || onMeasure ? () => { dragRef.current = -1; measDragRef.current = -1; } : undefined}>
+      onPointerUp={onMagnets || onMeasure || onTestCrop ? () => { dragRef.current = -1; measDragRef.current = -1; cropDragRef.current = null; } : undefined}
+      onPointerCancel={() => { cropDragRef.current = null; dragRef.current = -1; measDragRef.current = -1; }}>
       <rect x={ox} y={oy} width={W * s} height={H * s} fill="none" stroke={T.paperLine} strokeWidth="1" />
       {bg && bg.src ? (
         <image key="bg" href={bg.src}
@@ -1515,6 +1531,25 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
       {gEls}
       {mEls}
       {msEls}
+      {testCrop && testCrop.fits && <g data-test-crop="true">
+        <path d={`M${ox},${oy}h${W * s}v${H * s}h${-W * s}Z M${ox + (testCrop.x + testCrop.margin) * s},${oy + (testCrop.y + testCrop.margin) * s}h${(testCrop.w - 2 * testCrop.margin) * s}v${(testCrop.h - 2 * testCrop.margin) * s}h${-(testCrop.w - 2 * testCrop.margin) * s}Z`}
+          fill="rgba(23,26,32,0.3)" fillRule="evenodd" pointerEvents="none" />
+        <rect aria-label="Test crop frame" x={ox + testCrop.x * s} y={oy + testCrop.y * s} width={testCrop.w * s} height={testCrop.h * s}
+          fill="transparent" stroke={T.accent} strokeWidth="1" style={{ cursor: onTestCrop ? "move" : "default" }}
+          onDoubleClick={e => e.stopPropagation()}
+          onPointerDown={onTestCrop ? (e) => {
+            e.stopPropagation();
+            const [px, py] = toMM(e);
+            cropDragRef.current = { px, py, x: testCrop.x, y: testCrop.y };
+            try { e.currentTarget.ownerSVGElement.setPointerCapture(e.pointerId); } catch (err) {}
+          } : undefined} />
+        <rect aria-label="Test crop drawing area" x={ox + (testCrop.x + testCrop.margin) * s} y={oy + (testCrop.y + testCrop.margin) * s}
+          width={(testCrop.w - 2 * testCrop.margin) * s} height={(testCrop.h - 2 * testCrop.margin) * s}
+          fill="none" stroke={T.accent} strokeWidth="1.5" strokeDasharray="8 4" pointerEvents="none" />
+        <text x={ox + testCrop.x * s + 5} y={oy + testCrop.y * s + 15} fill={T.accent} fontSize="11" fontFamily={mono} pointerEvents="none">
+          {testCrop.label} · 1:1
+        </text>
+      </g>}
     </svg>
   );
 }
@@ -1771,6 +1806,14 @@ export default function App() {
   const [jigPlace, setJigPlace] = useState(false); /* click-to-place armed */
   const [measureOn, setMeasureOn] = useState(false); /* preview measure tool armed */
   const [measurePts, setMeasurePts] = useState([]); /* 0..2 points [x,y] mm, preview coords */
+  const [testCrop, setTestCrop] = useState({ active: false, paper: "a4-portrait", margin: DEFAULT_TEST_MARGIN });
+  const [testCropError, setTestCropError] = useState("");
+  const [previewViewport, setPreviewViewport] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
+  useEffect(() => {
+    const resize = () => setPreviewViewport({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, []);
   const [jigGrid, setJigGrid] = useState(10);
   const [jigClear, setJigClear] = useState(12);
   const [jigMargin, setJigMargin] = useState(10);
@@ -1785,6 +1828,7 @@ export default function App() {
       : (megaMode === "Gap" ? megaC * canvasW + (megaC - 1) * megaSeam : megaC * canvasW - (megaC - 1) * megaSeam))
     : canvasW;
   const megaH = megaOn ? (megaRoll ? rollLen : (megaMode === "Gap" ? megaR * canvasH + (megaR - 1) * megaSeam : megaR * canvasH - (megaR - 1) * megaSeam)) : canvasH;
+  const testRect = testCropRect(testCrop, megaW, megaH);
   /* machine templates live in src/machine.js (DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE) */
   const [machines, setMachines] = useState(() => assignIds([DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C]));
   const [helpFor, setHelpFor] = useState(null); /* node id whose help tooltip is open */
@@ -2152,6 +2196,8 @@ export default function App() {
     setSelIds([]);
     setRoot({ nodes: data.nodes, edges: data.edges });
     if (ex.canvas) { setCanvasW(ex.canvas.W || 300); setCanvasH(ex.canvas.H || 200); }
+    setTestCrop({ active: false, paper: "a4-portrait", margin: DEFAULT_TEST_MARGIN });
+    setTestCropError("");
     setGcode(null);
     setHelpOpen(false);
   };
@@ -2517,6 +2563,41 @@ export default function App() {
   const [flatAZ, setFlatAZ] = useState(false);
   const [routeOpt, setRouteOpt] = useState(true);
   const [preserveDir, setPreserveDir] = useState(true);
+  const changeTestCrop = patch => {
+    setTestCropError("");
+    if (patch.active) { setMeasureOn(false); setMeasurePts([]); setJigPlace(false); setSimOn(false); }
+    setTestCrop(old => {
+      const next = { ...old, ...patch };
+      if (patch.paper && patch.paper !== old.paper) {
+        const prev = testCropRect(old, megaW, megaH), paper = testCropRect(next, megaW, megaH);
+        next.x = prev.x + prev.w / 2 - paper.w / 2;
+        next.y = prev.y + prev.h / 2 - paper.h / 2;
+      }
+      const rect = testCropRect(next, megaW, megaH);
+      return { ...next, x: rect.x, y: rect.y, margin: rect.margin };
+    });
+  };
+  const testOut = focusOn && focusWatch != null && lvl.nodes.some(n => n.id === focusWatch) ? results[focusWatch] : primaryOut;
+  const testSourcePS = testOut?.[0]?.paths ? testOut[0] : EMPTY;
+  const downloadTestCrop = kind => {
+    if (!testRect.fits || !testSourcePS.paths.length || (kind === "gcode" && !gcodeProf)) return;
+    try {
+      const cropped = cropTestPiece(testSourcePS, testRect);
+      if (!cropped.paths.length) { setTestCropError("No lines in this crop. Move the frame."); return; }
+      const ordered = routeOpt ? routeOptimize(cropped, preserveDir) : cropped;
+      const testCtx = { ...ctx, W: testRect.w, H: testRect.h };
+      const text = kind === "svg" ? toSVG(ordered, testCtx) : kind === "dxf" ? toDXF(ordered, testCtx) : toGcodeGated(ordered, testCtx);
+      const url = URL.createObjectURL(new Blob([text], { type: kind === "svg" ? "image/svg+xml" : "text/plain" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${projName || "patch"}-test-${testRect.id}-x${testRect.x.toFixed(1)}-y${testRect.y.toFixed(1)}-m${testRect.margin.toFixed(1)}.${kind}`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setTestCropError("");
+    } catch (err) { setTestCropError(`Test export failed: ${err.message || err}`); }
+  };
+  const testCropControls = <PreviewCropControls active={testCrop.active} rect={testRect} onChange={changeTestCrop} onDownload={downloadTestCrop}
+    hasPaths={testSourcePS.paths.length > 0} gcodeEnabled={gcodeProf} error={testCropError} T={T} mono={mono} />;
   const exportPS = () => (routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS);
   const megaTiles = () => megaRoll
     ? sliceRoll(exportPS(), rollW, rollSeg, rollStrips, rollLen, megaSeam, megaMode, megaMarks, megaMarkPen, megaLabels)
@@ -2818,6 +2899,8 @@ export default function App() {
       if (data.jig) { setJigMode(data.jig.mode === "Manual" ? "Manual" : "Auto"); setManualMags(Array.isArray(data.jig.magnets) ? data.jig.magnets.filter((q) => Array.isArray(q) && q.length === 2) : []); }
       else { setJigMode("Auto"); setManualMags([]); }
       setJigPlace(false);
+      setTestCrop({ active: false, paper: "a4-portrait", margin: DEFAULT_TEST_MARGIN });
+      setTestCropError("");
       if (data.name) setProjName(data.name);
       setGcode(null);
     } catch (err) {
@@ -3606,8 +3689,8 @@ export default function App() {
           const nameOf = (n) => n ? (n.type === "group" ? "Group " + n.id : (DEFS[n.type] ? DEFS[n.type].name : n.type)) : "\u2014";
           const guides = focusGuides && watchId === primary ? primaryGuides : null;
           const stripW = Math.round((NODE_W + 56) * zoom);
-          const availW = Math.max(220, window.innerWidth - 168 - stripW - 64);
-          const availH = Math.max(220, window.innerHeight - 190);
+          const availW = Math.max(220, previewViewport.w - 168 - stripW - 64);
+          const availH = Math.max(220, previewViewport.h - (testCrop.active ? 450 : 230));
           const fw = Math.min(availW, availH * (canvasW / canvasH));
           const fh = Math.min(availH, availW * (canvasH / canvasW));
           return (
@@ -3628,14 +3711,15 @@ export default function App() {
                 </button>
                 <button style={toolBtn(true)} onClick={() => { setFocusOn(false); setFocusWatch(null); }} title="Esc / F">Close</button>
               </div>
+              <div style={{ padding: "0 12px 8px", maxWidth: 380 }}>{testCropControls}</div>
               <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 8, overflow: "hidden" }}>
                 {wOut && !wPS.paths.length && (isStyle(wOut[0]) || typeof wOut[0] === "number") ? (
                   <OutPreview out={wOut} W={megaW} H={megaH} width={Math.min(420, fw)} />
                 ) : simOn ? (
-                  <SimView ps={routeOpt ? routeOptimize(wPS, preserveDir) : wPS} W={megaW} H={megaH} width={fw} height={fh} />
+                  <SimView ps={testCrop.active && testRect.fits ? (routeOpt ? routeOptimize(cropTestPiece(wPS, testRect), preserveDir) : cropTestPiece(wPS, testRect)) : (routeOpt ? routeOptimize(wPS, preserveDir) : wPS)} W={testCrop.active && testRect.fits ? testRect.w : megaW} H={testCrop.active && testRect.fits ? testRect.h : megaH} width={fw} height={fh} />
                 ) : (
                   <ZoomBox width={fw} height={fh}>
-                    <PathsSVG ps={wPS} W={megaW} H={megaH} width={fw} height={fh} arrows={showArrows} pad={12} bg={previewBg} guides={guides} />
+                    <PathsSVG ps={wPS} W={megaW} H={megaH} width={fw} height={fh} arrows={showArrows} pad={12} bg={previewBg} guides={guides} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} />
                   </ZoomBox>
                 )}
               </div>
@@ -3678,7 +3762,7 @@ export default function App() {
               <OutPreview out={primaryOut} W={megaW} H={megaH} width={316} />
             ) : (
               <ZoomBox width={316} height={316 * (megaH / megaW)}>
-                <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} bg={previewBg} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} arrows={showArrows} pad={8} />
+                <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} bg={previewBg} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={testCrop.active ? null : previewMagnets} onMagnets={!testCrop.active && jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} arrows={showArrows} pad={8} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} />
               </ZoomBox>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
@@ -3686,7 +3770,7 @@ export default function App() {
                 <input type="checkbox" checked={showArrows} onChange={(e) => setShowArrows(e.target.checked)} style={{ accentColor: T.accent }} />
                 Show direction
               </label>
-              <button onClick={() => { const nv = !measureOn; setMeasureOn(nv); if (!nv) setMeasurePts([]); }}
+              <button onClick={() => { const nv = !measureOn; setMeasureOn(nv); if (!nv) setMeasurePts([]); if (nv) changeTestCrop({ active: false }); }}
                 title="Measure distance on the sheet: click two points in the preview, drag to adjust, double-click a point to remove it"
                 style={{ background: measureOn ? T.accent : T.panel2, border: `1px solid ${measureOn ? T.accent : T.line}`, color: measureOn ? "#0D1117" : T.text, borderRadius: 4, fontSize: 10, padding: "2px 8px", cursor: "pointer", fontFamily: mono }}>
                 Measure
@@ -3701,6 +3785,7 @@ export default function App() {
                 {String(stats.n).padStart(4, "\u2007")} paths · {String(stats.pts).padStart(6, "\u2007")} pts · {(stats.L / 1000).toFixed(2).padStart(6, "\u2007")} m
               </div>
             </div>
+            {testCropControls}
           </div>
 
           <div style={{ padding: 12, borderBottom: `1px solid ${T.line}` }}>
@@ -4160,7 +4245,7 @@ export default function App() {
                 </select>
                 {jigMode === "Manual" && (
                   <>
-                    <button onClick={() => setJigPlace((v) => !v)}
+                    <button onClick={() => { if (!jigPlace) changeTestCrop({ active: false }); setJigPlace((v) => !v); }}
                       style={{ background: jigPlace ? T.accent : T.panel2, border: `1px solid ${jigPlace ? T.accent : T.line}`, color: jigPlace ? "#0D1117" : T.text, borderRadius: 4, fontSize: 10, padding: "4px 10px", cursor: "pointer", fontFamily: mono, fontWeight: 700 }}>
                       {jigPlace ? "Placing… click preview" : "+ Place magnets"}
                     </button>
@@ -4297,6 +4382,7 @@ export default function App() {
                 "Machine Setup holds work area, origin, Z heights and speeds per machine \u2014 the active machine is used for G-code.",
                 "Optimize route reorders paths to minimize pen travel; Preserve direction keeps stroke direction (for brushes).",
                 "GENERATE G-CODE exports the selected node's output. EXPORT SVG gives layered vector output for laser/other tools.",
+                "Test crop selects an A4 or A3 sample in the preview. Drag the paper frame or enter X/Y, set Margin mm (10 mm by default), then use SVG / DXF / G-code test 1:1. Only the inner drawing area is exported; the margin stays blank. Paper size and original millimetres are retained. Use 100% / actual size in your plotter software.",
                 "Point order = pen direction. It is data: Reverse, routing and brush rotation all respect it.",
               ]],
               ["ANIMATION", [
@@ -4501,22 +4587,24 @@ export default function App() {
           }}>
           <div onClick={(e) => e.stopPropagation()} style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.6)", borderRadius: 6 }}>
             {simOn ? (
-              <SimView ps={routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS} W={megaW} H={megaH}
-                width={Math.min(window.innerWidth - 100, (window.innerHeight - 190) * (canvasW / canvasH))}
-                height={Math.min(window.innerHeight - 190, (window.innerWidth - 100) * (canvasH / canvasW))} />
+              <SimView ps={testCrop.active && testRect.fits ? (routeOpt ? routeOptimize(cropTestPiece(primaryPS, testRect), preserveDir) : cropTestPiece(primaryPS, testRect)) : (routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS)} W={testCrop.active && testRect.fits ? testRect.w : megaW} H={testCrop.active && testRect.fits ? testRect.h : megaH}
+                width={Math.min(previewViewport.w - 100, (previewViewport.h - (testCrop.active ? 380 : 190)) * (canvasW / canvasH))}
+                height={Math.min(previewViewport.h - (testCrop.active ? 380 : 190), (previewViewport.w - 100) * (canvasH / canvasW))} />
             ) : (
               (() => {
-                const bw2 = Math.min(window.innerWidth - 100, (window.innerHeight - 140) * (canvasW / canvasH));
-                const bh2 = Math.min(window.innerHeight - 140, (window.innerWidth - 100) * (canvasH / canvasW));
+                const cropSpace = testCrop.active ? 380 : 185;
+                const bw2 = Math.min(previewViewport.w - 100, (previewViewport.h - cropSpace) * (canvasW / canvasH));
+                const bh2 = Math.min(previewViewport.h - cropSpace, (previewViewport.w - 100) * (canvasH / canvasW));
                 return (
                   <ZoomBox width={bw2} height={bh2}>
                     <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={bw2} height={bh2}
-                      arrows={showArrows} pad={16} bg={previewBg} guides={primaryGuides} magnets={previewMagnets} onMagnets={jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} />
+                      arrows={showArrows} pad={16} bg={previewBg} guides={primaryGuides} magnets={testCrop.active ? null : previewMagnets} onMagnets={!testCrop.active && jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} />
                   </ZoomBox>
                 );
               })()
             )}
           </div>
+          <div onClick={e => e.stopPropagation()} style={{ width: 340, maxWidth: "90vw" }}>{testCropControls}</div>
           <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 11, color: T.dim }}>
             <button onClick={() => setSimOn((v) => !v)}
               style={{

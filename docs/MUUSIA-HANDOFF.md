@@ -3135,6 +3135,76 @@ according to the session's actual capabilities:
     verifies the exact Pages run and public app/tutorial, then refreshes the
     clean local Claude snapshot. No Claude web-project upload is implied.
 
+- **2.120 — Preview test crop with margins** 2026-10-12 Astra — based on
+  `9424d7d2359e85759a5108998f2a19c82ee95604` (v2.119). Daniel asked for
+  an A4/A3 test piece of an A2 drawing at its original physical scale.
+  - **Test crop** lives in the normal, large (Space) and Focus previews. Four
+    presets: A4 210 × 297 / 297 × 210 and A3 297 × 420 / 420 × 297 mm.
+    Drag the highlighted frame, click outside it to recenter, or enter X/Y.
+    It stays inside the full canvas; a larger-than-canvas preset disables
+    test exports instead of silently scaling. Zoom-aware drag uses mm.
+  - Daniel's follow-up adds **Margin mm**, 10 mm by default, adjustable on
+    all four edges. The outer frame shows the actual paper; the dashed inner
+    frame and live drawing-area dimensions show what will be plotted. A4
+    with 10 mm margins stays a 210 × 297 mm paper with a 190 × 277 mm
+    drawing area. Margin is clipped from the sample, never fitted or scaled.
+    SVG/DXF/G-code retain the full paper dimensions and inset path positions;
+    the route simulators use the same inset geometry. Filenames include the
+    margin. Negative/oversized input is clamped to a valid drawing area.
+  - Dedicated **SVG / DXF / G-code test 1:1** downloads clip the evaluated
+    paths and translate the chosen rectangle to sample-paper coordinates.
+    They never resize or reevaluate the drawing. Exact segment intersections,
+    closed-loop seam continuity, pen layers and interpolated point depth are
+    preserved. Route optimization applies after clipping. Guides and the
+    selection frame are preview overlays only. Use actual size / 100% in the
+    receiving plotter program.
+  - Focus exports the watched node, including a locked watch while editing
+    another node. Its route simulator and the large-preview simulator use
+    the sampled paths when the crop is active. An empty crop reports an
+    inline message and downloads no empty drawing. External SVG profiles
+    keep test G-code disabled and explain using SVG instead.
+  - The full canvas, graph evaluation and ordinary exports remain unchanged.
+    Crop selection is temporary preview state, reset when loading a patch
+    or example; it is not saved as a drawing node. Measure and magnet placing
+    modes are exclusive with crop interaction. No machine defaults or
+    commands were changed; no hardware was run.
+  - New `src/preview-crop.js`, `src/preview-crop-controls.jsx` and focused
+    `tools/validate-preview-crop.mjs`; `src/App.jsx` adds overlay, controls,
+    dedicated download handlers and Help copy. APP_VERSION and README advance
+    2.119 → 2.120. Catalog, source bundle and Learn outputs were regenerated
+    with their existing tools. Node totals remain 312 built-ins / 310 modules.
+  - Focused geometry checks passed, including a known 210 mm line, source
+    immutability, exact intersections, loop seams, pens, point depth and
+    maintenance markers. Real Chrome tested four paper presets, actual
+    SVG/DXF/G-code downloads, metric dragging under zoom, large preview,
+    locked Focus watch, empty crop and External SVG gate. Ordinary SVG and
+    saved patch still retain the 420 × 594 mm source. No browser errors.
+    The actual **Hiljainen napa** gallery patch was also sampled as A4.
+  - Ordered catalog → build → check:learn passed (23,574 shared Learn
+    checks plus typography/animation checks). Existing reference export
+    provenance remains valid; the ordinary exporter scopes were unchanged.
+    Margin checks cover 0, 10, 12.5, 15 and 20 mm in actual browser downloads;
+    inset SVG/DXF coordinates and G-code draw moves leave the edge area
+    blank. Large simulator controls also fit a 768 px high viewport.
+  - Follow-up Y-direction audit: Daniel's LATU screenshot had **Y+ points
+    up** enabled but the file header had no **Y flipped** marker. Muusia's
+    canvas uses Y down; ordinary and test G-code both respect the machine
+    profile's **Flip Y (machine Y up)**. LATU's switch changes only display,
+    not file coordinates. Actual asymmetric browser exports checked both
+    profile states on a 594 × 420 source, A4 crop at X0/Y123 with 10 mm
+    margins, and nonzero machine origin. The LATU parser confirms that
+    Flip Y on gives the matching Y-up view and uses sample H=297, never
+    source H=420. SVG stays identical. No exporter fix or automatic profile
+    override is needed; choose the profile direction to match the machine.
+    Evidence: `preview-crop-proof/orientation-qa.json` and actual downloads.
+    Browser evidence and source/checksum snapshot are in this chat's
+    `preview-crop-proof/` artifact directory. `git diff --check` passed.
+  - Daniel authorized publication on 2026-10-12. Release integration owns
+    the final validation, commit and push to main, removes the work claim
+    in that commit, verifies its exact Pages run and public v2.120 controls,
+    then refreshes the clean local Claude snapshot. No web-project upload
+    or machine run is implied. Galleria artwork work resumes separately.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private
