@@ -1,4 +1,4 @@
-# MUUSIA v2.120
+# MUUSIA v2.121
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -12,7 +12,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. It ships with **312 built-in nodes** across Generators,
+HTML file you can double-click. The current source has **313 built-in nodes** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
@@ -104,6 +104,15 @@ and preserve line dimensions and pen layers. The full artwork canvas and
 ordinary exports stay unchanged. Use actual size / 100% in your plotter program.
 G-code follows the active machine profile's **Flip Y (machine Y up)** setting;
 LATU's **Y+ points up** changes only its display.
+
+**Direction Passes** separates an existing drawing
+into horizontal and vertical G-code jobs. Connect your finished grid drawing to
+the modifier, select it and download **G-code passes .zip**. Run Horizontal, turn
+the tool manually 90° about its centre, then run Vertical with the same paper
+placement and machine origin. Other directions remain in a separate file.
+Coordinates stay 1:1 and routing is independent inside each job. The pane also
+offers individual files and sample-paper passes through Test crop. Start with
+the Help example **Direction Passes · Grid islands**.
 
 **Bed-plotter pen lift.** For machines whose Z axis is a heavy bed (e.g. the
 Ultimaker S5), two settings matter: **Z-hop** lifts only slightly between nearby

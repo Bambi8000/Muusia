@@ -16,6 +16,21 @@
 import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
+  {
+    name: "Direction Passes · Grid islands",
+    desc: "Small overlapping grids feed one Direction Passes node. Select Direction Passes and download G-code passes .zip: run 01-horizontal, turn the tool manually 90 degrees about its centre, then run 02-vertical without moving the paper or changing origin. Routing stays inside each pass. Preview can show All, Horizontal, Vertical or Other without changing the download contents. No tip dimensions are needed. Test crop passes produces the same two directions on your chosen sample paper.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "grid", x: 20, y: 20, params: { ...defaults("grid"), vlines: 9, hlines: 7, margin: 15, res: 3 } },
+      { id: 9002, type: "move_scale", x: 355, y: 20, params: { ...defaults("move_scale"), scale: 20, origin: "Canvas center", dx: -65, dy: 15 } },
+      { id: 9003, type: "array", x: 690, y: 20, params: { ...defaults("array"), count: 7, dx: 22, dy: -9, drot: 0, dscale: 5, jit: 15, penPer: false, seed: 31 } },
+      { id: 9004, type: "direction_passes", x: 1025, y: 20, params: { ...defaults("direction_passes"), tolerance: .1, preview: "All" } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 },
+      { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: 0 },
+      { id: "e9103", from: 9003, fromPort: 0, to: 9004, toPort: 0 },
+    ] }),
+  },
   ...TYPE_STUDIO_STYLES.map((mode,i) => ({
     name: "Type Studio · " + mode,
     desc: "One node, ten typography treatments with the original study numbers. Edit Text, then switch Type treatment. Only relevant controls are shown. Size and Margin fit the composition to your page. Blue Motif is used by 07 Modular marks; purple Style is applied last. For fine control, the original source nodes remain available.",

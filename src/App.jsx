@@ -15,6 +15,8 @@ import StackView from "./stack-view.jsx";
 import { splitFramePens, penFrameName, finishPenPasses } from "./frame-export.js";
 import { cropTestPiece, testCropRect, DEFAULT_TEST_MARGIN } from "./preview-crop.js";
 import PreviewCropControls from "./preview-crop-controls.jsx";
+import { directionPassFiles } from "./direction-pass-export.js";
+import DirectionPassControls from "./direction-pass-controls.jsx";
 import { DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
@@ -887,7 +889,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.120"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.121"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1808,6 +1810,7 @@ export default function App() {
   const [measurePts, setMeasurePts] = useState([]); /* 0..2 points [x,y] mm, preview coords */
   const [testCrop, setTestCrop] = useState({ active: false, paper: "a4-portrait", margin: DEFAULT_TEST_MARGIN });
   const [testCropError, setTestCropError] = useState("");
+  const [directionPassError, setDirectionPassError] = useState("");
   const [previewViewport, setPreviewViewport] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
   useEffect(() => {
     const resize = () => setPreviewViewport({ w: window.innerWidth, h: window.innerHeight });
@@ -2565,6 +2568,7 @@ export default function App() {
   const [preserveDir, setPreserveDir] = useState(true);
   const changeTestCrop = patch => {
     setTestCropError("");
+    setDirectionPassError("");
     if (patch.active) { setMeasureOn(false); setMeasurePts([]); setJigPlace(false); setSimOn(false); }
     setTestCrop(old => {
       const next = { ...old, ...patch };
@@ -2598,6 +2602,35 @@ export default function App() {
   };
   const testCropControls = <PreviewCropControls active={testCrop.active} rect={testRect} onChange={changeTestCrop} onDownload={downloadTestCrop}
     hasPaths={testSourcePS.paths.length > 0} gcodeEnabled={gcodeProf} error={testCropError} T={T} mono={mono} />;
+  const directionNodeId = focusOn && focusWatch != null && lvl.nodes.some(n => n.id === focusWatch) ? focusWatch : primary;
+  const directionNode = lvl.nodes.find(n => n.id === directionNodeId);
+  const directionOutputs = directionNode?.type === "direction_passes" ? results[directionNodeId] : null;
+  const downloadDirectionPasses = (pass, sample) => {
+    if (!directionOutputs || !gcodeProf || (sample && !testRect.fits)) return;
+    try {
+      const passCtx = sample ? { ...ctx, W: testRect.w, H: testRect.h } : ctx;
+      const files = directionPassFiles(directionOutputs, passCtx,
+        (ps, c) => toGcode(ps, c, { ...prof, rotOn: false }),
+        ps => {
+          const clipped = sample ? cropTestPiece(ps, testRect) : ps;
+          return routeOpt ? routeOptimize(clipped, preserveDir) : clipped;
+        });
+      const jobs = files.filter(file => file.pass);
+      if (!jobs.length) { setDirectionPassError(sample ? "No lines in this test crop. Move the frame." : "No drawing paths to export."); return; }
+      const chosen = pass === "all" ? null : jobs.find(file => file.pass === pass);
+      if (pass !== "all" && !chosen) return;
+      const blob = pass === "all" ? new Blob([buildZip(files)], { type: "application/zip" }) : new Blob([chosen.text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob), a = document.createElement("a");
+      const prefix = (projName || "patch").replace(/[^a-zA-Z0-9_-]+/g, "-");
+      a.href = url;
+      a.download = pass === "all" ? `${prefix}-direction-passes${sample ? `-test-${testRect.id}-m${testRect.margin.toFixed(1)}` : ""}.zip` : `${prefix}-${chosen.name}`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setDirectionPassError("");
+    } catch (err) { setDirectionPassError(`Pass export failed: ${err.message || err}`); }
+  };
+  const directionPassControls = directionOutputs ? <DirectionPassControls outputs={directionOutputs} onDownload={downloadDirectionPasses}
+    gcodeEnabled={gcodeProf} crop={{ ...testRect, active: testCrop.active }} error={directionPassError} T={T} mono={mono} /> : null;
   const exportPS = () => (routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS);
   const megaTiles = () => megaRoll
     ? sliceRoll(exportPS(), rollW, rollSeg, rollStrips, rollLen, megaSeam, megaMode, megaMarks, megaMarkPen, megaLabels)
@@ -3690,7 +3723,7 @@ export default function App() {
           const guides = focusGuides && watchId === primary ? primaryGuides : null;
           const stripW = Math.round((NODE_W + 56) * zoom);
           const availW = Math.max(220, previewViewport.w - 168 - stripW - 64);
-          const availH = Math.max(220, previewViewport.h - (testCrop.active ? 450 : 230));
+          const availH = Math.max(220, previewViewport.h - (testCrop.active ? 450 : 230) - (directionOutputs ? 190 : 0));
           const fw = Math.min(availW, availH * (canvasW / canvasH));
           const fh = Math.min(availH, availW * (canvasH / canvasW));
           return (
@@ -3711,7 +3744,7 @@ export default function App() {
                 </button>
                 <button style={toolBtn(true)} onClick={() => { setFocusOn(false); setFocusWatch(null); }} title="Esc / F">Close</button>
               </div>
-              <div style={{ padding: "0 12px 8px", maxWidth: 380 }}>{testCropControls}</div>
+              <div style={{ padding: "0 12px 8px", maxWidth: 380, maxHeight: testCrop.active ? 460 : 250, overflowY: "auto" }}>{testCropControls}{directionPassControls}</div>
               <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 8, overflow: "hidden" }}>
                 {wOut && !wPS.paths.length && (isStyle(wOut[0]) || typeof wOut[0] === "number") ? (
                   <OutPreview out={wOut} W={megaW} H={megaH} width={Math.min(420, fw)} />
@@ -3786,6 +3819,7 @@ export default function App() {
               </div>
             </div>
             {testCropControls}
+            {directionPassControls}
           </div>
 
           <div style={{ padding: 12, borderBottom: `1px solid ${T.line}` }}>
@@ -4588,13 +4622,14 @@ export default function App() {
           <div onClick={(e) => e.stopPropagation()} style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.6)", borderRadius: 6 }}>
             {simOn ? (
               <SimView ps={testCrop.active && testRect.fits ? (routeOpt ? routeOptimize(cropTestPiece(primaryPS, testRect), preserveDir) : cropTestPiece(primaryPS, testRect)) : (routeOpt ? routeOptimize(primaryPS, preserveDir) : primaryPS)} W={testCrop.active && testRect.fits ? testRect.w : megaW} H={testCrop.active && testRect.fits ? testRect.h : megaH}
-                width={Math.min(previewViewport.w - 100, (previewViewport.h - (testCrop.active ? 380 : 190)) * (canvasW / canvasH))}
-                height={Math.min(previewViewport.h - (testCrop.active ? 380 : 190), (previewViewport.w - 100) * (canvasH / canvasW))} />
+                width={Math.min(previewViewport.w - 100, Math.max(120, previewViewport.h - (testCrop.active ? 380 : 190) - (directionOutputs ? 190 : 0)) * (canvasW / canvasH))}
+                height={Math.min(Math.max(120, previewViewport.h - (testCrop.active ? 380 : 190) - (directionOutputs ? 190 : 0)), (previewViewport.w - 100) * (canvasH / canvasW))} />
             ) : (
               (() => {
-                const cropSpace = testCrop.active ? 380 : 185;
-                const bw2 = Math.min(previewViewport.w - 100, (previewViewport.h - cropSpace) * (canvasW / canvasH));
-                const bh2 = Math.min(previewViewport.h - cropSpace, (previewViewport.w - 100) * (canvasH / canvasW));
+                const cropSpace = (testCrop.active ? 380 : 185) + (directionOutputs ? 190 : 0);
+                const availH = Math.max(120, previewViewport.h - cropSpace);
+                const bw2 = Math.min(previewViewport.w - 100, availH * (canvasW / canvasH));
+                const bh2 = Math.min(availH, (previewViewport.w - 100) * (canvasH / canvasW));
                 return (
                   <ZoomBox width={bw2} height={bh2}>
                     <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={bw2} height={bh2}
@@ -4604,7 +4639,7 @@ export default function App() {
               })()
             )}
           </div>
-          <div onClick={e => e.stopPropagation()} style={{ width: 340, maxWidth: "90vw" }}>{testCropControls}</div>
+          <div onClick={e => e.stopPropagation()} style={{ width: 340, maxWidth: "90vw", maxHeight: testCrop.active && directionOutputs ? 440 : undefined, overflowY: "auto" }}>{testCropControls}{directionPassControls}</div>
           <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 11, color: T.dim }}>
             <button onClick={() => setSimOn((v) => !v)}
               style={{

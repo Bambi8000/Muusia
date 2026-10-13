@@ -375,6 +375,12 @@
   "combine",
   "pens"
  ],
+ "direction_passes": [
+  "grid",
+  "split",
+  "routing",
+  "pens"
+ ],
  "displaceimg": [
   "deform",
   "flow",

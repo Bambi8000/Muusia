@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **310 files** (312 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **311 files** (313 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 197, Modifiers 76). ESM format:
+  Generators 197, Modifiers 77). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -3204,6 +3204,62 @@ according to the session's actual capabilities:
     in that commit, verifies its exact Pages run and public v2.120 controls,
     then refreshes the clean local Claude snapshot. No web-project upload
     or machine run is implied. Galleria artwork work resumes separately.
+
+- **2.121 — Direction Passes** 2026-10-13 Astra — based on
+  `3bc85dc5e767370cc37619698420e5dc52d27cee` (v2.120). Daniel wants an
+  existing drawing, including many scattered grid islands, separated into
+  horizontal and vertical G-code files for a manually rotated tool. Tip count,
+  spacing and footprint are explicitly outside this task; the tool turns 90°
+  about its centre between files and input geometry defines the drawing.
+  - New `direction_passes` modifier / penout, **Direction Passes**. One Drawing
+    input; Preview, Horizontal, Vertical and Other path outputs. Segment angles
+    select a pass; adjacent segments stay joined. Corners split, closed-loop
+    seams merge within the same direction, and wholly single-direction closed
+    paths retain their closed flag. Original positions, sizes, pens, point depth
+    and repeated XY/depth points are retained; a split path's stop marker is
+    emitted once. No randomness, straightening or geometry compensation.
+  - Angle tolerance defaults to 0.1°, bounded below 45° to avoid ambiguous
+    diagonals. Preview All/H/V/Other only changes output 0; actual pass outputs
+    always remain complete. Other directions are exposed and never silently
+    removed. A custom-node prototype was imported and verified in the real app,
+    then baked, checked, explicitly staged, and removed from nodes-lab. The
+    built-in file is now the implementation source.
+  - New `src/direction-pass-export.js` and `src/direction-pass-controls.jsx` plus
+    a dedicated App action/pane. Individual H/V/Other G-code files or a single
+    ZIP with `01-horizontal.gcode`, `02-vertical.gcode`, optional
+    `03-other.gcode`, README and manifest. Empty passes have no file. Routing
+    occurs independently within each pass. Automatic per-stroke brush rotation
+    is disabled for these manual passes; profile origins, Flip Y, pen-lift,
+    feeds, pen changes and start/end snippets remain active. No machine defaults
+    or ordinary exporters were changed. No hardware was run.
+  - Test crop pass ZIP uses the same physical sample rectangle and margins for
+    every pass. Full, Focus and large views expose the downloads; a locked Focus
+    watch uses its source. External SVG profiles cannot generate pass G-code;
+    choose a Preview direction and use normal SVG export in that workflow.
+  - Catalog, tags, recency, source bundle and node reference updated. Editable
+    Help starter **Direction Passes · Grid islands** is Grid → Move / Scale →
+    Array → Direction Passes on 297 × 210 mm; 49 H / 63 V / 0 Other strokes.
+    Source totals: 313 built-ins / 311 node modules / 77 modifiers / 73 examples.
+  - `tools/validate-direction-passes.mjs` checks 250 directed-segment conservation
+    trials, deterministic output, source immutability, seam joins, tolerance,
+    depth, repeated points, stops, preview independence, manifests, empty passes,
+    sample coordinates and the actual Help geometry. Prototype and baked browser
+    runs downloaded real G-code and ZIPs. Every point of 58 H / 60 V strokes was
+    compared with the source through LATU's parser, including origin X5/Y7,
+    Flip Y and an A4 1:1 crop with 12.5 mm margin. Other-file retention, Preview
+    independence, External SVG gate, Focus and large preview were exercised.
+    No browser errors. Evidence is in this chat's `direction-passes/` directory.
+  - Focused validators/lint and ordered catalog → build → check:learn passed.
+    Existing Learn references remain valid (23,574 shared checks plus the
+    typography and animation checks). The generated Learn manifest's version
+    and sourceCommit changed; legacy exporter provenance did not need recapture.
+    The final v2.121 browser check also passed before release integration.
+  - Daniel approved publication on 2026-10-13. APP_VERSION and README advance
+    2.120 → 2.121; generated outputs are refreshed for the final release gate.
+    Integration removes the completed claim in the release commit, verifies
+    that exact commit's Pages run and the public app, then refreshes the local
+    Claude source snapshot. Do not import a competing custom node into the
+    baked app. Deployment evidence belongs in the chat's artifact directory.
 
 ## Hard-won pitfalls (keep)
 

@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 312 built-in nodes in the Muusia v2.119 release. Conventions used below:
+All 313 built-in nodes in Muusia v2.121. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -2179,7 +2179,7 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (76)
+## Modifiers (77)
 
 **Stripe Discs** — op-art rotated discs after Bridget Riley: a field of
 stripes is cut by circles, and inside each circle the field is rotated about
@@ -2371,6 +2371,26 @@ the zone edge (guide overlay).
 **Pen Cycle** — assigns pens to whole paths in rotation.
 
 **Set Pen** — recolors the input onto another pen. *All* moves everything to the target pen; *Single* remaps only one source pen and leaves the rest untouched — handy for swapping a single color in a multi-pen patch.
+
+**Direction Passes** — separates any incoming path drawing into horizontal,
+vertical and other runs for a tool rotated manually between two jobs. Joined
+paths and closed rectangles are split at direction changes; every directed
+segment keeps its position, size, pen and optional point depth. Closed-loop
+seams are joined within the same direction. *Angle tolerance °* (default 0.1)
+accepts near-axis segments without straightening them; diagonal and curved
+portions outside that tolerance stay in *Other*. *Preview* changes only the
+first output; the Horizontal, Vertical and Other ports always carry their full
+passes. A marker on a split path is retained once.
+The selected node's **Direction passes** pane offers individual G-code files
+or one ZIP with `01-horizontal.gcode`, `02-vertical.gcode`, optional
+`03-other.gcode`, instructions and a manifest. Empty passes have no file.
+Run Horizontal, raise and turn the tool 90° about its centre, then run Vertical
+with the same paper placement and machine origin. No tip layout is modelled.
+Route optimization applies independently within each file; per-stroke automatic
+brush rotation is disabled. Origin, Flip Y, lift, feeds, pen changes and profile
+start/end commands remain active. **Test crop passes 1:1** clips both passes to
+the same sample and margin. External SVG profiles can select a Preview direction
+and use ordinary SVG export. The Help example *Grid islands* is a starting graph.
 
 **Travel Stop** — inserts a pause or pen-change after a set distance of drawing, for
 wearing/refilling media (chalk, charcoal, dip/fountain pens). Every N mm of drawn

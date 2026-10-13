@@ -325,6 +325,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "1a0acc1fa00a021eb1a2612925f94f6abac0effa386c11a98282550a15f31ff7"
   },
+  "direction_passes": {
+    "date": "2026-10-13",
+    "order": 79,
+    "sha256": "3f3bf1b96006b0d8f1036718e59f1fac416779aaa0a2f4e7aaa84d042eea8af4"
+  },
   "displaceimg": {
     "date": "2026-07-22",
     "order": 1,
