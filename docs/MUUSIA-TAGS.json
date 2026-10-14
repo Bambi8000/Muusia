@@ -795,6 +795,13 @@
   "symmetry",
   "wave"
  ],
+ "lattice_type": [
+  "text",
+  "type",
+  "grid",
+  "round",
+  "pens"
+ ],
  "lens": [
   "deform",
   "round",

@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 313 built-in nodes in Muusia v2.122. Conventions used below:
+All 314 built-in nodes in Muusia v2.123. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -8,7 +8,24 @@ accept value wires. *(mm)* means millimetres on the canvas.
 
 ---
 
-## Generators (197)
+## Generators (198)
+
+**Lattice Type** — authored lettering built on an orthogonal lattice, inspired
+by transit-like ornamental typography. Capitals A–Z, distinct lowercase a–z,
+digits, basic punctuation and Ä/Ö/Å preserve case; unknown characters become
+`?`. *Text* is limited to 128 characters; `|` or a newline starts another row.
+*Letter height mm* requests a six-cell cap height; *Letter width ×* stretches
+the skeleton while dots stay circular. *Round corners* rounds broad bowls;
+short staircase diagonals keep grid joints. *Crossbar reach* and *Dot radius*
+use grid-cell units. *Dots* None / Outline / Hatched controls decorations;
+Hatched is actual closed circles and open chord strokes, with *Dot hatch gap mm*
+for pen coverage. *Letter gap* and *Line gap* can deliberately connect rows or
+letters. *Align*, *Vertical align* and *Margin mm* place the complete composition;
+it shrinks uniformly if needed, keeping dots, projecting bars, accents and
+descenders inside margins. *Separate pens* splits Stem / Crossbar / Dot pens.
+Style is applied last. Dense fills and exceptionally dense dash styles coarsen
+uniformly to retain all characters under the 115k-point budget. Numeric controls
+accept animation wires; no automatic motion. Help has a Transit lattice starter.
 
 **Type Studio** — ten selectable treatments from the typography study, keeping
 its original numbers: 01 Contour type, 02 Living strokes, 03 Patterned face,

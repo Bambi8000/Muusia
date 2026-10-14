@@ -17,6 +17,13 @@ import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
   {
+    name: "Lattice Type · Transit lattice",
+    desc: "Grid-built lettering with round bowls, staircase diagonals, projecting crossbars and plotted junction dots. Edit Text; | starts a new line. Try Round corners, Crossbar reach and Dot radius. Dots: Outline gives rings; Hatched fills them with real strokes. Match Dot hatch gap to your pen width. Letter height is the requested cap height; the complete composition shrinks to fit Margin, including projecting marks and accents. Tight Letter gap can join adjacent letters. Separate pens assigns stems, crossbars and dots to three inks. Capitals, lowercase, digits and Ä/Ö/Å are supported. Select Lattice Type to preview and export.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "lattice_type", x: 40, y: 30,
+      params: { ...defaults("lattice_type") } }], edges: [] }),
+  },
+  {
     name: "Direction Passes · Grid islands",
     desc: "Small overlapping grids feed one Direction Passes node. Select Direction Passes and download G-code passes .zip: run 01-horizontal, turn the tool manually 90 degrees about its centre, then run 02-vertical without moving the paper or changing origin. Routing stays inside each pass. Preview can show All, Horizontal, Vertical or Other without changing the download contents. No tip dimensions are needed. Test crop passes produces the same two directions on your chosen sample paper.",
     canvas: { W: 297, H: 210 },

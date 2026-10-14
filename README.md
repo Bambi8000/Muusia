@@ -1,4 +1,4 @@
-# MUUSIA v2.122
+# MUUSIA v2.123
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -12,10 +12,14 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **313 built-in nodes** across Generators,
+HTML file you can double-click. The current source has **314 built-in nodes** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
+
+The current source also includes **Lattice Type**: an authored grid alphabet with
+rounded bowls, projecting crossbars and junction dots filled by real plotter
+strokes. Find its starter under Help → Lattice Type · Transit lattice.
 
 ---
 

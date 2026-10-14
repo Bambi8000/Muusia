@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **311 files** (313 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **312 files** (314 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 197, Modifiers 77). ESM format:
+  Generators 198, Modifiers 77). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -3315,6 +3315,52 @@ according to the session's actual capabilities:
     Guide. Refresh the clean local Claude source snapshot after the commit;
     this does not imply a web-project upload. Release evidence belongs in the
     chat's `muusia-guide/` artifact directory.
+
+- **W — Lattice Type built-in preparation** 2026-10-14 Astra — based
+  on `a1988aeaa0ffe610b564f2b43e22777816c9af4b` (published v2.122).
+  - New `lattice_type` generator in Text & Image, inspired by Daniel's five
+    lattice-lettering references. Original orthogonal skeleton alphabet:
+    A–Z, genuine lowercase a–z, digits, basic punctuation and Ä/Ö/Å. Case is
+    retained; unsupported characters become `?`; 128 characters and `|` rows.
+    Broad bowls round while short diagonal staircases retain lattice joints.
+  - Crossbars skip already covered stem segments and merge overlapping spans.
+    Dots are actual outline circles / chord hatching, not visual-only fills.
+    Uniform fill/style coarsening retains every character under 115k points.
+    Width, size, roundness, crossbar reach, dot radius/gap, tracking, line gap,
+    alignment, margins and optional separate stem/crossbar/dot pens. Entire
+    geometry, including projecting decorations and descenders, shrinks to fit.
+    Existing typography nodes, helpers, engine and exporters are unchanged.
+  - Prototype imported through Node ⇣ in the real app, then baked. Baked
+    validator passed; graduated lab removed; ignored built-in explicitly staged.
+    Fresh app load and Help → Lattice Type · Transit lattice verified without
+    a competing custom definition. Default A4 landscape: 1,756 paths / 9,235
+    points. Outline + Separate pens: 468 paths / 6,659 points, three SVG/G-code
+    pens. Real exported SVG and G-code segment multisets match computed geometry
+    after 0.01 mm export rounding, including circle closure and routing.
+  - Focused validator: 123 cases; focused lint clean; all 74 Help examples pass.
+    Shared gate passed in order: catalog (314 entries), build, check:learn
+    (23,574 checks). Existing Learn exports remain valid. Documentation, tags,
+    search catalog, recency, source bundle and Learn manifest updated. Totals:
+    **312 node modules / 314 built-ins / 198 generators / 74 Help examples**.
+  - Actual UI screenshot, vector/PNG specimens, editable projects and real
+    browser exports with SHA-256 proof are in this chat's `lattice-type/`
+    artifact directory. Browser export-panel content was saved in full chunks;
+    truncated intermediate G-code was removed. No physical plotting performed.
+    Standalone local build and dirty source snapshot are supplied for review.
+  - Preparation kept APP_VERSION 2.122 and left publication for Daniel's
+    review. Daniel subsequently approved the v2.123 integration recorded below.
+
+- **2.123 — Lattice Type** 2026-10-14 Astra — Daniel approved publication of
+  the ready lattice-lettering node. Integration advances APP_VERSION, README
+  and node reference from 2.122 to 2.123. All 314 built-ins / 312 node modules /
+  198 generators / 74 Help examples included. Generated catalog, recency, source
+  bundle and Learn manifest refreshed. Final focused validator, examples, lint
+  and ordered catalog → build → check:learn passed; existing Learn capture
+  provenance remains valid. The ready W entry above records visual and real
+  SVG/G-code evidence. Release commit removes the completed claim. Push is
+  followed by exact-commit Pages and public Lattice Type/Help verification;
+  refresh the clean local source snapshot after that commit. Evidence and
+  standalone release build belong in this chat's `lattice-type/` directory.
 
 ## Hard-won pitfalls (keep)
 

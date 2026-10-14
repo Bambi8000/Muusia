@@ -680,6 +680,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "96577f03600ab968490e3801702f507adb39ac8fefdf0d6b040d7e90759099f2"
   },
+  "lattice_type": {
+    "date": "2026-10-14",
+    "order": 80,
+    "sha256": "f5f3ce4d8142e6ece0a442171f28d9a7a40a0f303bbd3c10c654130851a1cf5c"
+  },
   "lens": {
     "date": "2026-07-22",
     "order": 1,
