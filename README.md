@@ -1,4 +1,4 @@
-# MUUSIA v2.121
+# MUUSIA v2.122
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -113,6 +113,19 @@ placement and machine origin. Other directions remain in a separate file.
 Coordinates stay 1:1 and routing is independent inside each job. The pane also
 offers individual files and sample-paper passes through Test crop. Start with
 the Help example **Direction Passes · Grid islands**.
+
+**Muusia Guide** opens a live side panel from the
+top-bar **Guide** button. **Selected node** explains its actual reference,
+inputs, outputs and current settings, including values driven by wires.
+**Check patch** finds broken ports, mismatched types, duplicate inputs and
+feedback loops in the current group level. Free inputs are not automatically
+errors. **Prepare a plot** follows the active machine profile and test crop,
+compares drawn XY bounds using the correct sample height for Flip Y, and offers
+the existing sample and direction-pass downloads. Search finds nodes and
+step-by-step guides; common Finnish terms such as `ruudukko` also work. Node
+instructions use the existing English reference and Learn content. Adding a
+node from search is an explicit action and supports normal Undo. The guide
+runs locally, without an AI model, account or service. Esc closes it.
 
 **Bed-plotter pen lift.** For machines whose Z axis is a heavy bed (e.g. the
 Ultimaker S5), two settings matter: **Z-hop** lifts only slightly between nearby

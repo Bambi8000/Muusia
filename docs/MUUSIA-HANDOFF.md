@@ -3261,6 +3261,61 @@ according to the session's actual capabilities:
     Claude source snapshot. Do not import a competing custom node into the
     baked app. Deployment evidence belongs in the chat's artifact directory.
 
+- **2.122 — Muusia Guide** 2026-10-14 Astra — based on
+  `aad97135011837efe49f17bb0a2f25f1b8b1c506` (v2.121). Daniel chose an
+  internal Muusia-only guide without a model subscription or external service.
+  - New `src/muusia-guide.js` supplies deterministic reference lookup, topic
+    search, selected-node inspection, graph diagnostics and plot preparation.
+    `src/muusia-guide.jsx` renders a live non-modal side panel opened by **Guide**
+    in the top bar. English content reuses the existing node catalog and the
+    twenty authored Learn node recipes. Search includes common Finnish terms;
+    out-of-domain queries return no matches instead of an invented answer.
+  - Selected node follows the actual editing selection: description, dynamic
+    input/output pins, peer navigation, evaluated numeric wires, stored values,
+    per-node slider maxima and mode visibility. Group inputs are labelled as
+    parent bindings. Custom definitions and their display predicates are read
+    safely, without running node compute functions again.
+  - Check patch scans the current level for missing endpoints/ports, mismatched
+    data types, duplicate input wires and data/parameter feedback loops. It
+    does not assume free optional inputs are failures or claim that an empty
+    drawing identifies its cause. A soloed empty Direction Passes preview is
+    distinguished from an empty source drawing. Open groups to inspect their
+    internals; this is not a recursive whole-document diagnostics report.
+  - Prepare a plot reuses the existing Test crop and Direction Passes controls,
+    preserving the active profile and original geometry. Drawn XY extents use
+    the actual paper, origin and Flip Y; samples use their own height. A pass
+    ZIP check covers all three directions regardless of Preview. Locked Focus
+    watch and ordinary selected-node export sources are named separately.
+    Start/end, maintenance moves and physical tip footprints are outside this
+    path-coordinate comparison. No machine commands are sent by the guide.
+  - Search can read a topic, select an existing node or explicitly add a node
+    through the normal app action, with Undo. It never rewrites the patch while
+    explaining it. Nine local step-by-step guides cover basics, wires, empty
+    previews, samples, manual direction passes, Y/origin, pens, export and
+    animation. Esc from the guide, including its search field, closes it.
+  - App changes are limited to the entry/panel, navigation and Machine Setup
+    scroll anchor. Ordinary exporters, node computation and machine profiles
+    are unchanged. `tools/project-files.mjs` also includes `learn/content.mjs`
+    as `learn-content.mjs`, so the source snapshot contains the guide's shared
+    knowledge. README documents the local feature. No new node/count change.
+  - Focused validator exercises all 311 node modules, live values and fallback,
+    custom/group pins and predicates, optional inputs, invalid wires, loops,
+    domain search, immutable app data, exact clipping and sample Y coordinates.
+    Real browser checks exercised settings updates, peer navigation, search,
+    sample G-code downloads (A4 landscape, margin 12.5, origin X5/Y7, Flip Y),
+    pass ZIPs, offline guidance, byte-identical ordinary SVG before/after reading,
+    Add/Undo, External SVG, diagnostics, group bindings and a narrow viewport.
+    Evidence is in this chat's `muusia-guide/` artifact directory. No hardware
+    was run. Focused lint and catalog → build → check:learn passed; the existing
+    Learn reference exports remain valid, including 23,574 shared checks.
+  - Daniel approved publication on 2026-10-14. APP_VERSION, README and the
+    node-reference header advance 2.121 → 2.122. Integration regenerates the
+    outputs, runs the final release gate and removes the completed claim in
+    the release commit, then verifies that exact commit's Pages run and public
+    Guide. Refresh the clean local Claude source snapshot after the commit;
+    this does not imply a web-project upload. Release evidence belongs in the
+    chat's `muusia-guide/` artifact directory.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

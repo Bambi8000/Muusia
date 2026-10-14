@@ -18,6 +18,7 @@ const sources = [
   ["docs/MUUSIA-TAGS.json", "MUUSIA-TAGS.json"],
   ["docs/MUUSIA-NODE-API.md", "MUUSIA-NODE-API.md"],
   ["learn/README.md", "MUUSIA-LEARN-README.md"],
+  ["learn/content.mjs", "learn-content.mjs"],
   ["learn/validate.mjs", "learn-validate.mjs"],
   ["learn/lib/export-provenance.mjs", "export-provenance.mjs"],
   ["learn/test/export-provenance.test.mjs", "export-provenance.test.mjs"],

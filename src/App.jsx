@@ -17,6 +17,7 @@ import { cropTestPiece, testCropRect, DEFAULT_TEST_MARGIN } from "./preview-crop
 import PreviewCropControls from "./preview-crop-controls.jsx";
 import { directionPassFiles } from "./direction-pass-export.js";
 import DirectionPassControls from "./direction-pass-controls.jsx";
+import MuusiaGuide from "./muusia-guide.jsx";
 import { DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
@@ -889,7 +890,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.121"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.122"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1924,6 +1925,8 @@ export default function App() {
   const [bigPreview, setBigPreview] = useState(false);
   const [pensOpen, setPensOpen] = useState(false);
   const [kbOpen, setKbOpen] = useState(false); /* keyboard shortcuts popover */
+  const [guideOpen, setGuideOpen] = useState(false);
+  const toolbarRef = useRef(null);
   const [focusOn, setFocusOn] = useState(false);        /* Focus mode (F): node strip + big preview */
   const [focusWatch, setFocusWatch] = useState(null);   /* locked WATCH node id; null = follow EDIT */
   const [focusGuides, setFocusGuides] = useState(true); /* overlay guides toggle in focus preview */
@@ -2430,7 +2433,7 @@ export default function App() {
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "g") { e.preventDefault(); groupSelected(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setQuickAdd({ cat: null, query: "", sel: 0 }); }
       else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeSelected(); }
-      else if (e.key === "Escape") { if (focusOn) { setFocusOn(false); setFocusWatch(null); } else { setBigPreview(false); setSelIds([]); } }
+      else if (e.key === "Escape") { if (guideOpen) setGuideOpen(false); else if (focusOn) { setFocusOn(false); setFocusWatch(null); } else { setBigPreview(false); setSelIds([]); } }
       else if (e.key === " ") {
         e.preventDefault();
         if (!focusOn) setBigPreview((v) => (v ? false : primaryPS.paths.length > 0));
@@ -3086,7 +3089,7 @@ export default function App() {
         *{box-sizing:border-box} ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-thumb{background:${T.line};border-radius:4px}`}</style>
 
       {/* ---------- Yläpalkki ---------- */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: `1px solid ${T.line}`, background: T.panel, flexWrap: "wrap" }}>
+      <div ref={toolbarRef} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: `1px solid ${T.line}`, background: T.panel, flexWrap: "wrap" }}>
         <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 15, letterSpacing: "0.02em", marginRight: 6, color: T.text }}>
           MUUSIA
           <span style={{ color: T.dim, fontWeight: 500, fontSize: 11, marginLeft: 8 }}>{"v" + APP_VERSION}</span>
@@ -3153,6 +3156,8 @@ export default function App() {
             background: helpOpen ? T.accent + "33" : T.panel2, border: `1px solid ${T.accent}88`, color: T.text,
             borderRadius: 4, fontSize: 10, padding: "4px 10px", cursor: "pointer", fontFamily: mono, fontWeight: 700,
           }}>? Help</button>
+        <button aria-expanded={guideOpen} onClick={() => { setGuideOpen(v => !v); setHelpOpen(false); setBigPreview(false); setKbOpen(false); }} title="Guide for the selected node, patch connections and test plotting"
+          style={{ ...toolBtn(true), borderColor: T.accent, background: guideOpen ? T.accent + "33" : T.panel2 }}>Guide</button>
         <button style={toolBtn(true)} onClick={setDefaultPatch} title="Current patch loads on startup">
           {hasDefault ? "Update default" : "Set default"}
         </button>
@@ -3874,7 +3879,7 @@ export default function App() {
                 Murmuration herds and Concrete Poetry follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes.
               </div>
             </div>
-            <div onClick={() => setMchOpen((v) => !v)}
+            <div data-machine-setup="true" onClick={() => setMchOpen((v) => !v)}
               style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", marginBottom: 8 }}>
             <div style={{ fontSize: 10, color: T.text, letterSpacing: "0.08em", flex: 1 }}>
                 MACHINE SETUP <span style={{ color: T.dim }}>— {prof.name || "unnamed"}</span>
@@ -4365,6 +4370,23 @@ export default function App() {
       </div>
 
       {/* ---------- Help & Examples ---------- */}
+      {guideOpen && <MuusiaGuide level={lvl} node={primaryNode} defs={{ ...DEFS }} catalog={CATALOG} results={results} pvals={pvals}
+        canvas={{ W: megaW, H: megaH }} ps={primaryPS} samplePS={testSourcePS}
+        sampleNode={lvl.nodes.find(n => n.id === (focusOn && focusWatch != null ? focusWatch : primary))}
+        crop={{ ...testRect, active: testCrop.active }} profile={prof} directionNode={directionNode} directionOutputs={directionOutputs}
+        routeOpt={routeOpt} preserveDir={preserveDir} cropControls={testCropControls} passControls={directionPassControls} toolbarRef={toolbarRef}
+        onClose={() => setGuideOpen(false)} onSelect={id => {
+          if (!lvl.nodes.some(n => n.id === id)) return;
+          setSelIds([id]);
+          const target = lvl.nodes.find(n => n.id === id);
+          requestAnimationFrame(() => {
+            if (!areaRef.current) return;
+            areaRef.current.scrollLeft = Math.max(0, target.x * zoom - 30);
+            areaRef.current.scrollTop = Math.max(0, target.y * zoom - 30);
+          });
+        }} onAdd={addNode} onSample={paper => changeTestCrop({ active: true, paper })}
+        onMachine={() => { setGuideOpen(false); setMchOpen(true); requestAnimationFrame(() => document.querySelector("[data-machine-setup]")?.scrollIntoView({ block: "start" })); }}
+        onHelp={() => { setGuideOpen(false); setHelpOpen(true); }} T={T} mono={mono} disp={disp} />}
       {helpOpen && (
         <div onClick={() => setHelpOpen(false)}
           style={{ position: "fixed", inset: 0, background: "rgba(10,12,16,0.55)", zIndex: 96, display: "flex", justifyContent: "center", alignItems: "center" }}>
