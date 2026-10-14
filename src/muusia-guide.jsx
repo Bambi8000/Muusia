@@ -58,8 +58,8 @@ export default function MuusiaGuide({ level, node, defs, catalog, results, pvals
             <h3 style={{ ...heading, marginTop: 12 }}>Outputs</h3>{description.outputs.map((output, i) => <div key={i} style={{ ...small, marginBottom: 7 }}><strong style={{ color: T.text }}>{output.label}</strong> · {output.type}{output.count != null ? ` · ${output.count} paths` : output.value != null ? ` · ${fmt(output.value)}` : ""}
               {output.connections.map((c, j) => <div key={j}>{peerButton(c.peerId, c.name)} → {c.target}</div>)}</div>)}
           </div>
-          {!!description.parameters.length && <details style={card}><summary style={{ ...heading, cursor: "pointer" }}>Current settings · {description.parameters.length}</summary>
-            {description.parameters.map(p => <div key={p.key} style={{ ...small, padding: "6px 0", borderBottom: `1px solid ${T.line}` }}><strong style={{ color: T.text }}>{p.label}</strong>: {fmt(p.value)}
+          {!!description.parameters.length && <details style={card}><summary style={{ ...heading, cursor: "pointer" }}>Current settings · {description.parameters.filter(p => p.active || p.wired).length}</summary>
+            {description.parameters.filter(p => p.active || p.wired).map(p => <div key={p.key} style={{ ...small, padding: "6px 0", borderBottom: `1px solid ${T.line}` }}><strong style={{ color: T.text }}>{p.label}</strong>: {fmt(p.value)}
               {p.wired && <div>Controlled by {peerButton(p.peerId, p.source)}{!p.validWire && <span style={{ color: T.terra }}> · no finite number; stored value is used</span>}</div>}
               {!p.active && <div>Setting for another mode</div>}
               {p.numeric && <div>Range {fmt(p.min)}…{fmt(p.max)}{p.wired ? " · edit the source node" : " · edit on the node card"}</div>}

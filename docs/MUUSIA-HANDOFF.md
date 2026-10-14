@@ -3362,6 +3362,62 @@ according to the session's actual capabilities:
   refresh the clean local source snapshot after that commit. Evidence and
   standalone release build belong in this chat's `lattice-type/` directory.
 
+- **W — parameter visibility audit (local preparation)** 2026-10-15 Astra —
+  based on `f074284b4514f16e7b8121fc5b891018cf732720`. Audited all 312 node
+  modules / 3,884 parameter descriptors. Reviewed UI applicability rules now
+  cover 382 controls in 150 nodes through 292 rules, including Retro Mesh,
+  Truchet, Contours, Warp, Video Test,
+  math, image inputs, pen palettes and optional feature controls.
+  - `src/defs/parameter-visibility.js` composes reviewed predicates into the
+    built-in registry. Original compute/overlay functions, parameter keys,
+    defaults, options and saved values remain intact. Authored `showIf` rules
+    are retained except palette count predicates adjusted to compute rounding.
+    Custom definitions are unchanged; predicate errors fail open.
+  - Node cards use evaluated parameter values. Inactive wired inputs retain
+    only their numeric port and connection explanation; sliders disappear.
+    Promoted group controls follow the child's mode. Guide uses the same
+    applicability contract and omits unwired inactive current settings.
+  - `tools/audit-parameter-visibility.mjs` inventories descriptors and source
+    branches. `tools/validate-parameter-visibility.mjs` validates keys,
+    descriptor/function preservation, selector combinations, feature toggles,
+    live wiring and output invariance when changing newly hidden values.
+    Source review avoids hiding parameters which indirectly affect fitting,
+    sampling density or other modes. Synthetic image/audio/SVG/point-cloud/map
+    fixtures exercise file branches without user files.
+  - Focused validation: 250,037 predicate cases and 10,304 hidden-value output
+    comparisons across 150 corrected nodes; guide validator and focused lint
+    pass. Browser evidence confirms Retro Mesh Hourglass/Laser floor controls,
+    inactive wired Terrain, live Terrain 0/1 changing Seed visibility, and
+    Truchet Tiles/Loop, Contours terrain/waves, Warp corners/lattice and Video
+    Test Card Siemens star/colour bars. Actual browser Retro Mesh Laser floor
+    SVG and G-code match unchanged source geometry at export precision (28
+    paths / 1,917 points; routing order and reversal allowed); SHA-256 evidence
+    is saved in `export-proof.json`. Real captures and reproducible patches are in this
+    chat's `parameter-visibility/` artifact directory. No hardware plotting.
+  - All 74 Help examples and ordered catalog → build → check:learn pass;
+    Learn reports 23,574 checks and existing export/capture provenance remains
+    valid. APP_VERSION remains 2.123 during preparation. A standalone local
+    build and dirty source snapshot are supplied; the claim is ready.
+    Publication/version bump requires Daniel's release instruction.
+
+- **2.124 — mode-specific parameter controls** 2026-10-15 Astra — Daniel
+  approved publishing the ready parameter visibility audit. Retro Mesh and
+  149 other nodes hide controls unused by the selected mode or feature;
+  hidden values are preserved. Inactive numeric wires retain a compact port
+  row for disconnecting. Node cards and Guide follow evaluated wired values;
+  promoted group controls follow the child's mode. All 314 built-ins / 312
+  modules / 74 examples remain available, with unchanged compute/export
+  geometry. The W entry above records source review, 250,037 predicate cases,
+  10,304 output invariance comparisons and actual browser/export evidence.
+  Integration advances APP_VERSION to 2.124 and regenerates catalog/source/Learn.
+  Focused visibility/guide validators, all 74 examples, focused lint and the
+  ordered catalog → build → check:learn gate pass (23,574 Learn checks).
+  Existing capture/export provenance stays valid; the integration commit
+  removes the completed claim.
+  Verify the Pages run for the release commit and public Retro Mesh controls;
+  refresh the clean source snapshot after committing. Artifacts are in this
+  chat's `parameter-visibility/` directory.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

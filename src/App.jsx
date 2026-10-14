@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
+import { isParameterActive, parameterPresentation } from "./defs/parameter-visibility.js";
 import { DEFS_NODES } from "./defs/index.js";
 import { EXAMPLES } from "./examples.js";
 import { CATALOG } from "./defs/catalog.js";
@@ -890,7 +891,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.123"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.124"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1610,7 +1611,7 @@ function NumBox({ value, onChange, width = 52, disabled, min, max }) {
   );
 }
 
-function ParamRow({ def, value, onChange, wired, liveVal, portRef, portProps, onFileText, fileMode, fileLabel, fileAccept, onPromote }) {
+function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, portProps, onFileText, fileMode, fileLabel, fileAccept, onPromote }) {
   const lbl = { fontSize: 10, color: T.dim, letterSpacing: "0.02em" };
   const dot = portRef ? (
     <div ref={portRef} {...portProps}
@@ -1619,6 +1620,13 @@ function ParamRow({ def, value, onChange, wired, liveVal, portRef, portProps, on
         background: wired ? T.value : T.bg, border: `2px solid ${T.value}`, cursor: "crosshair", zIndex: 2,
       }} />
   ) : null;
+  if (inactive && wired) return (
+    <div data-inactive-parameter={def.key} title="This input is not used by the current mode. Drag its port to disconnect it."
+      style={{ marginBottom: 7, position: "relative", display: "flex", gap: 6, alignItems: "center", minHeight: 18 }}>
+      {dot}<span style={{ ...lbl, flex: 1 }}>{def.label} ◈</span>
+      <span style={{ ...lbl, fontSize: 9 }}>Not used in this mode</span>
+    </div>
+  );
   if (def.type === "slider" || def.type === "number") {
     const shown = wired && typeof liveVal === "number" ? Math.round(liveVal * 100) / 100 : value;
     return (
@@ -3550,7 +3558,7 @@ export default function App() {
                                 const inner = node.data.nodes.find((n) => n.id === q.nodeId);
                                 const idef = inner && DEFS[inner.type];
                                 const pdef = idef && idef.params.find((pp) => pp.key === q.key);
-                                if (!inner || !pdef) return null;
+                                if (!inner || !pdef || !isParameterActive(pdef, inner.params)) return null;
                                 return (
                                   <div key={q.nodeId + "|" + q.key} style={{ position: "relative" }}>
                                     <span onClick={(e) => {
@@ -3609,16 +3617,13 @@ export default function App() {
                               </div>
                             </div>
                           ) : (
-                            def.params.filter((pd) => {
-                              if (typeof pd.showIf !== "function") return true;
-                              if (wiredParams.has(pd.key)) return true;
-                              try { return !!pd.showIf(node.params); } catch (e) { return true; }
-                            }).map((pd) => {
+                            def.params.filter((pd) => parameterPresentation(pd, pvals[node.id] || node.params, wiredParams.has(pd.key)) !== "hidden").map((pd) => {
                               const isNum = pd.type === "slider" || pd.type === "number" || pd.type === "seed";
                               const pdE = (node.pmax && node.pmax[pd.key] != null) ? { ...pd, max: node.pmax[pd.key] } : pd;
                               return (
                                 <ParamRow key={pd.key} def={pdE} value={node.params[pd.key]}
                                   wired={wiredParams.has(pd.key)}
+                                  inactive={!isParameterActive(pd, pvals[node.id] || node.params)}
                                   liveVal={pvals[node.id] ? pvals[node.id][pd.key] : undefined}
                                   portRef={isNum ? regPort(node.id + "|p:" + pd.key) : null}
                                   portProps={isNum ? {

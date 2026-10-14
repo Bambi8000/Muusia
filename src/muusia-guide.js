@@ -1,3 +1,4 @@
+import { isParameterActive } from "./defs/parameter-visibility.js";
 // Local guide: inspect existing app data; never evaluate nodes or change a patch.
 import { nodeGuides } from "../learn/content.mjs";
 import { cropTestPiece, TEST_PAPERS } from "./preview-crop.js";
@@ -48,10 +49,7 @@ function pins(def, key, node) {
   catch { return []; }
 }
 const nameOf = (node, defs) => node ? `${defs[node.type]?.name || node.type} #${node.id}` : "Missing node";
-const parameterActive = (p, node) => {
-  try { return typeof p.showIf !== "function" || !!p.showIf(node.params); }
-  catch { return true; }
-};
+
 export function describeNode(node, level, defs, catalog, results = {}, pvals = {}) {
   if (!node) return null;
   const def = defs[node.type];
@@ -78,7 +76,7 @@ export function describeNode(node, level, defs, catalog, results = {}, pvals = {
       return { key: p.key, label: p.label || p.key, type: p.type, value: pvals[node.id]?.[p.key] ?? stored, wired: !!edge,
         peerId: edge?.from, source: edge ? nameOf(peer(edge.from), defs) : null,
         validWire: !edge || (typeof sourceValue === "number" && Number.isFinite(sourceValue)), options: p.options,
-        min: p.min, max: node.pmax?.[p.key] ?? p.max, numeric: NUMERIC.has(p.type), active: parameterActive(p, node) };
+        min: p.min, max: node.pmax?.[p.key] ?? p.max, numeric: NUMERIC.has(p.type), active: isParameterActive(p, { ...node.params, ...pvals[node.id] }) };
     }),
   };
 }

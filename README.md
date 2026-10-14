@@ -1,4 +1,4 @@
-# MUUSIA v2.123
+# MUUSIA v2.124
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -130,6 +130,12 @@ step-by-step guides; common Finnish terms such as `ruudukko` also work. Node
 instructions use the existing English reference and Learn content. Adding a
 node from search is an explicit action and supports normal Undo. The guide
 runs locally, without an AI model, account or service. Esc closes it.
+
+**Mode-specific controls.** Node cards and Guide show settings used by the
+current mode or enabled feature. Switching modes preserves hidden values.
+Connected numeric inputs that are currently unused keep a small connection
+row, allowing the wire to be disconnected without showing an unused slider.
+Visibility follows live wire values.
 
 **Bed-plotter pen lift.** For machines whose Z axis is a heavy bed (e.g. the
 Ultimaker S5), two settings matter: **Z-hop** lifts only slightly between nearby

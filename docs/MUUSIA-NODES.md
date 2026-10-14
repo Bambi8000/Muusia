@@ -1,10 +1,16 @@
 # MUUSIA — Node Reference
 
-All 314 built-in nodes in Muusia v2.123. Conventions used below:
+All 314 built-in nodes in Muusia v2.124. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
+
+Controls appear only when the selected mode or enabled feature uses them.
+Hidden settings retain their values when switching back. An inactive numeric
+input with a connected wire keeps a compact connection row so the wire can
+still be disconnected; it does not show an unused slider. Visibility follows
+live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
@@ -1769,8 +1775,11 @@ wormhole double funnel (rings + meridian spokes from a shared throat; Flare,
 Throat, Height shape the profile), *Funnel* and *Horn* its single-ended
 siblings, *Laser floor* the synthwave grid receding to a vanishing point with
 noise Terrain that leaves a flat center corridor and an optional Horizon line.
-Perspective runs from near-orthographic to wide-angle; drawn transparent (no
-hidden-line removal) like the retro prints. Pair with Solids for a planet disc.
+Flare, Throat, Height and Perspective appear for Hourglass, Funnel and Horn;
+Terrain and Horizon appear only for Laser floor, with Seed available when
+Terrain is positive. Perspective runs from near-orthographic to wide-angle
+for the funnel shapes; Laser floor uses its own projection. Drawn transparent
+(no hidden-line removal) like the retro prints. Pair with Solids for a planet disc.
 
 **Diagram** — flow-diagram generator: numbered circle or square nodes joined by
 directed orthogonal arrow lines (L/Z routing with node avoidance). Line styles:
