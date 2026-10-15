@@ -48814,14 +48814,14 @@ export default {
 ## spikes3d.js
 
 ```js
-import { Pin, EMPTY, mulberry32, applyStyle, isStyle } from "../helpers.js";
+import { Pin, EMPTY, mulberry32, noise2, applyStyle, isStyle } from "../helpers.js";
 
 export default {
   key: "spikes3d",
   name: "3D Spikes",
   cat: "gen",
   group: "structural",
-  desc: "Grow seeded spikes or straws from a real 3D surface. Choose Capsule, Sphere, Torus or Cube, set Body to Wired mesh and connect Blob Mesh's Mesh output (port 2), or choose Imported STL and load an ASCII/binary STL (up to 120k triangles). Count samples triangles by area, avoiding denser growth on more finely tessellated regions. Length, Length variation and Spread shape the coat. Lines draws thin centre strokes, Spikes pointed fins, Straws parallel edges with an open end ring. Normal direction can reverse growth; Smooth normals softens a wired mesh. Rotate the view with View angle/elevation. Body occlusion clips strokes hidden by the host surface (raster depth; straws do not hide each other). Body drawing adds its silhouette or a reduced wireframe. Body size and Length are requested millimetres; the whole composition shrinks uniformly if needed to fit Margin. All outputs are ordinary 2D pen paths, not machine Z moves. Wire numeric controls to Frame for animation. Keep Seed and Count fixed when rotating.",
+  desc: "Grow seeded spikes or straws from a real 3D surface. Choose Capsule, Sphere, Torus or Cube, set Body to Wired mesh and connect Blob Mesh's Mesh output (port 2), or choose Imported STL and load an ASCII/binary STL (up to 120k triangles). Count samples triangles by area, avoiding denser growth on more finely tessellated regions. Length, Length variation and Spread shape the coat. Length modulation Off preserves old patches; Wave, Noise or Pulse varies each spike by its surface position. Modulation depth % blends down from its original length; Modulation size mm sets the spatial period/scale along Modulation axis (object X/Y/Z). Modulation phase degrees moves the pattern: wire Frame rot degrees here with Modulation motion Manual, or choose Timeline and press Play in ANIMATE; Modulation cycles sets whole cycles per loop. Pulse width % sets the raised band width in Pulse. Noise is smooth and seeded, with a seamless phase cycle. Keep Seed, Count, body, length and camera fixed for stable roots and fixed framing: active modulation fits the full unmodulated coat, not each changing frame. Modulation depth 0 equals Off. Lines draws thin centre strokes, Spikes pointed fins, Straws parallel edges with an open end ring. Normal direction can reverse growth; Smooth normals softens a wired mesh. Rotate the view with View angle/elevation. Body occlusion clips strokes hidden by the host surface (raster depth; straws do not hide each other). Body drawing adds its silhouette or a reduced wireframe. Body size and Length are requested millimetres; the whole composition shrinks uniformly if needed to fit Margin. All outputs are ordinary 2D pen paths, not machine Z moves. Wire numeric controls to Frame for animation. Keep Seed and Count fixed when rotating.",
   fileBinary: true,
   fileAccept: ".stl,model/stl,application/sla,application/octet-stream",
   fileLabel: "Load STL…",
@@ -48837,6 +48837,14 @@ export default {
     { key: "mode", label: "Marks", type: "select", options: ["Lines", "Spikes", "Straws"], def: "Lines", showIf: p => Math.round(p.count) > 0 },
     { key: "length", label: "Length mm", type: "slider", min: 0, max: 100, step: 0.5, def: 34, showIf: p => Math.round(p.count) > 0 },
     { key: "variation", label: "Length variation", type: "slider", min: 0, max: 1, step: 0.01, def: 0.75, showIf: p => Math.round(p.count) > 0 && p.length > 0 },
+    { key: "modulation", label: "Length modulation", type: "select", options: ["Off", "Wave", "Noise", "Pulse"], def: "Off", showIf: p => Math.round(p.count) > 0 && p.length > 0 },
+    { key: "modDepth", label: "Modulation depth %", type: "slider", min: 0, max: 100, step: 1, def: 80, showIf: p => Math.round(p.count) > 0 && p.length > 0 && ["Wave", "Noise", "Pulse"].includes(p.modulation) },
+    { key: "modAxis", label: "Modulation axis", type: "select", options: ["X", "Y", "Z"], def: "Z", showIf: p => Math.round(p.count) > 0 && p.length > 0 && ["Wave", "Noise", "Pulse"].includes(p.modulation) && p.modDepth > 0 },
+    { key: "modSize", label: "Modulation size mm", type: "slider", min: 5, max: 200, step: 1, def: 65, showIf: p => Math.round(p.count) > 0 && p.length > 0 && ["Wave", "Noise", "Pulse"].includes(p.modulation) && p.modDepth > 0 },
+    { key: "modPhase", label: "Modulation phase °", type: "slider", min: 0, max: 360, step: 1, def: 0, showIf: p => Math.round(p.count) > 0 && p.length > 0 && ["Wave", "Noise", "Pulse"].includes(p.modulation) && p.modDepth > 0 },
+    { key: "modMotion", label: "Modulation motion", type: "select", options: ["Manual", "Timeline"], def: "Manual", showIf: p => Math.round(p.count) > 0 && p.length > 0 && ["Wave", "Noise", "Pulse"].includes(p.modulation) && p.modDepth > 0 },
+    { key: "modCycles", label: "Modulation cycles", type: "slider", min: 1, max: 8, step: 1, def: 1, showIf: p => Math.round(p.count) > 0 && p.length > 0 && ["Wave", "Noise", "Pulse"].includes(p.modulation) && p.modDepth > 0 && p.modMotion === "Timeline" },
+    { key: "pulseWidth", label: "Pulse width %", type: "slider", min: 5, max: 100, step: 1, def: 35, showIf: p => Math.round(p.count) > 0 && p.length > 0 && p.modulation === "Pulse" && p.modDepth > 0 },
     { key: "spread", label: "Spread °", type: "slider", min: 0, max: 85, step: 1, def: 16, showIf: p => Math.round(p.count) > 0 && p.length > 0 },
     { key: "diameter", label: "Diameter mm", type: "slider", min: 0.2, max: 8, step: 0.1, def: 1.2, showIf: p => Math.round(p.count) > 0 && p.length > 0 && p.mode !== "Lines" },
     { key: "normals", label: "Normal direction", type: "select", options: ["Outward (closed mesh)", "As mesh", "Flip"], def: "Outward (closed mesh)", showIf: p => Math.round(p.count) > 0 && p.length > 0 },
@@ -48925,6 +48933,23 @@ export default {
     const len=num("length",0,1000,34),vary=num("variation",0,1,.75),spread=num("spread",0,89,16)*Math.PI/180;
     const radius=num("diameter",.05,100,1.2)/2,margin=Math.min(num("margin",0,60,12),Math.max(0,Math.min(W,H)/2-.001));
     const rng=mulberry32(Math.round(num("seed",-2147483648,2147483647,41)));
+    const modulated=["Wave","Noise","Pulse"].includes(p.modulation)&&num("modDepth",0,100,80)>0&&count>0&&len>0;
+    const modDepth=num("modDepth",0,100,80)/100,modSize=num("modSize",.01,10000,65);
+    const modAxis=p.modAxis==="X"?0:p.modAxis==="Y"?1:2;
+    const frameCount=Number.isFinite(+ctx.frameCount)?Math.max(1,Math.floor(+ctx.frameCount)):1;
+    const frame=Number.isFinite(+ctx.frameIdx)?Math.max(0,Math.min(frameCount-1,+ctx.frameIdx)):0;
+    const turns=num("modPhase",-3600000,3600000,0)/360+(p.modMotion==="Timeline"?frame/frameCount*Math.round(num("modCycles",1,8,1)):0);
+    const phase=((turns%1)+1)%1,tau=Math.PI*2,modSeed=Math.round(num("seed",-2147483648,2147483647,41))^5361758;
+    const modFactor=root=>{
+      const u=root[modAxis]/modSize;
+      let field;
+      if(p.modulation==="Noise")field=noise2(u+2*Math.cos(phase*tau),root[(modAxis+1)%3]/modSize+2*Math.sin(phase*tau),modSeed);
+      else if(p.modulation==="Pulse"){
+        const distance=Math.abs((((u-phase+.5)%1)+1)%1-.5),t=Math.max(0,1-distance/(num("pulseWidth",5,100,35)/200));
+        field=t*t*(3-2*t);
+      }else field=.5+.5*Math.cos((u-phase)*tau);
+      return 1-modDepth+modDepth*Math.max(0,Math.min(1,field));
+    };
     const vertices=[],faces=[];
     const vertex=a=>{vertices.push(a);return vertices.length-1;};
     const face=(a,b,c)=>faces.push([a,b,c]);
@@ -48988,7 +49013,7 @@ export default {
     const az=num("viewAz",-3600,3600,25)*Math.PI/180,el=num("viewEl",-89.9,89.9,12)*Math.PI/180;
     const ca=Math.cos(az),sa=Math.sin(az),ce=Math.cos(el),se=Math.sin(el);
     const project=a=>{const q=a[0]*sa+a[1]*ca;return [a[0]*ca-a[1]*sa,q*se-a[2]*ce,q*ce+a[2]*se];};
-    const pv=vertices.map(project),segments=[];
+    const pv=vertices.map(project),segments=[],fitPoints=[];
     const push=(a,b,layer)=>{if(Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2])>1e-9)segments.push({a:project(a),b:project(b),layer});};
     for(let i=0;i<count;i++) {
       const target=rng()*area;let l=0,h=triangles.length-1;
@@ -48999,7 +49024,18 @@ export default {
       const n=unit(normal),basis=unit(cross(n,Math.abs(n[2])<.9?[0,0,1]:[0,1,0])),side=cross(n,basis);
       const theta=rng()*Math.PI*2,cos=1-rng()*(1-Math.cos(spread)),sin=Math.sqrt(Math.max(0,1-cos*cos));
       const direction=unit(n.map((x,k)=>x*cos+(basis[k]*Math.cos(theta)+side[k]*Math.sin(theta))*sin));
-      const length=len*(1-vary*rng()),tip=add(root,direction,length);
+      const fullLength=len*(1-vary*rng()),length=fullLength*(modulated?modFactor(root):1),tip=add(root,direction,length);
+      // Fit the unmodulated coat on every frame, including spikes currently
+      // at zero length. Phase must never translate/rescale the whole drawing.
+      if(modulated){
+        const fullTip=add(root,direction,fullLength);
+        if(p.mode!=="Spikes"&&p.mode!=="Straws")fitPoints.push(project(root),project(fullTip));
+        else{
+          const ax=unit(cross(direction,Math.abs(direction[2])<.9?[0,0,1]:[0,1,0])),ay=cross(direction,ax);
+          for(let j=0;j<6;j++){const a=j/6*tau,offset=ax.map((x,k)=>radius*(x*Math.cos(a)+ay[k]*Math.sin(a)));fitPoints.push(project(add(root,offset)));if(p.mode==="Straws")fitPoints.push(project(add(fullTip,offset)));}
+          if(p.mode==="Spikes")fitPoints.push(project(fullTip));
+        }
+      }
       if(length<=1e-9)continue;
       if(p.mode!=="Spikes"&&p.mode!=="Straws"){push(root,tip,pen("layer"));continue;}
       const ax=unit(cross(direction,Math.abs(direction[2])<.9?[0,0,1]:[0,1,0])),ay=cross(direction,ax),base=[],top=[];
@@ -49021,6 +49057,7 @@ export default {
     if(!segments.length)return EMPTY;
     let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
     for(const s of segments)for(const a of [s.a,s.b]){x0=Math.min(x0,a[0]);x1=Math.max(x1,a[0]);y0=Math.min(y0,a[1]);y1=Math.max(y1,a[1]);}
+    for(const a of fitPoints){x0=Math.min(x0,a[0]);x1=Math.max(x1,a[0]);y0=Math.min(y0,a[1]);y1=Math.max(y1,a[1]);}
     const scale=Math.min(1,(W-2*margin)/Math.max(1e-9,x1-x0),(H-2*margin)/Math.max(1e-9,y1-y0));
     const ox=W/2-(x0+x1)/2*scale,oy=H/2-(y0+y1)/2*scale;
     const res=Math.round(num("detail",64,640,384));

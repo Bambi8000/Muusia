@@ -3653,6 +3653,62 @@ according to the session's actual capabilities:
     Pages workflow, verify its exact release commit and public version, and
     refresh the committed project-file snapshot after integration.
 
+- **W — animated 3D Spikes lengths and browser title (local preparation)**
+  2026-10-15 Astra — based on `8865eb2e17c961e2f2dcefd531fc5e7b3456b975`.
+  - Adds Length modulation Off/Wave/Noise/Pulse to the existing Spikes node.
+    Per-root object-space fields shorten each original seeded length. Depth,
+    axis, spatial size and phase controls; Pulse has smooth band width.
+    Noise samples a seeded closed phase orbit without consuming placement RNG.
+    Off/missing settings and depth zero preserve published coat geometry.
+  - Manual phase accepts Frame rot °; automatic Timeline reads the existing
+    frame context and runs 1–8 whole cycles per loop. Seed/count/body/length/
+    spread/camera held fixed preserve roots and fit. Active modulation fits
+    the entire unmodulated coat, including zero-length spikes, instead of
+    recentering/rescaling each animated frame. Applies to all mark/body modes,
+    including wired meshes and STL. Only applicable controls are shown.
+  - One Help example wires Frame -> Modulation phase ° and explains automatic
+    Timeline. 86 examples total; node count unchanged (316 / 314 files).
+    Catalog/tags/recency/reference/source bundle/README regenerated/updated.
+    `index.html` title is now exactly **Muusia**; checked on a fresh browser
+    load and in the standalone build. Package name is an internal identifier.
+  - 398 focused modulation cases pass, including frozen published default
+    fingerprints, per-root variation, exact phase wraps, Noise seam continuity,
+    actual Frame evaluator / Timeline equivalence, stable roots and host fit,
+    zero troughs, finite extremes, mesh/STL and dense styles. Original Spikes
+    130, Inflate 83, 2D modes 214, Bang/engine 2,535, Guide, all 86 Help examples
+    and focused lint pass. No new engine/helper/export changes were needed.
+  - Actual browser verifies Frame-driven phase, automatic Timeline Play/Stop,
+    Wave/Noise/Pulse visibility and title Muusia. All 24 actual SVG and G-code
+    frame downloads match every computed path/start/draw coordinate at 0.01 mm.
+    Artifacts/proof and loadable Frame/Timeline patches live in this chat's
+    `spikes-length-modulation/` folder. No hardware execution.
+  - Ordered catalog -> build -> check:learn passes (23,581 checks); tracked
+    export references/animation fixtures unchanged. Standalone build, verified
+    dirty project snapshot and separate index template supplied locally.
+    APP_VERSION remains 2.125; claim ready, not published. Browser automation
+    uses the dev app because file: URLs are blocked by its URL policy.
+
+- **2.126 — animated spike lengths and Muusia tab title** 2026-10-15 Astra —
+  Daniel authorized publication of the prepared modulation/title changes.
+  - 3D Spikes Length modulation offers Wave, seeded Noise and Pulse with depth,
+    object axis, spatial size and phase. Manual phase accepts Frame rot °;
+    Timeline provides automatic whole-cycle animation. Original sample roots
+    and full-coat fit stay fixed while lengths vary. Off/missing settings and
+    depth zero preserve v2.125 geometry. Help adds Travelling lengths (86 total).
+  - Browser title changes from plotter-patcher to exactly **Muusia** in the
+    app template and standalone build. APP_VERSION/README advance to 2.126.
+    Catalog/tags/recency/reference/source bundle and Learn outputs refreshed.
+  - Release reruns 398 modulation cases, 130 original Spikes cases, Guide,
+    all 86 Help graphs and focused lint. Ordered catalog -> build ->
+    check:learn passes, including 23,581 Learn checks. The preparation's real
+    24-frame SVG/G-code downloads check all ordered paths and drawing/start
+    coordinates; their capture remains labelled with its development version.
+    No machine/profile/exporter changes or hardware execution.
+  - Completed author/release claims removed at integration. Publish through
+    the existing main Pages workflow; verify the exact commit, public title,
+    new Help example and live Frame phase. Refresh the clean committed source
+    snapshot and retain the index template alongside it after integration.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

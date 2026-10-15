@@ -104,6 +104,15 @@ export const EXAMPLES = [
     ], edges: [{ id: "e9101", from: 9001, fromPort: 5, to: 9002, toPort: "p:occlusion" }] }),
   },
   {
+    name: "3D Spikes · Travelling lengths",
+    desc: "Frame rot degrees (output 5) drives Modulation phase degrees on 3D Spikes. Set ANIMATE Frames to 24, select Spikes and press Play. Length modulation Wave moves a growing/shrinking band along object Z; Modulation depth % controls how short the troughs become, Modulation size mm its wavelength. Try Noise for soft seeded movement, or Pulse with Pulse width %. Keep Seed, Count, body and camera fixed: roots and framing stay still. Length variation remains the static per-spike variation. With no Frame wire, choose Modulation motion Timeline for automatic movement; Modulation cycles sets whole cycles per loop. Off or depth 0 restores the original coat. SVG/G-code frame export follows the same phase. These are projected pen drawings, not machine Z animation.",
+    canvas: { W: 210, H: 297 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "frame", x: 20, y: 20, collapsed: true, params: { ...defaults("frame") } },
+      { id: 9002, type: "spikes3d", x: 370, y: 20, params: { ...defaults("spikes3d"), count: 650, length: 35, variation: .25, spread: 7, modulation: "Wave", modDepth: 95, modSize: 60, modMotion: "Manual", modAxis: "Z", host: "Silhouette", hostPen: 0, viewEl: 18 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 4, to: 9002, toPort: "p:modPhase" }] }),
+  },
+  {
     name: "3D Spikes · Bristling sculpture",
     desc: "A tall capsule covered with thin strokes grown from its 3D surface normals. Select 3D Spikes. Count and Length control the coat; Length variation and Spread create irregular bristles. Body occlusion hides strokes behind the host; turn it off for a transparent tangled study. Rotate View angle/elevation while keeping Seed fixed. Switch Marks to Spikes or Straws for width, or choose Imported STL to use a sculpture file. The whole drawing shrinks uniformly only when it exceeds Margin.",
     canvas: { W: 210, H: 297 },

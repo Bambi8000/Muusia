@@ -1,4 +1,4 @@
-# MUUSIA v2.125
+# MUUSIA v2.126
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -130,6 +130,12 @@ step-by-step guides; common Finnish terms such as `ruudukko` also work. Node
 instructions use the existing English reference and Learn content. Adding a
 node from search is an explicit action and supports normal Undo. The guide
 runs locally, without an AI model, account or service. Esc closes it.
+
+**Animated spike lengths.** 3D Spikes now offers Wave, Noise and Pulse length
+modulation with depth, spatial scale/axis and phase. Wire Frame's rot ° to
+Modulation phase °, or select Timeline motion and press Play. Roots and framing
+stay fixed while lengths change. Try Help → 3D Spikes · Travelling lengths.
+The browser tab is named Muusia.
 
 **Frame triggers.** Frame now has Bang and Toggle outputs. Choose a frame fraction
 (such as 1/4), Custom interval or seeded Random chance. Bang is a one-frame pulse;

@@ -1266,9 +1266,9 @@ export const NODE_RECENCY = {
     "sha256": "cf435539c8f23ee30132842c4180a0f591bbbd7c985b6ead0ecd8066b1c7143f"
   },
   "spikes3d": {
-    "date": "2026-10-14",
-    "order": 81,
-    "sha256": "8ffa83ae16c08ca2cfab9d0bfa2c00eb4f14a0e14fb5e664dd7ffc4f8d0f3457"
+    "date": "2026-10-15",
+    "order": 82,
+    "sha256": "52310d2e3a4eb1bdcec41a2c73b044012f41877c153064f0d7ba6108bf768103"
   },
   "spiro": {
     "date": "2026-07-22",

@@ -28,7 +28,21 @@ Torus or Cube works immediately; *Wired mesh* accepts Blob Mesh's orange Mesh
 output (port 2), while *Imported STL* loads ASCII/binary STL (max 120k triangles).
 *Body size mm* sets the longest source dimension. *Count* samples triangles by
 surface area, then interpolates their normals; *Length mm*, *Length variation*
-and *Spread °* set growth. *Lines* draws centre strokes, *Spikes* six-sided
+and *Spread °* set growth. *Length modulation* Off preserves the original coat;
+Wave, Noise or Pulse varies each spike's length from its object-space root.
+*Modulation depth %* blends between the original length and a 0–1 field (100%
+allows zero-length troughs). *Modulation size mm* is the spatial period in
+Wave/Pulse and feature scale in Noise, along *Modulation axis* X/Y/Z. *Modulation
+phase °* moves the pattern; wire Frame's rot ° output here with *Modulation
+motion* Manual. Alternatively choose Timeline and press ANIMATE Play;
+*Modulation cycles* sets 1–8 whole cycles per loop. *Pulse width %* controls
+Pulse's smoothly raised bands. Noise uses the existing seed without consuming
+additional placement randomness, and follows a closed phase cycle. Modulation
+only shortens the original Length/variation result. Depth 0 equals Off. Keep
+body, Seed, Count, length, spread and camera fixed for a stable population:
+active modulation fits the full unmodulated coat on every frame, including
+currently zero-length spikes, so the host/roots neither translate nor zoom.
+Only applicable controls are shown. *Lines* draws centre strokes, *Spikes* six-sided
 pointed outlines and *Straws* parallel edges with open end rings. *Diameter mm*
 appears only for Spikes/Straws. *Smooth normals* blends welded mesh vertex normals;
 *Normal direction* Outward uses signed volume for consistently wound closed
@@ -42,7 +56,8 @@ millimetres shrink when needed. Output is ordinary 2D pen geometry, without Z
 pressure or a decorated solid mesh. Dense output uniformly thins strokes to stay
 within 115k points; Style is applied last. Numeric parameters accept animation
 wires; fixed Seed/Count preserve the sampled population while the camera rotates.
-Three Help examples cover the bristling sculpture, straw torus and wired blob.
+Four Help examples cover the bristling sculpture, straw torus, wired blob and
+Frame-driven travelling lengths; the latter explains Timeline as well.
 
 **Lattice Type** — authored lettering built on an orthogonal lattice, inspired
 by transit-like ornamental typography. Capitals A–Z, distinct lowercase a–z,
