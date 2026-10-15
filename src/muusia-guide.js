@@ -8,7 +8,7 @@ export const GUIDE_TOPICS = [
   { id: "basics", title: "Build your first patch", keywords: "start beginner basics alku aloita perusteet",
     steps: ["Add a generator, such as Grid, from the Catalog or with N.", "Add a modifier, such as Wave, and connect matching output and input ports.", "Select the last node in the chain to preview and export the finished drawing. Save keeps the editable patch." ] },
   { id: "wires", title: "Connect nodes and control parameters", keywords: "wire connection input output number value kytkenta johto arvo numero parametri",
-    steps: ["Drag from an output on the right to an input on the left. Port types must match: blue paths, green numbers, purple styles, orange meshes.", "Green parameter ports accept numbers from Value, Random, Math or Frame. A wired parameter follows its source; edit that source to change the value.", "A free input can be optional. Read the node description before deciding it needs a wire. Group inputs can receive data through the parent group." ] },
+    steps: ["Drag from an output on the right to an input on the left. Port types must match: blue paths, green numbers, purple styles, orange meshes.", "Green parameter ports accept numbers from Value, Random, Math or Frame. Checkbox ports use below 0.5 for Off and 0.5 or above for On. A wired parameter follows its source; edit that source to change the value.", "A free input can be optional. Read the node description before deciding it needs a wire. Group inputs can receive data through the parent group." ] },
   { id: "empty", title: "Find an empty preview", keywords: "empty blank invisible missing tyhja ei nay esikatselu",
     steps: ["Select the stage you want to draw. Number, style and mesh outputs are intermediate data, rather than directly exportable paths.", "In Check patch, follow the input connection upstream until you find drawing paths. Look for an unloaded source file, zero counts, or clipping that removes the drawing.", "Check the selected node's settings and wired values. An empty output alone does not identify the cause." ] },
   { id: "sample", title: "Make a 1:1 test crop", keywords: "test crop sample margin A4 A3 1:1 koeajo koepala rajaus marginaali",
@@ -22,10 +22,13 @@ export const GUIDE_TOPICS = [
   { id: "export", title: "Choose SVG or G-code", keywords: "export svg gcode machine plot print vienti kone piirto",
     steps: ["Select the final node. Ordinary exports use its first output; connect another output to a downstream node when you want that branch.", "For an External SVG profile, export SVG and set paper placement and pen height in the plotter's own program.", "For G-code, use Prepare a plot to compare drawing coordinates with the active profile. Review the generated file, including its start/end and maintenance moves, before the physical test." ] },
   { id: "animation", title: "Make an animated series", keywords: "animation frame time loop animaatio aika ruutu",
-    steps: ["Open ANIMATE, choose the number of frames and add a Frame node when the drawing needs wired time values.", "Connect its green outputs to numeric parameters. Nodes with their own Timeline mode can follow ANIMATE directly; read their description.", "Preview the loop, then export one file per frame. Use registration marks if you will scan and align the sheets." ] },
+    steps: ["Open ANIMATE, choose the number of frames and add a Frame node when the drawing needs wired time values.", "Connect its green outputs to numeric parameters or checkbox ports. Bang is On for one frame; Toggle holds its On/Off state until the next hit. Nodes with their own Timeline mode can follow ANIMATE directly; read their description.", "Preview the loop, then export one file per frame. Use registration marks if you will scan and align the sheets." ] },
 ];
 
 const NUMERIC = new Set(["slider", "number", "seed"]);
+const WIREABLE = new Set([...NUMERIC, "check"]);
+const controlParams = def => (def?.params || []).flatMap(p => p.type === "multi"
+  ? p.options.map((option, i) => ({ ...p, key: `${p.key}[${i}]`, label: `${p.label} · ${option}`, type: "check", def: (p.def || []).includes(option), multiKey: p.key, multiOption: option })) : [p]);
 const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 const ALIASES = { ruudukko: "grid", vaaka: "horizontal", pysty: "vertical", marginaali: "margin", kyna: "pen", kynat: "pens", vari: "color", kerros: "layer", koepala: "sample", koeajo: "test", rajaus: "crop", vienti: "export", tyhja: "empty", aalto: "wave", teksti: "text", pilvi: "cloud", vuori: "mountain", rihmasto: "mycelium" };
 const STOP_WORDS = new Set("a an the to for of with and how do i my this make want draw can is in on from haluan miten teen tehda tama taman ja tai on se ei".split(" "));
@@ -70,13 +73,15 @@ export function describeNode(node, level, defs, catalog, results = {}, pvals = {
       value: typeof results[node.id]?.[port] === "number" ? results[node.id][port] : null,
       count: results[node.id]?.[port]?.paths?.length,
     })),
-    parameters: (def.params || []).map(p => {
-      const edge = incoming(`p:${p.key}`), stored = node.params?.[p.key] ?? p.def;
+    parameters: controlParams(def).map(p => {
+      const edge = incoming(`p:${p.key}`), stored = p.multiKey ? (node.params?.[p.multiKey] || []).includes(p.multiOption) : node.params?.[p.key] ?? p.def;
+      const evaluated = p.multiKey ? pvals[node.id]?.[p.multiKey]?.includes(p.multiOption) : pvals[node.id]?.[p.key];
       const sourceValue = edge ? results[edge.from]?.[edge.fromPort || 0] : null;
-      return { key: p.key, label: p.label || p.key, type: p.type, value: pvals[node.id]?.[p.key] ?? stored, wired: !!edge,
-        peerId: edge?.from, source: edge ? nameOf(peer(edge.from), defs) : null,
+      const bound = !edge && level.bindings?.some(b => b.nodeId === node.id && b.port === `p:${p.key}`);
+      return { key: p.key, label: p.label || p.key, type: p.type, value: evaluated ?? (p.multiKey && node.params?.[p.multiKey] === undefined ? p.def : stored), wired: !!edge || !!bound,
+        peerId: edge?.from, source: edge ? nameOf(peer(edge.from), defs) : bound ? "Parent group input" : null,
         validWire: !edge || (typeof sourceValue === "number" && Number.isFinite(sourceValue)), options: p.options,
-        min: p.min, max: node.pmax?.[p.key] ?? p.max, numeric: NUMERIC.has(p.type), active: isParameterActive(p, { ...node.params, ...pvals[node.id] }) };
+        min: p.min, max: node.pmax?.[p.key] ?? p.max, numeric: NUMERIC.has(p.type), boolean: p.type === "check", active: isParameterActive(p, { ...node.params, ...pvals[node.id] }) };
     }),
   };
 }
@@ -88,7 +93,7 @@ export function inspectPatch(level, defs, results = {}, selectedId = null) {
     const a = nodes.get(e.from), b = nodes.get(e.to), id = `wire-${i}`;
     if (!a || !b) { issues.push({ id, nodeId: b?.id || a?.id, title: "Wire refers to a missing node", text: "Remove or reconnect this wire in the patch." }); continue; }
     const out = pins(defs[a.type], "outs", a)[e.fromPort || 0];
-    const parameter = typeof e.toPort === "string" && e.toPort.startsWith("p:") ? defs[b.type]?.params?.find(p => p.key === e.toPort.slice(2) && NUMERIC.has(p.type)) : null;
+    const parameter = typeof e.toPort === "string" && e.toPort.startsWith("p:") ? controlParams(defs[b.type]).find(p => p.key === e.toPort.slice(2) && WIREABLE.has(p.type)) : null;
     const input = typeof e.toPort === "number" ? pins(defs[b.type], "ins", b)[e.toPort] : parameter ? { type: "value" } : null;
     if (!out || !input) issues.push({ id, nodeId: b.id, title: "Wire port is missing", text: `${nameOf(a, defs)} → ${nameOf(b, defs)} refers to a port that is no longer available.` });
     else if (out.type !== input.type) issues.push({ id, nodeId: b.id, title: "Port types do not match", text: `${nameOf(a, defs)} sends ${out.type}; ${nameOf(b, defs)} expects ${input.type}. Connect matching port colours.` });

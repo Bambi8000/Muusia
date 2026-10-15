@@ -65,7 +65,7 @@ for (const [type, def] of Object.entries(defs)) {
   const n = node(1, type);
   const info = describeNode(n, { nodes: [n], edges: [] }, defs, CATALOG);
   assert.ok(info.description.length, `${type} has a reference`);
-  assert.equal(info.parameters.length, def.params.length);
+  assert.equal(info.parameters.length, def.params.reduce((n, p) => n + (p.type === "multi" ? p.options.length : 1), 0));
   if (info.lesson) assert.ok(Array.isArray(info.lesson.recipe), `${type} has a valid guided example`);
 }
 assert.ok(searchGuide("ruudukko", defs, CATALOG).some(r => r.id === "grid"));

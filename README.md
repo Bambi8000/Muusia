@@ -1,4 +1,4 @@
-# MUUSIA v2.124
+# MUUSIA v2.125
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -12,7 +12,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **314 built-in nodes** across Generators,
+HTML file you can double-click. The current source has **316 built-in nodes** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
@@ -130,6 +130,23 @@ step-by-step guides; common Finnish terms such as `ruudukko` also work. Node
 instructions use the existing English reference and Learn content. Adding a
 node from search is an explicit action and supports normal Undo. The guide
 runs locally, without an AI model, account or service. Esc closes it.
+
+**Frame triggers.** Frame now has Bang and Toggle outputs. Choose a frame fraction
+(such as 1/4), Custom interval or seeded Random chance. Bang is a one-frame pulse;
+Toggle holds an On/Off state between hits. Both can drive node checkboxes through
+green value ports. Every node checkbox is supported, including each individual
+choice in Test Card's checklist. An unwired choice keeps its manual setting;
+disconnecting restores it. Animation batch export also works from a blank frame.
+Try Help → Frame · Bang and Toggle.
+
+**2D to 3D.** Five modes share projected Drawing/Silhouette paths and a real
+orange Mesh output for 3D Spikes or Mesh Slice. Inflate swells closed outlines;
+Extrude gives flat caps and vertical walls, preserving even-odd holes. Tubes
+wraps open or closed strokes in round tubes. Ink height builds a relief from
+vector ink density; Depth map uses an uploaded image (light is high by default).
+Reliefs have a flat base, smoothing and a height curve. Controls follow the
+selected mode, and images are saved in the patch. Camera/size never change the
+Mesh. Try the three Inflate and four new **2D to 3D** Help examples.
 
 **Mode-specific controls.** Node cards and Guide show settings used by the
 current mode or enabled feature. Switching modes preserves hidden values.

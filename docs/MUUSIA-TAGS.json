@@ -726,6 +726,20 @@
   "region",
   "text"
  ],
+ "inflate3d": [
+  "3d",
+  "inflate",
+  "extrude",
+  "tube",
+  "relief",
+  "depth map",
+  "image",
+  "mesh",
+  "deform",
+  "organic",
+  "surface",
+  "outline"
+ ],
  "ink_burst": [
   "noise",
   "organic",
@@ -1497,6 +1511,13 @@
   "repeat",
   "symmetry",
   "wave"
+ ],
+ "spikes3d": [
+  "3d",
+  "mesh",
+  "structural",
+  "organic",
+  "stochastic"
  ],
  "spiro": [
   "geometric",

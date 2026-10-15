@@ -62,6 +62,7 @@ export default function MuusiaGuide({ level, node, defs, catalog, results, pvals
             {description.parameters.filter(p => p.active || p.wired).map(p => <div key={p.key} style={{ ...small, padding: "6px 0", borderBottom: `1px solid ${T.line}` }}><strong style={{ color: T.text }}>{p.label}</strong>: {fmt(p.value)}
               {p.wired && <div>Controlled by {peerButton(p.peerId, p.source)}{!p.validWire && <span style={{ color: T.terra }}> · no finite number; stored value is used</span>}</div>}
               {!p.active && <div>Setting for another mode</div>}
+              {p.boolean && <div>Below 0.5: Off · 0.5 or above: On{p.wired ? " · edit the source node" : " · edit on the node card"}</div>}
               {p.numeric && <div>Range {fmt(p.min)}…{fmt(p.max)}{p.wired ? " · edit the source node" : " · edit on the node card"}</div>}
             </div>)}
           </details>}

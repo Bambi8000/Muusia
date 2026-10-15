@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "2.124",
-  "sourceCommit": "f074284b4514f16e7b8121fc5b891018cf732720",
+  "version": "2.125",
+  "sourceCommit": "470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3",
   "canvas": {
     "W": 297,
     "H": 210
@@ -66,7 +66,7 @@
     "inputs": [
       {
         "path": "learn/generate-assets.mjs",
-        "sha256": "a05b969458173249b4d6ebe01ee02467ec63653b9aac4fb2d65f6603ab39bfe7"
+        "sha256": "1f6e014c6591c7823be9860007f7dcc20b3c7cc3c1bb946b8a3b935b8b1a3bbb"
       },
       {
         "path": "learn/lib/fixtures.mjs",
@@ -118,7 +118,7 @@
       },
       {
         "path": "src/defs/nodes/frame.js",
-        "sha256": "4c9e5949a74dcdb7e0d6423b4b2a06fec919002081b526b76e0cedbe6558dc27"
+        "sha256": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204"
       },
       {
         "path": "src/defs/nodes/image.js",
@@ -496,7 +496,7 @@
       },
       {
         "path": "examples/frame.muusia.json",
-        "sha256": "47b2c73975654622996c433e9d64a4383fd776ab2c934d33921bbfe8237c2a0e"
+        "sha256": "5e53fc0a05a3773ec6fc99a8632c6dad6d38b6f170c28cdbb266504252dee06b"
       },
       {
         "path": "examples/image.muusia.json",
@@ -2100,7 +2100,67 @@
       "categoryKey": "math",
       "group": "Math",
       "groupKey": "math",
-      "params": [],
+      "params": [
+        {
+          "key": "bangRate",
+          "label": "Bang rate",
+          "type": "select",
+          "options": [
+            "1/1",
+            "1/2",
+            "1/3",
+            "1/4",
+            "1/6",
+            "1/8",
+            "1/12",
+            "1/16",
+            "1/24",
+            "1/32",
+            "Custom",
+            "Random"
+          ],
+          "def": "1/4",
+          "default": "1/4",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "bangEvery",
+          "label": "Every N frames",
+          "type": "slider",
+          "min": 1,
+          "max": 128,
+          "step": 1,
+          "def": 4,
+          "default": 4,
+          "conditional": true,
+          "visibilityNote": "Shown when Bang rate is Custom; sets the interval in displayed frames.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "bangChance",
+          "label": "Chance %",
+          "type": "slider",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "def": 25,
+          "default": 25,
+          "conditional": true,
+          "visibilityNote": "Shown when Bang rate is Random; chance of a hit on each frame.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "bangSeed",
+          "label": "Bang seed",
+          "type": "seed",
+          "def": 41,
+          "default": 41,
+          "conditional": true,
+          "visibilityNote": "Shown for Random when Chance is above 0 and below 100%; repeats the same trigger sequence.",
+          "visibleByDefault": false
+        }
+      ],
       "inputs": [],
       "outputs": [
         {
@@ -2122,6 +2182,14 @@
         {
           "type": "value",
           "label": "rot °"
+        },
+        {
+          "type": "value",
+          "label": "Bang"
+        },
+        {
+          "type": "value",
+          "label": "Toggle"
         }
       ],
       "dynamicInputs": false,
@@ -2172,7 +2240,12 @@
             "id": 9001,
             "key": "frame",
             "name": "Frame",
-            "params": {}
+            "params": {
+              "bangRate": "1/4",
+              "bangEvery": 4,
+              "bangChance": 25,
+              "bangSeed": 41
+            }
           },
           {
             "id": 9002,
@@ -2216,7 +2289,12 @@
         ],
         "outputId": 9002
       },
-      "exampleParams": {},
+      "exampleParams": {
+        "bangRate": "1/4",
+        "bangEvery": 4,
+        "bangChance": 25,
+        "bangSeed": 41
+      },
       "outputId": 9002,
       "stats": {
         "paths": 22,

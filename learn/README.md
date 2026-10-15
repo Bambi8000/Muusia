@@ -218,3 +218,50 @@ checked by `tools/validate-type-studio.mjs`; these are not machine presets.
 The feature is included in the v2.119 release. The screenshot and browser export
 evidence retain their original v2.118 development header; the captured node
 implementation is unchanged.
+
+### Frame Bang and checkbox inputs · local preparation 2026-10-15
+
+Frame appends Bang and Toggle after its five original clock ports. The Frame
+control reference covers periodic fractions, seeded Random and numeric checkbox
+thresholds. Its older screenshot remains a dated illustration of the original
+clock controls. The original turn fixture and geometry are unchanged.
+
+The checkbox evaluator change required fresh browser captures of both reference
+exports. They were downloaded from the actual local in-app browser again at
+v2.124; the single SVG and per-pen ZIP match the previous files byte-for-byte.
+Fresh selected source records are stored in their provenance JSON. Route
+optimization was off, direction preserved, and the Stack test hid Red while
+exporting both pens. The existing A — Servo Z profile stayed in G-code workflow;
+only SVG reference files were downloaded, without changing machine settings.
+No hardware was run. Historical G-code evidence and PNG captures stay unchanged.
+
+The selected animation evaluator and Frame dependency also changed. All eight
+gallery SVG-panel comparisons and all three combined-motion comparisons were
+recaptured in the actual in-app browser at 36 frames, with route optimization
+off. Ordered path signatures, point counts and page dimensions all match the
+previous records. The original builders were rerun; their historical Frame
+nodes retain empty saved settings, so all seven graphs and their geometry stay
+unchanged. Browser records now identify the current local sources. These are
+SVG-panel comparisons, separate from the new Bang example's actual 16-frame
+SVG/G-code ZIP checks; they do not claim downloaded-byte checks or hardware.
+
+### Every checkbox and checklist choice · local preparation 2026-10-15
+
+The shared checkbox path covers 298 ordinary checks in 162 node modules and
+the hidden inline Route check. Each of Test Card's 12 Tests options now also
+has a green value port (`p:tests[0]` through `p:tests[11]`), giving 311 inputs
+across 163 built-in nodes. Stored tests remain an array; wires alter only their
+own option during evaluation. An explicitly empty Test Card selection draws
+nothing. Guide lists each option's live state and source. Animation batch
+buttons accept an empty paths frame, so a Bang-off preview cannot block a loop
+whose later frames contain drawing.
+
+All 311 inputs were checked through the actual evaluator for pulse, group
+binding, saved-state restoration and Guide port recognition (2,527 total
+Frame/engine cases). The real UI verifies all 12 option ports, pulse and held
+Toggle, native connect/disconnect, and 16-frame SVG/G-code ZIPs launched from
+an empty frame. All path data and drawing coordinates match node computation.
+The two reference SVG artifacts and all 11 animation panel comparisons were
+recaptured again after this evaluator extension: bytes/signatures and the seven
+original graphs stay unchanged. The records identify the new selected sources;
+historical PNG/G-code evidence remains untouched. No hardware execution.

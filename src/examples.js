@@ -17,6 +17,116 @@ import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
   {
+    name: "Inflate · Rounded pillow",
+    desc: "A closed rectangle becomes a rounded 3D pillow. Select 2D to 3D with Mode Inflate. Depth % sets total thickness relative to the shape's longest side; Roundness swells the profile. Back surface Flat makes a relief with a flat underside. Surface grid follows the curved body; Grid every Nth changes line density. Hidden-line removal hides the back. Rotate View angle/elevation, then export ordinary 2D SVG or G-code. Orange output 3 is the real normalized Mesh. Open source strokes are ignored; use closed outlines.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "container", x: 20, y: 20, params: { ...defaults("container"), shape: "Rectangle", cx: 148.5, cy: 105, rw: 120, rh: 80, draw: true, regionPen: 0 } },
+      { id: 9002, type: "inflate3d", x: 370, y: 20, params: { ...defaults("inflate3d") } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "Inflate · Keep the hole",
+    desc: "Two nested circles feed one Inflate node through Merge. The inner outline cuts a real hole through the swollen body, independent of path direction. Select Inflate, adjust Depth % and rotate View elevation to inspect the opening. All closed paths use even-odd fill: a third nested outline would become an island, and overlapping outlines also alternate filled/empty. Surface detail refines the sampled rim; keep tiny gaps wider than a few cells. Orange Mesh output 3 can feed Mesh Slice Mesh input for actual layer contours.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "container", x: 20, y: 20, collapsed: true, params: { ...defaults("container"), shape: "Circle", cx: 148.5, cy: 105, cr: 65, draw: true, regionPen: 0 } },
+      { id: 9002, type: "container", x: 20, y: 185, collapsed: true, params: { ...defaults("container"), shape: "Circle", cx: 148.5, cy: 105, cr: 27, draw: true, regionPen: 0 } },
+      { id: 9003, type: "merge", x: 370, y: 20, collapsed: true, params: { ...defaults("merge") } },
+      { id: 9004, type: "inflate3d", x: 720, y: 20, params: { ...defaults("inflate3d"), depth: 36, viewEl: 55 } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9003, toPort: 0 },
+      { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: 1 },
+      { id: "e9103", from: 9003, fromPort: 0, to: 9004, toPort: 0 },
+    ] }),
+  },
+  {
+    name: "Inflate · Grow 3D spikes",
+    desc: "A closed Superformula outline inflates into a real surface, then grows spikes. The orange Mesh output 3 of Inflate feeds 3D Spikes Surface; Body must be Wired mesh. Select 3D Spikes to preview/export. Sculpt Depth % and Roundness upstream; Count, Length and Spread change the coat downstream. The two nodes have independent preview cameras; changing Inflate's View does not rotate its Mesh. Keep Seed fixed while rotating Spikes. Bang/Toggle can drive Hidden-line removal or Body occlusion through their green checkbox ports.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "superformula", x: 20, y: 20, collapsed: true, params: { ...defaults("superformula"), m: 5, n1: 2, n2: 7, n3: 7, rings: 1 } },
+      { id: 9002, type: "inflate3d", x: 370, y: 20, params: { ...defaults("inflate3d"), depth: 35, detail: 36 } },
+      { id: 9003, type: "spikes3d", x: 720, y: 20, params: { ...defaults("spikes3d"), body: "Wired mesh", size: 115, count: 650, length: 19, spread: 12, viewEl: 50, host: "Silhouette", hostPen: 0 } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 },
+      { id: "e9102", from: 9002, fromPort: 2, to: 9003, toPort: 0 },
+    ] }),
+  },
+  {
+    name: "2D to 3D · Extrude with a hole",
+    desc: "Merge two nested closed circles into 2D paths. Select 2D to 3D, Mode Extrude: Depth % makes a straight-walled solid with flat front/back and a real opening. Surface detail refines the sampled circular rim. Rotate View elevation to see the wall; switch Drawing to Mesh edges to inspect triangles. Open strokes are ignored in Extrude. The same orange Mesh output 3 can feed Mesh Slice or 3D Spikes, with its own downstream size and camera.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "container", x: 20, y: 20, collapsed: true, params: { ...defaults("container"), shape: "Circle", cx: 148.5, cy: 105, cr: 65, draw: true, regionPen: 0 } },
+      { id: 9002, type: "container", x: 20, y: 185, collapsed: true, params: { ...defaults("container"), shape: "Circle", cx: 148.5, cy: 105, cr: 27, draw: true, regionPen: 0 } },
+      { id: 9003, type: "merge", x: 370, y: 20, collapsed: true, params: { ...defaults("merge") } },
+      { id: 9004, type: "inflate3d", x: 720, y: 20, params: { ...defaults("inflate3d"), mode: "Extrude", depth: 28, viewEl: 48, every: 3 } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9003, toPort: 0 },
+      { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: 1 },
+      { id: "e9103", from: 9003, fromPort: 0, to: 9004, toPort: 0 },
+    ] }),
+  },
+  {
+    name: "2D to 3D · Tubes from strokes",
+    desc: "Zigzag Sine makes three open waves. Select 2D to 3D, Mode Tubes: Diameter mm wraps each wave in a round tube, Tube step mm controls sampling along it, Tube sides controls the cross-section. These millimetres refer to the source drawing before normalization. Cap open ends closes each tube; closed paths loop without caps. Grid every Nth thins rings and rails for plotting. Overlapping tubes stay separate surfaces. Rotate View angle/elevation and export the projected Drawing as SVG or G-code, or send Mesh output 3 into another 3D node.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "zigzag", x: 20, y: 20, collapsed: true, params: { ...defaults("zigzag"), wave: "Sine", rows: 3, amp: 12, period: 65, phase: .3, margin: 30 } },
+      { id: 9002, type: "inflate3d", x: 370, y: 20, params: { ...defaults("inflate3d"), mode: "Tubes", diameter: 8, tubeStep: 4, sides: 8, viewAz: 20, viewEl: 55, every: 3 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "2D to 3D · Ink height relief",
+    desc: "Overlapping sine strokes become raised ink on a flat slab. Select 2D to 3D, Mode Ink height. Ink width mm sets the soft footprint; Ink buildup raises dense overlaps without counting the source vertices. Depth % controls the relief, Base % its flat support. Height curve changes tonal response and Smooth passes softens ridges. This uses vector ink density, not actual pen pressure. Surface detail resolves the footprint; very thin ink is broadened to a grid cell for stable sampling. Select Drawing Surface grid for printable relief lines. Orange Mesh output 3 contains the raised surface and its closed base.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "zigzag", x: 20, y: 20, collapsed: true, params: { ...defaults("zigzag"), wave: "Sine", rows: 9, amp: 19, period: 80, phase: .5, margin: 35 } },
+      { id: 9002, type: "inflate3d", x: 370, y: 20, params: { ...defaults("inflate3d"), mode: "Ink height", depth: 30, inkWidth: 5, base: 3, detail: 54, viewAz: -15, viewEl: 48 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "2D to 3D · Depth map",
+    desc: "Select 2D to 3D, Mode Depth map. Wave study gives an immediate test relief. To use your own grayscale image, switch Depth source to Image file and press Choose image. White is high and black is low; Dark is high reverses it. Depth % controls relief, Base % keeps a closed flat underside, Height curve changes contrast, Smooth passes softens pixel steps. Surface detail controls mesh resolution. The image is saved inside the patch, and its aspect ratio is retained. View angle 0 and View elevation 90 give a top view with the original image orientation. Drawing is projected 2D geometry for SVG/G-code; Mesh output 3 is the real relief for other 3D nodes.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "inflate3d", x: 40, y: 20, params: { ...defaults("inflate3d"), mode: "Depth map", mapSource: "Wave study", depth: 38, base: 4, viewAz: -25, viewEl: 45, detail: 54 } },
+    ], edges: [] }),
+  },
+  {
+    name: "Frame · Bang and Toggle",
+    desc: "Frame Bang (green output 6) drives 3D Spikes Body occlusion. Set ANIMATE Frames to 16 and select 3D Spikes. At Bang rate 1/4, displayed frames 4, 8, 12 and 16 turn occlusion On; other frames leave it Off. Move the wire to Toggle (output 7) to hold each state until the next hit. Random uses Chance % and Seed, preserving the same sequence while scrubbing and exporting. The checkbox is read-only while wired; disconnect to restore its saved manual setting. Rate fractions refer to displayed frame numbers. Keep the pattern settings fixed during each Toggle loop.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "frame", x: 20, y: 20, params: { ...defaults("frame"), bangRate: "1/4" } },
+      { id: 9002, type: "spikes3d", x: 370, y: 20, params: { ...defaults("spikes3d"), body: "Sphere", size: 95, count: 320, length: 30, occlusion: true } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 5, to: 9002, toPort: "p:occlusion" }] }),
+  },
+  {
+    name: "3D Spikes · Bristling sculpture",
+    desc: "A tall capsule covered with thin strokes grown from its 3D surface normals. Select 3D Spikes. Count and Length control the coat; Length variation and Spread create irregular bristles. Body occlusion hides strokes behind the host; turn it off for a transparent tangled study. Rotate View angle/elevation while keeping Seed fixed. Switch Marks to Spikes or Straws for width, or choose Imported STL to use a sculpture file. The whole drawing shrinks uniformly only when it exceeds Margin.",
+    canvas: { W: 210, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "spikes3d", x: 40, y: 20,
+      params: { ...defaults("spikes3d") } }], edges: [] }),
+  },
+  {
+    name: "3D Spikes · Straw torus",
+    desc: "An open torus covered with short six-sided straws. Diameter reveals their parallel edges and open end rings. Body drawing Silhouette adds the torus contour on another pen. Body occlusion clips against the torus, including its hole; individual straws do not hide one another. Adjust View elevation, Torus tube and Count. All output is flat projected pen geometry.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "spikes3d", x: 40, y: 20,
+      params: { ...defaults("spikes3d"), body: "Torus", mode: "Straws", count: 180, size: 115, length: 17, diameter: 1.5, variation: .35, spread: 9, viewEl: 42, host: "Silhouette" } }], edges: [] }),
+  },
+  {
+    name: "3D Spikes · Blob surface",
+    desc: "Blob Mesh's orange Mesh output (port 2) feeds 3D Spikes Surface. Body must be Wired mesh. Sculpt the blob with Balls, Radius X/Y/Z, Profile and Noise, then select 3D Spikes to draw or export. Smooth normals blends triangle normals; disable it for faceted growth. Count samples by triangle area, independent of local tessellation density. Normal direction Outward handles consistently wound closed meshes; As mesh or Flip follows or reverses authored winding.",
+    canvas: { W: 210, H: 297 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "blobmesh", x: 20, y: 20, params: { ...defaults("blobmesh"), balls: 3, rings: 24, segs: 32, radX: 65, radY: 75, radZ: 170, profile: "Pear", noiseAmp: 6, seed: 17 } },
+      { id: 9002, type: "spikes3d", x: 365, y: 20, params: { ...defaults("spikes3d"), body: "Wired mesh", count: 1600, length: 33, spread: 24, viewEl: 16 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 2, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Lattice Type · Transit lattice",
     desc: "Grid-built lettering with round bowls, staircase diagonals, projecting crossbars and plotted junction dots. Edit Text; | starts a new line. Try Round corners, Crossbar reach and Dot radius. Dots: Outline gives rings; Hatched fills them with real strokes. Match Dot hatch gap to your pen width. Letter height is the requested cap height; the complete composition shrinks to fit Margin, including projecting marks and accents. Tight Letter gap can join adjacent letters. Separate pens assigns stems, crossbars and dots to three inks. Capitals, lowercase, digits and Ä/Ö/Å are supported. Select Lattice Type to preview and export.",
     canvas: { W: 297, H: 210 },

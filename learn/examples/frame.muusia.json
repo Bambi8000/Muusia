@@ -13,7 +13,12 @@
         "type": "frame",
         "x": 30,
         "y": 30,
-        "params": {}
+        "params": {
+          "bangRate": "1/4",
+          "bangEvery": 4,
+          "bangChance": 25,
+          "bangSeed": 41
+        }
       },
       {
         "id": 9002,

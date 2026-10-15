@@ -172,6 +172,9 @@ const comparisons = {
 const CATEGORY = { gen: 'Generators', mod: 'Modifiers', dec: 'Decorators', duo: 'Combiners', math: 'Math', route: 'Routing' };
 const GROUP = { geometric: 'Geometric', deform: 'Deform', textimg: 'Text & Image', space: 'Space', penout: 'Pen & Output', transform: 'Transform', fillstyle: 'Fill & Style' };
 const visibilityNotes = {
+  "frame.bangEvery": "Shown when Bang rate is Custom; sets the interval in displayed frames.",
+  "frame.bangChance": "Shown when Bang rate is Random; chance of a hit on each frame.",
+  "frame.bangSeed": "Shown for Random when Chance is above 0 and below 100%; repeats the same trigger sequence.",
   "microbes.amount": "Shown when Motion is not Still.",
   "microbes.clock": "Shown when Motion is not Still.",
   "microbes.time": "Shown when Motion is not Still and Time source is Manual.",
@@ -323,7 +326,10 @@ artifacts.set('assets/details/physical-plot.svg', svg(evaluateExample(examples['
 // Verify important semantics, rather than merely checking that SVGs exist.
 const valueResult = evaluateExample(examples.arvo);
 assert.equal(valueResult.params[9003].amp, 4, 'Value drives the numeric amplitude socket');
-assert.deepEqual(evaluateExample(examples.frame, { frameIdx: 1, frameCount: 12 }).out[9001], [1 / 11, 1, 0.5 - 0.5 * Math.cos(Math.PI / 6), 1 / 6, 30], 'Frame exposes all five true outputs');
+assert.deepEqual(evaluateExample(examples.frame, { frameIdx: 1, frameCount: 12 }).out[9001], [1 / 11, 1, 0.5 - 0.5 * Math.cos(Math.PI / 6), 1 / 6, 30, 0, 0], 'Frame preserves its five clock outputs and appends Bang and Toggle');
+for (const [frameIdx, expected] of [[3, [1, 1]], [4, [0, 1]], [7, [1, 0]]]) {
+  assert.deepEqual(evaluateExample(examples.frame, { frameIdx, frameCount: 12 }).out[9001].slice(5), expected, `Frame default 1/4 pulse and held toggle at displayed frame ${frameIdx + 1}`);
+}
 const sortResult = evaluateExample(examples.travelsort);
 const before = sortResult.out[9001][0], after = sortResult.output;
 function segmentSet(geometry) {

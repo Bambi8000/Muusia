@@ -799,17 +799,19 @@ export const nodeGuides = {
     tutorials: ["control-with-numbers"]
   },
   frame: {
-    summary: "Turn the current animation frame into useful numbers: a progress ramp, an index, two looping curves and a rotation angle.",
+    summary: "Turn the current animation frame into useful numbers: a progress ramp, an index, two looping curves, a rotation angle and periodic or seeded random Bang/Toggle signals.",
     useWhen: "You want a parameter to change between frames, a smoothly turning object or a repeatable family of drawings.",
     recipe: ["Load the example patch. In the right-hand ANIMATE section, set Frames to 12 and move the frame slider to the beginning.", "The patch connects Frame’s rot ° output directly to Polyhedron Studio’s Rotate Y deg input. The solid is a Cube with Size mm 145, Face fill Concentric inset and Fill step mm 3.", "Select Polyhedron Studio rather than Frame. Press Next frame once for the pictured frame 2 of 12, a 30° Y rotation. Use Play preview to watch the full turn.", "Set Frames again after reopening a patch: animation frame count and current frame are not stored in the patch file."],
     controls: [
-      { name: "Frames in ANIMATE", text: "Frame has no controls on its own card. The ANIMATE panel sets how many frames the outputs describe. More frames give more samples of the same cycle." },
+      { name: "Frames in ANIMATE", text: "The ANIMATE panel sets how many frames the outputs describe. Bang rate and the mode-specific controls on the Frame card set its triggers. More frames give more samples of the same cycle." },
       { name: "t 0→1", text: "A linear progress value. The first frame is 0 and the last is 1. Useful for a one-way transition; using it for a full rotation repeats the end position at the loop boundary." },
       { name: "frame #", text: "The zero-based frame index: 0 to Frames minus 1. The ANIMATE heading instead counts displayed frames from 1. Connect this to a Seed for a different deterministic pattern on each frame." },
       { name: "wave loop / ping-pong", text: "Both travel from 0 toward 1 and back toward 0. wave loop eases smoothly; ping-pong uses straight ramps. They sample a repeating cycle without duplicating the final endpoint." },
-      { name: "rot °", text: "The angle for one seamless revolution. At 24 frames it produces 0°, 15°, 30° and so on up to 345°; the next loop returns to 0°." }
+      { name: "rot °", text: "The angle for one seamless revolution. At 24 frames it produces 0°, 15°, 30° and so on up to 345°; the next loop returns to 0°." },
+      { name: "Bang rate", text: "1/4 fires on displayed frames 4, 8, 12, etc. Custom exposes Every N frames. Random uses Chance % and Bang seed; its sequence repeats while scrubbing and exporting." },
+      { name: "Bang / Toggle", text: "Bang is 1 for each hit frame and 0 otherwise. Keep rate/chance/seed fixed during each Toggle loop. Toggle starts Off before frame 1, flips on each hit and holds until the next. Wire either to a checkbox such as Body occlusion. An even number of hits per loop returns Toggle to its starting state. Original clock port indices are unchanged." }
     ],
-    portNotes: "The five green outputs have different ranges and shapes. Choose the one that matches the destination control. Parts of a patch that do not depend on Frame remain unchanged as the animation advances.",
+    portNotes: "The original five green outputs have different ranges and shapes. Bang and Toggle append two 0/1 outputs for checkbox ports. Below 0.5 means Off; 0.5 or above means On. The historical screenshot shows the original clock ports; the current controls include Bang and Toggle. Choose the output that matches the destination control. Parts of a patch that do not depend on Frame remain unchanged as the animation advances.",
     comparisonIntro: "These are frames 1, 2 and 3 of a 12-frame turn: 0°, 30° and 60° around Y. Set Frames to 12 to reproduce the same positions.",
     pitfalls: [
       { q: "Why is the drawing static?", a: "Check Frames is greater than 1, connect a Frame output to a numeric parameter, select the downstream drawing node and advance or play the animation." },

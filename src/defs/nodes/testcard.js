@@ -218,7 +218,8 @@ export default {
       }
     };
     /* --- ruudukkoasettelu: solukoko kutistuu jos ruudukko ei mahdu arkille --- */
-    const sel = (p.tests && p.tests.length ? p.tests : ["Line weight sweep"]);
+    // An explicitly empty checklist means no tests, including a Bang-off frame.
+    const sel = Array.isArray(p.tests) ? p.tests : ["Line weight sweep"];
     const cols = Math.round(p.cols);
     const gap = p.gap;
     const rowsN = Math.ceil(sel.length / cols);

@@ -29,7 +29,9 @@ function graph() {
   const nodes=[],edges=[];
   let id=100;
   const add=(type,params={},x=20,y=20)=>{
-    const n={id:++id,type,x,y,params:{...defaults(type),...params}};
+    // These historical graphs saved Frame with no settings; preserve their
+    // patch identity when new optional clock controls gain defaults.
+    const n={id:++id,type,x,y,params:type==='frame'?{...params}:{...defaults(type),...params}};
     nodes.push(n);return n;
   };
   const wire=(from,to,toPort,fromPort=0)=>edges.push({id:'e'+(++id),from:from.id,fromPort,to:to.id,toPort});

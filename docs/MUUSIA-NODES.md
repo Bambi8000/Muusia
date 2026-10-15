@@ -1,10 +1,17 @@
 # MUUSIA — Node Reference
 
-All 314 built-in nodes in Muusia v2.124. Conventions used below:
+All 316 built-in nodes in Muusia v2.124. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
 accept value wires. *(mm)* means millimetres on the canvas.
+Checkbox parameters also accept green value wires: values below 0.5 mean Off,
+and values at least 0.5 mean On. A wired checkbox shows its evaluated state and
+is read-only; removing the wire restores its stored manual value. Parameter
+wires also work through exposed group inputs.
+Every item in a multi-choice checklist has its own input. Test Card's Tests
+choices can therefore follow different Bang/Toggle signals; the other choices
+keep their saved manual values. With all tests Off, Test Card outputs no paths.
 
 Controls appear only when the selected mode or enabled feature uses them.
 Hidden settings retain their values when switching back. An inactive numeric
@@ -14,7 +21,28 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (198)
+## Generators (199)
+
+**3D Spikes** — grow a coat from an actual 3D surface. *Body* Capsule, Sphere,
+Torus or Cube works immediately; *Wired mesh* accepts Blob Mesh's orange Mesh
+output (port 2), while *Imported STL* loads ASCII/binary STL (max 120k triangles).
+*Body size mm* sets the longest source dimension. *Count* samples triangles by
+surface area, then interpolates their normals; *Length mm*, *Length variation*
+and *Spread °* set growth. *Lines* draws centre strokes, *Spikes* six-sided
+pointed outlines and *Straws* parallel edges with open end rings. *Diameter mm*
+appears only for Spikes/Straws. *Smooth normals* blends welded mesh vertex normals;
+*Normal direction* Outward uses signed volume for consistently wound closed
+surfaces, As mesh follows triangle winding and Flip reverses it. Open/inconsistently
+wound surfaces may need As mesh or Flip. *View angle/elevation* project the scene
+orthographically. *Body occlusion* clips strokes against a raster depth buffer
+at *Occlusion detail*; it hides only the host surface, so straws do not occlude
+one another. *Body drawing* adds a silhouette or a reduced wireframe on *Body pen*.
+*Margin mm* fits the whole composition uniformly without enlarging it; requested
+millimetres shrink when needed. Output is ordinary 2D pen geometry, without Z
+pressure or a decorated solid mesh. Dense output uniformly thins strokes to stay
+within 115k points; Style is applied last. Numeric parameters accept animation
+wires; fixed Seed/Count preserve the sampled population while the camera rotates.
+Three Help examples cover the bristling sculpture, straw torus and wired blob.
 
 **Lattice Type** — authored lettering built on an orthogonal lattice, inspired
 by transit-like ornamental typography. Capitals A–Z, distinct lowercase a–z,
@@ -2205,7 +2233,50 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (77)
+## Modifiers (78)
+
+**2D to 3D** — five ways to turn paths or an image into a real 3D surface.
+Connect vector geometry to *2D paths*. Mode *Inflate* swells closed outlines
+using a relaxed interior field; *Roundness* controls the profile and *Back
+surface* selects Inflated or Flat. Mode *Extrude* makes flat caps connected by
+vertical walls. Both ignore open strokes, use even-odd fill (nested contours
+make holes, overlaps alternate) and sample boundaries at *Surface detail*;
+gaps narrower than a few cells may disappear. At zero depth or below mesh
+precision these two modes give an open flat sheet. Mode *Tubes* wraps open or
+closed strokes in round tubes: *Diameter mm* and *Tube step mm* refer to the
+source drawing before normalization, *Tube sides* controls the cross-section,
+and *Cap open ends* closes open strokes. Closed paths loop without caps.
+Intersecting tubes remain separate surfaces; there is no Boolean union, and
+tight bends/crossings may self-intersect. Diameters below mesh precision are
+refused. Mode *Ink height* deposits a Gaussian footprint along vector strokes:
+*Ink width mm* sets its source-space width, *Ink buildup* increases accumulation
+at dense overlaps. Density is integrated along arc length, independent of
+source point spacing; it is not pen pressure. Sub-cell footprints broaden for
+stable sampling. Mode *Depth map* needs no paths: choose *Depth source* Image
+file, then *Choose image…* to load grayscale or color pixels. Light is high by
+default; *Dark is high* reverses it. Alpha becomes white. The image retains its
+aspect ratio, is sampled at up to 160 pixels on the long side, and its pixels
+are frozen into saved patches. Wave study supplies an immediate built-in
+relief without a file. View angle 0/elevation 90 preserves image orientation.
+Ink height and Depth map share a closed flat underside with *Base %*, *Height
+curve* (tonal exponent), and *Smooth passes*; at depth zero only the base remains.
+*Depth %* and Base % refer to the source's longest XY dimension. Only controls
+relevant to the selected mode are shown; unused saved values survive switching.
+Inputs over 6000 points or 256 paths are refused. Complex outlines reduce
+effective detail; tube resampling and ink integration also have fixed work
+budgets. *Drawing* Surface grid joins lattice lines (tube rings/rails in Tubes);
+*Grid every Nth* thins them. Mesh edges includes triangles; Silhouette draws
+the visible contour. *Hidden-line removal* uses face culling and a conservative
+raster depth buffer; dense previews are thinned with a fixed pattern. *View
+angle/elevation*, *Preview size mm*, *Margin*, *Pen* and Style affect only
+projected pen paths, uniformly fitted to paper. The separate Silhouette output
+uses the same camera and placement. Orange *Mesh* (third output, index 2) is a
+normalized triangle mesh capped at 120000 triangles: wire it to **3D Spikes**
+Surface with Body Wired mesh, or to **Mesh Slice** Mesh input. Those nodes choose
+their own size and view. Everything is deterministic without a seed. Fine dashed
+styles may coarsen gaps and simplify strokes to bound the point count. The saved
+node key stays `inflate3d`; older Inflate patches preserve their exact geometry.
+Help includes three Inflate examples and four mode tutorials.
 
 **Stripe Discs** — op-art rotated discs after Bridget Riley: a field of
 stripes is cut by circles, and inside each circle the field is rotated about
@@ -2883,6 +2954,18 @@ frame 0). Reads the ANIMATE panel's frame state — or a frameFan collector's fr
 domain when one drives the graph. A fifth output `rot °` gives a
 loop-seamless rotation in degrees, (frame / frameCount) · 360, for wiring
 straight into Rotate inputs.
+Outputs six and seven are **Bang** and **Toggle**, both green 0/1 values. The
+original five port indices are unchanged. *Bang rate* offers 1/1, 1/2, 1/3, 1/4,
+1/6, 1/8, 1/12, 1/16, 1/24, 1/32, Custom and Random. Fractions count displayed
+frames: 1/4 fires only on frames 4, 8, 12, etc. Custom exposes *Every N frames*.
+Random exposes *Chance %* and *Bang seed*; the same seed/frame gives the same
+result in previews, scrubbing and exports. Bang is a one-frame pulse; Toggle
+starts Off before frame 1 and flips on every hit, holding until the next hit.
+Toggle is derived from the selected pattern prefix, without playback history;
+keep rate/chance/seed fixed during each Toggle loop. An even
+number of hits returns Toggle to its starting state for looping. Connect to
+checkboxes such as 3D Spikes *Body occlusion*, or use the values in Math.
+The Help example **Frame · Bang and Toggle** starts with Bang and 16 frames.
 
 **Value** — a constant number.
 

@@ -292,7 +292,9 @@ function defOuts(node) {
 function numericParams(node) {
   const def = DEFS[node.type];
   if (!def) return [];
-  return def.params.filter((p) => p.type === "slider" || p.type === "number" || p.type === "seed");
+  return def.params.flatMap((p) => p.type === "multi"
+    ? p.options.map((option, i) => ({ ...p, key: `${p.key}[${i}]`, label: `${p.label} · ${option}`, type: "check", def: (p.def || []).includes(option), multiKey: p.key, multiOption: option, multiDefault: p.def }))
+    : p.type === "slider" || p.type === "number" || p.type === "seed" || p.type === "check" ? [p] : []);
 }
 
 /* ============================================================
@@ -317,9 +319,14 @@ function evalLevel(level, ctx, boundIns) {
     const merged = { ...node.params };
     for (const np of numericParams(node)) {
       const e = level.edges.find((ed) => ed.to === id && ed.toPort === "p:" + np.key);
-      if (e) {
-        const v = (outsOf(e.from) || [])[e.fromPort || 0];
-        if (typeof v === "number" && isFinite(v)) merged[np.key] = v;
+      const bound = !e && level.bindings && boundIns
+        ? level.bindings.findIndex((b) => b.nodeId === id && b.port === "p:" + np.key) : -1;
+      const v = e ? (outsOf(e.from) || [])[e.fromPort || 0] : bound >= 0 ? boundIns[bound] : undefined;
+      if (typeof v === "number" && isFinite(v)) {
+        if (np.multiKey) {
+          const selected = Array.isArray(merged[np.multiKey]) ? merged[np.multiKey] : np.multiDefault || [];
+          merged[np.multiKey] = v >= 0.5 ? selected.includes(np.multiOption) ? [...selected] : [...selected, np.multiOption] : selected.filter((option) => option !== np.multiOption);
+        } else merged[np.key] = np.type === "check" ? v >= 0.5 : v;
       }
     }
     pvals[id] = merged;
@@ -891,7 +898,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.124"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.125"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -1611,7 +1618,8 @@ function NumBox({ value, onChange, width = 52, disabled, min, max }) {
   );
 }
 
-function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, portProps, onFileText, fileMode, fileLabel, fileAccept, onPromote }) {
+function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, portProps, optionInputs, onFileText, fileMode, fileLabel, fileAccept, onPromote }) {
+  if (value === undefined) value = def.def;
   const lbl = { fontSize: 10, color: T.dim, letterSpacing: "0.02em" };
   const dot = portRef ? (
     <div ref={portRef} {...portProps}
@@ -1620,7 +1628,7 @@ function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, por
         background: wired ? T.value : T.bg, border: `2px solid ${T.value}`, cursor: "crosshair", zIndex: 2,
       }} />
   ) : null;
-  if (inactive && wired) return (
+  if (inactive && wired && def.type !== "multi") return (
     <div data-inactive-parameter={def.key} title="This input is not used by the current mode. Drag its port to disconnect it."
       style={{ marginBottom: 7, position: "relative", display: "flex", gap: 6, alignItems: "center", minHeight: 18 }}>
       {dot}<span style={{ ...lbl, flex: 1 }}>{def.label} ◈</span>
@@ -1670,11 +1678,10 @@ function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, por
       <div style={{ marginBottom: 6 }}>
         <div style={{ ...lbl, marginBottom: 3 }}>{def.label}</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {def.options.map((o) => (
-            <label key={o} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: T.text, cursor: "pointer" }}>
-              <input type="checkbox" checked={cur.includes(o)} onChange={() => toggle(o)} style={{ accentColor: T.accent }} />
-              {o}
-            </label>
+          {def.options.map((o, i) => inactive && !optionInputs?.[i]?.wired ? null : (
+            <ParamRow key={o} def={{ key: `${def.key}[${i}]`, label: o, type: "check" }}
+              value={cur.includes(o)} onChange={() => toggle(o)} inactive={inactive}
+              liveVal={Array.isArray(liveVal) ? liveVal.includes(o) : undefined} {...optionInputs?.[i]} />
           ))}
         </div>
       </div>
@@ -1683,8 +1690,11 @@ function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, por
   if (def.type === "check") {
     return (
       <div style={rowS}>
-        <div style={{ ...lbl, flex: 1 }}>{def.label}</div>
-        <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} style={{ accentColor: T.accent }} />
+        {dot}
+        <div style={{ ...lbl, flex: 1 }}>{def.label}{wired && <span style={{ color: T.value, marginLeft: 5 }}>◈</span>}</div>
+        <input type="checkbox" aria-label={def.label} checked={wired && typeof liveVal === "boolean" ? liveVal : !!value} disabled={wired}
+          title={wired ? "Controlled by wire: below 0.5 Off, 0.5 or above On" : undefined}
+          onChange={(e) => onChange(e.target.checked)} style={{ accentColor: wired ? T.value : T.accent }} />
       </div>
     );
   }
@@ -3422,7 +3432,8 @@ export default function App() {
                 const isOut = lvl.outputId === node.id && stack.length > 0;
                 const collapsed = !!node.collapsed;
                 const wiredParams = new Set(
-                  lvl.edges.filter((e) => e.to === node.id && typeof e.toPort === "string").map((e) => e.toPort.slice(2))
+                  [...lvl.edges.filter((e) => e.to === node.id && typeof e.toPort === "string").map((e) => e.toPort.slice(2)),
+                    ...(lvl.bindings || []).filter((b) => b.nodeId === node.id && typeof b.port === "string" && b.port.startsWith("p:")).map((b) => b.port.slice(2))]
                 );
                 return (
                   <div key={node.id} ref={regCard(node.id)}
@@ -3617,14 +3628,21 @@ export default function App() {
                               </div>
                             </div>
                           ) : (
-                            def.params.filter((pd) => parameterPresentation(pd, pvals[node.id] || node.params, wiredParams.has(pd.key)) !== "hidden").map((pd) => {
-                              const isNum = pd.type === "slider" || pd.type === "number" || pd.type === "seed";
+                            def.params.filter((pd) => parameterPresentation(pd, pvals[node.id] || node.params, wiredParams.has(pd.key) || (pd.type === "multi" && pd.options.some((_, i) => wiredParams.has(`${pd.key}[${i}]`)))) !== "hidden").map((pd) => {
+                              const isNum = pd.type === "slider" || pd.type === "number" || pd.type === "seed" || pd.type === "check";
                               const pdE = (node.pmax && node.pmax[pd.key] != null) ? { ...pd, max: node.pmax[pd.key] } : pd;
                               return (
                                 <ParamRow key={pd.key} def={pdE} value={node.params[pd.key]}
                                   wired={wiredParams.has(pd.key)}
                                   inactive={!isParameterActive(pd, pvals[node.id] || node.params)}
                                   liveVal={pvals[node.id] ? pvals[node.id][pd.key] : undefined}
+                                  optionInputs={pd.type === "multi" ? pd.options.map((_, i) => {
+                                    const key = `${pd.key}[${i}]`;
+                                    return { wired: wiredParams.has(key), portRef: regPort(node.id + "|p:" + key), portProps: {
+                                      onMouseDown: (e) => detachWire(e, node.id, "p:" + key),
+                                      onMouseUp: (e) => finishWire(e, node.id, "p:" + key, "value"),
+                                    } };
+                                  }) : null}
                                   portRef={isNum ? regPort(node.id + "|p:" + pd.key) : null}
                                   portProps={isNum ? {
                                     onMouseDown: (e) => detachWire(e, node.id, "p:" + pd.key),
@@ -3867,16 +3885,16 @@ export default function App() {
               </div>}
               {animExportError && <div role="alert" style={{ color: T.accent, fontSize: 10 }}>{animExportError}</div>}
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                <button onClick={() => exportAllFrames("gcode")} disabled={animBusy > 0 || !primaryPS.paths.length || !gcodeProf} title={gcodeProf ? "" : "External SVG profile \u2014 use SVG"}
-                  style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
+                <button onClick={() => exportAllFrames("gcode")} disabled={animBusy > 0 || !primaryOut?.[0]?.paths || !gcodeProf} title={gcodeProf ? "" : "External SVG profile \u2014 use SVG"}
+                  style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryOut?.[0]?.paths ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                   G-code {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
                 </button>
-                <button onClick={() => exportAllFrames("svg")} disabled={animBusy > 0 || !primaryPS.paths.length}
-                  style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
+                <button onClick={() => exportAllFrames("svg")} disabled={animBusy > 0 || !primaryOut?.[0]?.paths}
+                  style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryOut?.[0]?.paths ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                   SVG {"\u00D7"} {frameCount}
                 </button>
-                <button onClick={() => exportAllFrames("dxf")} disabled={animBusy > 0 || !primaryPS.paths.length}
-                  style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
+                <button onClick={() => exportAllFrames("dxf")} disabled={animBusy > 0 || !primaryOut?.[0]?.paths}
+                  style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryOut?.[0]?.paths ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                   DXF {"\u00D7"} {frameCount}
                 </button>
               </div>

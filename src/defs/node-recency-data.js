@@ -441,9 +441,9 @@ export const NODE_RECENCY = {
     "sha256": "726f14c876261587d6f4fbe0be8def42264266dd2723ac49724cb6e38b52f4b1"
   },
   "frame": {
-    "date": "2026-09-10",
-    "order": 40,
-    "sha256": "4c9e5949a74dcdb7e0d6423b4b2a06fec919002081b526b76e0cedbe6558dc27"
+    "date": "2026-10-15",
+    "order": 81,
+    "sha256": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204"
   },
   "frame_grid": {
     "date": "2026-10-09",
@@ -614,6 +614,11 @@ export const NODE_RECENCY = {
     "date": "2026-08-09",
     "order": 23,
     "sha256": "28ff4e97fd32e203a202d2f9015af4be3d733e8395451e96d6c81e2d03b032dc"
+  },
+  "inflate3d": {
+    "date": "2026-10-15",
+    "order": 81,
+    "sha256": "7587424b1ddfd9d975fd6c2ee308ef2c3469b8b238fa1e5ad8c3037781202723"
   },
   "ink_burst": {
     "date": "2026-08-13",
@@ -1260,6 +1265,11 @@ export const NODE_RECENCY = {
     "order": 22,
     "sha256": "cf435539c8f23ee30132842c4180a0f591bbbd7c985b6ead0ecd8066b1c7143f"
   },
+  "spikes3d": {
+    "date": "2026-10-14",
+    "order": 81,
+    "sha256": "8ffa83ae16c08ca2cfab9d0bfa2c00eb4f14a0e14fb5e664dd7ffc4f8d0f3457"
+  },
   "spiro": {
     "date": "2026-07-22",
     "order": 1,
@@ -1371,9 +1381,9 @@ export const NODE_RECENCY = {
     "sha256": "cc243dfa3a1fd2538f23cd7cf04936dbaa7a7b2947384dcf14b8e10ce1250929"
   },
   "testcard": {
-    "date": "2026-09-23",
-    "order": 62,
-    "sha256": "cbc1fd3c2ab9012c8d94382d0912c6f391c10fede5fe23a3a9f9aea190aec86a"
+    "date": "2026-10-15",
+    "order": 81,
+    "sha256": "e7fff40fc73980de3bed4d212bde164bb88362f38e52188510693ecbc64e7a64"
   },
   "textpath": {
     "date": "2026-07-22",

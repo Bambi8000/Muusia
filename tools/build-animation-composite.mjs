@@ -26,7 +26,8 @@ defs.frame={...nativeFrame,compute(ins,p,ctx){
 let id=100;
 const nodes=[],edges=[];
 const add=(type,params,x,y)=>{
-  const n={id:++id,type,x,y,params:{...Object.fromEntries(defs[type].params.map(p=>[p.key,p.def])),...params}};
+  // Preserve the historical empty Frame settings as optional controls grow.
+  const n={id:++id,type,x,y,params:type==='frame'?{...params}:{...Object.fromEntries(defs[type].params.map(p=>[p.key,p.def])),...params}};
   nodes.push(n);return n;
 };
 const wire=(from,to,toPort,fromPort=0)=>edges.push({id:'e'+(++id),from:from.id,fromPort,to:to.id,toPort});

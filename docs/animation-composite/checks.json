@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "scope": "Actual App evaluator/exporter; stored frames use the built-in Frame node. Virtual phase 1 tests the loop endpoint. No hardware or batch-ZIP claim.",
-  "engineScopeSha256": "345ce385f3b9a971d7fcce3437fb88f3e1690da855dcd8fdacae2fd82b48b4c7",
+  "engineScopeSha256": "7af817955b8444534bda3aa7c1065924f19b61ffe3008ae286983845a7328b6b",
   "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
   "patchSha256": "2be81471658098ce44d70061250bd562366729914243f13b0b280be7a347ab24",
   "sourceHashes": {
-    "src/defs/nodes/frame.js": "4c9e5949a74dcdb7e0d6423b4b2a06fec919002081b526b76e0cedbe6558dc27",
+    "src/defs/nodes/frame.js": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204",
     "src/defs/nodes/matem.js": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5",
     "src/defs/nodes/grid_hairs.js": "2d687dd332b147f67054eaca3dc07f372ae078a07fa58436fdf5b5646c54bddc",
     "src/defs/nodes/crop.js": "3bfc534cce7fb1276e0b40e8d2884809097e51067a9e25457bf55d79f62af47c",

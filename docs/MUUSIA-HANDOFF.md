@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **312 files** (314 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **313 files** (315 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 198, Modifiers 77). ESM format:
+  Generators 199, Modifiers 77). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -3417,6 +3417,241 @@ according to the session's actual capabilities:
   Verify the Pages run for the release commit and public Retro Mesh controls;
   refresh the clean source snapshot after committing. Artifacts are in this
   chat's `parameter-visibility/` directory.
+
+- **W — 3D Spikes built-in preparation** 2026-10-15 Astra — based on
+  `470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3`. New generator `spikes3d`,
+  Structural folder, takes existing mesh and style pin types and produces
+  projected 2D pen paths. No engine, helper or machine changes.
+  - Capsule/Sphere/Torus/Cube bodies, wired normalized mesh and direct ASCII/
+    binary STL intake (existing Mesh Slice parser, max 120k triangles).
+    Seeded area-weighted triangle samples grow along interpolated or flat
+    normals. Lines, six-sided Spikes and Straws; variable length/cone spread,
+    normal reversal, orthographic camera and independent host pen.
+  - Host-only raster depth clipping retains the exposed ends of back-facing
+    strokes; straws do not occlude each other. Silhouette or reduced wireframe
+    is optional. Requested size/length shrink uniformly to fit the margin.
+    Emitted stroke reservoirs distribute dense-budget thinning across the
+    drawing; styles stream in bounded chunks with adaptive gap and preserve
+    straight-stroke endpoints. Output stays below 115k points and never writes
+    pressure Z. Authored showIf rules expose only applicable controls.
+  - Focused validator passes 125 initial lab cases and 130 final baked cases:
+    real normal directions, area-weighted sampling, all modes/bodies, actual
+    Blob Mesh, ASCII/binary STL equality, malformed meshes/files, immutable
+    seeded output, camera changes, pens, extreme wires, bounds and dense styles.
+    The dense-cone regression ensures thinning retains axes rather than
+    selecting only base rings. The graduated lab copy has been removed.
+    Three Help examples give 77 examples total. Node inventory is 315 built-ins /
+    313 modules / 199 generators. Catalog/tags/recency/source bundle refreshed.
+  - A fresh browser load and Help example loading verify the built-in node.
+    Browser also verifies the capsule, Straws diameter controls, actual STL
+    loading and Blob Mesh Surface wiring. Wired blob SVG and G-code are captured and
+    equal baked geometry at export precision: 1,382 paths / 2,764 points.
+    Real screenshots, three loadable patches, export proof and local build
+    belong in this chat's `spikes3d/` artifact directory. No hardware plotting.
+  - Focused lint, guide validator, all 77 examples and ordered catalog → build
+    → check:learn pass (23,574 Learn checks; existing capture/export provenance
+    unchanged). APP_VERSION remains 2.124 while prepared locally. A standalone
+    build and dirty source snapshot are supplied, and the claim is ready.
+    Release requires Daniel's publication instruction.
+
+- **W — Frame Bang and checkbox wires (local preparation)** 2026-10-15 Astra —
+  based on `470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3`, continuing alongside the
+  ready 3D Spikes work. No publication yet; APP_VERSION remains 2.124.
+  - Frame keeps its original five output indices and appends Bang (index 5)
+    and Toggle (index 6), ordinary green 0/1 value outputs. Rates 1/1 through
+    1/32 presets, Custom Every N frames, or seeded Random Chance %. Displayed
+    frame 4 is the first hit at 1/4. Bang pulses for one frame. Toggle derives
+    parity from the selected fixed pattern prefix, so scrubbing/exporting need
+    no mutable playback state. Keep rate/chance/seed fixed during Toggle loops;
+    an even hit count returns to its starting state. Seed hides at 0/100%.
+  - App evaluation accepts value wires for check descriptors and converts
+    finite values below 0.5 to false, at least 0.5 to true. Wired checkboxes show
+    evaluated states and disable manual edits; stored manual values survive.
+    Expanded/collapsed cards expose ports and inactive wired settings retain
+    their connection rows. ParamRow displays descriptor defaults for missing
+    old saved settings, including legacy Frame nodes with empty params.
+  - Parameter bindings through group inputs now reach the same evaluator path,
+    for numeric and checkbox targets. Group-level checkbox inputs are marked
+    wired in cards and Guide. Guide validates checkbox ports and explains the
+    threshold. Node API, reference, README, Frame Learn controls and one Help
+    example updated; 78 Help examples total, 315 built-ins unchanged.
+  - `tools/validate-frame-bang.mjs` runs 1,903 cases, including the actual AST-
+    extracted app evaluator: five-port compatibility, fractions, custom/random,
+    prefix parity, arbitrary scrubbing, thresholds/fallback, immutable saved
+    values, group binding, Guide and actual Spikes geometry. Browser verifies
+    pulse at frame 4 and Off at 5, Toggle held at 5, Random repeatability,
+    native port connection/disconnection and restored manual checkbox state.
+    Both actual SVG × 16 and G-code × 16 ZIPs match all frame geometries.
+  - Changed numericParams/evalLevel required fresh Learn reference captures.
+    Both were downloaded again through the actual in-app browser: single
+    physical-test SVG, and Stack → Pens SVG ZIP with Red hidden, margin 0,
+    mirror/numbers/drill off. Bytes match prior references exactly. Provenance
+    records fresh selected source hashes and the actual unchanged A — Servo Z
+    G-code workflow/profile context. Historical G-code checks and PNGs stay
+    untouched; no hardware execution. See learn/README.md and this chat's
+    `frame-bang/` artifacts for captures, example patches and export proof.
+  - Animation freshness also required eight gallery and three composite real
+    SVG-panel recaptures. All ordered path signatures, point counts and page
+    dimensions match. Original builders rerun with historical empty Frame
+    settings preserved; all seven patch graphs and geometry stay unchanged.
+    Their browser records now identify current selected evaluator/Frame sources.
+  - Focused 1,903-case validator, Guide, all 78 Help examples, focused lint and
+    ordered catalog → build → check:learn pass (23,581 Learn checks). Initial
+    build failures identified missing conditional-control explanations and the
+    old five-output assertion; both updated without weakening coverage. The
+    animation freshness failure was resolved through the actual recaptures.
+    Standalone build and verified dirty source snapshot supplied in this chat's
+    `frame-bang/` artifacts. Claim ready; not published. Existing ready Spikes
+    preparation remains in the checkout and travels with the combined build.
+
+- **W — Bang inputs on every checkbox (local preparation)** 2026-10-15 Astra —
+  based on `470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3`, continuing the ready
+  3D Spikes and Frame Bang preparation. APP_VERSION stays 2.124; not published.
+  - Existing common check support audited across all 298 check descriptors in
+    162 modules plus hidden inline Route. Extended `numericParams` to give each
+    multi-list option a check descriptor and stable indexed value port, e.g.
+    `p:tests[0]`. Test Card's 12 Tests choices bring coverage to 311 inputs in
+    163 built-ins. Original array parameters and saved manual choices remain;
+    each wire edits only its own choice in the evaluated copy. Group bindings
+    use the same path. Custom multi descriptors inherit the same mechanism.
+  - Expanded cards render one live checkbox/port per choice; collapsed cards
+    expose them too. Inactive wired choices retain disconnect rows. Guide
+    recognizes indexed ports and reports each live boolean and source.
+  - Test Card no longer silently re-enables Line weight sweep when all tests
+    are Off. Missing legacy tests still use its old fallback. Animation batch
+    buttons now accept empty paths frames so Bang-off previews can export a
+    loop with later drawing. Non-path outputs and External SVG G-code gating
+    retain their restrictions. No serializer or machine-profile changes.
+  - Expanded focused validator runs 2,527 cases, including every checkbox's
+    real evaluator dispatch, group binding, immutable/manual fallback and Guide
+    recognition; real Test Card and Spikes geometry tested separately. Test
+    Card validator, Guide and parameter-visibility audit pass. Native UI
+    verifies all 12 new ports, pulse, held Toggle and actual drag connection /
+    disconnection. SVG and G-code ×16 downloaded from blank frame 5; every SVG
+    path and G-code drawing coordinate matches computation, including blanks.
+  - Two reference SVG downloads and all 11 historical animation SVG-panel
+    comparisons recaptured through actual UI after evaluator changes. Bytes /
+    ordered path signatures and all seven graphs stay unchanged. Refreshed
+    selected provenance and original builders; no hardware execution.
+  - Ordered catalog → build → check:learn passes (23,581 checks). Updated local
+    standalone build and verified dirty source snapshot supplied. Artifacts in
+    this chat's `bang-all-checkboxes/` directory; earlier ready work preserved.
+    Claim ready; publication still requires Daniel's release instruction.
+
+- **W — 2D to 3D · Inflate (local preparation)** 2026-10-15 Astra —
+  based on `470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3`, alongside the ready
+  Spikes and Bang work. New `inflate3d` modifier; APP_VERSION stays 2.124.
+  - Closed source outlines define an even-odd planar region, independent of
+    winding. Holes and disjoint islands are retained; open paths are ignored.
+    Exact segment-distance/sign queries feed an adaptive grid, relaxed Poisson
+    interior field and clipped triangle fans. Depth % and Roundness swell the
+    skins, with inflated or flat back. Zero/subprecision depth is a flat sheet.
+    Fine gaps need detail. Inputs above 6000 points / 256 contours are refused;
+    complex input lowers effective detail to cap distance-query work.
+  - Output 0 Drawing and 1 Silhouette are projected, fitted 2D paths. Output 2
+    Mesh follows the existing centered, longest-dimension-1, 1e-4 triangle
+    contract and is independent of preview camera/size/style. Quantized thin
+    rim faces are repaired by tiny shared XY lattice adjustments only if all
+    incident face windings stay valid; Z and flat backs remain unchanged.
+    Mesh feeds actual 3D Spikes and Mesh Slice without an engine change.
+  - Surface grid chains each lattice line separately to reduce lifts. Mesh
+    edges / Silhouette, optional outline, hidden-line removal, camera, preview
+    size, margin and pen controls. Hidden lines use front-face culling plus a
+    conservative raster-depth neighbourhood. Dense edge sampling uses one
+    pattern regardless of occlusion state. Styles are applied to joined paths;
+    adaptive gaps and bounded simplification keep projected output within 90k
+    points. Silhouette and drawing share placement. No machine Z moves.
+  - Three Help examples: rounded rectangle pillow, a true hole, and a five-lobed
+    inflated shape feeding Spikes. 81 examples total; 316 built-ins (314 files).
+    Catalog/tags/recency/reference/source bundle/README updated. Prototype was
+    imported with Node ⇣, inspected, baked and the graduated lab file removed.
+    Fresh built-in browser load verifies depth zero and its conditional fields,
+    hole and direct Mesh → Spikes connection. Actual three SVG downloads and
+    pillow/spikes G-code downloads match every path / draw coordinate (0.01 mm).
+  - Focused validator passes 83 cases of deterministic immutable geometry, manifold edge
+    pairing and outward volume, concavity/holes/islands, both backs, thin bodies,
+    flat sheets, normalization, camera separation, budgets/styles, real source
+    nodes and consumers. Guide, examples and 2,531 Bang/engine cases pass.
+    Focused lint and ordered catalog → build → check:learn pass (23,581 Learn
+    checks, existing reference export/capture scopes unchanged). Standalone
+    build and verified dirty source snapshot supplied. Claim ready; local-only
+    artifacts in this chat's `inflate-3d/` directory; no hardware execution.
+
+- **W — 2D to 3D / four more modes (local preparation)** 2026-10-15 Astra —
+  based on `470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3`; prior ready Spikes,
+  Bang and Inflate work preserved. APP_VERSION remains 2.124; no publication.
+  - Extends the existing `inflate3d` definition, now named **2D to 3D**, with a
+    Mode selector: Inflate, Extrude, Tubes, Ink height, Depth map. Existing
+    input/output indices and normalized Mesh contract remain unchanged.
+    Missing saved mode means Inflate. Complete pre-change evaluator output
+    hashes for all three Inflate examples (including downstream Spikes) match.
+  - Extrude reuses the sampled even-odd planar region, adds constant-height
+    caps and wound vertical side walls, retaining holes/islands. Zero depth
+    gives an open sheet. Inflate retains its original relaxed geometry.
+  - Tubes uses arc-length sampling of open/closed paths with ring/rail preview,
+    source-mm diameter/step, polygonal cross-sections and optional open-path
+    caps. Closed paths have no seam. Tube components are separate, without a
+    Boolean union; tight bends and crossings may self-intersect. Subprecision
+    diameters are refused. Sampling adapts to a triangle-work budget.
+  - Ink height integrates Gaussian ink along arc length, so re-tessellating
+    the same stroke does not change relief and overlapping ink builds higher.
+    Source-mm footprint, buildup, base, tonal exponent and smoothing controls.
+    Narrow sub-cell ink footprints broaden for stable sampled output.
+  - Depth map uses existing `fileImage` intake and `node.data.img` (160 px long
+    side); image aspect/orientation retained, light high by default with Dark
+    is high reversal. Bilinear sample -> optional smoothing/tonal exponent ->
+    closed relief with flat base. Wave study is a file-free Help demo. Image
+    pixels survive Save/Load and mode switches. No App/helper/API change.
+  - All modes reuse camera/fit, hidden-line removal, style and bounded pen
+    drawing output; cameras never deform Mesh. Mode-specific controls hide
+    irrelevant settings. New checkboxes get existing Bang inputs automatically.
+    Updated catalog/tags/recency/node reference/source bundle/README. Four new
+    Help tutorials; 85 total examples, still 316 built-ins / 314 source files.
+  - Validator: 217 cases when also given the original saved baseline fixtures;
+    mesh structure/normalization, outward edge pairing/volume on ordinary
+    solids, extrusion holes/walls, tube loops/open caps, ink buildup and
+    re-tessellation, image tones/aspect/inversion, inactive params, bounded
+    workloads, frozen inputs, actual evaluator and Spikes/Mesh Slice consumers.
+    Existing Inflate 83 cases pass; Bang/engine 2,535 (315 checkbox inputs),
+    Guide, all 85 examples, visibility predicates and focused lint pass.
+  - Actual browser verifies all four mode previews/controls and Mesh -> Spikes.
+    Loaded a real PNG: all 6,912 frozen darkness samples match source pixels.
+    Saved/reloaded, switched modes and saved again: exact graph/image equality.
+    All four actual SVG/G-code downloads match every ordered path, path-start
+    and draw coordinate at 0.01 mm. A fresh app reload loads the new Depth map
+    tutorial through Help. No hardware execution.
+  - Ordered catalog -> build -> check:learn passes (23,581 checks); tracked
+    Learn reference scopes unchanged. Standalone HTML copied byte-for-byte
+    from dist and verified dirty project snapshot supplied in this chat's
+    `2d-to-3d-modes/` artifacts. Browser policy blocks file: URLs, so the HTML
+    itself was not opened through automation; fresh UI testing used the dev
+    app at its existing localhost URL. Claim ready; integration/release remains
+    a separate user-authorized step.
+
+- **2.125 — 3D surfaces, spikes and animation triggers** 2026-10-15 Astra —
+  Daniel authorized publication of the combined ready work above.
+  - Adds **3D Spikes** (procedural/wired/STL surfaces; Lines, Spikes, Straws)
+    and **2D to 3D** (Inflate, Extrude, Tubes, Ink height, image Depth map).
+    Projected drawing/silhouette outputs export as pen paths; real normalized
+    Mesh connects the 3D tools. Existing Inflate and five Frame clock outputs
+    retain their geometry and port order. Mode-dependent controls and eleven
+    additional Help examples bring Help to 85, with 316 built-ins / 314 files.
+  - Frame appends periodic/seeded-random Bang and held Toggle. All 315 checkbox
+    inputs in 164 built-ins, including individual Test Card choices, accept
+    value wires with group support, live states and manual-setting restoration.
+    Animation batch exports work when the selected first frame is blank.
+  - Release checks: 130 Spikes, 83 Inflate, 217 four-mode/baseline cases,
+    2,535 Bang/engine cases, Frame export, Test Card, Guide, 85 Help examples
+    and focused lint pass. Real browser path/mesh/file intake/export evidence
+    is retained in the preparation entries; no physical machine execution.
+    Both reference downloads and 11 animation comparisons were recaptured
+    when the evaluator changed, preserving original geometry and graphs.
+  - APP_VERSION/README advance together to 2.125. Catalog/recency/source bundle
+    and Learn outputs regenerated. Ordered catalog -> build -> check:learn
+    passes, including all 23,581 Learn checks. Completed preparation/release
+    claims removed in this integration. Publish through the existing main
+    Pages workflow, verify its exact release commit and public version, and
+    refresh the committed project-file snapshot after integration.
 
 ## Hard-won pitfalls (keep)
 
