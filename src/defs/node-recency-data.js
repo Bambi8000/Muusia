@@ -805,6 +805,11 @@ export const NODE_RECENCY = {
     "order": 33,
     "sha256": "6c072b96b5aef4d0003ce9b78853d821c353cc9e323e4e23b82d51758f4923e4"
   },
+  "mold": {
+    "date": "2026-10-15",
+    "order": 83,
+    "sha256": "396a9689a5cec450f3ab7f86ffb9c78e7c4ca15bbd13076fa6c0403e55841e61"
+  },
   "mooncraters": {
     "date": "2026-07-22",
     "order": 1,

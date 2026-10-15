@@ -1,4 +1,4 @@
-# MUUSIA v2.126
+# MUUSIA v2.127
 
 **A node-graph editor for generative pen-plotter art.**
 
@@ -12,10 +12,14 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **316 built-in nodes** across Generators,
+HTML file you can double-click. The current source has **317 built-in nodes** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
+
+The **Mold** generator animates spreading mold colonies or branching mycelium.
+Choose Motion → Timeline and press Play in ANIMATE; Manual exposes Growth %.
+Two starter patches are available under Help → Mold.
 
 The current source also includes **Lattice Type**: an authored grid alphabet with
 rounded bowls, projecting crossbars and junction dots filled by real plotter

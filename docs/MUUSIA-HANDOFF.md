@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **313 files** (315 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **315 files** (317 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 199, Modifiers 77). ESM format:
+  Generators 200, Modifiers 77). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -3708,6 +3708,43 @@ according to the session's actual capabilities:
     the existing main Pages workflow; verify the exact commit, public title,
     new Help example and live Frame phase. Refresh the clean committed source
     snapshot and retain the index template alongside it after integration.
+
+- **2.127 — Mold animated growth** 2026-10-15 Astra — Daniel approved
+  publication. Base `38b8b9cb061e9c5f8c6f2e13eb438e9b85d82ca3`.
+  New `mold` generator offers Mold (merging lobed growth fronts,
+  fixed age contours and maturing spore loops) and Mycelium (persistent branching
+  hyphae with outward growth, crowding checks and partial growing tips).
+  - Timeline reads the existing frame context directly, from 2.5% germs to
+    mature growth; one-frame/no-clock contexts show full growth. It deliberately
+    restarts rather than forming a seamless loop. Manual Growth % ignores the
+    clock and can receive Frame t through Math ×100. No playback history/cache
+    is required; scrubbing and reordered frame exports reconstruct the same
+    seeded drawing. Full extents and margins remain fixed across frames.
+  - Mode-only controls use native showIf; Growth rings and Spores checkboxes
+    inherit the existing Bang/Toggle inputs. Style input and seeded extent
+    overlays use the standard contracts. Geometry is 2D plotting, not a mesh
+    or machine-Z simulation. 95k pre-style point budget, 14k hypha segments.
+  - Two Help patches demonstrate the modes (88 examples total); animation
+    panel help now lists all current direct-Timeline families. Catalog/tags,
+    source bundle and recency regenerated; 315 node files / 317 built-ins.
+  - `tools/validate-mold.mjs`: 132 seeded growth/clock/bounds scenarios plus
+    analytic circle contours, persistent completed hypha segments, stable
+    spore centers, meaningful/hidden controls, Style and Help invariants.
+    All 88 Help graphs and focused lint pass. Ordered catalog → build →
+    check:learn passes, including 23,581 Learn checks. Actual Play advances
+    Mycelium from 20 initial paths to 728 paths at frame 18/24.
+    Typical mature A4 compute measured about 12–21 ms in the local Node run.
+  - Real development-app UI exports: 24 SVG and 24 G-code frames per mode.
+    Every ordered SVG path/closure and all 415,178 G-code start/drawing/end
+    coordinates match pure node output (route optimization off, profile A,
+    origin 0/0, flipY off). Capture at development v2.126; no physical plotting.
+    Evidence: `mold-growth/export-verification.json` and real UI screenshots
+    in this task's visualization directory. APP_VERSION/README advance to 2.127.
+  - Release reruns the focused validator and all Help graphs, then the ordered
+    catalog → build → check:learn gate. Completed claim removed at integration.
+    Publish through main Pages, verify the exact commit and public examples,
+    and prepare a clean committed source snapshot. Claude upload is a separate
+    operation; a local snapshot does not update the Claude project.
 
 ## Hard-won pitfalls (keep)
 

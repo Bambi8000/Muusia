@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 316 built-in nodes in Muusia v2.124. Conventions used below:
+All 317 built-in nodes in Muusia v2.127. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,23 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (199)
+## Generators (200)
+
+**Mold** — seeded animated growth with two distinct modes. *Mold* expands lobed
+colonies, merges their fronts and matures a stippled surface of small spore
+loops; optional *Growth rings* preserves fixed age contours behind the front.
+*Mycelium* extends branching hyphae into unoccupied space while older strokes
+stay fixed. *Branching %*, *Hypha spacing mm* and *Meander* shape the network.
+*Motion Timeline* reads ANIMATE directly, from a small germ on the first frame
+to mature growth on the last; outside animation it shows the mature drawing.
+The animation restarts at the loop boundary. *Manual* exposes *Growth %*;
+wire Frame t through Math ×100 for explicit control. Keep Seed, Colonies,
+Placement, Spread and structural controls fixed while animating. *Spread mm*
+is each colony's maximum radius, capped for the paper; dashed circle guides
+show the seeded extents. *Margin* clips without moving or resizing the image
+between frames. Mold-only and Mycelium-only controls hide in the other mode.
+Both modes output ordinary plotter paths and support per-frame SVG/DXF/G-code
+export. Help includes Spreading colonies and Growing mycelium examples.
 
 **3D Spikes** — grow a coat from an actual 3D surface. *Body* Capsule, Sphere,
 Torus or Cube works immediately; *Wired mesh* accepts Blob Mesh's orange Mesh

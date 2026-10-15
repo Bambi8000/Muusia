@@ -17,6 +17,22 @@ import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
   {
+    name: "Mold · Spreading colonies",
+    desc: "Select Mold, open ANIMATE, set Frames to 32 and press Play. Motion Timeline starts with small germs and ends with mature, merging colonies. Edge roughness shapes the lobed front; Growth rings leaves fixed age bands, and Spores matures a stippled surface. Keep Seed, Colonies and Spread fixed during playback. The loop deliberately restarts growth. To inspect a still, switch Motion to Manual and scrub Growth %. SVG/G-code ×32 exports the same seeded growth, one drawing per frame; Margin stays fixed. Use a fine pen for the small spore loops.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "mold", x: 40, y: 20, params: { ...defaults("mold"), mode: "Mold", motion: "Timeline", colonies: 4, spread: 70, seed: 73 } },
+    ], edges: [] }),
+  },
+  {
+    name: "Mold · Growing mycelium",
+    desc: "Select Mold in Mycelium mode, open ANIMATE, set Frames to 32 and press Play. Fine hyphae extend and fork while older branches remain fixed. Branching % changes how often tips fork, Hypha spacing mm limits crowding, and Meander bends the growth. Spread bounds each colony, shown by dashed guides. Keep structural settings and Seed fixed across frames. Timeline grows from germs to a mature network and restarts at the loop boundary. Manual Growth % can be wired from Frame t through Math ×100. Every frame exports ordinary 2D pen paths; no physical growth or machine Z motion is implied.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "mold", x: 40, y: 20, params: { ...defaults("mold"), mode: "Mycelium", motion: "Timeline", colonies: 2, placement: "Center", spread: 78, branching: 8, spacing: 1.1, seed: 29 } },
+    ], edges: [] }),
+  },
+  {
     name: "Inflate · Rounded pillow",
     desc: "A closed rectangle becomes a rounded 3D pillow. Select 2D to 3D with Mode Inflate. Depth % sets total thickness relative to the shape's longest side; Roundness swells the profile. Back surface Flat makes a relief with a flat underside. Surface grid follows the curved body; Grid every Nth changes line density. Hidden-line removal hides the back. Rotate View angle/elevation, then export ordinary 2D SVG or G-code. Orange output 3 is the real normalized Mesh. Open source strokes are ignored; use closed outlines.",
     canvas: { W: 297, H: 210 },

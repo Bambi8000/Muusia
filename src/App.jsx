@@ -898,7 +898,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.126"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.127"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -3899,7 +3899,7 @@ export default function App() {
                 </button>
               </div>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
-                Murmuration herds and Concrete Poetry follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes.
+                Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes.
               </div>
             </div>
             <div data-machine-setup="true" onClick={() => setMchOpen((v) => !v)}
@@ -4468,7 +4468,7 @@ export default function App() {
                 "Set frame count in ANIMATE, add a Frame node (Math category), wire its outputs into any parameter.",
                 "t ramps 0\u21921 across frames; wave & ping-pong are seamless loops; frame # feeds Seeds for per-paper randomness.",
                 "\u25B6 previews the animation live. G-code / SVG / DXF \u00D7 N downloads one file per frame \u2014 plot each on its own paper, scan, assemble.",
-                "Concrete Poetry’s Timeline motion follows ANIMATE without a Frame wire. Other parameters need a frame-driven source to change. Add Reg Marks for scan alignment.",
+                "Timeline motion on Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follows ANIMATE without a Frame wire. Other parameters need a frame-driven source to change. Add Reg Marks for scan alignment.",
               ]],
               ["CUSTOM NODES", [
                 "Node \u2913 imports a node definition file (.js). See MUUSIA-NODE-API.md \u2014 you can hand that spec to an AI and import the result.",
