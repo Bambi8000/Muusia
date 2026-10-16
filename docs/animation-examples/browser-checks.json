@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-15",
-  "scope": "Actual in-app Muusia UI Load, select final node, Frames 36, Optimize route off, SVG panel text read; path signatures, not downloaded byte hashes; no hardware.",
+  "date": "2026-10-16",
+  "scope": "Actual in-app Muusia Load, selected final node, Frames 36, Optimize route off, SVG ×36 ZIP downloads. Every ordered SVG path matches current graph evaluation at 0.01 mm; existing comparison signatures unchanged. No hardware.",
   "sourceHashes": {
     "src/defs/nodes/frame.js": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204",
     "src/defs/nodes/matem.js": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5",
@@ -17,7 +17,7 @@
     "src/defs/nodes/blobmesh.js": "480302321bc33e274b2aa4c764e57e860746e2a18cecbb91c13baf6753551e4c",
     "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
   },
-  "engineScopeSha256": "7af817955b8444534bda3aa7c1065924f19b61ffe3008ae286983845a7328b6b",
+  "engineScopeSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
   "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
   "patchHashes": {
     "travelling-wave": "ff167aea8edc4fa0ef0d60002303718d447c48c58c207a012eea8d8670128545",
@@ -126,8 +126,48 @@
     }
   ],
   "routeOptimization": false,
-  "note": "All eight SVG panel comparisons recaptured after individual checklist inputs; ordered path signatures, point counts and page dimensions match.",
-  "appVersion": "2.124",
-  "sourceCommit": "470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3",
-  "sourceWorkingTree": "main, uncommitted 3D Spikes, Frame Bang and all-checkbox inputs; selected source hashes identify captured code"
+  "note": "All six studies recaptured as full 36-frame SVG ZIP downloads; all 216 frames match exactly.",
+  "appVersion": "2.129",
+  "sourceCommit": "7fc30e45226ef55bd4194b0361d2596333f965c9",
+  "sourceWorkingTree": "main, uncommitted complete graph output fix and dense stroke 3D fix; source hashes identify captured code",
+  "capturedAt": "2026-10-16",
+  "method": "Actual in-app Muusia Load, selected final node, Frames 36, Optimize route off, SVG ×36 ZIP downloads. Every ordered SVG path matches current graph evaluation at 0.01 mm; existing comparison signatures unchanged. No hardware.",
+  "batchEvidence": {
+    "travelling-wave": {
+      "file": "travelling-wave.zip",
+      "sha256": "74d8d08f1d07972988cb5edd6fdc7a3f7c27a6603b30e8a2d953eef4e83a8f82",
+      "frames": 36,
+      "totalPoints": 43452
+    },
+    "sliding-moire": {
+      "file": "sliding-moire.zip",
+      "sha256": "1bd413b07fbd82f45b99edb6ac5df71815638607b4a9a91c46e5f676fc689d71",
+      "frames": 36,
+      "totalPoints": 146268
+    },
+    "travelling-pinch": {
+      "file": "travelling-pinch.zip",
+      "sha256": "d5c2c47848aec1fc30dcc881f2acc2ed46bed0de67bda1c43d4153302c4d1004",
+      "frames": 36,
+      "totalPoints": 244296
+    },
+    "reassembly": {
+      "file": "reassembly.zip",
+      "sha256": "fda2e9182478cfc8cdbef4e995268a36e833d394d910cc2a607e6cb82e89d198",
+      "frames": 36,
+      "totalPoints": 33012
+    },
+    "letter-shift": {
+      "file": "letter-shift.zip",
+      "sha256": "e6864961db3924348e02e92da3cf71ccbfd15ed1541ce3068c3c5123c7fe01c2",
+      "frames": 36,
+      "totalPoints": 20628
+    },
+    "living-volume": {
+      "file": "living-volume.zip",
+      "sha256": "03afe60743175bbb83cd3afb8f5dc033b77de838be773afea5c82e69549a9f63",
+      "frames": 36,
+      "totalPoints": 50976
+    }
+  }
 }

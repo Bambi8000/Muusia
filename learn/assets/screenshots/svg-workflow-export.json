@@ -1,11 +1,11 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.124",
-  "date": "2026-10-15",
+  "appVersion": "2.129",
+  "date": "2026-10-16",
   "patch": "examples/tutorial-svg-workflow.muusia.json",
   "patchSha256": "e968c8b6da958130ce8869e9927339b02255cde5febf7cddbe234d2886c2c1b7",
   "bundle": "examples/svg-workflow-per-pen.zip",
-  "originalDownload": "Export a two-colour SVG set-sheets-svg (4).zip",
+  "originalDownload": "svg-workflow-per-pen.zip",
   "sha256": "f0ce3fe36c406929766f68e644cdf3c4866602be463e5276172b001a500eca42",
   "selectedNode": "Merge",
   "settings": {
@@ -22,10 +22,10 @@
       2
     ],
     "workflow": "gcode",
-    "profileName": "A — Servo Z (multi-tip brush)",
+    "profileName": "Viivain - Gentle (technical pen)",
     "workArea": {
-      "W": 330,
-      "H": 240,
+      "W": 793,
+      "H": 813,
       "manufacturerVerified": false
     },
     "megaCanvas": false,
@@ -64,7 +64,7 @@
     {
       "path": "src/App.jsx",
       "selector": "app-export-core",
-      "sha256": "9eec79acb0cf54cb6003bb432af90011f4e64aa4381c16bd7462d603342d8785"
+      "sha256": "fe54a4b4613fba444f707f1ffcdbafb16398ee517504bc708f623684ddc4a5d2"
     },
     {
       "path": "src/App.jsx",
@@ -107,8 +107,8 @@
       "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
     }
   ],
-  "sourceCommit": "470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3",
+  "sourceCommit": "7fc30e45226ef55bd4194b0361d2596333f965c9",
   "sourceProvenanceVersion": 2,
-  "captureMethod": "Actual in-app browser SVG download and Stack Pens SVG ZIP; route optimization off, direction preserved, margin 0, mirror/numbers/drill off, Red hidden while both colours exported; unchanged A — Servo Z G-code workflow. No hardware. Byte-for-byte equality verified after all-checkbox input changes; historical G-code evidence and PNGs unchanged.",
-  "sourceWorkingTree": "main, uncommitted 3D Spikes, Frame Bang and all-checkbox inputs; sourceFiles identify captured code"
+  "captureMethod": "Actual in-app Muusia Load/select Merge and download. SVG byte geometry unchanged after removing destructive engine truncation; Optimize route off, Preserve direction on, Mega Canvas off. Stack Pens: margin 0, mirror/numbers/drill off, Red hidden while both sheets exported. Existing PNGs and historical G-code check unchanged. No hardware.",
+  "sourceWorkingTree": "main, uncommitted complete graph output and dense stroke 3D fixes; sourceFiles identify captured code"
 }

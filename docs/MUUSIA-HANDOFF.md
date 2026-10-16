@@ -3872,6 +3872,78 @@ according to the session's actual capabilities:
     public examples before reporting publication. Refresh the committed source
     snapshot; this does not upload files to the Claude project.
 
+- **2.130 — dense stroke 3D repair** 2026-10-16 Astra — Daniel reported blank
+  Organic Rings → Torn → 2D to 3D Inflate / Auto (screenshot at 17:26).
+  On A4, the exact parameters give 6095 paths / 47246 points; on A2, 8788 /
+  67142. Ordinary tube rings for every small dot would require about 748k /
+  1049k triangles before any extra sampling, above the 120k mesh limit.
+  - `2d3d-source.js` turns closed marks no wider than Stroke width into compact
+    solid stamps, avoiding inverted, self-overlapping tiny loop sweeps. Inflate
+    uses a faceted bipyramid (or flat-backed version); Extrude uses a capped
+    four-sided prism. Footprint extents include the requested stroke width.
+    Marks retain their source positions; overlaps are separate solids.
+  - Adaptive RDP tolerance is used only when the complete curve allocation
+    exceeds the remaining budget, capped at one eighth of the physical stroke
+    width. Normal feasible curves retain the previous corner tolerance. Flat
+    sheets reserve their actual two-face segment cost. Every nondegenerate
+    curve/mark receives geometry; only already-zero-length Torn fragments are
+    ignored at intake. Minimum geometry must still fit the finite mesh cap.
+  - Overloaded Tubes uses the same fallback at its Diameter, preserving side
+    count, step and cap settings. Normal tube/region output baselines remain
+    unchanged. Ink height / Depth map are unchanged. Tiny stamps are deliberately
+    faceted, and Roundness primarily shapes the swept curves at this density.
+  - Reported A4/A2 Inflate now yields 100984 / 115528 triangles; Extrude yields
+    112612 / 115500. The A4 valid source allocates 5989 marks + 104 curves (two
+    zero-length Torn fragments); A2 allocates 8665 + 122 (one zero-length).
+    New Help graph: Surface study · Torn organic rings, at the reported settings.
+    Depth 42% is very tall for thin strokes; try 4–8% for a shallow line relief.
+  - `validate-dense-stroke-3d.mjs`: 28 cases, reported A4/A2 graphs in four modes,
+    complete allocation, physical approximation bound, outward closed isolated
+    stamps, flat backs/sheets and adaptive tube controls. Existing 83 Inflate,
+    220 multimode and 75 typography cases pass; all 95 Help graphs and lint pass.
+  - Actual development UI reproduces and inspects Depth 42% and 4%. Real A4
+    SVG/G-code exports at the original 42% contain 27455 paths; all 58513 SVG
+    points and 58573 G-code start/draw/closure coordinates match node output.
+    Route optimization off, profile A, origin 0/0, flipY off; no hardware.
+    Evidence: `dense-stroke-3d-fix/` in this task's visualization directory.
+    Captures were made on local v2.129 / base 7fc30e4. Daniel authorized
+    the joint v2.130 release with the Merge repair below; final ordered
+    catalog → production build → check:learn passes (23596 checks).
+
+- **2.130 — complete Merge outputs (same release)** 2026-10-16 Astra — Daniel's supplied
+  `debug nodes.muusia.json` reproduces missing Organic Rings halo dots and the
+  entire BG Fill → Negative Space branch after Merge. Both node computations
+  were correct. `evalLevel` silently replaced every >120k-point output with a
+  path-count-scaled prefix; this reduced the 9,473-path / 148,512-point Merge to
+  just 7,654 paths / 58,991 points, losing the later source details and branch.
+  Removed that global post-compute truncation. Nodes still bound generator work;
+  graph evaluation, grouping and export now preserve complete existing outputs
+  and payload fields. No source node, rendering approximation or export
+  coordinate semantics changed. The Node API documents this distinction.
+  Repro fixture `tools/fixtures/merge-complete.muusia.json` contains only the
+  supplied graph/canvas, with its output id repaired to the actual Merge (114);
+  no machine/profile data is committed. `tools/validate-merge-complete.mjs`
+  checks the real evaluator, both input orders, pen separation, every closed
+  dot loop, an individual >120k-point path, metadata and actual SVG/G-code
+  coordinates. Browser SVG exactly matches all 9,473 ordered paths; G-code
+  matches all 157,241 drawing/travel/closure points at 0.01 mm plus the saved
+  profile's pen-up return to origin. Route optimization off, Flip Y on,
+  zero origin, original saved Viivain Gentle profile; no hardware.
+  Actual UI artifacts and screenshot: local visualization `merge-complete/`.
+  Since evalLevel is tracked, both Learn reference exports were actually
+  recaptured (physical SVG and both Stack sheet bytes unchanged), along with
+  all six animation studies and the composite as 36-frame SVG ZIPs. All 252
+  frames match the current evaluator/exporter exactly. Capture records updated
+  only after this comparison; historical Learn screenshots/G-code remain
+  historical. Existing ready dense-stroke 3D work remains in the same tree.
+  Validation: reported-patch/export regression, 2,539 Frame/Bang engine cases,
+  BG Fill validator, 95 Help graphs and 28 dense 3D cases pass; ordered shared
+  release gate passes: catalog, build, 23,596 Learn checks. Existing lint
+  warnings in App are unchanged; new regression validator has none.
+  Daniel authorized publication of both repairs as v2.130. Claude project files
+  will be prepared as a clean committed local snapshot after integration;
+  preparing these files does not upload them to the Claude web project.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

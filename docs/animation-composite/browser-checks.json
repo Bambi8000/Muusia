@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "engineScopeSha256": "7af817955b8444534bda3aa7c1065924f19b61ffe3008ae286983845a7328b6b",
+  "engineScopeSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
   "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
   "patchSha256": "4531ef9ae5803b0ece8a5ea6464d2e707ef169f7db1d2512ae21958bdea112c7",
   "sourceHashes": {
@@ -16,7 +16,7 @@
     "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
   },
   "capturedAt": "2026-10-16",
-  "method": "Actual in-app Muusia Load of regenerated original composite, Merge selected, Frames 36, Optimize route off, actual SVG ×36 ZIP download. All 36 frame path strings match pure graph output; original comparison frames 0/7/18 signatures and counts unchanged. No hardware.",
+  "method": "Actual in-app Muusia Load, selected final node, Frames 36, Optimize route off, SVG ×36 ZIP downloads. Every ordered SVG path matches current graph evaluation at 0.01 mm; existing comparison signatures unchanged. No hardware.",
   "exports": [
     {
       "frames": 36,
@@ -52,13 +52,22 @@
       ]
     }
   ],
-  "appVersion": "2.128",
-  "sourceCommit": "7085586cd002c796124dce22d54d987bdd7c277c",
-  "sourceWorkingTree": "main, uncommitted Move / Scale opt-in motion; selected source hashes identify captured code",
+  "appVersion": "2.129",
+  "sourceCommit": "7fc30e45226ef55bd4194b0361d2596333f965c9",
+  "sourceWorkingTree": "main, uncommitted complete graph output fix and dense stroke 3D fix; source hashes identify captured code",
   "batchCapture": {
     "frames": 36,
     "totalPoints": 278381,
     "allFramesMatch": true,
-    "originalDownload": "Grid Hairs + rotating Solids-frames-svg.zip"
+    "originalDownload": "composite.zip"
+  },
+  "date": "2026-10-16",
+  "batchEvidence": {
+    "composite": {
+      "file": "composite.zip",
+      "sha256": "549bdeab869a15c9087c1a6c6a1796c10f7257a64fc0ed3d767088426009937a",
+      "frames": 36,
+      "totalPoints": 278381
+    }
   }
 }

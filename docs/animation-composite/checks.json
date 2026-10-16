@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "scope": "Actual App evaluator/exporter; stored frames use the built-in Frame node. Virtual phase 1 tests the loop endpoint. No hardware or batch-ZIP claim.",
-  "engineScopeSha256": "7af817955b8444534bda3aa7c1065924f19b61ffe3008ae286983845a7328b6b",
+  "engineScopeSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
   "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
   "patchSha256": "4531ef9ae5803b0ece8a5ea6464d2e707ef169f7db1d2512ae21958bdea112c7",
   "sourceHashes": {

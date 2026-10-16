@@ -79,8 +79,10 @@ Curves do not exist: everything is a polyline. Sample curves densely enough
 
 An empty result is the constant `EMPTY` (`{ paths: [] }`).
 
-**Point budget:** keep total output under ~120 000 points; the engine truncates beyond
-that. Prefer resolution parameters so the user can trade detail for speed.
+**Point budget:** bound generator work explicitly (roughly 120 000 points per
+heavy generator is a useful target). The evaluator preserves complete outputs;
+combining existing paths may exceed that target. Never truncate a path-set prefix:
+that silently loses later details, pen layers and Merge inputs.
 
 ## 3. Definition fields
 

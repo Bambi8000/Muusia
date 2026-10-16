@@ -2301,7 +2301,7 @@ precision these two modes give an open flat sheet. Mode *Tubes* wraps open or
 closed strokes in round tubes: *Diameter mm* and *Tube step mm* refer to the
 source drawing before normalization, *Tube sides* controls the cross-section,
 and *Cap open ends* closes open strokes. Closed paths loop without caps.
-The original letter corners are retained even when Tube step is larger than a
+Normal letter corners are retained even when Tube step is larger than a
 small character. For dense text, try 0.5–1 mm Diameter; 6 mm can cover the gaps.
 Intersecting tubes remain separate surfaces; there is no Boolean union, and
 tight bends/crossings may self-intersect. Diameters below mesh precision are
@@ -2321,7 +2321,13 @@ curve* (tonal exponent), and *Smooth passes*; at depth zero only the base remain
 relevant to the selected mode are shown; unused saved values survive switching.
 Sources accept up to 120000 points / 30000 paths. Tube and strip
 tessellation reserves corner rings and caps for the complete source, then adapts
-extra samples to the 120000-triangle limit. Minimum required geometry must fit;
+extra samples to the 120000-triangle limit. Small closed marks narrower than
+Stroke width become compact solid stamps, avoiding inverted thick loops. Under
+heavy load, stroke curves adapt their approximation with maximum deviation of
+one eighth of the physical stroke width. Overloaded Tubes uses this fallback
+with its Diameter, sides and cap setting; normal tube geometry is unchanged.
+Every mark and curve receives its own allocation. Tiny stamps are faceted;
+there is no Boolean union. Minimum required complete geometry must fit;
 widths below mesh precision are refused. Closed outlines can reduce effective
 detail on complex regions, and ink integration also has a fixed work budget. *Drawing* Surface grid joins lattice lines (tube rings/rails in Tubes);
 *Grid every Nth* thins them. Mesh edges includes triangles; Silhouette draws

@@ -1,6 +1,6 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.128",
+  "appVersion": "2.129",
   "date": "2026-10-16",
   "patch": "examples/tutorial-physical-plot.muusia.json",
   "patchSha256": "40ad012f7f4a25944b6f1f497df0bef9d8ee9a9546c752b85fa6b9dabade8613",
@@ -17,10 +17,10 @@
     "megaCanvas": false,
     "pen": 0,
     "workflow": "gcode",
-    "profileName": "A — Servo Z (multi-tip brush)",
+    "profileName": "Viivain - Gentle (technical pen)",
     "workArea": {
-      "W": 330,
-      "H": 240,
+      "W": 793,
+      "H": 813,
       "manufacturerVerified": false
     }
   },
@@ -38,7 +38,7 @@
     {
       "path": "src/App.jsx",
       "selector": "app-export-core",
-      "sha256": "9eec79acb0cf54cb6003bb432af90011f4e64aa4381c16bd7462d603342d8785"
+      "sha256": "fe54a4b4613fba444f707f1ffcdbafb16398ee517504bc708f623684ddc4a5d2"
     },
     {
       "path": "src/App.jsx",
@@ -88,9 +88,9 @@
     "status": "Historical software check; not rerun during this SVG recapture. Does not verify the later first-lift settle dwell."
   },
   "physicalPlotVerified": false,
-  "sourceCommit": "7085586cd002c796124dce22d54d987bdd7c277c",
+  "sourceCommit": "7fc30e45226ef55bd4194b0361d2596333f965c9",
   "sourceProvenanceVersion": 2,
   "originalDownload": "Prepare your first physical plot (6).svg",
-  "captureMethod": "Actual in-app browser SVG download after Move / Scale opt-in motion changes. Original five-path A4 fixture, Merge selected, Optimize route off, Preserve direction on, Mega Canvas off, machine A unchanged. Byte-for-byte equality against the existing reference verified. No hardware; historical G-code check and screenshots unchanged. Recaptured once more after regenerating the fixture with explicit Motion Off defaults; exact updated patch checksum recorded.",
-  "sourceWorkingTree": "main, uncommitted Move / Scale motion; sourceFiles identify captured code"
+  "captureMethod": "Actual in-app Muusia Load/select Merge and download. SVG byte geometry unchanged after removing destructive engine truncation; Optimize route off, Preserve direction on, Mega Canvas off. Stack Pens: margin 0, mirror/numbers/drill off, Red hidden while both sheets exported. Existing PNGs and historical G-code check unchanged. No hardware.",
+  "sourceWorkingTree": "main, uncommitted complete graph output and dense stroke 3D fixes; sourceFiles identify captured code"
 }

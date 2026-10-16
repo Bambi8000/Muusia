@@ -383,14 +383,8 @@ function evalLevel(level, ctx, boundIns) {
     } catch (err) {
       outs = outSpec.map((o) => defaultFor(o.type));
     }
-    outs = outs.map((o) => {
-      if (o && o.paths) {
-        let total = 0;
-        for (const p of o.paths) total += p.pts.length;
-        if (total > 120000) return { paths: o.paths.slice(0, Math.floor((o.paths.length * 120000) / total)) };
-      }
-      return o;
-    });
+    // Generators bound their own work. Combining existing path sets must retain
+    // every input: a prefix point cap here erased later pens and Merge branches.
     cache[id] = outs;
     return outs;
   }
@@ -898,7 +892,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.129"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.130"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;

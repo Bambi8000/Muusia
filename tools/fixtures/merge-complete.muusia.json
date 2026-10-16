@@ -1,0 +1,193 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "debug nodes",
+  "canvas": {
+    "W": 420,
+    "H": 297
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "organicrings",
+        "x": 60,
+        "y": 60,
+        "params": {
+          "size": 180,
+          "hole": 0.03,
+          "rings": 26,
+          "wav": 0.11,
+          "bundling": 0.45,
+          "dotshare": 0.44,
+          "dotsize": 0.2,
+          "merges": 4,
+          "bulges": 8,
+          "bulgesize": 0.4,
+          "halo": 1,
+          "pens": 1,
+          "seed": 8,
+          "layer": 0
+        }
+      },
+      {
+        "id": 102,
+        "type": "torn",
+        "x": 388,
+        "y": 60,
+        "params": {
+          "seed": 7,
+          "detail": 0,
+          "angle": -21,
+          "offset": -3,
+          "width": 12,
+          "ragged": 0.6,
+          "gape": 4,
+          "fling": 60,
+          "chaos": 39,
+          "flingPct": 22,
+          "snapPct": 25
+        }
+      },
+      {
+        "id": 108,
+        "type": "bg_fill",
+        "x": 60,
+        "y": 920,
+        "params": {
+          "mode": "Grain",
+          "seed": 7,
+          "pitch": 1.2,
+          "folds": 5,
+          "foldDepth": 18,
+          "bandW": 14,
+          "bandGap": 0.22,
+          "strokeLen": 8,
+          "fuzz": 0.5,
+          "poles": "Attract",
+          "poleDist": 130,
+          "dashLen": 3.5,
+          "density": 1,
+          "falloff": 0.55,
+          "gDir": "Vertical",
+          "wobble": 0.35,
+          "wscale": 90,
+          "voids": 2,
+          "voidSize": 22,
+          "push": 0.7,
+          "crack": false,
+          "scaleW": 16,
+          "rowOver": 0.55,
+          "lenVary": 0.5,
+          "rayMode": "From center",
+          "spineAng": 45,
+          "voidLen": 55,
+          "voidW": 32,
+          "vWobble": 0.5,
+          "fan": 0.5,
+          "cMin": 2,
+          "cMax": 55,
+          "cGap": 0,
+          "cStyle": "Outline",
+          "cellW": 38,
+          "cellH": 30,
+          "foldP": 0.6,
+          "stagger": true,
+          "vClear": 2,
+          "margin": 10,
+          "layer": 0
+        }
+      },
+      {
+        "id": 109,
+        "type": "move_scale",
+        "x": 716,
+        "y": 60,
+        "params": {
+          "dx": 0,
+          "dy": 0,
+          "scale": 100,
+          "scaleY": 0,
+          "origin": "Content center",
+          "ox": 150,
+          "oy": 100,
+          "motion": "Off",
+          "clock": "Timeline",
+          "travelX": 2,
+          "travelY": 1,
+          "scaleSwing": 1,
+          "cycles": 1,
+          "phase": 0
+        }
+      },
+      {
+        "id": 111,
+        "type": "negspace",
+        "x": 1077,
+        "y": 355,
+        "params": {
+          "mode": "Background (outside)",
+          "clearance": 2.5,
+          "interior": true,
+          "res": 0.8,
+          "minlen": 2
+        }
+      },
+      {
+        "id": 114,
+        "type": "merge",
+        "x": 1372,
+        "y": 60,
+        "params": {
+          "count": 2,
+          "penPer": false
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e103",
+        "from": 101,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 0
+      },
+      {
+        "id": "e110",
+        "from": 102,
+        "fromPort": 0,
+        "to": 109,
+        "toPort": 0
+      },
+      {
+        "id": "e112",
+        "from": 109,
+        "fromPort": 0,
+        "to": 111,
+        "toPort": 0
+      },
+      {
+        "id": "e113",
+        "from": 108,
+        "fromPort": 0,
+        "to": 111,
+        "toPort": 1
+      },
+      {
+        "id": "e115",
+        "from": 109,
+        "fromPort": 0,
+        "to": 114,
+        "toPort": 0
+      },
+      {
+        "id": "e116",
+        "from": 111,
+        "fromPort": 0,
+        "to": 114,
+        "toPort": 1
+      }
+    ],
+    "outputId": 114
+  }
+}

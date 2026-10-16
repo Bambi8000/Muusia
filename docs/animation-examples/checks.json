@@ -7,7 +7,7 @@
     48
   ],
   "scope": "Real App graph evaluator with current nodes; geometry and virtual endpoint checks. No physical plot or printer timing validation.",
-  "engineScopeSha256": "7af817955b8444534bda3aa7c1065924f19b61ffe3008ae286983845a7328b6b",
+  "engineScopeSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
   "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
   "sourceHashes": {
     "src/defs/nodes/frame.js": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204",

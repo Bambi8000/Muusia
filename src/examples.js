@@ -17,6 +17,19 @@ import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
   {
+    name: "Surface study · Torn organic rings",
+    desc: "Organic Rings with small dotted rings and a full halo feeds Torn, then 2D to 3D Inflate / Auto. Select 2D to 3D. Tiny closed marks narrower than Stroke width become compact solids; dense curves adapt their approximation within one eighth of the width. Every mark/curve stays in the source allocation, while the complete mesh stays under its triangle cap. Try Extrude or Tubes, then lower Depth % for a shallower relief. This reproduces the formerly blank dense-input case; very small stamps are intentionally faceted rather than overlapping thick loops.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "organicrings", x: 20, y: 20, params: { ...defaults("organicrings"), hole: .03, wav: .11, bundling: .45, dotshare: .44, dotsize: .2, bulges: 8, bulgesize: .4, halo: 1, pens: 1 } },
+      { id: 9002, type: "torn", x: 370, y: 20, params: { ...defaults("torn"), angle: -21, offset: -3, width: 12, gape: 4, chaos: 39, flingPct: 22 } },
+      { id: 9003, type: "inflate3d", x: 720, y: 20, params: { ...defaults("inflate3d") } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 },
+      { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: 0 },
+    ] }),
+  },
+  {
     name: "Moving Lines · Passing streaks",
     desc: "Select Moving Lines, set ANIMATE Frames to 48 and press Play. Only straight open line segments move across the sheet; there are no eyes or circles. Line length and Gap set the streak rhythm, Length variation and Stagger give each track a stable seeded offset. Direction Reverse changes travel direction; Alternating sends neighbouring tracks opposite ways. Wave amplitude 0 keeps the lines straight. Timeline needs no Frame wire. Cycles 1 travels one pattern period per loop; Phase offsets it. SVG/G-code ×48 exports exactly the same motion, clipped to Margin on every frame.",
     canvas: { W: 297, H: 210 },

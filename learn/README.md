@@ -73,6 +73,20 @@ Use actual PNG encoding for `.png` files: some browser tools return JPEG bytes r
 
 ## Export provenance maintenance
 
+2026-10-16 complete-output maintenance (local v2.129 development tree): removed
+engine-wide 120,000-point prefix truncation. The supplied Organic Rings / Torn +
+BG Fill / Negative Space composition now retains all 9,473 paths and 148,512
+points, including later halo loops and the background branch. Generators retain
+their own work limits; combining existing geometry preserves it completely.
+The physical SVG and both Stack Pens SVG sheets were downloaded again through
+the real app and match the existing reference bytes. The selected saved profile
+was Viivain - Gentle (technical pen), with its illustrative/unverified 793 × 813 mm
+area; no hardware was run. All six animation studies and the composite were
+recaptured as 36-frame SVG ZIPs: all 252 frames match actual graph output, and
+historical comparison signatures are unchanged. Provenance records identify this
+working tree. Existing Learn PNGs and the historical G-code check were not refreshed.
+
+
 2026-10-16 Move / Scale motion maintenance: the physical-plot reference SVG was
 downloaded again through the actual development UI (header v2.128). Its original
 five-path A4 fixture, Merge selection, route optimization off, direction preserved

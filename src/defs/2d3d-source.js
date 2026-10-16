@@ -26,13 +26,14 @@ export function surfaceSource(input) {
   return {paths,span,width:(x1-x0)/span,height:(y1-y0)/span};
 }
 
-export function surfaceTrack(q) {
+export function surfaceTrack(q, tolerance=0.00002) {
   // Sub-quantization curve samples need not consume whole tube rings. Keep
-  // actual letter corners, and remove only deviations below 0.00002 of span.
+  // actual letter corners at the default 0.00002-of-span tolerance. Overloaded
+  // stroke surfaces may explicitly request a bounded physical tolerance.
   const raw=q.closed?[...q.pts,q.pts[0]]:q.pts,keep=new Set([0,raw.length-1]),stack=[[0,raw.length-1]];
   while(stack.length){
     const [a,b]=stack.pop(),A=raw[a],B=raw[b],dx=B[0]-A[0],dy=B[1]-A[1],len=dx*dx+dy*dy;
-    let best=4e-10,index=-1;
+    let best=tolerance*tolerance,index=-1;
     for(let i=a+1;i<b;i++){
       const v=raw[i],f=len?Math.max(0,Math.min(1,((v[0]-A[0])*dx+(v[1]-A[1])*dy)/len)):0,d=(v[0]-A[0]-dx*f)**2+(v[1]-A[1]-dy*f)**2;
       if(d>best){best=d;index=i;}
@@ -47,10 +48,10 @@ export function surfaceTrack(q) {
 
 // Allocate tessellation to the complete source. Minimum rings and caps must
 // be reserved before distributing extra samples to long strokes.
-export function surfaceSamples(tracks, step, sides, caps) {
+export function surfaceSamples(tracks, step, sides, caps, faceBudget=118000) {
   const minima=tracks.map(t=>Math.max(t.closed?3:1,t.knots?t.knots.length-1:1)),wanted=tracks.map((t,i)=>Math.max(minima[i],Math.ceil(t.length/step)));
   const capCount=caps?tracks.filter(t=>!t.closed).length:0;
-  const budget=Math.floor(118000/(2*sides))-capCount;
+  const budget=Math.floor(faceBudget/(2*sides))-capCount;
   const minimum=minima.reduce((a,b)=>a+b,0);
   if(minimum>budget)return null;
   const total=wanted.reduce((a,b)=>a+b,0);
@@ -73,12 +74,35 @@ export function surfaceCenters(t, segments) {
 // A stroked font is not a filled polygon. Sweep its actual pen trajectories
 // into independent rounded/rectangular strips, keeping closed loops hollow.
 // Overlapping strips remain separate solids, just like intersecting Tubes.
-export function strokeSurface(src, mode, width, depth, back, roundness=1, detail=44) {
-  const radius=width/src.span/2,round=mode==='Inflate',sides=round?8:4;
+export function strokeSurface(src, mode, width, depth, back, roundness=1, detail=44, config={}) {
+  const radius=width/src.span/2,round=mode==='Inflate',sides=round?(config.sides||8):4,caps=config.caps!==false;
   if(radius<.0003)return null;
-  const tracks=src.paths.map(surfaceTrack);
+  // A closed mark narrower than its stroke has no remaining centre hole.
+  // Sweeping a thick ring around it creates an inverted, self-overlapping
+  // torus and wastes dozens of faces on each dot. Use a compact solid stamp.
+  const marks=[],curves=[];
+  for(const q of src.paths){
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    for(const [x,y] of q.pts){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+    if(q.closed&&Math.max(x1-x0,y1-y0)<=radius*2)marks.push({x:(x0+x1)/2,y:(y0+y1)/2,rx:(x1-x0)/2+radius,ry:(y1-y0)/2+radius});
+    else curves.push(q);
+  }
+  const markFaces=marks.length*(depth===0?(round?4:2):round?8:12),faceBudget=118000-markFaces;
+  if(faceBudget<0)return null;
+  let tracks=curves.map(q=>surfaceTrack(q));
   // Preserve existing curve vertices and add samples along long straight runs.
-  const step=Math.max(radius*.8*44/detail,.0004),counts=surfaceSamples(tracks,step,sides,true);
+  const step=config.step||Math.max(radius*.8*44/detail,.0004);
+  const allocationSides=depth===0?1:sides,allocationCaps=depth>0&&caps;
+  let counts=surfaceSamples(tracks,step,allocationSides,allocationCaps,faceBudget);
+  // Only overloads relax curve approximation. The maximum deviation is
+  // bounded to one eighth of the requested physical stroke width, and every
+  // curve/mark keeps its own allocation; never discard a prefix or a last dot.
+  for(const factor of [.04,.1,.2,.25]){
+    if(counts)break;
+    const tolerance=Math.max(.00002,radius*factor);
+    tracks=curves.map(q=>surfaceTrack(q,tolerance));
+    counts=surfaceSamples(tracks,step,allocationSides,allocationCaps,faceBudget);
+  }
   if(!counts)return null;
   const vertices=[],faces=[],gridEdges=[];
   tracks.forEach((t,ti)=>{
@@ -105,9 +129,34 @@ export function strokeSurface(src, mode, width, depth, back, roundness=1, detail
       const a=id(j,k),b=id(j+1,k),c=id(j+1,k+1),d=id(j,k+1);faces.push([a,c,b],[a,d,c]);gridEdges.push([a,b,'stroke:'+ti+':rail:'+k,k]);
     }
     for(let j=0;j<count;j++)for(let k=0;k<sides;k++)gridEdges.push([id(j,k),id(j,k+1),'stroke:'+ti+':ring:'+j,j]);
-    if(!t.closed){
+    if(!t.closed&&caps){
       const a=vertices.length,b=a+1;vertices.push([...centers[0],round&&back==='Flat'?depth/3:0],[...centers.at(-1),round&&back==='Flat'?depth/3:0]);
       for(let k=0;k<sides;k++)faces.push([a,id(0,k+1),id(0,k)],[b,id(count-1,k),id(count-1,k+1)]);
+    }
+  });
+  marks.forEach((q,mi)=>{
+    const ring=Array.from({length:4},(_,k)=>[q.x+Math.cos(k*Math.PI/2)*q.rx,q.y+Math.sin(k*Math.PI/2)*q.ry]);
+    const start=vertices.length;
+    if(round){
+      vertices.push(...ring.map(([x,y])=>[x,y,0]),[q.x,q.y,back==='Flat'?depth:depth/2]);
+      if(depth>0)vertices.push([q.x,q.y,back==='Flat'?0:-depth/2]);
+      for(let k=0;k<4;k++){
+        const a=start+k,b=start+(k+1)%4;
+        faces.push([start+4,a,b]);if(depth>0)faces.push([start+5,b,a]);
+        gridEdges.push([a,b,'mark:'+mi+':rim',0],[start+4,a,'mark:'+mi+':front:'+k,k]);
+        if(depth>0)gridEdges.push([start+5,a,'mark:'+mi+':back:'+k,k]);
+      }
+    }else{
+      vertices.push(...ring.map(([x,y])=>[x,y,depth/2]));
+      faces.push([start,start+1,start+2],[start,start+2,start+3]);
+      if(depth>0){
+        vertices.push(...ring.map(([x,y])=>[x,y,-depth/2]));
+        faces.push([start+4,start+6,start+5],[start+4,start+7,start+6]);
+      }
+      for(let k=0;k<4;k++){
+        const a=start+k,b=start+(k+1)%4;gridEdges.push([a,b,'mark:'+mi+':front',0]);
+        if(depth>0){faces.push([a,a+4,b+4],[a,b+4,b]);gridEdges.push([a+4,b+4,'mark:'+mi+':back',0],[a,a+4,'mark:'+mi+':wall:'+k,k]);}
+      }
     }
   });
   return {vertices,faces,gridEdges};
