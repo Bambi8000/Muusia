@@ -616,9 +616,9 @@ export const NODE_RECENCY = {
     "sha256": "28ff4e97fd32e203a202d2f9015af4be3d733e8395451e96d6c81e2d03b032dc"
   },
   "inflate3d": {
-    "date": "2026-10-15",
-    "order": 81,
-    "sha256": "7587424b1ddfd9d975fd6c2ee308ef2c3469b8b238fa1e5ad8c3037781202723"
+    "date": "2026-10-16",
+    "order": 84,
+    "sha256": "811b503c8cbe631e124a0a143c6d55f96f8cf863927c39ed3fa8265c87b9dfe1"
   },
   "ink_burst": {
     "date": "2026-08-13",

@@ -72,7 +72,7 @@ const inv=run('Depth map',undefined,{smooth:0,darkHigh:true,depth:50,base:5},ima
 for(const g of [[0],[1],[.5]]){const m=run('Depth map',undefined,{smooth:0},{data:{img:{w:1,h:1,g}}})[2];topology(m,true,'Uniform image');}
 topology(run('Depth map',undefined,{mapSource:'Wave study'})[2]);
 for(const mode of ['Ink height','Depth map']){const node=mode==='Depth map'?image:{},m=run(mode,line,{depth:0},node)[2];topology(m);assert.equal(new Set(m.v.filter((_,i)=>i%3===2)).size,2,'Depth zero relief keeps flat base');assert.equal(hash(m),hash(run(mode,line,{depth:0,curve:4,smooth:12,inkGain:4,darkHigh:true},node)[2]));}
-for(const mode of ['Extrude','Tubes','Ink height'])for(const input of [ps(),ps(path([[0,0],[NaN,2]])),ps(path([[0,0],[0,0]])),ps(...Array.from({length:257},()=>circle())),ps(circle(50,6001))]){assert.equal(N.compute([input],{...base,mode},ctx)[2],null,'Invalid/excess source '+mode);checks++;}
+for(const mode of ['Extrude','Tubes','Ink height'])for(const input of [ps(),ps(path([[0,0],[NaN,2]])),ps(path([[0,0],[0,0]])),ps(...Array.from({length:30001},()=>path([[0,0],[1,0],[0,1]],true))),ps(circle(50,120001))]){assert.equal(N.compute([input],{...base,mode},ctx)[2],null,'Invalid/excess source '+mode);checks++;}
 for(const img of [undefined,{}, {w:2,h:2,g:[0]}, {w:0,h:2,g:[]}, {w:2.5,h:2,g:[]},{w:2,h:1,g:[NaN,0]},{w:2,h:1,g:['0',0]}]){assert.equal(N.compute([],{...base,mode:'Depth map'},ctx,{data:{img}})[2],null);checks++;}
 // Actual evaluator and built-in Help examples, including the unchanged saved key.
 const defs=Object.fromEntries([N,Spikes,Slice,Container,Superformula,Merge,Zigzag].map(d=>[d.key,d]));

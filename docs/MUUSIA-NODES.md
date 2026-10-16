@@ -2270,20 +2270,29 @@ different modes make an instant layered backdrop.
 Connect vector geometry to *2D paths*. Mode *Inflate* swells closed outlines
 using a relaxed interior field; *Roundness* controls the profile and *Back
 surface* selects Inflated or Flat. Mode *Extrude* makes flat caps connected by
-vertical walls. Both ignore open strokes, use even-odd fill (nested contours
-make holes, overlaps alternate) and sample boundaries at *Surface detail*;
+vertical walls. *Path interpretation* Auto selects Stroked paths for open or dense linework,
+including Type Studio. Stroked paths gives every trajectory a *Stroke width mm*
+and sweeps rounded (Inflate) or rectangular (Extrude) strips. Closed glyph loops
+stay hollow; overlapping strips remain separate solids. Surface detail refines
+extra strip samples, while letter corners remain fixed. Choose Stroked paths
+explicitly to keep that interpretation while changing the upstream drawing.
+Closed outlines keeps the original filled-region approach: ignore open strokes,
+use even-odd fill (nested contours make holes, overlaps alternate) and sample
+boundaries at Surface detail;
 gaps narrower than a few cells may disappear. At zero depth or below mesh
 precision these two modes give an open flat sheet. Mode *Tubes* wraps open or
 closed strokes in round tubes: *Diameter mm* and *Tube step mm* refer to the
 source drawing before normalization, *Tube sides* controls the cross-section,
 and *Cap open ends* closes open strokes. Closed paths loop without caps.
+The original letter corners are retained even when Tube step is larger than a
+small character. For dense text, try 0.5–1 mm Diameter; 6 mm can cover the gaps.
 Intersecting tubes remain separate surfaces; there is no Boolean union, and
 tight bends/crossings may self-intersect. Diameters below mesh precision are
 refused. Mode *Ink height* deposits a Gaussian footprint along vector strokes:
 *Ink width mm* sets its source-space width, *Ink buildup* increases accumulation
 at dense overlaps. Density is integrated along arc length, independent of
-source point spacing; it is not pen pressure. Sub-cell footprints broaden for
-stable sampling. Mode *Depth map* needs no paths: choose *Depth source* Image
+source point spacing; it is not pen pressure. The ink grid refines automatically for thin footprints within a fixed
+cell budget; sub-cell footprints still broaden for stable sampling. Mode *Depth map* needs no paths: choose *Depth source* Image
 file, then *Choose image…* to load grayscale or color pixels. Light is high by
 default; *Dark is high* reverses it. Alpha becomes white. The image retains its
 aspect ratio, is sampled at up to 160 pixels on the long side, and its pixels
@@ -2293,9 +2302,11 @@ Ink height and Depth map share a closed flat underside with *Base %*, *Height
 curve* (tonal exponent), and *Smooth passes*; at depth zero only the base remains.
 *Depth %* and Base % refer to the source's longest XY dimension. Only controls
 relevant to the selected mode are shown; unused saved values survive switching.
-Inputs over 6000 points or 256 paths are refused. Complex outlines reduce
-effective detail; tube resampling and ink integration also have fixed work
-budgets. *Drawing* Surface grid joins lattice lines (tube rings/rails in Tubes);
+Sources accept up to 120000 points / 30000 paths. Tube and strip
+tessellation reserves corner rings and caps for the complete source, then adapts
+extra samples to the 120000-triangle limit. Minimum required geometry must fit;
+widths below mesh precision are refused. Closed outlines can reduce effective
+detail on complex regions, and ink integration also has a fixed work budget. *Drawing* Surface grid joins lattice lines (tube rings/rails in Tubes);
 *Grid every Nth* thins them. Mesh edges includes triangles; Silhouette draws
 the visible contour. *Hidden-line removal* uses face culling and a conservative
 raster depth buffer; dense previews are thinned with a fixed pattern. *View

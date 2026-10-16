@@ -1,12 +1,15 @@
 import { Pin, pathLength, applyStyle, isStyle } from "../helpers.js";
+import { surfaceSource, surfaceTrack, surfaceSamples, surfaceCenters, strokeSurface } from "../2d3d-source.js";
 
 export default {
   key: "inflate3d", name: "2D to 3D", cat: "mod", group: "deform", fileImage: true,
-  desc: "Turn paths or an image into a real 3D surface. Inflate swells closed outlines; Extrude makes flat caps and vertical walls. Both use even-odd fill (nested paths cut holes, overlaps alternate), ignore open strokes and sample the boundary at Surface detail. Tubes wraps open/closed strokes in round tubes; Diameter and Tube step are in source millimetres before normalization. Cap open ends closes each tube; intersecting tubes remain separate surfaces, without a Boolean union; tight bends and crossings may self-intersect. Ink height deposits a soft ink footprint along strokes: overlapping/dense strokes build a higher relief; Ink width is in source millimetres. Depth map loads an image (no path input needed): light is high by default, Dark is high reverses it; Wave study is a built-in test surface. Image pixels are frozen into saved patches; no external service. Ink height and Depth map have a flat base, Height curve and smoothing. Depth % and Base % are relative to source XY size. Drawing and Silhouette are projected pen paths; orange Mesh output 3 feeds 3D Spikes (Body: Wired mesh) or Mesh Slice. Camera, size, margin and Style never change the Mesh. Inflate/Extrude at depth 0 produce an open flat sheet; reliefs keep their base. All geometry is deterministic. Limits: 256 paths / 6000 source points, 120000 triangles. Complex paths lower effective detail; narrow features and very thin ink need more detail. Tube sampling and ink footprints adapt to a fixed work budget. Old Inflate patches keep their original behavior.",
+  desc: "Turn vector paths or an image into a real 3D surface. Text is supported, including dense Type Studio linework. Inflate/Extrude Path interpretation Auto uses Stroked paths for open strokes or dense drawings; otherwise it uses Closed outlines. Stroked paths gives every pen trajectory a Stroke width, keeps closed glyph loops hollow and sweeps rounded (Inflate) or rectangular (Extrude) cross-sections; overlapping strips remain separate solids. Closed outlines keeps even-odd filled regions, ignores open strokes and samples boundaries at Surface detail; narrow gaps may disappear. Inflate Roundness shapes the profile and Back surface can be Flat. Tubes wraps all open/closed strokes in round tubes; Diameter and Tube step use original source millimetres. Letter corners are retained even with a large Tube step; the step controls added samples between corners. Tiny lettering needs a small Diameter (try 0.5–1 mm). Cap open ends closes each tube. Intersections are not Boolean-unioned; thick tubes/strips may self-intersect at tight bends. Ink height deposits a Gaussian footprint, with Ink width and Ink buildup; sampling refines thin ink within a fixed budget. Depth map uses frozen image pixels or a built-in Wave study. Light is high unless Dark is high. Reliefs have Base, Height curve and smoothing. Depth % and Base % refer to the source XY span. Drawing/Silhouette export projected 2D pen paths; orange Mesh feeds 3D Spikes or Mesh Slice. Camera, size, margin and Style never deform the Mesh. Source budget: 120000 points / 30000 paths, with at most 120000 triangles. Extra tube/strip samples adapt to the budget; minimum corner rings and caps must still fit. Use Closed outlines for the original filled-region interpretation.",
   ins: [Pin("paths", "2D paths"), Pin("style", "Style")],
   outs: [Pin("paths", "Drawing"), Pin("paths", "Silhouette"), Pin("mesh", "Mesh")],
   params: [
     { key: "mode", label: "Mode", type: "select", options: ["Inflate", "Extrude", "Tubes", "Ink height", "Depth map"], def: "Inflate" },
+    { key: "inputShape", label: "Path interpretation", type: "select", options: ["Auto", "Closed outlines", "Stroked paths"], def: "Auto", showIf: p => !p.mode || ["Inflate", "Extrude"].includes(p.mode) },
+    { key: "strokeWidth", label: "Stroke width mm", type: "slider", min: .1, max: 20, step: .1, def: 1, showIf: p => (!p.mode || ["Inflate", "Extrude"].includes(p.mode)) && (p.inputShape === "Auto" || p.inputShape === "Stroked paths") },
     { key: "depth", label: "Depth %", type: "slider", min: 0, max: 150, step: 1, def: 42, showIf: p => p.mode !== "Tubes" },
     { key: "roundness", label: "Roundness", type: "slider", min: .2, max: 2, step: .05, def: 1, showIf: p => (!p.mode || p.mode === "Inflate") && p.depth > 0 },
     { key: "back", label: "Back surface", type: "select", options: ["Inflated", "Flat"], def: "Inflated", showIf: p => (!p.mode || p.mode === "Inflate") && p.depth > 0 },
@@ -49,12 +52,12 @@ export default {
       const polys=[];let points=0,x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
       for (const path of ins?.[0]?.paths||[]) {
         if (!path.closed||!Array.isArray(path.pts)||path.pts.length<3) continue;
-        if (polys.length>=256) return null;
+        if (polys.length>=30000) return null;
         const poly=[];
         for (const pt of path.pts) {
           if (!Array.isArray(pt)||pt.length<2||!pt.slice(0,2).every(v=>typeof v==="number"&&Number.isFinite(v)&&Math.abs(v)<=1e9)) return null;
           if (poly.length&&pt[0]===poly[poly.length-1][0]&&pt[1]===poly[poly.length-1][1]) continue;
-          poly.push([pt[0],pt[1]]);if (++points>6000) return null;
+          poly.push([pt[0],pt[1]]);if (++points>120000) return null;
         }
         if (poly.length>2&&poly[0][0]===poly[poly.length-1][0]&&poly[0][1]===poly[poly.length-1][1]) poly.pop();
         if (poly.length<3) continue;
@@ -146,27 +149,7 @@ export default {
     };
     // Sanitized source in original millimetres. Open strokes are meaningful
     // for tubes and ink; never mutate the caller's points or frozen image.
-    const strokes=()=>{
-      const paths=[];let count=0,x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
-      for(const q of ins?.[0]?.paths||[]) {
-        if(!Array.isArray(q.pts)||q.pts.length<2)continue;
-        if(paths.length>=256)return null;
-        const pts=[];
-        for(const pt of q.pts){
-          if(!Array.isArray(pt)||pt.length<2||!pt.slice(0,2).every(v=>typeof v==="number"&&Number.isFinite(v)&&Math.abs(v)<=1e9))return null;
-          if(++count>6000)return null;
-          if(!pts.length||pt[0]!==pts.at(-1)[0]||pt[1]!==pts.at(-1)[1])pts.push(pt.slice(0,2));
-        }
-        if(q.closed&&pts.length>2&&pts[0][0]===pts.at(-1)[0]&&pts[0][1]===pts.at(-1)[1])pts.pop();
-        if(pts.length<2)continue;
-        paths.push({pts,closed:!!q.closed&&pts.length>2});
-        for(const [x,y] of pts){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
-      }
-      const span=Math.max(x1-x0,y1-y0);if(!paths.length||!(span>1e-8))return null;
-      const cx=(x0+x1)/2,cy=(y0+y1)/2;
-      for(const q of paths)q.pts=q.pts.map(([x,y])=>[(x-cx)/span,(y-cy)/span]);
-      return {paths,span,width:(x1-x0)/span,height:(y1-y0)/span};
-    };
+    const strokes=()=>surfaceSource(ins?.[0]);
     // Arc-length lookup makes both tube and ink density independent of the
     // source's point spacing. Include the closing segment exactly once.
     const track=q=>{
@@ -181,13 +164,12 @@ export default {
       // A tiny tube cannot survive 1e-4 mesh quantization; refuse it instead
       // of silently making a different diameter or returning broken caps.
       if(radius<.0003)return null;
-      const tracks=src.paths.map(q=>({...track(q),closed:q.closed})),total=tracks.reduce((n,t)=>n+t.length,0);
-      const budget=Math.floor(95000/(2*sides))-src.paths.length*4;
-      const step=Math.max(num("tubeStep",.1,100,3)/src.span,total/Math.max(1,budget));
+      const tracks=src.paths.map(surfaceTrack);
+      const counts=surfaceSamples(tracks,num("tubeStep",.1,100,3)/src.span,sides,p.caps!==false);
+      if(!counts)return null;
       const vertices=[],faces=[],gridEdges=[];
       tracks.forEach((t,ti)=>{
-        const segments=Math.max(t.closed?3:1,Math.ceil(t.length/step)),count=segments+(t.closed?0:1);
-        const centers=Array.from({length:count},(_,j)=>t.at(t.length*j/segments)),start=vertices.length;
+        const centers=surfaceCenters(t,counts[ti]),count=centers.length,segments=count-(t.closed?0:1),start=vertices.length;
         for(let j=0;j<count;j++){
           const before=centers[j===0?(t.closed?count-1:0):j-1],after=centers[j===count-1?(t.closed?0:count-1):j+1];
           let dx=after[0]-before[0],dy=after[1]-before[1],len=Math.hypot(dx,dy);
@@ -208,10 +190,11 @@ export default {
       return {vertices,faces,gridEdges};
     };
     const buildRelief=()=>{
-      let width,height,source,sigma,tracks;
+      let width,height,source,sigma,tracks,inkDetail=0;
       if(mode==="Ink height"){
         const src=strokes();if(!src)return null;
         sigma=num("inkWidth",.5,100,4)/src.span/2;
+        inkDetail=Math.min(512,Math.ceil(1/sigma));
         width=src.width+6*sigma;height=src.height+6*sigma;
         tracks=src.paths.map(track);
       }else{
@@ -229,7 +212,9 @@ export default {
           };
         }
       }
-      const n=Math.round(num("detail",12,72,44)),span=Math.max(width,height),nx=Math.max(2,Math.ceil(n*width/span)),ny=Math.max(2,Math.ceil(n*height/span));
+      const requested=Math.round(num("detail",12,72,44)),span=Math.max(width,height);
+      const n=mode==="Ink height"?Math.min(Math.max(requested,inkDetail),Math.sqrt(22000*span*span/(width*height))):requested;
+      const nx=Math.max(2,Math.ceil(n*width/span)),ny=Math.max(2,Math.ceil(n*height/span));
       const sx=width/nx,sy=height/ny,ox=-width/2,oy=-height/2;
       let values=new Float64Array((nx+1)*(ny+1));
       if(mode==="Ink height"){
@@ -266,7 +251,17 @@ export default {
       for(const [a,b] of rim)faces.push([a,a+total,b+total],[a,b+total,b]);
       return {vertices,faces,grid:{ox,oy,stepX:sx,stepY:sy}};
     };
-    const geometry=mode==="Tubes"?buildTubes():["Ink height","Depth map"].includes(mode)?buildRelief():["Inflate","Extrude"].includes(mode)?buildRegion():null;
+    const buildShape=()=>{
+      const interpretation=p.inputShape||"Closed outlines";
+      const paths=ins?.[0]?.paths||[];
+      const dense=paths.length>256||paths.reduce((n,q)=>n+(q.pts?.length||0),0)>6000;
+      const useStrokes=interpretation==="Stroked paths"||interpretation==="Auto"&&(dense||paths.some(q=>!q.closed&&q.pts?.length>=2));
+      if(!useStrokes)return buildRegion();
+      const src=strokes();if(!src)return null;
+      const requested=num("depth",0,200,42)/100,depth=requested<.0004?0:requested;
+      return strokeSurface(src,mode,num("strokeWidth",.1,20,1),depth,p.back,num("roundness",.2,2,1),num("detail",12,72,44));
+    };
+    const geometry=mode==="Tubes"?buildTubes():["Ink height","Depth map"].includes(mode)?buildRelief():["Inflate","Extrude"].includes(mode)?buildShape():null;
     if(!geometry||!geometry.vertices.length||!geometry.faces.length||geometry.faces.length>120000)return empty();
     const {vertices,faces}=geometry;
     // Normalize and quantize exactly like the other mesh producers. Re-weld
@@ -335,8 +330,8 @@ export default {
     const selected=[];
     for(const e of edges.values()){
       const a=nv[e.a],b=nv[e.b],sil=e.signs.length===1||e.signs.some(s=>s>1e-10)&&e.signs.some(s=>s<-1e-10);
-      const vertical=Math.abs(a[0]-b[0])<1e-8&&gridCoord(a[0],0),horizontal=Math.abs(a[1]-b[1])<1e-8&&gridCoord(a[1],1),grid=mode==="Tubes"?tubeGrid.has(e.a<e.b?e.a+":"+e.b:e.b+":"+e.a):vertical||horizontal;
-      if(sil||p.drawing==="Mesh edges"||p.drawing!=="Silhouette"&&grid)selected.push({...e,sil,group:p.drawing!=="Mesh edges"&&grid?(mode==="Tubes"?tubeGrid.get(e.a<e.b?e.a+":"+e.b:e.b+":"+e.a):vertical?"x:"+a[0]:"y:"+a[1]):sil?"sil":null,draw:p.drawing==="Silhouette"?sil:p.drawing==="Mesh edges"||grid||sil&&p.outline!==false});
+      const vertical=Math.abs(a[0]-b[0])<1e-8&&gridCoord(a[0],0),horizontal=Math.abs(a[1]-b[1])<1e-8&&gridCoord(a[1],1),grid=geometry.gridEdges?tubeGrid.has(e.a<e.b?e.a+":"+e.b:e.b+":"+e.a):vertical||horizontal;
+      if(sil||p.drawing==="Mesh edges"||p.drawing!=="Silhouette"&&grid)selected.push({...e,sil,group:p.drawing!=="Mesh edges"&&grid?(geometry.gridEdges?tubeGrid.get(e.a<e.b?e.a+":"+e.b:e.b+":"+e.a):vertical?"x:"+a[0]:"y:"+a[1]):sil?"sil":null,draw:p.drawing==="Silhouette"?sil:p.drawing==="Mesh edges"||grid||sil&&p.outline!==false});
     }
     const stride=Math.max(1,Math.ceil(selected.length/18000));
     const emit=(a,b,list,group)=>{const A=[dx+a[0]*scale,dy+a[1]*scale],B=[dx+b[0]*scale,dy+b[1]*scale];if(Math.hypot(A[0]-B[0],A[1]-B[1])>1e-7&&list.length<45000)list.push({pts:[A,B],closed:false,layer:pen,group});};

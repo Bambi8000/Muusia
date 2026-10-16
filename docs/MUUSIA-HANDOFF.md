@@ -3746,6 +3746,46 @@ according to the session's actual capabilities:
     and prepare a clean committed source snapshot. Claude upload is a separate
     operation; a local snapshot does not update the Claude project.
 
+- **2.128 — Type Studio → 2D to 3D** 2026-10-16 Astra — Daniel reported
+  blank Tubes for `12 / Text made of text` and poor conversion in other
+  treatments and approved publication after the local fix. APP_VERSION/README
+  advance to 2.128.
+  - Root cause: entire sources above 256 paths / 6000 points were silently
+    refused. The reported No Signal source has 395 paths / 1318 points.
+    Intake now accepts 30000 paths / 120000 points. Shared `2d3d-source.js`
+    allocates tessellation across the complete drawing, preserves real letter
+    corners even with a large Tube step, and keeps caps inside the triangle
+    budget. Sources whose minimum geometry cannot fit are still refused.
+  - Inflate/Extrude add Path interpretation Auto / Closed outlines / Stroked
+    paths and source-space Stroke width mm. Auto chooses strokes for open or
+    dense sources; select Stroked paths explicitly when animating/changing
+    density. Stroke sweeps keep closed glyph loops hollow; overlaps are
+    separate solids, not Boolean unions. Existing ordinary filled-region
+    baselines remain byte-identical. Ink height refines thin footprints within
+    its bounded grid. Depth map behavior is unchanged.
+  - New Help graphs: 3D Typography · Text tubes and 3D Typography · Extruded
+    pen strokes. For tiny lettering use approximately 0.5–1 mm Diameter;
+    6 mm can obscure gaps even though all source geometry is now accepted.
+  - Checks: 75 typography→3D cases across all ten Type Studio treatments,
+    83 baked Inflate cases, 220 multimode cases, 558235 Type Studio checks,
+    all 90 Help graphs and focused lint pass. New cases include exact corner
+    retention, full source intake, closed/outward stroke solids, physical
+    width/depth, depth zero and the real graph evaluator.
+  - Actual development UI: reported source with original 6 mm / 90° settings
+    is nonempty; readable A2 0.5 mm tube view and A4 Hairline Extrude inspected.
+    Every coordinate in two SVG exports (3030 / 9026 paths) and 32220 A4
+    G-code travel/draw coordinates matches pure node output at export precision.
+    Route optimization off, machine A, origin 0/0, flipY off; no hardware run.
+    Evidence: `typography-3d-fix/export-verification.json`, actual patch/export
+    files and UI screenshots in this task's visualization directory.
+  - Ordered catalog → production build → check:learn passes (23581 checks).
+    New Help names use the 3D Typography prefix: Learn's numbered Type Studio
+    fixture family intentionally remains the original ten treatment examples.
+    Release repeats focused validation and the ordered catalog/build/Learn gate,
+    removes the completed claim and publishes through main Pages. Verify the
+    exact deployment commit and public example before reporting publication.
+    A fresh committed source snapshot is prepared; Claude UI upload is separate.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

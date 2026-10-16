@@ -17,6 +17,24 @@ import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
   {
+    name: "3D Typography · Text tubes",
+    desc: "Dense text is actual vector linework. Type Studio treatment 12 makes NO SIGNAL from tiny characters; 2D to 3D Tubes wraps every small stroke. Select 2D to 3D. Diameter 0.5 mm suits this lettering; the old default 6 mm would merge nearby characters visually. Tube step adds samples between corners and preserves the original letter corners. Rotate View elevation to inspect the tubes, or use 90 for a top view. No path-count reduction or text rasterization is needed.",
+    canvas: { W: 594, H: 420 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "type_studio", x: 20, y: 20, params: { ...defaults("type_studio"), mode: "12 / Text made of text", text: "No Signal", tracking: 1.55 } },
+      { id: 9002, type: "inflate3d", x: 370, y: 20, params: { ...defaults("inflate3d"), mode: "Tubes", diameter: .5, tubeStep: 3, viewAz: 2, viewEl: 65, size: 380 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "3D Typography · Extruded pen strokes",
+    desc: "Hairline lettering is made of open pen strokes and closed loops. Path interpretation Stroked paths turns all of them into rectangular strips with Stroke width mm, preserving the counters of closed loops. Select 2D to 3D. Depth % controls the Z extent relative to the original word width. Switch Mode to Inflate for rounded strips. Auto chooses strokes for open/dense linework; Closed outlines is for actual filled regions. Overlapping strips are separate solids, with hidden-line removal in the projected drawing.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "type_studio", x: 20, y: 20, params: { ...defaults("type_studio"), mode: "08 / Hairline lettering", text: "ink", size: 60 } },
+      { id: 9002, type: "inflate3d", x: 370, y: 20, params: { ...defaults("inflate3d"), mode: "Extrude", inputShape: "Stroked paths", strokeWidth: 1, depth: 8, size: 190, viewEl: 45 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Mold · Spreading colonies",
     desc: "Select Mold, open ANIMATE, set Frames to 32 and press Play. Motion Timeline starts with small germs and ends with mature, merging colonies. Edge roughness shapes the lobed front; Growth rings leaves fixed age bands, and Spores matures a stippled surface. Keep Seed, Colonies and Spread fixed during playback. The loop deliberately restarts growth. To inspect a still, switch Motion to Manual and scrub Growth %. SVG/G-code ×32 exports the same seeded growth, one drawing per frame; Margin stays fixed. Use a fine pen for the small spore loops.",
     canvas: { W: 297, H: 210 },

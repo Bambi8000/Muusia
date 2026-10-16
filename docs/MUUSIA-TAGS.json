@@ -728,6 +728,8 @@
  ],
  "inflate3d": [
   "3d",
+  "text",
+  "typography",
   "inflate",
   "extrude",
   "tube",
