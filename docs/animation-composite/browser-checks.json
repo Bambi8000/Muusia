@@ -2,21 +2,21 @@
   "schemaVersion": 1,
   "engineScopeSha256": "7af817955b8444534bda3aa7c1065924f19b61ffe3008ae286983845a7328b6b",
   "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
-  "patchSha256": "2be81471658098ce44d70061250bd562366729914243f13b0b280be7a347ab24",
+  "patchSha256": "4531ef9ae5803b0ece8a5ea6464d2e707ef169f7db1d2512ae21958bdea112c7",
   "sourceHashes": {
     "src/defs/nodes/frame.js": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204",
     "src/defs/nodes/matem.js": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5",
     "src/defs/nodes/grid_hairs.js": "2d687dd332b147f67054eaca3dc07f372ae078a07fa58436fdf5b5646c54bddc",
     "src/defs/nodes/crop.js": "3bfc534cce7fb1276e0b40e8d2884809097e51067a9e25457bf55d79f62af47c",
     "src/defs/nodes/array.js": "7d058dc208f3636ff426651bdfb51036aec7873cc5de141fc4160c4dec9a7b58",
-    "src/defs/nodes/move_scale.js": "6ee2ad58f72358b5a84556610610caee43220877cd047588e955847d6ebf15c3",
+    "src/defs/nodes/move_scale.js": "24e05802cad7793d1ff3e4b08f4951503af26072f7a5ceb8c054607289721021",
     "src/defs/nodes/container.js": "fb9b11583906d0c0678f8df117224aa41899aef9a13123b1f1bdf1b058a7d801",
     "src/defs/nodes/solids.js": "bd2ef1be2b57c15dcceb5080980842a89f39935dcccf0eceac7c30bbbea938ee",
     "src/defs/nodes/merge.js": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf",
     "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
   },
-  "capturedAt": "2026-10-15",
-  "method": "Actual in-app Muusia UI Load, select final node, Frames 36, Optimize route off, SVG panel text read; path signatures, not downloaded byte hashes; no hardware. All three original comparison frames match.",
+  "capturedAt": "2026-10-16",
+  "method": "Actual in-app Muusia Load of regenerated original composite, Merge selected, Frames 36, Optimize route off, actual SVG ×36 ZIP download. All 36 frame path strings match pure graph output; original comparison frames 0/7/18 signatures and counts unchanged. No hardware.",
   "exports": [
     {
       "frames": 36,
@@ -52,7 +52,13 @@
       ]
     }
   ],
-  "appVersion": "2.124",
-  "sourceCommit": "470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3",
-  "sourceWorkingTree": "main, uncommitted 3D Spikes, Frame Bang and all-checkbox inputs; selected source hashes identify captured code"
+  "appVersion": "2.128",
+  "sourceCommit": "7085586cd002c796124dce22d54d987bdd7c277c",
+  "sourceWorkingTree": "main, uncommitted Move / Scale opt-in motion; selected source hashes identify captured code",
+  "batchCapture": {
+    "frames": 36,
+    "totalPoints": 278381,
+    "allFramesMatch": true,
+    "originalDownload": "Grid Hairs + rotating Solids-frames-svg.zip"
+  }
 }

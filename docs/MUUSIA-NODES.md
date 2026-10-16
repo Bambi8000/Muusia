@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 317 built-in nodes in Muusia v2.127. Conventions used below:
+All 318 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,24 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (200)
+## Generators (201)
+
+**Moving Lines** — a standalone animated field of open lines, with no eyes,
+rings or closed motifs. *Streaks* moves repeated segments along each track;
+*Continuous* draws complete tracks. *Wave amplitude mm* 0 makes them straight;
+raise it for travelling waves. *Wavelength* and *Row phase* set the wave spacing
+and phase difference between tracks. *Angle* turns the whole field, then clips
+it to Margin. *Line length* and *Gap* are measured along the curved track.
+Seeded *Length variation* and *Stagger* remain fixed throughout playback.
+*Direction* Forward, Reverse or Alternating controls travel. *Time source*
+Timeline reads ANIMATE directly, with integer *Cycles* per sequence; Manual
+ignores the clock and scrubs *Phase °*, which can receive Frame rot °. The
+last frame is one step before the first, avoiding a duplicate endpoint.
+Continuous straight lines are deliberately static. The node generates its own
+streak rhythm and has no Style input. Only relevant controls are shown.
+Sampling, wavelength and streak spacing adapt uniformly at extreme density;
+the last tracks are not discarded. Preview guides show the clipping margin.
+Help includes Passing streaks and Travelling waves; start with 48 frames.
 
 **Mold** — seeded animated growth with two distinct modes. *Mold* expands lobed
 colonies, merges their fronts and matures a stippled surface of small spore
@@ -2448,7 +2465,20 @@ quad (4), or full 8-way D4 (cardinal + diagonal). Axes shown as guides. Mirrored
 copies honestly reverse stroke direction.
 
 **Move / Scale** — translate + scale (X/Y separable) around content centre, canvas
-centre, or a custom point.
+centre, or a custom point. *Motion* Off keeps the original static transform;
+Sway moves back and forth, Orbit follows an ellipse, and Breathe animates scale
+only. *Time source* Timeline follows ANIMATE / Play without a Frame wire.
+*Travel X/Y ±mm* are amplitudes around the static Move offsets, so 2 mm means
+4 mm total travel. *Scale swing ±%* multiplies both base scales, retaining their
+X/Y ratio. *Cycles* is the integer loop count per sequence; *Phase °* offsets the
+motion. Manual ignores the timeline: scrub Phase, or wire Frame's rot ° to it.
+The final frame is one step before the first, avoiding a duplicated endpoint.
+The chosen phase is also shown without a multi-frame timeline. Centre-travel
+guides are preview-only. No automatic clipping or fitting is applied, so leave
+room for the full motion. For moving moire, Merge a stationary Moire Disc with
+another through Move / Scale: try Orbit, X 3 mm, Y 1.5 mm and Scale swing 0.
+Two animated copies with Phase 0 / 180 give counter-motion. Help contains both
+*Moire orbit* and *Moire counter-motion* examples.
 
 **Fit to Canvas** — scales and centres content into the margins: contain, stretch,
 fit-width or fit-height. The "fix my composition" node.

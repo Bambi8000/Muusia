@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "2.128",
-  "sourceCommit": "40605071f64e1bae0f55c96008131ed49db10380",
+  "version": "2.129",
+  "sourceCommit": "7085586cd002c796124dce22d54d987bdd7c277c",
   "canvas": {
     "W": 297,
     "H": 210
@@ -66,7 +66,7 @@
     "inputs": [
       {
         "path": "learn/generate-assets.mjs",
-        "sha256": "1f6e014c6591c7823be9860007f7dcc20b3c7cc3c1bb946b8a3b935b8b1a3bbb"
+        "sha256": "d193e97be24cd3aaa088e8ec8c064adfc39e4fcc113b2254745272b4005608ca"
       },
       {
         "path": "learn/lib/fixtures.mjs",
@@ -134,7 +134,7 @@
       },
       {
         "path": "src/defs/nodes/move_scale.js",
-        "sha256": "6ee2ad58f72358b5a84556610610caee43220877cd047588e955847d6ebf15c3"
+        "sha256": "24e05802cad7793d1ff3e4b08f4951503af26072f7a5ceb8c054607289721021"
       },
       {
         "path": "src/defs/nodes/kierto.js",
@@ -428,7 +428,7 @@
       },
       {
         "path": "examples/tutorial-transform-fill.muusia.json",
-        "sha256": "3408b653bd50da9ad0cf0780f3baae481a7f1b34b2cf920eaba4b56828c75381"
+        "sha256": "78a5f220c832ffcfe47c24a639dc65b8d26e6d8183c74f81d4729159b3da5300"
       },
       {
         "path": "examples/tutorial-numbers.muusia.json",
@@ -436,7 +436,7 @@
       },
       {
         "path": "examples/tutorial-physical-plot.muusia.json",
-        "sha256": "15ebd55b8b7161642b77f84156aa3fde9bc71a5fb90d40b5bfbb33efdb48365f"
+        "sha256": "40ad012f7f4a25944b6f1f497df0bef9d8ee9a9546c752b85fa6b9dabade8613"
       },
       {
         "path": "examples/satunnainen.muusia.json",
@@ -448,19 +448,19 @@
       },
       {
         "path": "examples/move_scale.muusia.json",
-        "sha256": "5110165065c3eee95b4756f78d12ec76a5f3bdcf7baed982c2946fb27158feae"
+        "sha256": "67d93bbe402c2d7a29c9d75048a0b4b4b6c69e4833e94e7e43f7427145da3d86"
       },
       {
         "path": "examples/kierto.muusia.json",
-        "sha256": "1847781016c5e87073b394b2aba786844319fdee675aa9f3e5c921440e716a03"
+        "sha256": "5fa635d84944f2a983099fac2445becab15741ef888b6d36848b83c15c80afb0"
       },
       {
         "path": "examples/hatch.muusia.json",
-        "sha256": "473137e926b536272fa2489192ac89bad22987606df411254b795132059b4252"
+        "sha256": "45d8f9916e06cf6f575d63d151ffc6006eeb7715658806666945f624ca3ff645"
       },
       {
         "path": "examples/container.muusia.json",
-        "sha256": "9361e281b0bb1333ad73526b1ad46adf56b0ae329e8cd4f29614a7d8b6713d16"
+        "sha256": "56abdda2acce42bde7a7e94af27ccf7ffbced8ded8c35b9d68318d10bcdbc594"
       },
       {
         "path": "examples/grid.muusia.json",
@@ -3568,8 +3568,9 @@
           "step": 1,
           "def": 150,
           "default": 150,
-          "conditional": false,
-          "visibleByDefault": true
+          "conditional": true,
+          "visibilityNote": "Shown when Scale origin is Custom point.",
+          "visibleByDefault": false
         },
         {
           "key": "oy",
@@ -3580,8 +3581,103 @@
           "step": 1,
           "def": 100,
           "default": 100,
+          "conditional": true,
+          "visibilityNote": "Shown when Scale origin is Custom point.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "motion",
+          "label": "Motion",
+          "type": "select",
+          "options": [
+            "Off",
+            "Sway",
+            "Orbit",
+            "Breathe"
+          ],
+          "def": "Off",
+          "default": "Off",
           "conditional": false,
           "visibleByDefault": true
+        },
+        {
+          "key": "clock",
+          "label": "Time source",
+          "type": "select",
+          "options": [
+            "Timeline",
+            "Manual"
+          ],
+          "def": "Timeline",
+          "default": "Timeline",
+          "conditional": true,
+          "visibilityNote": "Shown when Motion is Sway, Orbit or Breathe.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "travelX",
+          "label": "Travel X ±mm",
+          "type": "slider",
+          "min": 0,
+          "max": 100,
+          "step": 0.1,
+          "def": 2,
+          "default": 2,
+          "conditional": true,
+          "visibilityNote": "Shown when Motion is Sway or Orbit.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "travelY",
+          "label": "Travel Y ±mm",
+          "type": "slider",
+          "min": 0,
+          "max": 100,
+          "step": 0.1,
+          "def": 1,
+          "default": 1,
+          "conditional": true,
+          "visibilityNote": "Shown when Motion is Sway or Orbit.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "scaleSwing",
+          "label": "Scale swing ±%",
+          "type": "slider",
+          "min": 0,
+          "max": 90,
+          "step": 0.1,
+          "def": 1,
+          "default": 1,
+          "conditional": true,
+          "visibilityNote": "Shown when Motion is Sway, Orbit or Breathe.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "cycles",
+          "label": "Cycles",
+          "type": "slider",
+          "min": 1,
+          "max": 16,
+          "step": 1,
+          "def": 1,
+          "default": 1,
+          "conditional": true,
+          "visibilityNote": "Shown for active motion with Time source Timeline.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "phase",
+          "label": "Phase °",
+          "type": "slider",
+          "min": 0,
+          "max": 360,
+          "step": 0.5,
+          "def": 0,
+          "default": 0,
+          "conditional": true,
+          "visibilityNote": "Shown when Motion is Sway, Orbit or Breathe.",
+          "visibleByDefault": false
         }
       ],
       "inputs": [
@@ -3656,7 +3752,14 @@
               "scaleY": 45,
               "origin": "Content center",
               "ox": 150,
-              "oy": 100
+              "oy": 100,
+              "motion": "Off",
+              "clock": "Timeline",
+              "travelX": 2,
+              "travelY": 1,
+              "scaleSwing": 1,
+              "cycles": 1,
+              "phase": 0
             }
           }
         ],
@@ -3678,7 +3781,14 @@
         "scaleY": 45,
         "origin": "Content center",
         "ox": 150,
-        "oy": 100
+        "oy": 100,
+        "motion": "Off",
+        "clock": "Timeline",
+        "travelX": 2,
+        "travelY": 1,
+        "scaleSwing": 1,
+        "cycles": 1,
+        "phase": 0
       },
       "outputId": 9002,
       "stats": {
@@ -3799,7 +3909,14 @@
               "scaleY": 45,
               "origin": "Content center",
               "ox": 150,
-              "oy": 100
+              "oy": 100,
+              "motion": "Off",
+              "clock": "Timeline",
+              "travelX": 2,
+              "travelY": 1,
+              "scaleSwing": 1,
+              "cycles": 1,
+              "phase": 0
             }
           },
           {
@@ -4022,7 +4139,14 @@
               "scaleY": 45,
               "origin": "Content center",
               "ox": 150,
-              "oy": 100
+              "oy": 100,
+              "motion": "Off",
+              "clock": "Timeline",
+              "travelX": 2,
+              "travelY": 1,
+              "scaleSwing": 1,
+              "cycles": 1,
+              "phase": 0
             }
           },
           {
@@ -4312,7 +4436,14 @@
               "scaleY": 45,
               "origin": "Content center",
               "ox": 150,
-              "oy": 100
+              "oy": 100,
+              "motion": "Off",
+              "clock": "Timeline",
+              "travelX": 2,
+              "travelY": 1,
+              "scaleSwing": 1,
+              "cycles": 1,
+              "phase": 0
             }
           },
           {
@@ -6054,7 +6185,14 @@
               "scaleY": 45,
               "origin": "Content center",
               "ox": 150,
-              "oy": 100
+              "oy": 100,
+              "motion": "Off",
+              "clock": "Timeline",
+              "travelX": 2,
+              "travelY": 1,
+              "scaleSwing": 1,
+              "cycles": 1,
+              "phase": 0
             }
           },
           {
@@ -6356,7 +6494,14 @@
               "scaleY": 5,
               "origin": "Custom point",
               "ox": 0,
-              "oy": 0
+              "oy": 0,
+              "motion": "Off",
+              "clock": "Timeline",
+              "travelX": 2,
+              "travelY": 1,
+              "scaleSwing": 1,
+              "cycles": 1,
+              "phase": 0
             }
           },
           {

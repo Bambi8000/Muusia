@@ -831,9 +831,14 @@ export const NODE_RECENCY = {
     "sha256": "a9cdfc65b3a64679656a9e5348675278f09d715e3a8eb4b8dc1b1d13ebb9d74b"
   },
   "move_scale": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "6ee2ad58f72358b5a84556610610caee43220877cd047588e955847d6ebf15c3"
+    "date": "2026-10-16",
+    "order": 85,
+    "sha256": "24e05802cad7793d1ff3e4b08f4951503af26072f7a5ceb8c054607289721021"
+  },
+  "moving_lines": {
+    "date": "2026-10-16",
+    "order": 85,
+    "sha256": "6620024d2e9e1f326baba8a7bb07d0095139999e92041686d4c25c733a4ed591"
   },
   "murmuration": {
     "date": "2026-10-11",

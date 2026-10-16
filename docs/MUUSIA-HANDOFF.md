@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **315 files** (317 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **316 files** (318 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 200, Modifiers 77). ESM format:
+  Generators 201, Modifiers 77). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -3785,6 +3785,92 @@ according to the session's actual capabilities:
     removes the completed claim and publishes through main Pages. Verify the
     exact deployment commit and public example before reporting publication.
     A fresh committed source snapshot is prepared; Claude UI upload is separate.
+
+- **2.129 — Move / Scale motion** 2026-10-16 Astra — Daniel requested subtle
+  relative motion of two Moire Discs, implemented in the existing transform.
+  Daniel approved publication together with Moving Lines. APP_VERSION/README
+  advance to 2.129 for the joint release.
+  - Motion Off preserves static output, including six v2.128 origin/nonuniform
+    scale fingerprints and old patches with no new params. Sway, Orbit and
+    Breathe animate translation and/or proportional scale around the existing
+    origin. Static Move offsets remain the movement centre. Travel is an
+    amplitude in mm; Scale swing multiplies both X/Y scales without changing
+    their ratio. No clipping or auto-fit is added.
+  - Timeline follows ANIMATE using frame index / frame count and integer Cycles;
+    the last sample avoids duplicating the first. Manual ignores the clock and
+    scrubs Phase °, including a green Frame rot ° wire. Phase also offsets
+    Timeline. Only relevant controls are shown; custom-origin fields are now
+    hidden for the other origins. Guides use the same frame and resolved paths
+    as geometry to show the origin and centre trajectory.
+  - Help: Move / Scale · Moire orbit (fixed ring disc plus a 3 × 1.5 mm orbit)
+    and Moire counter-motion (two 2°-separated hatch discs, opposite Sway phases).
+    Both A4 examples stay within 12 mm margins throughout the loop. Use 48
+    frames for preview/export, Cycles 1 and Scale swing 0 for subtle translation.
+    ANIMATE/Help copy and the Learn transform guide document the new motion.
+  - `validate-move-scale-motion.mjs`: 158 cases for legacy output, analytic
+    quarter-phase positions, loop sampling, scale anchors/ratio, hidden-control
+    invariance, immutable inputs, metadata, actual Help evaluator and Frame wiring.
+    Existing Direction Passes trials, all 92 Help graphs and focused lint pass.
+  - Actual development UI: Play progressed from frame 2 to 19 of 24. Breathe
+    hides Travel controls; both moire examples inspected. Actual 24-frame SVG
+    and G-code ZIP downloads have 24 distinct poses; all 643488 SVG points and
+    646560 G-code start/draw/closing coordinates match node output at 0.01 mm.
+    Route optimization off, machine A, origin 0/0, flipY off; no hardware.
+    Evidence lives in this task's visualization directory `move-scale-motion/`.
+  - Move / Scale is tracked by the physical-plot Learn reference. Downloaded
+    the original five-path A4 fixture again through the real UI: SVG bytes are
+    identical, and scoped source provenance is refreshed. Historical G-code
+    evidence/screenshots remain unchanged. Learn's old static transform image
+    is explicitly labelled as predating Motion controls; conditional references
+    explain every new hidden field.
+  - Regenerated Learn fixture files explicitly add Motion Off defaults; the
+    physical SVG was recaptured after regeneration so its exact patch checksum
+    matches. Rebuilt the original animation-composite with its existing tool,
+    exported the full 36-frame SVG ZIP through the actual UI, and compared all
+    278381 points. Historical comparison signatures and all 24/36/48-frame
+    geometry are unchanged; composite browser provenance is refreshed. The
+    six unaffected gallery captures are untouched.
+  - Final ordered catalog → production build → check:learn passes (23596
+    checks). Release repeats both focused validators and all 94 Help graphs,
+    then the ordered gate, before integration on base 7085586.
+
+- **2.129 — Moving Lines (same release)** 2026-10-16 Astra — Daniel requested a second
+  animation node, referencing davidope's Instagram post DeiGVCAjeUg, then
+  explicitly corrected the scope to **only lines, no eyes**. The implementation
+  contains no eye, ring, vortex or closed-path generator. Default output is
+  straight moving open segments; travelling waves are optional via Amplitude.
+  Included with Move / Scale motion in Daniel's approved joint release.
+  - New standalone `moving_lines`, Generators / Organic & Flow. No data/Style
+    inputs; one Paths output. Own Streaks/Continuous selector, track count,
+    angle, physical arc-length segment/gap, seeded length variation/stagger,
+    wave amplitude/wavelength/row phase, direction, clock, cycles/phase and pen.
+    Timeline uses frame index / frame count; Manual accepts Frame rot ° through
+    Phase. Integer cycles loop without a duplicated endpoint. Continuous
+    straight lines are deliberately static, and unused clock/wave/streak
+    controls hide. Margin clips after rotation with no per-frame fit.
+  - Uniform work limits keep all tracks: curve samples, effective wavelength
+    and minimum pattern period adapt to the full field. No point-prefix
+    truncation. Only open paths are emitted, preserving stroke direction.
+    Lab prototype and baked source match; the graduated lab copy was removed.
+    Inventory: 318 built-ins / 316 files, 201 generators / 77 modifiers.
+  - Help: Moving Lines · Passing streaks and Moving Lines · Travelling waves.
+    Both work directly with ANIMATE; use 48 frames for a smoother preview.
+    `validate-moving-lines.mjs` passes 595 lab and baked cases, including
+    analytic straight positions/lengths/phase shifts, sine tracks, complete
+    finite clipped fields, hidden controls, loops, real evaluator and Frame
+    wiring. All 94 Help graphs and focused lint pass.
+  - Actual development UI verifies hidden wavelength controls at amplitude 0
+    and hidden streak controls in Continuous mode. Both examples exported as
+    actual 24-frame SVG and G-code ZIPs: all 21884 straight and 295777 wave
+    coordinates match node output in each format, with 24 distinct poses per
+    example. Every exported path is open. Route optimization off, profile A,
+    origin 0/0, flipY off; no hardware. Evidence and UI screenshots are in
+    this task's visualization directory `moving-lines/`.
+  - Ordered catalog → production build → check:learn passes (23596 checks),
+    including Move / Scale changes. Release removes both completed claims and
+    publishes main through Pages. Verify the exact deployment commit and both
+    public examples before reporting publication. Refresh the committed source
+    snapshot; this does not upload files to the Claude project.
 
 ## Hard-won pitfalls (keep)
 

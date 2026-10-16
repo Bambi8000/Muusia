@@ -982,7 +982,15 @@
   "terrain"
  ],
  "move_scale": [
-  "transform"
+  "transform",
+  "animation",
+  "moire"
+ ],
+ "moving_lines": [
+  "animation",
+  "line",
+  "wave",
+  "flow"
  ],
  "murmuration": [
   "creature",

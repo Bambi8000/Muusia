@@ -172,6 +172,14 @@ const comparisons = {
 const CATEGORY = { gen: 'Generators', mod: 'Modifiers', dec: 'Decorators', duo: 'Combiners', math: 'Math', route: 'Routing' };
 const GROUP = { geometric: 'Geometric', deform: 'Deform', textimg: 'Text & Image', space: 'Space', penout: 'Pen & Output', transform: 'Transform', fillstyle: 'Fill & Style' };
 const visibilityNotes = {
+  'move_scale.ox': 'Shown when Scale origin is Custom point.',
+  'move_scale.oy': 'Shown when Scale origin is Custom point.',
+  'move_scale.clock': 'Shown when Motion is Sway, Orbit or Breathe.',
+  'move_scale.travelX': 'Shown when Motion is Sway or Orbit.',
+  'move_scale.travelY': 'Shown when Motion is Sway or Orbit.',
+  'move_scale.scaleSwing': 'Shown when Motion is Sway, Orbit or Breathe.',
+  'move_scale.cycles': 'Shown for active motion with Time source Timeline.',
+  'move_scale.phase': 'Shown when Motion is Sway, Orbit or Breathe.',
   "frame.bangEvery": "Shown when Bang rate is Custom; sets the interval in displayed frames.",
   "frame.bangChance": "Shown when Bang rate is Random; chance of a hit on each frame.",
   "frame.bangSeed": "Shown for Random when Chance is above 0 and below 100%; repeats the same trigger sequence.",

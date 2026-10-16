@@ -120,7 +120,14 @@
           "scaleY": 0,
           "origin": "Content center",
           "ox": 150,
-          "oy": 100
+          "oy": 100,
+          "motion": "Off",
+          "clock": "Timeline",
+          "travelX": 2,
+          "travelY": 1,
+          "scaleSwing": 1,
+          "cycles": 1,
+          "phase": 0
         }
       },
       {

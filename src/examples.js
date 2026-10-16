@@ -17,6 +17,54 @@ import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
   {
+    name: "Moving Lines · Passing streaks",
+    desc: "Select Moving Lines, set ANIMATE Frames to 48 and press Play. Only straight open line segments move across the sheet; there are no eyes or circles. Line length and Gap set the streak rhythm, Length variation and Stagger give each track a stable seeded offset. Direction Reverse changes travel direction; Alternating sends neighbouring tracks opposite ways. Wave amplitude 0 keeps the lines straight. Timeline needs no Frame wire. Cycles 1 travels one pattern period per loop; Phase offsets it. SVG/G-code ×48 exports exactly the same motion, clipped to Margin on every frame.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "moving_lines", x: 40, y: 20, params: { ...defaults("moving_lines") } },
+    ], edges: [] }),
+  },
+  {
+    name: "Moving Lines · Travelling waves",
+    desc: "Select Moving Lines, set 48 frames and press ANIMATE Play. Continuous tracks carry a travelling wave rather than moving dashes. Wave amplitude 5 mm, Wavelength 90 mm and Row phase 4 degrees shape the field. Try Streaks to combine the curved tracks with moving segments, or set Amplitude 0 for straight lines. Angle rotates the complete field before clipping to the margin. Time source Manual exposes a still Phase; wire Frame rot degrees into Phase only in Manual, so the clock is not counted twice. All paths remain open, with no rings or closed motifs.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "moving_lines", x: 40, y: 20, params: { ...defaults("moving_lines"), lineStyle: "Continuous", rows: 70, amplitude: 5, wavelength: 90, rowPhase: 4 } },
+    ], edges: [] }),
+  },
+  {
+    name: "Move / Scale · Moire orbit",
+    desc: "Two fine ring discs overlap. Select Merge, set ANIMATE Frames to 48 and press Play. One disc stays fixed; the other follows Move / Scale Motion Orbit, Travel X 3 mm and Y 1.5 mm, with Scale swing 0. The interference bands move even though the displacement is tiny. Select Move / Scale to change the amplitudes or Phase; static Move X/Y shifts the centre of the orbit. Keep Cycles at 1 for slow motion, or raise it for more loops in the sequence. SVG/G-code ×48 exports the same frame positions. Leave room for the whole orbit; this transform does not clip or refit.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "moire_disc", x: 20, y: 20, params: { ...defaults("moire_disc"), radius: 78, pitch: 1.2, rim: false } },
+      { id: 9002, type: "moire_disc", x: 20, y: 380, params: { ...defaults("moire_disc"), radius: 78, pitch: 1.2, rim: false } },
+      { id: 9003, type: "move_scale", x: 360, y: 380, params: { ...defaults("move_scale"), motion: "Orbit", travelX: 3, travelY: 1.5, scaleSwing: 0 } },
+      { id: 9004, type: "merge", x: 700, y: 20, params: { ...defaults("merge") } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9004, toPort: 0 },
+      { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: 0 },
+      { id: "e9103", from: 9003, fromPort: 0, to: 9004, toPort: 1 },
+    ] }),
+  },
+  {
+    name: "Move / Scale · Moire counter-motion",
+    desc: "Two hatch discs differ by 2 degrees. Each passes through its own Move / Scale with Sway; Phase 0 and 180 degrees move them in opposite directions. Select Merge, set 48 frames and press ANIMATE Play. Travel X 1.5 mm and Y 0.5 mm are amplitudes, not the full distance. Keep Scale swing 0 to see pure displacement, then try 1% to add a slow size change. Breathe animates only scale, hiding unused Travel controls. To drive Phase with a Frame rot output, choose Time source Manual so the timeline is not counted twice.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "moire_disc", x: 20, y: 20, params: { ...defaults("moire_disc"), content: "Hatch", radius: 78, pitch: 1.2, rim: false } },
+      { id: 9002, type: "moire_disc", x: 20, y: 380, params: { ...defaults("moire_disc"), content: "Hatch", radius: 78, pitch: 1.2, angle: 2, rim: false } },
+      { id: 9003, type: "move_scale", x: 360, y: 20, params: { ...defaults("move_scale"), motion: "Sway", travelX: 1.5, travelY: .5, scaleSwing: 0 } },
+      { id: 9004, type: "move_scale", x: 360, y: 380, params: { ...defaults("move_scale"), motion: "Sway", travelX: 1.5, travelY: .5, scaleSwing: 0, phase: 180 } },
+      { id: 9005, type: "merge", x: 700, y: 20, params: { ...defaults("merge") } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9003, toPort: 0 },
+      { id: "e9102", from: 9002, fromPort: 0, to: 9004, toPort: 0 },
+      { id: "e9103", from: 9003, fromPort: 0, to: 9005, toPort: 0 },
+      { id: "e9104", from: 9004, fromPort: 0, to: 9005, toPort: 1 },
+    ] }),
+  },
+  {
     name: "3D Typography · Text tubes",
     desc: "Dense text is actual vector linework. Type Studio treatment 12 makes NO SIGNAL from tiny characters; 2D to 3D Tubes wraps every small stroke. Select 2D to 3D. Diameter 0.5 mm suits this lettering; the old default 6 mm would merge nearby characters visually. Tube step adds samples between corners and preserves the original letter corners. Rotate View elevation to inspect the tubes, or use 90 for a top view. No path-count reduction or text rasterization is needed.",
     canvas: { W: 594, H: 420 },

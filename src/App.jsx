@@ -484,7 +484,7 @@ const NODE_HELP = {
   metaballs: "a blob field (sum of r\u00b2/d\u00b2) contoured with marching squares into 1-5 nested iso-bands; segments are stitched into closed organic loops that merge where blobs meet.",
   mirror8: "reflection orbits around a movable centre: left-right, up-down, quad (4), or full 8-way D4 (cardinal + diagonal). Axes shown as guides. Mirrored copies honestly reverse stroke direction.",
   mountains: "fBm heightfield rendered as ridge lines with true hidden-line removal (screen-space horizon buffer). Perspective (rows converge and compress with depth), oblique skew, island edge-fade, optional cross-line mesh.",
-  move_scale: "translate + scale (X/Y separable) around content centre, canvas centre, or a custom point.",
+  move_scale: "Translate and scale around content, canvas or a custom point. Motion Sway, Orbit and Breathe follow ANIMATE with Timeline; Manual scrubs Phase. Use small Travel amplitudes for moire.",
   murmuration: "a closed-form starling flock: every bird is a deterministic function of (time, index) \u2014 flock center follows a guide path, the flock breathes (pulse), swirls and stretches along travel. All time terms are sampled on a circle, so t=0 \u2261 t=1: wire Frame's *t* into Time for a seamless loop. Flock paths: Wander / Oval / Figure-8 / Lissajous 2:3 / Trefoil, with a wander-mix for organic drift. Bird shape",
   myco_net: "hyphal growth: queued tips step through noise-steered incremental turns and split into binary branches at a seeded rate; edge and point budgets end strands. Spore count, growth cycles, split rate, wander, internode, spawn radius.",
   net: "netting with selectable mesh: Diamond (fishing net), Square, Triangle, Hexagon (chicken wire, drawn without doubled edges). Whole net sags like it hangs; irregularity jitters the knots; strands are subdivided so they bend smoothly.",
@@ -898,7 +898,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.128"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.129"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const f2 = (v) => Math.round(v * 100) / 100;
@@ -3899,7 +3899,7 @@ export default function App() {
                 </button>
               </div>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
-                Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes.
+                Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes.
               </div>
             </div>
             <div data-machine-setup="true" onClick={() => setMchOpen((v) => !v)}
@@ -4468,7 +4468,7 @@ export default function App() {
                 "Set frame count in ANIMATE, add a Frame node (Math category), wire its outputs into any parameter.",
                 "t ramps 0\u21921 across frames; wave & ping-pong are seamless loops; frame # feeds Seeds for per-paper randomness.",
                 "\u25B6 previews the animation live. G-code / SVG / DXF \u00D7 N downloads one file per frame \u2014 plot each on its own paper, scan, assemble.",
-                "Timeline motion on Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follows ANIMATE without a Frame wire. Other parameters need a frame-driven source to change. Add Reg Marks for scan alignment.",
+                "Timeline motion on Moving Lines, Move / Scale, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follows ANIMATE without a Frame wire. Other parameters need a frame-driven source to change. Add Reg Marks for scan alignment.",
               ]],
               ["CUSTOM NODES", [
                 "Node \u2913 imports a node definition file (.js). See MUUSIA-NODE-API.md \u2014 you can hand that spec to an AI and import the result.",

@@ -886,15 +886,19 @@ export const nodeGuides = {
   },
   move_scale: {
     summary: "Move existing paths and change their width and height around a chosen origin. Shape outlines, pen assignments and open or closed states are preserved.",
-    useWhen: "You want to position artwork on the page, fit a shape into a composition or stretch it before applying another effect.",
-    screenshotCaption: "Move / Scale in Muusia. Content center uses the bounds of the input shape; Move offsets are applied after scaling.",
+    useWhen: "You want to position or stretch artwork, or gently animate overlapping patterns to reveal moire interference.",
+    screenshotCaption: "Static Move / Scale in Muusia. Content center uses the input bounds; Move offsets follow scaling. This earlier capture predates the optional Motion controls.",
     recipe: ["Load the example patch on a 297 × 210 mm canvas. Tracks supplies one closed blue outline to Move / Scale.", "Choose Scale origin Content center. Set Scale % to 70 and Scale Y % (0 = same) to 45.", "Set Move X mm to 20 and Move Y mm to -5. Select Move / Scale to see the narrowed, flattened outline moved right and slightly upward."],
     controls: [
       { name: "Move X mm / Move Y mm", text: "Translate the result after scaling. Positive X moves right; positive Y moves down in Muusia’s canvas coordinates. These offsets are measured in millimetres." },
       { name: "Scale %", text: "100 keeps the original width; 70 makes it 70% as wide. It also controls the height when Scale Y % (0 = same) is 0." },
       { name: "Scale Y % (0 = same)", text: "A positive value sets the height scale independently: 45 means 45% of the original height. Zero uses Scale % for both axes; it does not flatten the drawing to zero height." },
       { name: "Scale origin", text: "Content center uses the centre of the bounding box around all input paths. Canvas center uses the centre of the page. Custom point uses the two origin coordinates. Scaling keeps the chosen origin fixed before the Move offsets are added." },
-      { name: "Origin X mm (custom) / Origin Y mm (custom)", text: "Set the scaling anchor when Scale origin is Custom point. The fields do not affect Content center or Canvas center." }
+      { name: "Origin X mm (custom) / Origin Y mm (custom)", text: "Set the scaling anchor when Scale origin is Custom point. The fields are hidden for the other origin modes." },
+      { name: "Motion / Time source", text: "Off keeps the static result. Sway moves back and forth, Orbit follows an ellipse, and Breathe changes only scale. Timeline follows ANIMATE Play; Manual ignores it and uses Phase." },
+      { name: "Travel X ±mm / Travel Y ±mm", text: "Movement amplitudes around the static Move offsets. A value of 2 mm travels from -2 to +2 mm. Hidden for Breathe and Off." },
+      { name: "Scale swing ±%", text: "A proportional variation of both base scales; their width-to-height ratio stays fixed. Set 0 for pure translation." },
+      { name: "Cycles / Phase °", text: "Cycles sets integer loops per sequence in Timeline. Phase offsets either clock. For external Frame rot ° control, select Manual and wire that output to Phase. The loop samples avoid duplicating the first frame at the end." }
     ],
     portNotes: "Connect blue paths to the input and send the transformed paths onward. The operation keeps closed outlines closed, so they can still feed Hatch Fill. Green ports beside numeric controls accept values.",
     comparisonIntro: "Compare the original outline with independent width and height scales. Keep the origin and movement fixed when comparing size alone.",

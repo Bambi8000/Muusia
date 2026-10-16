@@ -73,7 +73,14 @@
           "scaleY": 5,
           "origin": "Custom point",
           "ox": 0,
-          "oy": 0
+          "oy": 0,
+          "motion": "Off",
+          "clock": "Timeline",
+          "travelX": 2,
+          "travelY": 1,
+          "scaleSwing": 1,
+          "cycles": 1,
+          "phase": 0
         }
       },
       {

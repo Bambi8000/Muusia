@@ -73,6 +73,22 @@ Use actual PNG encoding for `.png` files: some browser tools return JPEG bytes r
 
 ## Export provenance maintenance
 
+2026-10-16 Move / Scale motion maintenance: the physical-plot reference SVG was
+downloaded again through the actual development UI (header v2.128). Its original
+five-path A4 fixture, Merge selection, route optimization off, direction preserved
+and Mega Canvas off were retained. The SVG bytes are identical; source records
+now cover the opt-in motion implementation, whose missing/Off setting preserves
+legacy transforms. The unchanged machine A profile remained selected. No hardware
+or historical G-code test was rerun, and existing screenshots remain historical.
+The Move / Scale guide now documents motion controls and labels its earlier
+static screenshot as predating them.
+The original Grid Hairs + rotating Solids composite was rebuilt with explicit
+Motion Off defaults and freshly exported as an actual 36-frame SVG ZIP. All
+278381 points match current graph output; its three historical comparison
+signatures and all offline 24/36/48-frame geometry remain unchanged. Composite
+capture provenance now covers this Move / Scale source; the other six gallery
+projects and their unaffected capture records retain their original provenance.
+
 Reference exports use `sourceProvenanceVersion: 2` and `sourceFiles` records containing `path`, `selector` and `sha256`. Each artifact has a fixed required set of source scopes. The scopes cover the relevant SVG serializers, routing, selected-output and export actions, Stack export behavior, `src/machine.js` and the fixture's node/helper dependencies. They exclude `APP_VERSION`, Help copy and unrelated interface styling. Unrelated App or engine edits therefore do not invalidate an unchanged exporter merely because they share a source file; generated geometry and artifact checks still apply.
 
 If a tracked export or machine scope changes, load the documented patch and settings in the actual app, export the affected reference again, inspect its geometry, and update its download checksum and provenance. Do not replace a hash simply to silence a failed check. A missing or ambiguous selector after a source refactor requires reviewing the selector and recapturing the affected artifact. Version 2 records do not accept the former `reviewedChange` bypass; the recovery path is an actual recapture. A future extraction of export logic into a dedicated module would simplify these scopes, but belongs to the app/node owner and is not required for Learn maintenance.

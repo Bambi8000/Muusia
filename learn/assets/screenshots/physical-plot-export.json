@@ -1,9 +1,9 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.124",
-  "date": "2026-10-15",
+  "appVersion": "2.128",
+  "date": "2026-10-16",
   "patch": "examples/tutorial-physical-plot.muusia.json",
-  "patchSha256": "15ebd55b8b7161642b77f84156aa3fde9bc71a5fb90d40b5bfbb33efdb48365f",
+  "patchSha256": "40ad012f7f4a25944b6f1f497df0bef9d8ee9a9546c752b85fa6b9dabade8613",
   "file": "examples/physical-plot.svg",
   "sha256": "66c32f681b229a1132bbef1ecf8b414b8c87db8c6004d33996ee374ac904d15f",
   "selectedNode": "Merge",
@@ -63,7 +63,7 @@
     {
       "path": "src/defs/nodes/move_scale.js",
       "selector": "file",
-      "sha256": "6ee2ad58f72358b5a84556610610caee43220877cd047588e955847d6ebf15c3"
+      "sha256": "24e05802cad7793d1ff3e4b08f4951503af26072f7a5ceb8c054607289721021"
     },
     {
       "path": "src/defs/nodes/merge.js",
@@ -88,9 +88,9 @@
     "status": "Historical software check; not rerun during this SVG recapture. Does not verify the later first-lift settle dwell."
   },
   "physicalPlotVerified": false,
-  "sourceCommit": "470a2cd3f1e5c8d83f6fa3b4773e624b219d96b3",
+  "sourceCommit": "7085586cd002c796124dce22d54d987bdd7c277c",
   "sourceProvenanceVersion": 2,
-  "originalDownload": "Prepare your first physical plot (4).svg",
-  "captureMethod": "Actual in-app browser SVG download and Stack Pens SVG ZIP; route optimization off, direction preserved, margin 0, mirror/numbers/drill off, Red hidden while both colours exported; unchanged A — Servo Z G-code workflow. No hardware. Byte-for-byte equality verified after all-checkbox input changes; historical G-code evidence and PNGs unchanged.",
-  "sourceWorkingTree": "main, uncommitted 3D Spikes, Frame Bang and all-checkbox inputs; sourceFiles identify captured code"
+  "originalDownload": "Prepare your first physical plot (6).svg",
+  "captureMethod": "Actual in-app browser SVG download after Move / Scale opt-in motion changes. Original five-path A4 fixture, Merge selected, Optimize route off, Preserve direction on, Mega Canvas off, machine A unchanged. Byte-for-byte equality against the existing reference verified. No hardware; historical G-code check and screenshots unchanged. Recaptured once more after regenerating the fixture with explicit Motion Off defaults; exact updated patch checksum recorded.",
+  "sourceWorkingTree": "main, uncommitted Move / Scale motion; sourceFiles identify captured code"
 }
