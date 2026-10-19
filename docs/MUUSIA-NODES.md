@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 319 built-in nodes in the current Muusia source. Conventions used below:
+All 328 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,11 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (203)
+## Generators (205)
+
+**Cell Strands** — Parallel strands travel through a shared distorted cell network. Hex strands routes edge bundles through convex hexagons; Ribbon cells uses square cells. Every shared edge uses the same stations, so adjacent bundles meet exactly when both routes reach it. Carry adds routes to otherwise unused cell edges; Density leaves some cells empty. Cell edges is an optional separate pen. Displacement is uniformly reduced until all cells remain convex and inside the margin. Phase moves the deformation in a repeatable loop. Paths may cross inside cells; this is a strand network, not an over/under weave. Shared edge stations use canonical vertex indices and exact shared floating-point coordinates. Occupied cells and Extra routes determine whether a matching route exists on the other side. Displacement is reduced globally until cells remain convex and in bounds. Bundle crossings have no over/under masking. Style and edge/strand pens are supported. Help: Shared-edge bundles.
+
+**Block Field** — A real 3D column terrain or scattered cube field. Heights come from coherent Noise or a loaded Image darkness map. Terraces quantizes heights; zero means smooth heights. Cell gap separates columns. Drawing shows visible faces with outlines or paper-spaced hatching and raster hidden-line removal. Mesh contains complete closed blocks, centred and normalized by the standard mesh contract, for Mesh Render, Mesh Slice and 3D Spikes. View angle/elevation change Drawing only; downstream mesh consumers use their own camera. Phase shifts noise in a deterministic loop. Image requires a loaded file. Preview uses a fixed bounding envelope across noise motion; Mesh normalization can change as actual bounds change. The mesh contains complete outward-wound closed boxes, including touching internal faces; it is not a boolean-unioned terrain. Normalized Mesh dimensions may refit while noise moves; Drawing keeps a phase-independent envelope. Hidden drawing uses a bounded raster depth buffer and can show pixel-scale residuals at edges. Downstream camera/size are independent. Image darkness is sampled at column centres; missing image produces empty outputs. Help: Stepped noise terrain.
 
 **Reaction Patterns** — seeded Gray–Scott reaction–diffusion, traced into
 vector contours: Coral, Maze, Spots or Custom Feed/Kill. Style / Seeds / Region
@@ -1232,10 +1236,9 @@ feed it to Warp, Stretch or Lens to bend space itself.
 **Tracks** — concentric rings (athletics-track offsets) around a centre. Ring count,
 spacing, start radius.
 
-**Flow Field** — streamlines traced through a noise vector field. Scale sets feature
-size, steps set line length. The classic organic-flow workhorse.
+**Flow Field** — Trace a noise field, or choose Vortex, Sinks or Mixed poles. Even spacing grows lines forwards and backwards, stopping them near existing traces. Separation mm controls density; Steps and Trails remain upper limits. Wire closed marker centres or open path starts to Poles; otherwise a ring supplies them. Poles phase turns the fallback ring. Dots marks each trace with real tiny circles. Seed and phase are repeatable; wire Frame rot degrees to Poles phase for motion. Even spacing traces both directions; the separation is a stopping-distance floor rather than an exact equal gap. Poles takes at most 24 marker paths. Curve endpoints stop near older traces; very short proposals are rejected. Even placement and Dots uniformly bound trace work. Original Noise / Random starts / Lines output is unchanged. Help: Even pole streams.
 
-**Truchet** — tiled quarter-circle patterns. *Tiles* mode draws arc or diagonal tiles; *Tile fill* leaves a seeded share of tiles empty; *Separate* clamps arc radii and forces an edge gap so strands never meet or cross. *Loop* mode grows a spanning tree and emits **one single closed line** that fills the canvas — a maze you can plot without lifting the pen.
+**Truchet** — Tiled quarter-circle patterns. Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen. Band drawing Outlines produces hollow closed annular sectors; Hatch emits open concentric arcs at physical Hatch gap. Butterfly uses paired edge-midpoint semicircles with alternating row/column rotation. These modes do not promise a single continuous route. Dense settings increase tile size uniformly. Help: Butterfly bands.
 
 **Truchet Multiscale** — the Carlson-style multiscale sibling of Truchet:
 strands cross cell edges at fixed stations, and the node **chains** them tile
@@ -1442,7 +1445,7 @@ conifer-spike tops and optional trunk texture; *City*: stepped building skyline 
 height distribution, antennas and window dashes (some dark). Shares its Horizon Y
 convention with Water.
 
-**Tiles** — grid of tiles, each a separate closed path: parametric **Superellipse**, Circle, Triangle, Hexagon, Star, Reuleaux, Cross, with per-tile rotation and jitter. Layout: *Grid*, *Brick* (offset rows) or *Hex pack* (0.866 pitch — circles and hexagons at Size 100 touch their neighbours); *Alternate flip* rotates every other tile 180° so triangles tessellate. The natural Explosion input.
+**Tiles** — Grid of tiles, each a separate closed path: parametric Superellipse, Circle, Triangle, Hexagon, Star, Reuleaux or Cross, with per-tile rotation and jitter. Layout: Grid, Brick (odd rows offset half a cell) or Hex pack (offset rows at 0.866 pitch - circles and hexagons at Size 100 touch their neighbours). Alternate flip rotates every other tile 180 degrees so triangles tessellate. Field variation shares a coherent noise field across tiles, driving scale, angle and shift; Phase loops the field. Clip to own cell keeps the transformed motif inside its original cell. Arc is an open circular sweep. The natural Explosion input. Field variation 0 preserves the original geometry exactly. Clip to own cell uses rectangular windows in all layouts. Closed motifs use polygon clipping and Arc uses segment clipping. Field phase follows a circular noise-domain path for periodic motion. Help: Hidden square field.
 
 **Reg Marks** — registration marks in selectable corners (+ optional centre):
 cross, printer's circle-and-cross, or inward corner-L; adjustable insets. For
@@ -1747,10 +1750,7 @@ animate. Heavier at high iteration counts.
 in words and lines. Repeating letters from a finite alphabet make it read as
 language; every seed is a new script.
 
-**Network** — a seeded graph laid out by deterministic force simulation:
-nearest-neighbour links plus a few long-range ones untangle into constellation
-diagrams. Edges stop at node circles; node size can follow connection count;
-wire Iterations to animate the untangling.
+**Network** — A seeded graph laid out by force simulation (nodes repel, edges pull), replayed deterministically for N iterations - wire a value into Iterations to watch it untangle. Drift instead moves a seeded population through looping noise and rebuilds radius-limited nearest connections each frame. Use Timeline and ANIMATE or wire Drift phase. Nearest-neighbour links plus a few long-range ones give constellation diagrams; node circles can scale by connection count. Drift rebuilds undirected nearest-neighbour edges within Connection radius. Links per node caps each point’s proposals, not final degree. Fixed node identities move along a closed noise-domain phase; topology changes at distance thresholds. Timeline excludes a duplicated endpoint; Manual Drift phase accepts Frame rot degrees. Help: Drifting neighbourhoods.
 
 **Tubes** — tubes wandering and crossing in 3D, projected with perspective and
 drawn with real hidden lines: tubes break where they pass behind each other and
@@ -2049,17 +2049,7 @@ Alchemy symbols, or Asemic — the Seed generates a whole coherent invented scri
 the same letter always maps to the same glyph. Tracking goes negative for piled
 scrawl.
 
-**Mini Squares** — a field of axis-aligned squares packed on a hidden grid: larger
-multi-cell squares (*Max square*) are placed first, then single cells fill in around
-them against an occupancy grid, so neighbours share edges like a mosaic. Density is
-patchy fBm noise multiplied by a *Spread* falloff (Full / Corner / Center / Linear,
-strength via *Fade*) so the field crumbles away at its edge. *Nest depth* tucks
-smaller squares inside squares — concentric insets or corner-anchored knots (*Mixed*
-picks per square; each square keeps its own rng stream keyed to its cell, so its
-interior is stable while other params move). *Gap* shrinks every top-level square so
-shared edges separate. Structural invariant (validated): any two squares are
-interior-disjoint or strictly nested. Chain into Container or Wind Tunnel as an
-obstacle field, or drive Density with a value wire for animated growth.
+**Mini Squares** — A field of axis-aligned squares packed on a hidden grid: larger multi-cell squares are placed first, then single cells fill in around them, so neighbours share edges like a mosaic. Density comes from patchy noise multiplied by a Spread falloff (Corner / Center / Linear) so the field crumbles away at its edge. Nest depth tucks smaller squares inside squares - concentric insets or corner-anchored knots (Mixed picks per square). Gap shrinks every top-level square so shared edges separate. Rectangles packs variable-width and height cells into a gap-separated mosaic with optional rounded corners; Max width/height replace square nesting in this mode. Chain into Container or Wind Tunnel as an obstacle field, or drive Density with a value wire for animated growth. Rectangles packs integer-width and height modular cells with separate Max width/height, Gap and Corner radius. Square nesting controls are bypassed. At Density 1 all allocated rectangles draw; very large gaps may remove their visible outlines. Extreme density coarsens Cell uniformly. Help: Rounded rectangle mosaic.
 
 **Color Mesh** — crumpled-paper facet field filled with fine cross-hatch mesh. The
 sheet is fractured into convex facets by random BSP cuts; each facet gets its own
@@ -2550,7 +2540,7 @@ its own pen.
 
 **Apply Style** — applies a Stroke style to existing paths.
 
-**Wave** — sinusoidal displacement along/across paths.
+**Wave** — Deform incoming paths with Along path waves, circular Radial waves or multi-source Interference. The original mode follows each path independently. The new modes share a canvas-space field: wire marker centres to Wave sources or use the fallback centre/pair. Wavelength is in paper mm; Phase degrees moves the field, Decay attenuates distance, and Displacement angle controls the common direction. No automatic fit or crop: leave room for the amplitude. The new field amplitude is the average of source waves. Supplied closed paths contribute vertex-average centres, open paths their first point (24 maximum); a wired input replaces the fallback centre or pair. Phase degrees is separate from the legacy Phase radians. All incoming paths keep their pens. No refit or crop. Help: Two-source interference.
 
 **Squiggle** — replaces each line with a waveform travelling along it in the
 path's own frame. *Loops* draws overlapping pen coils (trochoid — loops appear
@@ -2591,7 +2581,7 @@ resample sparse paths and uniformly coarsen dense ones. Wire Frame to Twist angl
 for animation. Centre coordinates hide when Use canvas centre is on; mode-only
 controls hide and are ignored. No automatic fit/crop. Help: Vortex.
 
-**Warp** — 4-corner perspective or full lattice grid deformation.
+**Warp** — Warp a drawing with four corner offsets, a smooth Grid lattice or piecewise bilinear Cell interpolation. Cell interpolation keeps horizontal and vertical runs straight inside each coarse cell and bends them at the shared edges. Prevent folds uniformly reduces displacement until every cell has positive corner Jacobians. Cell phase drives repeatable continuous lattice motion; edges stay fixed. The two original modes keep their original output. Cell interpolation inserts exact source crossings at coarse grid boundaries. Prevent folds scales all displacement vectors together until every cell corner has positive Jacobian. It preserves cell orientation, not arbitrary source-path simplicity. Dashed overlay is the undeformed reference cage. Help: Piecewise woven grid.
 
 **Mirror** — reflection orbits around a movable centre: left-right, up-down,
 quad (4), or full 8-way D4 (cardinal + diagonal). Axes shown as guides. Mirrored
@@ -2782,9 +2772,7 @@ ink is lost at the seams. Amount selects how many tiles join the shuffle.
 center and replicates it N times, mirroring alternate copies. A mandala from
 anything.
 
-**To Polar** (deform) — cartesian-to-polar remap: x becomes angle, y becomes
-radius, bending any horizontal composition into rings, discs or fans. Turns,
-start angle and inner radius shape the wrap.
+**To Polar** — Wrap a drawing into polar rings or a continuous spiral. Morph blends from the original paper coordinates into the target; local noise varies the blend spatially. In Spiral, each horizontal revolution also increases radius by Spiral rise. The default Rings / Morph 100 preserves the original mapper. At Morph 0 the source passes through exactly. Wire Frame t through Math times 100 to Morph, or animate Start angle. Spiral rise reallocates radial progression from source Y to source X. Morph variation locally reduces the blend, including at 100; use variation 0 for a complete target. This is coordinate remapping, not two-source shape matching. Help: Spiral morph.
 
 **Fourier** (deform) — elliptic Fourier reconstruction of closed shapes from the
 first K harmonics: K=1 is an ellipse, K=64 the original. Wire a value into

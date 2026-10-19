@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "2.130",
-  "sourceCommit": "f881d9ef3adfe82596807ea3b38186880292ae4c",
+  "sourceCommit": "e3d4e7dfd20b09076adde7c98610495271bcff52",
   "canvas": {
     "W": 297,
     "H": 210
@@ -66,7 +66,7 @@
     "inputs": [
       {
         "path": "learn/generate-assets.mjs",
-        "sha256": "d193e97be24cd3aaa088e8ec8c064adfc39e4fcc113b2254745272b4005608ca"
+        "sha256": "e7307fbf24e03a5a5f33f06c3ef5179fa8337577937331d7fa802408bb21234d"
       },
       {
         "path": "learn/lib/fixtures.mjs",
@@ -90,7 +90,7 @@
       },
       {
         "path": "src/defs/nodes/aaltoilu.js",
-        "sha256": "3ddf01da7770ca6195ac5d04519c430b64cd198e9c1418fb29c388d25d378d3d"
+        "sha256": "794046d06dd40273ccbf67a96db141272b55284e41f5b15bf39f796ba0d96b90"
       },
       {
         "path": "src/defs/nodes/radat.js",
@@ -412,7 +412,7 @@
       },
       {
         "path": "examples/tutorial-first.muusia.json",
-        "sha256": "658658be0e38c0362ee3973900c8cf2d3fb9b5f967496bfb6e232063e4dc56e1"
+        "sha256": "6a55945a049938324e8f2c313001958593b99eebbce675d338458b0af806a15b"
       },
       {
         "path": "examples/tutorial-stamps.muusia.json",
@@ -420,11 +420,11 @@
       },
       {
         "path": "examples/tutorial-two-pens.muusia.json",
-        "sha256": "bfedea602366526768a46c259b60590ba875e7a88a6012613ac786e45c9b09d6"
+        "sha256": "7cb67cbe27eace9394f40f03c450382ffc4d26d695c3f1d9382e67eb2e169f96"
       },
       {
         "path": "examples/tutorial-svg-workflow.muusia.json",
-        "sha256": "e968c8b6da958130ce8869e9927339b02255cde5febf7cddbe234d2886c2c1b7"
+        "sha256": "6707d0f11b0c68f4b7d8ea611f8585238cf44076b5528c6315af8d711ef97ed5"
       },
       {
         "path": "examples/tutorial-transform-fill.muusia.json",
@@ -432,7 +432,7 @@
       },
       {
         "path": "examples/tutorial-numbers.muusia.json",
-        "sha256": "e707897ec9ee2b1737ff9dce72aaaa5fd8ecae310f6014617c845b3b91efbc76"
+        "sha256": "011840d3ed41317c545a19aacd0f1b65590eb73f72849018ffe04bc3f3c1e129"
       },
       {
         "path": "examples/tutorial-physical-plot.muusia.json",
@@ -440,11 +440,11 @@
       },
       {
         "path": "examples/satunnainen.muusia.json",
-        "sha256": "1950126db2dd67ee4b99c748e44d96d78d96e06412dcecbe8eeaa58dbad9124d"
+        "sha256": "53b3f72274b29ce55fe8d0afee82cdade7adb786062b348ba6c9cb4f003bcdb6"
       },
       {
         "path": "examples/matem.muusia.json",
-        "sha256": "6dfd5159d45b4ed1117e27eee70972a889ed74de20a15860c62a3333dc4dad87"
+        "sha256": "b00e00acea274a9efc427b01ac7879238bfbf3f5fc87077f99061b7921b146c0"
       },
       {
         "path": "examples/move_scale.muusia.json",
@@ -468,7 +468,7 @@
       },
       {
         "path": "examples/aaltoilu.muusia.json",
-        "sha256": "aac3bd1e015e8d5c5f58730a9fbf510a5ed842b2eae899987139385b5558c5dc"
+        "sha256": "cec68b842f9ec0bf84d90737a578edd9521ae7aa71a64fe3f3be762789f5db23"
       },
       {
         "path": "examples/radat.muusia.json",
@@ -484,15 +484,15 @@
       },
       {
         "path": "examples/setpen.muusia.json",
-        "sha256": "173c4b01751640e79642d3586cd5d8cf6139a37d01b078fcf2209daefb8b523e"
+        "sha256": "7b89b1f661925a1efc276c9baee296503c8e1dd4e3eb1fb4a87228bc6ebf8ed4"
       },
       {
         "path": "examples/merge.muusia.json",
-        "sha256": "bf88ef80650167c9a27db3750320c095d1e12e611bab25acaefbe0c6e13061dc"
+        "sha256": "35506ad1d1f4400a53d5d2b4e802fc666bd44756240085aa69975056b51882cf"
       },
       {
         "path": "examples/arvo.muusia.json",
-        "sha256": "6f9b2993874e53b390a3aa29752f2ac83a104cdc10534f7b309ec3c73998691c"
+        "sha256": "a49dc2780c1c90fd311b4734a96869a8f1f1174deef308e615a46f972aa00b1d"
       },
       {
         "path": "examples/frame.muusia.json",
@@ -876,6 +876,98 @@
       "groupKey": "deform",
       "params": [
         {
+          "key": "mode",
+          "label": "Wave field",
+          "type": "select",
+          "options": [
+            "Along path",
+            "Radial",
+            "Interference"
+          ],
+          "def": "Along path",
+          "default": "Along path",
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
+          "key": "phaseDeg",
+          "label": "Phase °",
+          "type": "slider",
+          "min": 0,
+          "max": 360,
+          "step": 1,
+          "def": 0,
+          "default": 0,
+          "conditional": true,
+          "visibilityNote": "Shown for Radial and Interference; this shared-field phase is in degrees.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "angle",
+          "label": "Displacement angle °",
+          "type": "slider",
+          "min": -180,
+          "max": 180,
+          "step": 1,
+          "def": 90,
+          "default": 90,
+          "conditional": true,
+          "visibilityNote": "Shown for Radial and Interference; sets the common displacement direction.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "decay",
+          "label": "Decay / 100 mm",
+          "type": "slider",
+          "min": 0,
+          "max": 4,
+          "step": 0.05,
+          "def": 0.15,
+          "default": 0.15,
+          "conditional": true,
+          "visibilityNote": "Shown for Radial and Interference; attenuates waves with distance.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "sourceX",
+          "label": "Source X mm",
+          "type": "slider",
+          "min": 0,
+          "max": 594,
+          "step": 1,
+          "def": 148.5,
+          "default": 148.5,
+          "conditional": true,
+          "visibilityNote": "Shown for Radial and Interference; places the fallback source centre. Wired Wave sources replaces it.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "sourceY",
+          "label": "Source Y mm",
+          "type": "slider",
+          "min": 0,
+          "max": 594,
+          "step": 1,
+          "def": 105,
+          "default": 105,
+          "conditional": true,
+          "visibilityNote": "Shown for Radial and Interference; places the fallback source centre. Wired Wave sources replaces it.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "separation",
+          "label": "Source separation mm",
+          "type": "slider",
+          "min": 0,
+          "max": 180,
+          "step": 1,
+          "def": 65,
+          "default": 65,
+          "conditional": true,
+          "visibilityNote": "Shown for Interference; separates the fallback pair of sources.",
+          "visibleByDefault": false
+        },
+        {
           "key": "amp",
           "label": "Amplitude mm",
           "type": "slider",
@@ -908,13 +1000,18 @@
           "step": 0.05,
           "def": 0,
           "default": 0,
-          "conditional": false,
+          "conditional": true,
+          "visibilityNote": "Shown for Along path; this legacy phase is in radians.",
           "visibleByDefault": true
         }
       ],
       "inputs": [
         {
           "type": "paths"
+        },
+        {
+          "type": "paths",
+          "label": "Wave sources"
         }
       ],
       "outputs": [
@@ -977,6 +1074,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0
@@ -995,6 +1099,13 @@
         "outputId": 9002
       },
       "exampleParams": {
+        "mode": "Along path",
+        "phaseDeg": 0,
+        "angle": 90,
+        "decay": 0.15,
+        "sourceX": 148.5,
+        "sourceY": 105,
+        "separation": 65,
         "amp": 4,
         "wl": 45,
         "phase": 0
@@ -1719,6 +1830,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0
@@ -1903,6 +2021,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0
@@ -2058,6 +2183,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0
@@ -4657,6 +4789,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0
@@ -4834,6 +4973,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0
@@ -5808,6 +5954,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0
@@ -5962,6 +6115,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0
@@ -6063,6 +6223,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0
@@ -6366,6 +6533,13 @@
             "key": "aaltoilu",
             "name": "Wave",
             "params": {
+              "mode": "Along path",
+              "phaseDeg": 0,
+              "angle": 90,
+              "decay": 0.15,
+              "sourceX": 148.5,
+              "sourceY": 105,
+              "separation": 65,
               "amp": 4,
               "wl": 45,
               "phase": 0

@@ -1,0 +1,94 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "spiral-morph-animation",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "grid",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "vlines": 18,
+          "hlines": 14,
+          "margin": 20,
+          "res": 2,
+          "layer": 0
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "topolar",
+        "x": 380,
+        "y": 40,
+        "params": {
+          "mode": "Spiral",
+          "morph": 75,
+          "rise": 70,
+          "noise": 20,
+          "noiseSize": 65,
+          "seed": 17,
+          "rin": 10,
+          "turns": 2.4,
+          "start": 270,
+          "flip": "Outer edge",
+          "margin": 20,
+          "res": 1
+        }
+      },
+      {
+        "id": 9100,
+        "type": "frame",
+        "x": 25,
+        "y": 900,
+        "params": {
+          "bangRate": "1/4",
+          "bangEvery": 4,
+          "bangChance": 25,
+          "bangSeed": 41
+        }
+      },
+      {
+        "id": 9101,
+        "type": "matem",
+        "x": 350,
+        "y": 900,
+        "params": {
+          "op": "A × B",
+          "a": 1,
+          "b": 100
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "shape-source",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      },
+      {
+        "id": "shape-clock-math",
+        "from": 9100,
+        "fromPort": 0,
+        "to": 9101,
+        "toPort": 0
+      },
+      {
+        "id": "shape-clock",
+        "from": 9101,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": "p:morph"
+      }
+    ],
+    "outputId": 9002
+  }
+}

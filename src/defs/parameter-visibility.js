@@ -145,7 +145,7 @@ when('viiva','dash gap vary phase seed',p=>p.mode!=='Solid','Styled stroke split
 when('volcano','spokes',p=>one(p,'render',['Spokes','Mesh']),'Meridian grid');
 when('volcano','dotSize dotJitter dotGrow',p=>p.render==='Dots','Dot rendering');
 when('warp','tlx tly trx trY brx bry blx bly',p=>p.mode==='4 corners','Corner warp');
-when('warp','cells amp seed',p=>p.mode==='Grid lattice','Lattice warp');
+when('warp','cells amp seed',p=>['Grid lattice','Cell interpolation'].includes(p.mode),'Lattice warp');
 when('wood','flame',p=>p.mode==='Grain (split face)','Grain cathedral profile');
 when('wood','eccAng bark',p=>p.mode==='Rings (cross-cut)','Cross-cut stretch direction and bark');
 when('worm','legLen legEvery',p=>p.legs==='Centipede','Leg emission');
@@ -270,6 +270,13 @@ when('pleat','chevron',p=>/[\^v]/.test(pleatProgram(p)),'Chevron crease tokens')
 when('pleat','shift',p=>/[<>]/.test(pleatProgram(p)),'Shifted crease tokens');
 when('pleat','pinch',p=>/[()]/.test(pleatProgram(p)),'Pinch and flare crease tokens');
 when('needlepunch','seed',p=>one(p,'mod',['Noise','Jitter'])&&p.modAmt>0,'Random interval modulation');
+when('flow','scale curl',p=>p.field==='Noise','Noise field');
+when('aaltoilu','phase',p=>!p.mode||p.mode==='Along path','Legacy path-space phase');
+when('network','iters longp',p=>!p.motion||p.motion==='Force layout','Force simulation only');
+when('network','phase',p=>p.motion==='Drift'&&p.timeSource!=='Timeline','Manual drift phase');
+when('mini_squares','maxsize nest nestp neststyle',p=>!p.packing||p.packing==='Squares','Square nesting only');
+when('truchet','seed',p=>p.mode!=='Butterfly','Butterfly uses a deterministic row rhythm');
+when('block_field','seed',p=>p.heightSource!=='Image'||p.mode==='Scattered cubes','Noise heights or scattered occupancy');
 const BY_NODE = new Map();
 for(const rule of VISIBILITY_RULES){if(!BY_NODE.has(rule.node))BY_NODE.set(rule.node,new Map());const map=BY_NODE.get(rule.node);for(const key of rule.keys){if(!map.has(key))map.set(key,[]);map.get(key).push(rule);}}
 export function isParameterActive(parameter, params) {

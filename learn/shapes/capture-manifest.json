@@ -1,0 +1,410 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "2.130",
+  "capturedAt": "2026-10-19",
+  "sourceCommit": "e3d4e7dfd20b09076adde7c98610495271bcff52",
+  "scope": "Actual local development build with eight extended nodes and Cell Strands / Block Field. Ten actual SVG downloads, twenty unretouched UI screenshots and eight actual 12-frame SVG ZIP downloads. Optimize route off. No physical machine run or publication.",
+  "engineScopeSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
+  "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "sourceHashes": {
+    "src/defs/nodes/flow.js": "9188ae1d69911cb9cbb57be8531cdf79054e4cb2501a2a182d0c679352919dda",
+    "src/defs/nodes/aaltoilu.js": "794046d06dd40273ccbf67a96db141272b55284e41f5b15bf39f796ba0d96b90",
+    "src/defs/nodes/grid.js": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2",
+    "src/defs/nodes/topolar.js": "d809c7d4c1bdb0826c472a0ccae4e37dfac7ce7a57db74f9c9efec07e0af835c",
+    "src/defs/nodes/warp.js": "011974f2832ffd852cbe6189295cc20c65850d08429c2d5311cafa6c61ee544b",
+    "src/defs/nodes/truchet.js": "5cffa3d03d3e4c9bc0cc08303ca73b85a654c076c9845b5af82254a97cd1196e",
+    "src/defs/nodes/tiles.js": "fe3663adeacef7cacdf6604c7465c7f0abc0693c658c0ba2535b583d492de88f",
+    "src/defs/nodes/mini_squares.js": "ff808b8962ec6c155dbdd4940d050ab3a8c99342b6e5309bd4da394cc3921b99",
+    "src/defs/nodes/network.js": "d68a843aa4b9f57e473bbd4a5ad76c75f6187e16198691cd41f483ef76576e9a",
+    "src/defs/nodes/cell_strands.js": "241e848b97c9b870cea650d032f5801f2660eeb4dcf88da09f2c4769185b33db",
+    "src/defs/nodes/block_field.js": "e43038d8b58ca378a69df04c3f26e230989f8f2747d458365fa5edbefbed888e",
+    "src/defs/nodes/frame.js": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204",
+    "src/defs/nodes/matem.js": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5",
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
+    "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684"
+  },
+  "lessons": [
+    {
+      "id": "flow-poles",
+      "patch": {
+        "file": "patches/flow-poles.muusia.json",
+        "sha256": "0aef8d06180c4cca36ae1bcb7991e9898875b1bfe863a34d24186538266c89a2"
+      },
+      "svg": {
+        "file": "assets/flow-poles.svg",
+        "sha256": "cc853fffaf23cb8cd2af67ba559de6e236af08dcbe39809a304e0555ed502f1c"
+      },
+      "gcode": {
+        "file": "verification/flow-poles.gcode",
+        "sha256": "bbff6822da6f0a44f0ba13235c287342d38ca11cebb5df175cd6b4d7a8c9af30"
+      },
+      "captures": [
+        {
+          "file": "assets/flow-poles-graph.png",
+          "sha256": "073a4a91a0567545c88ca7995d4895bb85ede3a8230dfbdf02c1ac0df5367472",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/flow-poles-focus.png",
+          "sha256": "1a6363b24199a60742ce47a746b994702e934645161882503606181eaa837f23",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "animation": {
+        "file": "animations/flow-poles.zip",
+        "sha256": "17543aa16d6738128dca64c27bccda6c4bb027eb20ca7b0481864ebdfe177fc9",
+        "frames": 12,
+        "patch": {
+          "file": "patches/flow-poles-animation.muusia.json",
+          "sha256": "2e1d49a4ec47f289a9a823b6da0706bc15931dc9f33833e4dcccbab6d1b8404b"
+        }
+      }
+    },
+    {
+      "id": "wave-interference",
+      "patch": {
+        "file": "patches/wave-interference.muusia.json",
+        "sha256": "8af8d798c3b1e3049c5e100ddd33dfdf5faa7a46ecbc3e601d3808c92053b508"
+      },
+      "svg": {
+        "file": "assets/wave-interference.svg",
+        "sha256": "c7f62c94f118b33210eb80868a7a3f4018d80da4d2c834a16576868de9e4247a"
+      },
+      "gcode": {
+        "file": "verification/wave-interference.gcode",
+        "sha256": "a0cc64e7618a964151ba4184ee51333ad4ac2d6701d8e5f98f6450d33d762cd7"
+      },
+      "captures": [
+        {
+          "file": "assets/wave-interference-graph.png",
+          "sha256": "db0244a0433d7c4cb3a80935eaf94f37236c95dcab2987822d6cf2dfc0bdfa46",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/wave-interference-focus.png",
+          "sha256": "e33c01975adb9188b3ed43f1967b4ecc744549d872dfd92d1282eefac7b8be9f",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "animation": {
+        "file": "animations/wave-interference.zip",
+        "sha256": "b515466314eb98c9afdcb0f3ef11cbe9374906b14c4a2589b1c0153bd501d1d5",
+        "frames": 12,
+        "patch": {
+          "file": "patches/wave-interference-animation.muusia.json",
+          "sha256": "26ea29b600ad5349432a0234930335031703353dc81fcf2d158e8adb144a0135"
+        }
+      }
+    },
+    {
+      "id": "spiral-morph",
+      "patch": {
+        "file": "patches/spiral-morph.muusia.json",
+        "sha256": "26736a99808e0d8b2425afc44ac976ad0a6cb79f2e5591164e6dc2d18ad7fe77"
+      },
+      "svg": {
+        "file": "assets/spiral-morph.svg",
+        "sha256": "20b89dbbfa9b14b13a2f97630630ff7412043a41bfb8bee2b0fde434e0c2f3eb"
+      },
+      "gcode": {
+        "file": "verification/spiral-morph.gcode",
+        "sha256": "d3e6ac3bd898cd8e1b84e12c544684dbdea1fa8b5db69c60f5ec955640021207"
+      },
+      "captures": [
+        {
+          "file": "assets/spiral-morph-graph.png",
+          "sha256": "47fe0d82420f334ba74d8ea90352e51a59ab6ec7a604d4285df4ebf57617c41b",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/spiral-morph-focus.png",
+          "sha256": "249f9d4166ee7fb4dec91c53827e9e4a448f0208a900f77c6acc411d5e40b0eb",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "animation": {
+        "file": "animations/spiral-morph.zip",
+        "sha256": "264edcca19a1fee5492ebe09fb4112c3d7f3392522faab0cdeb43626373abc07",
+        "frames": 12,
+        "patch": {
+          "file": "patches/spiral-morph-animation.muusia.json",
+          "sha256": "14530a97b8ad1f9f96c6af0324178bc78277f649727b3a8b01f3e858fec3dd72"
+        }
+      }
+    },
+    {
+      "id": "cell-warp",
+      "patch": {
+        "file": "patches/cell-warp.muusia.json",
+        "sha256": "2184179cc1bb9e0ac7a65827403e7c3b2ec1cb4975b0f636b7c9a2dc33ef46e8"
+      },
+      "svg": {
+        "file": "assets/cell-warp.svg",
+        "sha256": "9aaa0b357f38bda7d46ffbac1cf1555239496e4f5c81a8af9a71f55533e6a148"
+      },
+      "gcode": {
+        "file": "verification/cell-warp.gcode",
+        "sha256": "84b4a43201547c8a9ff5d7a664a15ec1ef4b355d737e4a1f90bf701e19948d72"
+      },
+      "captures": [
+        {
+          "file": "assets/cell-warp-graph.png",
+          "sha256": "8bf84a5db90d5eb838469ee52314c913ec508a0300509e81f0eb56ed837d649c",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/cell-warp-focus.png",
+          "sha256": "56209e87509e1e404ec37a1b603e9992703c7ef6b3c7433d024606f3fb0972f2",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "animation": {
+        "file": "animations/cell-warp.zip",
+        "sha256": "ed1fb353a40dd7f31219d25c42ad7fc1bdd144108ad5ccee9b39bb5d77b9b6a0",
+        "frames": 12,
+        "patch": {
+          "file": "patches/cell-warp-animation.muusia.json",
+          "sha256": "0ff11758a20b174183ef05e970ba45b2862009166a417da90374189f0d0b39de"
+        }
+      }
+    },
+    {
+      "id": "truchet-bands",
+      "patch": {
+        "file": "patches/truchet-bands.muusia.json",
+        "sha256": "17fb9fce3578ecbe32b0c367be23c1d3b3ba7e08c158e7098e71a52b82e01e06"
+      },
+      "svg": {
+        "file": "assets/truchet-bands.svg",
+        "sha256": "5202e4ea673cf3ff9870a4d5ced84d86b245db9a59bc90f42327c2c883b45de1"
+      },
+      "gcode": {
+        "file": "verification/truchet-bands.gcode",
+        "sha256": "49c8ff7dde6e23886e467efb3402a2548f78c7f0dbe78cf60faf12db94e3b6f7"
+      },
+      "captures": [
+        {
+          "file": "assets/truchet-bands-graph.png",
+          "sha256": "b3cc8765c21bed497eca13a508782bb897fa41015cea85d43f8f0d75787e7842",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/truchet-bands-focus.png",
+          "sha256": "6def23337a3fce8ba5dd26b9463f2e0c2a5c8cdd8634780c58b39a5c79ee01ad",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ]
+    },
+    {
+      "id": "tiles-field",
+      "patch": {
+        "file": "patches/tiles-field.muusia.json",
+        "sha256": "ba5632e8b1929e1a17b0c3d746226403f37f220f996e0603a892e2c16b8581e4"
+      },
+      "svg": {
+        "file": "assets/tiles-field.svg",
+        "sha256": "893c8fc3141a900835309d205eab7a2ba2a80f240b3d9ebfa037e73153c25b21"
+      },
+      "gcode": {
+        "file": "verification/tiles-field.gcode",
+        "sha256": "26d37ebb7b965d014e16d8076580ff6b795e112495d36affee1eef6c74a1ed75"
+      },
+      "captures": [
+        {
+          "file": "assets/tiles-field-graph.png",
+          "sha256": "0d28e0647b35a1b55aaf56b53538103b91dc84a779516a152e93561cae0aafa9",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/tiles-field-focus.png",
+          "sha256": "9a0d6546c8f558582c3ea61a0a763ac69d80c97ef9c28bf6e19e8869426ca7fc",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "animation": {
+        "file": "animations/tiles-field.zip",
+        "sha256": "c817c2bb9ab7edaa6c2dcd7fc8841c75a1f016eab150b2e1fb3e3f749efead21",
+        "frames": 12,
+        "patch": {
+          "file": "patches/tiles-field-animation.muusia.json",
+          "sha256": "f0ade6985ab91d83f86387572c927e38b5d78d823b5d58e7125df2a34ea1b866"
+        }
+      }
+    },
+    {
+      "id": "packed-rectangles",
+      "patch": {
+        "file": "patches/packed-rectangles.muusia.json",
+        "sha256": "27b4d87400ac94c2eb0ef74539fbd32774810c9028fb6923c39c1b7901264aa4"
+      },
+      "svg": {
+        "file": "assets/packed-rectangles.svg",
+        "sha256": "508edb2a8da3d2e92650b324255a4027cc0a8d31c26fa79a21782af18e3e4a9c"
+      },
+      "gcode": {
+        "file": "verification/packed-rectangles.gcode",
+        "sha256": "ddd769660b5aa168952b1665c9f364185314cef3d941c9a8a116d8da21212da1"
+      },
+      "captures": [
+        {
+          "file": "assets/packed-rectangles-graph.png",
+          "sha256": "1d5e3a42ce7283e4e1bc969a12d328247c9d168463853ec70778df7342af183d",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/packed-rectangles-focus.png",
+          "sha256": "c6d9afb400a33cc5d6ac4a0d2e9147b8bf50df999090264d267e8998fe0659c5",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ]
+    },
+    {
+      "id": "network-drift",
+      "patch": {
+        "file": "patches/network-drift.muusia.json",
+        "sha256": "3d8a83087bedc39e50735d63985a6a86d7ec9df1c8924002f1619b0d2ac2aa17"
+      },
+      "svg": {
+        "file": "assets/network-drift.svg",
+        "sha256": "50f58142310bd2c0836453b54070f0a4594531849c27e32ee66816d30defea3b"
+      },
+      "gcode": {
+        "file": "verification/network-drift.gcode",
+        "sha256": "cabfc32e630fb97f0da6666969778f86b8771dcb58f1c465427dd5260d82f394"
+      },
+      "captures": [
+        {
+          "file": "assets/network-drift-graph.png",
+          "sha256": "e4bcd72a37503a8c53f248fdbd1c7f160560328c3066f6c5b89b543fee81afda",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/network-drift-focus.png",
+          "sha256": "c45d190e9b67cb0923747c51737653ef09cd08e59a8becb97c75ecd9e71c5462",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "animation": {
+        "file": "animations/network-drift.zip",
+        "sha256": "cee90f6604f9eb9ad6e5a0a3405dd0971f3983e2de13667d84c86ab562470607",
+        "frames": 12,
+        "patch": {
+          "file": "patches/network-drift-animation.muusia.json",
+          "sha256": "87e75c822fae640fc78b3f6d2fe13b9becbe3640e56c6ace7a8f6868e1cc01df"
+        }
+      }
+    },
+    {
+      "id": "cell-strands",
+      "patch": {
+        "file": "patches/cell-strands.muusia.json",
+        "sha256": "f8a42495cc04fe3f5f40a6e50922cb4949fd4628e7e5fcb08e40c125e69099a2"
+      },
+      "svg": {
+        "file": "assets/cell-strands.svg",
+        "sha256": "4aeec0fd85968459024d183d9acf3dfd78df84c8964b463bd70611b2de7d4747"
+      },
+      "gcode": {
+        "file": "verification/cell-strands.gcode",
+        "sha256": "66c02990939e7f5eb73e8019b254df9423abc9cb6d8f7e30075ea9a9f2004451"
+      },
+      "captures": [
+        {
+          "file": "assets/cell-strands-graph.png",
+          "sha256": "8263151d86af98a4d813392fdcdfc7d9c722a6904ac9184c8462475c66220ce6",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/cell-strands-focus.png",
+          "sha256": "a33eb1c6468e05df1e3b5013b94e6e2c981dc03fbf01989662abc635da731991",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "animation": {
+        "file": "animations/cell-strands.zip",
+        "sha256": "95d04bd5c68419570d8eea377f44ed894ab518798424d97911f7337e549cff8a",
+        "frames": 12,
+        "patch": {
+          "file": "patches/cell-strands-animation.muusia.json",
+          "sha256": "b6268b90fdba12328e8971c1d2be07c6c0fa566255d3bdc9dd10af087b65ec44"
+        }
+      }
+    },
+    {
+      "id": "block-field",
+      "patch": {
+        "file": "patches/block-field.muusia.json",
+        "sha256": "11adab8caed549761bb157c157304530b7c5cc150d3ea257b3d6b3a7f9d81443"
+      },
+      "svg": {
+        "file": "assets/block-field.svg",
+        "sha256": "d8d1be7661a96ec24a265c07f0ed9ba7657399c03e33abfcb6bb6054b7baca67"
+      },
+      "gcode": {
+        "file": "verification/block-field.gcode",
+        "sha256": "46f7e7a9c2531e5d1f51df6a0e6d2098ff502ef5529c22914a6b24ac23601b08"
+      },
+      "captures": [
+        {
+          "file": "assets/block-field-graph.png",
+          "sha256": "72a88944b0eba3a81d7a57c9d95f8dbdf4cc2343f7c1d5ca306a8b7267513054",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/block-field-focus.png",
+          "sha256": "39a12fd3b9835f8cd4b7d5c4d5a9fafd116863992b1bb903358ddd81ab7d98a3",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "animation": {
+        "file": "animations/block-field.zip",
+        "sha256": "61b65908178b5b34b33366b8b81caffd558c4c412caf1ffd152c081d4d223626",
+        "frames": 12,
+        "patch": {
+          "file": "patches/block-field-animation.muusia.json",
+          "sha256": "7472edfaacb48f0857f15d19441616961577737a4a0665c0a187abdb159df476"
+        }
+      }
+    }
+  ]
+}

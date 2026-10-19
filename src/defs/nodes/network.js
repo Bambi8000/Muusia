@@ -1,14 +1,20 @@
-import { Pin, mulberry32, applyStyle } from "../helpers.js";
+import { Pin, mulberry32, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "network",
     name: "Network",
     cat: "gen",
     group: "structural",
-    desc: "A seeded graph laid out by force simulation (nodes repel, edges pull), replayed deterministically for N iterations - wire a value into Iterations to watch it untangle. Nearest-neighbour links plus a few long-range ones give constellation diagrams; node circles can scale by connection count.",
+    desc: "A seeded graph laid out by force simulation (nodes repel, edges pull), replayed deterministically for N iterations - wire a value into Iterations to watch it untangle. Drift instead moves a seeded population through looping noise and rebuilds radius-limited nearest connections each frame. Use Timeline and ANIMATE or wire Drift phase. Nearest-neighbour links plus a few long-range ones give constellation diagrams; node circles can scale by connection count.",
     ins: [Pin("style", "Style")],
     outs: [Pin("paths")],
     params: [
+      {key:'motion',label:'Layout',type:'select',options:['Force layout','Drift'],def:'Force layout'},
+      {key:'radius',label:'Connection radius mm',type:'slider',min:5,max:100,step:1,def:35,showIf:p=>p.motion==='Drift'},
+      {key:'drift',label:'Drift mm',type:'slider',min:0,max:50,step:1,def:16,showIf:p=>p.motion==='Drift'},
+      {key:'phase',label:'Drift phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.motion==='Drift'},
+      {key:'timeSource',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual',showIf:p=>p.motion==='Drift'},
+      {key:'cycles',label:'Cycles',type:'slider',min:1,max:8,step:1,def:1,showIf:p=>p.motion==='Drift'&&p.timeSource==='Timeline'},
       { key: "nodes", label: "Nodes", type: "slider", min: 5, max: 120, step: 1, def: 40 },
       { key: "links", label: "Links per node", type: "slider", min: 1, max: 4, step: 1, def: 2 },
       { key: "longp", label: "Long links", type: "slider", min: 0, max: 0.3, step: 0.01, def: 0.06 },
@@ -19,7 +25,20 @@ export default {
       { key: "seed", label: "Seed", type: "seed", def: 5 },
       { key: "layer", label: "Pen", type: "pen", def: 0 }
     ],
+    overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+    _drift(ins,p,c){
+      const m=Math.max(0,+p.margin||0),w=c.W-2*m,h=c.H-2*m;if(w<=2||h<=2)return {paths:[]};
+      const N=Math.max(3,Math.min(180,Math.round(+p.nodes||40))),rng=mulberry32((+p.seed||0)*9013+3),amp=Math.max(0,Math.min(+p.drift||0,Math.min(w,h)/4)),phase=(p.timeSource==='Timeline'?0:(+p.phase||0)*Math.PI/180)+(p.timeSource==='Timeline'&&c.frameCount>1?c.frameIdx/c.frameCount*2*Math.PI*Math.max(1,Math.min(8,Math.round(+p.cycles||1))):0),positions=[];
+      for(let i=0;i<N;i++){const x=m+amp+rng()*Math.max(0,w-2*amp),y=m+amp+rng()*Math.max(0,h-2*amp),z=rng()*40;positions.push([x+amp*(2*noise2(z+Math.cos(phase),Math.sin(phase),p.seed)-1),y+amp*(2*noise2(z+11+Math.cos(phase),Math.sin(phase),p.seed+7)-1)]);}
+      const maxLinks=Math.max(1,Math.min(12,Math.round(+p.links||2))),radius=Math.max(1,Math.min(300,+p.radius||35)),edges=new Set(),degree=Array(N).fill(0),layer=Math.max(0,Math.min(11,Math.round(+p.layer||0))),paths=[];
+      for(let i=0;i<N;i++){const candidates=positions.map((q,j)=>({j,d:Math.hypot(q[0]-positions[i][0],q[1]-positions[i][1])})).filter(q=>q.j!==i&&q.d<radius).sort((a,b)=>a.d-b.d||a.j-b.j).slice(0,maxLinks);for(const {j}of candidates){const key=i<j?i+','+j:j+','+i;if(!edges.has(key)){edges.add(key);degree[i]++;degree[j]++;}}}
+      const rad=i=>p.dots?(p.degsize?.4+Math.sqrt(degree[i])*.2:.65):0;
+      for(const edge of edges){const [i,j]=edge.split(',').map(Number),a=positions[i],b=positions[j],dx=b[0]-a[0],dy=b[1]-a[1],d=Math.hypot(dx,dy);if(d>rad(i)+rad(j)+.01)paths.push({pts:[[a[0]+dx/d*rad(i),a[1]+dy/d*rad(i)],[b[0]-dx/d*rad(j),b[1]-dy/d*rad(j)]],closed:false,layer});}
+      if(p.dots)for(let i=0;i<N;i++){const q=positions[i],r=rad(i);paths.push({pts:Array.from({length:12},(_,k)=>[q[0]+r*Math.cos(k*Math.PI/6),q[1]+r*Math.sin(k*Math.PI/6)]),closed:true,layer});}
+      return applyStyle({paths},ins[0]);
+    },
     compute(ins, p, ctx) {
+      if(p.motion==='Drift')return this._drift(ins,p,ctx);
       const { W, H } = ctx;
       const m = Math.max(2, p.margin);
       const x0 = m, x1 = W - m, y0 = m, y1 = H - m;

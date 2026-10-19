@@ -1,19 +1,27 @@
-import { Pin, mulberry32, applyStyle } from "../helpers.js";
+import { Pin, mulberry32, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "tiles",
   name: "Tiles",
   cat: "gen",
   group: "geometric",
-  desc: "Grid of tiles, each a separate closed path: parametric Superellipse, Circle, Triangle, Hexagon, Star, Reuleaux or Cross, with per-tile rotation and jitter. Layout: Grid, Brick (odd rows offset half a cell) or Hex pack (offset rows at 0.866 pitch - circles and hexagons at Size 100 touch their neighbours). Alternate flip rotates every other tile 180 degrees so triangles tessellate. The natural Explosion input.",
+  desc: "Grid of tiles, each a separate closed path: parametric Superellipse, Circle, Triangle, Hexagon, Star, Reuleaux or Cross, with per-tile rotation and jitter. Layout: Grid, Brick (odd rows offset half a cell) or Hex pack (offset rows at 0.866 pitch - circles and hexagons at Size 100 touch their neighbours). Alternate flip rotates every other tile 180 degrees so triangles tessellate. Field variation shares a coherent noise field across tiles, driving scale, angle and shift; Phase loops the field. Clip to own cell keeps the transformed motif inside its original cell. Arc is an open circular sweep. The natural Explosion input.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    {key:'field',label:'Field variation %',type:'slider',min:0,max:100,step:1,def:0},
+    {key:'fieldScale',label:'Field size mm',type:'slider',min:5,max:200,step:1,def:60,showIf:p=>p.field>0},
+    {key:'fieldMove',label:'Field shift %',type:'slider',min:0,max:100,step:1,def:45,showIf:p=>p.field>0},
+    {key:'fieldRotate',label:'Field rotation °',type:'slider',min:0,max:180,step:1,def:90,showIf:p=>p.field>0},
+    {key:'fieldShrink',label:'Field shrink %',type:'slider',min:0,max:100,step:1,def:60,showIf:p=>p.field>0},
+    {key:'phase',label:'Field phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.field>0},
+    {key:'clipCell',label:'Clip to own cell',type:'check',def:false,showIf:p=>p.field>0},
+    {key:'arcSweep',label:'Arc sweep °',type:'slider',min:10,max:350,step:1,def:270,showIf:p=>p.shape==='Arc'},
     { key: "cols", label: "Columns", type: "slider", min: 1, max: 40, step: 1, def: 10 },
     { key: "rows", label: "Rows", type: "slider", min: 1, max: 40, step: 1, def: 7 },
     { key: "layout", label: "Layout", type: "select", options: ["Grid", "Brick (offset rows)", "Hex pack"], def: "Grid" },
     { key: "flipAlt", label: "Alternate flip (triangles)", type: "check", def: false },
-    { key: "shape", label: "Shape", type: "select", options: ["Superellipse", "Circle", "Triangle", "Hexagon", "Star", "Reuleaux", "Cross"], def: "Superellipse" },
+    { key: "shape", label: "Shape", type: "select", options: ["Superellipse", "Circle", "Triangle", "Hexagon", "Star", "Reuleaux", "Cross", "Arc"], def: "Superellipse" },
     { key: "superN", label: "Superellipse N", type: "slider", min: 0.4, max: 8, step: 0.05, def: 2.5 },
     { key: "sizeX", label: "Size X %", type: "slider", min: 10, max: 100, step: 1, def: 78 },
     { key: "sizeY", label: "Size Y % (0 = same)", type: "slider", min: 0, max: 100, step: 1, def: 0 },
@@ -25,6 +33,7 @@ export default {
     { key: "seed", label: "Seed", type: "seed", def: 101 },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
+  overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
   compute(ins, p, ctx) {
     const { W, H } = ctx;
     const L = Math.round(p.layer);
@@ -53,6 +62,8 @@ export default {
           const t = (k / 48) * Math.PI * 2;
           pts.push([a * Math.cos(t), b * Math.sin(t)]);
         }
+      } else if(p.shape==='Arc'){
+        const sweep=Math.max(10,Math.min(350,+p.arcSweep||270))*Math.PI/180;for(let k=0;k<=40;k++){const t=sweep*k/40;pts.push([a*Math.cos(t),b*Math.sin(t)]);}
       } else if (p.shape === "Triangle") {
         for (let k = 0; k < 3; k++) {
           const t = (k / 3) * Math.PI * 2 - Math.PI / 2;
@@ -114,12 +125,18 @@ export default {
         const cy = oy0 + (hexPack ? r * pitch + ch / 2 : (r + 0.5) * ch);
         let ang = ((p.rot + (rng() - 0.5) * 2 * p.rotJit) * Math.PI) / 180;
         if (p.flipAlt && (r + c) % 2 === 1) ang += Math.PI;
-        const ca = Math.cos(ang), sa = Math.sin(ang);
-        paths.push({
-          pts: base.map(([x, y]) => [cx + x * ca - y * sa, cy + x * sa + y * ca]),
-          closed: true,
-          layer: L,
-        });
+        const field=Math.max(0,Math.min(1,+p.field/100||0)),size=Math.max(1,+p.fieldScale||60),phase=(+p.phase||0)*Math.PI/180,f=field*noise2(cx/size+Math.cos(phase),cy/size+Math.sin(phase),p.seed),shrink=1-f*Math.max(0,Math.min(1,+p.fieldShrink/100||0));
+        ang+=f*(+p.fieldRotate||0)*Math.PI/180;
+        const ca = Math.cos(ang), sa = Math.sin(ang),dx=f*(+p.fieldMove||0)/100*cw*.5,dy=f*(+p.fieldMove||0)/100*ch*.35;
+        const item={
+          pts: base.map(([x, y]) => [cx+dx+shrink*(x*ca-y*sa),cy+dy+shrink*(x*sa+y*ca)]),
+          closed: p.shape!=='Arc',layer:L,
+        };
+        if(field&&p.clipCell){
+          const box=[cx-cw/2,cy-ch/2,cx+cw/2,cy+ch/2];
+          if(item.closed){let poly=item.pts;for(let k=0;k<4;k++){const axis=k%2,bound=box[k],greater=k<2,inside=q=>greater?q[axis]>=bound:q[axis]<=bound,out=[];for(let i=0;i<poly.length;i++){const A=poly[i],B=poly[(i+1)%poly.length],a=inside(A),b=inside(B);if(a)out.push(A);if(a!==b){const t=(bound-A[axis])/(B[axis]-A[axis]);out.push([A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t]);}}poly=out;}if(poly.length>2)paths.push({...item,pts:poly});}
+          else{let run=[];const flush=()=>{if(run.length>1)paths.push({...item,pts:run});run=[];};for(let i=1;i<item.pts.length;i++){const A=item.pts[i-1],B=item.pts[i];let lo=0,hi=1;for(let axis=0;axis<2;axis++){const d=B[axis]-A[axis];if(Math.abs(d)<1e-12){if(A[axis]<box[axis]||A[axis]>box[axis+2]){lo=1;hi=0;}}else{const a=(box[axis]-A[axis])/d,b=(box[axis+2]-A[axis])/d;lo=Math.max(lo,Math.min(a,b));hi=Math.min(hi,Math.max(a,b));}}if(lo<=hi){const a=[A[0]+(B[0]-A[0])*lo,A[1]+(B[1]-A[1])*lo],b=[A[0]+(B[0]-A[0])*hi,A[1]+(B[1]-A[1])*hi];if(run.length&&Math.hypot(run.at(-1)[0]-a[0],run.at(-1)[1]-a[1])>1e-7)flush();if(!run.length)run.push(a);run.push(b);if(hi<1)flush();}else flush();}flush();}
+        }else paths.push(item);
       }
     }
     return applyStyle({ paths }, ins[0]);

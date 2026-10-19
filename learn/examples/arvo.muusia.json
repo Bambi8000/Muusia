@@ -36,6 +36,13 @@
         "x": 350,
         "y": 30,
         "params": {
+          "mode": "Along path",
+          "phaseDeg": 0,
+          "angle": 90,
+          "decay": 0.15,
+          "sourceX": 148.5,
+          "sourceY": 105,
+          "separation": 65,
           "amp": 4,
           "wl": 45,
           "phase": 0

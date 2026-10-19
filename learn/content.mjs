@@ -614,7 +614,7 @@ export const nodeGuides = {
     tutorials: ["first-drawing", "two-pen-composition", "export-two-colour-svg", "control-with-numbers", "first-physical-plot"]
   },
   aaltoilu: {
-    summary: "Bend existing paths into waves. The displacement follows each path’s local direction, so straight lines, curves and loops all respond differently.",
+    summary: "Bend existing paths into waves. Along path follows each stroke’s local direction. Radial and Interference use shared canvas-space sources; the Shapes tutorial shows the new modes. The earlier screenshot illustrates Along path before the new controls were added.",
     useWhen: "You want a flowing line field, rippled contours or a repeatable deformation of an existing drawing.",
     recipe: ["Load the example patch with its Grid → Wave connection.", "Set Amplitude mm to 4, Wavelength mm to 45 and Phase to 0.", "Select Wave to see the result. Select Grid briefly to compare the source, then return to Wave before exporting."],
     controls: [
@@ -622,7 +622,7 @@ export const nodeGuides = {
       { name: "Wavelength mm", text: "The distance travelled along a path for one complete wave. Smaller values create more tightly packed waves." },
       { name: "Phase", text: "Shifts the wave cycle without changing its height or wavelength. This is an angle in radians: roughly 6.28 makes one complete cycle." }
     ],
-    portNotes: "Connect blue paths to the blue input. Wave preserves pen assignments. Its green parameter ports can receive Value or Frame-driven numbers.",
+    portNotes: "Connect the artwork to the first blue input. The second, Wave sources, optionally accepts marker paths for Radial or Interference. Closed markers use vertex-average centres; open paths use their first point. Wave preserves pen assignments. Its green parameter ports can receive Value or Frame-driven numbers.",
     comparisonIntro: "Keep Wavelength mm fixed and compare Amplitude mm 0, 4 and 8. Then keep amplitude fixed and compare different wavelengths.",
     pitfalls: [
       { q: "Why does an unconnected Wave show nothing?", a: "Wave modifies incoming paths; it does not generate its own. Connect a generator such as Grid." },

@@ -1,11 +1,11 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.129",
-  "date": "2026-10-16",
+  "appVersion": "2.130",
+  "date": "2026-10-19",
   "patch": "examples/tutorial-svg-workflow.muusia.json",
-  "patchSha256": "e968c8b6da958130ce8869e9927339b02255cde5febf7cddbe234d2886c2c1b7",
+  "patchSha256": "6707d0f11b0c68f4b7d8ea611f8585238cf44076b5528c6315af8d711ef97ed5",
   "bundle": "examples/svg-workflow-per-pen.zip",
-  "originalDownload": "svg-workflow-per-pen.zip",
+  "originalDownload": "Export a two-colour SVG set-sheets-svg (7).zip",
   "sha256": "f0ce3fe36c406929766f68e644cdf3c4866602be463e5276172b001a500eca42",
   "selectedNode": "Merge",
   "settings": {
@@ -22,10 +22,10 @@
       2
     ],
     "workflow": "gcode",
-    "profileName": "Viivain - Gentle (technical pen)",
+    "profileName": "A — Servo Z (multi-tip brush)",
     "workArea": {
-      "W": 793,
-      "H": 813,
+      "W": 330,
+      "H": 240,
       "manufacturerVerified": false
     },
     "megaCanvas": false,
@@ -94,7 +94,7 @@
     {
       "path": "src/defs/nodes/aaltoilu.js",
       "selector": "file",
-      "sha256": "3ddf01da7770ca6195ac5d04519c430b64cd198e9c1418fb29c388d25d378d3d"
+      "sha256": "794046d06dd40273ccbf67a96db141272b55284e41f5b15bf39f796ba0d96b90"
     },
     {
       "path": "src/defs/nodes/radat.js",
@@ -110,5 +110,6 @@
   "sourceCommit": "7fc30e45226ef55bd4194b0361d2596333f965c9",
   "sourceProvenanceVersion": 2,
   "captureMethod": "Actual in-app Muusia Load/select Merge and download. SVG byte geometry unchanged after removing destructive engine truncation; Optimize route off, Preserve direction on, Mega Canvas off. Stack Pens: margin 0, mirror/numbers/drill off, Red hidden while both sheets exported. Existing PNGs and historical G-code check unchanged. No hardware.",
-  "sourceWorkingTree": "main, uncommitted complete graph output and dense stroke 3D fixes; sourceFiles identify captured code"
+  "sourceWorkingTree": "main, uncommitted complete graph output and dense stroke 3D fixes; sourceFiles identify captured code",
+  "recaptureNote": "Actual Stack Pens SVG ZIP downloaded after Wave extension. Red hidden in preview, both sheets exported; each SVG is byte-identical to the earlier reference. Existing PNGs and historical physical/G-code evidence unchanged. No hardware run."
 }

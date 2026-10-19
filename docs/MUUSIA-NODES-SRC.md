@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (324 files, generated)
+# MUUSIA v2.29 — Node Sources (326 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -10,13 +10,28 @@ import { Pin, EMPTY, resample } from "../helpers.js";
 
 export default {
   key: "aaltoilu",
-    name: "Wave", cat: "mod", group: "deform", ins: [Pin("paths")], outs: [Pin("paths")],
+    name: "Wave", cat: "mod", group: "deform", ins: [Pin("paths"),Pin("paths","Wave sources")], outs: [Pin("paths")],
+    desc: "Deform incoming paths with Along path waves, circular Radial waves or multi-source Interference. The original mode follows each path independently. The new modes share a canvas-space field: wire marker centres to Wave sources or use the fallback centre/pair. Wavelength is in paper mm; Phase degrees moves the field, Decay attenuates distance, and Displacement angle controls the common direction. No automatic fit or crop: leave room for the amplitude.",
     params: [
+      {key:'mode',label:'Wave field',type:'select',options:['Along path','Radial','Interference'],def:'Along path'},
+      {key:'phaseDeg',label:'Phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.mode&&p.mode!=='Along path'},
+      {key:'angle',label:'Displacement angle °',type:'slider',min:-180,max:180,step:1,def:90,showIf:p=>p.mode&&p.mode!=='Along path'},
+      {key:'decay',label:'Decay / 100 mm',type:'slider',min:0,max:4,step:.05,def:.15,showIf:p=>p.mode&&p.mode!=='Along path'},
+      {key:'sourceX',label:'Source X mm',type:'slider',min:0,max:594,step:1,def:148.5,showIf:p=>p.mode&&p.mode!=='Along path'},
+      {key:'sourceY',label:'Source Y mm',type:'slider',min:0,max:594,step:1,def:105,showIf:p=>p.mode&&p.mode!=='Along path'},
+      {key:'separation',label:'Source separation mm',type:'slider',min:0,max:180,step:1,def:65,showIf:p=>p.mode==='Interference'},
       { key: "amp", label: "Amplitude mm", type: "slider", min: 0, max: 20, step: 0.25, def: 3 },
       { key: "wl", label: "Wavelength mm", type: "slider", min: 2, max: 120, step: 1, def: 30 },
-      { key: "phase", label: "Phase", type: "slider", min: 0, max: 6.28, step: 0.05, def: 0 },
+      { key: "phase", label: "Phase", type: "slider", min: 0, max: 6.28, step: 0.05, def: 0, showIf:p=>!p.mode||p.mode==='Along path' },
     ],
+    _sources(ins,p){const paths=ins?.[1]?.paths||[];if(paths.length)return paths.slice(0,24).filter(q=>q.pts?.length).map(q=>q.closed?q.pts.reduce((a,b)=>[a[0]+b[0]/q.pts.length,a[1]+b[1]/q.pts.length],[0,0]):q.pts[0]);const x=+p.sourceX||0,y=+p.sourceY||0,d=Math.max(0,+p.separation||0)/2;return p.mode==='Interference'?[[x-d,y],[x+d,y]]:[[x,y]];},
+    overlay(p,c,ins){return p.mode&&p.mode!=='Along path'?this._sources(ins,p).map(q=>({kind:'point',x:q[0],y:q[1]})):[];},
     compute(ins, p) {
+      if(p.mode&&p.mode!=='Along path'){
+       const src=ins[0]||EMPTY,amp=Math.max(-200,Math.min(200,+p.amp||0));if(!amp)return src;
+       const wl=Math.max(.5,Math.abs(+p.wl||30)),phase=(+p.phaseDeg||0)*Math.PI/180,angle=(+p.angle||0)*Math.PI/180,decay=Math.max(0,Math.min(20,+p.decay||0)),sources=this._sources(ins,p),length=src.paths.reduce((s,q)=>s+q.pts.reduce((n,v,i)=>n+(i?Math.hypot(v[0]-q.pts[i-1][0],v[1]-q.pts[i-1][1]):0),0),0),step=Math.max(.3,wl/18,length/105000);
+       return {paths:src.paths.map(path=>({...path,pts:resample(path.pts,path.closed,step).map(([x,y])=>{let v=0;for(const q of sources){const d=Math.hypot(x-q[0],y-q[1]);v+=Math.sin(d/wl*Math.PI*2-phase)*Math.exp(-d*decay/100);}v*=amp/Math.max(1,sources.length);return [x+Math.cos(angle)*v,y+Math.sin(angle)*v];})}))};
+      }
       const src = ins[0] || EMPTY;
       const paths = src.paths.map((path) => {
         const pts = resample(path.pts, path.closed, Math.max(0.8, p.wl / 14));
@@ -3234,6 +3249,80 @@ export default {
 };
 ```
 
+## block_field.js
+
+```js
+import { Pin, hash2, noise2, applyStyle } from "../helpers.js";
+
+export default {
+ key:'block_field',name:'Block Field',cat:'gen',group:'geometric',
+ desc:'A real 3D column terrain or scattered cube field. Heights come from coherent Noise or a loaded Image darkness map. Terraces quantizes heights; zero means smooth heights. Cell gap separates columns. Drawing shows visible faces with outlines or paper-spaced hatching and raster hidden-line removal. Mesh contains complete closed blocks, centred and normalized by the standard mesh contract, for Mesh Render, Mesh Slice and 3D Spikes. View angle/elevation change Drawing only; downstream mesh consumers use their own camera. Phase shifts noise in a deterministic loop. Dense hatch counts and line sampling coarsen across the whole field. Image requires a loaded file. Preview uses a fixed bounding envelope across noise motion; Mesh normalization can change as actual bounds change.',
+ ins:[Pin('style','Style')],outs:[Pin('paths','Drawing'),Pin('mesh','Mesh')],fileImage:true,
+ params:[
+ {key:'mode',label:'Layout',type:'select',options:['Column terrain','Scattered cubes'],def:'Column terrain'},
+ {key:'heightSource',label:'Heights',type:'select',options:['Noise','Image'],def:'Noise'},
+ {key:'file',label:'Height image',type:'file',showIf:p=>p.heightSource==='Image'},
+ {key:'cols',label:'Columns',type:'slider',min:2,max:30,step:1,def:14},
+ {key:'rows',label:'Rows',type:'slider',min:2,max:30,step:1,def:12},
+ {key:'height',label:'Height × cell',type:'slider',min:.2,max:12,step:.1,def:5},
+ {key:'terraces',label:'Height steps (0 = smooth)',type:'slider',min:0,max:20,step:1,def:7},
+ {key:'noiseSize',label:'Noise size cells',type:'slider',min:1,max:20,step:.5,def:6,showIf:p=>p.heightSource!=='Image'},
+ {key:'phase',label:'Noise phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.heightSource!=='Image'},
+ {key:'gap',label:'Cell gap %',type:'slider',min:0,max:80,step:1,def:8},
+ {key:'occupancy',label:'Occupied cells %',type:'slider',min:5,max:100,step:1,def:70,showIf:p=>p.mode==='Scattered cubes'},
+ {key:'drawing',label:'Drawing',type:'select',options:['Outlines','Face hatch'],def:'Outlines'},
+ {key:'hatch',label:'Hatch gap mm',type:'slider',min:.5,max:4,step:.25,def:1.5,showIf:p=>p.drawing==='Face hatch'},
+ {key:'hidden',label:'Hidden-line removal',type:'check',def:true},
+ {key:'yaw',label:'View angle °',type:'slider',min:-180,max:180,step:1,def:35},
+ {key:'elevation',label:'View elevation °',type:'slider',min:5,max:90,step:1,def:32},
+ {key:'size',label:'Preview size mm',type:'slider',min:30,max:420,step:1,def:230},
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:15},
+ {key:'seed',label:'Seed',type:'seed',def:19},
+ {key:'layer',label:'Pen',type:'pen',def:0}
+ ],
+ overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+ _scene(p,node){
+  const num=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),nx=Math.round(num('cols',14,2,32)),ny=Math.round(num('rows',12,2,32)),height=num('height',5,.1,20),gap=num('gap',8,0,90)/100,terraces=Math.round(num('terraces',7,0,40)),phase=num('phase',0,-1e5,1e5)*Math.PI/180,scale=num('noiseSize',6,.3,80),seed=Math.round(num('seed',19,-2e9,2e9)),img=node?.data?.img;
+  if(p.heightSource==='Image'&&(!img||!Number.isFinite(img.w)||!Number.isFinite(img.h)||img.w<1||img.h<1||img.g?.length!==img.w*img.h))return null;
+  const blocks=[];
+  for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){
+   if(p.mode==='Scattered cubes'&&hash2(x,y,seed)>num('occupancy',70,0,100)/100)continue;
+   let value;if(p.heightSource==='Image'){const ix=Math.min(img.w-1,Math.floor((x+.5)/nx*img.w)),iy=Math.min(img.h-1,Math.floor((y+.5)/ny*img.h));value=Math.max(0,Math.min(1,+img.g[iy*img.w+ix]||0));}
+   else value=Math.max(0,Math.min(1,noise2(x/scale+Math.cos(phase),y/scale+Math.sin(phase),seed)));
+   if(terraces>0)value=Math.round(value*terraces)/terraces;
+   const z=.15+value*height,cx=x-(nx-1)/2,cy=y-(ny-1)/2,h=.5*(1-gap),bottom=p.mode==='Scattered cubes'?z:0,top=p.mode==='Scattered cubes'?z+2*h:z;
+   blocks.push({lo:[cx-h,cy-h,bottom],hi:[cx+h,cy+h,top]});
+  }
+  return {blocks,nx,ny,height};
+ },
+ compute(ins,p,c,node){
+  const scene=this._scene(p,node);if(!scene||!scene.blocks.length)return [{paths:[]},null];
+  const num=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),{blocks,nx,ny,height}=scene,faces=[],tri=[],edges=new Map(),lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity],pen=Math.round(num('layer',0,0,11));
+  const faceIds=[[0,3,2,1],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]];
+  for(const b of blocks){const a=b.lo,z=b.hi,v=[[a[0],a[1],a[2]],[z[0],a[1],a[2]],[z[0],z[1],a[2]],[a[0],z[1],a[2]],[a[0],a[1],z[2]],[z[0],a[1],z[2]],[z[0],z[1],z[2]],[a[0],z[1],z[2]]];
+   for(const q of v)for(let k=0;k<3;k++){lo[k]=Math.min(lo[k],q[k]);hi[k]=Math.max(hi[k],q[k]);}
+   for(const ids of faceIds){const f=ids.map(i=>v[i]);faces.push(f);tri.push(...f[0],...f[1],...f[2],...f[0],...f[2],...f[3]);}
+  }
+  const maxDim=Math.max(...hi.map((x,k)=>x-lo[k])),centre=lo.map((x,k)=>(x+hi[k])/2),mesh={kind:'mesh',tri:tri.length/9,v:tri.map((x,i)=>Math.round((x-centre[i%3])/maxDim*1e4)/1e4),dims:hi.map((x,k)=>Math.round((x-lo[k])/maxDim*1e4)/1e4)};
+  const az=num('yaw',35,-3600,3600)*Math.PI/180,el=num('elevation',32,0,90)*Math.PI/180,view=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)],project=q=>[-q[0]*Math.sin(az)+q[1]*Math.cos(az),(q[0]*Math.cos(az)+q[1]*Math.sin(az))*Math.sin(el)-(q[2]-(height+1)/2)*Math.cos(el),q[0]*view[0]+q[1]*view[1]+q[2]*view[2]];
+  const env=[];for(const x of [-nx/2,nx/2])for(const y of [-ny/2,ny/2])for(const z of [0,height+1.2])env.push(project([x,y,z]));
+  const eLo=[Math.min(...env.map(q=>q[0])),Math.min(...env.map(q=>q[1]))],eHi=[Math.max(...env.map(q=>q[0])),Math.max(...env.map(q=>q[1]))],m=num('margin',15,0,Math.min(c.W,c.H)/2),size=num('size',230,1,2000),sc=Math.max(0,Math.min(size/Math.max(nx,ny,height+1.2),(c.W-2*m)/(eHi[0]-eLo[0]),(c.H-2*m)/(eHi[1]-eLo[1])));if(sc<=0)return [{paths:[]},mesh];
+  const screen=q=>{const a=project(q);return [c.W/2+(a[0]-(eLo[0]+eHi[0])/2)*sc,c.H/2+(a[1]-(eLo[1]+eHi[1])/2)*sc,a[2]*sc];},projected=faces.map(f=>f.map(screen)),pixel=Math.max(.3,Math.max(c.W,c.H)/1100),bw=Math.ceil(c.W/pixel)+1,bh=Math.ceil(c.H/pixel)+1,depth=new Float32Array(bw*bh).fill(-Infinity);
+  const triangle=(a,b,d)=>{const minX=Math.max(0,Math.floor(Math.min(a[0],b[0],d[0])/pixel)),maxX=Math.min(bw-1,Math.ceil(Math.max(a[0],b[0],d[0])/pixel)),minY=Math.max(0,Math.floor(Math.min(a[1],b[1],d[1])/pixel)),maxY=Math.min(bh-1,Math.ceil(Math.max(a[1],b[1],d[1])/pixel)),den=(b[1]-d[1])*(a[0]-d[0])+(d[0]-b[0])*(a[1]-d[1]);if(Math.abs(den)<1e-10)return;for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){const xx=x*pixel,yy=y*pixel,u=((b[1]-d[1])*(xx-d[0])+(d[0]-b[0])*(yy-d[1]))/den,v=((d[1]-a[1])*(xx-d[0])+(a[0]-d[0])*(yy-d[1]))/den,w=1-u-v;if(u>=-1e-6&&v>=-1e-6&&w>=-1e-6)depth[y*bw+x]=Math.max(depth[y*bw+x],a[2]*u+b[2]*v+d[2]*w);}};
+  if(p.hidden)for(const f of projected){triangle(f[0],f[1],f[2]);triangle(f[0],f[2],f[3]);}
+  const candidates=[];
+  for(let i=0;i<faces.length;i++){
+   const f=faces[i],a=f[0],b=f[1],d=f[2],u=b.map((x,k)=>x-a[k]),v=d.map((x,k)=>x-a[k]),normal=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],front=normal.reduce((s,x,k)=>s+x*view[k],0)>1e-9;if(p.hidden&&!front)continue;
+   for(let k=0;k<4;k++){const A=f[k],B=f[(k+1)%4],key=[A.join(','),B.join(',')].sort().join('|');if(!edges.has(key)){edges.set(key,true);candidates.push([screen(A),screen(B)]);}}
+   if(p.drawing==='Face hatch'&&front){const count=Math.max(1,Math.min(40,Math.max(2,Math.floor(27000/faces.length)),Math.floor(Math.hypot(...u)*sc/num('hatch',1.5,.5,10))));for(let j=1;j<count;j++){const t=j/count,A=f[0].map((x,k)=>x+(f[1][k]-x)*t),B=f[3].map((x,k)=>x+(f[2][k]-x)*t);candidates.push([screen(A),screen(B)]);}}
+  }
+  const total=candidates.reduce((s,[a,b])=>s+Math.hypot(b[0]-a[0],b[1]-a[1]),0),step=Math.max(pixel*.7,total/Math.max(1000,106000-2*candidates.length)),paths=[];
+  for(const [a,b]of candidates){const N=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/step));let run=[];const flush=()=>{if(run.length>1)paths.push({pts:run,closed:false,layer:pen});run=[];};for(let i=0;i<=N;i++){const t=i/N,q=a.map((x,k)=>x+(b[k]-x)*t),ix=Math.max(0,Math.min(bw-1,Math.round(q[0]/pixel))),iy=Math.max(0,Math.min(bh-1,Math.round(q[1]/pixel)));if(!p.hidden||q[2]>=depth[iy*bw+ix]-pixel*1.8)run.push(q.slice(0,2));else flush();}flush();}
+  let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<12&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return [out,mesh];
+ }
+};
+```
+
 ## bluesprig.js
 
 ```js
@@ -5466,6 +5555,74 @@ export default {
       return applyStyle({ paths: out }, ins[0]);
     },
   
+};
+```
+
+## cell_strands.js
+
+```js
+import { Pin, hash2, noise2, applyStyle } from "../helpers.js";
+
+export default {
+ key:'cell_strands',name:'Cell Strands',cat:'gen',group:'geometric',
+ desc:'Parallel strands travel through a shared distorted cell network. Hex strands routes edge bundles through convex hexagons; Ribbon cells uses square cells. Every shared edge uses the same stations, so adjacent bundles meet exactly when both routes reach it. Carry adds routes to otherwise unused cell edges; Density leaves some cells empty. Cell edges is an optional separate pen. Displacement is uniformly reduced until all cells remain convex and inside the margin. Phase moves the deformation in a repeatable loop. Paths may cross inside cells; this is a strand network, not an over/under weave.',
+ ins:[Pin('style','Style')],outs:[Pin('paths','Drawing')],
+ params:[
+ {key:'mode',label:'Cells',type:'select',options:['Hex strands','Ribbon cells'],def:'Hex strands'},
+ {key:'cell',label:'Cell size mm',type:'slider',min:8,max:60,step:1,def:25},
+ {key:'strands',label:'Strands per bundle',type:'slider',min:1,max:18,step:1,def:7},
+ {key:'deform',label:'Displacement %',type:'slider',min:0,max:100,step:1,def:45},
+ {key:'fieldSize',label:'Field size mm',type:'slider',min:10,max:180,step:1,def:55,showIf:p=>p.deform>0},
+ {key:'phase',label:'Field phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.deform>0},
+ {key:'curve',label:'Curve %',type:'slider',min:0,max:100,step:1,def:65},
+ {key:'density',label:'Occupied cells %',type:'slider',min:0,max:100,step:1,def:80},
+ {key:'carry',label:'Extra routes %',type:'slider',min:0,max:100,step:1,def:35},
+ {key:'edges',label:'Cell edges',type:'check',def:true},
+ {key:'edgePen',label:'Edge pen',type:'pen',def:7,showIf:p=>p.edges},
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:15},
+ {key:'seed',label:'Seed',type:'seed',def:31},
+ {key:'layer',label:'Strand pen',type:'pen',def:0}
+ ],
+ overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+ _network(p,c){
+  const num=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=num('margin',15,0,Math.min(c.W,c.H)/2),w=c.W-2*m,h=c.H-2*m;if(w<2||h<2)return null;
+  const n=Math.round(num('strands',7,1,24)),size=Math.max(num('cell',25,4,200),Math.sqrt(w*h*n*70/85000)),base=[],index=new Map(),cells=[],key=q=>q.map(x=>Math.round(x*1e6)).join(','),vertex=q=>{const k=key(q);if(!index.has(k)){index.set(k,base.length);base.push(q);}return index.get(k);};
+  if(p.mode==='Ribbon cells'){
+   const cols=Math.max(1,Math.floor(w/size)),rows=Math.max(1,Math.floor(h/size)),dx=w/cols,dy=h/rows;
+   for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)cells.push([[m+x*dx,m+y*dy],[m+(x+1)*dx,m+y*dy],[m+(x+1)*dx,m+(y+1)*dy],[m+x*dx,m+(y+1)*dy]].map(vertex));
+  }else{
+   const R=Math.min(size/Math.sqrt(3),w/Math.sqrt(3),h/2),dx=Math.sqrt(3)*R,dy=1.5*R,cols=Math.ceil(w/dx),rows=Math.ceil(h/dy);
+   for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+    const cx=m+dx/2+x*dx+(y%2)*dx/2,cy=m+R+y*dy,pts=Array.from({length:6},(_,k)=>[cx+R*Math.cos(Math.PI/6+k*Math.PI/3),cy+R*Math.sin(Math.PI/6+k*Math.PI/3)]);
+    if(pts.every(q=>q[0]>=m-1e-7&&q[0]<=c.W-m+1e-7&&q[1]>=m-1e-7&&q[1]<=c.H-m+1e-7))cells.push(pts.map(vertex));
+   }
+  }
+  if(!cells.length)return null;
+  const phase=num('phase',0,-1e5,1e5)*Math.PI/180,sc=num('fieldSize',55,1,500),amp=size*num('deform',45,0,200)/100,seed=num('seed',31,-2e9,2e9),shift=base.map(q=>{const fade=Math.min(1,Math.max(0,Math.min(q[0]-m,c.W-m-q[0],q[1]-m,c.H-m-q[1]))/size);return [(2*noise2(q[0]/sc+Math.cos(phase),q[1]/sc+Math.sin(phase),seed)-1)*amp*fade,(2*noise2(q[0]/sc+11+Math.cos(phase),q[1]/sc+Math.sin(phase),seed+13)-1)*amp*fade];});
+  const build=f=>base.map((q,i)=>q.map((x,k)=>x+shift[i][k]*f));let vertices=build(1),factor=1;
+  const convex=v=>cells.every(ids=>ids.every((id,i)=>{const A=v[id],B=v[ids[(i+1)%ids.length]],C=v[ids[(i+2)%ids.length]];return (B[0]-A[0])*(C[1]-B[1])-(B[1]-A[1])*(C[0]-B[0])>1e-6&&A[0]>=m-1e-6&&A[0]<=c.W-m+1e-6&&A[1]>=m-1e-6&&A[1]<=c.H-m+1e-6;}));
+  while(!convex(vertices)&&factor>1e-6){factor*=.8;vertices=build(factor);}
+  return {vertices,cells,n,m,factor};
+ },
+ compute(ins,p,c){
+  const net=this._network(p,c);if(!net)return {paths:[]};const {vertices:v,cells,n}=net,paths=[],edges=new Set(),seed=Math.round(+p.seed||0),layer=Math.max(0,Math.min(11,Math.round(+p.layer||0))),edgeLayer=Math.max(0,Math.min(11,Math.round(+p.edgePen||0))),density=Math.max(0,Math.min(1,+p.density/100||0)),carry=Math.max(0,Math.min(1,+p.carry/100||0)),curve=Math.max(0,Math.min(1,+p.curve/100||0));
+  const station=(a,b,k)=>{if(a>b)[a,b]=[b,a];const t=(k+.5)/n;return [v[a][0]+(v[b][0]-v[a][0])*t,v[a][1]+(v[b][1]-v[a][1])*t];};
+  for(let i=0;i<cells.length;i++){
+   const ids=cells[i],N=ids.length,center=ids.reduce((a,id)=>[a[0]+v[id][0]/N,a[1]+v[id][1]/N],[0,0]);
+   if(p.edges)for(let j=0;j<N;j++){const a=ids[j],b=ids[(j+1)%N],key=a<b?a+','+b:b+','+a;if(!edges.has(key)){edges.add(key);paths.push({pts:[v[a],v[b]],closed:false,layer:edgeLayer});}}
+   if(hash2(i,7,seed)>density)continue;
+   const order=Array.from({length:N},(_,j)=>j).sort((a,b)=>hash2(i,a+21,seed)-hash2(i,b+21,seed));
+   const pairs=p.mode==='Ribbon cells'?[[order[0],order[1]],[order[2],order[3]]]:[[order[0],order[1]],[order[2],order[3]],[order[4],order[5]]];
+   for(let j=0;j<pairs.length;j++){
+    if(j>0&&hash2(i,j+44,seed)>carry)continue;const [ea,eb]=pairs[j];
+    const aa=station(ids[ea],ids[(ea+1)%N],0),bb=station(ids[eb],ids[(eb+1)%N],0),bc=station(ids[eb],ids[(eb+1)%N],n-1),reverse=Math.hypot(aa[0]-bc[0],aa[1]-bc[1])<Math.hypot(aa[0]-bb[0],aa[1]-bb[1]);
+    for(let k=0;k<n;k++){
+     const a=station(ids[ea],ids[(ea+1)%N],k),b=station(ids[eb],ids[(eb+1)%N],reverse?n-1-k:k),c1=[a[0]+(center[0]-a[0])*curve,a[1]+(center[1]-a[1])*curve],c2=[b[0]+(center[0]-b[0])*curve,b[1]+(center[1]-b[1])*curve],pts=Array.from({length:13},(_,j)=>{const t=j/12,u=1-t;return [u*u*u*a[0]+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*b[0],u*u*u*a[1]+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*b[1]];});paths.push({pts,closed:false,layer});
+    }
+   }
+  }
+  let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<12&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return out;
+ }
 };
 ```
 
@@ -15176,8 +15333,19 @@ import { Pin, mulberry32, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "flow",
-    name: "Flow Field", cat: "gen", group: "organic", ins: [Pin("style", "Style")], outs: [Pin("paths")],
+    name: "Flow Field", cat: "gen", group: "organic", ins: [Pin("style", "Style"), Pin("paths", "Poles")], outs: [Pin("paths")],
+    desc: "Trace a noise field, or choose Vortex, Sinks or Mixed poles. Even spacing grows lines forwards and backwards, stopping them near existing traces. Separation mm controls density; Steps and Trails remain upper limits. Wire closed marker centres or open path starts to Poles; otherwise a ring supplies them. Poles phase turns the fallback ring. Dots marks each trace with real tiny circles. Seed and phase are repeatable; wire Frame rot degrees to Poles phase for motion.",
     params: [
+      {key:'field',label:'Field',type:'select',options:['Noise','Vortex','Sinks','Mixed poles'],def:'Noise'},
+      {key:'placement',label:'Line placement',type:'select',options:['Random starts','Even spacing'],def:'Random starts'},
+      {key:'separation',label:'Separation mm',type:'slider',min:1,max:12,step:.25,def:3,showIf:p=>p.placement==='Even spacing'},
+      {key:'poles',label:'Fallback poles',type:'slider',min:1,max:12,step:1,def:4,showIf:p=>p.field&&p.field!=='Noise'},
+      {key:'ring',label:'Pole ring mm',type:'slider',min:0,max:120,step:1,def:45,showIf:p=>p.field&&p.field!=='Noise'},
+      {key:'core',label:'Pole core mm',type:'slider',min:1,max:30,step:.5,def:8,showIf:p=>p.field&&p.field!=='Noise'},
+      {key:'phase',label:'Poles phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.field&&p.field!=='Noise'},
+      {key:'marks',label:'Marks',type:'select',options:['Lines','Dots'],def:'Lines'},
+      {key:'dotPitch',label:'Dot pitch mm',type:'slider',min:1,max:12,step:.25,def:3,showIf:p=>p.marks==='Dots'},
+      {key:'dotSize',label:'Dot diameter mm',type:'slider',min:.1,max:2,step:.05,def:.35,showIf:p=>p.marks==='Dots'},
       { key: "count", label: "Trails", type: "slider", min: 5, max: 300, step: 5, def: 80 },
       { key: "steps", label: "Length", type: "slider", min: 10, max: 300, step: 5, def: 90 },
       { key: "scale", label: "Field scale", type: "slider", min: 0.005, max: 0.08, step: 0.005, def: 0.02 },
@@ -15186,7 +15354,30 @@ export default {
       { key: "seed", label: "Seed", type: "seed", def: 3 },
       { key: "layer", label: "Pen", type: "pen", def: 2 },
     ],
+    _poles(ins,p,c) {
+      const src=ins?.[1]?.paths||[],centres=src.slice(0,24).filter(q=>q.pts?.length).map(q=>q.closed?q.pts.reduce((a,b)=>[a[0]+b[0]/q.pts.length,a[1]+b[1]/q.pts.length],[0,0]):q.pts[0].slice(0,2));
+      if(src.length)return centres;
+      const N=Math.max(1,Math.min(12,Math.round(+p.poles||4))),r=Math.max(0,Math.min(+p.ring||0,Math.min(c.W,c.H)*.4)),a=(+p.phase||0)*Math.PI/180;
+      return Array.from({length:N},(_,i)=>[c.W/2+r*Math.cos(a+i*2*Math.PI/N),c.H/2+r*Math.sin(a+i*2*Math.PI/N)]);
+    },
+    overlay(p,c,ins){const m=Math.max(0,+p.margin||0),g=[{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];if(p.field&&p.field!=='Noise')g.push(...this._poles(ins,p,c).map(q=>({kind:'circle',cx:q[0],cy:q[1],r:Math.max(1,+p.core||8)})));return g;},
+    _fieldDrawing(ins,p,c){
+      const num=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=num('margin',12,0,Math.min(c.W,c.H)/2),even=p.placement==='Even spacing',sep=num('separation',3,1,30),step=even?Math.min(.8,sep*.22):1.2,N=Math.round(num('count',80,1,300)),steps=Math.round(num('steps',90,10,600)),maxLength=steps*1.6,core=num('core',8,1,100),rng=mulberry32(num('seed',3,-2e9,2e9)*1013+77),poles=this._poles(ins,p,c),inside=q=>q[0]>=m&&q[0]<=c.W-m&&q[1]>=m&&q[1]<=c.H-m;
+      if(c.W<=2*m||c.H<=2*m)return {paths:[]};
+      const vector=q=>{let x=0,y=0;if(!p.field||p.field==='Noise'){const a=noise2(q[0]*num('scale',.02,.001,1),q[1]*num('scale',.02,.001,1),p.seed)*Math.PI*2*num('curl',2,.1,10);return [Math.cos(a),Math.sin(a)];}for(let i=0;i<poles.length;i++){const dx=q[0]-poles[i][0],dy=q[1]-poles[i][1],f=1/(dx*dx+dy*dy+core*core);if(p.field==='Sinks'||p.field==='Mixed poles'&&i%2){x-=dx*f;y-=dy*f;}else{const sign=i%2?-1:1;x-=dy*f*sign;y+=dx*f*sign;}}const l=Math.hypot(x,y);return l>1e-10?[x/l,y/l]:[0,0];};
+      const hash=new Map(),cell=sep,key=(x,y)=>x+','+y,near=(q,limit)=>{const ix=Math.floor(q[0]/cell),iy=Math.floor(q[1]/cell);for(let x=ix-1;x<=ix+1;x++)for(let y=iy-1;y<=iy+1;y++)for(const a of hash.get(key(x,y))||[])if(Math.hypot(q[0]-a[0],q[1]-a[1])<limit)return true;return false;},insert=q=>{const k=key(Math.floor(q[0]/cell),Math.floor(q[1]/cell));if(!hash.has(k))hash.set(k,[]);hash.get(k).push(q);};
+      const queue=[[c.W/2,c.H/2]],traces=[];let used=0,tries=0;
+      while(traces.length<N&&tries++<N*100){const start=queue.length&&tries%5!==0?queue.shift():[m+rng()*(c.W-2*m),m+rng()*(c.H-2*m)];if(!inside(start)||even&&near(start,sep))continue;
+       const local=new Map(),localCell=sep*.5,localNear=(q,idx)=>{const ix=Math.floor(q[0]/localCell),iy=Math.floor(q[1]/localCell);for(let x=ix-2;x<=ix+2;x++)for(let y=iy-2;y<=iy+2;y++)for(const a of local.get(key(x,y))||[])if(Math.abs(idx-a.i)>Math.ceil(sep/step)*3&&Math.hypot(q[0]-a.q[0],q[1]-a.q[1])<sep*.7)return true;return false;};
+       const trace=sign=>{let q=start.slice(),pts=[];for(let j=0;j<Math.min(Math.ceil(maxLength/step),Math.max(10,Math.floor(40000/(2*N))));j++){const v=vector(q),mid=[q[0]+v[0]*step*sign/2,q[1]+v[1]*step*sign/2],w=vector(mid),next=[q[0]+w[0]*step*sign,q[1]+w[1]*step*sign],idx=sign*(j+1);if(!inside(next)||Math.hypot(...w)<.5||even&&(near(next,sep)||localNear(next,idx)))break;const k=key(Math.floor(next[0]/localCell),Math.floor(next[1]/localCell));if(!local.has(k))local.set(k,[]);local.get(k).push({q:next,i:idx});pts.push(next);q=next;used++;}return pts;};
+       const back=trace(-1).reverse(),front=trace(1),pts=[...back,start,...front];if(pts.length<Math.max(5,Math.ceil(even?sep*6/step:5)))continue;traces.push(pts);if(even){pts.forEach(insert);const stride=Math.max(1,Math.floor(sep*2/step));for(let i=1;i<pts.length-1;i+=stride){const a=pts[i-1],b=pts[i+1],l=Math.hypot(b[0]-a[0],b[1]-a[1])||1;for(const s of [-1,1])queue.push([pts[i][0]-(b[1]-a[1])/l*sep*1.05*s,pts[i][1]+(b[0]-a[0])/l*sep*1.05*s]);}if(queue.length>6000)queue.splice(6000);}
+      }
+      const layer=Math.round(num('layer',2,0,11));let paths=traces.map(pts=>({pts,closed:false,layer}));
+      if(p.marks==='Dots'){const total=traces.reduce((n,q)=>n+q.length*step,0),pitch=Math.max(num('dotPitch',3,.4,50),total/10000),r=num('dotSize',.35,.1,4)/2;paths=[];for(const trace of traces){let d=pitch;for(let i=1;i<trace.length;i++){const a=trace[i-1],b=trace[i],l=Math.hypot(b[0]-a[0],b[1]-a[1]);while(d<=l){const t=d/l,x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t;if(x-r>=m&&x+r<=c.W-m&&y-r>=m&&y+r<=c.H-m)paths.push({pts:Array.from({length:8},(_,k)=>[x+r*Math.cos(k*Math.PI/4),y+r*Math.sin(k*Math.PI/4)]),closed:true,layer});d+=pitch;}d-=l;}}}
+      let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<10&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return out;
+    },
     compute(ins, p, ctx) {
+      if(p.field&&p.field!=='Noise'||p.placement==='Even spacing'||p.marks==='Dots')return this._fieldDrawing(ins,p,ctx);
       const { W, H } = ctx;
       const rng = mulberry32(p.seed * 1013 + 77);
       const paths = [];
@@ -28120,10 +28311,14 @@ export default {
   name: "Mini Squares",
   cat: "gen",
   group: "geometric",
-  desc: "A field of axis-aligned squares packed on a hidden grid: larger multi-cell squares are placed first, then single cells fill in around them, so neighbours share edges like a mosaic. Density comes from patchy noise multiplied by a Spread falloff (Corner / Center / Linear) so the field crumbles away at its edge. Nest depth tucks smaller squares inside squares - concentric insets or corner-anchored knots (Mixed picks per square). Gap shrinks every top-level square so shared edges separate. Chain into Container or Wind Tunnel as an obstacle field, or drive Density with a value wire for animated growth.",
+  desc: "A field of axis-aligned squares packed on a hidden grid: larger multi-cell squares are placed first, then single cells fill in around them, so neighbours share edges like a mosaic. Density comes from patchy noise multiplied by a Spread falloff (Corner / Center / Linear) so the field crumbles away at its edge. Nest depth tucks smaller squares inside squares - concentric insets or corner-anchored knots (Mixed picks per square). Gap shrinks every top-level square so shared edges separate. Rectangles packs variable-width and height cells into a gap-separated mosaic with optional rounded corners; Max width/height replace square nesting in this mode. Chain into Container or Wind Tunnel as an obstacle field, or drive Density with a value wire for animated growth.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    {key:'packing',label:'Packing',type:'select',options:['Squares','Rectangles'],def:'Squares'},
+    {key:'maxWidth',label:'Max width cells',type:'slider',min:1,max:8,step:1,def:4,showIf:p=>p.packing==='Rectangles'},
+    {key:'maxHeight',label:'Max height cells',type:'slider',min:1,max:8,step:1,def:3,showIf:p=>p.packing==='Rectangles'},
+    {key:'corner',label:'Corner radius mm',type:'slider',min:0,max:6,step:.25,def:1,showIf:p=>p.packing==='Rectangles'},
     { key: "cell", label: "Cell (mm)", type: "slider", min: 2, max: 12, step: 0.5, def: 4 },
     { key: "density", label: "Density", type: "slider", min: 0, max: 1, step: 0.01, def: 0.6 },
     { key: "maxsize", label: "Max square (cells)", type: "slider", min: 1, max: 4, step: 1, def: 3 },
@@ -28142,7 +28337,22 @@ export default {
     const m = Math.max(0, p.margin);
     return [{ kind: "rect", x: m, y: m, w: ctx.W - 2 * m, h: ctx.H - 2 * m }];
   },
+  _rectangles(ins,p,c){
+    const m=Math.max(0,Math.min(+p.margin||0,Math.min(c.W,c.H)/2)),cell=Math.max(1,+p.cell||4,Math.sqrt((c.W-2*m)*(c.H-2*m)/3500));if(c.W<=2*m||c.H<=2*m)return {paths:[]};
+    const cols=Math.floor((c.W-2*m)/cell),rows=Math.floor((c.H-2*m)/cell),ox=(c.W-cols*cell)/2,oy=(c.H-rows*cell)/2,occ=new Uint8Array(cols*rows),rng=mulberry32((+p.seed||0)*7919+13),mw=Math.max(1,Math.min(8,Math.round(+p.maxWidth||4))),mh=Math.max(1,Math.min(8,Math.round(+p.maxHeight||3))),gap=Math.max(0,+p.gap||0),radius=Math.max(0,+p.corner||0),paths=[],layer=Math.max(0,Math.min(11,Math.round(+p.layer||0)));
+    for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+      if(occ[y*cols+x])continue;let w=1+Math.floor(rng()*mw),h=1+Math.floor(rng()*mh),free=()=>{if(x+w>cols||y+h>rows)return false;for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)if(occ[yy*cols+xx])return false;return true;};while(!free()){if(w>h&&w>1)w--;else if(h>1)h--;else w--;}
+      for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)occ[yy*cols+xx]=1;
+      const patch=Math.max(1,+p.patch||8),density=Math.max(0,Math.min(1,+p.density||0)),u=(x+w/2)/Math.max(1,cols),v=(y+h/2)/Math.max(1,rows),d=p.spread==='Corner'?Math.hypot(u,v)/Math.SQRT2:p.spread==='Center'?Math.hypot(u-.5,v-.5)/.7071:p.spread==='Linear'?u:0,fall=1-Math.max(0,Math.min(1,+p.fade||0))*Math.min(1,d*d*(3-2*d));
+      if(density<1&&noise2(x/patch,y/patch,p.seed)>density*fall)continue;
+      const W=w*cell-gap,H=h*cell-gap;if(W<=.2||H<=.2)continue;const left=ox+x*cell+gap/2,top=oy+y*cell+gap/2,R=Math.min(radius,W/2,H/2),pts=[];
+      if(R<.01)pts.push([left,top],[left+W,top],[left+W,top+H],[left,top+H]);else for(let k=0;k<4;k++){const cx=k===0||k===1?left+W-R:left+R,cy=k===0||k===3?top+R:top+H-R,a=-Math.PI/2+k*Math.PI/2;for(let q=0;q<=4;q++)pts.push([cx+R*Math.cos(a+q*Math.PI/8),cy+R*Math.sin(a+q*Math.PI/8)]);}
+      paths.push({pts,closed:true,layer});
+    }
+    let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<10&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return out;
+  },
   compute(ins, p, ctx) {
+    if(p.packing==='Rectangles')return this._rectangles(ins,p,ctx);
     const W = ctx.W, H = ctx.H;
     const cell = Math.max(0.8, p.cell);
     const margin = Math.max(0, Math.min(p.margin, Math.min(W, H) / 2 - cell));
@@ -32186,17 +32396,23 @@ export default {
 ## network.js
 
 ```js
-import { Pin, mulberry32, applyStyle } from "../helpers.js";
+import { Pin, mulberry32, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "network",
     name: "Network",
     cat: "gen",
     group: "structural",
-    desc: "A seeded graph laid out by force simulation (nodes repel, edges pull), replayed deterministically for N iterations - wire a value into Iterations to watch it untangle. Nearest-neighbour links plus a few long-range ones give constellation diagrams; node circles can scale by connection count.",
+    desc: "A seeded graph laid out by force simulation (nodes repel, edges pull), replayed deterministically for N iterations - wire a value into Iterations to watch it untangle. Drift instead moves a seeded population through looping noise and rebuilds radius-limited nearest connections each frame. Use Timeline and ANIMATE or wire Drift phase. Nearest-neighbour links plus a few long-range ones give constellation diagrams; node circles can scale by connection count.",
     ins: [Pin("style", "Style")],
     outs: [Pin("paths")],
     params: [
+      {key:'motion',label:'Layout',type:'select',options:['Force layout','Drift'],def:'Force layout'},
+      {key:'radius',label:'Connection radius mm',type:'slider',min:5,max:100,step:1,def:35,showIf:p=>p.motion==='Drift'},
+      {key:'drift',label:'Drift mm',type:'slider',min:0,max:50,step:1,def:16,showIf:p=>p.motion==='Drift'},
+      {key:'phase',label:'Drift phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.motion==='Drift'},
+      {key:'timeSource',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual',showIf:p=>p.motion==='Drift'},
+      {key:'cycles',label:'Cycles',type:'slider',min:1,max:8,step:1,def:1,showIf:p=>p.motion==='Drift'&&p.timeSource==='Timeline'},
       { key: "nodes", label: "Nodes", type: "slider", min: 5, max: 120, step: 1, def: 40 },
       { key: "links", label: "Links per node", type: "slider", min: 1, max: 4, step: 1, def: 2 },
       { key: "longp", label: "Long links", type: "slider", min: 0, max: 0.3, step: 0.01, def: 0.06 },
@@ -32207,7 +32423,20 @@ export default {
       { key: "seed", label: "Seed", type: "seed", def: 5 },
       { key: "layer", label: "Pen", type: "pen", def: 0 }
     ],
+    overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+    _drift(ins,p,c){
+      const m=Math.max(0,+p.margin||0),w=c.W-2*m,h=c.H-2*m;if(w<=2||h<=2)return {paths:[]};
+      const N=Math.max(3,Math.min(180,Math.round(+p.nodes||40))),rng=mulberry32((+p.seed||0)*9013+3),amp=Math.max(0,Math.min(+p.drift||0,Math.min(w,h)/4)),phase=(p.timeSource==='Timeline'?0:(+p.phase||0)*Math.PI/180)+(p.timeSource==='Timeline'&&c.frameCount>1?c.frameIdx/c.frameCount*2*Math.PI*Math.max(1,Math.min(8,Math.round(+p.cycles||1))):0),positions=[];
+      for(let i=0;i<N;i++){const x=m+amp+rng()*Math.max(0,w-2*amp),y=m+amp+rng()*Math.max(0,h-2*amp),z=rng()*40;positions.push([x+amp*(2*noise2(z+Math.cos(phase),Math.sin(phase),p.seed)-1),y+amp*(2*noise2(z+11+Math.cos(phase),Math.sin(phase),p.seed+7)-1)]);}
+      const maxLinks=Math.max(1,Math.min(12,Math.round(+p.links||2))),radius=Math.max(1,Math.min(300,+p.radius||35)),edges=new Set(),degree=Array(N).fill(0),layer=Math.max(0,Math.min(11,Math.round(+p.layer||0))),paths=[];
+      for(let i=0;i<N;i++){const candidates=positions.map((q,j)=>({j,d:Math.hypot(q[0]-positions[i][0],q[1]-positions[i][1])})).filter(q=>q.j!==i&&q.d<radius).sort((a,b)=>a.d-b.d||a.j-b.j).slice(0,maxLinks);for(const {j}of candidates){const key=i<j?i+','+j:j+','+i;if(!edges.has(key)){edges.add(key);degree[i]++;degree[j]++;}}}
+      const rad=i=>p.dots?(p.degsize?.4+Math.sqrt(degree[i])*.2:.65):0;
+      for(const edge of edges){const [i,j]=edge.split(',').map(Number),a=positions[i],b=positions[j],dx=b[0]-a[0],dy=b[1]-a[1],d=Math.hypot(dx,dy);if(d>rad(i)+rad(j)+.01)paths.push({pts:[[a[0]+dx/d*rad(i),a[1]+dy/d*rad(i)],[b[0]-dx/d*rad(j),b[1]-dy/d*rad(j)]],closed:false,layer});}
+      if(p.dots)for(let i=0;i<N;i++){const q=positions[i],r=rad(i);paths.push({pts:Array.from({length:12},(_,k)=>[q[0]+r*Math.cos(k*Math.PI/6),q[1]+r*Math.sin(k*Math.PI/6)]),closed:true,layer});}
+      return applyStyle({paths},ins[0]);
+    },
     compute(ins, p, ctx) {
+      if(p.motion==='Drift')return this._drift(ins,p,ctx);
       const { W, H } = ctx;
       const m = Math.max(2, p.margin);
       const x0 = m, x1 = W - m, y0 = m, y1 = H - m;
@@ -53386,22 +53615,30 @@ export default {
 ## tiles.js
 
 ```js
-import { Pin, mulberry32, applyStyle } from "../helpers.js";
+import { Pin, mulberry32, noise2, applyStyle } from "../helpers.js";
 
 export default {
   key: "tiles",
   name: "Tiles",
   cat: "gen",
   group: "geometric",
-  desc: "Grid of tiles, each a separate closed path: parametric Superellipse, Circle, Triangle, Hexagon, Star, Reuleaux or Cross, with per-tile rotation and jitter. Layout: Grid, Brick (odd rows offset half a cell) or Hex pack (offset rows at 0.866 pitch - circles and hexagons at Size 100 touch their neighbours). Alternate flip rotates every other tile 180 degrees so triangles tessellate. The natural Explosion input.",
+  desc: "Grid of tiles, each a separate closed path: parametric Superellipse, Circle, Triangle, Hexagon, Star, Reuleaux or Cross, with per-tile rotation and jitter. Layout: Grid, Brick (odd rows offset half a cell) or Hex pack (offset rows at 0.866 pitch - circles and hexagons at Size 100 touch their neighbours). Alternate flip rotates every other tile 180 degrees so triangles tessellate. Field variation shares a coherent noise field across tiles, driving scale, angle and shift; Phase loops the field. Clip to own cell keeps the transformed motif inside its original cell. Arc is an open circular sweep. The natural Explosion input.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    {key:'field',label:'Field variation %',type:'slider',min:0,max:100,step:1,def:0},
+    {key:'fieldScale',label:'Field size mm',type:'slider',min:5,max:200,step:1,def:60,showIf:p=>p.field>0},
+    {key:'fieldMove',label:'Field shift %',type:'slider',min:0,max:100,step:1,def:45,showIf:p=>p.field>0},
+    {key:'fieldRotate',label:'Field rotation °',type:'slider',min:0,max:180,step:1,def:90,showIf:p=>p.field>0},
+    {key:'fieldShrink',label:'Field shrink %',type:'slider',min:0,max:100,step:1,def:60,showIf:p=>p.field>0},
+    {key:'phase',label:'Field phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.field>0},
+    {key:'clipCell',label:'Clip to own cell',type:'check',def:false,showIf:p=>p.field>0},
+    {key:'arcSweep',label:'Arc sweep °',type:'slider',min:10,max:350,step:1,def:270,showIf:p=>p.shape==='Arc'},
     { key: "cols", label: "Columns", type: "slider", min: 1, max: 40, step: 1, def: 10 },
     { key: "rows", label: "Rows", type: "slider", min: 1, max: 40, step: 1, def: 7 },
     { key: "layout", label: "Layout", type: "select", options: ["Grid", "Brick (offset rows)", "Hex pack"], def: "Grid" },
     { key: "flipAlt", label: "Alternate flip (triangles)", type: "check", def: false },
-    { key: "shape", label: "Shape", type: "select", options: ["Superellipse", "Circle", "Triangle", "Hexagon", "Star", "Reuleaux", "Cross"], def: "Superellipse" },
+    { key: "shape", label: "Shape", type: "select", options: ["Superellipse", "Circle", "Triangle", "Hexagon", "Star", "Reuleaux", "Cross", "Arc"], def: "Superellipse" },
     { key: "superN", label: "Superellipse N", type: "slider", min: 0.4, max: 8, step: 0.05, def: 2.5 },
     { key: "sizeX", label: "Size X %", type: "slider", min: 10, max: 100, step: 1, def: 78 },
     { key: "sizeY", label: "Size Y % (0 = same)", type: "slider", min: 0, max: 100, step: 1, def: 0 },
@@ -53413,6 +53650,7 @@ export default {
     { key: "seed", label: "Seed", type: "seed", def: 101 },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
+  overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
   compute(ins, p, ctx) {
     const { W, H } = ctx;
     const L = Math.round(p.layer);
@@ -53441,6 +53679,8 @@ export default {
           const t = (k / 48) * Math.PI * 2;
           pts.push([a * Math.cos(t), b * Math.sin(t)]);
         }
+      } else if(p.shape==='Arc'){
+        const sweep=Math.max(10,Math.min(350,+p.arcSweep||270))*Math.PI/180;for(let k=0;k<=40;k++){const t=sweep*k/40;pts.push([a*Math.cos(t),b*Math.sin(t)]);}
       } else if (p.shape === "Triangle") {
         for (let k = 0; k < 3; k++) {
           const t = (k / 3) * Math.PI * 2 - Math.PI / 2;
@@ -53502,12 +53742,18 @@ export default {
         const cy = oy0 + (hexPack ? r * pitch + ch / 2 : (r + 0.5) * ch);
         let ang = ((p.rot + (rng() - 0.5) * 2 * p.rotJit) * Math.PI) / 180;
         if (p.flipAlt && (r + c) % 2 === 1) ang += Math.PI;
-        const ca = Math.cos(ang), sa = Math.sin(ang);
-        paths.push({
-          pts: base.map(([x, y]) => [cx + x * ca - y * sa, cy + x * sa + y * ca]),
-          closed: true,
-          layer: L,
-        });
+        const field=Math.max(0,Math.min(1,+p.field/100||0)),size=Math.max(1,+p.fieldScale||60),phase=(+p.phase||0)*Math.PI/180,f=field*noise2(cx/size+Math.cos(phase),cy/size+Math.sin(phase),p.seed),shrink=1-f*Math.max(0,Math.min(1,+p.fieldShrink/100||0));
+        ang+=f*(+p.fieldRotate||0)*Math.PI/180;
+        const ca = Math.cos(ang), sa = Math.sin(ang),dx=f*(+p.fieldMove||0)/100*cw*.5,dy=f*(+p.fieldMove||0)/100*ch*.35;
+        const item={
+          pts: base.map(([x, y]) => [cx+dx+shrink*(x*ca-y*sa),cy+dy+shrink*(x*sa+y*ca)]),
+          closed: p.shape!=='Arc',layer:L,
+        };
+        if(field&&p.clipCell){
+          const box=[cx-cw/2,cy-ch/2,cx+cw/2,cy+ch/2];
+          if(item.closed){let poly=item.pts;for(let k=0;k<4;k++){const axis=k%2,bound=box[k],greater=k<2,inside=q=>greater?q[axis]>=bound:q[axis]<=bound,out=[];for(let i=0;i<poly.length;i++){const A=poly[i],B=poly[(i+1)%poly.length],a=inside(A),b=inside(B);if(a)out.push(A);if(a!==b){const t=(bound-A[axis])/(B[axis]-A[axis]);out.push([A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t]);}}poly=out;}if(poly.length>2)paths.push({...item,pts:poly});}
+          else{let run=[];const flush=()=>{if(run.length>1)paths.push({...item,pts:run});run=[];};for(let i=1;i<item.pts.length;i++){const A=item.pts[i-1],B=item.pts[i];let lo=0,hi=1;for(let axis=0;axis<2;axis++){const d=B[axis]-A[axis];if(Math.abs(d)<1e-12){if(A[axis]<box[axis]||A[axis]>box[axis+2]){lo=1;hi=0;}}else{const a=(box[axis]-A[axis])/d,b=(box[axis+2]-A[axis])/d;lo=Math.max(lo,Math.min(a,b));hi=Math.min(hi,Math.max(a,b));}}if(lo<=hi){const a=[A[0]+(B[0]-A[0])*lo,A[1]+(B[1]-A[1])*lo],b=[A[0]+(B[0]-A[0])*hi,A[1]+(B[1]-A[1])*hi];if(run.length&&Math.hypot(run.at(-1)[0]-a[0],run.at(-1)[1]-a[1])>1e-7)flush();if(!run.length)run.push(a);run.push(b);if(hi<1)flush();}else flush();}flush();}
+        }else paths.push(item);
       }
     }
     return applyStyle({ paths }, ins[0]);
@@ -53624,7 +53870,7 @@ export default {
 ## topolar.js
 
 ```js
-import { Pin, EMPTY, resample } from "../helpers.js";
+import { Pin, EMPTY, resample, noise2 } from "../helpers.js";
 
 export default {
   key: "topolar",
@@ -53633,7 +53879,14 @@ export default {
     group: "deform",
     ins: [Pin("paths", "Source")],
     outs: [Pin("paths")],
+    desc: "Wrap a drawing into polar rings or a continuous spiral. Morph blends from the original paper coordinates into the target; local noise varies the blend spatially. In Spiral, each horizontal revolution also increases radius by Spiral rise. The default Rings / Morph 100 preserves the original mapper. At Morph 0 the source passes through exactly. Wire Frame t through Math times 100 to Morph, or animate Start angle.",
     params: [
+      {key:'mode',label:'Wrap',type:'select',options:['Rings','Spiral'],def:'Rings'},
+      {key:'morph',label:'Morph %',type:'slider',min:0,max:100,step:1,def:100},
+      {key:'rise',label:'Spiral rise %',type:'slider',min:0,max:100,step:1,def:65,showIf:p=>p.mode==='Spiral'},
+      {key:'noise',label:'Morph variation %',type:'slider',min:0,max:100,step:1,def:0},
+      {key:'noiseSize',label:'Variation size mm',type:'slider',min:5,max:160,step:1,def:65,showIf:p=>p.noise>0},
+      {key:'seed',label:'Seed',type:'seed',def:17,showIf:p=>p.noise>0},
       { key: "rin", label: "Inner radius mm", type: "slider", min: 0, max: 80, step: 1, def: 15 },
       { key: "turns", label: "Turns", type: "slider", min: 0.25, max: 3, step: 0.05, def: 1 },
       { key: "start", label: "Start angle deg", type: "slider", min: 0, max: 360, step: 1, def: 270 },
@@ -53644,6 +53897,7 @@ export default {
     compute(ins, p, ctx) {
       const src = ins[0] || EMPTY;
       const { W, H } = ctx;
+      const morph=p.morph===undefined?1:Math.max(0,Math.min(1,+p.morph/100));if(morph===0)return src;
       const m = Math.max(0, p.margin);
       const rOut = Math.min(W, H) / 2 - m;
       const rIn = Math.max(0, Math.min(p.rin, rOut - 2));
@@ -53661,8 +53915,12 @@ export default {
           const v = y / H;
           const ang = a0 + u * p.turns * TWO;
           const frac = outerTop ? 1 - v : v;
-          const rr = rIn + frac * (rOut - rIn);
-          return clamp([cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr]);
+          const rise=p.mode==='Spiral'?Math.max(0,Math.min(1,+p.rise/100||0)):0;
+          const rr = rIn + (frac*(1-rise)+u*rise) * (rOut-rIn);
+          const target=clamp([cx+Math.cos(ang)*rr,cy+Math.sin(ang)*rr]);
+          if(morph===1&&!p.noise)return target;
+          const vary=Math.max(0,Math.min(1,+p.noise/100||0)),ns=Math.max(1,+p.noiseSize||65),t=morph*(1-vary*noise2(x/ns,y/ns,p.seed||17));
+          return [x+(target[0]-x)*t,y+(target[1]-y)*t];
         })
       }));
       return { paths };
@@ -54152,11 +54410,16 @@ export default {
   name: "Truchet",
   cat: "gen",
   group: "geometric",
-  desc: "Tiled quarter-circle patterns. Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
+  desc: "Tiled quarter-circle patterns. Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop"], def: "Tiles" },
+    {key:'bands',label:'Bands per tile',type:'slider',min:1,max:14,step:1,def:5,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
+    {key:'bandRatio',label:'Band width %',type:'slider',min:5,max:95,step:1,def:45,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
+    {key:'bandDrawing',label:'Band drawing',type:'select',options:['Outlines','Hatch'],def:'Outlines',showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
+    {key:'bandPitch',label:'Hatch gap mm',type:'slider',min:.2,max:3,step:.1,def:.7,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)&&p.bandDrawing==='Hatch'},
+    {key:'rowOffset',label:'Row offset',type:'slider',min:0,max:6,step:1,def:1,showIf:p=>p.mode==='Butterfly'},
+    { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop", "Concentric bands", "Butterfly"], def: "Tiles" },
     { key: "ttype", label: "Tile type", type: "select", options: ["Arcs", "Diagonals"], def: "Arcs" },
     { key: "fill", label: "Tile fill % (Tiles)", type: "slider", min: 10, max: 100, step: 1, def: 100 },
     { key: "sep", label: "Lines", type: "select", options: ["Connected", "Separate (never meet)"], def: "Connected" },
@@ -54170,7 +54433,25 @@ export default {
     { key: "seed", label: "Seed", type: "seed", def: 9 },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
+  overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+  _bands(ins,p,c){
+    const num=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=num('margin',12,0,Math.min(c.W,c.H)/2),N=Math.round(num('bands',5,1,16)),ratio=num('bandRatio',45,5,95)/100,pitch=num('bandPitch',.7,.2,10),layer=Math.round(num('layer',0,0,11));if(c.W<=2*m||c.H<=2*m)return {paths:[]};
+    let t=Math.max(2,num('tile',15,1,300)*num('scale',100,1,1000)/100);const worst=p.bandDrawing==='Hatch'?Math.max(N,t/pitch):N*2;t=Math.max(t,Math.sqrt((c.W-2*m)*(c.H-2*m)*worst*70/90000));
+    if(p.bandDrawing==='Hatch')t=Math.max(t,Math.sqrt((c.W-2*m)*(c.H-2*m)*N*100/90000),(c.W-2*m)*(c.H-2*m)*ratio*100/(pitch*90000));
+    t=Math.min(t,c.W-2*m,c.H-2*m);const cols=Math.max(1,Math.floor((c.W-2*m)/t)),rows=Math.max(1,Math.floor((c.H-2*m)/t));t=Math.min(t,c.W-2*m,c.H-2*m);const ox=(c.W-cols*t)/2,oy=(c.H-rows*t)/2,paths=[];
+    for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+      const rotation=p.mode==='Butterfly'?((x+y*Math.round(num('rowOffset',1,0,6)))%2)*Math.PI/2:Math.floor(hash2(x,y,p.seed)*4)*Math.PI/2,co=Math.cos(rotation),si=Math.sin(rotation),map=q=>[ox+(x+.5)*t+q[0]*co-q[1]*si,oy+(y+.5)*t+q[0]*si+q[1]*co];
+      const families=p.mode==='Butterfly'?[[-t/2,0,-Math.PI/2,Math.PI,t/2],[t/2,0,Math.PI/2,Math.PI,t/2]]:[[-t/2,-t/2,0,Math.PI/2,t]];
+      for(const [cx,cy,start,sweep,R]of families)for(let b=0;b<N;b++){
+        const lo=(b+(1-ratio)/2)*R/N,hi=(b+(1+ratio)/2)*R/N,ns=Math.max(6,Math.min(24,Math.ceil(hi*sweep/1.4))),arc=rad=>Array.from({length:ns+1},(_,k)=>map([cx+rad*Math.cos(start+sweep*k/ns),cy+rad*Math.sin(start+sweep*k/ns)]));
+        if(p.bandDrawing==='Hatch'){const n=Math.max(1,Math.ceil((hi-lo)/pitch));for(let k=0;k<n;k++)paths.push({pts:arc(lo+(k+.5)*(hi-lo)/n),closed:false,layer});}
+        else paths.push({pts:[...arc(hi),...arc(lo).reverse()],closed:true,layer});
+      }
+    }
+    let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<12&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return out;
+  },
   compute(ins, p, ctx) {
+    if(['Concentric bands','Butterfly'].includes(p.mode))return this._bands(ins,p,ctx);
     const { W, H } = ctx;
     const t = Math.max(1.5, p.tile * (p.scale / 100));
     const L = Math.round(p.layer);
@@ -56592,8 +56873,11 @@ import { Pin, EMPTY, mulberry32, resample } from "../helpers.js";
 export default {
   key: "warp",
     name: "Warp", cat: "mod", group: "deform", ins: [Pin("paths")], outs: [Pin("paths")],
+    desc: "Warp a drawing with four corner offsets, a smooth Grid lattice or piecewise bilinear Cell interpolation. Cell interpolation keeps horizontal and vertical runs straight inside each coarse cell and bends them at the shared edges. Prevent folds uniformly reduces displacement until every cell has positive corner Jacobians. Cell phase drives repeatable continuous lattice motion; edges stay fixed. The two original modes keep their original output.",
     params: [
-      { key: "mode", label: "Mode", type: "select", options: ["4 corners", "Grid lattice"], def: "4 corners" },
+      {key:'safeCells',label:'Prevent folds',type:'check',def:true,showIf:p=>p.mode==='Cell interpolation'},
+      {key:'cellPhase',label:'Cell phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.mode==='Cell interpolation'},
+      { key: "mode", label: "Mode", type: "select", options: ["4 corners", "Grid lattice", "Cell interpolation"], def: "4 corners" },
       { key: "tlx", label: "TL Δx mm", type: "slider", min: -80, max: 80, step: 0.5, def: 0 },
       { key: "tly", label: "TL Δy mm", type: "slider", min: -80, max: 80, step: 0.5, def: 0 },
       { key: "trx", label: "TR Δx mm", type: "slider", min: -80, max: 80, step: 0.5, def: 0 },
@@ -56606,6 +56890,7 @@ export default {
       { key: "amp", label: "Grid amp mm", type: "slider", min: 0, max: 60, step: 0.5, def: 15 },
       { key: "seed", label: "Grid seed", type: "seed", def: 21 },
     ],
+    overlay(p,c){if(p.mode!=='Cell interpolation')return [];const n=Math.max(2,Math.min(24,Math.round(+p.cells||4)));return Array.from({length:(n+1)*2},(_,k)=>({kind:'poly',pts:k<=n?[[k*c.W/n,0],[k*c.W/n,c.H]]:[ [0,(k-n-1)*c.H/n],[c.W,(k-n-1)*c.H/n] ]}));},
     compute(ins, p, ctx) {
       const src = ins[0] || EMPTY;
       const { W, H } = ctx;
@@ -56618,7 +56903,8 @@ export default {
           return [topX + (botX - topX) * v, topY + (botY - topY) * v];
         };
       } else {
-        const n = Math.round(p.cells);
+        const cellMode=p.mode==='Cell interpolation';
+        const n = cellMode?Math.max(2,Math.min(24,Math.round(+p.cells||4))):Math.round(p.cells);
         const rng = mulberry32(p.seed * 359 + 41);
         const lat = [];
         for (let j = 0; j <= n; j++) {
@@ -56626,11 +56912,15 @@ export default {
           for (let i = 0; i <= n; i++) {
             /* reunat paikoillaan, sisäpisteet satunnaisesti */
             const edge = i === 0 || j === 0 || i === n || j === n;
-            row.push(edge ? [0, 0] : [(rng() - 0.5) * 2 * p.amp, (rng() - 0.5) * 2 * p.amp]);
+            if(!cellMode)row.push(edge?[0,0]:[(rng()-.5)*2*p.amp,(rng()-.5)*2*p.amp]);
+            else{const a=(rng()-.5)*2*Math.max(0,Math.min(1000,+p.amp||0)),b=(rng()-.5)*2*Math.max(0,Math.min(1000,+p.amp||0)),phase=(+p.cellPhase||0)*Math.PI/180;row.push(edge?[0,0]:[a*Math.cos(phase)-b*Math.sin(phase),b*Math.cos(phase)+a*Math.sin(phase)]);}
           }
           lat.push(row);
         }
-        const sm = (t) => t * t * (3 - 2 * t);
+        if(cellMode&&p.safeCells!==false){
+          const good=f=>{for(let j=0;j<n;j++)for(let i=0;i<n;i++){const A=lat[j][i],B=lat[j][i+1],C=lat[j+1][i],D=lat[j+1][i+1];for(const u of [0,1])for(const v of [0,1]){const dx=[W/n+f*((B[0]-A[0])*(1-v)+(D[0]-C[0])*v),f*((B[1]-A[1])*(1-v)+(D[1]-C[1])*v)],dy=[f*((C[0]-A[0])*(1-u)+(D[0]-B[0])*u),H/n+f*((C[1]-A[1])*(1-u)+(D[1]-B[1])*u)];if(dx[0]*dy[1]-dx[1]*dy[0]<W*H/n/n*.05)return false;}}return true;};let f=1;while(!good(f)&&f>1e-6)f*=.8;for(const row of lat)for(const q of row){q[0]*=f;q[1]*=f;}
+        }
+        const sm = cellMode?(t=>t):((t) => t * t * (3 - 2 * t));
         disp = (x, y) => {
           const fx = Math.max(0, Math.min(n - 0.0001, (x / W) * n));
           const fy = Math.max(0, Math.min(n - 0.0001, (y / H) * n));
@@ -56645,7 +56935,7 @@ export default {
       }
       const paths = src.paths.map((path) => ({
         ...path,
-        pts: resample(path.pts, path.closed, 1.2).map(([x, y]) => {
+        pts: (p.mode==='Cell interpolation'?(()=>{const out=[],n=Math.max(2,Math.min(24,Math.round(+p.cells||4))),V=path.pts;for(let i=0;i<V.length-(path.closed?0:1);i++){const A=V[i],B=V[(i+1)%V.length],ts=[0];for(let k=1;k<n;k++)for(let axis=0;axis<2;axis++){const line=(axis?H:W)*k/n,d=B[axis]-A[axis],t=(line-A[axis])/d;if(t>1e-9&&t<1-1e-9)ts.push(t);}ts.sort((a,b)=>a-b);for(const t of [...new Set(ts)])out.push([A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t]);}if(!path.closed&&V.length)out.push(V.at(-1).slice());return out;})():resample(path.pts, path.closed, 1.2)).map(([x, y]) => {
           const [dx, dy] = disp(x, y);
           return [x + dx, y + dy];
         }),

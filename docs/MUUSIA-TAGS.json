@@ -1942,5 +1942,17 @@
   "shadow",
   "hatching",
   "render"
+ ],
+ "cell_strands": [
+  "grid",
+  "pattern",
+  "organic",
+  "animation"
+ ],
+ "block_field": [
+  "3d",
+  "mesh",
+  "grid",
+  "animation"
  ]
 }

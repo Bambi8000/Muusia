@@ -1,0 +1,40 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "flow-poles",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9002,
+        "type": "flow",
+        "x": 70,
+        "y": 40,
+        "params": {
+          "field": "Mixed poles",
+          "placement": "Even spacing",
+          "separation": 3.5,
+          "poles": 4,
+          "ring": 42,
+          "core": 7,
+          "phase": 0,
+          "marks": "Lines",
+          "dotPitch": 3,
+          "dotSize": 0.35,
+          "count": 100,
+          "steps": 180,
+          "scale": 0.02,
+          "curl": 2,
+          "margin": 12,
+          "seed": 3,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9002
+  }
+}

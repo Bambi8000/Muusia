@@ -5,11 +5,16 @@ export default {
   name: "Truchet",
   cat: "gen",
   group: "geometric",
-  desc: "Tiled quarter-circle patterns. Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
+  desc: "Tiled quarter-circle patterns. Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop"], def: "Tiles" },
+    {key:'bands',label:'Bands per tile',type:'slider',min:1,max:14,step:1,def:5,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
+    {key:'bandRatio',label:'Band width %',type:'slider',min:5,max:95,step:1,def:45,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
+    {key:'bandDrawing',label:'Band drawing',type:'select',options:['Outlines','Hatch'],def:'Outlines',showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
+    {key:'bandPitch',label:'Hatch gap mm',type:'slider',min:.2,max:3,step:.1,def:.7,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)&&p.bandDrawing==='Hatch'},
+    {key:'rowOffset',label:'Row offset',type:'slider',min:0,max:6,step:1,def:1,showIf:p=>p.mode==='Butterfly'},
+    { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop", "Concentric bands", "Butterfly"], def: "Tiles" },
     { key: "ttype", label: "Tile type", type: "select", options: ["Arcs", "Diagonals"], def: "Arcs" },
     { key: "fill", label: "Tile fill % (Tiles)", type: "slider", min: 10, max: 100, step: 1, def: 100 },
     { key: "sep", label: "Lines", type: "select", options: ["Connected", "Separate (never meet)"], def: "Connected" },
@@ -23,7 +28,25 @@ export default {
     { key: "seed", label: "Seed", type: "seed", def: 9 },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
+  overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+  _bands(ins,p,c){
+    const num=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=num('margin',12,0,Math.min(c.W,c.H)/2),N=Math.round(num('bands',5,1,16)),ratio=num('bandRatio',45,5,95)/100,pitch=num('bandPitch',.7,.2,10),layer=Math.round(num('layer',0,0,11));if(c.W<=2*m||c.H<=2*m)return {paths:[]};
+    let t=Math.max(2,num('tile',15,1,300)*num('scale',100,1,1000)/100);const worst=p.bandDrawing==='Hatch'?Math.max(N,t/pitch):N*2;t=Math.max(t,Math.sqrt((c.W-2*m)*(c.H-2*m)*worst*70/90000));
+    if(p.bandDrawing==='Hatch')t=Math.max(t,Math.sqrt((c.W-2*m)*(c.H-2*m)*N*100/90000),(c.W-2*m)*(c.H-2*m)*ratio*100/(pitch*90000));
+    t=Math.min(t,c.W-2*m,c.H-2*m);const cols=Math.max(1,Math.floor((c.W-2*m)/t)),rows=Math.max(1,Math.floor((c.H-2*m)/t));t=Math.min(t,c.W-2*m,c.H-2*m);const ox=(c.W-cols*t)/2,oy=(c.H-rows*t)/2,paths=[];
+    for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+      const rotation=p.mode==='Butterfly'?((x+y*Math.round(num('rowOffset',1,0,6)))%2)*Math.PI/2:Math.floor(hash2(x,y,p.seed)*4)*Math.PI/2,co=Math.cos(rotation),si=Math.sin(rotation),map=q=>[ox+(x+.5)*t+q[0]*co-q[1]*si,oy+(y+.5)*t+q[0]*si+q[1]*co];
+      const families=p.mode==='Butterfly'?[[-t/2,0,-Math.PI/2,Math.PI,t/2],[t/2,0,Math.PI/2,Math.PI,t/2]]:[[-t/2,-t/2,0,Math.PI/2,t]];
+      for(const [cx,cy,start,sweep,R]of families)for(let b=0;b<N;b++){
+        const lo=(b+(1-ratio)/2)*R/N,hi=(b+(1+ratio)/2)*R/N,ns=Math.max(6,Math.min(24,Math.ceil(hi*sweep/1.4))),arc=rad=>Array.from({length:ns+1},(_,k)=>map([cx+rad*Math.cos(start+sweep*k/ns),cy+rad*Math.sin(start+sweep*k/ns)]));
+        if(p.bandDrawing==='Hatch'){const n=Math.max(1,Math.ceil((hi-lo)/pitch));for(let k=0;k<n;k++)paths.push({pts:arc(lo+(k+.5)*(hi-lo)/n),closed:false,layer});}
+        else paths.push({pts:[...arc(hi),...arc(lo).reverse()],closed:true,layer});
+      }
+    }
+    let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<12&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return out;
+  },
   compute(ins, p, ctx) {
+    if(['Concentric bands','Butterfly'].includes(p.mode))return this._bands(ins,p,ctx);
     const { W, H } = ctx;
     const t = Math.max(1.5, p.tile * (p.scale / 100));
     const L = Math.round(p.layer);

@@ -1,0 +1,74 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "wave-interference-animation",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "grid",
+        "x": 30,
+        "y": 40,
+        "params": {
+          "vlines": 0,
+          "hlines": 50,
+          "margin": 25,
+          "res": 2,
+          "layer": 0
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "aaltoilu",
+        "x": 380,
+        "y": 40,
+        "params": {
+          "mode": "Interference",
+          "phaseDeg": 0,
+          "angle": 90,
+          "decay": 0.1,
+          "sourceX": 148.5,
+          "sourceY": 105,
+          "separation": 72,
+          "amp": 9,
+          "wl": 28,
+          "phase": 0
+        }
+      },
+      {
+        "id": 9100,
+        "type": "frame",
+        "x": 25,
+        "y": 900,
+        "params": {
+          "bangRate": "1/4",
+          "bangEvery": 4,
+          "bangChance": 25,
+          "bangSeed": 41
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "shape-source",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      },
+      {
+        "id": "shape-clock",
+        "from": 9100,
+        "fromPort": 4,
+        "to": 9002,
+        "toPort": "p:phaseDeg"
+      }
+    ],
+    "outputId": 9002
+  }
+}

@@ -264,6 +264,54 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### W — 2026-10-19 · Shapes suite, local only
+
+Daniel approved all eight proposed extensions and two new nodes after the
+Book of Shapes review, with English tutorials and editable starting projects.
+Implemented independently in `/private/tmp/muusia-line-drape`, on top of the
+existing Line Drape / L-System / Craft delivery; main Needle Punch, App and
+hardware work was not touched. No remote push, deployment or Claude upload.
+APP_VERSION remains 2.130 in this isolated delivery until final integration.
+
+- Flow Field: explicit pole markers/fallback ring, Vortex/Sinks/Mixed, forward
+  and backward evenly spaced traces, physical separation, circular dot marks.
+- Wave: Radial/Interference, shared marker sources, phase in degrees, decay and
+  displacement direction; Along path remains byte-identical.
+- To Polar: Spiral, radial rise and Morph with spatial variation; exact zero
+  passthrough. Warp: piecewise bilinear Cell interpolation, exact coarse-cell
+  crossings, positive-Jacobian fold prevention and phase motion.
+- Truchet: concentric/butterfly outlined or arc-hatched bands, width and row
+  rhythm. Tiles: coherent size/rotation/shift field, per-cell clipping and Arc.
+- Mini Squares: variable modular rectangle packing with rounded corners.
+  Network: deterministic looping Drift and changing radius-limited neighbours;
+  hidden manual phase is ignored by Timeline.
+- Cell Strands: convex shared-cell geometry, canonical edge stations, seeded
+  bundles with optional extra routes and edge pen. Crossings inside cells are
+  intentionally transparent, with no over/under gaps.
+- Block Field: complete outward-wound boxes, noise or loaded image heights,
+  terrain/scattered modes, terraces, physical hatching, raster hidden lines and
+  normalized Mesh. Drawing framing is stable during field motion; downstream
+  normalized Mesh can refit. Touching boxes retain internal faces. Dense hatch
+  and sampling coarsen uniformly. Real Mesh Render, Mesh Slice and 3D Spikes
+  consumers accept its mesh.
+
+326 node files / 328 registry entries; ten new Help examples (121 total).
+Shapes Learn adds eleven pages, ten lessons, eighteen patches, twenty real UI
+captures, ten SVG exports and eight players from 96 actual SVG frames. Every
+SVG/G-code coordinate was checked at the exporter’s 0.01 mm precision, including
+all ten G-code files' pen-up travel and final lift. Actual image intake/save
+replays 901 paths / 2496 mesh triangles from frozen raster data. No hardware run.
+The two-pen Learn Stack reference was actually recaptured and is byte-identical;
+fresh source/patch provenance is recorded. Other historical captures stay intact.
+
+Validation: 122 focused geometry/legacy cases (21 original hashes), 121 Help
+graphs, 2575 Frame/Bang engine cases, 271756 visibility predicates and 10752
+hidden-value comparisons. Ordered catalog/build/Learn passes 30726 checks across
+60 English pages. Raw new G-code evidence stays outside the published asset set.
+Integration must preserve the prior ready work and recheck main's concurrent
+Needle Punch changes; bump the app version once at an authorized final release.
+
+
 - **2.21** removed 8 nodes (Macrame, Reaction-Diffusion, String, Tape Saturation
   Harmonics, Planets, Solar System, Building, Filter); Scan→**Seismic** (seismic
   branch only); Power Pole trimmed to 3 models; Mycelial Net→**Root Web**;

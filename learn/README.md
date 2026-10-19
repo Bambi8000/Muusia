@@ -1,6 +1,6 @@
 # Muusia Learn
 
-An English companion guide to Muusia: seven foundation tutorials, twelve Craft tutorials, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
+An English companion guide to Muusia: seven foundation tutorials, twelve Craft tutorials, ten Shapes tutorials, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
 
 ## Build and preview
 
@@ -345,3 +345,33 @@ and actual recapture; `craft/record-captures.mjs` is deliberately not a build st
 The new pages are linked from Overview, Tutorials and the guide sidebar. This
 work is local until the suite and guide are integrated and publication is
 verified. Older screenshots elsewhere in Learn retain their own provenance.
+
+
+## Shape and field projects (local, 2026-10-19)
+
+`learn/shapes/` adds ten English lessons at `learn/shapes/index.html`: Flow Field
+even pole streams, Wave interference, To Polar spiral morph, Warp cell
+interpolation, Truchet bands, Tiles field variation, Mini Squares rectangle
+packing, Network drift, Cell Strands and Block Field. The collection includes
+eighteen runnable patches, twenty actual Muusia PNG captures, ten actual SVG
+downloads and eight actual twelve-frame SVG ZIPs with offline players. Ten raw
+G-code captures in the source-only verification directory are software evidence,
+not machine presets or ready-to-run downloads. The suite validator compares every
+SVG and G-code coordinate and all 96 animated frames with the actual evaluator.
+
+Run `node tools/validate-shapes-suite.mjs` and
+`node learn/shapes/validate.mjs --source` for focused checks. `--record` is only
+for fresh actual browser evidence, never part of the build. Keep the image
+intake/save fixture and receipt in the source verification directory. UI image
+format conversion is permitted; pixel retouching is not. Global build and Learn
+checks include all eleven new pages and their downloads. The site now has sixty
+English pages. Nothing in this local implementation authorizes publication.
+
+Wave retains its original Along path drawing, but gains a second blue input and
+new controls. Its older foundation screenshot is explicitly historical. The
+two-pen Stack SVG reference was downloaded again after this extension, with
+Red hidden in preview, no margin, Mirror/Numbers off, Drill Off and route
+optimization off. Both exported SVG files are byte-identical to the originals;
+the new source patch contains the explicit neutral new defaults. Capture
+provenance identifies the actual local A servo demonstration profile (330 × 240
+mm, unverified). Historical screenshots and physical G-code checks are unchanged.

@@ -172,6 +172,14 @@ const comparisons = {
 const CATEGORY = { gen: 'Generators', mod: 'Modifiers', dec: 'Decorators', duo: 'Combiners', math: 'Math', route: 'Routing' };
 const GROUP = { geometric: 'Geometric', deform: 'Deform', textimg: 'Text & Image', space: 'Space', penout: 'Pen & Output', transform: 'Transform', fillstyle: 'Fill & Style' };
 const visibilityNotes = {
+  'aaltoilu.phase': 'Shown for Along path; this legacy phase is in radians.',
+  'aaltoilu.phaseDeg': 'Shown for Radial and Interference; this shared-field phase is in degrees.',
+  'aaltoilu.angle': 'Shown for Radial and Interference; sets the common displacement direction.',
+  'aaltoilu.decay': 'Shown for Radial and Interference; attenuates waves with distance.',
+  'aaltoilu.sourceX': 'Shown for Radial and Interference; places the fallback source centre. Wired Wave sources replaces it.',
+  'aaltoilu.sourceY': 'Shown for Radial and Interference; places the fallback source centre. Wired Wave sources replaces it.',
+  'aaltoilu.separation': 'Shown for Interference; separates the fallback pair of sources.',
+
   'move_scale.ox': 'Shown when Scale origin is Custom point.',
   'move_scale.oy': 'Shown when Scale origin is Custom point.',
   'move_scale.clock': 'Shown when Motion is Sway, Orbit or Breathe.',

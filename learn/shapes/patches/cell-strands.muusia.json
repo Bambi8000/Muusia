@@ -1,0 +1,37 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "cell-strands",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9002,
+        "type": "cell_strands",
+        "x": 70,
+        "y": 40,
+        "params": {
+          "mode": "Hex strands",
+          "cell": 25,
+          "strands": 7,
+          "deform": 65,
+          "fieldSize": 55,
+          "phase": 0,
+          "curve": 70,
+          "density": 85,
+          "carry": 45,
+          "edges": true,
+          "edgePen": 7,
+          "margin": 15,
+          "seed": 31,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9002
+  }
+}

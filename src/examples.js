@@ -13,9 +13,466 @@
  * - optional `canvas: { W, H }` per entry if the patch depends on sheet size
  */
 
+// Shapes starting settings mirror learn/shapes/content.mjs; validated by the Shapes gate.
+const SHAPE_LESSONS = [
+  {
+    "example": "Flow Field · Even pole streams",
+    "key": "flow",
+    "summary": "Evenly spaced streams bend around a ring of vortices and sinks.",
+    "settings": {
+      "field": "Mixed poles",
+      "placement": "Even spacing",
+      "separation": 3.5,
+      "count": 100,
+      "steps": 180,
+      "poles": 4,
+      "ring": 42,
+      "core": 7,
+      "layer": 0
+    },
+    "motion": {
+      "target": "phase",
+      "source": "rot °"
+    },
+    "steps": [
+      [
+        "Choose the field",
+        "Add Flow Field. Set Field to Mixed poles and Line placement to Even spacing. Leave Poles unwired for the fallback ring."
+      ],
+      [
+        "Set a physical spacing",
+        "Set Separation mm to 3.5. This is the stopping distance from earlier traces, rather than a promise that every gap is exactly the same width."
+      ],
+      [
+        "Shape the centres",
+        "Use four Fallback poles on a 42 mm Pole ring, with a 7 mm Pole core. Alternate centres draw vortices and sinks."
+      ],
+      [
+        "Fill the page",
+        "Raise Trails to 100 and Length to 180. These are upper limits: traces stop at the margin, earlier lines or their own looping history."
+      ],
+      [
+        "Place your own poles",
+        "For a custom field, wire markers to Poles. Closed paths contribute their vertex-average centres and open paths their first point. Wired markers replace the ring."
+      ]
+    ]
+  },
+  {
+    "example": "Wave · Two-source interference",
+    "key": "aaltoilu",
+    "summary": "A shared wave field bends parallel lines into changing interference bands.",
+    "settings": {
+      "mode": "Interference",
+      "amp": 9,
+      "wl": 28,
+      "angle": 90,
+      "decay": 0.1,
+      "sourceX": 148.5,
+      "sourceY": 105,
+      "separation": 72
+    },
+    "source": {
+      "key": "grid",
+      "settings": {
+        "vlines": 0,
+        "hlines": 50,
+        "margin": 25,
+        "res": 2,
+        "layer": 0
+      }
+    },
+    "motion": {
+      "target": "phaseDeg",
+      "source": "rot °"
+    },
+    "steps": [
+      [
+        "Start with lines",
+        "Add Grid. Set Vertical lines to 0, Horizontal lines to 50 and Margin mm to 25 on an A4 wide sheet."
+      ],
+      [
+        "Connect the drawing",
+        "Connect Grid Paths to the first Wave input. Wave sources is optional and takes marker paths; it does not take the artwork."
+      ],
+      [
+        "Choose interference",
+        "Set Wave field to Interference, Amplitude mm to 9 and Wavelength mm to 28. The two fallback sources sit around Source X/Y."
+      ],
+      [
+        "Set the displacement",
+        "Use Displacement angle 90° for vertical movement. Source separation 72 mm changes the interference spacing; Decay weakens distant waves."
+      ],
+      [
+        "Move the wave",
+        "Scrub Phase °. All lines use the same canvas-space wave field. The original Along path mode still follows each stroke independently."
+      ]
+    ]
+  },
+  {
+    "example": "To Polar · Spiral morph",
+    "key": "topolar",
+    "summary": "Blend a flat drawing into a spiral using one continuous Morph control.",
+    "settings": {
+      "mode": "Spiral",
+      "turns": 2.4,
+      "rin": 10,
+      "rise": 70,
+      "morph": 75,
+      "noise": 20,
+      "noiseSize": 65,
+      "margin": 20
+    },
+    "source": {
+      "key": "grid",
+      "settings": {
+        "vlines": 18,
+        "hlines": 14,
+        "margin": 20,
+        "res": 2,
+        "layer": 0
+      }
+    },
+    "motion": {
+      "target": "morph",
+      "source": "t",
+      "math": {
+        "op": "A × B",
+        "b": 100
+      }
+    },
+    "steps": [
+      [
+        "Build a regular source",
+        "Add Grid with 18 vertical and 14 horizontal lines. Connect its Paths to To Polar Source."
+      ],
+      [
+        "Select Spiral",
+        "Set Wrap to Spiral, Turns to 2.4 and Inner radius mm to 10. Rings retains the original polar wrapping."
+      ],
+      [
+        "Grow the spiral radius",
+        "Set Spiral rise to 70%. This allocates most radial growth to horizontal progression, while leaving some separation between source rows."
+      ],
+      [
+        "Blend the two states",
+        "Set Morph to 75%. At 0 the input passes through exactly; at 100 it reaches the target unless Morph variation locally reduces the blend."
+      ],
+      [
+        "Add local variation",
+        "Set Morph variation to 20% and Variation size to 65 mm for a less uniform transition. Set variation to 0 for a complete target at Morph 100."
+      ]
+    ]
+  },
+  {
+    "example": "Warp · Piecewise woven grid",
+    "key": "warp",
+    "summary": "A coarse deformation cage produces straight cell interiors and sharp changes at cell edges.",
+    "settings": {
+      "mode": "Cell interpolation",
+      "cells": 7,
+      "amp": 26,
+      "safeCells": true,
+      "seed": 21
+    },
+    "source": {
+      "key": "grid",
+      "settings": {
+        "vlines": 50,
+        "hlines": 35,
+        "margin": 18,
+        "res": 2,
+        "layer": 0
+      }
+    },
+    "motion": {
+      "target": "cellPhase",
+      "source": "rot °"
+    },
+    "steps": [
+      [
+        "Make a fine grid",
+        "Add Grid with 50 vertical and 35 horizontal lines. Connect it to Warp."
+      ],
+      [
+        "Choose the interpolation",
+        "Set Mode to Cell interpolation. The original Grid lattice is smooth; this mode uses piecewise bilinear cells."
+      ],
+      [
+        "Use a coarse cage",
+        "Set Grid cells to 7. This controls the deformation cage, not the number of incoming drawing lines."
+      ],
+      [
+        "Keep cells upright",
+        "Set Grid amp to 26 mm and leave Prevent folds on. If the cage would invert, the displacement is reduced uniformly across the entire cage."
+      ],
+      [
+        "Rotate the deformation",
+        "Move Cell phase. The same seeded displacement vectors rotate continuously while the outer cage boundary stays fixed."
+      ]
+    ]
+  },
+  {
+    "example": "Truchet · Butterfly bands",
+    "key": "truchet",
+    "summary": "Outlined or hatched concentric bands form a repeating optical tile field.",
+    "settings": {
+      "mode": "Butterfly",
+      "tile": 30,
+      "bands": 5,
+      "bandRatio": 45,
+      "rowOffset": 1,
+      "bandDrawing": "Outlines",
+      "margin": 15,
+      "layer": 0
+    },
+    "steps": [
+      [
+        "Add the pattern",
+        "Add Truchet and set Pattern to Butterfly. This is a new mode; the single-line Loop solver is unchanged."
+      ],
+      [
+        "Set the tile size",
+        "Use Tile mm 30 and Scale 100%. The node centres complete tiles inside the margin."
+      ],
+      [
+        "Choose the bands",
+        "Set Bands per tile to 5 and Band width to 45%. Width controls each ink band relative to the space between bands."
+      ],
+      [
+        "Set the tile rhythm",
+        "Row offset 1 alternates Butterfly orientations across rows. Offset 0 repeats the same column rhythm on every row."
+      ],
+      [
+        "Choose the pen geometry",
+        "Outlines draws closed annular bands. Hatch replaces each band with open concentric arc strokes at Hatch gap mm."
+      ]
+    ]
+  },
+  {
+    "example": "Tiles · Hidden square field",
+    "key": "tiles",
+    "summary": "Coherent noise moves, turns and shrinks repeated shapes inside their own cells.",
+    "settings": {
+      "shape": "Superellipse",
+      "superN": 8,
+      "cols": 16,
+      "rows": 11,
+      "sizeX": 100,
+      "field": 95,
+      "fieldScale": 50,
+      "fieldMove": 70,
+      "fieldShrink": 65,
+      "fieldRotate": 110,
+      "clipCell": true,
+      "margin": 15,
+      "layer": 0
+    },
+    "motion": {
+      "target": "phase",
+      "source": "rot °"
+    },
+    "steps": [
+      [
+        "Make square-like tiles",
+        "Add Tiles with Superellipse N 8, Columns 16, Rows 11 and Size X 100%."
+      ],
+      [
+        "Enable the shared field",
+        "Set Field variation to 95% and Field size to 50 mm. Nearby tiles now respond together rather than jittering independently."
+      ],
+      [
+        "Set the three responses",
+        "Use Field shift 70%, Field shrink 65% and Field rotation 110°. Each response is multiplied by the local field strength."
+      ],
+      [
+        "Keep the cell windows",
+        "Enable Clip to own cell. Each transformed motif is clipped against its original rectangular cell, exposing white corners."
+      ],
+      [
+        "Move through the field",
+        "Scrub Field phase. The noise follows a closed phase circle, so phase 360 returns to the same arrangement as phase 0."
+      ]
+    ]
+  },
+  {
+    "example": "Mini Squares · Rounded rectangle mosaic",
+    "key": "mini_squares",
+    "summary": "Variable-width and height rectangles fill a shared modular grid without overlaps.",
+    "settings": {
+      "packing": "Rectangles",
+      "cell": 7,
+      "maxWidth": 5,
+      "maxHeight": 3,
+      "corner": 1.5,
+      "gap": 1,
+      "density": 1,
+      "spread": "Full",
+      "margin": 15,
+      "layer": 0
+    },
+    "steps": [
+      [
+        "Choose the packing family",
+        "Add Mini Squares and set Packing to Rectangles. The original Squares mode and nested square treatments remain available."
+      ],
+      [
+        "Set the module",
+        "Use Cell 7 mm. Rectangle dimensions are whole numbers of this module."
+      ],
+      [
+        "Allow different proportions",
+        "Set Max width cells to 5 and Max height cells to 3. Both are limits rather than fixed rectangle dimensions."
+      ],
+      [
+        "Separate neighbouring blocks",
+        "Set Gap to 1 mm and Corner radius to 1.5 mm. Each outline remains inside its allocated cells."
+      ],
+      [
+        "Fill the sheet",
+        "Set Density to 1 and Spread to Full for a complete mosaic. Lower Density to create patches and voids."
+      ]
+    ]
+  },
+  {
+    "example": "Network · Drifting neighbourhoods",
+    "key": "network",
+    "summary": "Stable moving points gain and lose neighbours as their distances change.",
+    "settings": {
+      "motion": "Drift",
+      "nodes": 65,
+      "links": 3,
+      "radius": 36,
+      "drift": 20,
+      "dots": true,
+      "degsize": true,
+      "margin": 18,
+      "layer": 0
+    },
+    "motion": {
+      "timeline": true
+    },
+    "steps": [
+      [
+        "Choose the moving layout",
+        "Add Network and set Layout to Drift. Force layout remains the original deterministic untangling simulation."
+      ],
+      [
+        "Set the population",
+        "Use 65 Nodes and 3 Links per node. The seeded point identities stay fixed while their positions change."
+      ],
+      [
+        "Limit the neighbourhood",
+        "Set Connection radius to 36 mm. A point only proposes connections to its nearest neighbours inside this radius; final undirected degree may exceed Links per node."
+      ],
+      [
+        "Set the movement",
+        "Use Drift 20 mm. The amplitude is reduced on small pages to leave room inside the margin."
+      ],
+      [
+        "Play the motion",
+        "Set Time source to Timeline and press ANIMATE Play. Use 12 frames for the supplied preview; the patch does not save the global frame count."
+      ]
+    ]
+  },
+  {
+    "example": "Cell Strands · Shared-edge bundles",
+    "key": "cell_strands",
+    "summary": "Parallel bundles meet at identical stations along shared distorted cell edges.",
+    "settings": {
+      "mode": "Hex strands",
+      "cell": 25,
+      "strands": 7,
+      "deform": 65,
+      "fieldSize": 55,
+      "curve": 70,
+      "density": 85,
+      "carry": 45,
+      "edges": true,
+      "edgePen": 7,
+      "layer": 0,
+      "margin": 15
+    },
+    "motion": {
+      "target": "phase",
+      "source": "rot °"
+    },
+    "steps": [
+      [
+        "Choose a cell network",
+        "Add Cell Strands. Hex strands creates shared hexagonal cells; Ribbon cells uses square cells."
+      ],
+      [
+        "Set the bundle size",
+        "Use Cell size 25 mm and 7 Strands per bundle. Shared edges have identical station positions in both neighbouring cells."
+      ],
+      [
+        "Deform the cells",
+        "Set Displacement to 65% and Field size to 55 mm. The deformation is uniformly reduced if any cell would cease to be convex."
+      ],
+      [
+        "Open and close routes",
+        "Use Occupied cells 85% and Extra routes 45%. Some bundles end at empty cells or unused neighbouring edges; matching routes meet exactly."
+      ],
+      [
+        "Separate the edge layer",
+        "Enable Cell edges and choose a different Edge pen, or turn the edges off to retain only the travelling bundles."
+      ]
+    ]
+  },
+  {
+    "example": "Block Field · Stepped noise terrain",
+    "key": "block_field",
+    "summary": "Real closed 3D blocks become a hidden-line drawing and a reusable mesh.",
+    "settings": {
+      "mode": "Column terrain",
+      "heightSource": "Noise",
+      "cols": 16,
+      "rows": 13,
+      "height": 7,
+      "terraces": 8,
+      "noiseSize": 4,
+      "gap": 10,
+      "drawing": "Outlines",
+      "hidden": true,
+      "yaw": 35,
+      "elevation": 32,
+      "size": 235,
+      "margin": 15,
+      "layer": 0
+    },
+    "motion": {
+      "target": "phase",
+      "source": "rot °"
+    },
+    "steps": [
+      [
+        "Create the terrain",
+        "Add Block Field with Column terrain and Noise heights. Start with 16 Columns and 13 Rows."
+      ],
+      [
+        "Shape the heights",
+        "Use Height × cell 7, Height steps 8 and Noise size 4 cells. Height steps 0 makes column heights continuous."
+      ],
+      [
+        "Separate the blocks",
+        "Set Cell gap to 10%. Choose Outlines and keep Hidden-line removal on so nearer columns hide the ones behind."
+      ],
+      [
+        "Choose a camera",
+        "Set View angle 35° and View elevation 32°. These camera settings affect Drawing only. Mesh consumers have their own camera and size."
+      ],
+      [
+        "Reuse the solid",
+        "Connect the orange Mesh output to Mesh Render, Mesh Slice or 3D Spikes. For a height image, choose Image and load a file: darker pixels make taller blocks."
+      ]
+    ]
+  }
+];
+
 import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
+  ...SHAPE_LESSONS.map(l=>({name:l.example,desc:l.summary+" "+l.steps.map(s=>s[1]).join(" ")+" "+(l.motion?"Use the English Shapes tutorial for the animation wiring. Leave the seed fixed.":"This is a static starting composition."),canvas:{W:297,H:210},make:defaults=>{const nodes=[],edges=[];if(l.source)nodes.push({id:9001,type:l.source.key,x:30,y:40,params:{...defaults(l.source.key),...l.source.settings}});nodes.push({id:9002,type:l.key,x:l.source?380:30,y:40,params:{...defaults(l.key),...l.settings}});if(l.source)edges.push({id:"e9101",from:9001,fromPort:0,to:9002,toPort:0});return {nodes,edges};}})),
   {
     name: "Marbling · Combed grid",
     desc: "Select Marbling. A horizontal Grid is pulled vertically by eleven soft comb tines. Direction 90 crosses the source lines; Direction 0 pulls along them. Strength, Pull, Radius and Tine spacing change the folds. Try Drop, Rake and Swirl. Phase animates a reversible force cycle; wire Frame rot degrees for motion. This version uses repeatable controls rather than recording mouse gestures. No automatic fit: Crop can contain displaced ink.",

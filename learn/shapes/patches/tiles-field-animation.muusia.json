@@ -1,0 +1,66 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "tiles-field-animation",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9002,
+        "type": "tiles",
+        "x": 70,
+        "y": 40,
+        "params": {
+          "field": 95,
+          "fieldScale": 50,
+          "fieldMove": 70,
+          "fieldRotate": 110,
+          "fieldShrink": 65,
+          "phase": 0,
+          "clipCell": true,
+          "arcSweep": 270,
+          "cols": 16,
+          "rows": 11,
+          "layout": "Grid",
+          "flipAlt": false,
+          "shape": "Superellipse",
+          "superN": 8,
+          "sizeX": 100,
+          "sizeY": 0,
+          "starPts": 5,
+          "starIn": 45,
+          "rot": 0,
+          "rotJit": 0,
+          "margin": 15,
+          "seed": 101,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9100,
+        "type": "frame",
+        "x": 25,
+        "y": 900,
+        "params": {
+          "bangRate": "1/4",
+          "bangEvery": 4,
+          "bangChance": 25,
+          "bangSeed": 41
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "shape-clock",
+        "from": 9100,
+        "fromPort": 4,
+        "to": 9002,
+        "toPort": "p:phase"
+      }
+    ],
+    "outputId": 9002
+  }
+}

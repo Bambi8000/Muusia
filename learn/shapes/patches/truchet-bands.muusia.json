@@ -1,0 +1,41 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "truchet-bands",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9002,
+        "type": "truchet",
+        "x": 70,
+        "y": 40,
+        "params": {
+          "bands": 5,
+          "bandRatio": 45,
+          "bandDrawing": "Outlines",
+          "bandPitch": 0.7,
+          "rowOffset": 1,
+          "mode": "Butterfly",
+          "ttype": "Arcs",
+          "fill": 100,
+          "sep": "Connected",
+          "tile": 30,
+          "scale": 100,
+          "lines": 1,
+          "spread": 100,
+          "gapmm": 0,
+          "round": 100,
+          "margin": 15,
+          "seed": 9,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9002
+  }
+}

@@ -5,10 +5,14 @@ export default {
   name: "Mini Squares",
   cat: "gen",
   group: "geometric",
-  desc: "A field of axis-aligned squares packed on a hidden grid: larger multi-cell squares are placed first, then single cells fill in around them, so neighbours share edges like a mosaic. Density comes from patchy noise multiplied by a Spread falloff (Corner / Center / Linear) so the field crumbles away at its edge. Nest depth tucks smaller squares inside squares - concentric insets or corner-anchored knots (Mixed picks per square). Gap shrinks every top-level square so shared edges separate. Chain into Container or Wind Tunnel as an obstacle field, or drive Density with a value wire for animated growth.",
+  desc: "A field of axis-aligned squares packed on a hidden grid: larger multi-cell squares are placed first, then single cells fill in around them, so neighbours share edges like a mosaic. Density comes from patchy noise multiplied by a Spread falloff (Corner / Center / Linear) so the field crumbles away at its edge. Nest depth tucks smaller squares inside squares - concentric insets or corner-anchored knots (Mixed picks per square). Gap shrinks every top-level square so shared edges separate. Rectangles packs variable-width and height cells into a gap-separated mosaic with optional rounded corners; Max width/height replace square nesting in this mode. Chain into Container or Wind Tunnel as an obstacle field, or drive Density with a value wire for animated growth.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    {key:'packing',label:'Packing',type:'select',options:['Squares','Rectangles'],def:'Squares'},
+    {key:'maxWidth',label:'Max width cells',type:'slider',min:1,max:8,step:1,def:4,showIf:p=>p.packing==='Rectangles'},
+    {key:'maxHeight',label:'Max height cells',type:'slider',min:1,max:8,step:1,def:3,showIf:p=>p.packing==='Rectangles'},
+    {key:'corner',label:'Corner radius mm',type:'slider',min:0,max:6,step:.25,def:1,showIf:p=>p.packing==='Rectangles'},
     { key: "cell", label: "Cell (mm)", type: "slider", min: 2, max: 12, step: 0.5, def: 4 },
     { key: "density", label: "Density", type: "slider", min: 0, max: 1, step: 0.01, def: 0.6 },
     { key: "maxsize", label: "Max square (cells)", type: "slider", min: 1, max: 4, step: 1, def: 3 },
@@ -27,7 +31,22 @@ export default {
     const m = Math.max(0, p.margin);
     return [{ kind: "rect", x: m, y: m, w: ctx.W - 2 * m, h: ctx.H - 2 * m }];
   },
+  _rectangles(ins,p,c){
+    const m=Math.max(0,Math.min(+p.margin||0,Math.min(c.W,c.H)/2)),cell=Math.max(1,+p.cell||4,Math.sqrt((c.W-2*m)*(c.H-2*m)/3500));if(c.W<=2*m||c.H<=2*m)return {paths:[]};
+    const cols=Math.floor((c.W-2*m)/cell),rows=Math.floor((c.H-2*m)/cell),ox=(c.W-cols*cell)/2,oy=(c.H-rows*cell)/2,occ=new Uint8Array(cols*rows),rng=mulberry32((+p.seed||0)*7919+13),mw=Math.max(1,Math.min(8,Math.round(+p.maxWidth||4))),mh=Math.max(1,Math.min(8,Math.round(+p.maxHeight||3))),gap=Math.max(0,+p.gap||0),radius=Math.max(0,+p.corner||0),paths=[],layer=Math.max(0,Math.min(11,Math.round(+p.layer||0)));
+    for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+      if(occ[y*cols+x])continue;let w=1+Math.floor(rng()*mw),h=1+Math.floor(rng()*mh),free=()=>{if(x+w>cols||y+h>rows)return false;for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)if(occ[yy*cols+xx])return false;return true;};while(!free()){if(w>h&&w>1)w--;else if(h>1)h--;else w--;}
+      for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)occ[yy*cols+xx]=1;
+      const patch=Math.max(1,+p.patch||8),density=Math.max(0,Math.min(1,+p.density||0)),u=(x+w/2)/Math.max(1,cols),v=(y+h/2)/Math.max(1,rows),d=p.spread==='Corner'?Math.hypot(u,v)/Math.SQRT2:p.spread==='Center'?Math.hypot(u-.5,v-.5)/.7071:p.spread==='Linear'?u:0,fall=1-Math.max(0,Math.min(1,+p.fade||0))*Math.min(1,d*d*(3-2*d));
+      if(density<1&&noise2(x/patch,y/patch,p.seed)>density*fall)continue;
+      const W=w*cell-gap,H=h*cell-gap;if(W<=.2||H<=.2)continue;const left=ox+x*cell+gap/2,top=oy+y*cell+gap/2,R=Math.min(radius,W/2,H/2),pts=[];
+      if(R<.01)pts.push([left,top],[left+W,top],[left+W,top+H],[left,top+H]);else for(let k=0;k<4;k++){const cx=k===0||k===1?left+W-R:left+R,cy=k===0||k===3?top+R:top+H-R,a=-Math.PI/2+k*Math.PI/2;for(let q=0;q<=4;q++)pts.push([cx+R*Math.cos(a+q*Math.PI/8),cy+R*Math.sin(a+q*Math.PI/8)]);}
+      paths.push({pts,closed:true,layer});
+    }
+    let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<10&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return out;
+  },
   compute(ins, p, ctx) {
+    if(p.packing==='Rectangles')return this._rectangles(ins,p,ctx);
     const W = ctx.W, H = ctx.H;
     const cell = Math.max(0.8, p.cell);
     const margin = Math.max(0, Math.min(p.margin, Math.min(W, H) / 2 - cell));
