@@ -1884,5 +1884,12 @@
   "growth",
   "animation",
   "branching"
+ ],
+ "line_drape": [
+  "deform",
+  "text",
+  "warp",
+  "hatch",
+  "wave"
  ]
 }

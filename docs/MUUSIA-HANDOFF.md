@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **316 files** (318 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **317 files** (319 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 201, Modifiers 77). ESM format:
+  Generators 201, Modifiers 79). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -3943,6 +3943,42 @@ according to the session's actual capabilities:
   Daniel authorized publication of both repairs as v2.130. Claude project files
   will be prepared as a clean committed local snapshot after integration;
   preparing these files does not upload them to the Claude web project.
+
+- **Local — Line Drape** 2026-10-19 Astra — Daniel supplied references of
+  parallel lines changing direction through letter-shaped masks and requested
+  text / arbitrary shape input plus line orientation. Isolated branch
+  `codex/line-drape`, worktree `/private/tmp/muusia-line-drape`, base 6a3500a;
+  main's uncommitted Needle Punch / machine work is intentionally untouched.
+  `line_drape` is a regular paths modifier: Shape + Style → Paths. A bounded
+  raster mask unions stroke capsules and per-pen even-odd closed interiors;
+  three separable box filters soften the boundary. The scalar field blends
+  background and relative inner line orientations, then marching squares traces
+  its levels, with saddle disambiguation, complete path chaining and exact
+  collinear compaction. Parameters: Orientation, Bend angle, Strength, Softness,
+  Shift, Pitch, Phase, closed fill, stroke width, Detail, Pens, Margin and Pen.
+  Shape remains only a mask. Empty input / zero Strength gives straight lines.
+  Open strokes, closed outlines and holes work. Tiny source details depend on
+  raster resolution; transition folds can be much denser than background Pitch.
+  Raster is bounded to roughly 100k cells; dense contours/style output uniformly
+  increase Pitch rather than discarding later page regions. Source intake cap
+  120k points / 30k paths; output <=118k points. No new engine/pin/export contract.
+  Prototyped through actual Node import, baked, then tested after a fresh app
+  load. Help adds Folded type (Lettering FLOW, four pens) and Angled shape
+  (Superformula, Orientation 32 degrees). Docs/tags/catalog/recency regenerated.
+  Validator covers bounded deterministic output, every meaningful control,
+  independent zero-strength orientation/phase oracle, open strokes, nested holes,
+  pen cycling, Style, A4/A3/A2, degenerate input and three actual Type Studio modes
+  (Contour type, Hairline lettering, Text made of text). Actual UI SVG and G-code
+  are compared against all ordered coordinates, default A servo profile, route
+  off, origin 0, Flip Y off; no hardware. Evidence and portable examples are in
+  this chat's visualization `line-drape/` directory. The portable patches embed
+  the custom-node source for use in the current published app.
+  Validation complete: 52 geometry cases, actual SVG/G-code coordinates, 97
+  Help graphs, 2,541 Frame/Bang cases and ordered catalog → build → Learn
+  gate (23,596 checks) pass. Portable patch also loaded in public v2.130 and
+  displays the exact same 151 paths / 42,156 points.
+  Publication not requested. Keep ready on its branch for later integration;
+  do not overwrite main's machine/export changes with this branch's older App.
 
 ## Hard-won pitfalls (keep)
 

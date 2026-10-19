@@ -1,4 +1,26 @@
 {
   "schemaVersion": 1,
-  "active": []
+  "active": [
+    {
+      "id": "line-drape",
+      "owner": "Astra",
+      "role": "node author, isolated worktree /private/tmp/muusia-line-drape",
+      "baseCommit": "6a3500a75d48193013e6c1339c0582d7bba36b72",
+      "scope": [
+        "nodes-lab/line_drape.plotternode.js",
+        "src/defs/nodes/line_drape.js",
+        "tools/validate-line-drape.mjs",
+        "src/examples.js",
+        "docs/MUUSIA-NODES.md",
+        "docs/MUUSIA-TAGS.json",
+        "docs/MUUSIA-HANDOFF.md",
+        "docs/MUUSIA-NODES-SRC.md",
+        "src/defs/catalog.js",
+        "src/defs/node-recency-data.js",
+        "learn/generated/manifest.json"
+      ],
+      "status": "ready",
+      "outcome": "Complete on isolated codex/line-drape worktree at /private/tmp/muusia-line-drape: new built-in Line Drape, two Help examples, docs/catalog/recency and portable patches; 52 geometry, 97 Help, 2541 Bang checks plus ordered catalog/build/Learn (23596) pass. Actual SVG/G-code coordinates match; embedded custom patch tested in public v2.130. Await integration/publication; main needle work untouched."
+    }
+  ]
 }

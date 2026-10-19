@@ -17,6 +17,24 @@ import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
   {
+    name: "Line Drape · Folded type",
+    desc: "Select Line Drape. Lettering supplies the FLOW outline at Depth 0; the letters are only a mask, not extra plotted outlines. Orientation rotates the straight background lines, Bend angle sets their relative direction inside the face. Softness rounds the border, Shift slides the inner field, and Strength 0 gives straight lines. Pens 4 cycles four levels; choose 1 for a single black pen. For Type Studio, connect its output to Shape. For open Text strokes, adjust Stroke width. Very narrow strokes need lower Softness / Detail. Phase accepts animation wires.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lettering", x: 20, y: 20, params: { ...defaults("lettering"), text: "FLOW", size: 76, weight: 36, depth: 0 } },
+      { id: 9002, type: "line_drape", x: 370, y: 20, params: { ...defaults("line_drape"), pitch: 1.4, bend: -48, soft: 3, pens: 4, layer: 1 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "Line Drape · Angled shape",
+    desc: "Select Line Drape. A Superformula outline controls a single-pen line field at Orientation 32 degrees; Bend angle 62 changes the direction only through the shape. Softness rounds the transition. Fill closed shapes keeps a filled mask; disable it to bend only around the stroked outline. The shape itself is not drawn. Try Orientation 0 / 90, Strength 0, or a different Superformula.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "superformula", x: 20, y: 20, params: { ...defaults("superformula"), margin: 45, n1: .45, n2: 1.2, n3: 1.2, m: 5 } },
+      { id: 9002, type: "line_drape", x: 370, y: 20, params: { ...defaults("line_drape"), angle: 32, bend: 62, soft: 5 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Surface study · Torn organic rings",
     desc: "Organic Rings with small dotted rings and a full halo feeds Torn, then 2D to 3D Inflate / Auto. Select 2D to 3D. Tiny closed marks narrower than Stroke width become compact solids; dense curves adapt their approximation within one eighth of the width. Every mark/curve stays in the source allocation, while the complete mesh stays under its triangle cap. Try Extrude or Tubes, then lower Depth % for a shallower relief. This reproduces the formerly blank dense-input case; very small stamps are intentionally faceted rather than overlapping thick loops.",
     canvas: { W: 297, H: 210 },

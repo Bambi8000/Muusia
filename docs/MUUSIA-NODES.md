@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 318 built-in nodes in the current Muusia source. Conventions used below:
+All 319 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -2281,7 +2281,25 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (78)
+## Modifiers (79)
+
+**Line Drape** — generate parallel pen lines bent by any text or drawing wired
+into *Shape*. The source is a mask and is not drawn. *Orientation °* sets the
+background direction; *Bend angle °* sets the relative direction inside the mask.
+*Strength %* blends the fields, *Softness mm* smooths their boundary and *Shift mm*
+slides one field against the other. *Line pitch mm* is the perpendicular spacing
+outside the shape; fold transitions can crowd more tightly. *Phase mm* shifts
+levels and accepts animation wires. *Fill closed shapes* uses even-odd interiors
+per pen, preserving holes; open paths use *Stroke width mm* in either setting.
+Turn Fill off to thicken every path, including closed strokes. Empty Shape gives
+a straight field. *Pens* cycles whole levels from Pen. *Detail mm* requests the
+mask raster resolution: thin features may disappear. Dense jobs uniformly
+coarsen Detail or Pitch; no page-prefix truncation. Input cap: 120k points / 30k
+paths; output cap: 118k points. All output clips to Margin. Use Lettering with
+Depth 0 / Outline for filled text, Text with a thicker Stroke width for single
+strokes, or any shape source. Style is applied last. Help: Line Drape · Folded type
+and Line Drape · Angled shape.
+
 
 **2D to 3D** — five ways to turn paths or an image into a real 3D surface.
 Connect vector geometry to *2D paths*. Mode *Inflate* swells closed outlines

@@ -710,6 +710,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "5a4afb3d3bd0bbaffe244257f63a7c6c1c3c1e2ba47cd429158a87b50f1ba110"
   },
+  "line_drape": {
+    "date": "2026-10-19",
+    "order": 87,
+    "sha256": "07343a46a15e5e5d8662020c2330e9f3bf9df314f4baa6dd95971042e63937a3"
+  },
   "linezones": {
     "date": "2026-08-02",
     "order": 17,
