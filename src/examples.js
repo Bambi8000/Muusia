@@ -17,6 +17,27 @@ import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
   {
+    name: "L-System · Seeded forest",
+    desc: "Select L-System. Composition Forest places seven complete plants on A3 wide. Stochastic rules uses Continue / Branch / End as relative weights; they need not total 100. Seed changes branching, Angle variation and Length variation add independent irregularity. Branch scale 75% shortens nested branches. Plants / Columns / Spacing control cells; Height variation gives each plant its own fit with a shared baseline. Try Sparse tree, Bush or Fern. Growth 100% shows the mature drawing; lower it without moving the final framing. Original presets stay unchanged when the new controls are neutral.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lsystem", x: 40, y: 20, params: { ...defaults("lsystem"), preset: "Sparse tree", mode: "Forest", iter: 6, stochastic: true, continueWeight: 25, branchWeight: 70, endWeight: 5, branchScale: 75, angleVariation: 20, lengthVariation: 15, layer: 0 } },
+    ], edges: [] }),
+  },
+  {
+    name: "L-System · Growing fern",
+    desc: "Select L-System, open ANIMATE, set 48 frames and press Play. Frame t is multiplied by 100 in Math, then drives Growth %. The final fern is generated from a fixed Seed and revealed in drawing order, keeping its final size and placement. This is a drawing reveal; keep Iterations, Seed and structural controls fixed for continuous growth. For a whole growing forest choose Composition Forest: each plant reveals its own share simultaneously. No model, API key or external library is needed.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "frame", x: 20, y: 20, params: { ...defaults("frame") } },
+      { id: 9002, type: "matem", x: 370, y: 20, params: { ...defaults("matem"), op: "A × B", b: 100 } },
+      { id: 9003, type: "lsystem", x: 720, y: 20, params: { ...defaults("lsystem"), preset: "Fern", iter: 6, stochastic: true, continueWeight: 25, branchWeight: 70, endWeight: 5, branchScale: 80, angleVariation: 12, lengthVariation: 10, layer: 0 } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 },
+      { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: "p:growth" },
+    ] }),
+  },
+  {
     name: "Line Drape · Folded type",
     desc: "Select Line Drape. Lettering supplies the FLOW outline at Depth 0; the letters are only a mask, not extra plotted outlines. Orientation rotates the straight background lines, Bend angle sets their relative direction inside the face. Softness rounds the border, Shift slides the inner field, and Strength 0 gives straight lines. Pens 4 cycles four levels; choose 1 for a single black pen. For Type Studio, connect its output to Shape. For open Text strokes, adjust Stroke width. Very narrow strokes need lower Softness / Detail. Phase accepts animation wires.",
     canvas: { W: 297, H: 210 },

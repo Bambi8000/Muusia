@@ -1220,9 +1220,25 @@ turns it into a harmonograph decay spiral.
 
 **Phyllotaxis** — sunflower-seed spiral (golden angle); dot size can grow with index.
 
-**L-System** — turtle-graphics rewriting systems. Presets (plant, Koch, dragon,
-Sierpinski, Lightning with midpoint displacement) plus editable rules, angle jitter
-and stochastic rule choice.
+**L-System** — turtle rewriting: Koch, Dragon, Plant, Sierpinski, Hilbert,
+Lightning, Sparse tree, Bush, Fern and Custom. Original presets keep their exact
+output when the new controls are neutral. For plants, **Stochastic rules** selects
+Continue / Branch / End productions using repeatable Seed and relative weights
+(no required total; all zero ends tips). **Branch scale %** shortens nested branches
+and restores the parent length on return. **Branch angle**, **Angle variation %**
+and **Length variation %** separate structure from the original Jitter. Custom
+accepts weighted alternatives such as `X=50:FX|35:F[+X][-X]|15:F;F=FF`; enable
+Stochastic rules to choose by weight, or disable it to use the first alternative.
+**Composition Forest** fits one independently seeded plant per cell: Plants,
+Columns, Spacing and Height variation control layout, with roots aligned to each
+row's baseline. If margins/gaps leave no drawing area, output is empty. **Growth %**
+reveals the complete final drawing in turtle order with fixed framing; Forest
+reveals each plant simultaneously. Wire **Frame t → Math ×100 → Growth %** for
+animation; keep Seed and structural settings fixed. This is a drawing reveal.
+Enhanced systems cap whole rewrite iterations per plant so later trees survive;
+very dense Style patterns coarsen uniformly within the output budget. Lightning
+retains its original generator and gains Growth. Margin/cell guides are not plotted.
+Help examples: Seeded forest and Growing fern.
 
 **Spirograph** — hypo/epitrochoid gear curves: ring/wheel teeth ratio and pen offset.
 

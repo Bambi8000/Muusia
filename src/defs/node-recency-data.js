@@ -731,9 +731,9 @@ export const NODE_RECENCY = {
     "sha256": "a4de90caaa9a083a2dcd398db32d57e8c4594a269dc2c20037c8b5bf8906d16c"
   },
   "lsystem": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "95b2d21dc98a094004b189d393543a5fe8c3236412326346f9eaf4fae6a59a64"
+    "date": "2026-10-19",
+    "order": 88,
+    "sha256": "085fd663ca0b34b0389e21fab02c02405efc001d582aa7fd63cc3455ffcdf184"
   },
   "magnet": {
     "date": "2026-07-22",

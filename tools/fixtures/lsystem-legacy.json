@@ -1,0 +1,884 @@
+[
+  {
+    "params": {
+      "preset": "Koch",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 5,
+    "sha256": "14df4f2712c9b89e86433ff52c1bcbd292a8f5c6f47026a9f35c781c583c6fb0"
+  },
+  {
+    "params": {
+      "preset": "Koch",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 5,
+    "sha256": "5ef0dcfec1eeedf0158178e292436685091cace7c1405ab967a53052e914c5ec"
+  },
+  {
+    "params": {
+      "preset": "Koch",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 257,
+    "sha256": "b8bdb737e45329611f2c60b69f2ebeac19f7a6b2976f238298e9707464d1bc89"
+  },
+  {
+    "params": {
+      "preset": "Koch",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 257,
+    "sha256": "a9ef445d952da61974d9851356ed3e375232a802de74c6263e5cf680c5a934f7"
+  },
+  {
+    "params": {
+      "preset": "Koch",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 4097,
+    "sha256": "3eee9b581ce3cac9b3462ac9fce41117a120deff4894aaf76eabc84d86dc3b6e"
+  },
+  {
+    "params": {
+      "preset": "Koch",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 4097,
+    "sha256": "e5cf923f8ff0d6be90e7245f2b7e7084d4ec274467243826bb209d8c2c56f5ac"
+  },
+  {
+    "params": {
+      "preset": "Dragon",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 3,
+    "sha256": "2fe21b06b882714b47964a15e1af8f1e8718aeb2df4e8cc413c04b6b9e041d88"
+  },
+  {
+    "params": {
+      "preset": "Dragon",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 3,
+    "sha256": "16d16ce93df0a51d1fe11b1e8589126aab9a816370bfd74b430f8ee912a1cd24"
+  },
+  {
+    "params": {
+      "preset": "Dragon",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 17,
+    "sha256": "c1aeabb635bf1a7143ea0f143ae2a3f8216994bfd94640fd23e0b7b5b10238b5"
+  },
+  {
+    "params": {
+      "preset": "Dragon",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 17,
+    "sha256": "c1b5ff72226e87d59659a16aa7850d88240bae1639627239b873a0f52bce5389"
+  },
+  {
+    "params": {
+      "preset": "Dragon",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 65,
+    "sha256": "7ce5363e101f7d707af008c539f2d9a7921fa628423a9139885b1972e2fde507"
+  },
+  {
+    "params": {
+      "preset": "Dragon",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 65,
+    "sha256": "ad2ddcc48db28eca3d2be46a9a363ae757bc2e59a718ee2ccbe9cfc6f3efeedc"
+  },
+  {
+    "params": {
+      "preset": "Plant",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 2,
+    "points": 5,
+    "sha256": "847923630eae00261f912c16aec26036843ce91905e41e0468bed45dc480f53e"
+  },
+  {
+    "params": {
+      "preset": "Plant",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 2,
+    "points": 5,
+    "sha256": "261f6e46ab78bb36438ebaa27901db02b5556c71f9ad2ed37a15732f1eb19738"
+  },
+  {
+    "params": {
+      "preset": "Plant",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 128,
+    "points": 488,
+    "sha256": "a3e642b37d3836a961532f951175d58f4c04ead421e365cb3b2563038a9bfec3"
+  },
+  {
+    "params": {
+      "preset": "Plant",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 128,
+    "points": 488,
+    "sha256": "25d7fe347f3619fbf568c8c13447af9587d63945fea0a85df2d67a47955ca756"
+  },
+  {
+    "params": {
+      "preset": "Plant",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 2048,
+    "points": 8096,
+    "sha256": "d61cb8731e3fe4b1c1c114e1d7f5e0e067dc606e33a26a798888e2a9f09ef884"
+  },
+  {
+    "params": {
+      "preset": "Plant",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 2048,
+    "points": 8096,
+    "sha256": "ec01f91dd9d6176414350e9b34ae6c5d7ee92d2ee970f668ec40e5ebcb8d75b4"
+  },
+  {
+    "params": {
+      "preset": "Sierpinski",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 10,
+    "sha256": "972612bb954de9581026eb9362f96c3aef75b0cba9faed21ba04559d696215bb"
+  },
+  {
+    "params": {
+      "preset": "Sierpinski",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 10,
+    "sha256": "a254da198f1ddf225e422ef353a593175262a5a19aa90bf17a02d3c3cf41049b"
+  },
+  {
+    "params": {
+      "preset": "Sierpinski",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 244,
+    "sha256": "6c6da88ee5b771a4fd8de77124eb676034d3ecd8e21d28ea2259c0618aab51fc"
+  },
+  {
+    "params": {
+      "preset": "Sierpinski",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 244,
+    "sha256": "09e4d741c9a460bff08f7257a3767a5b2016ee813083e7355feb5f8f5df22441"
+  },
+  {
+    "params": {
+      "preset": "Sierpinski",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 2188,
+    "sha256": "3ff3c8526dc97788ed930bfadd0bcd7ffa9c5cd084c8462163cc1b92dc3545c4"
+  },
+  {
+    "params": {
+      "preset": "Sierpinski",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 2188,
+    "sha256": "b94484452f92e589120ec0ec4482364c74ae3ddff637f12bc5904d1f770bedd2"
+  },
+  {
+    "params": {
+      "preset": "Hilbert",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 4,
+    "sha256": "9b740455867cfb97beda4dc589c6b3bcdc9eb17dbb917396bf7d5dabe18967f5"
+  },
+  {
+    "params": {
+      "preset": "Hilbert",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 4,
+    "sha256": "6c75ff9928c8461a32481ff00768ede7076f5fba5fb1f1da01d153ad90210f59"
+  },
+  {
+    "params": {
+      "preset": "Hilbert",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 256,
+    "sha256": "fdc41bcadbadb3dbee3cecb9fbacd66f9c512369e39112d3b96ed6a6285e12db"
+  },
+  {
+    "params": {
+      "preset": "Hilbert",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 256,
+    "sha256": "7acada85607ccd91d6734039389ed654c8d022cab3b3123cf984703f68e25879"
+  },
+  {
+    "params": {
+      "preset": "Hilbert",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 4096,
+    "sha256": "eef21379f6bc2c78723cbfe38f4c781dbfdf01fa86135e315d6ef3ef39361d63"
+  },
+  {
+    "params": {
+      "preset": "Hilbert",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 4096,
+    "sha256": "bebd4c13c2e19c4aa329bf96c44b460b57a654adf09151c97f2217feefed6dfd"
+  },
+  {
+    "params": {
+      "preset": "Lightning",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 9,
+    "points": 49,
+    "sha256": "a5c2b358045d77fcd973eead5ae7428a94c84af1c5ead77ea0ae1f3599a8ed03"
+  },
+  {
+    "params": {
+      "preset": "Lightning",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 9,
+    "points": 49,
+    "sha256": "a5c2b358045d77fcd973eead5ae7428a94c84af1c5ead77ea0ae1f3599a8ed03"
+  },
+  {
+    "params": {
+      "preset": "Lightning",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 12,
+    "points": 212,
+    "sha256": "357ded2002ccac253afd2ec520a280d444fd7fe017966ec8fb716f6583551c41"
+  },
+  {
+    "params": {
+      "preset": "Lightning",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 12,
+    "points": 212,
+    "sha256": "357ded2002ccac253afd2ec520a280d444fd7fe017966ec8fb716f6583551c41"
+  },
+  {
+    "params": {
+      "preset": "Lightning",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 10,
+    "points": 746,
+    "sha256": "5445268cf96faddbf903242758f44a10727bcb1b053cf2910c0fce5cd327016d"
+  },
+  {
+    "params": {
+      "preset": "Lightning",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 10,
+    "points": 746,
+    "sha256": "5445268cf96faddbf903242758f44a10727bcb1b053cf2910c0fce5cd327016d"
+  },
+  {
+    "params": {
+      "preset": "Custom",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 5,
+    "sha256": "14df4f2712c9b89e86433ff52c1bcbd292a8f5c6f47026a9f35c781c583c6fb0"
+  },
+  {
+    "params": {
+      "preset": "Custom",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 1,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 5,
+    "sha256": "5ef0dcfec1eeedf0158178e292436685091cace7c1405ab967a53052e914c5ec"
+  },
+  {
+    "params": {
+      "preset": "Custom",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 257,
+    "sha256": "b8bdb737e45329611f2c60b69f2ebeac19f7a6b2976f238298e9707464d1bc89"
+  },
+  {
+    "params": {
+      "preset": "Custom",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 4,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 257,
+    "sha256": "a9ef445d952da61974d9851356ed3e375232a802de74c6263e5cf680c5a934f7"
+  },
+  {
+    "params": {
+      "preset": "Custom",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 4097,
+    "sha256": "3eee9b581ce3cac9b3462ac9fce41117a120deff4894aaf76eabc84d86dc3b6e"
+  },
+  {
+    "params": {
+      "preset": "Custom",
+      "axiom": "F",
+      "rules": "F=F+F--F+F",
+      "iter": 6,
+      "angle": 60,
+      "jitter": 0.35,
+      "branches": 6,
+      "margin": 15,
+      "seed": 37,
+      "layer": 3
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "paths": 1,
+    "points": 4097,
+    "sha256": "e5cf923f8ff0d6be90e7245f2b7e7084d4ec274467243826bb209d8c2c56f5ac"
+  }
+]

@@ -3980,6 +3980,46 @@ according to the session's actual capabilities:
   Publication not requested. Keep ready on its branch for later integration;
   do not overwrite main's machine/export changes with this branch's older App.
 
+
+- **Local — L-System organic extension** 2026-10-19 Astra — Daniel requested
+  the useful Lindenmayer-inspired additions in the existing L-System node.
+  Continues on `codex/line-drape`, base c302822, isolated worktree
+  `/private/tmp/muusia-line-drape`; main's Needle Punch / hardware edits remain
+  untouched. No external library or service added. New Sparse tree, Bush and
+  Fern presets; repeatable weighted Continue / Branch / End productions for
+  organic presets; weighted Custom alternatives (`X=50:FX|35:F[+X][-X]|15:F`),
+  duplicate Custom rules as equal-weight alternatives when stochastic is On.
+  Relative weights need not sum to 100; all zero ends tips. Branch scale stores
+  length with turtle state and restores it on bracket return. Branch angle,
+  independent angle/length variations, Forest count/columns/gap/height variation
+  and per-plant independent random streams. Each tree fits its full cell with
+  a row baseline. Impossible margins/gaps return empty; enhanced systems reduce
+  complete rewrite iterations per plant to fit a 50k-character total allowance
+  rather than deleting later plants. Enhanced styled output caps at 118k points.
+  Growth reveals final drawing length in turtle order, separately per plant,
+  while preserving complete-tree framing; Frame t → Math ×100 animates it.
+  This is a drawing reveal, not a time-stepped botanical simulation. New controls
+  hide when irrelevant and hidden plant settings are ignored in fractal modes.
+  Original Single presets use the compatibility path at neutral controls;
+  42 before-change snapshots cover seven original presets, three iteration
+  levels and two jitter settings. Safety clamps bound invalid wired values and
+  avoid allocating an oversized legacy rewrite; normal geometry stays exact.
+  Existing node tested through fresh-load/HMR, not a competing custom-node key.
+  Help adds Seeded forest and Growing fern. Docs/catalog/source/recency updated.
+  Verification: 213 focused cases including 42 original hashes, independent
+  branch-length ratios, weighted selection, every forest cell/baseline, stable
+  Growth and hidden controls. Actual browser SVG/G-code matches all 2,379 paths /
+  10,954 points (route off, default A servo profile, origin 0, Flip Y off); the
+  profile's smaller work-area warnings are expected for this A3 software test.
+  Actual 48-frame SVG ZIP matches the Frame/Math/plant graph on every frame.
+  No hardware test. 99 Help graphs, 2,543 Frame/Bang cases and ordered catalog →
+  build → Learn (23,596 checks) pass. Evidence is in this chat's visualization
+  `lsystem-organic/` folder; patch files use the new built-in definition and
+  require this local build or its future release. No publication requested.
+  Integrate with Line Drape when authorized, preserving main's newer App and
+  machine work; bump the app version once at that release. Refresh local Claude
+  project snapshot after commit; file preparation does not upload to Claude.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

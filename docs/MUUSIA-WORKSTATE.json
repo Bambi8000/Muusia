@@ -21,6 +21,26 @@
       ],
       "status": "ready",
       "outcome": "Complete on isolated codex/line-drape worktree at /private/tmp/muusia-line-drape: new built-in Line Drape, two Help examples, docs/catalog/recency and portable patches; 52 geometry, 97 Help, 2541 Bang checks plus ordered catalog/build/Learn (23596) pass. Actual SVG/G-code coordinates match; embedded custom patch tested in public v2.130. Await integration/publication; main needle work untouched."
+    },
+    {
+      "id": "lsystem-organic",
+      "owner": "Astra",
+      "role": "L-System extension author in /private/tmp/muusia-line-drape",
+      "baseCommit": "c3028224e46c5d0780224b67b14332c5789e7100",
+      "scope": [
+        "src/defs/nodes/lsystem.js",
+        "tools/validate-lsystem-organic.mjs",
+        "tools/fixtures/lsystem-legacy.json",
+        "src/examples.js",
+        "docs/MUUSIA-NODES.md",
+        "docs/MUUSIA-HANDOFF.md",
+        "docs/MUUSIA-NODES-SRC.md",
+        "src/defs/catalog.js",
+        "src/defs/node-recency-data.js",
+        "learn/generated/manifest.json"
+      ],
+      "status": "ready",
+      "outcome": "Complete locally on codex/line-drape in /private/tmp/muusia-line-drape: L-System weighted seeded productions, organic presets, branch scaling, Forest and fixed-framing Growth; 42 original snapshots / 213 focused cases, actual SVG/G-code, every frame of a 48-SVG ZIP, 99 Help and 2543 Bang cases pass. Ordered catalog/build/Learn (23596) pass. Await integration/publication; main Needle Punch work untouched."
     }
   ]
 }
