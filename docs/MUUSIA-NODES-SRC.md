@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (317 files, generated)
+# MUUSIA v2.29 — Node Sources (324 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -802,17 +802,47 @@ import { Pin, EMPTY, PENS, mulberry32 } from "../helpers.js";
 export default {
   key: "array",
     name: "Array", cat: "duo", ins: [Pin("paths")], outs: [Pin("paths")],
+    desc: "Repeat a drawing as one motif. Linear preserves the original per-copy transform. Grid, Radial and Spiral arrange centred motifs at a controlled Size. Follow layout turns each copy with its trajectory. Helix 3D and Sphere 3D place flat motifs on tangent planes, then project them with one camera; these modes draw all copies, without solid-surface occlusion. New layouts bound the complete output to 118k points and reject oversized requests instead of omitting later copies. No fit or crop is applied. Pens can cycle per copy.",
     params: [
-      { key: "count", label: "Copies", type: "slider", min: 2, max: 8, step: 1, def: 3 },
-      { key: "dx", label: "Δ X mm / copy", type: "slider", min: -30, max: 30, step: 0.25, def: 2 },
-      { key: "dy", label: "Δ Y mm / copy", type: "slider", min: -30, max: 30, step: 0.25, def: 0 },
+      {key:'layout',label:'Layout',type:'select',options:['Linear','Grid','Radial','Spiral','Helix 3D','Sphere 3D'],def:'Linear'},
+      {key:'columns',label:'Columns',type:'slider',min:1,max:20,step:1,def:5,showIf:p=>p.layout==='Grid'},
+      {key:'pitchX',label:'Grid pitch X mm',type:'slider',min:1,max:100,step:1,def:35,showIf:p=>p.layout==='Grid'},
+      {key:'pitchY',label:'Grid pitch Y mm',type:'slider',min:1,max:100,step:1,def:35,showIf:p=>p.layout==='Grid'},
+      {key:'radius',label:'Radius mm',type:'slider',min:1,max:150,step:1,def:65,showIf:p=>['Radial','Spiral','Helix 3D','Sphere 3D'].includes(p.layout)},
+      {key:'turns',label:'Turns',type:'slider',min:.1,max:8,step:.1,def:2,showIf:p=>p.layout==='Spiral'||p.layout==='Helix 3D'},
+      {key:'height',label:'Helix height mm',type:'slider',min:5,max:250,step:1,def:130,showIf:p=>p.layout==='Helix 3D'},
+      {key:'start',label:'Start angle °',type:'slider',min:-180,max:180,step:1,def:0,showIf:p=>['Radial','Spiral','Helix 3D','Sphere 3D'].includes(p.layout)},
+      {key:'motifSize',label:'Motif size mm',type:'slider',min:1,max:80,step:1,def:18,showIf:p=>p.layout&&p.layout!=='Linear'},
+      {key:'follow',label:'Follow layout',type:'check',def:true,showIf:p=>p.layout==='Radial'||p.layout==='Spiral'},
+      {key:'yaw',label:'View angle °',type:'slider',min:-180,max:180,step:1,def:25,showIf:p=>p.layout==='Helix 3D'||p.layout==='Sphere 3D'},
+      {key:'elevation',label:'View elevation °',type:'slider',min:0,max:90,step:1,def:25,showIf:p=>p.layout==='Helix 3D'||p.layout==='Sphere 3D'},
+      {key:'persp',label:'Perspective',type:'slider',min:0,max:.8,step:.05,def:0,showIf:p=>p.layout==='Helix 3D'||p.layout==='Sphere 3D'},
+      { key: "count", label: "Copies", type: "slider", min: 2, max: 160, step: 1, def: 3 },
+      { key: "dx", label: "Δ X mm / copy", type: "slider", min: -30, max: 30, step: 0.25, def: 2, showIf:p=>!p.layout||p.layout==='Linear' },
+      { key: "dy", label: "Δ Y mm / copy", type: "slider", min: -30, max: 30, step: 0.25, def: 0, showIf:p=>!p.layout||p.layout==='Linear' },
       { key: "drot", label: "Δ Rotate ° / copy", type: "slider", min: -45, max: 45, step: 0.5, def: 0 },
       { key: "dscale", label: "Δ Scale % / copy", type: "slider", min: -30, max: 30, step: 0.5, def: 0 },
       { key: "jit", label: "Jitter mm", type: "slider", min: 0, max: 15, step: 0.25, def: 0 },
       { key: "penPer", label: "Pen change per copy", type: "check", def: false },
       { key: "seed", label: "Seed", type: "seed", def: 16 },
     ],
+    overlay(p,c){if(!p.layout||p.layout==='Linear')return [];if(['Radial','Spiral'].includes(p.layout))return [{kind:'circle',cx:c.W/2,cy:c.H/2,r:Math.max(1,+p.radius||65)}];return [{kind:'point',x:c.W/2,y:c.H/2}];},
     compute(ins, p, ctx) {
+
+      if(p.layout&&p.layout!=='Linear'){
+        const src=ins[0]||EMPTY,n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),count=Math.round(n('count',3,1,160)),total=src.paths.reduce((s,q)=>s+q.pts.length,0);if(!total||total*count>118000)return EMPTY;
+        let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(const q of src.paths)for(const [x,y]of q.pts){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}const sx=(x0+x1)/2,sy=(y0+y1)/2,sc=n('motifSize',18,1,200)/Math.max(.001,x1-x0,y1-y0),rad=Math.PI/180,az=n('yaw',25,-3600,3600)*rad,el=n('elevation',25,0,90)*rad,eye=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)],right=[-Math.sin(az),Math.cos(az),0],up=[-Math.cos(az)*Math.sin(el),-Math.sin(az)*Math.sin(el),Math.cos(el)],R=n('radius',65,1,1000),paths=[],columns=Math.round(n('columns',5,1,20)),rows=Math.ceil(count/columns);
+        for(let i=0;i<count;i++){
+          const rng=mulberry32(n('seed',16,-2e9,2e9)*77+i*991+3),jit=n('jit',0,0,100),jx=(rng()-.5)*2*jit,jy=(rng()-.5)*2*jit,t=count>1?i/(count-1):0,a=n('start',0,-3600,3600)*rad+(p.layout==='Radial'?i/count: t*n('turns',2,.1,20))*Math.PI*2;let center=[0,0,0],U=[1,0,0],V=[0,1,0],turn=n('drot',0,-3600,3600)*i*rad;
+          if(p.layout==='Grid')center=[(i%columns-(columns-1)/2)*n('pitchX',35,1,500),(Math.floor(i/columns)-(rows-1)/2)*n('pitchY',35,1,500),0];
+          if(p.layout==='Radial'||p.layout==='Spiral'){const r=p.layout==='Spiral'?R*(.1+.9*t):R;center=[r*Math.cos(a),r*Math.sin(a),0];if(p.follow)turn+=a+Math.PI/2;}
+          if(p.layout==='Helix 3D'){center=[R*Math.cos(a),R*Math.sin(a),(t-.5)*n('height',130,5,1000)];U=[-Math.sin(a),Math.cos(a),0];V=[0,0,1];}
+          if(p.layout==='Sphere 3D'){const z=1-2*(i+.5)/count,rr=Math.sqrt(1-z*z),aa=i*Math.PI*(3-Math.sqrt(5))+n('start',0,-3600,3600)*rad;center=[R*rr*Math.cos(aa),R*rr*Math.sin(aa),R*z];U=[-Math.sin(aa),Math.cos(aa),0];V=[-z*Math.cos(aa),-z*Math.sin(aa),rr];}
+          const cc=Math.cos(turn),ss=Math.sin(turn),size=sc*Math.max(.02,1+n('dscale',0,-90,100)*i/100),is3=p.layout==='Helix 3D'||p.layout==='Sphere 3D';
+          for(const q of src.paths)paths.push({...q,layer:p.penPer?i%PENS.length:q.layer,pts:q.pts.map(([x,y])=>{const u=(x-sx)*size,v=(y-sy)*size,xx=u*cc-v*ss,yy=u*ss+v*cc;if(!is3)return [ctx.W/2+center[0]+xx+jx,ctx.H/2+center[1]+yy+jy];const pt=center.map((z,k)=>z+U[k]*xx+V[k]*yy),depth=pt.reduce((s,v,k)=>s+v*eye[k],0),f=1/Math.max(.2,1-n('persp',0,0,.8)*depth/Math.max(ctx.W,ctx.H));return [ctx.W/2+pt.reduce((s,v,k)=>s+v*right[k],0)*f+jx,ctx.H/2-pt.reduce((s,v,k)=>s+v*up[k],0)*f+jy];})});
+        }return {paths};
+      }
+
       const src = ins[0] || EMPTY;
       const n = Math.round(p.count);
       const cx = ctx.W / 2, cy = ctx.H / 2;
@@ -10762,6 +10792,52 @@ export default {
 };
 ```
 
+## crystal_growth.js
+
+```js
+import { Pin, EMPTY, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+ key:'crystal_growth',name:'Crystal Growth',cat:'gen',group:'nature',
+ desc:'Grow seeded faceted crystal clusters in real 3D. Quartz has broad hexagonal shafts and pointed terminations; Needles narrows the shafts. Branching adds lateral daughter crystals. Competition shortens stems whose tips enter the exclusion radius of older stems, with shared roots allowed near the base. Count is the number of primary crystals. Manual Growth or Timeline reconstructs a repeatable growth prefix; keep Seed and structure fixed. Drawing uses a fixed mature frame so growth does not zoom. Mesh is centred and normalized independently per frame for the existing mesh contract: use Drawing for fixed-size growth, or animate the downstream renderer size if needed. Connect Mesh to Mesh Render for hidden lines, illumination and shadows, or 3D Spikes for surface bristles. Preview shows the wire structure, including back edges.',
+ ins:[Pin('style','Style')],outs:[Pin('paths','Drawing'),Pin('mesh','Mesh')],
+ params:[
+  {key:'mode',label:'Crystal',type:'select',options:['Quartz','Needles'],def:'Quartz'},
+  {key:'count',label:'Primary crystals',type:'slider',min:1,max:70,step:1,def:20},
+  {key:'length',label:'Length',type:'slider',min:.2,max:2,step:.05,def:1},
+  {key:'width',label:'Width',type:'slider',min:.02,max:.3,step:.01,def:.1},
+  {key:'spread',label:'Cluster spread',type:'slider',min:.1,max:1,step:.05,def:.5},
+  {key:'lean',label:'Lean °',type:'slider',min:0,max:75,step:1,def:30},
+  {key:'branch',label:'Branching %',type:'slider',min:0,max:100,step:1,def:25},
+  {key:'compete',label:'Competition',type:'check',def:true},
+  {key:'motion',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual'},
+  {key:'growth',label:'Growth %',type:'slider',min:0,max:100,step:1,def:100,showIf:p=>p.motion!=='Timeline'},
+  {key:'yaw',label:'View angle °',type:'slider',min:-180,max:180,step:1,def:25},
+  {key:'elevation',label:'View elevation °',type:'slider',min:5,max:90,step:1,def:28},
+  {key:'size',label:'Preview size mm',type:'slider',min:20,max:350,step:1,def:165},
+  {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12},
+  {key:'seed',label:'Seed',type:'seed',def:37},
+  {key:'layer',label:'Pen',type:'pen',def:0}
+ ],
+ overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+ compute(ins,p,c){
+  const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),rng=mulberry32(Math.round(n('seed',37,-2e9,2e9))),stems=[],count=Math.round(n('count',20,1,70)),baseWidth=n('width',.1,.01,.4)*(p.mode==='Needles'?.3:1),spread=n('spread',.5,.05,2);
+  for(let i=0;i<count;i++){
+   const a=rng()*Math.PI*2,r=Math.sqrt(rng())*spread*.5,b=[Math.cos(a)*r,Math.sin(a)*r,-.4],az=rng()*Math.PI*2,lean=rng()*n('lean',30,0,85)*Math.PI/180,axis=[Math.cos(az)*Math.sin(lean),Math.sin(az)*Math.sin(lean),Math.cos(lean)],L=n('length',1,.1,3)*(.45+rng()*.75),w=baseWidth*(.6+rng()*.7),birth=rng()*.4;stems.push({b,axis,L,w,birth,spin:rng()*Math.PI});
+   if(rng()<n('branch',25,0,100)/100){const z=.3+rng()*.35,aa=az+(rng()>.5?1:-1)*.8,le=Math.min(1.4,lean+.45);stems.push({b:b.map((v,k)=>v+axis[k]*L*z),axis:[Math.cos(aa)*Math.sin(le),Math.sin(aa)*Math.sin(le),Math.cos(le)],L:L*.55,w:w*.65,birth:Math.min(.75,birth+.25),spin:rng()*Math.PI});}
+  }
+  if(p.compete)for(let i=0;i<stems.length;i++){const s=stems[i];for(let t=.3;t<=1;t+=.04){const q=s.b.map((v,k)=>v+s.axis[k]*s.L*t);let hit=false;for(let j=0;j<i;j++){const a=stems[j],d=q.map((v,k)=>v-a.b[k]),u=Math.max(0,Math.min(a.L,d.reduce((v,x,k)=>v+x*a.axis[k],0))),dd=Math.hypot(...d.map((v,k)=>v-a.axis[k]*u));if(u>a.L*.2&&dd<(s.w+a.w)*.7){hit=true;break;}}if(hit){s.L*=Math.max(.25,t-.04);break;}}}
+  const meshAt=t=>{const v=[];const tri=(a,b,c)=>v.push(...a,...b,...c);for(const s of stems){const g=Math.max(0,Math.min(1,(t-s.birth)/(1-s.birth)));if(g<=0)continue;const a=s.axis,ref=Math.abs(a[2])<.95?[0,0,1]:[0,1,0],u=[a[1]*ref[2]-a[2]*ref[1],a[2]*ref[0]-a[0]*ref[2],a[0]*ref[1]-a[1]*ref[0]],ul=Math.hypot(...u);for(let k=0;k<3;k++)u[k]/=ul;const vv=[a[1]*u[2]-a[2]*u[1],a[2]*u[0]-a[0]*u[2],a[0]*u[1]-a[1]*u[0]],ring=z=>Array.from({length:6},(_,i)=>s.b.map((b,k)=>b+a[k]*s.L*g*z+(u[k]*Math.cos(i*Math.PI/3+s.spin)+vv[k]*Math.sin(i*Math.PI/3+s.spin))*s.w*.5*Math.sqrt(g))),bot=ring(0),top=ring(.76),tip=s.b.map((b,k)=>b+a[k]*s.L*g);for(let i=0;i<6;i++){const j=(i+1)%6;tri(bot[i],bot[j],top[j]);tri(bot[i],top[j],top[i]);tri(top[i],top[j],tip);tri(s.b,bot[j],bot[i]);}}return v;};
+  const mature=meshAt(1),t=p.motion==='Timeline'&&c.frameCount>1?Math.max(0,Math.min(1,c.frameIdx/(c.frameCount-1))):n('growth',100,0,100)/100,v=meshAt(t);if(!v.length)return [EMPTY,null];
+  const bounds=arr=>{const lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity];for(let i=0;i<arr.length;i+=3)for(let k=0;k<3;k++){lo[k]=Math.min(lo[k],arr[i+k]);hi[k]=Math.max(hi[k],arr[i+k]);}return {lo,hi,center:lo.map((x,k)=>(x+hi[k])/2),dim:Math.max(...lo.map((x,k)=>hi[k]-x))};},b=bounds(v),full=bounds(mature),nv=v.map((x,i)=>Math.round((x-b.center[i%3])/Math.max(1e-9,b.dim)*10000)/10000),mesh={kind:'mesh',tri:v.length/9,v:nv,dims:b.lo.map((x,k)=>Math.round((b.hi[k]-x)/Math.max(1e-9,b.dim)*10000)/10000)};
+  const az=n('yaw',25,-3600,3600)*Math.PI/180,el=n('elevation',28,5,90)*Math.PI/180,project=q=>{const x=q[0]-full.center[0],y=q[1]-full.center[1],z=q[2]-full.center[2];return [-x*Math.sin(az)+y*Math.cos(az),(x*Math.cos(az)+y*Math.sin(az))*Math.sin(el)-z*Math.cos(el)];};
+  let radius=0;for(let i=0;i<mature.length;i+=3)radius=Math.max(radius,Math.hypot(...project(mature.slice(i,i+3))));const m=n('margin',12,0,Math.min(c.W,c.H)/2),sc=Math.max(0,Math.min(n('size',165,10,1000)/Math.max(1e-9,full.dim),(c.W-2*m)/(2*radius),(c.H-2*m)/(2*radius))),edges=new Map(),pen=Math.round(n('layer',0,0,11));
+  for(let i=0;i<v.length;i+=9)for(let j=0;j<3;j++){const a=v.slice(i+j*3,i+j*3+3),b=v.slice(i+(j+1)%3*3,i+(j+1)%3*3+3),key=[a.map(x=>x.toFixed(6)).join(','),b.map(x=>x.toFixed(6)).join(',')].sort().join('|');if(!edges.has(key))edges.set(key,{pts:[a,b].map(q=>{const z=project(q);return [c.W/2+z[0]*sc,c.H/2+z[1]*sc];}),closed:false,layer:pen});}
+  const paths=[...edges.values()];let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<10&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return [out.paths.reduce((n,q)=>n+q.pts.length,0)<=118000?out:EMPTY,mesh];
+ }
+};
+```
+
 ## ctrl.js
 
 ```js
@@ -12609,38 +12685,80 @@ export default {
 ## drape.js
 
 ```js
-import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
+import { Pin, EMPTY, mulberry32, noise2, applyStyle, resample, pathLength } from "../helpers.js";
 
 export default {
   key: "drape",
   name: "Drape",
   cat: "gen",
   group: "structural",
-  desc: "A mesh cloth laid over hidden objects. Seeded spheres, boxes, cones or a mix sit on a table; a grid sheet is dropped over them and relaxed with Tension until it rests on the tops and sags smoothly in between, with optional Wrinkles in the folds. Wire your own objects instead: closed paths on the Objects input become flat-topped blocks with a soft edge, open paths become round ridges, and a triangle mesh on the Mesh input (Blob Mesh, or anything Mesh Slice would take) is rasterised from above into the height field — a wired input replaces the seeded objects. The result is turned in 3D with Yaw, Elevation and Perspective and drawn with true hidden-line removal, so the far side of every bump disappears behind it; Lock size scales by the sheet's rotation-invariant bounding circle so Yaw turns the drape without changing its size, and Sheet Round makes the cloth a disc whose outline does not change with Yaw at all (Square and Fit are rectangles). Styles: Wire (the grid), Weave (warp and weft break alternately at every crossing, like a woven net), Contour (height contours of the draped surface projected in 3D) and Hatch (grid lines that thicken away from Light angle, plus the silhouette). Density sets the mesh count in both directions; Size and Height scale the objects, Count how many. Shrink-only fit keeps the drawing inside the margins.",
-  ins: [Pin("style", "Style"), Pin("paths", "Objects"), Pin("mesh", "Mesh")],
+  desc: "Draped preserves the original mesh cloth laid over hidden objects. Hanging and Flag use a separate deterministic pinned mass-spring sheet: choose attachment, gravity, elasticity, damping, wind and a pull point. Cloth artwork maps the new fourth input onto the sheet; source coordinates use the whole canvas as UV. Grid, Threads and Weave are optional. Timeline reconstructs a periodic wind pose on every frame; manual Phase can be wired. This solver does not collide with the Objects/Mesh inputs or solve cloth self-collision. Hidden lines uses a two-sided depth buffer. Framing is fixed over wind phase; output clips to Margin. In Draped mode: Seeded spheres, boxes, cones or a mix sit on a table; a grid sheet is dropped over them and relaxed with Tension until it rests on the tops and sags smoothly in between, with optional Wrinkles in the folds. Wire your own objects instead: closed paths on the Objects input become flat-topped blocks with a soft edge, open paths become round ridges, and a triangle mesh on the Mesh input (Blob Mesh, or anything Mesh Slice would take) is rasterised from above into the height field — a wired input replaces the seeded objects. The result is turned in 3D with Yaw, Elevation and Perspective and drawn with true hidden-line removal, so the far side of every bump disappears behind it; Lock size scales by the sheet's rotation-invariant bounding circle so Yaw turns the drape without changing its size, and Sheet Round makes the cloth a disc whose outline does not change with Yaw at all (Square and Fit are rectangles). Styles: Wire (the grid), Weave (warp and weft break alternately at every crossing, like a woven net), Contour (height contours of the draped surface projected in 3D) and Hatch (grid lines that thicken away from Light angle, plus the silhouette). Density sets the mesh count in both directions; Size and Height scale the objects, Count how many. Shrink-only fit keeps the drawing inside the margins.",
+  ins: [Pin("style", "Style"), Pin("paths", "Objects"), Pin("mesh", "Mesh"), Pin("paths", "Cloth artwork")],
   outs: [Pin("paths", "Lines")],
   params: [
-    { key: "style", label: "Style", type: "select", options: ["Wire", "Weave", "Contour", "Hatch"], def: "Wire" },
-    { key: "sheet", label: "Sheet", type: "select", options: ["Fit", "Square", "Round"], def: "Fit" },
-    { key: "shapes", label: "Objects", type: "select", options: ["Mixed", "Spheres", "Boxes", "Cones"], def: "Mixed" },
-    { key: "count", label: "Count", type: "slider", min: 1, max: 12, step: 1, def: 4 },
-    { key: "size", label: "Object size %", type: "slider", min: 5, max: 60, step: 1, def: 28 },
-    { key: "height", label: "Height %", type: "slider", min: 5, max: 100, step: 1, def: 45 },
-    { key: "tension", label: "Tension", type: "slider", min: 0, max: 60, step: 1, def: 18 },
-    { key: "wrinkles", label: "Wrinkles %", type: "slider", min: 0, max: 100, step: 1, def: 15 },
-    { key: "density", label: "Density", type: "slider", min: 8, max: 90, step: 1, def: 36 },
+    {key:'physicsMode',label:'Surface',type:'select',options:['Draped','Hanging','Flag'],def:'Draped'},
+    {key:'clothDensity',label:'Cloth detail',type:'slider',min:8,max:45,step:1,def:28,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'clothContent',label:'Cloth drawing',type:'select',options:['Grid','Threads','Artwork','Artwork + grid'],def:'Grid',showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'pin',label:'Attachment',type:'select',options:['Auto','Top edge','Top corners','Left edge'],def:'Auto',showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'weave',label:'Weave crossings',type:'check',def:false,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.clothContent!=='Artwork'&&p.clothContent!=='Threads'},
+    {key:'clothGravity',label:'Gravity %',type:'slider',min:0,max:100,step:1,def:70,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'elasticity',label:'Elasticity %',type:'slider',min:0,max:80,step:1,def:20,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'damping',label:'Damping %',type:'slider',min:0,max:80,step:1,def:12,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'wind',label:'Wind %',type:'slider',min:0,max:100,step:1,def:35,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'motion',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual',showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'phase',label:'Wind phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'pull',label:'Pull point',type:'check',def:false,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'pullX',label:'Pull X %',type:'slider',min:0,max:100,step:1,def:65,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
+    {key:'pullY',label:'Pull Y %',type:'slider',min:0,max:100,step:1,def:65,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
+    {key:'pullDepth',label:'Pull depth mm',type:'slider',min:-100,max:100,step:1,def:35,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
+    {key:'pullRadius',label:'Pull radius %',type:'slider',min:5,max:100,step:1,def:25,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
+    { key: "style", label: "Style", type: "select", options: ["Wire", "Weave", "Contour", "Hatch"], def: "Wire", showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "sheet", label: "Sheet", type: "select", options: ["Fit", "Square", "Round"], def: "Fit", showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "shapes", label: "Objects", type: "select", options: ["Mixed", "Spheres", "Boxes", "Cones"], def: "Mixed", showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "count", label: "Count", type: "slider", min: 1, max: 12, step: 1, def: 4, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "size", label: "Object size %", type: "slider", min: 5, max: 60, step: 1, def: 28, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "height", label: "Height %", type: "slider", min: 5, max: 100, step: 1, def: 45, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "tension", label: "Tension", type: "slider", min: 0, max: 60, step: 1, def: 18, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "wrinkles", label: "Wrinkles %", type: "slider", min: 0, max: 100, step: 1, def: 15, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "density", label: "Density", type: "slider", min: 8, max: 90, step: 1, def: 36, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
     { key: "yaw", label: "Yaw °", type: "slider", min: -180, max: 180, step: 1, def: 25 },
     { key: "pitch", label: "Elevation °", type: "slider", min: 8, max: 90, step: 1, def: 50 },
     { key: "persp", label: "Perspective", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35 },
     { key: "hidden", label: "Hidden lines", type: "check", def: true },
-    { key: "lock", label: "Lock size", type: "check", def: true },
-    { key: "light", label: "Light angle", type: "slider", min: 0, max: 360, step: 1, def: 315, showIf: (p) => p.style === "Hatch" },
+    { key: "lock", label: "Lock size", type: "check", def: true, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "light", label: "Light angle", type: "slider", min: 0, max: 360, step: 1, def: 315, showIf: (p) => (!p.physicsMode||p.physicsMode==='Draped')&&p.style === "Hatch" },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
-    { key: "seed", label: "Seed", type: "seed", def: 4 },
+    { key: "seed", label: "Seed", type: "seed", def: 4, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
 
+  _cloth(ins,p,c){
+    const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),W=c.W,H=c.H,m=n('margin',10,0,Math.min(W,H)/2);if(W<=2*m||H<=2*m)return EMPTY;
+    const nx=Math.round(n('clothDensity',28,8,45)),asp=Math.max(.4,Math.min(1.5,H/W)),ny=Math.max(8,Math.round(nx*asp)),at=(i,j)=>j*(nx+1)+i,N=(nx+1)*(ny+1),pos=Array.from({length:N},(_,k)=>[k%(nx+1)/nx-.5,0,asp/2-Math.floor(k/(nx+1))/ny*asp]),rest=pos.map(q=>q.slice()),prev=pos.map(q=>q.slice()),pinned=new Uint8Array(N),links=[];
+    const pin=p.pin==='Auto'?(p.physicsMode==='Flag'?'Left edge':'Top edge'):p.pin||'Top edge';for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++)pinned[at(i,j)]=pin==='Left edge'?i===0:pin==='Top corners'?j===0&&(i===0||i===nx):j===0;
+    for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++)for(const [di,dj,f]of [[1,0,1],[0,1,1],[1,1,.65],[-1,1,.65],[2,0,.15],[0,2,.15]])if(i+di>=0&&i+di<=nx&&j+dj<=ny){const a=at(i,j),b=at(i+di,j+dj);links.push([a,b,Math.hypot(...rest[a].map((v,k)=>v-rest[b][k])),f]);}
+    const phase=n('phase',0,-1e6,1e6)*Math.PI/180+(p.motion==='Timeline'&&c.frameCount>1?c.frameIdx/c.frameCount*Math.PI*2:0),wind=n('wind',30,0,100)/100,gravity=n('clothGravity',70,0,100)/100,drag=1-n('damping',12,0,80)/100,stiff=1-n('elasticity',20,0,80)*.0075,px=n('pullX',65,0,100)/100,py=n('pullY',65,0,100)/100,pk=at(Math.round(px*nx),Math.round(py*ny)),pull=n('pullDepth',35,-100,100)/Math.max(40,Math.min(W,H)),pullRadius=n('pullRadius',25,5,100)/100;
+    for(let step=0;step<90;step++){
+      for(let k=0;k<N;k++){if(pinned[k]){pos[k]=rest[k].slice();continue;}const q=pos[k],old=q.slice(),u=k%(nx+1)/nx,v=Math.floor(k/(nx+1))/ny,wave=Math.sin(phase+step*.06+u*5+v*3);for(let a=0;a<3;a++)q[a]+=(q[a]-prev[k][a])*drag;prev[k]=old;q[2]-=.00035*gravity;q[1]+=.0007*wind*(.35+wave);q[0]+=.00012*wind*Math.sin(phase+v*8+step*.04);if(p.pull)q[1]+=.0005*pull*Math.exp(-((u-px)**2+(v-py)**2)/(pullRadius*pullRadius));}
+      for(let iter=0;iter<5;iter++){for(const [a,b,L,f]of links){const A=pos[a],B=pos[b],dx=B[0]-A[0],dy=B[1]-A[1],dz=B[2]-A[2],length=Math.sqrt(dx*dx+dy*dy+dz*dz)||1e-9,den=(pinned[a]?0:1)+(pinned[b]?0:1);if(!den)continue;const correction=(length-L)/length*stiff*f/den;if(!pinned[a]){A[0]+=dx*correction;A[1]+=dy*correction;A[2]+=dz*correction;}if(!pinned[b]){B[0]-=dx*correction;B[1]-=dy*correction;B[2]-=dz*correction;}}if(p.pull&&!pinned[pk])pos[pk]=[rest[pk][0],pull,rest[pk][2]];}
+    }
+    const az=n('yaw',25,-3600,3600)*Math.PI/180,el=n('pitch',50,1,90)*Math.PI/180,eye=[Math.sin(az)*Math.cos(el),-Math.cos(az)*Math.cos(el),Math.sin(el)],right=[Math.cos(az),Math.sin(az),0],up=[-Math.sin(az)*Math.sin(el),Math.cos(az)*Math.sin(el),Math.cos(el)],dot=(a,b)=>a.reduce((s,v,k)=>s+v*b[k],0),persp=n('persp',.35,0,1),view=q=>{const depth=dot(q,eye),f=1/Math.max(.35,1-persp*.55*depth);return [dot(q,right)*f,-dot(q,up)*f,depth];};
+    const extent=.12+wind*.2+(p.pull?Math.abs(pull):0),corners=[];for(const x of [-.6,.6])for(const y of [-extent,extent])for(const z of [-asp*.6-.12,asp*.6])corners.push(view([x,y,z]));const bx=Math.max(...corners.map(q=>Math.abs(q[0]))),by=Math.max(...corners.map(q=>Math.abs(q[1]))),scale=Math.min((W-2*m)/(2*bx),(H-2*m)/(2*by)),project=q=>{const s=view(q);return [W/2+s[0]*scale,H/2+s[1]*scale,s[2]];},screen=pos.map(project);
+    const resolution=180,gw=resolution,gh=Math.max(50,Math.round(resolution*H/W)),buffer=new Float32Array(gw*gh).fill(-Infinity),raster=(A,B,D)=>{const a=[(A[0]-m)/(W-2*m)*gw,(A[1]-m)/(H-2*m)*gh,A[2]],b=[(B[0]-m)/(W-2*m)*gw,(B[1]-m)/(H-2*m)*gh,B[2]],d=[(D[0]-m)/(W-2*m)*gw,(D[1]-m)/(H-2*m)*gh,D[2]],det=(b[0]-a[0])*(d[1]-a[1])-(d[0]-a[0])*(b[1]-a[1]);if(Math.abs(det)<1e-12)return;for(let j=Math.max(0,Math.floor(Math.min(a[1],b[1],d[1])));j<=Math.min(gh-1,Math.ceil(Math.max(a[1],b[1],d[1])));j++)for(let i=Math.max(0,Math.floor(Math.min(a[0],b[0],d[0])));i<=Math.min(gw-1,Math.ceil(Math.max(a[0],b[0],d[0])));i++){const x=i+.5,y=j+.5,u=((b[0]-x)*(d[1]-y)-(d[0]-x)*(b[1]-y))/det,v=((d[0]-x)*(a[1]-y)-(a[0]-x)*(d[1]-y))/det,w=1-u-v;if(u>=0&&v>=0&&w>=0)buffer[j*gw+i]=Math.max(buffer[j*gw+i],u*a[2]+v*b[2]+w*d[2]);}};
+    if(p.hidden)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=screen[at(i,j)],b=screen[at(i+1,j)],d=screen[at(i+1,j+1)],e=screen[at(i,j+1)];raster(a,b,d);raster(a,d,e);}
+    const surface=(u,v)=>{u=Math.max(0,Math.min(1,u))*nx;v=Math.max(0,Math.min(1,v))*ny;const i=Math.min(nx-1,Math.floor(u)),j=Math.min(ny-1,Math.floor(v)),s=u-i,t=v-j,A=pos[at(i,j)],B=pos[at(i+1,j)],D=pos[at(i+1,j+1)],E=pos[at(i,j+1)];return project(A.map((x,k)=>x*(1-s)*(1-t)+B[k]*s*(1-t)+D[k]*s*t+E[k]*(1-s)*t));};
+    const visible=q=>{if(!p.hidden)return true;const i=Math.max(0,Math.min(gw-1,Math.floor((q[0]-m)/(W-2*m)*gw))),j=Math.max(0,Math.min(gh-1,Math.floor((q[1]-m)/(H-2*m)*gh)));return q[2]>=buffer[j*gw+i]-.02-2/Math.min(nx,ny);},clip=(A,B)=>{let lo=0,hi=1;const dx=B[0]-A[0],dy=B[1]-A[1];for(const [a,b]of [[-dx,A[0]-m],[dx,W-m-A[0]],[-dy,A[1]-m],[dy,H-m-A[1]]]){if(Math.abs(a)<1e-10){if(b<0)return null;}else{const t=b/a;if(a<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);if(lo>hi)return null;}}return [[A[0]+lo*dx,A[1]+lo*dy],[A[0]+hi*dx,A[1]+hi*dy]];};
+    const paths=[],pen=Math.round(n('layer',0,0,11)),emit=(uv,closed,layer)=>{const ps=uv.map(q=>surface(q[0],q[1]));if(ps.every(q=>visible(q)&&q[0]>=m&&q[0]<=W-m&&q[1]>=m&&q[1]<=H-m)){if(ps.length>=(closed?3:2))paths.push({pts:ps.map(q=>q.slice(0,2)),closed,layer});return;}let cur=[];for(let i=0;i<ps.length-(closed?0:1);i++){const a=ps[i],b=ps[(i+1)%ps.length],s=visible(a)&&visible(b)?clip(a,b):null;if(s){if(cur.length&&Math.hypot(cur.at(-1)[0]-s[0][0],cur.at(-1)[1]-s[0][1])<1e-6)cur.push(s[1]);else{if(cur.length>1)paths.push({pts:cur,closed:false,layer});cur=s;}}else{if(cur.length>1)paths.push({pts:cur,closed:false,layer});cur=[];}}if(cur.length>1)paths.push({pts:cur,closed:false,layer});};
+    const content=p.clothContent||'Grid';if(content==='Grid'||content==='Threads'||content==='Artwork + grid'){
+      for(let i=0;i<=nx;i++){if(p.weave&&content!=='Threads')for(let j=0;j<ny;j++){const a=j+(i+j)%2*.14,b=j+1-(1-(i+j)%2)*.14;emit(Array.from({length:5},(_,k)=>[i/nx,(a+(b-a)*k/4)/ny]),false,pen);}else emit(Array.from({length:ny*3+1},(_,j)=>[i/nx,j/(ny*3)]),false,pen);}
+      if(content!=='Threads')for(let j=0;j<=ny;j++){if(p.weave)for(let i=0;i<nx;i++){const a=i+(1-(i+j)%2)*.14,b=i+1-(i+j)%2*.14;emit(Array.from({length:5},(_,k)=>[(a+(b-a)*k/4)/nx,j/ny]),false,pen);}else emit(Array.from({length:nx*3+1},(_,i)=>[i/(nx*3),j/ny]),false,pen);}
+    }
+    if(content==='Artwork'||content==='Artwork + grid'){const src=ins[3]||EMPTY,total=src.paths.reduce((v,q)=>v+q.pts.length,0);if(total>120000||src.paths.length>12000)return EMPTY;const L=src.paths.reduce((v,q)=>v+pathLength(q.pts,q.closed),0),step=Math.max(.6,L/Math.max(1,90000-src.paths.length*2));for(const q of src.paths)emit(resample(q.pts,q.closed,step).map(([x,y])=>[x/W,y/H]),q.closed,q.layer);}
+    let style=ins[0],out=applyStyle({paths},style);for(let i=0;i<10&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;i++){style={...style,dash:Math.max(.1,+style?.dash||4)*1.8,gap:Math.max(.1,+style?.gap||3)*1.8};out=applyStyle({paths},style);}return out.paths.reduce((n,q)=>n+q.pts.length,0)<=118000?out:EMPTY;
+  },
+
   compute(ins, p, ctx, node) {
+    if(p.physicsMode==='Hanging'||p.physicsMode==='Flag')return this._cloth(ins,p,ctx);
     const W = ctx.W, H = ctx.H;
     const seed = Math.round(Number(p.seed) || 0);
     const pen = Math.max(0, Math.min(11, Math.round(Number(p.layer) || 0)));
@@ -12969,6 +13087,7 @@ export default {
       const W = (ctx && ctx.W) || 0, H = (ctx && ctx.H) || 0;
       const m = Math.max(0, Number(p.margin) || 0);
       const g = [{ kind: "rect", x: m, y: m, w: Math.max(0, W - 2 * m), h: Math.max(0, H - 2 * m) }];
+      if(p.physicsMode==='Hanging'||p.physicsMode==='Flag')return g;
       const src = ins && ins[1] && ins[1].paths ? ins[1].paths : [];
       src.slice(0, 40).forEach((q) => { if (q.pts && q.pts.length >= 2) g.push({ kind: "poly", pts: q.pts }); });
       return g;
@@ -18140,7 +18259,7 @@ export default {
 ## gravity.js
 
 ```js
-import { Pin, EMPTY, hash2, noise2, applyStyle } from "../helpers.js";
+import { Pin, EMPTY, mulberry32, hash2, noise2, applyStyle } from "../helpers.js";
 
 export default {
   /* Gravity - a regular grid of stamps lets go from the bottom up.
@@ -18162,32 +18281,47 @@ export default {
   name: "Gravity",
   cat: "gen",
   group: "geometric",
-  desc: "A regular grid of stamps lets go from the bottom up: rows below the Release line detach, fall, and pile into a heap on the floor of the margin box while the top of the grid stays intact. Stamp is a Dot, Ring, Square, Diamond or Cross, or the wired Stamp paths normalised and repeated in every cell (Stamp size × cell). Release sets how much of the sheet has let go, Softness blurs the line, Clumps adds a noise field that frees clusters higher up. Progress is the share of released elements that have already landed; the rest hang mid-fall, most of them just below the line, and along the fall Drift moves it sideways with noise, Spin rotates it, Size mod shrinks or grows it; Spin / size apply to chooses whether those two ramp with the fall (Fallen only) or every element, intact ones included, carries its own hashed spin and size (All); Grid jitter shakes the intact elements near the line. Pile Heap stacks landed elements into a height field that rolls like sand (Pile spread pulls landings toward the middle, Packing sets stacking density), Floor lays them on the floor line, None drops them off the sheet. Palette 1 to 4 pens assigned by Diagonal (the i + j pattern of the classic print), Rows, Columns or Random; the colour travels with the element. Seed moves only the released elements and the jitter.",
-  ins: [Pin("paths", "Stamp (optional)"), Pin("style", "Style")],
+  desc: "Rigid bodies treats each input path as an independent convex envelope, or repeats the whole input as one motif. It simulates translation, rotation, contact impulses, bounce and friction in a walled tray. Concave shapes use conservative convex envelopes (at most twelve supporting directions), and holes are not combined across paths; thin paths use an envelope width. Maximum 64 bodies / 118k source points. Motif copies shrink to fit their initial grid. Unwired mode provides 20 boxes. Timeline reconstructs a deterministic fixed-step prefix; the loop restarts rather than cycling seamlessly. Output clips to the tray; extreme initial overlaps or oversized bodies may remain unresolved. Falling grid keeps the original behaviour: a regular grid of stamps lets go from the bottom up: rows below the Release line detach, fall, and pile into a heap on the floor of the margin box while the top of the grid stays intact. Stamp is a Dot, Ring, Square, Diamond or Cross, or the wired Stamp paths normalised and repeated in every cell (Stamp size × cell). Release sets how much of the sheet has let go, Softness blurs the line, Clumps adds a noise field that frees clusters higher up. Progress is the share of released elements that have already landed; the rest hang mid-fall, most of them just below the line, and along the fall Drift moves it sideways with noise, Spin rotates it, Size mod shrinks or grows it; Spin / size apply to chooses whether those two ramp with the fall (Fallen only) or every element, intact ones included, carries its own hashed spin and size (All); Grid jitter shakes the intact elements near the line. Pile Heap stacks landed elements into a height field that rolls like sand (Pile spread pulls landings toward the middle, Packing sets stacking density), Floor lays them on the floor line, None drops them off the sheet. Palette 1 to 4 pens assigned by Diagonal (the i + j pattern of the classic print), Rows, Columns or Random; the colour travels with the element. Seed moves only the released elements and the jitter.",
+  ins: [Pin("paths", "Stamp / bodies (optional)"), Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "cols", label: "Cols", type: "slider", min: 2, max: 80, step: 1, def: 24 },
-    { key: "rows", label: "Rows", type: "slider", min: 2, max: 80, step: 1, def: 16 },
-    { key: "stamp", label: "Stamp", type: "select", options: ["Dot", "Ring", "Square", "Diamond", "Cross"], def: "Dot" },
-    { key: "stampSize", label: "Stamp size", type: "slider", min: 0.1, max: 1, step: 0.01, def: 0.5 },
-    { key: "release", label: "Release", type: "slider", min: 0, max: 1, step: 0.01, def: 0.55 },
-    { key: "softness", label: "Softness", type: "slider", min: 0, max: 1, step: 0.01, def: 0.35 },
-    { key: "clumps", label: "Clumps", type: "slider", min: 0, max: 1, step: 0.01, def: 0.35 },
-    { key: "progress", label: "Progress (landed share)", type: "slider", min: 0, max: 1, step: 0.01, def: 0.55 },
-    { key: "drift", label: "Drift mm", type: "slider", min: 0, max: 60, step: 0.5, def: 8 },
-    { key: "spin", label: "Spin deg", type: "slider", min: 0, max: 720, step: 5, def: 0 },
-    { key: "sizeMod", label: "Size mod", type: "slider", min: -1, max: 1, step: 0.05, def: 0 },
-    { key: "modulate", label: "Spin / size apply to", type: "select", options: ["Fallen only", "All"], def: "Fallen only" },
-    { key: "gridJitter", label: "Grid jitter", type: "slider", min: 0, max: 1, step: 0.05, def: 0.15 },
-    { key: "pile", label: "Pile", type: "select", options: ["Heap", "Floor", "None"], def: "Heap" },
-    { key: "spread", label: "Pile spread", type: "slider", min: 0.05, max: 1, step: 0.05, def: 0.6, showIf: (p) => p.pile === "Heap" },
-    { key: "packing", label: "Packing", type: "slider", min: 0.5, max: 1.5, step: 0.05, def: 0.9, showIf: (p) => p.pile === "Heap" },
-    { key: "palette", label: "Palette", type: "slider", min: 1, max: 4, step: 1, def: 4 },
-    { key: "assign", label: "Assign", type: "select", options: ["Diagonal", "Rows", "Columns", "Random"], def: "Diagonal", showIf: (p) => p.palette > 1 },
-    { key: "penA", label: "Pen A", type: "pen", def: 1 },
-    { key: "penB", label: "Pen B", type: "pen", def: 2, showIf: (p) => p.palette > 1 },
-    { key: "penC", label: "Pen C", type: "pen", def: 11, showIf: (p) => p.palette > 2 },
-    { key: "penD", label: "Pen D", type: "pen", def: 10, showIf: (p) => p.palette > 3 },
+    {key:'physicsMode',label:'Mode',type:'select',options:['Falling grid','Rigid bodies'],def:'Falling grid'},
+    {key:'bodyPen',label:'Fallback pen',type:'pen',def:0,showIf:p=>p.physicsMode==='Rigid bodies'},
+    {key:'bodySource',label:'Bodies',type:'select',options:['Input paths','Motif copies'],def:'Input paths',showIf:p=>p.physicsMode==='Rigid bodies'},
+    {key:'bodyCount',label:'Motif copies',type:'slider',min:1,max:64,step:1,def:20,showIf:p=>p.physicsMode==='Rigid bodies'&&p.bodySource==='Motif copies'},
+    {key:'bodySize',label:'Copy size mm',type:'slider',min:2,max:100,step:1,def:20,showIf:p=>p.physicsMode==='Rigid bodies'&&p.bodySource==='Motif copies'},
+    {key:'bodyScale',label:'Input size %',type:'slider',min:5,max:200,step:1,def:100,showIf:p=>p.physicsMode==='Rigid bodies'&&p.bodySource!=='Motif copies'},
+    {key:'collisionWidth',label:'Thin body width mm',type:'slider',min:.2,max:10,step:.2,def:1,showIf:p=>p.physicsMode==='Rigid bodies'},
+    {key:'bodyMotion',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual',showIf:p=>p.physicsMode==='Rigid bodies'},
+    {key:'time',label:'Time seconds',type:'slider',min:0,max:8,step:.1,def:5,showIf:p=>p.physicsMode==='Rigid bodies'&&p.bodyMotion!=='Timeline'},
+    {key:'duration',label:'Duration seconds',type:'slider',min:.1,max:8,step:.1,def:5,showIf:p=>p.physicsMode==='Rigid bodies'&&p.bodyMotion==='Timeline'},
+    {key:'bodyGravity',label:'Gravity mm/s²',type:'slider',min:0,max:1500,step:10,def:450,showIf:p=>p.physicsMode==='Rigid bodies'},
+    {key:'bodySpin',label:'Initial spin °/s',type:'slider',min:0,max:360,step:5,def:40,showIf:p=>p.physicsMode==='Rigid bodies'},
+    {key:'bounce',label:'Bounce %',type:'slider',min:0,max:90,step:1,def:15,showIf:p=>p.physicsMode==='Rigid bodies'},
+    {key:'friction',label:'Friction %',type:'slider',min:0,max:100,step:1,def:50,showIf:p=>p.physicsMode==='Rigid bodies'},
+    {key:'floor',label:'Floor %',type:'slider',min:30,max:100,step:1,def:100,showIf:p=>p.physicsMode==='Rigid bodies'},
+    { key: "cols", label: "Cols", type: "slider", min: 2, max: 80, step: 1, def: 24, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "rows", label: "Rows", type: "slider", min: 2, max: 80, step: 1, def: 16, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "stamp", label: "Stamp", type: "select", options: ["Dot", "Ring", "Square", "Diamond", "Cross"], def: "Dot", showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "stampSize", label: "Stamp size", type: "slider", min: 0.1, max: 1, step: 0.01, def: 0.5, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "release", label: "Release", type: "slider", min: 0, max: 1, step: 0.01, def: 0.55, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "softness", label: "Softness", type: "slider", min: 0, max: 1, step: 0.01, def: 0.35, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "clumps", label: "Clumps", type: "slider", min: 0, max: 1, step: 0.01, def: 0.35, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "progress", label: "Progress (landed share)", type: "slider", min: 0, max: 1, step: 0.01, def: 0.55, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "drift", label: "Drift mm", type: "slider", min: 0, max: 60, step: 0.5, def: 8, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "spin", label: "Spin deg", type: "slider", min: 0, max: 720, step: 5, def: 0, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "sizeMod", label: "Size mod", type: "slider", min: -1, max: 1, step: 0.05, def: 0, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "modulate", label: "Spin / size apply to", type: "select", options: ["Fallen only", "All"], def: "Fallen only", showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "gridJitter", label: "Grid jitter", type: "slider", min: 0, max: 1, step: 0.05, def: 0.15, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "pile", label: "Pile", type: "select", options: ["Heap", "Floor", "None"], def: "Heap", showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "spread", label: "Pile spread", type: "slider", min: 0.05, max: 1, step: 0.05, def: 0.6, showIf: (p) => (!p.physicsMode||p.physicsMode==='Falling grid')&&(p.pile === "Heap") },
+    { key: "packing", label: "Packing", type: "slider", min: 0.5, max: 1.5, step: 0.05, def: 0.9, showIf: (p) => (!p.physicsMode||p.physicsMode==='Falling grid')&&(p.pile === "Heap") },
+    { key: "palette", label: "Palette", type: "slider", min: 1, max: 4, step: 1, def: 4, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "assign", label: "Assign", type: "select", options: ["Diagonal", "Rows", "Columns", "Random"], def: "Diagonal", showIf: (p) => (!p.physicsMode||p.physicsMode==='Falling grid')&&(p.palette > 1) },
+    { key: "penA", label: "Pen A", type: "pen", def: 1, showIf:p=>!p.physicsMode||p.physicsMode==='Falling grid' },
+    { key: "penB", label: "Pen B", type: "pen", def: 2, showIf: (p) => (!p.physicsMode||p.physicsMode==='Falling grid')&&(p.palette > 1) },
+    { key: "penC", label: "Pen C", type: "pen", def: 11, showIf: (p) => (!p.physicsMode||p.physicsMode==='Falling grid')&&(p.palette > 2) },
+    { key: "penD", label: "Pen D", type: "pen", def: 10, showIf: (p) => (!p.physicsMode||p.physicsMode==='Falling grid')&&(p.palette > 3) },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
     { key: "seed", label: "Seed", type: "seed", def: 7 },
   ],
@@ -18290,7 +18424,42 @@ export default {
     return { F, els, r0, landedCount: landed.length };
   },
 
+  _rigid(ins,p,c){
+    const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),rng=mulberry32(Math.round(n('seed',7,-2e9,2e9))),m=n('margin',12,0,Math.min(c.W,c.H)/2),W=c.W-2*m,H=c.H-2*m,floor=m+H*n('floor',100,30,100)/100,src=ins[0]||EMPTY,all=src.paths||[];if(!(W>0&&H>0)||all.reduce((n,q)=>n+q.pts.length,0)>118000)return EMPTY;
+    const motif=p.bodySource==='Motif copies',count=all.length&&!motif?all.length:motif?Math.round(n('bodyCount',20,1,64)):20;if(count>64)return EMPTY;const groups=all.length?(motif?Array.from({length:count},()=>all):all.map(q=>[q])):Array.from({length:count},()=>[{pts:[[-.5,-.5],[.5,-.5],[.5,.5],[-.5,.5]],closed:true,layer:Math.round(n('bodyPen',0,0,11))}]);
+    if(groups.reduce((n,g)=>n+g.reduce((s,q)=>s+q.pts.length,0),0)>118000)return EMPTY;
+    const cross=(a,b,d)=>(b[0]-a[0])*(d[1]-a[1])-(b[1]-a[1])*(d[0]-a[0]),hull=pts=>{const sorted=pts.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]),chain=xs=>{const q=[];for(const a of xs){while(q.length>1&&cross(q.at(-2),q.at(-1),a)<=0)q.pop();q.push(a);}return q;};return [...chain(sorted).slice(0,-1),...chain([...sorted].reverse()).slice(0,-1)];},bodies=[];
+    const cols=Math.max(1,Math.ceil(Math.sqrt(count*W/Math.max(1,H*.45)))),rows=Math.ceil(count/cols);
+    for(let i=0;i<groups.length;i++){const paths=groups[i],pts=paths.flatMap(q=>q.pts);if(!pts.length||pts.some(q=>!Number.isFinite(q[0]+q[1])))return EMPTY;let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(const [x,y]of pts){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}const cx=(x0+x1)/2,cy=(y0+y1)/2,span=Math.max(.01,x1-x0,y1-y0),copies=motif||!all.length,size=Math.min((motif?n('bodySize',20,2,100):20*n('bodyScale',100,5,200)/100),W/cols*.7,H*.45/rows*.7),scale=copies?size/span:n('bodyScale',100,5,200)/100,local=paths.map(q=>({...q,pts:q.pts.map(([x,y])=>[(x-cx)*scale,(y-cy)*scale])}));let hp=hull(local.flatMap(q=>q.pts));const width=n('collisionWidth',1,.2,10);if(hp.length<3){const a=(x1-x0)*scale/2+width/2,b=(y1-y0)*scale/2+width/2;hp=[[-a,-b],[a,-b],[a,b],[-a,b]];}else if(hp.length>12){
+        const original=hp,rr=Math.max(...hp.map(q=>Math.hypot(...q)))*2+1;hp=[[-rr,-rr],[rr,-rr],[rr,rr],[-rr,rr]];
+        for(let side=0;side<12;side++){const a=side*Math.PI/6,nx=Math.cos(a),ny=Math.sin(a),limit=Math.max(...original.map(q=>q[0]*nx+q[1]*ny)),out=[];for(let z=0;z<hp.length;z++){const A=hp[z],B=hp[(z+1)%hp.length],da=A[0]*nx+A[1]*ny-limit,db=B[0]*nx+B[1]*ny-limit;if(da<=1e-9)out.push(A);if((da<0)!==(db<0)){const t=da/(da-db);out.push([A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t]);}}hp=out;}
+      }
+      let area=0;for(let k=0;k<hp.length;k++)area+=hp[k][0]*hp[(k+1)%hp.length][1]-hp[k][1]*hp[(k+1)%hp.length][0];area=Math.max(1,Math.abs(area)/2);const dx=Math.max(width,(x1-x0)*scale),dy=Math.max(width,(y1-y0)*scale),mass=area/100;
+      bodies.push({x:copies?m+(i%cols+.5)*W/cols:cx,y:copies?m+(Math.floor(i/cols)+.5)*H*.45/rows:cy,a:copies?(rng()-.5)*.8:0,vx:(rng()-.5)*12,vy:0,omega:(rng()-.5)*2*n('bodySpin',40,0,360)*Math.PI/180,im:1/mass,ii:12/(mass*(dx*dx+dy*dy)),hp,paths:local});
+    }
+    const vertices=b=>{const co=Math.cos(b.a),si=Math.sin(b.a);return b.hp.map(q=>[b.x+q[0]*co-q[1]*si,b.y+q[0]*si+q[1]*co]);},bbox=q=>{let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(const [x,y]of q){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}return [x0,y0,x1,y1];},sat=(a,b,A,B)=>{let depth=Infinity,normal=null;for(const ps of [A,B])for(let i=0;i<ps.length;i++){const d=[ps[(i+1)%ps.length][0]-ps[i][0],ps[(i+1)%ps.length][1]-ps[i][1]],L=Math.hypot(...d);if(L<1e-9)continue;const nx=-d[1]/L,ny=d[0]/L;let amin=Infinity,amax=-Infinity,bmin=Infinity,bmax=-Infinity;for(const q of A){const v=q[0]*nx+q[1]*ny;amin=Math.min(amin,v);amax=Math.max(amax,v);}for(const q of B){const v=q[0]*nx+q[1]*ny;bmin=Math.min(bmin,v);bmax=Math.max(bmax,v);}const over=Math.min(amax,bmax)-Math.max(amin,bmin);if(over<=0)return null;if(over<depth){depth=over;const sign=(b.x-a.x)*nx+(b.y-a.y)*ny>=0?1:-1;normal=[nx*sign,ny*sign];}}return normal?{depth,normal}:null;};
+    const support=(ps,n,max)=>{let extreme=max?-Infinity:Infinity;for(const q of ps){const d=q[0]*n[0]+q[1]*n[1];extreme=max?Math.max(extreme,d):Math.min(extreme,d);}const qs=ps.filter(q=>Math.abs(q[0]*n[0]+q[1]*n[1]-extreme)<1e-5);return qs.reduce((s,q)=>[s[0]+q[0]/qs.length,s[1]+q[1]/qs.length],[0,0]);},e=n('bounce',15,0,90)/100,fr=n('friction',50,0,100)/100;
+    const impulse=(a,b,normal,contact)=>{const ra=[contact[0]-a.x,contact[1]-a.y],rb=b?[contact[0]-b.x,contact[1]-b.y]:[0,0],vx=(b?b.vx-b.omega*rb[1]:0)-(a.vx-a.omega*ra[1]),vy=(b?b.vy+b.omega*rb[0]:0)-(a.vy+a.omega*ra[0]),vn=vx*normal[0]+vy*normal[1];if(vn>=0)return;const cn=ra[0]*normal[1]-ra[1]*normal[0],dn=rb[0]*normal[1]-rb[1]*normal[0],den=a.im+(b?b.im:0)+cn*cn*a.ii+(b?dn*dn*b.ii:0),J=-(1+e)*vn/den;
+      const apply=(nx,ny,j)=>{a.vx-=nx*j*a.im;a.vy-=ny*j*a.im;a.omega-=(ra[0]*ny-ra[1]*nx)*j*a.ii;if(b){b.vx+=nx*j*b.im;b.vy+=ny*j*b.im;b.omega+=(rb[0]*ny-rb[1]*nx)*j*b.ii;}};apply(normal[0],normal[1],J);const tangent=[-normal[1],normal[0]],ct=ra[0]*tangent[1]-ra[1]*tangent[0],dt=rb[0]*tangent[1]-rb[1]*tangent[0],jt=-(vx*tangent[0]+vy*tangent[1])/(a.im+(b?b.im:0)+ct*ct*a.ii+(b?dt*dt*b.ii:0));apply(tangent[0],tangent[1],Math.max(-fr*J,Math.min(fr*J,jt)));
+    };
+    const time=p.bodyMotion==='Timeline'&&c.frameCount>1?n('duration',5,.1,8)*Math.max(0,Math.min(1,c.frameIdx/(c.frameCount-1))):n('time',5,0,8),steps=Math.round(time*60),dt=1/60,g=n('bodyGravity',450,0,1500);
+    for(let step=0;step<steps;step++){
+      for(const b of bodies){b.vy+=g*dt;b.vx*=.998;b.vy*=.998;b.omega=Math.max(-12,Math.min(12,b.omega*.997));b.x+=b.vx*dt;b.y+=b.vy*dt;b.a+=b.omega*dt;}
+      for(let iteration=0;iteration<5;iteration++){
+        const polygons=bodies.map(vertices),boxes=polygons.map(bbox);
+        for(let i=0;i<bodies.length;i++){const a=bodies[i],A=polygons[i],bb=boxes[i];for(const [depth,normal,max]of [[bb[3]-floor,[0,1],true],[m-bb[0],[-1,0],true],[bb[2]-(c.W-m),[1,0],true]])if(depth>0){const contact=support(A,normal,max);impulse(a,null,normal,contact);a.x-=normal[0]*depth*.9;a.y-=normal[1]*depth*.9;}
+          for(let j=i+1;j<bodies.length;j++){const db=boxes[j];if(bb[0]>=db[2]||bb[2]<=db[0]||bb[1]>=db[3]||bb[3]<=db[1])continue;const b=bodies[j],B=polygons[j],hit=sat(a,b,A,B);if(!hit)continue;const n=hit.normal,pa=support(A,n,true),pb=support(B,n,false),contact=[(pa[0]+pb[0])/2,(pa[1]+pb[1])/2];impulse(a,b,n,contact);const push=Math.max(0,hit.depth-.015)*.75/(a.im+b.im);a.x-=n[0]*push*a.im;a.y-=n[1]*push*a.im;b.x+=n[0]*push*b.im;b.y+=n[1]*push*b.im;}
+        }
+      }
+    }
+    for(const b of bodies){const q=bbox(vertices(b));if(q[2]-q[0]<=W)b.x+=q[0]<m?m-q[0]:q[2]>c.W-m?c.W-m-q[2]:0;if(q[3]>floor)b.y-=q[3]-floor+1e-8;}
+    const clip=(A,B)=>{let lo=0,hi=1,dx=B[0]-A[0],dy=B[1]-A[1];for(const [a,b]of [[-dx,A[0]-m],[dx,c.W-m-A[0]],[-dy,A[1]-m],[dy,floor-A[1]]]){if(Math.abs(a)<1e-10){if(b<0)return null;}else{const t=b/a;if(a<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);if(lo>hi)return null;}}return [[A[0]+lo*dx,A[1]+lo*dy],[A[0]+hi*dx,A[1]+hi*dy]];},paths=[];
+    for(const b of bodies){const co=Math.cos(b.a),si=Math.sin(b.a);for(const q of b.paths){const pts=q.pts.map(([x,y])=>[b.x+x*co-y*si,b.y+x*si+y*co]);if(pts.every(q=>q[0]>=m&&q[0]<=c.W-m&&q[1]>=m&&q[1]<=floor)){paths.push({...q,pts});continue;}let cur=[];for(let i=0;i<pts.length-(q.closed?0:1);i++){const s=clip(pts[i],pts[(i+1)%pts.length]);if(s){if(cur.length&&Math.hypot(cur.at(-1)[0]-s[0][0],cur.at(-1)[1]-s[0][1])<1e-6)cur.push(s[1]);else{if(cur.length>1)paths.push({pts:cur,closed:false,layer:q.layer});cur=s;}}else{if(cur.length>1)paths.push({pts:cur,closed:false,layer:q.layer});cur=[];}}if(cur.length>1)paths.push({pts:cur,closed:false,layer:q.layer});}}
+    let style=ins[1],out=applyStyle({paths},style);for(let i=0;i<10&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;i++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return out.paths.reduce((n,q)=>n+q.pts.length,0)<=118000?out:EMPTY;
+  },
+
   compute(ins, p, ctx) {
+    if(p.physicsMode==='Rigid bodies')return this._rigid(ins,p,ctx);
     const L = this._layout(p, ctx, ins);
     const { els, F } = L;
     if (!els.length) return EMPTY;
@@ -18331,6 +18500,7 @@ export default {
 
   overlay(p, ctx) {
     try {
+      if(p.physicsMode==='Rigid bodies'){const m=Math.max(0,+p.margin||0),floor=m+(ctx.H-2*m)*Math.max(.3,Math.min(1,(+p.floor||100)/100));return [{kind:'rect',x:m,y:m,w:ctx.W-2*m,h:floor-m}];}
       const F = this && typeof this._frame === "function" ? this._frame(p, ctx) : null;
       if (!F) return [];
       return [
@@ -24840,17 +25010,22 @@ export default {
 ## lens.js
 
 ```js
-import { Pin, EMPTY } from "../helpers.js";
+import { Pin, EMPTY, resample, pathLength } from "../helpers.js";
 
 export default {
   key: "lens",
     name: "Lens", cat: "mod", group: "deform", ins: [Pin("paths")], outs: [Pin("paths")],
+    desc: "Bulge preserves the original radial lens. Twist turns the interior with a smooth radial falloff; Vortex winds more tightly near its centre. Twist angle accepts Frame wires. New modes densify paths uniformly before deformation and preserve geometry outside Radius. No fit or crop is applied. Bulge keeps legacy output at default settings.",
     params: [
+      {key:'mode',label:'Mode',type:'select',options:['Bulge','Twist','Vortex'],def:'Bulge'},
+      {key:'twist',label:'Twist angle °',type:'slider',min:-720,max:720,step:1,def:180,showIf:p=>p.mode==='Twist'||p.mode==='Vortex'},
+      {key:'falloff',label:'Falloff',type:'slider',min:.5,max:4,step:.1,def:2,showIf:p=>p.mode==='Twist'||p.mode==='Vortex'},
+      {key:'step',label:'Sample mm',type:'slider',min:.3,max:4,step:.1,def:1,showIf:p=>p.mode==='Twist'||p.mode==='Vortex'},
       { key: "useCenter", label: "Use canvas center", type: "check", def: true },
-      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf:p=>!p.useCenter },
+      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf:p=>!p.useCenter },
       { key: "radius", label: "Radius mm", type: "slider", min: 10, max: 300, step: 1, def: 90 },
-      { key: "strength", label: "Strength (− pinch, + bulge)", type: "slider", min: -0.9, max: 0.9, step: 0.05, def: 0.4 },
+      { key: "strength", label: "Strength (− pinch, + bulge)", type: "slider", min: -0.9, max: 0.9, step: 0.05, def: 0.4, showIf:p=>!p.mode||p.mode==='Bulge' },
     ],
     overlay(p, ctx) {
       const cx = p.useCenter ? ctx.W / 2 : p.cx;
@@ -24858,6 +25033,12 @@ export default {
       return [{ kind: "circle", cx, cy, r: p.radius }, { kind: "point", x: cx, y: cy }];
     },
     compute(ins, p, ctx) {
+
+      if(p.mode==='Twist'||p.mode==='Vortex'){
+        const src=ins[0]||EMPTY,n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d));if(src.paths.length>20000||src.paths.reduce((n,q)=>n+q.pts.length,0)>120000)return EMPTY;const angle=n('twist',180,-1e5,1e5)*Math.PI/180;if(!angle)return src;
+        const cx=p.useCenter?ctx.W/2:n('cx',150,-1e4,1e4),cy=p.useCenter?ctx.H/2:n('cy',100,-1e4,1e4),r=n('radius',90,1,1000),power=n('falloff',2,.5,8),L=src.paths.reduce((n,q)=>n+pathLength(q.pts,q.closed),0),step=Math.max(n('step',1,.3,20),L/Math.max(1,110000-src.paths.length*2));
+        return {paths:src.paths.map(q=>({...q,pts:resample(q.pts,q.closed,step).map(([x,y])=>{const dx=x-cx,dy=y-cy,d=Math.hypot(dx,dy);if(d>=r||d<1e-9)return [x,y];const t=Math.pow(1-d/r,power),a=angle*t*(p.mode==='Vortex'?1/(.15+d/r):1),co=Math.cos(a),si=Math.sin(a);return [cx+dx*co-dy*si,cy+dx*si+dy*co];})}))};
+      }
       const src = ins[0] || EMPTY;
       const cx = p.useCenter ? ctx.W / 2 : p.cx;
       const cy = p.useCenter ? ctx.H / 2 : p.cy;
@@ -26443,6 +26624,48 @@ export default {
 };
 ```
 
+## marbling.js
+
+```js
+import { Pin, EMPTY, resample, pathLength } from "../helpers.js";
+
+export default {
+ key:'marbling',name:'Marbling',cat:'mod',group:'deform',
+ desc:'Move any drawing like ink on water. Drop pushes ink radially, Rake pulls one flowing current, Comb repeats that pull across parallel tines, and Swirl turns ink around a soft centre. Direction sets the rake/comb axis. Phase animates the force (one full cycle returns to its starting state). Centre uses canvas percentages; Radius is the falloff width, not a hard boundary. Strength 0 preserves the original drawing. Geometry is resampled uniformly before deformation; very dense sources coarsen sampling across all paths. No fit or crop is applied, so displaced ink can leave the sheet. Use Crop or Test crop afterwards. This first version uses repeatable parameter-driven gestures rather than recording mouse strokes. Maximum 20k paths / 120k source points.',
+ ins:[Pin('paths','Drawing')],outs:[Pin('paths')],
+ params:[
+  {key:'mode',label:'Tool',type:'select',options:['Drop','Rake','Comb','Swirl'],def:'Comb'},
+  {key:'cx',label:'Centre X %',type:'slider',min:0,max:100,step:1,def:50},
+  {key:'cy',label:'Centre Y %',type:'slider',min:0,max:100,step:1,def:50},
+  {key:'radius',label:'Radius mm',type:'slider',min:1,max:180,step:1,def:50},
+  {key:'strength',label:'Strength %',type:'slider',min:-100,max:100,step:1,def:65},
+  {key:'angle',label:'Direction °',type:'slider',min:-180,max:180,step:1,def:0,showIf:p=>p.mode==='Rake'||p.mode==='Comb'},
+  {key:'travel',label:'Pull mm',type:'slider',min:0,max:100,step:1,def:35,showIf:p=>p.mode==='Rake'||p.mode==='Comb'},
+  {key:'tines',label:'Comb tines',type:'slider',min:2,max:30,step:1,def:9,showIf:p=>p.mode==='Comb'},
+  {key:'spacing',label:'Tine spacing mm',type:'slider',min:1,max:30,step:.5,def:10,showIf:p=>p.mode==='Comb'},
+  {key:'phase',label:'Phase °',type:'slider',min:0,max:360,step:1,def:0},
+  {key:'step',label:'Sample mm',type:'slider',min:.3,max:4,step:.1,def:1}
+ ],
+ overlay(p,c){const x=c.W*(+p.cx||0)/100,y=c.H*(+p.cy||0)/100,r=Math.max(1,+p.radius||50),a=(+p.angle||0)*Math.PI/180;return [{kind:'circle',cx:x,cy:y,r},{kind:'arrow',x1:x,y1:y,x2:x+Math.cos(a)*r,y2:y+Math.sin(a)*r}];},
+ compute(ins,p,ctx){
+  const src=ins[0]||EMPTY,paths=src.paths||[];if(paths.length>20000||paths.reduce((n,q)=>n+q.pts.length,0)>120000)return EMPTY;
+  const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d));
+  const s=n('strength',65,-100,100)/100;if(s===0)return src;
+  const x0=ctx.W*n('cx',50,-100,200)/100,y0=ctx.H*n('cy',50,-100,200)/100,r=n('radius',50,1,500),a=n('angle',0,-3600,3600)*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
+  const phase=n('phase',0,-1e6,1e6)*Math.PI/180,force=s*Math.cos(phase),count=p.mode==='Comb'?Math.round(n('tines',9,2,30)):1,gap=n('spacing',10,1,100),travel=n('travel',35,0,200);
+  const total=paths.reduce((v,q)=>v+pathLength(q.pts,q.closed),0),step=Math.max(n('step',1,.3,20),total/Math.max(1,110000-paths.length*2));
+  const warp=([x,y])=>{const dx=x-x0,dy=y-y0,d=Math.hypot(dx,dy),w=Math.exp(-d*d/(r*r));
+   if(p.mode==='Swirl'){const t=force*2*Math.PI*w,c=Math.cos(t),sn=Math.sin(t);return [x0+dx*c-dy*sn,y0+dx*sn+dy*c];}
+   if(p.mode==='Drop'){if(d<1e-9)return [x0,y0];const dd=Math.sqrt(Math.max(.001,d*d+force*r*r*w));return [x0+dx*dd/d,y0+dy*dd/d];}
+   const u=dx*ca+dy*sa,v=-dx*sa+dy*ca,wr=p.mode==='Comb'?Math.max(.5,Math.min(r,gap*.24)):r;let pull=0;
+   for(let i=0;i<count;i++){const q=v-(i-(count-1)/2)*gap;pull+=Math.exp(-q*q/(wr*wr));}
+   pull*=travel*force*Math.exp(-u*u/(4*r*r));return [x+ca*pull,y+sa*pull];
+  };
+  return {paths:paths.map(q=>({...q,pts:resample(q.pts,q.closed,step).map(warp)}))};
+ }
+};
+```
+
 ## mask.js
 
 ```js
@@ -26752,6 +26975,133 @@ export default {
       return applyStyle({ paths }, ins[0]);
     },
   
+};
+```
+
+## mesh_render.js
+
+```js
+import { Pin, EMPTY, applyStyle } from "../helpers.js";
+
+export default {
+ key:'mesh_render',name:'Mesh Render',cat:'mod',group:'deform',
+ fileBinary:true,fileLabel:'Load STL…',fileAccept:'.stl,model/stl,application/sla',
+ desc:'Draw a 3D surface with visible height contours, lit cross-hatching, silhouettes and projected floor shadows. A wired Mesh wins over the local STL; otherwise Sphere or Cube provides a starting object. Mesh output passes the normalized source onward. View angle / Elevation / Perspective share one camera for all drawing layers. Light azimuth and elevation control both face tone and a light-space self-shadow test. Floor shadow projects the mesh onto its base plane and hides it behind visible object pixels. Contour axis chooses the sampled world coordinate. Creases adds strong normal changes, not every triangle edge. Raster detail bounds the approximation and automatically coarsens uniformly for dense meshes; thin features may disappear. Size uses a fixed bounding sphere and shadows clip to Margin, so moving the light does not refit the object. All outputs are ordinary 2D pen strokes; no machine Z motion. STL limit 120k triangles. Very dense output coarsens the whole raster or Style rather than dropping later components.',
+ ins:[Pin('mesh','Mesh'),Pin('style','Style')],outs:[Pin('paths','Drawing'),Pin('mesh','Mesh')],
+ params:[
+  {key:'file',label:'STL file',type:'file',def:''},
+  {key:'source',label:'Fallback object',type:'select',options:['Sphere','Cube'],def:'Sphere'},
+  {key:'drawing',label:'Drawing',type:'select',options:['Illustration','Contours','Hatch','Edges'],def:'Illustration'},
+  {key:'contours',label:'Contour count',type:'slider',min:3,max:60,step:1,def:22,showIf:p=>p.drawing==='Illustration'||p.drawing==='Contours'},
+  {key:'axis',label:'Contour axis',type:'select',options:['Z','Y','X'],def:'Z',showIf:p=>p.drawing==='Illustration'||p.drawing==='Contours'},
+  {key:'silhouette',label:'Silhouette',type:'check',def:true,showIf:p=>p.drawing!=='Edges'},
+  {key:'creases',label:'Creases',type:'check',def:false},
+  {key:'crease',label:'Crease angle °',type:'slider',min:5,max:100,step:1,def:35,showIf:p=>p.creases},
+  {key:'pitch',label:'Hatch pitch mm',type:'slider',min:.7,max:6,step:.1,def:2,showIf:p=>p.drawing==='Illustration'||p.drawing==='Hatch'||p.shadow},
+  {key:'angle',label:'Hatch angle °',type:'slider',min:-180,max:180,step:1,def:45,showIf:p=>p.drawing==='Illustration'||p.drawing==='Hatch'||p.shadow},
+  {key:'lightAz',label:'Light azimuth °',type:'slider',min:-180,max:180,step:1,def:-50,showIf:p=>p.drawing==='Illustration'||p.drawing==='Hatch'||p.shadow},
+  {key:'lightEl',label:'Light elevation °',type:'slider',min:10,max:90,step:1,def:55,showIf:p=>p.drawing==='Illustration'||p.drawing==='Hatch'||p.shadow},
+  {key:'ambient',label:'Ambient light %',type:'slider',min:0,max:80,step:1,def:18,showIf:p=>p.drawing==='Illustration'||p.drawing==='Hatch'},
+  {key:'selfShadow',label:'Self shadow',type:'check',def:true,showIf:p=>p.drawing==='Illustration'||p.drawing==='Hatch'},
+  {key:'shadow',label:'Floor shadow',type:'check',def:true},
+  {key:'shadowPen',label:'Shadow pen',type:'pen',def:0,showIf:p=>p.shadow},
+  {key:'yaw',label:'View angle °',type:'slider',min:-180,max:180,step:1,def:25},
+  {key:'elevation',label:'View elevation °',type:'slider',min:5,max:90,step:1,def:30},
+  {key:'persp',label:'Perspective',type:'slider',min:0,max:.8,step:.05,def:0},
+  {key:'size',label:'Size mm',type:'slider',min:20,max:350,step:1,def:155},
+  {key:'detail',label:'Raster detail',type:'slider',min:40,max:240,step:10,def:180},
+  {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12},
+  {key:'layer',label:'Object pen',type:'pen',def:0}
+ ],
+ overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+  onFile(dataUrl) {
+    const s = String(dataUrl);
+    if (!s.startsWith("data:")) throw new Error("binary intake missing - update the app");
+    const b64 = s.slice(s.indexOf(",") + 1);
+    const bin = atob(b64);
+    const u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    const CAP = 120000;
+    let tris = null;
+    if (u8.length >= 84) {
+      const dv = new DataView(u8.buffer);
+      const nT = dv.getUint32(80, true);
+      if (nT > 0 && 84 + 50 * nT === u8.length) {
+        if (nT > CAP) throw new Error("STL has " + nT + " triangles - decimate below " + CAP + " (Blender: Decimate modifier) and re-export");
+        tris = new Array(nT * 9);
+        for (let t = 0; t < nT; t++) {
+          const o = 84 + t * 50 + 12;
+          for (let k = 0; k < 9; k++) tris[t * 9 + k] = dv.getFloat32(o + k * 4, true);
+        }
+      }
+    }
+    if (!tris) {
+      /* ASCII STL: bin already is the text */
+      if (!/^\s*solid/.test(bin)) throw new Error("not an STL file (no binary header match, no 'solid' keyword)");
+      const re = /vertex\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)/g;
+      tris = [];
+      let m;
+      while ((m = re.exec(bin))) {
+        tris.push(parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3]));
+        if (tris.length > CAP * 9) throw new Error("STL exceeds " + CAP + " triangles - decimate and re-export");
+      }
+      if (tris.length < 9 || tris.length % 9 !== 0) throw new Error("ASCII STL parse failed (" + tris.length / 3 + " vertices, not a multiple of 3)");
+    }
+    const n = tris.length / 9;
+    /* normalize: center at origin, longest dimension = 1, round for compact patches */
+    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+    for (let i = 0; i < tris.length; i += 3) {
+      const x = tris[i], y = tris[i + 1], z = tris[i + 2];
+      if (!isFinite(x) || !isFinite(y) || !isFinite(z)) throw new Error("STL contains non-finite coordinates");
+      if (x < x0) x0 = x; if (x > x1) x1 = x;
+      if (y < y0) y0 = y; if (y > y1) y1 = y;
+      if (z < z0) z0 = z; if (z > z1) z1 = z;
+    }
+    const dim = Math.max(x1 - x0, y1 - y0, z1 - z0);
+    if (!(dim > 0)) throw new Error("STL is degenerate (zero size)");
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, cz = (z0 + z1) / 2;
+    const v = new Array(tris.length);
+    for (let i = 0; i < tris.length; i += 3) {
+      v[i] = Math.round(((tris[i] - cx) / dim) * 10000) / 10000;
+      v[i + 1] = Math.round(((tris[i + 1] - cy) / dim) * 10000) / 10000;
+      v[i + 2] = Math.round(((tris[i + 2] - cz) / dim) * 10000) / 10000;
+    }
+    return { kind: "mesh", tri: n, v, dims: [Math.round(((x1 - x0) / dim) * 10000) / 10000, Math.round(((y1 - y0) / dim) * 10000) / 10000, Math.round(((z1 - z0) / dim) * 10000) / 10000] };
+  },
+
+ compute(ins,p,c,node){
+  const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=n('margin',12,0,Math.min(c.W,c.H)/2),W=c.W-2*m,H=c.H-2*m;if(!(W>0&&H>0))return [EMPTY,null];
+  let mesh=ins[0]?.kind==='mesh'?ins[0]:node?.data?.svg?.kind==='mesh'?node.data.svg:null;
+  if(!mesh){const v=[],tri=(a,b,d)=>v.push(...a,...b,...d);if(p.source==='Cube'){const vs=Array.from({length:8},(_,i)=>[(i&1)?.5:-.5,(i&2)?.5:-.5,(i&4)?.5:-.5]);for(const [a,b,d,e]of [[0,1,3,2],[4,6,7,5],[0,4,5,1],[2,3,7,6],[0,2,6,4],[1,5,7,3]]){tri(vs[a],vs[b],vs[d]);tri(vs[a],vs[d],vs[e]);}}else{const at=(i,j)=>{const a=i/32*Math.PI*2,b=j/20*Math.PI;return [.5*Math.sin(b)*Math.cos(a),.5*Math.sin(b)*Math.sin(a),.5*Math.cos(b)];};for(let j=0;j<20;j++)for(let i=0;i<32;i++){if(j>0)tri(at(i,j),at(i+1,j),at(i,j+1));if(j<19)tri(at(i+1,j),at(i+1,j+1),at(i,j+1));}}mesh={kind:'mesh',v,tri:v.length/9,dims:[1,1,1]};}
+  if(!mesh.v?.length||mesh.v.length%9||mesh.v.length>1080000||mesh.v.some(v=>!Number.isFinite(v)))return [EMPTY,null];
+  const vs=mesh.v,triangles=[];let R=0,zmin=Infinity,zmax=-Infinity;for(let i=0;i<vs.length;i+=3){R=Math.max(R,Math.hypot(vs[i],vs[i+1],vs[i+2]));zmin=Math.min(zmin,vs[i+2]);zmax=Math.max(zmax,vs[i+2]);}if(!(R>0))return [EMPTY,mesh];
+  const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],norm=a=>{const L=Math.hypot(...a)||1;return a.map(v=>v/L);},rad=Math.PI/180,az=n('yaw',25,-3600,3600)*rad,el=n('elevation',30,5,90)*rad,eye=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)],right=[-Math.sin(az),Math.cos(az),0],up=cross(eye,right),persp=n('persp',0,0,.8),radius=R/Math.max(.2,1-persp*.8*R),scale=Math.min(n('size',155,10,1000),W/(2*radius*1.05),H/(2*radius*1.05));
+  const camera=q=>{const z=dot(q,eye),f=1/Math.max(.2,1-persp*.8*z);return [c.W/2+dot(q,right)*f*scale,c.H/2-dot(q,up)*f*scale,z,f];};
+  for(let i=0;i<vs.length;i+=9){const a=vs.slice(i,i+3),b=vs.slice(i+3,i+6),d=vs.slice(i+6,i+9),normal=norm(cross(b.map((v,k)=>v-a[k]),d.map((v,k)=>v-a[k])));triangles.push({p:[a,b,d],normal:dot(normal,eye)<0?normal.map(v=>-v):normal});}
+  // Raster all triangles. Uniform detail adapts to total projected box work.
+  const raster=(tris,project,box,requested)=>{
+   const projected=tris.map(t=>t.p.map(project));let nx,ny,estimate,detail=requested;do{nx=Math.max(8,Math.round(detail*Math.min(1,box.w/box.h)));ny=Math.max(8,Math.round(detail*Math.min(1,box.h/box.w)));estimate=0;for(const ps of projected){const xx=ps.map(q=>(q[0]-box.x)/box.w*nx),yy=ps.map(q=>(q[1]-box.y)/box.h*ny);estimate+=(Math.max(0,Math.min(nx,Math.max(...xx))-Math.max(0,Math.min(...xx)))+2)*(Math.max(0,Math.min(ny,Math.max(...yy))-Math.max(0,Math.min(...yy)))+2);}detail*=.7;}while(estimate>4000000&&detail>8);
+   const N=nx*ny,z=new Float64Array(N).fill(-Infinity),owner=new Int32Array(N).fill(-1),world=new Float64Array(N*3);
+   for(let t=0;t<tris.length;t++){const ps=projected[t].map(q=>[(q[0]-box.x)/box.w*nx-.5,(q[1]-box.y)/box.h*ny-.5,q[2],q[3]??1]),[A,B,D]=ps,det=(B[0]-A[0])*(D[1]-A[1])-(D[0]-A[0])*(B[1]-A[1]);if(Math.abs(det)<1e-12)continue;const xl=Math.max(0,Math.ceil(Math.min(A[0],B[0],D[0]))),xr=Math.min(nx-1,Math.floor(Math.max(A[0],B[0],D[0]))),yl=Math.max(0,Math.ceil(Math.min(A[1],B[1],D[1]))),yr=Math.min(ny-1,Math.floor(Math.max(A[1],B[1],D[1])));
+    for(let j=yl;j<=yr;j++)for(let i=xl;i<=xr;i++){const a=((B[0]-i)*(D[1]-j)-(D[0]-i)*(B[1]-j))/det,b=((D[0]-i)*(A[1]-j)-(A[0]-i)*(D[1]-j))/det,d=1-a-b;if(a< -1e-8||b< -1e-8||d< -1e-8)continue;const wa=a*A[3],wb=b*B[3],wd=d*D[3],sum=wa+wb+wd,depth=(wa*A[2]+wb*B[2]+wd*D[2])/sum,k=j*nx+i;if(depth>z[k]+1e-9){z[k]=depth;owner[k]=t;for(let h=0;h<3;h++)world[k*3+h]=(wa*tris[t].p[0][h]+wb*tris[t].p[1][h]+wd*tris[t].p[2][h])/sum;}}
+   }return {nx,ny,z,owner,world,box};
+  };
+  const detail=n('detail',180,40,240),image=raster(triangles,camera,{x:m,y:m,w:W,h:H},detail),{nx,ny,owner,world}=image,N=nx*ny,point=(i,j)=>[m+(i+.5)/nx*W,m+(j+.5)/ny*H],la=n('lightAz',-50,-3600,3600)*rad,le=n('lightEl',55,10,90)*rad,L=[Math.cos(la)*Math.cos(le),Math.sin(la)*Math.cos(le),Math.sin(le)],lr=[-Math.sin(la),Math.cos(la),0],lu=cross(L,lr),lightProject=q=>[dot(q,lr),dot(q,lu),dot(q,L),1],lbox={x:-R*1.05,y:-R*1.05,w:R*2.1,h:R*2.1};
+  const shaded=p.drawing==='Illustration'||p.drawing==='Hatch',light=shaded&&p.selfShadow?raster(triangles,lightProject,lbox,detail):null,ambient=n('ambient',18,0,80)/100,dark=new Float64Array(N),mask=new Float64Array(N),height=new Float64Array(N).fill(NaN),axis=p.axis==='X'?0:p.axis==='Y'?1:2;let hmin=Infinity,hmax=-Infinity;for(let i=axis;i<vs.length;i+=3){hmin=Math.min(hmin,vs[i]);hmax=Math.max(hmax,vs[i]);}
+  for(let k=0;k<N;k++)if(owner[k]>=0){mask[k]=1;const q=Array.from(world.slice(k*3,k*3+3)),normal=triangles[owner[k]].normal;let brightness=ambient+(1-ambient)*Math.max(0,dot(normal,L));if(light){const v=lightProject(q),i=Math.floor((v[0]-lbox.x)/lbox.w*light.nx),j=Math.floor((v[1]-lbox.y)/lbox.h*light.ny);if(i>=0&&i<light.nx&&j>=0&&j<light.ny&&light.z[j*light.nx+i]>v[2]+lbox.w/light.nx*1.7)brightness=ambient;}dark[k]=1-brightness;height[k]=(world[k*3+axis]-hmin)/Math.max(1e-9,hmax-hmin);}
+  let shadow=null;if(p.shadow){const floor=zmin-.015,st=triangles.map(t=>({normal:[0,0,1],p:t.p.map(q=>{const d=(q[2]-floor)/L[2];return [q[0]-L[0]*d,q[1]-L[1]*d,floor];})}));shadow=raster(st,camera,{x:m,y:m,w:W,h:H},detail);}
+  const shadowAt=(x,y)=>{if(!shadow)return false;const i=Math.floor((x-m)/W*shadow.nx),j=Math.floor((y-m)/H*shadow.ny);if(i<0||j<0||i>=shadow.nx||j>=shadow.ny)return false;const k=j*shadow.nx+i,ii=Math.max(0,Math.min(nx-1,Math.floor((x-m)/W*nx))),jj=Math.max(0,Math.min(ny-1,Math.floor((y-m)/H*ny)));return shadow.owner[k]>=0&&shadow.z[k]>image.z[jj*nx+ii]+1e-5;};
+  const pen=Math.round(n('layer',0,0,11)),shadowPen=Math.round(n('shadowPen',0,0,11)),paths=[];
+  const chain=(segs,layer)=>{const key=q=>q.map(v=>Math.round(v*1e6)).join(','),adj=new Map(),used=new Uint8Array(segs.length);segs.forEach((s,i)=>s.forEach(q=>{const k=key(q);if(!adj.has(k))adj.set(k,[]);adj.get(k).push(i);}));const walk=(i,start)=>{const pts=[start],first=key(start);let tail=first;while(!used[i]){used[i]=1;const q=segs[i],next=key(q[0])===tail?q[1]:q[0];pts.push(next);tail=key(next);const z=(adj.get(tail)||[]).find(z=>!used[z]);if(z===undefined)break;i=z;}const closed=tail===first;if(closed)pts.pop();if(pts.length>=(closed?3:2))paths.push({pts,closed,layer});};for(const [k,ids]of adj)if(ids.length!==2)for(const i of ids)if(!used[i])walk(i,segs[i].find(q=>key(q)===k));for(let i=0;i<segs.length;i++)if(!used[i])walk(i,segs[i][0]);};
+  const march=(field,iso)=>{const segs=[];for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){const k=j*nx+i,v=[field[k],field[k+1],field[k+nx+1],field[k+nx]],pos=[point(i,j),point(i+1,j),point(i+1,j+1),point(i,j+1)],hits=[];if(v.some(x=>!Number.isFinite(x)))continue;for(let e=0;e<4;e++){const f=(e+1)%4;if((v[e]>iso)!==(v[f]>iso)){const t=(iso-v[e])/(v[f]-v[e]);hits.push(pos[e].map((x,k)=>x+(pos[f][k]-x)*t));}}if(hits.length===2)segs.push(hits);else if(hits.length===4)segs.push([hits[0],hits[1]],[hits[2],hits[3]]);}chain(segs,pen);};
+  if(p.silhouette||p.drawing==='Edges')march(mask,.5);
+  if(p.drawing==='Illustration'||p.drawing==='Contours')for(let i=1,count=Math.round(n('contours',22,3,60));i<count;i++)march(height,i/count);
+  if(p.creases){const segs=[],co=Math.cos(n('crease',35,5,100)*rad);for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){const k=j*nx+i,a=owner[k];if(a<0)continue;for(const [other,A,B]of [[k+1,point(i+.5,j-.5),point(i+.5,j+.5)],[k+nx,point(i-.5,j+.5),point(i+.5,j+.5)]])if(owner[other]>=0&&dot(triangles[a].normal,triangles[owner[other]].normal)<co)segs.push([A,B]);}chain(segs,pen);}
+  const hatch=(angle,pitch,condition,layer)=>{const ca=Math.cos(angle),sa=Math.sin(angle),u=[],v=[];for(const [x,y]of [[m,m],[c.W-m,m],[c.W-m,c.H-m],[m,c.H-m]]){u.push(x*ca+y*sa);v.push(-x*sa+y*ca);}const step=Math.max(.3,Math.min(W/nx,H/ny)*.6),umin=Math.min(...u),umax=Math.max(...u),vmin=Math.min(...v),vmax=Math.max(...v);let row=0;for(let vv=Math.ceil(vmin/pitch)*pitch;vv<=vmax;vv+=pitch,row++){let first=null,last=null;for(let uu=umin;uu<=umax+step;uu+=step){const x=uu*ca-vv*sa,y=uu*sa+vv*ca,on=x>=m&&x<=c.W-m&&y>=m&&y<=c.H-m&&condition(x,y,row);if(on){if(!first)first=[x,y];last=[x,y];}else if(first){if(Math.hypot(last[0]-first[0],last[1]-first[1])>.1)paths.push({pts:[first,last],closed:false,layer});first=null;}}}};
+  const pitch=n('pitch',2,.7,20),angle=n('angle',45,-3600,3600)*rad,body=(x,y,threshold)=>{const i=Math.min(nx-1,Math.max(0,Math.floor((x-m)/W*nx))),j=Math.min(ny-1,Math.max(0,Math.floor((y-m)/H*ny))),k=j*nx+i;return owner[k]>=0&&dark[k]>threshold;};
+  if(shaded){hatch(angle,pitch,(x,y,r)=>body(x,y,.14+(r%3)*.2),pen);hatch(angle+Math.PI/2,pitch*1.4,(x,y)=>body(x,y,.64),pen);}if(shadow)hatch(angle,pitch,(x,y)=>shadowAt(x,y),shadowPen);
+  let style=ins[1],out=applyStyle({paths},style);for(let i=0;i<10&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;i++){style={...style,dash:Math.max(.1,+style?.dash||4)*1.8,gap:Math.max(.1,+style?.gap||3)*1.8};out=applyStyle({paths},style);}if(out.paths.reduce((n,q)=>n+q.pts.length,0)>118000){if(detail>40)return this.compute(ins,{...p,detail:Math.max(40,Math.floor(detail*.7))},c,node);return [EMPTY,mesh];}return [out,mesh];
+ }
 };
 ```
 
@@ -33446,6 +33796,41 @@ export default {
 };
 ```
 
+## path_bend.js
+
+```js
+import { Pin, EMPTY, resample, pathLength } from "../helpers.js";
+
+export default {
+ key:'path_bend',name:'Path Bend',cat:'mod',group:'deform',
+ desc:'Bend an entire drawing along one open or closed spine. Drawing X maps to distance along the spine, while Y becomes distance across it; Vertical swaps those roles. Fit to spine stretches the source length to the complete curve; Actual length keeps millimetres. Width scales the transverse direction. Start shifts along the curve, Reverse flips travel, and closed spines can wrap. Spine # chooses a single input path: separate paths are never bridged. Outside an open spine, the drawing continues along the endpoint tangent. Vertex tangents interpolate continuously across the spine. A centreline guide shows the selected spine. This is a geometric bend, so sharp spine corners can fold wide artwork. Source pens and closed paths survive. No crop or refit is applied. Sources above 20k paths / 120k points are rejected; dense sampling coarsens uniformly.',
+ ins:[Pin('paths','Drawing'),Pin('paths','Spine')],outs:[Pin('paths')],
+ params:[
+  {key:'mode',label:'Length',type:'select',options:['Fit to spine','Actual length'],def:'Fit to spine'},
+  {key:'axis',label:'Source axis',type:'select',options:['Horizontal','Vertical'],def:'Horizontal'},
+  {key:'index',label:'Spine #',type:'slider',min:1,max:30,step:1,def:1},
+  {key:'width',label:'Width %',type:'slider',min:1,max:200,step:1,def:100},
+  {key:'offset',label:'Normal offset mm',type:'slider',min:-100,max:100,step:1,def:0},
+  {key:'start',label:'Start %',type:'slider',min:-100,max:100,step:1,def:0},
+  {key:'reverse',label:'Reverse',type:'check',def:false},
+  {key:'wrap',label:'Wrap closed spine',type:'check',def:true},
+  {key:'step',label:'Sample mm',type:'slider',min:.3,max:4,step:.1,def:1}
+ ],
+ overlay(p,c,ins){const ps=ins?.[1]?.paths||[],q=ps[Math.max(0,Math.min(ps.length-1,Math.round(+p.index||1)-1))];return q?.pts?.length>1?[{kind:'poly',pts:q.closed?[...q.pts,q.pts[0]]:q.pts}]:[];},
+ compute(ins,p){
+  const src=ins[0]||EMPTY,sp=ins[1]?.paths||[];if(!src.paths.length||!sp.length||src.paths.length>20000||src.paths.reduce((n,q)=>n+q.pts.length,0)>120000)return EMPTY;
+  const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),q=sp[Math.min(sp.length-1,Math.round(n('index',1,1,1e5))-1)];if(!q||q.pts.length<2)return EMPTY;
+  const base=[];for(const v of q.pts){if(!Number.isFinite(v[0]+v[1]))return EMPTY;if(!base.length||Math.hypot(v[0]-base.at(-1)[0],v[1]-base.at(-1)[1])>1e-9)base.push(v);}if(q.closed&&base.length>1&&Math.hypot(base[0][0]-base.at(-1)[0],base[0][1]-base.at(-1)[1])<1e-9)base.pop();if(base.length<2)return EMPTY;const line=q.closed?[...base,base[0]]:base,cum=[0];for(let i=1;i<line.length;i++)cum.push(cum[i-1]+Math.hypot(line[i][0]-line[i-1][0],line[i][1]-line[i-1][1]));const L=cum.at(-1);if(!(L>1e-8))return EMPTY;
+  const axis=p.axis==='Vertical'?1:0;let lo=Infinity,hi=-Infinity,v0=Infinity,v1=-Infinity;for(const path of src.paths)for(const pt of path.pts){lo=Math.min(lo,pt[axis]);hi=Math.max(hi,pt[axis]);v0=Math.min(v0,pt[1-axis]);v1=Math.max(v1,pt[1-axis]);}
+  const scale=p.mode==='Actual length'?1:L/Math.max(.001,hi-lo),width=n('width',100,1,500)/100,off=n('offset',0,-1000,1000),start=n('start',0,-1000,1000)/100*L;
+  const directions=line.slice(1).map((q,i)=>{const L=Math.hypot(q[0]-line[i][0],q[1]-line[i][1]);return [(q[0]-line[i][0])/L,(q[1]-line[i][1])/L];}),tangents=line.map((point,i)=>{const a=i===0?(q.closed?directions.at(-1):directions[0]):directions[i-1],b=i===line.length-1?(q.closed?directions[0]:directions.at(-1)):directions[i],x=a[0]+b[0],y=a[1]+b[1],L=Math.hypot(x,y);return L>1e-8?[x/L,y/L]:b;});
+  const at=(d,v)=>{if(q.closed&&p.wrap)d=((d%L)+L)%L;let i=0,j=cum.length-1;while(i+1<j){const m=(i+j)>>1;if(cum[m]<=d)i=m;else j=m;}i=Math.min(line.length-2,i);const a=line[i],b=line[i+1],len=Math.max(1e-10,cum[i+1]-cum[i]),t=(d-cum[i])/len,s=Math.max(0,Math.min(1,t)),ta=tangents[i],tb=tangents[i+1],xx=ta[0]*(1-s)+tb[0]*s,yy=ta[1]*(1-s)+tb[1]*s,norm=Math.hypot(xx,yy)||1,dx=xx/norm,dy=yy/norm;return [a[0]+(b[0]-a[0])*t-dy*v,a[1]+(b[1]-a[1])*t+dx*v];};
+  const total=src.paths.reduce((v,q)=>v+pathLength(q.pts,q.closed),0),step=Math.max(n('step',1,.3,20),total/Math.max(1,110000-src.paths.length*2));
+  return {paths:src.paths.map(path=>({...path,pts:resample(path.pts,path.closed,step).map(pt=>{let d=(pt[axis]-lo)*scale;if(p.reverse)d=L-d;return at(d+start,(pt[1-axis]-(v0+v1)/2)*width+off);})}))};
+ }
+};
+```
+
 ## patternfill.js
 
 ```js
@@ -38926,6 +39311,57 @@ export default {
 };
 ```
 
+## reaction_patterns.js
+
+```js
+import { Pin, EMPTY, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+ key:'reaction_patterns',name:'Reaction Patterns',cat:'gen',group:'organic',
+ desc:'A seeded Gray–Scott reaction–diffusion surface, drawn as vector contours. Coral branches, Maze stripes and Spots emerge from local chemical exchange rather than a growing outline. Wired Seeds starts the reaction inside closed paths (even-odd holes) or along open strokes; unwired Seeds scatters small germs. Optional Region masks the sampled simulation, including holes; contour boundaries have grid-resolution error. Use Container afterwards for exact clipping. Pattern scale changes the solver grid, Detail sets its longest dimension (bounded to 128 / 12k cells), and Steps sets the mature simulation time. Manual Growth or Timeline deterministically reconstructs the same prefix on every frame; keep Seed, Steps and structural settings fixed. Growth 0 shows the initial germs, not an empty drawing. Level selects chemical concentration, Contours draws neighbouring levels, and pens cycle by level. Boundary wrap connects opposite page edges only. No playback cache or outside service is used.',
+ ins:[Pin('style','Style'),Pin('paths','Seeds'),Pin('paths','Region')],outs:[Pin('paths')],
+ params:[
+  {key:'pattern',label:'Pattern',type:'select',options:['Coral','Maze','Spots','Custom'],def:'Coral'},
+  {key:'feed',label:'Feed',type:'slider',min:.01,max:.08,step:.001,def:.04,showIf:p=>p.pattern==='Custom'},
+  {key:'kill',label:'Kill',type:'slider',min:.04,max:.075,step:.001,def:.062,showIf:p=>p.pattern==='Custom'},
+  {key:'detail',label:'Detail',type:'slider',min:32,max:128,step:4,def:80},
+  {key:'scale',label:'Pattern scale',type:'slider',min:.5,max:3,step:.1,def:1},
+  {key:'steps',label:'Mature steps',type:'slider',min:0,max:1600,step:25,def:650},
+  {key:'motion',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual'},
+  {key:'growth',label:'Growth %',type:'slider',min:0,max:100,step:1,def:100,showIf:p=>p.motion!=='Timeline'},
+  {key:'germs',label:'Fallback germs',type:'slider',min:1,max:80,step:1,def:28},
+  {key:'seedWidth',label:'Seed width mm',type:'slider',min:1,max:20,step:.5,def:12},
+  {key:'level',label:'Contour level',type:'slider',min:.1,max:.7,step:.01,def:.25},
+  {key:'contours',label:'Contours',type:'slider',min:1,max:5,step:1,def:2},
+  {key:'wrap',label:'Boundary wrap',type:'check',def:false},
+  {key:'pens',label:'Pens',type:'slider',min:1,max:6,step:1,def:1},
+  {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12},
+  {key:'seed',label:'Seed',type:'seed',def:37},
+  {key:'layer',label:'First pen',type:'pen',def:0}
+ ],
+ overlay(p,c,ins){const ps=ins?.[2]?.paths?.filter(q=>q.closed)||[];return ps.length?ps.slice(0,100).map(q=>({kind:'poly',pts:[...q.pts,q.pts[0]]})):[{kind:'rect',x:p.margin,y:p.margin,w:c.W-2*p.margin,h:c.H-2*p.margin}];},
+ compute(ins,p,c){
+  const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=n('margin',12,0,Math.min(c.W,c.H)/2),W=c.W-2*m,H=c.H-2*m;if(!(W>0&&H>0))return EMPTY;
+  const detail=Math.round(n('detail',80,32,128)/n('scale',1,.5,3));let nx=Math.max(16,Math.min(128,Math.round(detail*Math.min(1,W/H)))),ny=Math.max(16,Math.min(128,Math.round(detail*Math.min(1,H/W))));if(nx*ny>12000){const f=Math.sqrt(12000/(nx*ny));nx=Math.floor(nx*f);ny=Math.floor(ny*f);}const N=nx*ny;
+  const seeds=ins[1]?.paths||[],region=(ins[2]?.paths||[]).filter(q=>q.closed);if([...seeds,...region].reduce((s,q)=>s+q.pts.length,0)>4000)return EMPTY;
+  const poly=(x,y,pts)=>{let b=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const a=pts[i],d=pts[j];if((a[1]>y)!==(d[1]>y)&&x<(d[0]-a[0])*(y-a[1])/(d[1]-a[1])+a[0])b=!b;}return b;},inside=(x,y,ps)=>ps.reduce((b,q)=>b!==poly(x,y,q.pts),false);
+  let A=new Float64Array(N).fill(1),B=new Float64Array(N),a2=new Float64Array(N),b2=new Float64Array(N);const mask=new Uint8Array(N),rng=mulberry32(Math.round(n('seed',37,-2e9,2e9))),germs=Array.from({length:Math.round(n('germs',28,1,80))},()=>[.05+rng()*.9,.05+rng()*.9]),closed=seeds.filter(q=>q.closed),open=seeds.filter(q=>!q.closed),radius=n('seedWidth',12,1,50)/2;
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const k=j*nx+i,x=m+i/(nx-1)*W,y=m+j/(ny-1)*H;mask[k]=!region.length||inside(x,y,region);if(!mask[k])continue;let hit=closed.length&&inside(x,y,closed);for(const q of open)for(let z=1;z<q.pts.length&&!hit;z++){const a=q.pts[z-1],b=q.pts[z],dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));hit=Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)<radius;}if(!seeds.length)hit=germs.some(([gx,gy])=>Math.hypot(x-m-gx*W,y-m-gy*H)<Math.max(radius,1.1*Math.max(W/nx,H/ny)));if(hit){B[k]=.9;A[k]=.1;}}
+  const parameters={Coral:[.0545,.062],Maze:[.029,.057],Spots:[.0367,.0649]},[feed,kill]=parameters[p.pattern]||[n('feed',.04,.005,.1),n('kill',.062,.03,.09)],t=p.motion==='Timeline'&&c.frameCount>1?Math.max(0,Math.min(1,c.frameIdx/(c.frameCount-1))):n('growth',100,0,100)/100,steps=Math.round(n('steps',650,0,1600)*t);
+  const left=new Int32Array(N),right=new Int32Array(N),up=new Int32Array(N),down=new Int32Array(N);for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const k=j*nx+i;for(const [dst,ii,jj]of [[left,i-1,j],[right,i+1,j],[up,i,j-1],[down,i,j+1]]){const x=p.wrap?(ii+nx)%nx:Math.max(0,Math.min(nx-1,ii)),y=p.wrap?(jj+ny)%ny:Math.max(0,Math.min(ny-1,jj)),v=y*nx+x;dst[k]=mask[v]?v:k;}}
+  for(let it=0;it<steps;it++){for(let k=0;k<N;k++){if(!mask[k]){a2[k]=1;b2[k]=0;continue;}const a=A[k],b=B[k],reaction=a*b*b,la=A[left[k]]+A[right[k]]+A[up[k]]+A[down[k]]-4*a,lb=B[left[k]]+B[right[k]]+B[up[k]]+B[down[k]]-4*b;a2[k]=Math.max(0,Math.min(1,a+.2*la-reaction+feed*(1-a)));b2[k]=Math.max(0,Math.min(1,b+.1*lb+reaction-(kill+feed)*b));}[A,a2]=[a2,A];[B,b2]=[b2,B];}
+  const paths=[],levels=Math.round(n('contours',2,1,5)),pens=Math.round(n('pens',1,1,6)),pen=Math.round(n('layer',0,0,11));
+  for(let level=0;level<levels;level++){const iso=Math.min(.85,n('level',.25,.05,.75)+level*.065),segs=[];
+   for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){const k=j*nx+i,v=[B[k],B[k+1],B[k+nx+1],B[k+nx]],coord=[[i,j],[i+1,j],[i+1,j+1],[i,j+1]],hits=[];for(let e=0;e<4;e++){const f=(e+1)%4;if((v[e]>iso)!==(v[f]>iso)){const t=(iso-v[e])/(v[f]-v[e]);hits.push([m+(coord[e][0]+t*(coord[f][0]-coord[e][0]))/(nx-1)*W,m+(coord[e][1]+t*(coord[f][1]-coord[e][1]))/(ny-1)*H]);}}if(hits.length===2)segs.push(hits);else if(hits.length===4){const turn=(v[0]-iso)*(v[2]-iso)-(v[1]-iso)*(v[3]-iso);if(turn>0)segs.push([hits[0],hits[1]],[hits[2],hits[3]]);else segs.push([hits[0],hits[3]],[hits[1],hits[2]]);}}
+   const key=q=>q.map(v=>Math.round(v*1e6)).join(','),adj=new Map(),used=new Uint8Array(segs.length);segs.forEach((s,i)=>s.forEach(q=>{const k=key(q);if(!adj.has(k))adj.set(k,[]);adj.get(k).push(i);}));
+   const walk=(i,start)=>{const pts=[start],first=key(start);let tail=first;while(!used[i]){used[i]=1;const q=segs[i],next=key(q[0])===tail?q[1]:q[0];pts.push(next);tail=key(next);const z=(adj.get(tail)||[]).find(z=>!used[z]);if(z===undefined)break;i=z;}const closed=tail===first;if(closed)pts.pop();if(pts.length>=(closed?3:2))paths.push({pts,closed,layer:(pen+level%pens)%12});};
+   for(const [k,ids]of adj)if(ids.length!==2)for(const i of ids)if(!used[i])walk(i,segs[i].find(q=>key(q)===k));for(let i=0;i<segs.length;i++)if(!used[i])walk(i,segs[i][0]);
+  }
+  let style=ins[0],out=applyStyle({paths},style);for(let i=0;i<12&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;i++){style={...style,dash:Math.max(.1,+style?.dash||4)*1.8,gap:Math.max(.1,+style?.gap||3)*1.8};out=applyStyle({paths},style);}return out.paths.reduce((n,q)=>n+q.pts.length,0)<=118000?out:EMPTY;
+ }
+};
+```
+
 ## rectcollage.js
 
 ```js
@@ -43011,6 +43447,49 @@ export default {
 };
 ```
 
+## seamless_tile.js
+
+```js
+import { Pin, EMPTY } from "../helpers.js";
+
+export default {
+ key:'seamless_tile',name:'Seamless Tile',cat:'mod',group:'transform',
+ desc:'Wrap any line drawing across a periodic tile. A line leaving one side continues on the opposite side; clipped closed paths become open fragments, without artificial tile-edge strokes. Straight has one cell per export unit. Half drop uses a two-column unit; Mirror uses a 2×2 reflected unit, so the rectangular export repeats correctly. Fit motif sizes your source relative to one cell, Actual mm preserves its dimensions before Scale. Shift moves the motif through the periodic boundary. Single unit is true millimetres, centred on the canvas; 3×3 preview shrinks the full repeat only when needed to fit Margin. Export Single unit for the repeat master. Source pens remain intact. Work above 1M segment clips / 118k result points is rejected rather than exporting an incomplete tile.',
+ ins:[Pin('paths','Motif')],outs:[Pin('paths')],
+ params:[
+  {key:'repeat',label:'Repeat',type:'select',options:['Straight','Half drop','Mirror'],def:'Straight'},
+  {key:'width',label:'Cell width mm',type:'slider',min:5,max:200,step:1,def:70},
+  {key:'height',label:'Cell height mm',type:'slider',min:5,max:200,step:1,def:50},
+  {key:'fit',label:'Source size',type:'select',options:['Fit motif','Actual mm'],def:'Fit motif'},
+  {key:'scale',label:'Scale %',type:'slider',min:1,max:300,step:1,def:90},
+  {key:'shiftX',label:'Shift X mm',type:'slider',min:-100,max:100,step:1,def:25},
+  {key:'shiftY',label:'Shift Y mm',type:'slider',min:-100,max:100,step:1,def:0},
+  {key:'view',label:'Drawing',type:'select',options:['Single unit','3×3 preview'],def:'3×3 preview'},
+  {key:'margin',label:'Preview margin mm',type:'slider',min:0,max:60,step:1,def:12,showIf:p=>p.view==='3×3 preview'}
+ ],
+ _layout(p,c){const w=Math.max(5,Math.min(500,Number.isFinite(+p.width)?+p.width:70)),h=Math.max(5,Math.min(500,Number.isFinite(+p.height)?+p.height:50)),uw=w*(p.repeat==='Straight'?1:2),uh=h*(p.repeat==='Mirror'?2:1),n=p.view==='Single unit'?1:3,m=Math.max(0,Math.min(Math.min(c.W,c.H)/2,+p.margin||0)),s=n===1?1:Math.max(0,Math.min(1,(c.W-2*m)/(uw*n),(c.H-2*m)/(uh*n)));return {w,h,uw,uh,n,s,x:(c.W-uw*n*s)/2,y:(c.H-uh*n*s)/2};},
+ overlay(p,c){const f=this._layout(p,c),out=[];for(let j=0;j<f.n;j++)for(let i=0;i<f.n;i++)out.push({kind:'rect',x:f.x+i*f.uw*f.s,y:f.y+j*f.uh*f.s,w:f.uw*f.s,h:f.uh*f.s});return out;},
+ compute(ins,p,c){
+  const src=ins[0]||EMPTY;if(!src.paths.length||src.paths.length>12000||src.paths.reduce((n,q)=>n+q.pts.length,0)>120000)return EMPTY;
+  const f=this._layout(p,c);if(!f.s)return EMPTY;let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(const q of src.paths)for(const [x,y]of q.pts){if(!Number.isFinite(x+y))return EMPTY;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
+  const sc=(p.fit==='Actual mm'?1:Math.min(f.w/Math.max(.001,x1-x0),f.h/Math.max(.001,y1-y0)))*Math.max(.01,Math.min(5,(Number.isFinite(+p.scale)?+p.scale:90)/100)),cx=(x0+x1)/2,cy=(y0+y1)/2,sx=Number.isFinite(+p.shiftX)?+p.shiftX:0,sy=Number.isFinite(+p.shiftY)?+p.shiftY:0;
+  const seeds=[];for(let j=0;j<(p.repeat==='Mirror'?2:1);j++)for(let i=0;i<(p.repeat==='Straight'?1:2);i++)for(const q of src.paths)seeds.push({...q,pts:q.pts.map(([x,y])=>[(x-cx)*sc*(p.repeat==='Mirror'&&i?-1:1)+(i+.5)*f.w+sx,(y-cy)*sc*(p.repeat==='Mirror'&&j?-1:1)+(j+.5)*f.h+sy+(p.repeat==='Half drop'&&i?f.h/2:0)])});
+  const clip=(a,b)=>{let lo=0,hi=1;const dx=b[0]-a[0],dy=b[1]-a[1];for(const [u,v]of [[-dx,a[0]],[dx,f.uw-a[0]],[-dy,a[1]],[dy,f.uh-a[1]]]){if(Math.abs(u)<1e-12){if(v<0)return null;}else{const t=v/u;if(u<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);if(lo>hi)return null;}}return [[a[0]+lo*dx,a[1]+lo*dy],[a[0]+hi*dx,a[1]+hi*dy]];};
+  const same=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1])<1e-7,unit=[];let work=0,points=0;
+  for(const q of seeds){let ax=Infinity,ay=Infinity,bx=-Infinity,by=-Infinity;for(const [x,y]of q.pts){ax=Math.min(ax,x);ay=Math.min(ay,y);bx=Math.max(bx,x);by=Math.max(by,y);}
+   const il=Math.ceil(-bx/f.uw),ir=Math.floor((f.uw-ax)/f.uw),jl=Math.ceil(-by/f.uh),jr=Math.floor((f.uh-ay)/f.uh);if((ir-il+1)*(jr-jl+1)*q.pts.length>1e6)return EMPTY;
+   for(let j=jl;j<=jr;j++)for(let i=il;i<=ir;i++){
+    const pts=q.pts.map(v=>[v[0]+i*f.uw,v[1]+j*f.uh]);if(pts.every(v=>v[0]>=0&&v[0]<=f.uw&&v[1]>=0&&v[1]<=f.uh)){unit.push({...q,pts});points+=pts.length;continue;}
+    const fragments=[];let cur=[];for(let k=0;k<pts.length-(q.closed?0:1);k++){if(++work>1e6)return EMPTY;const s=clip(pts[k],pts[(k+1)%pts.length]);if(!s||same(s[0],s[1])){if(cur.length>1)fragments.push(cur);cur=[];continue;}if(cur.length&&same(cur.at(-1),s[0]))cur.push(s[1]);else{if(cur.length>1)fragments.push(cur);cur=s;}}
+    if(cur.length>1)fragments.push(cur);if(q.closed&&fragments.length>1&&same(fragments.at(-1).at(-1),fragments[0][0])){fragments[0]=[...fragments.pop().slice(0,-1),...fragments[0]];}
+    for(const pts of fragments){unit.push({pts,closed:false,layer:q.layer});points+=pts.length;}
+   }if(points*f.n*f.n>118000)return EMPTY;
+  }
+  const paths=[];for(let j=0;j<f.n;j++)for(let i=0;i<f.n;i++)for(const q of unit)paths.push({...q,pts:q.pts.map(([x,y])=>[f.x+(x+i*f.uw)*f.s,f.y+(y+j*f.uh)*f.s])});return {paths};
+ }
+};
+```
+
 ## seams.js
 
 ```js
@@ -47017,6 +47496,53 @@ export default {
     for(const key of Object.keys(Tree)){const fn=Tree[key];Tree[key]=(...args)=>gate()<trees?within(2,()=>fn.apply(Tree,args)):"";}
     return {Mount,water,building:(...args)=>within(3,()=>originalArch.arch03(...args)),boat:(...args)=>within(5,()=>originalArch.boat01(...args))};
   },
+};
+```
+
+## shape_packing.js
+
+```js
+import { Pin, EMPTY, mulberry32 } from "../helpers.js";
+
+export default {
+ key:'shape_packing',name:'Shape Packing',cat:'duo',
+ desc:'Pack copies of your Motif inside a closed Region, leaving Clearance between them and the boundary. Unwired Region uses the margin rectangle. Region contours use even-odd parity, so holes remain empty. Motif paths keep their pens. Packing uses conservative convex envelopes (a rectangle for exceptionally complex hulls), so open or concave motifs may leave more space than their ink alone requires. Rotations and sizes are seeded; the requested Copies is an upper bound and fewer may fit. Entire envelopes must fit: no motifs are cut at the edge. Search is bounded and stops after a fixed number of attempts. Adjust Largest size, Size variation or Clearance for denser packing. Maximum motif source 12k points / 2k paths, region 12k points.',
+ ins:[Pin('paths','Motif'),Pin('paths','Region')],outs:[Pin('paths')],
+ params:[
+  {key:'count',label:'Copies',type:'slider',min:1,max:160,step:1,def:35},
+  {key:'size',label:'Largest size mm',type:'slider',min:2,max:100,step:1,def:25},
+  {key:'vary',label:'Size variation %',type:'slider',min:0,max:85,step:1,def:50},
+  {key:'rotate',label:'Rotation variation °',type:'slider',min:0,max:180,step:1,def:180},
+  {key:'gap',label:'Clearance mm',type:'slider',min:0,max:15,step:.2,def:2},
+  {key:'keep',label:'Draw region',type:'check',def:false},
+  {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12},
+  {key:'seed',label:'Seed',type:'seed',def:37}
+ ],
+ overlay(p,c,ins){const r=ins?.[1]?.paths?.filter(q=>q.closed)||[];return r.length?r.slice(0,100).map(q=>({kind:'poly',pts:[...q.pts,q.pts[0]]})):[{kind:'rect',x:p.margin,y:p.margin,w:c.W-2*p.margin,h:c.H-2*p.margin}];},
+ compute(ins,p,c){
+  const src=ins[0]||EMPTY;if(!src.paths.length||src.paths.length>2000||src.paths.reduce((n,q)=>n+q.pts.length,0)>12000)return EMPTY;
+  const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=n('margin',12,0,Math.min(c.W,c.H)/2),rng=mulberry32(Math.round(n('seed',37,-2e9,2e9))),gap=n('gap',2,0,100),count=Math.round(n('count',35,1,160));if(c.W<=2*m||c.H<=2*m)return EMPTY;
+  const reg=(ins[1]?.paths||[]).filter(q=>q.closed&&q.pts.length>=3);if(reg.reduce((v,q)=>v+q.pts.length,0)>12000)return EMPTY;const rings=reg.length?reg.map(q=>q.pts):[[[m,m],[c.W-m,m],[c.W-m,c.H-m],[m,c.H-m]]];
+  const cross=(a,b,d)=>(b[0]-a[0])*(d[1]-a[1])-(b[1]-a[1])*(d[0]-a[0]);
+  const poly=(pt,ps)=>{let v=false;for(let i=0,j=ps.length-1;i<ps.length;j=i++){const a=ps[i],b=ps[j];if((a[1]>pt[1])!==(b[1]>pt[1])&&pt[0]<(b[0]-a[0])*(pt[1]-a[1])/(b[1]-a[1])+a[0])v=!v;}return v;};
+  const inside=pt=>rings.reduce((v,r)=>v!==poly(pt,r),false);
+  const dist=(a,b,x)=>{const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x[0]-a[0])*dx+(x[1]-a[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(x[0]-a[0]-t*dx,x[1]-a[1]-t*dy);};
+  const hit=(a,b,d,e)=>{const aa=cross(a,b,d),bb=cross(a,b,e),dd=cross(d,e,a),ee=cross(d,e,b);return aa*bb<=0&&dd*ee<=0&&Math.max(Math.min(a[0],b[0]),Math.min(d[0],e[0]))<=Math.min(Math.max(a[0],b[0]),Math.max(d[0],e[0]))+1e-9&&Math.max(Math.min(a[1],b[1]),Math.min(d[1],e[1]))<=Math.min(Math.max(a[1],b[1]),Math.max(d[1],e[1]))+1e-9;};
+  let pts=src.paths.flatMap(q=>q.pts);if(pts.some(q=>!q.every(Number.isFinite)))return EMPTY;const sorted=pts.map(q=>q.slice(0,2)).sort((a,b)=>a[0]-b[0]||a[1]-b[1]),chain=xs=>{const a=[];for(const x of xs){while(a.length>1&&cross(a.at(-2),a.at(-1),x)<=0)a.pop();a.push(x);}return a;};
+  let hull=[...chain(sorted).slice(0,-1),...chain([...sorted].reverse()).slice(0,-1)];let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(const [x,y]of pts){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}const span=Math.max(x1-x0,y1-y0);if(span<1e-8)return EMPTY;
+  if(hull.length<3||hull.length>256)hull=[[x0,y0],[x1,y0],[x1,y1],[x0,y1]];
+  const cx=(x0+x1)/2,cy=(y0+y1)/2;let rx0=Infinity,ry0=Infinity,rx1=-Infinity,ry1=-Infinity;for(const r of rings)for(const [x,y]of r){rx0=Math.min(rx0,x);rx1=Math.max(rx1,x);ry0=Math.min(ry0,y);ry1=Math.max(ry1,y);}rx0=Math.max(m,rx0);ry0=Math.max(m,ry0);rx1=Math.min(c.W-m,rx1);ry1=Math.min(c.H-m,ry1);
+  const separated=(a,b)=>{for(const list of [a,b])for(let i=0;i<list.length;i++){const A=list[i],B=list[(i+1)%list.length],dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy);if(L<1e-9)continue;const nx=-dy/L,ny=dx/L;let amin=Infinity,amax=-Infinity,bmin=Infinity,bmax=-Infinity;for(const q of a){const v=q[0]*nx+q[1]*ny;amin=Math.min(amin,v);amax=Math.max(amax,v);}for(const q of b){const v=q[0]*nx+q[1]*ny;bmin=Math.min(bmin,v);bmax=Math.max(bmax,v);}if(amin-bmax>gap||bmin-amax>gap)return true;}return false;};
+  const placed=[],out=[];let budget=0,tests=0;
+  search:for(let attempt=0;attempt<Math.min(16000,count*180)&&placed.length<count;attempt++){
+   const scale=n('size',25,1,500)/span*(1-rng()*n('vary',50,0,95)/100),a=(rng()-.5)*2*n('rotate',180,0,360)*Math.PI/180,co=Math.cos(a),si=Math.sin(a),ox=rx0+rng()*(rx1-rx0),oy=ry0+rng()*(ry1-ry0),map=q=>[ox+((q[0]-cx)*co-(q[1]-cy)*si)*scale,oy+((q[0]-cx)*si+(q[1]-cy)*co)*scale],hh=hull.map(map);
+   if(hh.some(q=>q[0]<m+gap||q[0]>c.W-m-gap||q[1]<m+gap||q[1]>c.H-m-gap||!inside(q)))continue;
+   let bad=false;for(const ring of rings){for(let i=0;i<hh.length&&!bad;i++)for(let j=0;j<ring.length;j++){if(++tests>3000000)break search;const A=hh[i],B=hh[(i+1)%hh.length],D=ring[j],E=ring[(j+1)%ring.length];if(hit(A,B,D,E)||Math.min(dist(A,B,D),dist(A,B,E),dist(D,E,A),dist(D,E,B))<gap-1e-8){bad=true;break;}}if(ring.some(q=>poly(q,hh)))bad=true;if(bad)break;}
+   if(bad||placed.some(q=>!separated(q,hh)))continue;
+   if(budget+pts.length>118000)break;placed.push(hh);budget+=pts.length;for(const q of src.paths)out.push({...q,pts:q.pts.map(map)});
+  }
+  return {paths:p.keep?[...out,...reg]:out};
+ }
 };
 ```
 
@@ -55484,30 +56010,35 @@ export default {
 ## view3d.js
 
 ```js
-import { Pin, EMPTY, noise2, resample } from "../helpers.js";
+import { Pin, EMPTY, noise2, resample, pathLength } from "../helpers.js";
 
 export default {
   key: "view3d",
     name: "3D View",
     cat: "mod",
     group: "deform",
-    desc: "Puts the drawing into 3D space and views it from any angle: yaw/pitch/roll with adjustable perspective (0 = isometric, 1 = dramatic). Z source: Flat tilts the sheet like paper; Pens stacked gives each pen layer its own depth (parallax when rotated); Noise relief bends the drawing over a heightfield. Wire Frame into Yaw for a spinning-drawing animation.",
+    desc: "Puts the drawing into 3D space and views it from any angle: yaw/pitch/roll with adjustable perspective (0 = isometric, 1 = dramatic). Z source: Flat tilts the sheet like paper; Pens stacked gives each pen layer its own depth (parallax when rotated); Noise relief bends the drawing over a heightfield. Surface bend adds Bend, Twist and a Cylinder wrap before the camera projection. These bend any drawing, including typography; Cylinder keeps physical arc length. Wire angles for animation. Surface deformation resamples curves; flat legacy mode stays exact. This is a projected sheet with all paths visible, not a solid with hidden-line removal. Wire Frame into Yaw for a spinning-drawing animation.",
     ins: [Pin("paths", "Source")],
     outs: [Pin("paths")],
     params: [
+      {key:'deform',label:'Surface bend',type:'select',options:['None','Bend','Twist','Cylinder'],def:'None'},
+      {key:'bendAxis',label:'Bend axis',type:'select',options:['Horizontal','Vertical'],def:'Horizontal',showIf:p=>p.deform&&p.deform!=='None'},
+      {key:'bendAngle',label:'Bend / twist angle °',type:'slider',min:-360,max:360,step:1,def:150,showIf:p=>p.deform==='Bend'||p.deform==='Twist'},
+      {key:'bendRadius',label:'Cylinder radius mm',type:'slider',min:5,max:200,step:1,def:45,showIf:p=>p.deform==='Cylinder'},
       { key: "yaw", label: "Yaw deg (wire Frame x360)", type: "slider", min: 0, max: 360, step: 1, def: 30 },
       { key: "pitch", label: "Pitch deg", type: "slider", min: -90, max: 90, step: 1, def: 30 },
       { key: "roll", label: "Roll deg", type: "slider", min: -180, max: 180, step: 1, def: 0 },
       { key: "persp", label: "Perspective", type: "slider", min: 0, max: 1, step: 0.02, def: 0.5 },
       { key: "zsource", label: "Z source", type: "select", options: ["Flat", "Pens stacked", "Noise relief"], def: "Flat" },
-      { key: "gap", label: "Pen layer gap mm", type: "slider", min: 1, max: 40, step: 0.5, def: 10 },
-      { key: "relief", label: "Relief height mm", type: "slider", min: 0, max: 60, step: 1, def: 25 },
-      { key: "rscale", label: "Relief scale", type: "slider", min: 0.5, max: 4, step: 0.1, def: 1.5 },
+      { key: "gap", label: "Pen layer gap mm", type: "slider", min: 1, max: 40, step: 0.5, def: 10, showIf:p=>p.zsource==='Pens stacked' },
+      { key: "relief", label: "Relief height mm", type: "slider", min: 0, max: 60, step: 1, def: 25, showIf:p=>p.zsource==='Noise relief' },
+      { key: "rscale", label: "Relief scale", type: "slider", min: 0.5, max: 4, step: 0.1, def: 1.5, showIf:p=>p.zsource==='Noise relief' },
       { key: "fit", label: "Fit to sheet", type: "check", def: true },
-      { key: "res", label: "Relief sample mm", type: "slider", min: 0.5, max: 4, step: 0.1, def: 1.2 },
-      { key: "seed", label: "Seed (relief)", type: "seed", def: 3 },
-      { key: "margin", label: "Fit margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 }
+      { key: "res", label: "Relief sample mm", type: "slider", min: 0.5, max: 4, step: 0.1, def: 1.2, showIf:p=>p.zsource==='Noise relief'||!!p.deform&&p.deform!=='None' },
+      { key: "seed", label: "Seed (relief)", type: "seed", def: 3, showIf:p=>p.zsource==='Noise relief' },
+      { key: "margin", label: "Fit margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10, showIf:p=>p.fit }
     ],
+    overlay(p,c){return p.fit?[{kind:'rect',x:p.margin,y:p.margin,w:c.W-2*p.margin,h:c.H-2*p.margin}]:[];},
     compute(ins, p, ctx) {
       const src = ins[0] || EMPTY;
       if (!src.paths.length) return EMPTY;
@@ -55531,6 +56062,12 @@ export default {
       };
       const proj = (x, y, layer) => {
         let X = x - cx, Y = y - cy, Z = zOf(x, y, layer);
+        if(p.deform&&p.deform!=='None'){
+          const vertical=p.bendAxis==='Vertical',span=vertical?H:W,u=vertical?Y:X,v=vertical?X:Y,angle=(Number.isFinite(+p.bendAngle)?Math.max(-3600,Math.min(3600,+p.bendAngle)):150)*D2R;let uu=u,zz=Z;
+          if(p.deform==='Twist'){const a=angle*v/Math.max(1,vertical?W:H),co=Math.cos(a),si=Math.sin(a);uu=u*co-Z*si;zz=u*si+Z*co;}
+          else{const r=p.deform==='Cylinder'?Math.max(1,Math.min(1000,+p.bendRadius||45)):Math.abs(angle)>1e-8?span/angle:Infinity;if(Number.isFinite(r)){const a=u/r;uu=(r-Z)*Math.sin(a);zz=r-(r-Z)*Math.cos(a);}}
+          if(vertical)Y=uu;else X=uu;Z=zz;
+        }
         /* roll (Z axis) */
         let X1 = X * crol - Y * srol, Y1 = X * srol + Y * crol;
         /* yaw (Y axis) */
@@ -55544,12 +56081,21 @@ export default {
       };
       /* straight lines stay straight under perspective, so resampling is only
          needed when the relief bends the plane itself */
-      const needResample = p.zsource === "Noise relief";
+      const needResample = p.zsource === "Noise relief" || !!p.deform && p.deform !== "None";
+      const deforming=!!p.deform&&p.deform!=='None';
+      if(deforming&&(src.paths.length>20000||src.paths.reduce((n,q)=>n+q.pts.length,0)>120000))return EMPTY;
+      const sampleStep=deforming?Math.max(.4,+p.res||1.2,src.paths.reduce((n,q)=>n+pathLength(q.pts,q.closed),0)/Math.max(1,110000-src.paths.length*2)):Math.max(.4,p.res);
+      const sampled = path => {
+        if (!needResample) return path.pts;
+        const pts = resample(path.pts, path.closed, sampleStep);
+        return deforming && pts.length < Math.min(path.pts.length, path.closed ? 3 : 2) ? path.pts : pts;
+      };
       const projected = src.paths.map((path) => ({
         layer: path.layer, closed: path.closed,
-        pts: (needResample ? resample(path.pts, path.closed, Math.max(0.4, p.res)) : path.pts)
+        pts: sampled(path)
           .map(([x, y]) => proj(x, y, path.layer))
       }));
+      if (deforming && projected.reduce((n,q)=>n+q.pts.length,0)>120000) return EMPTY;
       /* fit or clamp */
       const m = Math.max(0, p.margin);
       let paths;

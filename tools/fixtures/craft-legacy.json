@@ -1,0 +1,861 @@
+[
+  {
+    "key": "drape",
+    "p": {
+      "style": "Wire",
+      "sheet": "Fit",
+      "shapes": "Mixed",
+      "count": 4,
+      "size": 28,
+      "height": 45,
+      "tension": 18,
+      "wrinkles": 15,
+      "density": 36,
+      "yaw": 25,
+      "pitch": 50,
+      "persp": 0.35,
+      "hidden": true,
+      "lock": true,
+      "light": 315,
+      "margin": 10,
+      "seed": 4,
+      "layer": 0
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [],
+    "sha256": "a8dab6c614d6ecefeeea8ba51a2393acdd2cf1586fa2278ee09a2cdd4738a55a"
+  },
+  {
+    "key": "drape",
+    "p": {
+      "style": "Wire",
+      "sheet": "Fit",
+      "shapes": "Mixed",
+      "count": 4,
+      "size": 28,
+      "height": 45,
+      "tension": 18,
+      "wrinkles": 15,
+      "density": 36,
+      "yaw": 25,
+      "pitch": 50,
+      "persp": 0.35,
+      "hidden": true,
+      "lock": true,
+      "light": 315,
+      "margin": 10,
+      "seed": 7,
+      "layer": 0
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [],
+    "sha256": "b7da931f2eef7405db85dfc55460d7d06eec3d4ff2a8dfd5af101b38ca13ff22"
+  },
+  {
+    "key": "drape",
+    "p": {
+      "style": "Weave",
+      "sheet": "Fit",
+      "shapes": "Mixed",
+      "count": 4,
+      "size": 28,
+      "height": 45,
+      "tension": 18,
+      "wrinkles": 15,
+      "density": 36,
+      "yaw": 25,
+      "pitch": 50,
+      "persp": 0.35,
+      "hidden": true,
+      "lock": true,
+      "light": 315,
+      "margin": 10,
+      "seed": 4,
+      "layer": 0
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [],
+    "sha256": "2088504eb347bc5dfe2ae9e6b11412e9e3e571323f50ee76e684b97f2284712e"
+  },
+  {
+    "key": "gravity",
+    "p": {
+      "cols": 24,
+      "rows": 16,
+      "stamp": "Dot",
+      "stampSize": 0.5,
+      "release": 0.55,
+      "softness": 0.35,
+      "clumps": 0.35,
+      "progress": 0.55,
+      "drift": 8,
+      "spin": 0,
+      "sizeMod": 0,
+      "modulate": "Fallen only",
+      "gridJitter": 0.15,
+      "pile": "Heap",
+      "spread": 0.6,
+      "packing": 0.9,
+      "palette": 4,
+      "assign": "Diagonal",
+      "penA": 1,
+      "penB": 2,
+      "penC": 11,
+      "penD": 10,
+      "margin": 12,
+      "seed": 7
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "03dbc472fecc1ad47971a0521c117cdeff3161e1f31e517d5bca44894a8deae8"
+  },
+  {
+    "key": "gravity",
+    "p": {
+      "cols": 24,
+      "rows": 16,
+      "stamp": "Dot",
+      "stampSize": 0.5,
+      "release": 0.55,
+      "softness": 0.35,
+      "clumps": 0.35,
+      "progress": 0.55,
+      "drift": 8,
+      "spin": 0,
+      "sizeMod": 0,
+      "modulate": "Fallen only",
+      "gridJitter": 0.15,
+      "pile": "Heap",
+      "spread": 0.6,
+      "packing": 0.9,
+      "palette": 4,
+      "assign": "Diagonal",
+      "penA": 1,
+      "penB": 2,
+      "penC": 11,
+      "penD": 10,
+      "margin": 12,
+      "seed": 7
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "03dbc472fecc1ad47971a0521c117cdeff3161e1f31e517d5bca44894a8deae8"
+  },
+  {
+    "key": "gravity",
+    "p": {
+      "cols": 24,
+      "rows": 16,
+      "stamp": "Dot",
+      "stampSize": 0.5,
+      "release": 70,
+      "softness": 0.35,
+      "clumps": 0.35,
+      "progress": 0.55,
+      "drift": 8,
+      "spin": 0,
+      "sizeMod": 0,
+      "modulate": "Fallen only",
+      "gridJitter": 0.15,
+      "pile": "Heap",
+      "spread": 0.6,
+      "packing": 0.9,
+      "palette": 4,
+      "assign": "Diagonal",
+      "penA": 1,
+      "penB": 2,
+      "penC": 11,
+      "penD": 10,
+      "margin": 12,
+      "seed": 7
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "bce77f9e2c530b486f2ab74dd1a5fe10da732ab19ae3db60afa6be23dabf2eb0"
+  },
+  {
+    "key": "array",
+    "p": {
+      "count": 3,
+      "dx": 2,
+      "dy": 0,
+      "drot": 0,
+      "dscale": 0,
+      "jit": 0,
+      "penPer": false,
+      "seed": 16
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "e5978cc642069cd31f4e4618eb86be76c3105dff004a142d83fbd21e56a59cdf"
+  },
+  {
+    "key": "array",
+    "p": {
+      "count": 3,
+      "dx": 2,
+      "dy": 0,
+      "drot": 0,
+      "dscale": 0,
+      "jit": 0,
+      "penPer": false,
+      "seed": 7
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "e5978cc642069cd31f4e4618eb86be76c3105dff004a142d83fbd21e56a59cdf"
+  },
+  {
+    "key": "array",
+    "p": {
+      "count": 5,
+      "dx": 2,
+      "dy": 0,
+      "drot": 15,
+      "dscale": 0,
+      "jit": 0,
+      "penPer": false,
+      "seed": 16
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "5ac2afe1ed1ce8f2792fbba069b0ad08ed967105e7497bddd67ca71d2eb25096"
+  },
+  {
+    "key": "view3d",
+    "p": {
+      "yaw": 30,
+      "pitch": 30,
+      "roll": 0,
+      "persp": 0.5,
+      "zsource": "Flat",
+      "gap": 10,
+      "relief": 25,
+      "rscale": 1.5,
+      "fit": true,
+      "res": 1.2,
+      "seed": 3,
+      "margin": 10
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "74b23729468fa3c12ac06d780792518779cf0bb45c031797c6e2c91eab530c0d"
+  },
+  {
+    "key": "view3d",
+    "p": {
+      "yaw": 30,
+      "pitch": 30,
+      "roll": 0,
+      "persp": 0.5,
+      "zsource": "Flat",
+      "gap": 10,
+      "relief": 25,
+      "rscale": 1.5,
+      "fit": true,
+      "res": 1.2,
+      "seed": 7,
+      "margin": 10
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "74b23729468fa3c12ac06d780792518779cf0bb45c031797c6e2c91eab530c0d"
+  },
+  {
+    "key": "view3d",
+    "p": {
+      "yaw": 30,
+      "pitch": 30,
+      "roll": 0,
+      "persp": 0.5,
+      "zsource": "Noise relief",
+      "gap": 10,
+      "relief": 25,
+      "rscale": 1.5,
+      "fit": true,
+      "res": 1.2,
+      "seed": 3,
+      "margin": 10
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "727f1aae78420e59980a4e602e9f3c6466e3128f3212395c9fef457732745895"
+  },
+  {
+    "key": "lens",
+    "p": {
+      "useCenter": true,
+      "cx": 150,
+      "cy": 100,
+      "radius": 90,
+      "strength": 0.4
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "ced151592422bc64f2e2083ba6654e28ae77485c700519fce3685a3b4e921c70"
+  },
+  {
+    "key": "lens",
+    "p": {
+      "useCenter": true,
+      "cx": 150,
+      "cy": 100,
+      "radius": 90,
+      "strength": 0.4,
+      "seed": 7
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "ced151592422bc64f2e2083ba6654e28ae77485c700519fce3685a3b4e921c70"
+  },
+  {
+    "key": "lens",
+    "p": {
+      "useCenter": true,
+      "cx": 150,
+      "cy": 100,
+      "radius": 90,
+      "strength": -0.5
+    },
+    "ctx": {
+      "W": 297,
+      "H": 210
+    },
+    "ins": [
+      {
+        "paths": [
+          {
+            "pts": [
+              [
+                50,
+                40
+              ],
+              [
+                140,
+                50
+              ],
+              [
+                160,
+                130
+              ],
+              [
+                70,
+                160
+              ]
+            ],
+            "closed": true,
+            "layer": 2
+          },
+          {
+            "pts": [
+              [
+                40,
+                100
+              ],
+              [
+                230,
+                120
+              ]
+            ],
+            "closed": false,
+            "layer": 0
+          }
+        ]
+      }
+    ],
+    "sha256": "27dc2e96844c0df89ca31492686be014050d53dfb938874416e1852d8c60fcfa"
+  }
+]

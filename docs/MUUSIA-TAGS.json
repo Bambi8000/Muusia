@@ -1891,5 +1891,56 @@
   "warp",
   "hatch",
   "wave"
+ ],
+ "marbling": [
+  "ink",
+  "marbling",
+  "comb",
+  "swirl",
+  "distortion",
+  "animation"
+ ],
+ "shape_packing": [
+  "packing",
+  "motif",
+  "region",
+  "collision",
+  "typography"
+ ],
+ "path_bend": [
+  "path",
+  "bend",
+  "spine",
+  "typography",
+  "warp"
+ ],
+ "seamless_tile": [
+  "pattern",
+  "tile",
+  "seamless",
+  "repeat"
+ ],
+ "reaction_patterns": [
+  "growth",
+  "reaction diffusion",
+  "maze",
+  "organic",
+  "animation"
+ ],
+ "crystal_growth": [
+  "crystal",
+  "quartz",
+  "growth",
+  "3d",
+  "mesh",
+  "animation"
+ ],
+ "mesh_render": [
+  "mesh",
+  "stl",
+  "3d",
+  "shadow",
+  "hatching",
+  "render"
  ]
 }

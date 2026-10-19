@@ -1,35 +1,77 @@
-import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
+import { Pin, EMPTY, mulberry32, noise2, applyStyle, resample, pathLength } from "../helpers.js";
 
 export default {
   key: "drape",
   name: "Drape",
   cat: "gen",
   group: "structural",
-  desc: "A mesh cloth laid over hidden objects. Seeded spheres, boxes, cones or a mix sit on a table; a grid sheet is dropped over them and relaxed with Tension until it rests on the tops and sags smoothly in between, with optional Wrinkles in the folds. Wire your own objects instead: closed paths on the Objects input become flat-topped blocks with a soft edge, open paths become round ridges, and a triangle mesh on the Mesh input (Blob Mesh, or anything Mesh Slice would take) is rasterised from above into the height field — a wired input replaces the seeded objects. The result is turned in 3D with Yaw, Elevation and Perspective and drawn with true hidden-line removal, so the far side of every bump disappears behind it; Lock size scales by the sheet's rotation-invariant bounding circle so Yaw turns the drape without changing its size, and Sheet Round makes the cloth a disc whose outline does not change with Yaw at all (Square and Fit are rectangles). Styles: Wire (the grid), Weave (warp and weft break alternately at every crossing, like a woven net), Contour (height contours of the draped surface projected in 3D) and Hatch (grid lines that thicken away from Light angle, plus the silhouette). Density sets the mesh count in both directions; Size and Height scale the objects, Count how many. Shrink-only fit keeps the drawing inside the margins.",
-  ins: [Pin("style", "Style"), Pin("paths", "Objects"), Pin("mesh", "Mesh")],
+  desc: "Draped preserves the original mesh cloth laid over hidden objects. Hanging and Flag use a separate deterministic pinned mass-spring sheet: choose attachment, gravity, elasticity, damping, wind and a pull point. Cloth artwork maps the new fourth input onto the sheet; source coordinates use the whole canvas as UV. Grid, Threads and Weave are optional. Timeline reconstructs a periodic wind pose on every frame; manual Phase can be wired. This solver does not collide with the Objects/Mesh inputs or solve cloth self-collision. Hidden lines uses a two-sided depth buffer. Framing is fixed over wind phase; output clips to Margin. In Draped mode: Seeded spheres, boxes, cones or a mix sit on a table; a grid sheet is dropped over them and relaxed with Tension until it rests on the tops and sags smoothly in between, with optional Wrinkles in the folds. Wire your own objects instead: closed paths on the Objects input become flat-topped blocks with a soft edge, open paths become round ridges, and a triangle mesh on the Mesh input (Blob Mesh, or anything Mesh Slice would take) is rasterised from above into the height field — a wired input replaces the seeded objects. The result is turned in 3D with Yaw, Elevation and Perspective and drawn with true hidden-line removal, so the far side of every bump disappears behind it; Lock size scales by the sheet's rotation-invariant bounding circle so Yaw turns the drape without changing its size, and Sheet Round makes the cloth a disc whose outline does not change with Yaw at all (Square and Fit are rectangles). Styles: Wire (the grid), Weave (warp and weft break alternately at every crossing, like a woven net), Contour (height contours of the draped surface projected in 3D) and Hatch (grid lines that thicken away from Light angle, plus the silhouette). Density sets the mesh count in both directions; Size and Height scale the objects, Count how many. Shrink-only fit keeps the drawing inside the margins.",
+  ins: [Pin("style", "Style"), Pin("paths", "Objects"), Pin("mesh", "Mesh"), Pin("paths", "Cloth artwork")],
   outs: [Pin("paths", "Lines")],
   params: [
-    { key: "style", label: "Style", type: "select", options: ["Wire", "Weave", "Contour", "Hatch"], def: "Wire" },
-    { key: "sheet", label: "Sheet", type: "select", options: ["Fit", "Square", "Round"], def: "Fit" },
-    { key: "shapes", label: "Objects", type: "select", options: ["Mixed", "Spheres", "Boxes", "Cones"], def: "Mixed" },
-    { key: "count", label: "Count", type: "slider", min: 1, max: 12, step: 1, def: 4 },
-    { key: "size", label: "Object size %", type: "slider", min: 5, max: 60, step: 1, def: 28 },
-    { key: "height", label: "Height %", type: "slider", min: 5, max: 100, step: 1, def: 45 },
-    { key: "tension", label: "Tension", type: "slider", min: 0, max: 60, step: 1, def: 18 },
-    { key: "wrinkles", label: "Wrinkles %", type: "slider", min: 0, max: 100, step: 1, def: 15 },
-    { key: "density", label: "Density", type: "slider", min: 8, max: 90, step: 1, def: 36 },
+    {key:'physicsMode',label:'Surface',type:'select',options:['Draped','Hanging','Flag'],def:'Draped'},
+    {key:'clothDensity',label:'Cloth detail',type:'slider',min:8,max:45,step:1,def:28,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'clothContent',label:'Cloth drawing',type:'select',options:['Grid','Threads','Artwork','Artwork + grid'],def:'Grid',showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'pin',label:'Attachment',type:'select',options:['Auto','Top edge','Top corners','Left edge'],def:'Auto',showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'weave',label:'Weave crossings',type:'check',def:false,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.clothContent!=='Artwork'&&p.clothContent!=='Threads'},
+    {key:'clothGravity',label:'Gravity %',type:'slider',min:0,max:100,step:1,def:70,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'elasticity',label:'Elasticity %',type:'slider',min:0,max:80,step:1,def:20,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'damping',label:'Damping %',type:'slider',min:0,max:80,step:1,def:12,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'wind',label:'Wind %',type:'slider',min:0,max:100,step:1,def:35,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'motion',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual',showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'phase',label:'Wind phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'pull',label:'Pull point',type:'check',def:false,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'pullX',label:'Pull X %',type:'slider',min:0,max:100,step:1,def:65,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
+    {key:'pullY',label:'Pull Y %',type:'slider',min:0,max:100,step:1,def:65,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
+    {key:'pullDepth',label:'Pull depth mm',type:'slider',min:-100,max:100,step:1,def:35,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
+    {key:'pullRadius',label:'Pull radius %',type:'slider',min:5,max:100,step:1,def:25,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
+    { key: "style", label: "Style", type: "select", options: ["Wire", "Weave", "Contour", "Hatch"], def: "Wire", showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "sheet", label: "Sheet", type: "select", options: ["Fit", "Square", "Round"], def: "Fit", showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "shapes", label: "Objects", type: "select", options: ["Mixed", "Spheres", "Boxes", "Cones"], def: "Mixed", showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "count", label: "Count", type: "slider", min: 1, max: 12, step: 1, def: 4, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "size", label: "Object size %", type: "slider", min: 5, max: 60, step: 1, def: 28, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "height", label: "Height %", type: "slider", min: 5, max: 100, step: 1, def: 45, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "tension", label: "Tension", type: "slider", min: 0, max: 60, step: 1, def: 18, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "wrinkles", label: "Wrinkles %", type: "slider", min: 0, max: 100, step: 1, def: 15, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "density", label: "Density", type: "slider", min: 8, max: 90, step: 1, def: 36, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
     { key: "yaw", label: "Yaw °", type: "slider", min: -180, max: 180, step: 1, def: 25 },
     { key: "pitch", label: "Elevation °", type: "slider", min: 8, max: 90, step: 1, def: 50 },
     { key: "persp", label: "Perspective", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35 },
     { key: "hidden", label: "Hidden lines", type: "check", def: true },
-    { key: "lock", label: "Lock size", type: "check", def: true },
-    { key: "light", label: "Light angle", type: "slider", min: 0, max: 360, step: 1, def: 315, showIf: (p) => p.style === "Hatch" },
+    { key: "lock", label: "Lock size", type: "check", def: true, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
+    { key: "light", label: "Light angle", type: "slider", min: 0, max: 360, step: 1, def: 315, showIf: (p) => (!p.physicsMode||p.physicsMode==='Draped')&&p.style === "Hatch" },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
-    { key: "seed", label: "Seed", type: "seed", def: 4 },
+    { key: "seed", label: "Seed", type: "seed", def: 4, showIf:p=>!p.physicsMode||p.physicsMode==='Draped' },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
 
+  _cloth(ins,p,c){
+    const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),W=c.W,H=c.H,m=n('margin',10,0,Math.min(W,H)/2);if(W<=2*m||H<=2*m)return EMPTY;
+    const nx=Math.round(n('clothDensity',28,8,45)),asp=Math.max(.4,Math.min(1.5,H/W)),ny=Math.max(8,Math.round(nx*asp)),at=(i,j)=>j*(nx+1)+i,N=(nx+1)*(ny+1),pos=Array.from({length:N},(_,k)=>[k%(nx+1)/nx-.5,0,asp/2-Math.floor(k/(nx+1))/ny*asp]),rest=pos.map(q=>q.slice()),prev=pos.map(q=>q.slice()),pinned=new Uint8Array(N),links=[];
+    const pin=p.pin==='Auto'?(p.physicsMode==='Flag'?'Left edge':'Top edge'):p.pin||'Top edge';for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++)pinned[at(i,j)]=pin==='Left edge'?i===0:pin==='Top corners'?j===0&&(i===0||i===nx):j===0;
+    for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++)for(const [di,dj,f]of [[1,0,1],[0,1,1],[1,1,.65],[-1,1,.65],[2,0,.15],[0,2,.15]])if(i+di>=0&&i+di<=nx&&j+dj<=ny){const a=at(i,j),b=at(i+di,j+dj);links.push([a,b,Math.hypot(...rest[a].map((v,k)=>v-rest[b][k])),f]);}
+    const phase=n('phase',0,-1e6,1e6)*Math.PI/180+(p.motion==='Timeline'&&c.frameCount>1?c.frameIdx/c.frameCount*Math.PI*2:0),wind=n('wind',30,0,100)/100,gravity=n('clothGravity',70,0,100)/100,drag=1-n('damping',12,0,80)/100,stiff=1-n('elasticity',20,0,80)*.0075,px=n('pullX',65,0,100)/100,py=n('pullY',65,0,100)/100,pk=at(Math.round(px*nx),Math.round(py*ny)),pull=n('pullDepth',35,-100,100)/Math.max(40,Math.min(W,H)),pullRadius=n('pullRadius',25,5,100)/100;
+    for(let step=0;step<90;step++){
+      for(let k=0;k<N;k++){if(pinned[k]){pos[k]=rest[k].slice();continue;}const q=pos[k],old=q.slice(),u=k%(nx+1)/nx,v=Math.floor(k/(nx+1))/ny,wave=Math.sin(phase+step*.06+u*5+v*3);for(let a=0;a<3;a++)q[a]+=(q[a]-prev[k][a])*drag;prev[k]=old;q[2]-=.00035*gravity;q[1]+=.0007*wind*(.35+wave);q[0]+=.00012*wind*Math.sin(phase+v*8+step*.04);if(p.pull)q[1]+=.0005*pull*Math.exp(-((u-px)**2+(v-py)**2)/(pullRadius*pullRadius));}
+      for(let iter=0;iter<5;iter++){for(const [a,b,L,f]of links){const A=pos[a],B=pos[b],dx=B[0]-A[0],dy=B[1]-A[1],dz=B[2]-A[2],length=Math.sqrt(dx*dx+dy*dy+dz*dz)||1e-9,den=(pinned[a]?0:1)+(pinned[b]?0:1);if(!den)continue;const correction=(length-L)/length*stiff*f/den;if(!pinned[a]){A[0]+=dx*correction;A[1]+=dy*correction;A[2]+=dz*correction;}if(!pinned[b]){B[0]-=dx*correction;B[1]-=dy*correction;B[2]-=dz*correction;}}if(p.pull&&!pinned[pk])pos[pk]=[rest[pk][0],pull,rest[pk][2]];}
+    }
+    const az=n('yaw',25,-3600,3600)*Math.PI/180,el=n('pitch',50,1,90)*Math.PI/180,eye=[Math.sin(az)*Math.cos(el),-Math.cos(az)*Math.cos(el),Math.sin(el)],right=[Math.cos(az),Math.sin(az),0],up=[-Math.sin(az)*Math.sin(el),Math.cos(az)*Math.sin(el),Math.cos(el)],dot=(a,b)=>a.reduce((s,v,k)=>s+v*b[k],0),persp=n('persp',.35,0,1),view=q=>{const depth=dot(q,eye),f=1/Math.max(.35,1-persp*.55*depth);return [dot(q,right)*f,-dot(q,up)*f,depth];};
+    const extent=.12+wind*.2+(p.pull?Math.abs(pull):0),corners=[];for(const x of [-.6,.6])for(const y of [-extent,extent])for(const z of [-asp*.6-.12,asp*.6])corners.push(view([x,y,z]));const bx=Math.max(...corners.map(q=>Math.abs(q[0]))),by=Math.max(...corners.map(q=>Math.abs(q[1]))),scale=Math.min((W-2*m)/(2*bx),(H-2*m)/(2*by)),project=q=>{const s=view(q);return [W/2+s[0]*scale,H/2+s[1]*scale,s[2]];},screen=pos.map(project);
+    const resolution=180,gw=resolution,gh=Math.max(50,Math.round(resolution*H/W)),buffer=new Float32Array(gw*gh).fill(-Infinity),raster=(A,B,D)=>{const a=[(A[0]-m)/(W-2*m)*gw,(A[1]-m)/(H-2*m)*gh,A[2]],b=[(B[0]-m)/(W-2*m)*gw,(B[1]-m)/(H-2*m)*gh,B[2]],d=[(D[0]-m)/(W-2*m)*gw,(D[1]-m)/(H-2*m)*gh,D[2]],det=(b[0]-a[0])*(d[1]-a[1])-(d[0]-a[0])*(b[1]-a[1]);if(Math.abs(det)<1e-12)return;for(let j=Math.max(0,Math.floor(Math.min(a[1],b[1],d[1])));j<=Math.min(gh-1,Math.ceil(Math.max(a[1],b[1],d[1])));j++)for(let i=Math.max(0,Math.floor(Math.min(a[0],b[0],d[0])));i<=Math.min(gw-1,Math.ceil(Math.max(a[0],b[0],d[0])));i++){const x=i+.5,y=j+.5,u=((b[0]-x)*(d[1]-y)-(d[0]-x)*(b[1]-y))/det,v=((d[0]-x)*(a[1]-y)-(a[0]-x)*(d[1]-y))/det,w=1-u-v;if(u>=0&&v>=0&&w>=0)buffer[j*gw+i]=Math.max(buffer[j*gw+i],u*a[2]+v*b[2]+w*d[2]);}};
+    if(p.hidden)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=screen[at(i,j)],b=screen[at(i+1,j)],d=screen[at(i+1,j+1)],e=screen[at(i,j+1)];raster(a,b,d);raster(a,d,e);}
+    const surface=(u,v)=>{u=Math.max(0,Math.min(1,u))*nx;v=Math.max(0,Math.min(1,v))*ny;const i=Math.min(nx-1,Math.floor(u)),j=Math.min(ny-1,Math.floor(v)),s=u-i,t=v-j,A=pos[at(i,j)],B=pos[at(i+1,j)],D=pos[at(i+1,j+1)],E=pos[at(i,j+1)];return project(A.map((x,k)=>x*(1-s)*(1-t)+B[k]*s*(1-t)+D[k]*s*t+E[k]*(1-s)*t));};
+    const visible=q=>{if(!p.hidden)return true;const i=Math.max(0,Math.min(gw-1,Math.floor((q[0]-m)/(W-2*m)*gw))),j=Math.max(0,Math.min(gh-1,Math.floor((q[1]-m)/(H-2*m)*gh)));return q[2]>=buffer[j*gw+i]-.02-2/Math.min(nx,ny);},clip=(A,B)=>{let lo=0,hi=1;const dx=B[0]-A[0],dy=B[1]-A[1];for(const [a,b]of [[-dx,A[0]-m],[dx,W-m-A[0]],[-dy,A[1]-m],[dy,H-m-A[1]]]){if(Math.abs(a)<1e-10){if(b<0)return null;}else{const t=b/a;if(a<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);if(lo>hi)return null;}}return [[A[0]+lo*dx,A[1]+lo*dy],[A[0]+hi*dx,A[1]+hi*dy]];};
+    const paths=[],pen=Math.round(n('layer',0,0,11)),emit=(uv,closed,layer)=>{const ps=uv.map(q=>surface(q[0],q[1]));if(ps.every(q=>visible(q)&&q[0]>=m&&q[0]<=W-m&&q[1]>=m&&q[1]<=H-m)){if(ps.length>=(closed?3:2))paths.push({pts:ps.map(q=>q.slice(0,2)),closed,layer});return;}let cur=[];for(let i=0;i<ps.length-(closed?0:1);i++){const a=ps[i],b=ps[(i+1)%ps.length],s=visible(a)&&visible(b)?clip(a,b):null;if(s){if(cur.length&&Math.hypot(cur.at(-1)[0]-s[0][0],cur.at(-1)[1]-s[0][1])<1e-6)cur.push(s[1]);else{if(cur.length>1)paths.push({pts:cur,closed:false,layer});cur=s;}}else{if(cur.length>1)paths.push({pts:cur,closed:false,layer});cur=[];}}if(cur.length>1)paths.push({pts:cur,closed:false,layer});};
+    const content=p.clothContent||'Grid';if(content==='Grid'||content==='Threads'||content==='Artwork + grid'){
+      for(let i=0;i<=nx;i++){if(p.weave&&content!=='Threads')for(let j=0;j<ny;j++){const a=j+(i+j)%2*.14,b=j+1-(1-(i+j)%2)*.14;emit(Array.from({length:5},(_,k)=>[i/nx,(a+(b-a)*k/4)/ny]),false,pen);}else emit(Array.from({length:ny*3+1},(_,j)=>[i/nx,j/(ny*3)]),false,pen);}
+      if(content!=='Threads')for(let j=0;j<=ny;j++){if(p.weave)for(let i=0;i<nx;i++){const a=i+(1-(i+j)%2)*.14,b=i+1-(i+j)%2*.14;emit(Array.from({length:5},(_,k)=>[(a+(b-a)*k/4)/nx,j/ny]),false,pen);}else emit(Array.from({length:nx*3+1},(_,i)=>[i/(nx*3),j/ny]),false,pen);}
+    }
+    if(content==='Artwork'||content==='Artwork + grid'){const src=ins[3]||EMPTY,total=src.paths.reduce((v,q)=>v+q.pts.length,0);if(total>120000||src.paths.length>12000)return EMPTY;const L=src.paths.reduce((v,q)=>v+pathLength(q.pts,q.closed),0),step=Math.max(.6,L/Math.max(1,90000-src.paths.length*2));for(const q of src.paths)emit(resample(q.pts,q.closed,step).map(([x,y])=>[x/W,y/H]),q.closed,q.layer);}
+    let style=ins[0],out=applyStyle({paths},style);for(let i=0;i<10&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;i++){style={...style,dash:Math.max(.1,+style?.dash||4)*1.8,gap:Math.max(.1,+style?.gap||3)*1.8};out=applyStyle({paths},style);}return out.paths.reduce((n,q)=>n+q.pts.length,0)<=118000?out:EMPTY;
+  },
+
   compute(ins, p, ctx, node) {
+    if(p.physicsMode==='Hanging'||p.physicsMode==='Flag')return this._cloth(ins,p,ctx);
     const W = ctx.W, H = ctx.H;
     const seed = Math.round(Number(p.seed) || 0);
     const pen = Math.max(0, Math.min(11, Math.round(Number(p.layer) || 0)));
@@ -358,6 +400,7 @@ export default {
       const W = (ctx && ctx.W) || 0, H = (ctx && ctx.H) || 0;
       const m = Math.max(0, Number(p.margin) || 0);
       const g = [{ kind: "rect", x: m, y: m, w: Math.max(0, W - 2 * m), h: Math.max(0, H - 2 * m) }];
+      if(p.physicsMode==='Hanging'||p.physicsMode==='Flag')return g;
       const src = ins && ins[1] && ins[1].paths ? ins[1].paths : [];
       src.slice(0, 40).forEach((q) => { if (q.pts && q.pts.length >= 2) g.push({ kind: "poly", pts: q.pts }); });
       return g;

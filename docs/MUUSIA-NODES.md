@@ -21,7 +21,30 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (201)
+## Generators (203)
+
+**Reaction Patterns** — seeded Gray–Scott reaction–diffusion, traced into
+vector contours: Coral, Maze, Spots or Custom Feed/Kill. Style / Seeds / Region
+inputs; closed seed shapes use even-odd holes, open strokes use Seed width,
+unwired Seeds creates Fallback germs. Region masks sampled solver cells, with
+reflecting edges; contour boundaries have grid-resolution error, so use Container
+for exact clipping. Detail / Pattern scale bound the solver to 128 samples on an
+axis and 12k cells; Mature steps caps simulation time. Manual Growth % or Timeline
+reconstructs the same simulation prefix without mutable state. Growth 0 shows
+the initial germs. Contour level, neighbouring Contours and Pens describe chemical
+concentration. Boundary wrap connects opposite grid edges. Dense Style output
+coarsens uniformly. Help: Living maze.
+
+**Crystal Growth** — Quartz / Needles as actual faceted triangle meshes.
+Primary crystals have six-sided shafts and pointed terminations; Branching adds
+lateral daughters. Competition limits tips near earlier generated stem envelopes,
+allowing shared roots. Seed, Length, Width, Spread and Lean shape the cluster.
+Manual Growth / Timeline reconstructs a deterministic prefix. Drawing keeps the
+mature framing and shows wire edges on both sides; Mesh is normalized independently
+per frame to the established contract, so downstream renderers may refit growth.
+Use Drawing for fixed-size growth, or wire downstream Size too. Mesh Render adds
+hidden contours, illumination and shadows; Mesh can also feed 3D Spikes.
+Help: Quartz cluster and Crystal illustration.
 
 **Moving Lines** — a standalone animated field of open lines, with no eyes,
 rings or closed motifs. *Streaks* moves repeated segments along each track;
@@ -546,7 +569,18 @@ from the ribbon corner to the margin box on *Guide pen*, the way the pencil
 guides survive on the original drawing (corners already on the sheet edge get
 none). Each ribbon line is one continuous stroke end to end.
 
-**Gravity** — a regular grid of stamps lets go from the bottom up: rows
+**Gravity** — Mode Falling grid preserves the original effect below.
+Rigid bodies treats each Input path as an independent conservative convex envelope,
+or repeats the entire input as one motif. Concave envelopes simplify to twelve
+support directions; holes are not combined in Input paths, so choose Motif copies
+for a whole letter including its inner contour. Contacts simulate translation,
+rotation, Bounce and Friction in a walled tray. Thin body width protects degenerate
+line envelopes. Unwired input supplies 20 boxes; motif copies shrink to their initial
+grid. Time seconds or Timeline / Duration reconstructs a fixed-step prefix from
+Seed; the animation restarts at its boundary. Maximum 64 bodies / 118k source points.
+Output clips to the tray; extremely overlapping/oversized initial bodies or overfull
+trays can remain unresolved. No physical hardware is driven by preview playback.
+Help: Falling letters. Original Falling grid: a regular grid of stamps lets go from the bottom up: rows
 below the *Release* line detach, fall and pile into a heap on the floor of
 the margin box while the top of the grid stays intact — the falling-dots
 print. *Stamp* is a Dot, Ring, Square, Diamond or Cross, or the wired
@@ -689,7 +723,17 @@ drift, ragged over/undershooting ends, broken strokes and the occasional missed
 line. *Edges* draws the construction lines (corner lines, block edges, door
 frames, far wall) with *Edge pen*. Point budget 112k with early stop.
 
-**Drape** — a mesh cloth laid over hidden objects, drawn in 3D with true
+**Drape** — Surface Draped preserves the original solver described below.
+Hanging / Flag use a deterministic pinned mass-spring sheet, with Attachment,
+Cloth detail, Gravity, Elasticity, Damping, Wind, Phase and an optional Pull point.
+Cloth drawing selects Grid, Threads, Artwork or Artwork + grid; Weave crossings
+break alternate strand intersections. The fourth input, Cloth artwork, maps source
+canvas coordinates onto the sheet. Manual Phase or Timeline reconstructs a periodic
+wind pose without playback state. A two-sided depth buffer hides folded surfaces;
+framing stays fixed over Phase and output clips to Margin. The new solver does not
+collide with Objects/Mesh or solve cloth self-collision. Inactive draped controls
+hide. Help: Flag typography. Original Draped mode: a mesh cloth laid over hidden
+objects, drawn in 3D with true
 hidden-line removal. Seeded spheres, boxes, cones or a mix sit on a table; a
 grid sheet is dropped over them and relaxed with *Tension* until it rests on
 the tops and sags between them (each pass averages a point with its
@@ -2297,7 +2341,51 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (79)
+## Modifiers (83)
+
+**Marbling** — displace any incoming drawing as ink on water. Drop is radial,
+Rake pulls one soft current, Comb repeats across parallel tines, and Swirl rotates
+around a soft centre. Direction, Radius, Pull, Tine spacing and Strength shape the
+field; Phase cycles the force and accepts animation wires. Strength 0 passes the
+source through exactly. The first version uses parameter-driven repeatable gestures,
+without mouse-stroke recording. Sparse paths are resampled; dense sources coarsen
+sampling uniformly. Source caps 20k paths / 120k points. Pens and closed paths stay
+with the drawing. No fit/crop: displaced ink may leave the page; use Crop or Test
+crop when appropriate. Help: Combed grid.
+
+**Path Bend** — Drawing + Spine: map a complete drawing along one selected
+polyline, with source X becoming spine distance and Y becoming transverse offset.
+Vertical swaps source axes. Fit to spine stretches the longitudinal dimension;
+Actual length keeps source millimetres. Width, Normal offset, Start and Reverse
+control placement. Closed spines can wrap; open spines extrapolate their endpoint
+tangents. Vertex tangents interpolate continuously through the joins; consecutive
+duplicate spine vertices are removed. Sparse drawing paths
+resample before deformation; dense sources coarsen sampling uniformly. Source caps
+20k paths / 120k points. Pens and closed paths survive. Sharp spine corners can fold
+wide artwork; no automatic crop/refit. Help: Curved grid ribbon.
+
+**Seamless Tile** — wrap arbitrary line art across a periodic rectangular unit.
+Straight uses one cell, Half drop uses a two-column unit, and Mirror uses a 2×2
+reflected unit so the exported rectangle repeats correctly. Fit motif scales the
+source to a cell; Actual mm retains its physical size before Scale. Shift moves the
+motif through the seam. Single unit is true size, centred on the page; 3×3 preview
+shrinks the whole repeat only when needed to fit Preview margin. Export Single unit
+as the repeat master. Clipped closed contours become open fragments without new
+border strokes. Source caps 12k paths / 120k points; oversized clip work/output is
+rejected whole (1M segment clips / 118k points). Help: Mirrored repeat.
+
+**Mesh Render** — Mesh + Style into Drawing, plus normalized Mesh pass-through.
+Wire a mesh source, load a local binary/ASCII STL (up to 120k triangles), or start
+with Sphere / Cube. One camera renders visible world-axis contours, silhouette,
+normal creases and light-driven cross-hatching. Light-space depth tests provide
+self-shadow, while mesh projection onto the base plane gives a floor shadow hidden
+behind the object. Shadow can use its own pen. Illustration, Contours, Hatch and
+Edges hide irrelevant controls. View angle, Elevation and Perspective share a fixed
+bounding-sphere Size; moving the light does not refit the object. Raster detail
+uniformly coarsens for dense meshes; thin features may disappear. Margin clips the
+render and long floor shadows. Dense output coarsens the whole raster/Style rather
+than dropping source components. Output is 2D plotting geometry, not machine Z.
+Help: Crystal illustration.
 
 **Line Drape** — generate parallel pen lines bent by any text or drawing wired
 into *Shape*. The source is a mask and is not drawn. *Orientation °* sets the
@@ -2496,7 +2584,12 @@ Run before export to reduce pen lifts.
 
 **Simplify** — removes points within a tolerance (Douglas-Peucker-style).
 
-**Lens** — bulge/pinch distortion inside a circle (guide overlay).
+**Lens** — original Bulge/pinch, plus Twist and Vortex. Twist angle turns the
+interior with radial Falloff; Vortex winds more tightly toward the centre. Angle 0
+passes the source through exactly; exterior geometry stays fixed. New modes
+resample sparse paths and uniformly coarsen dense ones. Wire Frame to Twist angle
+for animation. Centre coordinates hide when Use canvas centre is on; mode-only
+controls hide and are ignored. No automatic fit/crop. Help: Vortex.
 
 **Warp** — 4-corner perspective or full lattice grid deformation.
 
@@ -2702,7 +2795,14 @@ unlike per-path Offset, nearby shapes merge into one smooth halo, like
 metaballs. Inside adds negative offsets within closed shapes; open lines get
 stadium-shaped halos.
 
-**3D View** (deform) — puts the drawing into 3D and views it from any angle:
+**3D View** (deform) — Surface bend None preserves the original projection.
+Bend / Twist / Cylinder deform a resampled drawing before that camera. Bend axis
+chooses the source direction; Bend / twist angle and Cylinder radius shape the
+surface. Cylinder wraps physical source arc length. These are projected sheets
+with all input paths visible, without solid hidden-surface removal; use 2D to 3D
+and Mesh Render for a solid surface. New mode sampling coarsens uniformly to bound
+output. Controls for Z sources and surface modes hide when inactive. Help: Twisted
+type. The camera puts the drawing into 3D and views it from any angle:
 yaw/pitch/roll with adjustable perspective (0 = isometric, 1 = dramatic).
 Z source Flat tilts the sheet like paper, Pens stacked gives each pen layer its
 own depth (parallax when rotated), Noise relief bends the drawing over a
@@ -2850,7 +2950,17 @@ Satellite companion rings shape the look. The point budget is shared between
 input paths by arc length and an oversubscribed path thins evenly along its
 whole length — large radii never leave loops or tails blank.
 
-## Combiners (22)
+## Combiners (23)
+
+**Shape Packing** — Motif + Region: place seeded copies entirely inside a
+closed region with Clearance between envelopes and boundary. Unwired Region is the
+margin rectangle; all region contours use even-odd parity, preserving holes.
+Copies is an upper bound, Largest size / Size variation / Rotation vary copies, and
+Draw region optionally includes the boundary. Conservative convex envelopes keep
+source ink apart; very complex hulls use a rectangle, so concave/open motifs may
+leave extra space. Search has bounded attempts and geometric checks. Motif caps
+12k points / 2k paths; Region caps 12k points; complete output caps at 118k points.
+Pens stay with the motif. Help: Stars inside O.
 
 **Frame Grid** — animation frame imposition: frames land in a grid on one
 sheet with photo_trace-compatible fiducial markers (hatch-filled squares,
@@ -2914,7 +3024,14 @@ regions, rotation, ±Gap and bisection-accurate cuts.
 
 **Split** — separates paths into multiple outputs by rule (e.g. layer, index).
 
-**Array** — grid/linear repetition of the input with per-copy deltas.
+**Array** — Linear preserves the original per-copy translate/rotate/scale.
+Grid, Radial and Spiral centre the input as one motif at Motif size; independent
+Grid X/Y pitch, Radius, Turns, Start angle and Follow layout control the arrangement.
+Helix 3D and Sphere 3D place flat motifs on tangent planes and project them with a
+shared View angle / Elevation / Perspective. All copies remain visible: this is
+flat instancing without solid occlusion. Pens can cycle per copy. New layouts
+reject complete requests above 118k points instead of dropping later copies.
+No automatic fit/crop. Help: Spatial helix.
 
 **Group** — a subgraph in a box (created with Cmd+G); double-click to enter.
 

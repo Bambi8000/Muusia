@@ -8,7 +8,7 @@
     "src/defs/nodes/matem.js": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5",
     "src/defs/nodes/grid_hairs.js": "2d687dd332b147f67054eaca3dc07f372ae078a07fa58436fdf5b5646c54bddc",
     "src/defs/nodes/crop.js": "3bfc534cce7fb1276e0b40e8d2884809097e51067a9e25457bf55d79f62af47c",
-    "src/defs/nodes/array.js": "7d058dc208f3636ff426651bdfb51036aec7873cc5de141fc4160c4dec9a7b58",
+    "src/defs/nodes/array.js": "e409c2c2c56f191e1c953e0d32eba851df4be985a89dafa9e6cbc3e167bcada4",
     "src/defs/nodes/move_scale.js": "24e05802cad7793d1ff3e4b08f4951503af26072f7a5ceb8c054607289721021",
     "src/defs/nodes/container.js": "fb9b11583906d0c0678f8df117224aa41899aef9a13123b1f1bdf1b058a7d801",
     "src/defs/nodes/solids.js": "bd2ef1be2b57c15dcceb5080980842a89f39935dcccf0eceac7c30bbbea938ee",
@@ -69,5 +69,21 @@
       "frames": 36,
       "totalPoints": 278381
     }
-  }
+  },
+  "refreshes": [
+    {
+      "date": "2026-10-19",
+      "appVersion": "2.130",
+      "sourceCommit": "808481f47dc0aec266ac29a85b0321d1c59e5902",
+      "sourceWorkingTree": "codex/line-drape; uncommitted Craft suite. Source hashes identify this local implementation.",
+      "key": "composite",
+      "dependency": "src/defs/nodes/array.js",
+      "method": "Actual in-app Load, original unchanged patch, final node selected, 36 frames, route optimization off, SVG ×36 ZIP. All 36 frames match actual evaluator/exporter exactly; all 24/36/48 frames also match the original node definition.",
+      "zip": "learn-composite.zip",
+      "sha256": "549bdeab869a15c9087c1a6c6a1796c10f7257a64fc0ed3d767088426009937a",
+      "frames": 36,
+      "totalPoints": 278381,
+      "hardwareTested": false
+    }
+  ]
 }

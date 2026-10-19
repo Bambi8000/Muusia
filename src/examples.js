@@ -17,6 +17,114 @@ import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
 export const EXAMPLES = [
   {
+    name: "Marbling · Combed grid",
+    desc: "Select Marbling. A horizontal Grid is pulled vertically by eleven soft comb tines. Direction 90 crosses the source lines; Direction 0 pulls along them. Strength, Pull, Radius and Tine spacing change the folds. Try Drop, Rake and Swirl. Phase animates a reversible force cycle; wire Frame rot degrees for motion. This version uses repeatable controls rather than recording mouse gestures. No automatic fit: Crop can contain displaced ink.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "grid", x: 20, y: 20, params: { ...defaults("grid"), "hlines": 55, "vlines": 0, "margin": 35, "res": 1 } },
+      { id: 9002, type: "marbling", x: 370, y: 20, params: { ...defaults("marbling"), "angle": 90, "tines": 11, "spacing": 14, "travel": 35, "strength": 80, "radius": 55 } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9002, "toPort": 0}] }),
+  },
+  {
+    name: "Shape Packing · Stars inside O",
+    desc: "Select Shape Packing. The Lettering O supplies a boundary with a hole; copies of a Superformula star fit inside it. Motif source size is normalized to Largest size. Clearance protects both the region edge and the spaces between copies. Copies is an upper bound. Conservative convex envelopes mean concave motifs can leave extra space. Seed gives another arrangement; smaller Size or Clearance lets more copies fit.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "superformula", x: 20, y: 20, params: { ...defaults("superformula"), "m": 5, "n1": 0.3, "n2": 1, "n3": 1 } },
+      { id: 9002, type: "lettering", x: 370, y: 20, params: { ...defaults("lettering"), "text": "O", "size": 120, "weight": 40, "depth": 0 } },
+      { id: 9003, type: "shape_packing", x: 720, y: 20, params: { ...defaults("shape_packing"), "count": 60, "size": 10, "vary": 45, "gap": 0.7 } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9003, "toPort": 0}, {"id": "e9102", "from": 9002, "fromPort": 0, "to": 9003, "toPort": 1}] }),
+  },
+  {
+    name: "Path Bend · Curved grid ribbon",
+    desc: "Select Path Bend. The complete Grid bends around a closed Superformula spine. Width 18% reduces the transverse dimension to a narrow ribbon; Length Fit maps the whole source width around the curve. The source can be typography or any drawing. Actual length retains source millimetres. Spine # chooses one curve; open spines extend along their endpoint tangents. No automatic fit/crop is applied.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "grid", x: 20, y: 20, params: { ...defaults("grid"), "hlines": 7, "vlines": 35, "margin": 25, "res": 1 } },
+      { id: 9002, type: "superformula", x: 370, y: 20, params: { ...defaults("superformula"), "m": 3, "n1": 2, "n2": 4, "n3": 4, "margin": 42 } },
+      { id: 9003, type: "path_bend", x: 720, y: 20, params: { ...defaults("path_bend"), "width": 18 } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9003, "toPort": 0}, {"id": "e9102", "from": 9002, "fromPort": 0, "to": 9003, "toPort": 1}] }),
+  },
+  {
+    name: "Seamless Tile · Mirrored repeat",
+    desc: "Select Seamless Tile. A reflected 2×2 cell is the rectangular repeat unit, shown in a 3×3 preview. Shift moves the motif through the seam. Choose Single unit to export the true-size master; the preview can shrink to fit the canvas. Half drop uses two columns in its master unit. Closed paths cut by the tile edge become open fragments without extra edge strokes.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "superformula", x: 20, y: 20, params: { ...defaults("superformula"), "m": 5, "n1": 0.3, "n2": 1, "n3": 1 } },
+      { id: 9002, type: "seamless_tile", x: 370, y: 20, params: { ...defaults("seamless_tile"), "repeat": "Mirror", "width": 42, "height": 36, "shiftX": 16, "shiftY": 12 } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9002, "toPort": 0}] }),
+  },
+  {
+    name: "Reaction Patterns · Living maze",
+    desc: "Select Reaction Patterns. This is a Gray–Scott chemical field, outlined as real vector paths. Maze, Coral and Spots use different reaction settings. Change Seed for new germs; Pattern scale changes feature size. Growth reconstructs a deterministic simulation prefix. Choose Timeline, set 32 frames and Play to grow it. Growth 0 contains the initial germs. Region limits sampled simulation cells, so contour boundaries have grid-resolution error; Container can clip an exact boundary.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "reaction_patterns", x: 20, y: 20, params: { ...defaults("reaction_patterns"), "pattern": "Maze", "detail": 100, "steps": 1100, "contours": 2 } }
+    ], edges: [] }),
+  },
+  {
+    name: "Crystal Growth · Quartz cluster",
+    desc: "Select Crystal Growth. Quartz stems have six faceted sides and pointed terminations. Branching adds lateral daughters; Competition limits tips entering an older stem. Change Seed, Lean or Width. Growth keeps Drawing in a fixed mature frame; choose Timeline and Play for a growth sequence. Mesh is normalized separately each frame, so use Drawing for fixed-size growth or animate a downstream Size too. Mesh Render adds hidden contours and light; the native preview deliberately shows back wire edges.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "crystal_growth", x: 20, y: 20, params: { ...defaults("crystal_growth"), "count": 22, "branch": 35, "growth": 100 } }
+    ], edges: [] }),
+  },
+  {
+    name: "Mesh Render · Crystal illustration",
+    desc: "Select Mesh Render. Crystal Growth supplies an actual triangle mesh. Visible contours, silhouettes, cross-hatching and floor shadows share one camera. Move Light azimuth/elevation: shading and the floor shadow change without refitting the object. Try Drawing Contours, Hatch or Edges; Contour axis changes the surface sections. Raster detail controls the approximation; tiny features can disappear. Load a local STL or connect another Mesh source. Mesh output passes the original normalized model onward.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "crystal_growth", x: 20, y: 20, params: { ...defaults("crystal_growth"), "count": 14, "branch": 25 } },
+      { id: 9002, type: "mesh_render", x: 370, y: 20, params: { ...defaults("mesh_render"), "size": 170, "contours": 28, "pitch": 1.6, "yaw": -20, "elevation": 28, "shadowPen": 0 } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 1, "to": 9002, "toPort": 0}] }),
+  },
+  {
+    name: "Array · Spatial helix",
+    desc: "Select Array. The input motif is copied onto tangent planes around a 3D helix. View angle and Elevation share one camera. Radius, Turns and Helix height shape the arrangement; Motif size changes each flat copy. Try Sphere 3D, or Grid / Radial / Spiral for flat layouts. These are flat motif instances with all copies visible, without solid-surface occlusion. The original Linear transform remains unchanged.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "superformula", x: 20, y: 20, params: { ...defaults("superformula"), "m": 5, "n1": 0.5, "n2": 1, "n3": 1 } },
+      { id: 9002, type: "array", x: 370, y: 20, params: { ...defaults("array"), "layout": "Helix 3D", "count": 45, "motifSize": 15, "radius": 58, "height": 110, "turns": 2.5, "elevation": 25, "penPer": false } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9002, "toPort": 0}] }),
+  },
+  {
+    name: "Lens · Vortex",
+    desc: "Select Lens. Vortex winds the centre more tightly than Twist, with a smooth radial falloff. Angle 0 is an exact pass-through. Radius and Falloff shape the deformation; geometry outside Radius stays in place. Sparse lines are resampled before bending. Wire Frame rot degrees to Twist angle for motion. Bulge is the original lens mode with unchanged output.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "grid", x: 20, y: 20, params: { ...defaults("grid"), "hlines": 25, "vlines": 35, "res": 1 } },
+      { id: 9002, type: "lens", x: 370, y: 20, params: { ...defaults("lens"), "mode": "Vortex", "twist": 220, "radius": 85, "falloff": 2 } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9002, "toPort": 0}] }),
+  },
+  {
+    name: "3D View · Twisted type",
+    desc: "Select 3D View. Surface bend Twist deforms the lettering before the shared camera projection. Bend axis chooses the direction, Bend / twist angle sets the total twist. Try Bend or Cylinder; Cylinder wraps physical source arc length around Radius. All source lines remain visible: this is a projected drawing sheet, not a hidden-surface solid. Flat None preserves the original projection.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lettering", x: 20, y: 20, params: { ...defaults("lettering"), "text": "TURN", "size": 62, "weight": 30, "depth": 0, "fill": "Hatch", "hatch": 1.4 } },
+      { id: 9002, type: "view3d", x: 370, y: 20, params: { ...defaults("view3d"), "deform": "Twist", "bendAngle": 240, "yaw": 20, "pitch": 15, "persp": 0.3 } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9002, "toPort": 0}] }),
+  },
+  {
+    name: "Drape · Flag typography",
+    desc: "Select Drape. Flag pins a cloth sheet along its left edge; the new Cloth artwork input maps this text onto the moving mesh. Grid can be drawn too. Choose Hanging for a top attachment, or change Attachment directly. Wind, Gravity, Damping and Elasticity drive a bounded pinned mass-spring solve. Pull point fixes one movable point. Set Time source Timeline, 32 frames and Play for periodic wind. Each pose reconstructs the solver, with fixed framing and margin clipping. Objects/Mesh are used only in Draped mode; cloth self-collision is not solved.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lettering", x: 20, y: 20, params: { ...defaults("lettering"), "text": "WIND", "size": 58, "weight": 30, "depth": 0, "fill": "Hatch", "hatch": 1.5 } },
+      { id: 9002, type: "drape", x: 370, y: 20, params: { ...defaults("drape"), "physicsMode": "Flag", "clothContent": "Artwork + grid", "clothDensity": 28, "wind": 65, "pull": true, "pullDepth": 55, "phase": 70, "pitch": 25, "yaw": 15 } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9002, "toPort": 3}] }),
+  },
+  {
+    name: "Gravity · Falling letters",
+    desc: "Select Gravity. Rigid bodies / Motif copies repeats the complete A, including its hole, as one convex envelope per copy. It simulates rotations and contact impulses against other envelopes and the tray. Time 0 shows the initial arrangement; Time 5 shows the settled pile. Bounce and Friction affect contacts. Choose Timeline to animate a deterministic prefix. Concave motifs use conservative envelopes, so ink can leave extra room; Input paths treats each path independently. Very large initial overlaps or overfull trays can remain unresolved. Falling grid keeps the original effect.",
+    canvas: {"W": 297, "H": 210},
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lettering", x: 20, y: 20, params: { ...defaults("lettering"), "text": "A", "size": 18, "weight": 22, "depth": 0 } },
+      { id: 9002, type: "gravity", x: 370, y: 20, params: { ...defaults("gravity"), "physicsMode": "Rigid bodies", "bodySource": "Motif copies", "bodyCount": 24, "bodySize": 22, "time": 5, "bodySpin": 70 } }
+    ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9002, "toPort": 0}] }),
+  },
+  {
     name: "L-System · Seeded forest",
     desc: "Select L-System. Composition Forest places seven complete plants on A3 wide. Stochastic rules uses Continue / Branch / End as relative weights; they need not total 100. Seed changes branching, Angle variation and Length variation add independent irregularity. Branch scale 75% shortens nested branches. Plants / Columns / Spacing control cells; Height variation gives each plant its own fit with a shared baseline. Try Sparse tree, Bush or Fern. Growth 100% shows the mature drawing; lower it without moving the final framing. Original presets stay unchanged when the new controls are neutral.",
     canvas: { W: 420, H: 297 },

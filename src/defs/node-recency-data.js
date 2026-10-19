@@ -31,9 +31,9 @@ export const NODE_RECENCY = {
     "sha256": "ae3efad07dd9e7d7cee321dd4b6936ac4d0f8eadec2ce66fa4647973c253801b"
   },
   "array": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "7d058dc208f3636ff426651bdfb51036aec7873cc5de141fc4160c4dec9a7b58"
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "e409c2c2c56f191e1c953e0d32eba851df4be985a89dafa9e6cbc3e167bcada4"
   },
   "arvo": {
     "date": "2026-07-22",
@@ -275,6 +275,11 @@ export const NODE_RECENCY = {
     "order": 50,
     "sha256": "3a696e1c70d91f2df4991797efd84aaa2bd911a6c85bfecbd7a4cf96d0eeaf27"
   },
+  "crystal_growth": {
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "0ff9669855c7f30519335d6a4ea961fcde8e4ca4dd1a74166e58567224104502"
+  },
   "ctrl": {
     "date": "2026-08-17",
     "order": 35,
@@ -341,9 +346,9 @@ export const NODE_RECENCY = {
     "sha256": "46ddd47539c16703869e37ba04bcd610dfa1012d0551b9528b4cdf9f16e5f296"
   },
   "drape": {
-    "date": "2026-09-17",
-    "order": 50,
-    "sha256": "c4ca0e7330b1d7cb0d6f51e154a194110047562da091fa63b69c142360d73c15"
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "dae5798f70ee5021037455e901244a8d9f0281a08b58aaea3ad2579cf763db98"
   },
   "duga": {
     "date": "2026-09-29",
@@ -516,9 +521,9 @@ export const NODE_RECENCY = {
     "sha256": "daa32fdd6f664019ff76ce513d4d084ba23d7e72090c0e0344e130565147a4e8"
   },
   "gravity": {
-    "date": "2026-09-21",
-    "order": 56,
-    "sha256": "85ec440e0b570392786dbdccd472212bc6c2d38426dcc70549ab3b8db3eefdeb"
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "d2e9d881f3873bd7b6c3aed1303383ffeca961731f193a21e3a62f9cb6c546ff"
   },
   "gravity_cascade": {
     "date": "2026-07-22",
@@ -691,9 +696,9 @@ export const NODE_RECENCY = {
     "sha256": "f5f3ce4d8142e6ece0a442171f28d9a7a40a0f303bbd3c10c654130851a1cf5c"
   },
   "lens": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "bfa2d5c24184edad32ad28cae0425b2d1d96bc13b4bd5cc68d4c99260257e26e"
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "f417c90ff9822eb90128298431544d003cce098bf99477e05a211d8dedeee30a"
   },
   "lettering": {
     "date": "2026-09-17",
@@ -745,6 +750,11 @@ export const NODE_RECENCY = {
     "order": 11,
     "sha256": "47faa52fe89891bf37a12b1b45b303a6c373525293a51280c1d439eb322ef675"
   },
+  "marbling": {
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "1550aec846a03da9f72ec371cb663c41bf995828ff14382c340ed789dae04a5e"
+  },
   "mask": {
     "date": "2026-08-01",
     "order": 14,
@@ -769,6 +779,11 @@ export const NODE_RECENCY = {
     "date": "2026-07-22",
     "order": 1,
     "sha256": "08b0d82edf09cd0268efa401968127d50f8a16502565697e6ea7a5164b52d18f"
+  },
+  "mesh_render": {
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "f39198d938bf2016b98df670370d393b65d6bc5b0057b1c177a61fb9f18ab8f3"
   },
   "meshslice": {
     "date": "2026-08-16",
@@ -945,6 +960,11 @@ export const NODE_RECENCY = {
     "order": 10,
     "sha256": "2ad29960055e661aa98a1a34be8f754085ddc78ce16bc1298fe7564b66b405b7"
   },
+  "path_bend": {
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "b9bbeb10cb61dbd893a602b1237f97fcbb03e93e987ffc9b8407f1aa72c9565f"
+  },
   "patternfill": {
     "date": "2026-07-30",
     "order": 10,
@@ -1065,6 +1085,11 @@ export const NODE_RECENCY = {
     "order": 57,
     "sha256": "5e46b6599164a1945609226ec61a192be2204441739e16739036706ee1b2b0d9"
   },
+  "reaction_patterns": {
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "86fca1863405287f5d8f44f7fafaee611c0566f1759355df52bd3bda15abdf33"
+  },
   "rectcollage": {
     "date": "2026-07-22",
     "order": 1,
@@ -1180,6 +1205,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "5ceff5594207ac736aa7dd1f50d679d27f96b8b3363bbdbdebb9528ff0345e43"
   },
+  "seamless_tile": {
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "099004c45bb42cbf781038b27630eda3201c8be5bba665935bf76d3de1871368"
+  },
   "seams": {
     "date": "2026-09-14",
     "order": 45,
@@ -1199,6 +1229,11 @@ export const NODE_RECENCY = {
     "date": "2026-10-07",
     "order": 72,
     "sha256": "b79a71afee947e2cb5bbe568f27257f058b8c9dcebcf84bb9a388da450437b5a"
+  },
+  "shape_packing": {
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "1246061092e35ef127fe41a844284555abb52a1c5179234a753d103eaacd2ea8"
   },
   "shaper": {
     "date": "2026-07-22",
@@ -1501,9 +1536,9 @@ export const NODE_RECENCY = {
     "sha256": "232ad8cd0845d5fbf53b964e3f67e5b71f4fef727805dc176830efe17508d827"
   },
   "view3d": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "dde935a0de593c6a62c8aa1141ec8203fae48ec347837d9422474bc277e8a75f"
+    "date": "2026-10-19",
+    "order": 89,
+    "sha256": "756c385135ded1359a15b4ec4fb1a0c68d236a97d4afc852dc06cd315d04ef5b"
   },
   "viiva": {
     "date": "2026-07-22",

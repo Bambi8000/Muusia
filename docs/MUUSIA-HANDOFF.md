@@ -4020,6 +4020,60 @@ according to the session's actual capabilities:
   machine work; bump the app version once at that release. Refresh local Claude
   project snapshot after commit; file preparation does not upload to Claude.
 
+- **Local — Craft suite** 2026-10-19 Astra — Daniel approved the seven new
+  nodes and five extensions after Applied Craft research. Original implementations,
+  no external library or service added. Continues on `codex/line-drape`, base
+  808481f, isolated `/private/tmp/muusia-line-drape`. Main's Needle Punch / App /
+  hardware work is untouched; retain that newer work during eventual integration.
+  Seven built-ins: Marbling (Drop/Rake/Comb/Swirl), Shape Packing (whole motif
+  envelopes inside an even-odd Region), Path Bend (arc distance + interpolated
+  normal offset), Seamless Tile (straight/half-drop/mirrored periodic units),
+  Reaction Patterns (Gray–Scott contours), Crystal Growth (real quartz/needle
+  meshes + Drawing) and Mesh Render (visible contours, lit hatch, creases,
+  self-shadow and floor shadow from a wired Mesh or ASCII/binary STL).
+  Existing nodes: Array gains Grid/Radial/Spiral/Helix 3D/Sphere 3D; Lens gains
+  Twist/Vortex; 3D View gains Bend/Twist/Cylinder before the existing camera;
+  Drape gains hanging/flag mass-spring cloth and new port 3 Cloth artwork;
+  Gravity gains 2D rigid bodies with translation, rotation, SAT contacts and
+  tray boundaries. Original ports/default modes stay compatible. New controls
+  hide when irrelevant; Frame/Bang discovers new checkbox controls automatically.
+  Drape, Gravity, Reaction Patterns and Crystal Growth accept Timeline; parameter
+  wires animate the other operations. No engine, machine or App changes.
+  All seven new keys were imported with Node ⇣, tested with real helpers, baked,
+  revalidated as built-ins, lab files removed and fresh app load checked. Twelve
+  reproducible Help examples and native patch/SVG/G-code/UI captures are in this
+  chat's `craft-suite/` artifact folder. Mesh Render also opened a real test STL.
+  Important limits: Marbling is parameter-driven, with no mouse gesture history;
+  Marbling/Path Bend/Array do not crop or refit. Sharp spine corners can fold wide
+  art. Packing uses conservative convex envelopes, leaving space around concave
+  art; Count is an upper bound. Reaction masks and Mesh Render use finite raster
+  detail, so thin features can disappear; use Container for an exact region edge.
+  Crystal's native Drawing has fixed growth framing, but normalized Mesh may be
+  refitted downstream; drive downstream Size if needed. Array/3D View draw every
+  projected path; Crystal's native wire Drawing includes the back. Use Mesh Render
+  for solid occlusion. New cloth modes have neither self-collision nor collision
+  with Objects/Mesh. Rigid bodies use conservative 12-support envelopes for complex
+  shapes; Input paths treats each path separately, Motif copies groups the bundle.
+  Oversized/initially overlapping/overfull body layouts may remain unresolved.
+  Growth/physics reconstruct each frame deterministically; these are bounded
+  illustration models. Output is ordinary 2D plotting geometry, not machine Z.
+  Verification: 193 focused cases including 15 before-change hashes for five
+  existing nodes, independent clearance/hole, bend, periodic-edge and free-fall
+  oracles; every coordinate in all 12 actual browser SVG/G-code exports matches
+  at the 0.01 mm file precision. Every frame in four actual 12-frame SVG ZIPs
+  matches exactly (48 frames). Export route off, origin 0, Flip Y off, default A
+  servo profile; its smaller work envelope raises expected warnings on A4 wide.
+  No hardware test. 111 Help graphs and 2,567 Frame/Bang cases pass. Lens/Array
+  also required refreshing their two tracked Learn studies: all 72 actual ZIP
+  frames match, and all 216 offline frames (24/36/48 per study) remain identical
+  to the original definitions. Per-study refresh records preserve older captures.
+  Docs, tags, catalog, recency and source bundle updated. Ordered catalog →
+  build → Learn (23,596 checks) passes.
+  Publication was not requested; integrate this with earlier Line Drape/L-System
+  work when authorized, bumping the app version once and retaining main's newer
+  App/machine files. Refresh the local Claude snapshot after commit; preparing
+  files does not upload them to Claude.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private

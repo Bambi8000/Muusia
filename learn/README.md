@@ -73,6 +73,17 @@ Use actual PNG encoding for `.png` files: some browser tools return JPEG bytes r
 
 ## Export provenance maintenance
 
+2026-10-19 Craft suite maintenance (local v2.130 development tree): Lens gained
+opt-in Twist/Vortex and Array gained opt-in layouts. The original Travelling
+pinch study and Grid Hairs / Solids composite were downloaded again through the
+actual app as 36-frame SVG ZIPs with route optimization off. All 72 SVG frames
+match the current evaluator/exporter exactly; each study's 24/36/48-frame output
+also matches its original pre-extension node definition. Original patches,
+measurements, screenshots and other capture records are unchanged. Per-study
+`refreshes` entries record the two new captures and current dependency hashes.
+No hardware or historical G-code test was rerun.
+
+
 2026-10-16 complete-output maintenance (local v2.129 development tree): removed
 engine-wide 120,000-point prefix truncation. The supplied Organic Rings / Torn +
 BG Fill / Negative Space composition now retains all 9,473 paths and 148,512

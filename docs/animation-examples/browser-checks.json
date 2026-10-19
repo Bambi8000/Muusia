@@ -8,7 +8,7 @@
     "src/defs/nodes/moire_disc.js": "6c072b96b5aef4d0003ce9b78853d821c353cc9e323e4e23b82d51758f4923e4",
     "src/defs/nodes/zigzag_path.js": "8af4f46ea950ae5a3726daf4f755819a7bfacfd2f7b751669daace866c8e0759",
     "src/defs/nodes/grid.js": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2",
-    "src/defs/nodes/lens.js": "bfa2d5c24184edad32ad28cae0425b2d1d96bc13b4bd5cc68d4c99260257e26e",
+    "src/defs/nodes/lens.js": "f417c90ff9822eb90128298431544d003cce098bf99477e05a211d8dedeee30a",
     "src/defs/nodes/merge.js": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf",
     "src/defs/nodes/hersheytext.js": "e2b669fb4405df3d56ee866c94f6c6fe35ceca2748f16f3f0a1302b94b62ec61",
     "src/defs/nodes/chop.js": "cb47b6bd402e6396d137fd73c32a179a0b559a188df500942db9460a8541dfe9",
@@ -169,5 +169,21 @@
       "frames": 36,
       "totalPoints": 50976
     }
-  }
+  },
+  "refreshes": [
+    {
+      "date": "2026-10-19",
+      "appVersion": "2.130",
+      "sourceCommit": "808481f47dc0aec266ac29a85b0321d1c59e5902",
+      "sourceWorkingTree": "codex/line-drape; uncommitted Craft suite. Source hashes identify this local implementation.",
+      "key": "travelling-pinch",
+      "dependency": "src/defs/nodes/lens.js",
+      "method": "Actual in-app Load, original unchanged patch, final node selected, 36 frames, route optimization off, SVG ×36 ZIP. All 36 frames match actual evaluator/exporter exactly; all 24/36/48 frames also match the original node definition.",
+      "zip": "learn-travelling-pinch.zip",
+      "sha256": "d5c2c47848aec1fc30dcc881f2acc2ed46bed0de67bda1c43d4153302c4d1004",
+      "frames": 36,
+      "totalPoints": 244296,
+      "hardwareTested": false
+    }
+  ]
 }
