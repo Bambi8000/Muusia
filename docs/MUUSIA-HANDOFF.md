@@ -264,6 +264,33 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.131 — 2026-10-20 · Node suites and English Learn publication
+
+Daniel explicitly authorized publication after the Region Hatch delivery. Release
+integrates the six tested Line Drape / L-System / Craft / Shapes / Region Hatch
+commits, based on published 2.130 (`6a3500a75d48193013e6c1339c0582d7bba36b72`).
+There are 327 node modules / 329 registry entries and 63 reachable English Learn
+pages, including 24 new English lessons (12 Craft + 10 Shapes + 2 Region Hatch).
+
+Release scope changes APP_VERSION only in App.jsx, adds this release record and
+README note, and regenerates Learn metadata. No machine, Klipper or Needle Punch
+changes from the dirty primary checkout are included. The primary checkout's
+Needle work remains based on local main 6a3500a; publication fast-forwards remote
+main from the clean `codex/line-drape` worktree without resetting/stashing that
+work. Before continuing Needle work, reconcile against the new origin/main and
+choose its actual subsequent version/minApp value (its draft 2.131 was not a
+reserved release number). All non-coordination WIP files are SHA-256 checked
+before and after publication. The primary checkout branch is deliberately left
+in place because it carries the uncommitted work.
+
+Release gate: all five focused node suites, 121 Help examples and 2575 Frame/
+Bang cases pass; ordered catalog → build → Learn passes with 31624 checks / 63
+English pages. APP_VERSION is the only App.jsx change relative to published main.
+
+See the per-task entries below for node behavior, captured exports and physical
+limitations. No hardware run or Claude upload is implied by this publication.
+
+
 ### W — 2026-10-19 · Region Hatch and two English tutorials, local only
 
 Daniel approved the Region Hatch proposal after the RSTR studio review and

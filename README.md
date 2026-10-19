@@ -1,4 +1,9 @@
-# MUUSIA v2.129
+# MUUSIA v2.131
+
+Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
+available with the extended L-System and shape/field tools. Learn includes
+24 new English tutorials with editable patches and actual vector examples.
+[Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
 
