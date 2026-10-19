@@ -287,6 +287,13 @@ Release gate: all five focused node suites, 121 Help examples and 2575 Frame/
 Bang cases pass; ordered catalog → build → Learn passes with 31624 checks / 63
 English pages. APP_VERSION is the only App.jsx change relative to published main.
 
+Publication verification: Pages run 39324856885 for release commit 59ddc59
+passed; the public app shows v2.131 and the Region Hatch tutorials load. A small
+English guide-copy follow-up replaces pre-publication "local build" instructions
+with "Muusia 2.131 or later" on all three new tutorial indices; historical capture
+labels remain unchanged. The final follow-up deployment is recorded in the local
+release delivery record and primary checkout coordination file.
+
 See the per-task entries below for node behavior, captured exports and physical
 limitations. No hardware run or Claude upload is implied by this publication.
 
