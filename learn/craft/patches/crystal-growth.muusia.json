@@ -1,0 +1,39 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Crystal Growth · Quartz cluster",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "crystal_growth",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "mode": "Quartz",
+          "count": 22,
+          "length": 1,
+          "width": 0.1,
+          "spread": 0.5,
+          "lean": 30,
+          "branch": 35,
+          "compete": true,
+          "motion": "Manual",
+          "growth": 100,
+          "yaw": 25,
+          "elevation": 28,
+          "size": 165,
+          "margin": 12,
+          "seed": 37,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Marbling · Combed grid",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "grid",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "vlines": 0,
+          "hlines": 55,
+          "margin": 35,
+          "res": 1,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "marbling",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "mode": "Comb",
+          "cx": 50,
+          "cy": 50,
+          "radius": 55,
+          "strength": 80,
+          "angle": 90,
+          "travel": 35,
+          "tines": 11,
+          "spacing": 14,
+          "phase": 0,
+          "step": 1
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      }
+    ],
+    "outputId": 9002
+  }
+}

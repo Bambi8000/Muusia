@@ -1,0 +1,124 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Array · Spatial helix · Animation",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "superformula",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "m": 5,
+          "n1": 0.5,
+          "n2": 1,
+          "n3": 1,
+          "asym": 1,
+          "rings": 1,
+          "twist": 0,
+          "margin": 15,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "array",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "layout": "Helix 3D",
+          "columns": 5,
+          "pitchX": 35,
+          "pitchY": 35,
+          "radius": 58,
+          "turns": 2.5,
+          "height": 110,
+          "start": 0,
+          "motifSize": 15,
+          "follow": true,
+          "yaw": 25,
+          "elevation": 25,
+          "persp": 0,
+          "count": 45,
+          "dx": 2,
+          "dy": 0,
+          "drot": 0,
+          "dscale": 0,
+          "jit": 0,
+          "penPer": false,
+          "seed": 16
+        }
+      },
+      {
+        "id": 9801,
+        "type": "frame",
+        "x": 20,
+        "y": 950,
+        "params": {
+          "bangRate": "1/4",
+          "bangEvery": 4,
+          "bangChance": 25,
+          "bangSeed": 41
+        }
+      },
+      {
+        "id": 9802,
+        "type": "matem",
+        "x": 360,
+        "y": 950,
+        "params": {
+          "op": "A − B",
+          "a": 1,
+          "b": 90
+        }
+      },
+      {
+        "id": 9803,
+        "type": "matem",
+        "x": 700,
+        "y": 950,
+        "params": {
+          "op": "A − B",
+          "a": 1,
+          "b": 90
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      },
+      {
+        "id": "craft-clock-0",
+        "from": 9801,
+        "fromPort": 4,
+        "to": 9802,
+        "toPort": 0
+      },
+      {
+        "id": "craft-clock-1",
+        "from": 9802,
+        "fromPort": 0,
+        "to": 9803,
+        "toPort": 0
+      },
+      {
+        "id": "craft-motion",
+        "from": 9803,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": "p:yaw"
+      }
+    ],
+    "outputId": 9002
+  }
+}

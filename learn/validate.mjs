@@ -8,6 +8,8 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { inflateSync } from 'node:zlib';
 import { unzipSync, strFromU8 } from 'fflate';
+import { craftPages } from './craft/content.mjs';
+import { validateCraft } from './craft/validate.mjs';
 import { tutorials, nodeGuides } from './content.mjs';
 import { typographyPages } from './typography/content.mjs';
 import { validateTypography } from './typography/validate.mjs';
@@ -120,7 +122,7 @@ for (const n of manifest.nodes) {
   }
 }
 
-const expected = new Set(['index.html', 'tutorials/index.html', 'nodes/index.html', ...animationPages, ...typographyPages,
+const expected = new Set(['index.html', 'tutorials/index.html', 'nodes/index.html', ...craftPages, ...animationPages, ...typographyPages,
   ...tutorials.map(t => `tutorials/${t.id}/index.html`), ...PILOT_KEYS.map(key => `nodes/${key}/index.html`)]);
 let builtFiles = [];
 try { builtFiles = await walk(SITE); } catch { failures.push('dist/learn is missing. Build the app and run node learn/build.mjs before validation.'); }
@@ -642,6 +644,9 @@ catch (error) { check(false, `Typography: ${error.message}`); }
 
 try { await validateAnimation(SITE); check(true, ''); }
 catch (error) { check(false, `Animation studies: ${error.message}`); }
+
+try { await validateCraft(SITE); check(true, ''); }
+catch (error) { check(false, `Craft tutorials: ${error.message}`); }
 
 if (failures.length) {
   console.error(`Muusia Learn validation failed (${failures.length} of ${checks} checks):\n${[...new Set(failures)].map(f => `- ${f}`).join('\n')}`);

@@ -1,0 +1,69 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Array · Spatial helix",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "superformula",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "m": 5,
+          "n1": 0.5,
+          "n2": 1,
+          "n3": 1,
+          "asym": 1,
+          "rings": 1,
+          "twist": 0,
+          "margin": 15,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "array",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "layout": "Helix 3D",
+          "columns": 5,
+          "pitchX": 35,
+          "pitchY": 35,
+          "radius": 58,
+          "turns": 2.5,
+          "height": 110,
+          "start": 0,
+          "motifSize": 15,
+          "follow": true,
+          "yaw": 25,
+          "elevation": 25,
+          "persp": 0,
+          "count": 45,
+          "dx": 2,
+          "dy": 0,
+          "drot": 0,
+          "dscale": 0,
+          "jit": 0,
+          "penPer": false,
+          "seed": 16
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      }
+    ],
+    "outputId": 9002
+  }
+}

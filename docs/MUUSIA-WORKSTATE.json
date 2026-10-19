@@ -85,6 +85,22 @@
       ],
       "status": "ready",
       "outcome": "Complete locally on codex/line-drape in /private/tmp/muusia-line-drape: seven baked built-ins, five compatible extensions, 12 Help examples and standalone preview. 193 focused cases (15 original hashes), all 12 actual SVG/G-code exports, 48 new animation frames, real STL intake, 111 Help graphs and 2567 Frame/Bang cases pass. Lens/Array Learn studies recaptured: 72 actual SVG frames exact, 216 offline frames identical to originals. Ordered catalog/build/Learn (23596) pass. Await integration/publication; main Needle Punch/App/hardware untouched. Local Claude snapshot prepared after commit; no upload."
+    },
+    {
+      "id": "craft-tutorials",
+      "owner": "Astra",
+      "role": "Learn tutorial author, isolated /private/tmp/muusia-line-drape",
+      "baseCommit": "f881d9ef3adfe82596807ea3b38186880292ae4c",
+      "scope": [
+        "learn/craft/",
+        "learn/build.mjs",
+        "learn/validate.mjs",
+        "learn/README.md",
+        "learn/generated/manifest.json",
+        "docs/MUUSIA-HANDOFF.md"
+      ],
+      "status": "ready",
+      "outcome": "Complete locally on codex/line-drape: 12 English Craft tutorials integrated into Learn (13 new pages), 22 downloadable graphs, 24 actual UI captures, 12 captured SVG references and ten players / 120 actual SVG frames. Bilingual authoring has a private optional Finnish companion outside the site build; Daniel confirmed English-only publication. Source checks, lint and ordered catalog/build/Learn (27810; 49 English pages) pass. English offline package includes the matching app. No node/App/hardware changes, no publication or Claude upload; main Needle Punch work preserved."
     }
   ]
 }

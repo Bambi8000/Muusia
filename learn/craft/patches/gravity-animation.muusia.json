@@ -1,0 +1,98 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Gravity · Falling letters · Animation",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "lettering",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "text": "A",
+          "font": "Bold",
+          "size": 18,
+          "weight": 22,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Outline",
+          "hatch": 1.2,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "gravity",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "physicsMode": "Rigid bodies",
+          "bodyPen": 0,
+          "bodySource": "Motif copies",
+          "bodyCount": 24,
+          "bodySize": 22,
+          "bodyScale": 100,
+          "collisionWidth": 1,
+          "bodyMotion": "Timeline",
+          "time": 5,
+          "duration": 5,
+          "bodyGravity": 450,
+          "bodySpin": 70,
+          "bounce": 15,
+          "friction": 50,
+          "floor": 100,
+          "cols": 24,
+          "rows": 16,
+          "stamp": "Dot",
+          "stampSize": 0.5,
+          "release": 0.55,
+          "softness": 0.35,
+          "clumps": 0.35,
+          "progress": 0.55,
+          "drift": 8,
+          "spin": 0,
+          "sizeMod": 0,
+          "modulate": "Fallen only",
+          "gridJitter": 0.15,
+          "pile": "Heap",
+          "spread": 0.6,
+          "packing": 0.9,
+          "palette": 4,
+          "assign": "Diagonal",
+          "penA": 1,
+          "penB": 2,
+          "penC": 11,
+          "penD": 10,
+          "margin": 12,
+          "seed": 7
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      }
+    ],
+    "outputId": 9002
+  }
+}

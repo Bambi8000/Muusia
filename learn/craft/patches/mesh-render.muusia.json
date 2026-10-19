@@ -1,0 +1,78 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Mesh Render · Crystal illustration",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "crystal_growth",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "mode": "Quartz",
+          "count": 14,
+          "length": 1,
+          "width": 0.1,
+          "spread": 0.5,
+          "lean": 30,
+          "branch": 25,
+          "compete": true,
+          "motion": "Manual",
+          "growth": 100,
+          "yaw": 25,
+          "elevation": 28,
+          "size": 165,
+          "margin": 12,
+          "seed": 37,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "mesh_render",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "file": "",
+          "source": "Sphere",
+          "drawing": "Illustration",
+          "contours": 28,
+          "axis": "Z",
+          "silhouette": true,
+          "creases": false,
+          "crease": 35,
+          "pitch": 1.6,
+          "angle": 45,
+          "lightAz": -50,
+          "lightEl": 55,
+          "ambient": 18,
+          "selfShadow": true,
+          "shadow": true,
+          "shadowPen": 0,
+          "yaw": -20,
+          "elevation": 28,
+          "persp": 0,
+          "size": 170,
+          "detail": 180,
+          "margin": 12,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 1,
+        "to": 9002,
+        "toPort": 0
+      }
+    ],
+    "outputId": 9002
+  }
+}

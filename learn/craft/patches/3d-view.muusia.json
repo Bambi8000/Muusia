@@ -1,0 +1,75 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "3D View · Twisted type",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "lettering",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "text": "TURN",
+          "font": "Bold",
+          "size": 62,
+          "weight": 30,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Hatch",
+          "hatch": 1.4,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "view3d",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "deform": "Twist",
+          "bendAxis": "Horizontal",
+          "bendAngle": 240,
+          "bendRadius": 45,
+          "yaw": 20,
+          "pitch": 15,
+          "roll": 0,
+          "persp": 0.3,
+          "zsource": "Flat",
+          "gap": 10,
+          "relief": 25,
+          "rscale": 1.5,
+          "fit": true,
+          "res": 1.2,
+          "seed": 3,
+          "margin": 10
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      }
+    ],
+    "outputId": 9002
+  }
+}

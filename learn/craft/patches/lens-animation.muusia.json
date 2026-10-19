@@ -1,0 +1,108 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Lens · Vortex · Animation",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "grid",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "vlines": 35,
+          "hlines": 25,
+          "margin": 15,
+          "res": 1,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "lens",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "mode": "Vortex",
+          "twist": 220,
+          "falloff": 2,
+          "step": 1,
+          "useCenter": true,
+          "cx": 150,
+          "cy": 100,
+          "radius": 85,
+          "strength": 0.4
+        }
+      },
+      {
+        "id": 9801,
+        "type": "frame",
+        "x": 20,
+        "y": 950,
+        "params": {
+          "bangRate": "1/4",
+          "bangEvery": 4,
+          "bangChance": 25,
+          "bangSeed": 41
+        }
+      },
+      {
+        "id": 9802,
+        "type": "matem",
+        "x": 360,
+        "y": 950,
+        "params": {
+          "op": "A × B",
+          "a": 1,
+          "b": 22
+        }
+      },
+      {
+        "id": 9803,
+        "type": "matem",
+        "x": 700,
+        "y": 950,
+        "params": {
+          "op": "A × B",
+          "a": 1,
+          "b": 10
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      },
+      {
+        "id": "craft-clock-0",
+        "from": 9801,
+        "fromPort": 3,
+        "to": 9802,
+        "toPort": 0
+      },
+      {
+        "id": "craft-clock-1",
+        "from": 9802,
+        "fromPort": 0,
+        "to": 9803,
+        "toPort": 0
+      },
+      {
+        "id": "craft-motion",
+        "from": 9803,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": "p:twist"
+      }
+    ],
+    "outputId": 9002
+  }
+}

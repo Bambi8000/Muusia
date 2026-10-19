@@ -1,0 +1,40 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Reaction Patterns · Living maze",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "reaction_patterns",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "pattern": "Maze",
+          "feed": 0.04,
+          "kill": 0.062,
+          "detail": 100,
+          "scale": 1,
+          "steps": 1100,
+          "motion": "Manual",
+          "growth": 100,
+          "germs": 28,
+          "seedWidth": 12,
+          "level": 0.25,
+          "contours": 2,
+          "wrap": false,
+          "pens": 1,
+          "margin": 12,
+          "seed": 37,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

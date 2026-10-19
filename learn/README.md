@@ -1,6 +1,6 @@
 # Muusia Learn
 
-An English companion guide to Muusia: seven foundation tutorials, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
+An English companion guide to Muusia: seven foundation tutorials, twelve Craft tutorials, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
 
 ## Build and preview
 
@@ -306,3 +306,42 @@ The two reference SVG artifacts and all 11 animation panel comparisons were
 recaptured again after this evaluator extension: bytes/signatures and the seven
 original graphs stay unchanged. The records identify the new selected sources;
 historical PNG/G-code evidence remains untouched. No hardware execution.
+
+## Craft tutorials (local 2026-10-19)
+
+`craft/` adds twelve step-by-step lessons: Marbling, Shape Packing, Path Bend,
+Seamless Tile, Reaction Patterns, Crystal Growth, Mesh Render, Array, Lens,
+3D View, Drape and Gravity. Published Learn pages remain English. The same
+bilingual authored content also builds a separate Finnish companion with
+`buildFinnish(outputDirectory)` from `craft/build.mjs`; it is not another
+published language route. The companion uses the same patches, screenshots,
+reference SVGs and captured frame player.
+
+Each lesson has five steps, exact port-to-port connections, control values read
+from its complete patch, two experiments, troubleshooting and export guidance.
+Ten have ready-wired animation patches and actual twelve-frame SVG batches;
+packing and repeat tiling are taught as static compositions. There are 22 complete
+patches, 12 actual reference SVGs, 24 genuine UI captures (12 Focus and 12 graph),
+and ten ZIPs / 120 captured vector frames. PNG conversion only changes encoding
+when the browser returns JPEG bytes; no controls or connections are redrawn.
+
+`craft/capture-manifest.json` records the local v2.130 development build containing
+the Craft source, file hashes, capture dimensions, scoped evaluator/exporter
+hashes and node/helper dependencies. The previously published v2.130 did not yet
+contain these nodes. Actual captures used route optimization off and fixed
+297 × 210 mm pages. The graph captures minimize source cards to show connections;
+Focus captures show the output node at a larger scale. Red guides in the graph
+view are editing overlays. These captures verify software geometry, not hardware.
+
+`craft/fixtures.mjs` uses the actual app evaluator and SVG serializer. The builder
+copies captured output; it does not replace UI evidence with synthetic cards.
+`craft/validate.mjs --source` checks the bilingual lessons, pin types, parameter
+ranges, every reference SVG coordinate and all captured animation frames.
+`npm run check:learn` also checks the built copies and all page links under both
+supported deployment prefixes. The player reads bundled SVG files and uses no
+external runtime API. Source changes affecting these examples require review
+and actual recapture; `craft/record-captures.mjs` is deliberately not a build step.
+
+The new pages are linked from Overview, Tutorials and the guide sidebar. This
+work is local until the suite and guide are integrated and publication is
+verified. Older screenshots elsewhere in Learn retain their own provenance.

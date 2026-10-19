@@ -1,0 +1,93 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Drape · Flag typography",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "lettering",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "text": "WIND",
+          "font": "Bold",
+          "size": 58,
+          "weight": 30,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Hatch",
+          "hatch": 1.5,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "drape",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "physicsMode": "Flag",
+          "clothDensity": 28,
+          "clothContent": "Artwork + grid",
+          "pin": "Auto",
+          "weave": false,
+          "clothGravity": 70,
+          "elasticity": 20,
+          "damping": 12,
+          "wind": 65,
+          "motion": "Manual",
+          "phase": 70,
+          "pull": true,
+          "pullX": 65,
+          "pullY": 65,
+          "pullDepth": 55,
+          "pullRadius": 25,
+          "style": "Wire",
+          "sheet": "Fit",
+          "shapes": "Mixed",
+          "count": 4,
+          "size": 28,
+          "height": 45,
+          "tension": 18,
+          "wrinkles": 15,
+          "density": 36,
+          "yaw": 15,
+          "pitch": 25,
+          "persp": 0.35,
+          "hidden": true,
+          "lock": true,
+          "light": 315,
+          "margin": 10,
+          "seed": 4,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 3
+      }
+    ],
+    "outputId": 9002
+  }
+}

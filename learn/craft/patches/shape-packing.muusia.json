@@ -1,0 +1,91 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Shape Packing · Stars inside O",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "superformula",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "m": 5,
+          "n1": 0.3,
+          "n2": 1,
+          "n3": 1,
+          "asym": 1,
+          "rings": 1,
+          "twist": 0,
+          "margin": 15,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "lettering",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "text": "O",
+          "font": "Bold",
+          "size": 120,
+          "weight": 40,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Outline",
+          "hatch": 1.2,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9003,
+        "type": "shape_packing",
+        "x": 720,
+        "y": 20,
+        "params": {
+          "count": 60,
+          "size": 10,
+          "vary": 45,
+          "rotate": 180,
+          "gap": 0.7,
+          "keep": false,
+          "margin": 12,
+          "seed": 37
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 0
+      },
+      {
+        "id": "e9102",
+        "from": 9002,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 1
+      }
+    ],
+    "outputId": 9003
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Path Bend · Curved grid ribbon",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "grid",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "vlines": 35,
+          "hlines": 7,
+          "margin": 25,
+          "res": 1,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "superformula",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "m": 3,
+          "n1": 2,
+          "n2": 4,
+          "n3": 4,
+          "asym": 1,
+          "rings": 1,
+          "twist": 0,
+          "margin": 42,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9003,
+        "type": "path_bend",
+        "x": 720,
+        "y": 20,
+        "params": {
+          "mode": "Fit to spine",
+          "axis": "Horizontal",
+          "index": 1,
+          "width": 18,
+          "offset": 0,
+          "start": 0,
+          "reverse": false,
+          "wrap": true,
+          "step": 1
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 0
+      },
+      {
+        "id": "e9102",
+        "from": 9002,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 1
+      }
+    ],
+    "outputId": 9003
+  }
+}

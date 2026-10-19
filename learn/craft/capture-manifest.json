@@ -1,0 +1,469 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "2.130",
+  "capturedAt": "2026-10-19",
+  "sourceCommit": "f881d9ef3adfe82596807ea3b38186880292ae4c",
+  "scope": "Actual local Muusia build containing Craft nodes. Twelve original SVG exports, twelve Focus screenshots and twelve fresh graph screenshots; source cards minimized for readability. Ten actual 12-frame SVG batch exports. No pixel retouching, hardware execution or publication.",
+  "engineScopeSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
+  "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "sourceHashes": {
+    "src/defs/nodes/grid.js": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2",
+    "src/defs/nodes/marbling.js": "1550aec846a03da9f72ec371cb663c41bf995828ff14382c340ed789dae04a5e",
+    "src/defs/nodes/superformula.js": "75860d7432656c296ef05b76d2a03f4e490cf15305b825766f92ec3d7d3b67a7",
+    "src/defs/nodes/lettering.js": "f39c1aeea1085bfa86176a3c2c289cf1221452e282747c141dcf07f7c571925b",
+    "src/defs/nodes/shape_packing.js": "1246061092e35ef127fe41a844284555abb52a1c5179234a753d103eaacd2ea8",
+    "src/defs/nodes/path_bend.js": "b9bbeb10cb61dbd893a602b1237f97fcbb03e93e987ffc9b8407f1aa72c9565f",
+    "src/defs/nodes/seamless_tile.js": "099004c45bb42cbf781038b27630eda3201c8be5bba665935bf76d3de1871368",
+    "src/defs/nodes/reaction_patterns.js": "86fca1863405287f5d8f44f7fafaee611c0566f1759355df52bd3bda15abdf33",
+    "src/defs/nodes/crystal_growth.js": "0ff9669855c7f30519335d6a4ea961fcde8e4ca4dd1a74166e58567224104502",
+    "src/defs/nodes/mesh_render.js": "f39198d938bf2016b98df670370d393b65d6bc5b0057b1c177a61fb9f18ab8f3",
+    "src/defs/nodes/array.js": "e409c2c2c56f191e1c953e0d32eba851df4be985a89dafa9e6cbc3e167bcada4",
+    "src/defs/nodes/lens.js": "f417c90ff9822eb90128298431544d003cce098bf99477e05a211d8dedeee30a",
+    "src/defs/nodes/view3d.js": "756c385135ded1359a15b4ec4fb1a0c68d236a97d4afc852dc06cd315d04ef5b",
+    "src/defs/nodes/drape.js": "dae5798f70ee5021037455e901244a8d9f0281a08b58aaea3ad2579cf763db98",
+    "src/defs/nodes/gravity.js": "d2e9d881f3873bd7b6c3aed1303383ffeca961731f193a21e3a62f9cb6c546ff",
+    "src/defs/nodes/frame.js": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204",
+    "src/defs/nodes/matem.js": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5",
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
+  },
+  "lessons": [
+    {
+      "id": "marbling",
+      "patch": {
+        "file": "patches/marbling.muusia.json",
+        "sha256": "94ae57428aa9eb627d98669a03a6f490b4e507255a9cde6286942546f2c4d760"
+      },
+      "svg": {
+        "file": "assets/marbling.svg",
+        "sha256": "0f55c0d80fad6f54b2b50757304170859f6b4e0d92c1e5ed60cc1cf93159ba53"
+      },
+      "captures": [
+        {
+          "file": "assets/marbling-graph.png",
+          "sha256": "6b43f9b796cf60513ef9dec79d194da52c5977ac93bcdbee81ccd39747ce6776",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/marbling-focus.png",
+          "sha256": "c0540988e6ca971cba29b0a6f6f30ca16b21c15a2bd3e62f476620c9b0ffe8e3",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/marbling.zip",
+        "sha256": "db77e89c28e84c556abde53c7af1ae2eafa1d7fe7a2cdf3543f8ad10e0fa5435",
+        "frames": 12,
+        "patch": {
+          "file": "patches/marbling-animation.muusia.json",
+          "sha256": "db0574061ce760e0d2a4644ad7141f93fe2c885a1b16cd7c1e394a8cc613a7e1"
+        }
+      }
+    },
+    {
+      "id": "shape-packing",
+      "patch": {
+        "file": "patches/shape-packing.muusia.json",
+        "sha256": "1b04622b1d44c60be03663f071c478cdf99fa929e966e22c85d8c36f12c97ad5"
+      },
+      "svg": {
+        "file": "assets/shape-packing.svg",
+        "sha256": "6d32925f2f4e2a97cfff859f724c749feccc1d6e0e59c4d942db36e190b43100"
+      },
+      "captures": [
+        {
+          "file": "assets/shape-packing-graph.png",
+          "sha256": "e556f5f8ac7048d24e7a2c934a860e8b7f0890d9d1491c4f0ecbaf90eca664e5",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/shape-packing-focus.png",
+          "sha256": "00d97a3ed26c7cd31b61b21525b8d7e360af14d3b82f3934ed0c808f1a56bd4a",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ]
+    },
+    {
+      "id": "path-bend",
+      "patch": {
+        "file": "patches/path-bend.muusia.json",
+        "sha256": "710943c22b7386c5c2166641415e7aa93543e450f5fa8ac99967a1e8b6387c49"
+      },
+      "svg": {
+        "file": "assets/path-bend.svg",
+        "sha256": "0811d0af1d4483751b6f2f062e2070e2a3e81a37297d4381fd81705b7bae4ebc"
+      },
+      "captures": [
+        {
+          "file": "assets/path-bend-graph.png",
+          "sha256": "e81e668aa1c9b1ddd0a5ae3556917972737aefba7b7b9e7a055cf8524667b1a2",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/path-bend-focus.png",
+          "sha256": "9558c0625f86789099b4bbf620cc63b727a52457028b68acbbb2fc3b047aeaba",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/path-bend.zip",
+        "sha256": "ceadb18a1a26e34d77c70c8a311559ddaab1caaec31268438d7ef2f6ea1276e0",
+        "frames": 12,
+        "patch": {
+          "file": "patches/path-bend-animation.muusia.json",
+          "sha256": "cd99671939fe1e98cbe526fc79fbe32ed8d0fa94efaed26e79d637a986751f86"
+        }
+      }
+    },
+    {
+      "id": "seamless-tile",
+      "patch": {
+        "file": "patches/seamless-tile.muusia.json",
+        "sha256": "022c5e3e2070032ca10eff6bd11b159fb07e2f58d0557f710f11b91e46ba64e9"
+      },
+      "svg": {
+        "file": "assets/seamless-tile.svg",
+        "sha256": "712c6d7ae081063e0efdfa366ba67c372cacabbb767fb29b3ceb89db0bcd1087"
+      },
+      "captures": [
+        {
+          "file": "assets/seamless-tile-graph.png",
+          "sha256": "bdb2b5be467f3bd8998e958b24b47985e20c510a8fe955944fe023dec4d03aff",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/seamless-tile-focus.png",
+          "sha256": "89d8763a73e727612ce21a74b8b776c2edfd147aa61ab58a87cb6c914345f189",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ]
+    },
+    {
+      "id": "reaction-patterns",
+      "patch": {
+        "file": "patches/reaction-patterns.muusia.json",
+        "sha256": "5972d181571bd5dee1253bde768e160023fff0099cf334d6ba192e731b47078e"
+      },
+      "svg": {
+        "file": "assets/reaction-patterns.svg",
+        "sha256": "669a98655af6ca8bb68045c8019de9e23ab12ff593e4ca965f5f2bfa8eed218e"
+      },
+      "captures": [
+        {
+          "file": "assets/reaction-patterns-graph.png",
+          "sha256": "090f5b95c6812a7133b3295a2faac7b7243eefe6e4438aceffc052b2043fa710",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/reaction-patterns-focus.png",
+          "sha256": "0ad19b27dd82a7e6c082a164e7270e3bfbd2ad52e235c8cfc48ae851188e4a80",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/reaction-patterns.zip",
+        "sha256": "8097e073b5576bee4359cb036df46a7f57695150500a5f2a4b0c901b90d31040",
+        "frames": 12,
+        "patch": {
+          "file": "patches/reaction-patterns-animation.muusia.json",
+          "sha256": "e0d8de3200203aa43daa21d4df380f1d41280df0de5d6203356a78f859a34de3"
+        }
+      }
+    },
+    {
+      "id": "crystal-growth",
+      "patch": {
+        "file": "patches/crystal-growth.muusia.json",
+        "sha256": "f63102a68fbe147ff1e4d6c43d4bd832b4e5aecba03a5ade0e728c074718a46b"
+      },
+      "svg": {
+        "file": "assets/crystal-growth.svg",
+        "sha256": "79bafe7c53f9f19bf0a5be2cd6e8fd539c58697455879a5c16fd0c9c57fcb72d"
+      },
+      "captures": [
+        {
+          "file": "assets/crystal-growth-graph.png",
+          "sha256": "030a9ad5dfa9245d1401a3c375a77aa986282e70095359d7242e7d9cf4e57b07",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/crystal-growth-focus.png",
+          "sha256": "280e8088954f349c6cc26ee04af64d0eb695a90d54b48235c90545b63cbab8e9",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/crystal-growth.zip",
+        "sha256": "73dc42a13c2f8c5d989623b5f5bdd28a548a57004a5d976c1b18f1298ef268a6",
+        "frames": 12,
+        "patch": {
+          "file": "patches/crystal-growth-animation.muusia.json",
+          "sha256": "d470250ef185b75ca8bcba8848cbdb245f62c5b52f409ba4c7174790e07751e7"
+        }
+      }
+    },
+    {
+      "id": "mesh-render",
+      "patch": {
+        "file": "patches/mesh-render.muusia.json",
+        "sha256": "489d39da37a16ac70a661183b5ddd4731a886c4fa6bcdae4a7c921908a973774"
+      },
+      "svg": {
+        "file": "assets/mesh-render.svg",
+        "sha256": "18b69c04c89f5eed8a5809ffbb1e455cb3e93cf9b3c78c47a4323f93445b0aac"
+      },
+      "captures": [
+        {
+          "file": "assets/mesh-render-graph.png",
+          "sha256": "9b61a2d530ac027c93cbf3ef2c31b022a1e790c5ad125a7bcb764c94ce2fd377",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/mesh-render-focus.png",
+          "sha256": "b7a914f9467fa4c426630255cce482e5f2533b9bb83e3ddafe449013f33c1635",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/mesh-render.zip",
+        "sha256": "777014dd4eb224bb527c180f8dc0863d4b85020bba0ccbd8d4bd93d5a11c09de",
+        "frames": 12,
+        "patch": {
+          "file": "patches/mesh-render-animation.muusia.json",
+          "sha256": "d8974dae38615df8b13ee7fbab93445693135c3917f1cc598c7d69c20662a9be"
+        }
+      }
+    },
+    {
+      "id": "array",
+      "patch": {
+        "file": "patches/array.muusia.json",
+        "sha256": "3e516da0c8108319482d5834a94b721a6d3ed6e4b69c64a17c98dedbd4a3d065"
+      },
+      "svg": {
+        "file": "assets/array.svg",
+        "sha256": "2b4040fba0f34a0ddd7cff6f099b0c7c94d846aad0b0b7a76ea742765bcd122a"
+      },
+      "captures": [
+        {
+          "file": "assets/array-graph.png",
+          "sha256": "9734f35d3f2868f15241bb3cc60b00e88e79af6208ad1382d33ecd6adebed213",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/array-focus.png",
+          "sha256": "05406cfbb03296481a435598416d2035e826198079d668542421b1772108a39f",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/array.zip",
+        "sha256": "6071db631a8b3e9639c21dcf49dd9d3891b91ca1da8b32d66b2f396ace32c84f",
+        "frames": 12,
+        "patch": {
+          "file": "patches/array-animation.muusia.json",
+          "sha256": "246da51d5b1e7c64d9ed0a45d92a8996fdd04f3ebadef8fa40b689fc2d72c57e"
+        }
+      }
+    },
+    {
+      "id": "lens",
+      "patch": {
+        "file": "patches/lens.muusia.json",
+        "sha256": "d84a4f062e40df9a5c0799766f4f66f334c177ebdbc5d6d380c7aba1e9bddac4"
+      },
+      "svg": {
+        "file": "assets/lens.svg",
+        "sha256": "31b6885b3406bfad54d425c11a52867659551f706c250a0c597bab46684675c6"
+      },
+      "captures": [
+        {
+          "file": "assets/lens-graph.png",
+          "sha256": "f4a962c2d0eefae038246d15e256919f755906b9e90202f13863176ff4b5731b",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/lens-focus.png",
+          "sha256": "9b757b1d50b004a456ebdc3973b31e1932afe9f2e3f7505a2fe3b5f5a2a2df13",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/lens.zip",
+        "sha256": "e2fc95d11b30fd35c4472f70c3467d665b58cdab5c7c4b3b8d4aa1c1cc907cc9",
+        "frames": 12,
+        "patch": {
+          "file": "patches/lens-animation.muusia.json",
+          "sha256": "a977d58b7b423aa7aeae8f92b80886d92b7ec17c46a3888d19b2819d7f9820b7"
+        }
+      }
+    },
+    {
+      "id": "3d-view",
+      "patch": {
+        "file": "patches/3d-view.muusia.json",
+        "sha256": "d87d86e7880375aad88e91f3889e91bbf37230a82f923b781edd8bc7fd2c3eab"
+      },
+      "svg": {
+        "file": "assets/3d-view.svg",
+        "sha256": "24418be9f478454168ecc4de9c149ea02a69a4e9f49dc67c182eec80b18827b4"
+      },
+      "captures": [
+        {
+          "file": "assets/3d-view-graph.png",
+          "sha256": "6b058dbd0622eb57cd00c23b16051657bd9ea9280f6d3eb753c678e133057fd2",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/3d-view-focus.png",
+          "sha256": "2e313d295da8d9632cc9beb109135a2cedef166fa8795fe1ccac0b48bb6b2208",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/3d-view.zip",
+        "sha256": "b814fac72b26acc838a76a32fd9e597829f035c02225665127aa022f19c34616",
+        "frames": 12,
+        "patch": {
+          "file": "patches/3d-view-animation.muusia.json",
+          "sha256": "00d2a5777f59f1f4ebdf2311892aa3cf409f50cc08d30ceec6ccd741459ac812"
+        }
+      }
+    },
+    {
+      "id": "drape",
+      "patch": {
+        "file": "patches/drape.muusia.json",
+        "sha256": "8a56a6c35a2bbf2aec2dae7ecb1dde77323ce0311bfb7f9231502c2ccebbe4d8"
+      },
+      "svg": {
+        "file": "assets/drape.svg",
+        "sha256": "c6c2a28161174ff3d27ccf0cc0d5a2d2a93f3bc8e3b1e655ed6971d00d6f41ea"
+      },
+      "captures": [
+        {
+          "file": "assets/drape-graph.png",
+          "sha256": "f4463eb595b7c42b2492054273cf89ce24013c1cb11101bea3f242eee0a606ad",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/drape-focus.png",
+          "sha256": "8ae31d7d8a4eade2915eba5c5d4c1d3e52c42fb08bf1cb773154e3ae6342308e",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/drape.zip",
+        "sha256": "92149078b63304f7eb630284e756967df4c2963764838d410b11ff3ca2936842",
+        "frames": 12,
+        "patch": {
+          "file": "patches/drape-animation.muusia.json",
+          "sha256": "492e0824ee89d4bea508a798544ea147921773bdd531da4800ee168da1120292"
+        }
+      }
+    },
+    {
+      "id": "gravity",
+      "patch": {
+        "file": "patches/gravity.muusia.json",
+        "sha256": "fe529ef5d7779d1e353c99aeb21c6c76fb897937c00b56e3fa88ba853ba7c254"
+      },
+      "svg": {
+        "file": "assets/gravity.svg",
+        "sha256": "591c7afd8e16cbaf04b5c296585e2c9f64007c4f108db93bfc8966d3a2ff5aa7"
+      },
+      "captures": [
+        {
+          "file": "assets/gravity-graph.png",
+          "sha256": "6a6fe6ae9e8b92d3ecb1d3573cbc862270b874e3332525ffba60c48c91afeee5",
+          "view": "graph",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 0.5787037037037038
+        },
+        {
+          "file": "assets/gravity-focus.png",
+          "sha256": "f3861939688b0d3d7791bf5397db89b29f4af6c06e2db3b7bcf13680c75c0c22",
+          "view": "focus",
+          "width": 909,
+          "height": 808,
+          "graphZoom": 1
+        }
+      ],
+      "animation": {
+        "file": "animations/gravity.zip",
+        "sha256": "83255e72b0aab7d7f216bde9afb84e411f97fb38061db535da4164204dac1112",
+        "frames": 12,
+        "patch": {
+          "file": "patches/gravity-animation.muusia.json",
+          "sha256": "d9b73a1edcdbbd650ead2a17ec89f80bb797bce3e7682c32b436e4dfa54af907"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "3D View · Twisted type · Animation",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "lettering",
+        "x": 20,
+        "y": 20,
+        "params": {
+          "text": "TURN",
+          "font": "Bold",
+          "size": 62,
+          "weight": 30,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Hatch",
+          "hatch": 1.4,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9002,
+        "type": "view3d",
+        "x": 370,
+        "y": 20,
+        "params": {
+          "deform": "Twist",
+          "bendAxis": "Horizontal",
+          "bendAngle": 240,
+          "bendRadius": 45,
+          "yaw": 20,
+          "pitch": 15,
+          "roll": 0,
+          "persp": 0.3,
+          "zsource": "Flat",
+          "gap": 10,
+          "relief": 25,
+          "rscale": 1.5,
+          "fit": true,
+          "res": 1.2,
+          "seed": 3,
+          "margin": 10
+        }
+      },
+      {
+        "id": 9801,
+        "type": "frame",
+        "x": 20,
+        "y": 950,
+        "params": {
+          "bangRate": "1/4",
+          "bangEvery": 4,
+          "bangChance": 25,
+          "bangSeed": 41
+        }
+      },
+      {
+        "id": 9802,
+        "type": "matem",
+        "x": 360,
+        "y": 950,
+        "params": {
+          "op": "A × B",
+          "a": 1,
+          "b": 24
+        }
+      },
+      {
+        "id": 9803,
+        "type": "matem",
+        "x": 700,
+        "y": 950,
+        "params": {
+          "op": "A × B",
+          "a": 1,
+          "b": 10
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      },
+      {
+        "id": "craft-clock-0",
+        "from": 9801,
+        "fromPort": 3,
+        "to": 9802,
+        "toPort": 0
+      },
+      {
+        "id": "craft-clock-1",
+        "from": 9802,
+        "fromPort": 0,
+        "to": 9803,
+        "toPort": 0
+      },
+      {
+        "id": "craft-motion",
+        "from": 9803,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": "p:bendAngle"
+      }
+    ],
+    "outputId": 9002
+  }
+}

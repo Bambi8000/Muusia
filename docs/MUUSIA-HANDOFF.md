@@ -4074,6 +4074,43 @@ according to the session's actual capabilities:
   App/machine files. Refresh the local Claude snapshot after commit; preparing
   files does not upload them to Claude.
 
+- **Local L — Craft tutorials** 2026-10-19 Astra — Daniel requested tutorials
+  for all twelve Craft additions. Continues on `codex/line-drape`, base f881d9e;
+  no node, engine, App or machine changes. `learn/craft/` contains twelve lessons
+  in English and Finnish: seven new nodes plus Array/Lens/3D View/Drape/Gravity.
+  Each has five concrete steps, actual port-to-port wiring, exact values read
+  from the saved patch, two experiments, troubleshooting and export guidance.
+  Ten have complete animation graphs and captured SVG frame players; packing
+  and seamless repeat are taught as static compositions. Math chains keep every
+  manual B value inside the existing −100..100 UI range (e.g. 22 × 10 for 220).
+  Ten 12-frame ZIPs were exported in the real browser; all 120 frames match the
+  actual App evaluator/exporter. Twelve original SVGs also match every ordered
+  coordinate. Twenty-two downloadable graphs validate pins, values and motion.
+  Fresh actual graph screenshots minimize source cards to keep the connections
+  visible. Reuse the twelve real Focus captures from the Craft implementation;
+  24 distinct captures are stored with genuine PNG encoding, without redrawing
+  controls or retouching pixels. A dedicated capture manifest records hashes,
+  source dependencies, dimensions and the local v2.130 source identity. It is not
+  a claim that these nodes were present in the old published v2.130.
+  Learn adds 13 English pages (collection + 12 lessons), linked from Overview,
+  Tutorials and the sidebar. The local Finnish companion is generated from the
+  same bilingual content; it is outside published Learn, with a matching app
+  preview, local assets, 22 patches and print styles. The player uses bundled SVG
+  frames with Play/Pause/Start, a frame slider and preview fps. It makes no timing
+  or hardware claim; growth/falling restart and are distinguished from loops.
+  Actual browser checks cover English/Finnish navigation, slider, playback,
+  reset and twelve reference images. Download targets and built copies pass
+  local link/content checks; the in-app automation did not report static-link
+  download events, so that UI download interaction is not claimed. English is
+  the sole published language, as Daniel explicitly confirmed; the optional
+  Finnish artifact is local and outside the site build. Existing historical Learn
+  screenshots and source references are preserved. Source checks, lint and the
+  ordered catalog → build → Learn gate (27,810 checks, 49 English pages) pass.
+  Evidence and the offline Finnish package are in this chat's `craft-tutorials/`
+  folder. No publication or Claude upload requested. Integrate with the ready
+  Craft/Line Drape/L-System work when authorized; keep main's newer Needle Punch,
+  App and hardware changes. Refresh the local source snapshot after commit.
+
 ## Hard-won pitfalls (keep)
 
 - Extracting a function into helpers.js must take its module-private
