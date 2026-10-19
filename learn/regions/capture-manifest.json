@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "2.130",
+  "capturedAt": "2026-10-19",
+  "sourceCommit": "da8ef3bb6898cc9b4644216bc1616ed4d3e92535",
+  "scope": "Actual local built-in Region Hatch at 127.0.0.1:5176. Route optimization off; default A Servo example 330x240 mm, uncalibrated. Six SVG downloads, two G-code downloads (software checks only), four unretouched UI captures, Choose image + Save. No hardware run or publication.",
+  "engineSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
+  "exporterSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "sourceHashes": {
+    "src/defs/nodes/region_hatch.js": "a75b1883925093f6a989eae4e50241bc3767549503615d9119f0756bf762e03a",
+    "src/defs/nodes/setpen.js": "f794990a7915e45f700f2dd80d0590320910da6adbbf8baca98e18f995956c9c",
+    "src/defs/nodes/merge.js": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf",
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
+    "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684"
+  },
+  "photo": [
+    {
+      "file": "verification/photo-intake.muusia.json",
+      "sha256": "d8c5dcf99e226577ebea3048c2aece78f75f84064f51df70f033afea861e69d1"
+    },
+    {
+      "file": "verification/photo-smoke.svg",
+      "sha256": "ff76bbcb1e26ebbccebd3dc3154fcc9893021928168a328afc67a15adc5d5b30"
+    }
+  ],
+  "sourceImage": {
+    "file": "assets/region-landscape.png",
+    "sha256": "0af7512d1240457205a4dd95a89b7bab55296fc925522c610bbb8a3705ee7f91"
+  },
+  "intake": {
+    "file": "verification/image-intake.muusia.json",
+    "sha256": "0825633f2e9a60a24f7afeb237f744fdc4abc4c691ee6be702fe673e38c25ccd"
+  },
+  "twoPen": {
+    "file": "patches/two-pen-regions.muusia.json",
+    "sha256": "a7abf2ec9ed62eda2ca9ceed55659d93c927bd1dd7d1828c46622d64eadfd5cd"
+  },
+  "twoPenSVG": {
+    "file": "verification/two-pen-smoke.svg",
+    "sha256": "39111b6595af19277155f590fc77f326907bcb4b1238d793ec611964a87e48c6"
+  },
+  "lessons": [
+    {
+      "id": "tonal-regions",
+      "patch": {
+        "file": "patches/tonal-regions.muusia.json",
+        "sha256": "669747954d6c1f85db85731e0e907fe45f972aeaff8461b4427123a56b6e310c"
+      },
+      "svg": [
+        {
+          "file": "assets/tonal-regions.svg",
+          "sha256": "da44d978f48bf9265a14830eea49b38a5b5463ad67d3e604fbaeb430e936a3fa"
+        },
+        {
+          "file": "assets/tonal-regions-outlines.svg",
+          "sha256": "03fa32e3dcca21d3f1599f202da155be5fbd4a124a38e1eef7b0683de13a01c7"
+        },
+        {
+          "file": "assets/tonal-regions-combined.svg",
+          "sha256": "8f24489ee8fb6c78ffbbae1cc92f9287f2a91e5ebccd84bafbc8903f2fb4e456"
+        }
+      ],
+      "gcode": {
+        "file": "verification/tonal-regions.gcode",
+        "sha256": "d3d0b2b2b8298ec1e1fcecb1ae0a0382a43ee425d486fbbce0743c7c47bd9e68"
+      },
+      "captures": [
+        {
+          "file": "assets/tonal-regions-graph.png",
+          "sha256": "b627582bf87ff6aaf2ce99c0de76663b6c6aaf0dc4c44d4457a327066dfc95c8",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/tonal-regions-focus.png",
+          "sha256": "d2fb4714da002b2212715e4ffee7fc7e1230f01d497e8e148f59eb02e78dd410",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ]
+    },
+    {
+      "id": "four-pen-regions",
+      "patch": {
+        "file": "patches/four-pen-regions.muusia.json",
+        "sha256": "424ca76c91e89e1a4eaaf906e5d9979fdf0573780876b42ce3e3c44c987ef3db"
+      },
+      "svg": [
+        {
+          "file": "assets/four-pen-regions.svg",
+          "sha256": "74bd3a15680ad7286376f59c8e8650f25d915cce62f49b52ff552e609dbd9df7"
+        },
+        {
+          "file": "assets/four-pen-regions-outlines.svg",
+          "sha256": "60ff3cd1cdd6f20d48256476f7cc0988cec8e51c0c5154d616b6cfb2a0c23003"
+        },
+        {
+          "file": "assets/four-pen-regions-combined.svg",
+          "sha256": "17f0eded40dea53d47b2aad228f0440958571e6589e8801ad9c92d9e258a97fd"
+        }
+      ],
+      "gcode": {
+        "file": "verification/four-pen-regions.gcode",
+        "sha256": "a5da0d2badb8b7bf35eef90957d766627ff638c36240e23424adf16ffe29f2be"
+      },
+      "captures": [
+        {
+          "file": "assets/four-pen-regions-graph.png",
+          "sha256": "52b83ef4862851e33a3d04644e71d6ff7d33af0229e7a2e698363e2e75689bd7",
+          "view": "graph",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "file": "assets/four-pen-regions-focus.png",
+          "sha256": "bc6ddc1630c2fe09875aa2db8960f23f373a96c4eb1bf9bf8341b5361c90b5e5",
+          "view": "focus",
+          "width": 1280,
+          "height": 720
+        }
+      ]
+    }
+  ]
+}

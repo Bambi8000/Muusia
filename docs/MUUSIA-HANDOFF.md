@@ -264,6 +264,53 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### W — 2026-10-19 · Region Hatch and two English tutorials, local only
+
+Daniel approved the Region Hatch proposal after the RSTR studio review and
+requested tutorials. Implemented on `codex/line-drape`, based on full commit
+`da8ef3bb6898cc9b4644216bc1616ed4d3e92535`, in the existing isolated checkout
+`/private/tmp/muusia-line-drape`. Main Needle Punch/App/hardware edits were not
+touched. APP_VERSION stays 2.130 pending final integration; no push or deployment.
+
+- New baked **Region Hatch**: Posterize or grayscale/spatial SLIC; connected
+  components, small-region absorption, physical PCA hatch angles and density.
+  Hatching and Region outlines are separate paths outputs. Exact grid-edge
+  closed loops preserve holes; shared region borders can be traced twice.
+- One to four selected pens, mean source-colour matching or light-to-dark tone
+  bands. One pen per region, no overprint model. Grayscale-only frozen images
+  use tone bands. Pen edits participate through the existing palette.
+- Endpoint-locked deterministic wobble is clipped to its own region. Dense work
+  uniformly coarsens row spacing and wobble sampling, retrying the whole image
+  rather than truncating a prefix. 32–144-cell working resolution; 480px image
+  intake. No shared helpers, evaluator, exporter, machine or existing nodes edited.
+- Prototyped with Node import in the real app, baked, removed the graduated lab
+  copy, then tested on a fresh built-in load. Source validator: 70 cases including
+  independent raster/contour areas, hole exclusion, winding, hidden controls,
+  four pens, extreme canvas size and Hatch Fill / Warp / 2D to 3D consumers.
+- `learn/regions/`: two English six-step tutorials and three editable image-
+  embedded patches (one, two, four pens), original reproducible landscape PNG,
+  four actual graph/Focus captures, six real SVG downloads for hatch/contours/
+  Merge and two complete G-code downloads. Both SVG and G-code coordinates and
+  every pen/lift are checked. Two-pen and 480px portrait SVG smoke captures are
+  retained under verification/ only. Actual Choose image + Save preserves source
+  RGB/darkness exactly. No physical plot; default A Servo 330×240 profile is an
+  uncalibrated example. Browser rounding is checked at 0.005001 mm tolerance.
+- Learn overview, tutorial index and sidebars link to the new three-page section.
+  The matching standalone app and complete English Learn collection are delivered
+  under the task visualization directory's `region-hatch/english/`.
+
+Validation: lint clean; 70 focused cases; 327-module visibility suite (272075
+predicates / 10752 hidden-value comparisons); ordered catalog → build → Learn
+passed with 31624 checks and 63 reachable English pages. Production build replay
+shows all four pens with 1924 hatch paths / 42123 points. Offline ZIP integrity
+passed; it contains the matching app and English Learn, no verification G-code.
+
+Integration: this is stacked on the earlier Line Drape / L-System / Craft / Shapes
+commits in this branch. Reconcile main's active Needle Punch/App work before
+integration; bump the actual next release once and rerun the ordered shared gate.
+The locally prepared Claude project snapshot is not a completed Claude upload.
+
+
 ### W — 2026-10-19 · Shapes suite, local only
 
 Daniel approved all eight proposed extensions and two new nodes after the

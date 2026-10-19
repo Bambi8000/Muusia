@@ -375,3 +375,26 @@ optimization off. Both exported SVG files are byte-identical to the originals;
 the new source patch contains the explicit neutral new defaults. Capture
 provenance identifies the actual local A servo demonstration profile (330 × 240
 mm, unverified). Historical screenshots and physical G-code checks are unchanged.
+
+## Region Hatch tutorials (2026-10-19, local delivery)
+
+`learn/regions/` contains two English image-to-pen tutorials: Posterize as a
+one-pen engraved landscape, and SLIC as a four-pen patchwork. A third downloadable
+patch is the two-pen variation. The original teaching landscape is generated in
+`fixtures.mjs`; its frozen RGB and darkness are stored in each patch so no remote
+image is required. `--write` regenerates the source PNG and all three patches,
+not screenshots or export references. Each graph also routes Region outlines
+through Set Pen to Merge, allowing hatch-only, contours-only and combined SVGs.
+
+Four PNGs are actual unretouched graph/Focus views from the local built-in node,
+converted from the browser's JPEG capture to PNG. Six actual SVG downloads and
+two actual G-code downloads are checked against the real graph evaluator and
+SVG serializer at 0.01 mm export precision, including every pen and pen-up rapid
+moves. The A Servo example profile is illustrative (330 × 240 mm); no hardware
+was run. Actual Choose image → Save is checked against the frozen teaching
+source. A separate two-pen SVG smoke test plus 480px portrait intake and SVG stay in verification/
+and are not copied to the public Learn output. The capture manifest binds actual
+artifacts, screenshots and relevant node/helper/evaluator/exporter hashes.
+`node learn/regions/validate.mjs --source` checks the source collection;
+`npm run check:learn` additionally verifies built pages and copied artifacts.
+Only run `--record` after the relevant real browser captures.

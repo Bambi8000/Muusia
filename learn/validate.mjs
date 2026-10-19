@@ -8,6 +8,8 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { inflateSync } from 'node:zlib';
 import { unzipSync, strFromU8 } from 'fflate';
+import { pages as regionPages } from './regions/fixtures.mjs';
+import { validateRegions } from './regions/validate.mjs';
 import { shapesPages } from './shapes/content.mjs';
 import { validateShapes } from './shapes/validate.mjs';
 import { craftPages } from './craft/content.mjs';
@@ -124,7 +126,7 @@ for (const n of manifest.nodes) {
   }
 }
 
-const expected = new Set(['index.html', 'tutorials/index.html', 'nodes/index.html', ...shapesPages, ...craftPages, ...animationPages, ...typographyPages,
+const expected = new Set(['index.html', 'tutorials/index.html', 'nodes/index.html', ...regionPages, ...shapesPages, ...craftPages, ...animationPages, ...typographyPages,
   ...tutorials.map(t => `tutorials/${t.id}/index.html`), ...PILOT_KEYS.map(key => `nodes/${key}/index.html`)]);
 let builtFiles = [];
 try { builtFiles = await walk(SITE); } catch { failures.push('dist/learn is missing. Build the app and run node learn/build.mjs before validation.'); }
@@ -646,6 +648,9 @@ catch (error) { check(false, `Typography: ${error.message}`); }
 
 try { await validateAnimation(SITE); check(true, ''); }
 catch (error) { check(false, `Animation studies: ${error.message}`); }
+
+try { await validateRegions(SITE); check(true, ''); }
+catch (error) { check(false, `Region tutorials: ${error.message}`); }
 
 try { await validateShapes(SITE); check(true, ''); }
 catch (error) { check(false, `Shapes tutorials: ${error.message}`); }

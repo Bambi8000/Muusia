@@ -3310,3 +3310,36 @@ put. Wire a channel into any value port.
 
 **Route** — legacy in-graph route optimizer (hidden from the palette; routing now
 lives in the export panel as *Optimize route* + *Preserve direction*).
+
+## Region Hatch — image regions and pen strokes
+
+**Region Hatch** divides a loaded image into tonal regions and fills them with
+real pen paths. **Posterize** joins adjacent cells in the same tone band;
+**SLIC** iteratively balances tone similarity with spatial compactness. This
+implementation uses grayscale tone and position for segmentation, then mean RGB
+for optional pen assignment. It is not a colour-space SLIC implementation.
+Disconnected islands are separated; **Min region cells** absorbs small ones into
+adjacent regions. **Resolution** is the working grid's long side (32–144 cells),
+**Cell size** is SLIC spacing in those cells, and **Compactness** controls spatial
+regularity. Smooth passes blur the tone field before region formation.
+
+Outputs: **Hatching** first, **Region outlines** second. The latter consists of
+closed, grid-derived contours with opposite winding for holes. Regions sharing
+an edge each retain that edge. The second output is not included in the first;
+use Merge if both are wanted. Ink threshold omits faint regions from both.
+Angle mode Region shape uses each region's physical principal axis, constrained
+to Angle min/max; Fixed ignores Angle max. Pen width, mean darkness, Ink gamma
+and Ink strength determine nominal spacing within Min/Max spacing. These are
+coverage approximations, not calibrated optical density.
+
+Use **Colours** to select 1–4 existing pens. Tone bands runs from Pen 1 (lightest) to
+Pen 4 (darkest); Source colours selects the nearest chosen pen to the region's
+mean RGB. One pen is used per region: no CMYK overprint or subtractive ink model.
+Old grayscale-only images fall back to tone bands. Hidden higher-numbered pens
+have no effect. Hand wobble holds clipped interval endpoints and clips excursions
+back to the same region. Seed and Wobble wave are ignored when wobble is zero.
+Dense work widens hatch spacing and coarsens wobble sampling uniformly rather than
+truncating later regions or pen layers. Input images are frozen in the patch;
+computation is browser-local. See `learn/regions/` for two English tutorials,
+three patches, an original source PNG and actual exports of both outputs and
+Merge. The source PNG can be replaced through Choose image.

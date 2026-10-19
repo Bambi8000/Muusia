@@ -1110,6 +1110,11 @@ export const NODE_RECENCY = {
     "order": 64,
     "sha256": "dbb0366dc15ae65bd9c671a19968ae020dd629006760bb05ddd128a7054afd74"
   },
+  "region_hatch": {
+    "date": "2026-10-19",
+    "order": 91,
+    "sha256": "a75b1883925093f6a989eae4e50241bc3767549503615d9119f0756bf762e03a"
+  },
   "regmarks": {
     "date": "2026-07-22",
     "order": 1,
