@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
+import TileEditor from "./tile-editor.jsx";
 import { isParameterActive, parameterPresentation } from "./defs/parameter-visibility.js";
 import { DEFS_NODES } from "./defs/index.js";
 import { EXAMPLES } from "./examples.js";
@@ -1709,6 +1710,7 @@ function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, por
       </div>
     );
   }
+  if (def.type === "tilepoints") return <TileEditor value={value} onChange={onChange} label={def.label} theme={T} />;
   if (def.type === "text") {
     return (
       <div style={{ marginBottom: 6 }}>
@@ -3893,7 +3895,7 @@ export default function App() {
                 </button>
               </div>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
-                Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes.
+                Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes.
               </div>
             </div>
             <div data-machine-setup="true" onClick={() => setMchOpen((v) => !v)}

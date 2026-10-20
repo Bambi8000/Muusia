@@ -12,7 +12,7 @@
     "src/defs/nodes/grid.js": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2",
     "src/defs/nodes/topolar.js": "d809c7d4c1bdb0826c472a0ccae4e37dfac7ce7a57db74f9c9efec07e0af835c",
     "src/defs/nodes/warp.js": "011974f2832ffd852cbe6189295cc20c65850d08429c2d5311cafa6c61ee544b",
-    "src/defs/nodes/truchet.js": "5cffa3d03d3e4c9bc0cc08303ca73b85a654c076c9845b5af82254a97cd1196e",
+    "src/defs/nodes/truchet.js": "095d35efcf9a90f5189809a7ca53b8da0aa29e9b6db70e15bd55ee2ad2343478",
     "src/defs/nodes/tiles.js": "fe3663adeacef7cacdf6604c7465c7f0abc0693c658c0ba2535b583d492de88f",
     "src/defs/nodes/mini_squares.js": "ff808b8962ec6c155dbdd4940d050ab3a8c99342b6e5309bd4da394cc3921b99",
     "src/defs/nodes/network.js": "d68a843aa4b9f57e473bbd4a5ad76c75f6187e16198691cd41f483ef76576e9a",
@@ -188,7 +188,7 @@
       "id": "truchet-bands",
       "patch": {
         "file": "patches/truchet-bands.muusia.json",
-        "sha256": "17fb9fce3578ecbe32b0c367be23c1d3b3ba7e08c158e7098e71a52b82e01e06"
+        "sha256": "458a29dfb29e864bd7edd405309ce4b86ebd22217163645ef91a354d27f3d481"
       },
       "svg": {
         "file": "assets/truchet-bands.svg",
@@ -196,24 +196,30 @@
       },
       "gcode": {
         "file": "verification/truchet-bands.gcode",
-        "sha256": "49c8ff7dde6e23886e467efb3402a2548f78c7f0dbe78cf60faf12db94e3b6f7"
+        "sha256": "c07f7958f7a9146f37ab441cd26572fefffdfdaf2962187fc953e45a573f785d"
       },
       "captures": [
         {
           "file": "assets/truchet-bands-graph.png",
-          "sha256": "b3cc8765c21bed497eca13a508782bb897fa41015cea85d43f8f0d75787e7842",
+          "sha256": "94ae84c7bafd1ecd48f270da337ed5899572b7c393703d0c36d4abb1da8b3ed4",
           "view": "graph",
-          "width": 1280,
-          "height": 720
+          "width": 909,
+          "height": 808
         },
         {
           "file": "assets/truchet-bands-focus.png",
-          "sha256": "6def23337a3fce8ba5dd26b9463f2e0c2a5c8cdd8634780c58b39a5c79ee01ad",
+          "sha256": "c536476ce9c07e05bf94105df1180578ee880044044b80b4a94a3c2e025dc4ce",
           "view": "focus",
-          "width": 1280,
-          "height": 720
+          "width": 909,
+          "height": 808
         }
-      ]
+      ],
+      "maintenance": {
+        "date": "2026-10-20",
+        "appVersion": "2.131",
+        "baseCommit": "8b4fe0177ef511dcd1e010795af9d0ad7f96b76a",
+        "scope": "Actual local Custom tile development build. Butterfly patch refreshed with neutral new parameters. Actual SVG recaptured byte-identically; actual G-code and both graph/Focus screenshots refreshed. Other nine lessons retain their original evidence. No physical plot. Current SVG recaptured again after fixed-rotation Seed visibility and collapsed-inset protection; unchanged Butterfly geometry."
+      }
     },
     {
       "id": "tiles-field",

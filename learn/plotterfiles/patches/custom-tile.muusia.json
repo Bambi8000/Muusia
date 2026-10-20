@@ -1,0 +1,119 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "custom-tile",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9002,
+        "type": "truchet",
+        "x": 55,
+        "y": 40,
+        "params": {
+          "mode": "Custom tile",
+          "cornerLink": "Alternate",
+          "editCorner": "TL",
+          "knotsTL": [
+            [
+              0.06,
+              0.8,
+              1
+            ],
+            [
+              0.74,
+              0.64,
+              1
+            ],
+            [
+              0.58,
+              0.04,
+              1
+            ]
+          ],
+          "knotsTR": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsBR": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsBL": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "smoothness": 85,
+          "tileRotation": "Seeded",
+          "insetCopies": 1,
+          "copyGap": 0.7,
+          "customColours": 2,
+          "customPen2": 6,
+          "customPen3": 2,
+          "customPen4": 6,
+          "bands": 5,
+          "bandRatio": 45,
+          "bandDrawing": "Outlines",
+          "bandPitch": 0.7,
+          "rowOffset": 1,
+          "ttype": "Arcs",
+          "fill": 100,
+          "sep": "Connected",
+          "tile": 24,
+          "scale": 100,
+          "lines": 1,
+          "spread": 100,
+          "gapmm": 0,
+          "round": 100,
+          "margin": 12,
+          "seed": 9,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9002
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "2.131",
+  "basedOnCommit": "8b4fe0177ef511dcd1e010795af9d0ad7f96b76a",
+  "date": "2026-10-20",
+  "scope": "Actual local development app, five additions not yet published. Six SVG downloads, five G-code downloads, twelve SVG growth frames, six unretouched Focus captures converted from JPEG to PNG, and actual Custom Tile drag + corner toggle + Save. Route optimization off. Machine A Servo 330x240 mm is an illustrative software-check profile, not calibrated hardware. No physical plotting.",
+  "engineSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
+  "exporterSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "sources": {
+    "src/defs/nodes/circpack.js": "4fe9211b9d7d4e0acc7343582c8eb7111b14aa47f05b110a3c3931b20fcf936f",
+    "src/defs/nodes/hitomezashi.js": "ae6319867c0c2ad2aba418368303c08cadc1f6cf2a071c73c52d1968d96d36d0",
+    "src/defs/nodes/tessellation.js": "4822d12751028b5b052d0ae019627dca885c486e385f8f18f5ceae8724ca258d",
+    "src/defs/nodes/venation.js": "811d4fec87caa12bb1410cc274be168295b3342065795409b4135f20060c9b14",
+    "src/defs/nodes/truchet.js": "095d35efcf9a90f5189809a7ca53b8da0aa29e9b6db70e15bd55ee2ad2343478",
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
+    "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684",
+    "src/tile-editor.jsx": "ec9c2f901d01c6afd462abc9131aadd90abca6bd3d95af72b6375f23499b1c55"
+  },
+  "files": [
+    {
+      "file": "patches/spiral-packing.muusia.json",
+      "sha256": "826fa8aae3065a62887737993596387a39a2ac89d4f3d5f1a932e9ec7df85a62"
+    },
+    {
+      "file": "assets/spiral-packing.svg",
+      "sha256": "da8fdc6a385c355c6eb5fca9c79ba4c4893149b730e15fd90d84d4da4e0aa3bc"
+    },
+    {
+      "file": "assets/spiral-packing-focus.png",
+      "sha256": "0cd5c3a0ed55d5b9d03afa4c6bf764f59830b0ef6568d643e48bef61fd8ba579"
+    },
+    {
+      "file": "verification/spiral-packing.gcode",
+      "sha256": "7b820450dd0cb544dc96ef258a97881bd7389be5f9b13e68caf95eabac8f7377"
+    },
+    {
+      "file": "patches/hitomezashi.muusia.json",
+      "sha256": "8ccd9171e8a11aa5f5ca663d4a1680952f957d2b68048a81924d65090d3bccaa"
+    },
+    {
+      "file": "assets/hitomezashi.svg",
+      "sha256": "9ceddaa1f14c0fa814fba9802a740c3c3790f88751fa2b493885231a1e10771c"
+    },
+    {
+      "file": "assets/hitomezashi-focus.png",
+      "sha256": "118d03456482c2793d2b286e2a79da3a965c4e04bdca479d3994860247e413c5"
+    },
+    {
+      "file": "verification/hitomezashi.gcode",
+      "sha256": "4ee1ff147cbe97a79a49c40f3e3b5ea58473d6c216fa09dec59892c31fe9650d"
+    },
+    {
+      "file": "patches/tessellation.muusia.json",
+      "sha256": "663e575662affaffe6b13087c165bb0762ab33aa41e81712e75f4326bea89523"
+    },
+    {
+      "file": "assets/tessellation.svg",
+      "sha256": "67b6939a059f9947959b990db214dd576cfbf316cf220c17558115193dc1f797"
+    },
+    {
+      "file": "assets/tessellation-focus.png",
+      "sha256": "234cafb86d2240411fe80c45698d5a180a94be7fadaaaa9cce32b9698824cb0f"
+    },
+    {
+      "file": "verification/tessellation.gcode",
+      "sha256": "88221cd4cba35341ccf7cf572791a8fdb7637ba38c1608e0544b937534e74706"
+    },
+    {
+      "file": "patches/venation.muusia.json",
+      "sha256": "d26b279b689440136981c8c22c0fddd3a4730950c2279e569e540e87aa70998d"
+    },
+    {
+      "file": "assets/venation.svg",
+      "sha256": "97005cc782bc91174eb851df6159c2dcf5613abe43280deec73d242331d07899"
+    },
+    {
+      "file": "assets/venation-focus.png",
+      "sha256": "74d93357dd9b04a0a1294906b7b5113882e97e4beed13b93c210a8d227503a17"
+    },
+    {
+      "file": "verification/venation.gcode",
+      "sha256": "f5f29ff8acc3ad5d7704b7a6147b31fc3ee43e0e9ef3a8b8a208d4accbbad4db"
+    },
+    {
+      "file": "patches/custom-tile.muusia.json",
+      "sha256": "3ae0028dbd0bf6216d00a47dcf9ae3edd2388e3176031a360de08b4ab0274876"
+    },
+    {
+      "file": "assets/custom-tile.svg",
+      "sha256": "68f4cfd53ce263491a9accef94a134cc93f966e824d07402aa6e4ad573567caa"
+    },
+    {
+      "file": "assets/custom-tile-focus.png",
+      "sha256": "9f80d1cfbe7c3f400a4fbceee5bca4e5892047c5c63b1162e65be5791671c024"
+    },
+    {
+      "file": "verification/custom-tile.gcode",
+      "sha256": "f4b5248b78e57c10b64a10260640a944e6c8776dbe0053f4e286c23cfc173b00"
+    },
+    {
+      "file": "patches/floret.muusia.json",
+      "sha256": "67dcd27f1d9e8f062ede6576230d55f8eab56134e7f6f9341903bac7ca208461"
+    },
+    {
+      "file": "assets/floret.svg",
+      "sha256": "b3b861838e10f668a7c0c0a881856e7a2c0d78a5787c1cd5c0a4170f7c588e61"
+    },
+    {
+      "file": "assets/floret-focus.png",
+      "sha256": "701a71d3d7d766d9d559b845df3cfc044900c704d1961261469c5ca535f64acd"
+    },
+    {
+      "file": "patches/venation-animation.muusia.json",
+      "sha256": "db6995345a9313db30bc931f01f5681255128478fe1cfa4582074a198ad6d645"
+    },
+    {
+      "file": "assets/venation-frames.zip",
+      "sha256": "34b965370953956d3f8d33552b9a050ec89aca2b3ebd005865dda0b75590f205"
+    },
+    {
+      "file": "verification/custom-edited.muusia.json",
+      "sha256": "c0304b8ae5b45acd34d04114c796bb0de618da15d60f39d0c736726b00046ed4"
+    }
+  ]
+}

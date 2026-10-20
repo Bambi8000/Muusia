@@ -1,6 +1,52 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+    {
+      "id": "plotterfiles-suite",
+      "owner": "Astra",
+      "role": "node and English tutorial implementation",
+      "baseCommit": "8b4fe0177ef511dcd1e010795af9d0ad7f96b76a",
+      "branch": "codex/plotterfiles-suite",
+      "worktree": "/private/tmp/muusia-line-drape",
+      "files": [
+        "src/defs/nodes/circpack.js",
+        "src/defs/nodes/truchet.js",
+        "src/defs/nodes/hitomezashi.js",
+        "src/defs/nodes/tessellation.js",
+        "src/defs/nodes/venation.js",
+        "src/tile-editor.jsx",
+        "src/App.jsx: tilepoints UI and Venation playback help only",
+        "docs/MUUSIA-NODE-API.md",
+        "docs/MUUSIA-NODES.md",
+        "docs/MUUSIA-TAGS.json",
+        "docs/MUUSIA-HANDOFF.md",
+        "src/defs/catalog.js",
+        "src/defs/node-recency-data.js",
+        "docs/MUUSIA-NODES-SRC.md",
+        "tools/validate-plotterfiles-suite.mjs",
+        "learn/plotterfiles/",
+        "learn/build.mjs",
+        "learn/validate.mjs",
+        "learn/generated/manifest.json",
+        "learn/README.md",
+        "learn/shapes/capture-manifest.json",
+        "learn/shapes/patches/truchet-bands.muusia.json",
+        "learn/shapes/assets/truchet-bands*",
+        "learn/shapes/verification/truchet-bands.gcode",
+        "learn/shapes/build.mjs"
+      ],
+      "status": "ready",
+      "outcome": "Five approved features and five English tutorials implemented; 102 geometry cases and full catalog/build/Learn gate passed. Local-only delivery in plotterfiles-suite/preview; no publication or machine changes.",
+      "checks": [
+        "node tools/validate-plotterfiles-suite.mjs: 102 cases",
+        "node tools/validate-catalog.mjs",
+        "npm run build",
+        "npm run check:learn: 33060 checks / 69 pages",
+        "actual SVG/G-code exports, Custom Tile drag/save, 12 growth frames, existing Butterfly recapture"
+      ],
+      "reviewPath": "/Users/daniel/.codex/visualizations/2026/10/12/01a12f65-627a-7b73-a1f8-0b1dbf4558f7/plotterfiles-suite/preview/index.html"
+    }
+  ],
   "lastIntegration": {
     "version": "2.131",
     "date": "2026-10-20",

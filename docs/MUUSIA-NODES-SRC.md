@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (327 files, generated)
+# MUUSIA v2.29 — Node Sources (330 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -7163,43 +7163,63 @@ export default {
 import { Pin, mulberry32, applyStyle } from "../helpers.js";
 
 export default {
-  key: "circpack",
-    name: "Circle Packing", cat: "gen", group: "geometric", ins: [Pin("style", "Style")], outs: [Pin("paths")],
-    params: [
-      { key: "attempts", label: "Attempts", type: "slider", min: 50, max: 3000, step: 50, def: 800 },
-      { key: "minR", label: "Min R mm", type: "slider", min: 0.5, max: 15, step: 0.25, def: 1.5 },
-      { key: "maxR", label: "Max R mm", type: "slider", min: 2, max: 60, step: 0.5, def: 18 },
-      { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
-      { key: "seed", label: "Seed", type: "seed", def: 14 },
-      { key: "layer", label: "Pen", type: "pen", def: 0 },
-    ],
-    compute(ins, p, ctx) {
-      const { W, H } = ctx;
-      const rng = mulberry32(p.seed * 271 + 91);
-      const circles = [];
-      for (let a = 0; a < p.attempts; a++) {
-        const x = p.margin + rng() * (W - 2 * p.margin);
-        const y = p.margin + rng() * (H - 2 * p.margin);
-        let r = Math.min(p.maxR, x - p.margin, W - p.margin - x, y - p.margin, H - p.margin - y);
-        for (const c of circles) {
-          const d = Math.hypot(x - c[0], y - c[1]) - c[2];
-          if (d < r) r = d;
-          if (r < p.minR) break;
+  key: "circpack", name: "Circle Packing", cat: "gen", group: "geometric",
+  desc: "Pack non-overlapping circles, optionally inside a wired closed Region with even-odd holes. Fill chooses original Outline, one open Spiral per circle, or nested Rings. Pitch is the radial spacing in millimetres and stays the same in small and large circles. Clearance separates neighbouring circles and keeps them off the region boundary. Colour by Size puts small-to-large circles on the selected pens; Sequence cycles the circles. Dense fills reduce curve sampling detail uniformly while preserving physical pitch. If the minimum ring samples still exceed the budget, fewer seeded packing attempts are used across the whole page. Outline with no region and zero clearance preserves the original drawing. Very detailed regions above 4000 points are rejected; simplify them first.",
+  ins: [Pin("style", "Style"), Pin("paths", "Region")], outs: [Pin("paths")],
+  params: [
+    {key:"fill",label:"Fill",type:"select",options:["Outline","Spiral","Rings"],def:"Outline"},
+    {key:"pitch",label:"Pitch mm",type:"slider",min:.3,max:8,step:.1,def:1.2,showIf:p=>p.fill!=="Outline"},
+    {key:"clearance",label:"Clearance mm",type:"slider",min:0,max:6,step:.1,def:0},
+    {key:"attempts",label:"Attempts",type:"slider",min:50,max:3000,step:50,def:800},
+    {key:"minR",label:"Min R mm",type:"slider",min:.5,max:15,step:.25,def:1.5},
+    {key:"maxR",label:"Max R mm",type:"slider",min:2,max:60,step:.5,def:18},
+    {key:"colours",label:"Colours",type:"slider",min:1,max:4,step:1,def:1},
+    {key:"colourBy",label:"Colour by",type:"select",options:["Size","Sequence"],def:"Size",showIf:p=>p.colours>1},
+    {key:"layer",label:"Pen 1",type:"pen",def:0},
+    ...[2,3,4].map((n)=>({key:"pen"+n,label:"Pen "+n,type:"pen",def:n===2?1:n===3?2:6,showIf:p=>p.colours>=n})),
+    {key:"margin",label:"Margin mm",type:"slider",min:0,max:60,step:1,def:10},
+    {key:"seed",label:"Seed",type:"seed",def:14}
+  ],
+  overlay(p,c,ins){const ps=ins?.[1]?.paths?.filter(q=>q.closed)||[];return ps.length?ps.slice(0,80).map(q=>({kind:"poly",pts:[...q.pts,q.pts[0]]})):[{kind:"rect",x:p.margin,y:p.margin,w:c.W-2*p.margin,h:c.H-2*p.margin}];},
+  _pack(ins,p,c){
+    const num=(v,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+v)?+v:d));
+    const m=num(p.margin,10,0,Math.min(c.W,c.H)/2),min=num(p.minR,1.5,.25,300),max=Math.max(min,num(p.maxR,18,.25,600)),gap=num(p.clearance,0,0,100),count=Math.round(num(p.attempts,800,0,6000));
+    if(c.W<=2*m||c.H<=2*m)return [];
+    const region=(ins?.[1]?.paths||[]).filter(q=>q.closed&&q.pts?.length>=3);if(region.reduce((a,q)=>a+q.pts.length,0)>4000)return [];
+    const edges=region.flatMap(q=>q.pts.map((a,i)=>[a,q.pts[(i+1)%q.pts.length]]));
+    const inside=(x,y)=>{let b=false;for(const [a,d]of edges)if((a[1]>y)!==(d[1]>y)&&x<(d[0]-a[0])*(y-a[1])/(d[1]-a[1])+a[0])b=!b;return b;};
+    const rng=mulberry32((Number.isFinite(+p.seed)?+p.seed:14)*271+91),circles=[];
+    for(let a=0;a<count;a++){
+      const x=m+rng()*(c.W-2*m),y=m+rng()*(c.H-2*m);if(edges.length&&!inside(x,y))continue;
+      let r=Math.min(max,x-m,c.W-m-x,y-m,c.H-m-y);
+      for(const [u,v]of edges){const dx=v[0]-u[0],dy=v[1]-u[1],t=Math.max(0,Math.min(1,((x-u[0])*dx+(y-u[1])*dy)/(dx*dx+dy*dy||1)));r=Math.min(r,Math.hypot(x-u[0]-t*dx,y-u[1]-t*dy)-gap);}
+      for(const q of circles){r=Math.min(r,Math.hypot(x-q[0],y-q[1])-q[2]-gap);if(r<min)break;}
+      if(r>=min)circles.push([x,y,r]);
+    }return circles;
+  },
+  compute(ins,p,c){
+    let circles=this._pack(ins,p,c);const pitch=Math.max(.3,Math.min(50,+p.pitch||1.2)),fill=p.fill||"Outline",nc=Math.max(1,Math.min(4,Math.round(+p.colours||1))),pens=[p.layer??0,p.pen2??1,p.pen3??2,p.pen4??6].map(v=>((Math.round(+v||0)%12)+12)%12),paths=[];
+    let attempts=Math.max(0,Math.min(6000,Math.round(+p.attempts||0)));
+    for(let pass=0;pass<8;pass++){
+      const minimum=circles.reduce((n,q)=>n+(fill==='Rings'?12*Math.ceil(q[2]/pitch):fill==='Outline'?Math.min(64,Math.max(12,Math.ceil(q[2]*2.5))):13),0),limit=fill==='Rings'?42000:105000;
+      if(minimum<=limit)break;attempts=Math.max(1,Math.floor(attempts*limit/minimum*.85));circles=this._pack(ins,{...p,attempts},c);
+    }
+    const radii=circles.map(q=>q[2]),lo=Math.min(...radii),hi=Math.max(...radii);
+    const length=circles.reduce((a,q)=>a+(fill==="Outline"?2*Math.PI*q[2]:Math.PI*q[2]*q[2]/pitch+2*Math.PI*q[2]),0),step=Math.max(.55,length/42000);
+    for(let i=0;i<circles.length;i++){
+      const [x,y,r]=circles[i],idx=p.colourBy==="Sequence"?i%nc:Math.min(nc-1,Math.floor((r-lo)/(hi-lo||1)*nc)),layer=pens[idx];
+      if(fill==="Spiral"){
+        const turn=r/pitch*2*Math.PI,N=Math.max(12,Math.ceil((Math.PI*r*r/pitch)/step)),pts=[];
+        for(let k=0;k<=N;k++){const a=turn*k/N,rr=r*k/N;pts.push([x+Math.cos(a)*rr,y+Math.sin(a)*rr]);}paths.push({pts,closed:false,layer});
+      }else{
+        const rings=fill==="Rings"?Math.max(1,Math.ceil(r/pitch)):1;
+        for(let j=0;j<rings;j++){const rr=r-j*pitch;if(rr<.05)continue;
+          const n=fill==="Outline"?Math.min(64,Math.max(12,Math.ceil(rr*2.5))):Math.max(12,Math.ceil(2*Math.PI*rr/step)),pts=[];
+          for(let k=0;k<n;k++){const a=k/n*2*Math.PI;pts.push([x+Math.cos(a)*rr,y+Math.sin(a)*rr]);}paths.push({pts,closed:true,layer});
         }
-        if (r >= p.minR) circles.push([x, y, r]);
       }
-      const paths = circles.map(([x, y, r]) => {
-        const n = Math.min(64, Math.max(12, Math.ceil(r * 2.5)));
-        const pts = [];
-        for (let k = 0; k < n; k++) {
-          const a = (k / n) * Math.PI * 2;
-          pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r]);
-        }
-        return { pts, closed: true, layer: Math.round(p.layer) };
-      });
-      return applyStyle({ paths }, ins[0]);
-    },
-  
+    }return applyStyle({paths},ins?.[0]);
+  }
 };
 ```
 
@@ -20852,6 +20872,45 @@ export default {
       return applyStyle({ paths }, ins[0]);
     }
   
+};
+```
+
+## hitomezashi.js
+
+```js
+import { Pin, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+ key:'hitomezashi',name:'Hitomezashi',cat:'gen',group:'geometric',
+ desc:'Alternating horizontal and vertical stitches form Hitomezashi patterns. Each row and column has a binary phase: Seeded picks repeatable phases, Alternating makes a regular rhythm, and Binary strings repeats your 0/1 sequences. Pitch sets the physical grid spacing; Angle rotates the grid before exact clipping to Margin and an optional closed Region, including even-odd holes. Colours 1 uses Pen 1; 2 separates horizontal and vertical; 3 or 4 alternates pens along each axis. Stitch ratio below 100 leaves a gap at each stitch end. Large pages and tiny pitches automatically raise the effective grid pitch to keep the whole page within a bounded stitch count. Seed never changes during animation unless you wire it.',
+ ins:[Pin('style','Style'),Pin('paths','Region')],outs:[Pin('paths','Drawing')],
+ params:[
+ {key:'phase',label:'Phase rule',type:'select',options:['Seeded','Alternating','Binary strings'],def:'Seeded'},
+ {key:'rows',label:'Row bits',type:'text',def:'001011',showIf:p=>p.phase==='Binary strings'},
+ {key:'cols',label:'Column bits',type:'text',def:'101100',showIf:p=>p.phase==='Binary strings'},
+ {key:'pitch',label:'Pitch mm',type:'slider',min:1,max:20,step:.25,def:4},
+ {key:'ratio',label:'Stitch ratio %',type:'slider',min:10,max:100,step:1,def:100},
+ {key:'angle',label:'Angle °',type:'slider',min:-180,max:180,step:1,def:0},
+ {key:'colours',label:'Colours',type:'slider',min:1,max:4,step:1,def:2},
+ {key:'layer',label:'Pen 1',type:'pen',def:0},
+ ...[2,3,4].map(n=>({key:'pen'+n,label:'Pen '+n,type:'pen',def:n===2?1:n===3?2:6,showIf:p=>p.colours>=n})),
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12},
+ {key:'seed',label:'Seed',type:'seed',def:27,showIf:p=>p.phase==='Seeded'}
+ ],
+ overlay(p,c,ins){const ps=ins?.[1]?.paths?.filter(q=>q.closed)||[];return ps.length?ps.slice(0,80).map(q=>({kind:'poly',pts:[...q.pts,q.pts[0]]})):[{kind:'rect',x:p.margin,y:p.margin,w:c.W-2*p.margin,h:c.H-2*p.margin}];},
+ _segments(p,c,ins){
+ const n=(v,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+v)?+v:d)),m=n(p.margin,12,0,Math.min(c.W,c.H)/2);if(c.W<=m*2||c.H<=m*2)return [];
+ const polys=(ins?.[1]?.paths||[]).filter(q=>q.closed&&q.pts?.length>=3);if(polys.reduce((a,q)=>a+q.pts.length,0)>4000)return [];
+ const boundary=polys.flatMap(q=>q.pts.map((a,i)=>[a,q.pts[(i+1)%q.pts.length]])),inside=q=>{if(q[0]<m-1e-8||q[0]>c.W-m+1e-8||q[1]<m-1e-8||q[1]>c.H-m+1e-8)return false;if(!boundary.length)return true;let b=false;for(const [a,d]of boundary)if((a[1]>q[1])!==(d[1]>q[1])&&q[0]<(d[0]-a[0])*(q[1]-a[1])/(d[1]-a[1])+a[0])b=!b;return b;};
+ const rect=[[m,m],[c.W-m,m],[c.W-m,c.H-m],[m,c.H-m]],edges=[...boundary,...rect.map((q,i)=>[q,rect[(i+1)%4]])],cross=(a,b)=>a[0]*b[1]-a[1]*b[0];
+ const clip=(a,b)=>{const d=[b[0]-a[0],b[1]-a[1]],ts=[0,1];for(const [u,v]of edges){const e=[v[0]-u[0],v[1]-u[1]],den=cross(d,e);if(Math.abs(den)<1e-10)continue;const w=[u[0]-a[0],u[1]-a[1]],t=cross(w,e)/den,s=cross(w,d)/den;if(t>0&&t<1&&s>=0&&s<=1)ts.push(t);}ts.sort((a,b)=>a-b);const out=[];for(let i=1;i<ts.length;i++)if(ts[i]-ts[i-1]>1e-8){const t=(ts[i]+ts[i-1])/2;if(inside([a[0]+d[0]*t,a[1]+d[1]*t]))out.push([ts[i-1],ts[i]].map(t=>[a[0]+d[0]*t,a[1]+d[1]*t]));}return out;};
+ const pitch=Math.max(n(p.pitch,4,.5,100),Math.hypot(c.W,c.H)/120),R=Math.ceil(Math.hypot(c.W,c.H)/(2*pitch))+2,ang=n(p.angle,0,-1e6,1e6)*Math.PI/180,co=Math.cos(ang),si=Math.sin(ang),map=(x,y)=>[c.W/2+x*co-y*si,c.H/2+x*si+y*co],rng=mulberry32(n(p.seed,27,-2e9,2e9)),bits=[String(p.rows??'001011').replace(/[^01]/g,'')||'0',String(p.cols??'101100').replace(/[^01]/g,'')||'0'],phases=bits.map((s,axis)=>Array.from({length:2*R+1},(_,i)=>p.phase==='Binary strings'?+s[i%s.length]:p.phase==='Alternating'?(i+axis)%2:Math.floor(rng()*2))),nc=Math.round(n(p.colours,2,1,4)),pens=[p.layer??0,p.pen2??1,p.pen3??2,p.pen4??6].map(v=>Math.round(n(v,0,0,11))),ratio=n(p.ratio,100,10,100)/100,out=[];
+ for(let axis=0;axis<2;axis++)for(let row=-R;row<=R;row++)for(let k=-R;k<R;k++){
+  if(((k+R)%2)!==phases[axis][row+R])continue;const pad=(1-ratio)/2*pitch,a=axis?map(row*pitch,k*pitch+pad):map(k*pitch+pad,row*pitch),b=axis?map(row*pitch,(k+1)*pitch-pad):map((k+1)*pitch-pad,row*pitch),ci=nc===1?0:nc===2?axis:((axis+2*Math.floor((k+R)/2))%nc);
+  for(const pts of clip(a,b))out.push({pts,closed:false,layer:pens[ci]});
+ }return out;
+ },
+ compute(ins,p,c){return applyStyle({paths:this._segments(p,c,ins)},ins?.[0]);}
 };
 ```
 
@@ -53402,6 +53461,83 @@ export default {
 };
 ```
 
+## tessellation.js
+
+```js
+import { Pin, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+ key:'tessellation',name:'Tessellation',cat:'gen',group:'geometric',
+ desc:'Shared-edge tilings, not overlapping stamps. Rhombus projects the stepped surface of a monotone cube pile; seeded legal cube flips change the lozenge pattern without gaps. Floret uses six pentagons around each flower centre: each pentagon has one 60° and four 120° corners. Cell edge is requested millimetres; the complete Rhombus hexagon shrinks uniformly if needed to fit Margin. Floret fills the page at the requested scale, with a minimum scale for dense jobs. Edges draws each shared edge once; Inset bands draws nested contours inside each tile. Both combines the two. Colours assigns pens by tile orientation. A wired Region clips the linework exactly, preserving even-odd holes; clipped contours can become open paths. No region means the paper margin.',
+ ins:[Pin('style','Style'),Pin('paths','Region')],outs:[Pin('paths','Drawing')],
+ params:[
+ {key:'family',label:'Family',type:'select',options:['Rhombus','Floret'],def:'Rhombus'},
+ {key:'cell',label:'Cell edge mm',type:'slider',min:3,max:30,step:.5,def:9},
+ {key:'cells',label:'Cells per side',type:'slider',min:2,max:18,step:1,def:7,showIf:p=>p.family==='Rhombus'},
+ {key:'flips',label:'Flip attempts',type:'slider',min:0,max:12000,step:100,def:3500,showIf:p=>p.family==='Rhombus'},
+ {key:'drawing',label:'Drawing',type:'select',options:['Edges','Inset bands','Both'],def:'Inset bands'},
+ {key:'bands',label:'Inset bands',type:'slider',min:1,max:8,step:1,def:3,showIf:p=>p.drawing!=='Edges'},
+ {key:'inset',label:'Inset step mm',type:'slider',min:.2,max:4,step:.1,def:.7,showIf:p=>p.drawing!=='Edges'},
+ {key:'angle',label:'Angle °',type:'slider',min:-180,max:180,step:1,def:0},
+ {key:'colours',label:'Colours',type:'slider',min:1,max:4,step:1,def:3},
+ {key:'layer',label:'Pen 1',type:'pen',def:0},
+ ...[2,3,4].map(n=>({key:'pen'+n,label:'Pen '+n,type:'pen',def:n===2?1:n===3?2:6,showIf:p=>p.colours>=n})),
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12},
+ {key:'seed',label:'Seed',type:'seed',def:42,showIf:p=>p.family==='Rhombus'}
+ ],
+ overlay(p,c,ins){const ps=ins?.[1]?.paths?.filter(q=>q.closed)||[];return ps.length?ps.slice(0,80).map(q=>({kind:'poly',pts:[...q.pts,q.pts[0]]})):[{kind:'rect',x:p.margin,y:p.margin,w:c.W-2*p.margin,h:c.H-2*p.margin}];},
+ _tiles(p,c){
+ const num=(v,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+v)?+v:d)),m=num(p.margin,12,0,Math.min(c.W,c.H)/2),W=c.W-2*m,H=c.H-2*m;if(W<=0||H<=0)return [];
+ const n=Math.round(num(p.cells,7,2,20)),tiles=[],a=num(p.angle,0,-1e6,1e6)*Math.PI/180,co=Math.cos(a),si=Math.sin(a),rotate=q=>[q[0]*co-q[1]*si,q[0]*si+q[1]*co],project=(i,j,z)=>[(i-j)*Math.sqrt(3)/2,(i+j)/2-z];
+ let size=num(p.cell,9,2,100);
+ if(p.family!=='Floret'){
+  const h=Array.from({length:n},()=>new Int16Array(n)),rng=mulberry32(num(p.seed,42,-2e9,2e9)),attempts=Math.round(num(p.flips,3500,0,50000));
+  for(let k=0;k<attempts;k++){const i=Math.floor(rng()*n),j=Math.floor(rng()*n),up=rng()<.58;
+   if(up){const cap=Math.min(i?h[i-1][j]:n,j?h[i][j-1]:n);if(h[i][j]<cap)h[i][j]++;}
+   else{const floor=Math.max(i<n-1?h[i+1][j]:0,j<n-1?h[i][j+1]:0);if(h[i][j]>floor)h[i][j]--;}
+  }
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+   const z=h[i][j];tiles.push({orientation:0,pts:[[i,j,z],[i+1,j,z],[i+1,j+1,z],[i,j+1,z]].map(q=>project(...q))});
+   for(let k=z;k<(i?h[i-1][j]:n);k++)tiles.push({orientation:1,pts:[[i,j,k],[i,j+1,k],[i,j+1,k+1],[i,j,k+1]].map(q=>project(...q))});
+   for(let k=z;k<(j?h[i][j-1]:n);k++)tiles.push({orientation:2,pts:[[i,j,k],[i+1,j,k],[i+1,j,k+1],[i,j,k+1]].map(q=>project(...q))});
+  }
+  for(let j=0;j<n;j++)for(let k=0;k<h[n-1][j];k++)tiles.push({orientation:1,pts:[[n,j,k],[n,j+1,k],[n,j+1,k+1],[n,j,k+1]].map(q=>project(...q))});
+  for(let i=0;i<n;i++)for(let k=0;k<h[i][n-1];k++)tiles.push({orientation:2,pts:[[i,n,k],[i+1,n,k],[i+1,n,k+1],[i,n,k+1]].map(q=>project(...q))});
+  const all=tiles.flatMap(t=>t.pts.map(rotate)),xs=all.map(q=>q[0]),ys=all.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);size=Math.min(size,W/(x1-x0),H/(y1-y0));
+  return tiles.map(t=>({...t,pts:t.pts.map(rotate).map(q=>[c.W/2+(q[0]-(x0+x1)/2)*size,c.H/2+(q[1]-(y0+y1)/2)*size])}));
+ }
+ size=Math.max(size,Math.sqrt(W*H/1600));const R=Math.hypot(W,H)/2/size+6,N=Math.ceil(R/3)+2,base=[[0,0],[2,0],[2.5,Math.sqrt(3)/2],[2,Math.sqrt(3)],[1,Math.sqrt(3)]];
+ for(let i=-N;i<=N;i++)for(let j=-N;j<=N;j++){
+  const cx=4.5*i+1.5*j,cy=Math.sqrt(3)/2*i+2.5*Math.sqrt(3)*j;if(Math.hypot(cx,cy)>R)continue;
+  for(let k=0;k<6;k++){const t=k*Math.PI/3,C=Math.cos(t),S=Math.sin(t),pts=base.map(q=>rotate([cx+q[0]*C-q[1]*S,cy+q[0]*S+q[1]*C])).map(q=>[c.W/2+q[0]*size,c.H/2+q[1]*size]);
+   if(pts.every(q=>q[0]<m)||pts.every(q=>q[0]>c.W-m)||pts.every(q=>q[1]<m)||pts.every(q=>q[1]>c.H-m))continue;tiles.push({pts,orientation:k});}
+ }return tiles;
+ },
+ _inset(pts,d){
+ let area=0;for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];area+=a[0]*b[1]-b[0]*a[1];}const sign=area>=0?1:-1,lines=pts.map((a,i)=>{const b=pts[(i+1)%pts.length],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);return {a:[a[0]-sign*dy/L*d,a[1]+sign*dx/L*d],d:[dx,dy]};}),out=[];
+ for(let i=0;i<lines.length;i++){const u=lines[(i+lines.length-1)%lines.length],v=lines[i],den=u.d[0]*v.d[1]-u.d[1]*v.d[0];if(Math.abs(den)<1e-9)return null;const dx=v.a[0]-u.a[0],dy=v.a[1]-u.a[1],t=(dx*v.d[1]-dy*v.d[0])/den;out.push([u.a[0]+t*u.d[0],u.a[1]+t*u.d[1]]);}
+ for(const q of out)for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];if(sign*((b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0]))<-1e-7)return null;}
+ let a2=0;for(let i=0;i<out.length;i++){const a=out[i],b=out[(i+1)%out.length];a2+=a[0]*b[1]-b[0]*a[1];}return Math.abs(a2)>.005&&a2*area>0?out:null;
+ },
+ _clip(paths,p,c,ins){
+ const m=Math.max(0,Math.min(Math.min(c.W,c.H)/2,+p.margin||0)),polys=(ins?.[1]?.paths||[]).filter(q=>q.closed&&q.pts?.length>=3);if(polys.reduce((a,q)=>a+q.pts.length,0)>4000)return [];
+ const boundary=polys.flatMap(q=>q.pts.map((a,i)=>[a,q.pts[(i+1)%q.pts.length]])),rect=[[m,m],[c.W-m,m],[c.W-m,c.H-m],[m,c.H-m]],edges=[...boundary,...rect.map((q,i)=>[q,rect[(i+1)%4]])],cross=(a,b)=>a[0]*b[1]-a[1]*b[0],inside=q=>{if(q[0]<m-1e-8||q[0]>c.W-m+1e-8||q[1]<m-1e-8||q[1]>c.H-m+1e-8)return false;if(!boundary.length)return true;let b=false;for(const [a,d]of boundary)if((a[1]>q[1])!==(d[1]>q[1])&&q[0]<(d[0]-a[0])*(q[1]-a[1])/(d[1]-a[1])+a[0])b=!b;return b;},out=[];
+ for(const q of paths){let run=[],pieces=[],cut=false;const flush=()=>{if(run.length>1)pieces.push({pts:run,closed:false,layer:q.layer});run=[];};
+  for(let k=0;k<q.pts.length-(q.closed?0:1);k++){const a=q.pts[k],b=q.pts[(k+1)%q.pts.length],d=[b[0]-a[0],b[1]-a[1]],ts=[0,1];for(const [u,v]of edges){const e=[v[0]-u[0],v[1]-u[1]],den=cross(d,e);if(Math.abs(den)<1e-10)continue;const w=[u[0]-a[0],u[1]-a[1]],t=cross(w,e)/den,s=cross(w,d)/den;if(t>1e-9&&t<1-1e-9&&s>=0&&s<=1)ts.push(t);}ts.sort((a,b)=>a-b);
+   for(let j=1;j<ts.length;j++){const t0=ts[j-1],t1=ts[j];if(t1-t0<1e-9)continue;const at=t=>[a[0]+d[0]*t,a[1]+d[1]*t];if(!inside(at((t0+t1)/2))){cut=true;flush();continue;}const x=at(t0),y=at(t1);if(run.length&&Math.hypot(run.at(-1)[0]-x[0],run.at(-1)[1]-x[1])>1e-6)flush();if(!run.length)run.push(x);run.push(y);}
+  }flush();if(!cut)out.push(q);else out.push(...pieces);
+ }return out;
+ },
+ compute(ins,p,c){
+ const tiles=this._tiles(p,c),paths=[],nc=Math.max(1,Math.min(4,Math.round(+p.colours||1))),pens=[p.layer??0,p.pen2??1,p.pen3??2,p.pen4??6].map(v=>Math.max(0,Math.min(11,Math.round(+v||0)))),seen=new Set(),bands=Math.max(1,Math.min(8,Math.round(+p.bands||3))),step=Math.max(.2,Math.min(20,+p.inset||.7)),key=q=>q.map(v=>Math.round(v*1e6)).join(',');
+ for(const t of tiles){const layer=pens[t.orientation%nc];
+  if(p.drawing!=='Inset bands')for(let i=0;i<t.pts.length;i++){const a=t.pts[i],b=t.pts[(i+1)%t.pts.length],ka=key(a),kb=key(b),k=ka<kb?ka+'|'+kb:kb+'|'+ka;if(!seen.has(k)){seen.add(k);paths.push({pts:[a,b],closed:false,layer});}}
+  if(p.drawing!=='Edges')for(let j=1;j<=bands;j++){const pts=this._inset(t.pts,j*step);if(!pts)break;paths.push({pts,closed:true,layer});}
+ }return applyStyle({paths:this._clip(paths,p,c,ins)},ins?.[0]);
+ }
+};
+```
+
 ## testcard.js
 
 ```js
@@ -54594,27 +54730,36 @@ export default {
   name: "Truchet",
   cat: "gen",
   group: "geometric",
-  desc: "Tiled quarter-circle patterns. Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
+  desc: "Tiled quarter-circle patterns. Custom tile adds a draggable corner gesture with fixed quarter-edge anchors: edit points in the corner diagram or with X/Y numbers, add/remove points and toggle Square corner. Linked mirrors one gesture across four corners, Alternate swaps axes on alternate corners, Paired shares opposite corners, Independent edits each separately. Rotations preserve the matching edge anchors. Inset copies shrink inside each tile and deliberately do not join across edges. Colours cycles corners/copies through up to four pens. Dense custom grids enlarge the effective tile size uniformly. The editor diagram is the control polygon; the paper preview is the smooth result.  Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop", "Concentric bands", "Butterfly", "Custom tile"], def: "Tiles" },
+    {key:'cornerLink',label:'Corner linking',type:'select',options:['Linked','Alternate','Paired','Independent'],def:'Linked',showIf:p=>p.mode==='Custom tile'},
+    {key:'editCorner',label:'Edit corner',type:'select',options:['TL','TR','BR','BL'],def:'TL',showIf:p=>p.mode==='Custom tile'&&p.cornerLink==='Independent'},
+    ...['TL','TR','BR','BL'].map((name,i)=>({key:'knots'+name,label:name+' gesture',type:'tilepoints',def:[[.02,.28,1],[.14,.14,1],[.28,.02,1]],showIf:p=>p.mode==='Custom tile'&&(p.cornerLink==='Independent'?(p.editCorner||'TL')===name:i===0||(i===1&&p.cornerLink==='Paired'))})),
+    {key:'smoothness',label:'Smoothness %',type:'slider',min:0,max:100,step:1,def:85,showIf:p=>p.mode==='Custom tile'},
+    {key:'tileRotation',label:'Tile rotations',type:'select',options:['Fixed','Checkerboard','Seeded'],def:'Seeded',showIf:p=>p.mode==='Custom tile'},
+    {key:'insetCopies',label:'Inset copies',type:'slider',min:0,max:4,step:1,def:0,showIf:p=>p.mode==='Custom tile'},
+    {key:'copyGap',label:'Inset step mm',type:'slider',min:.2,max:3,step:.1,def:.6,showIf:p=>p.mode==='Custom tile'&&p.insetCopies>0},
+    {key:'customColours',label:'Colours',type:'slider',min:1,max:4,step:1,def:1,showIf:p=>p.mode==='Custom tile'},
+    ...[2,3,4].map(n=>({key:'customPen'+n,label:'Pen '+n,type:'pen',def:n===2?1:n===3?2:6,showIf:p=>p.mode==='Custom tile'&&p.customColours>=n})),
     {key:'bands',label:'Bands per tile',type:'slider',min:1,max:14,step:1,def:5,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
     {key:'bandRatio',label:'Band width %',type:'slider',min:5,max:95,step:1,def:45,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
     {key:'bandDrawing',label:'Band drawing',type:'select',options:['Outlines','Hatch'],def:'Outlines',showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
     {key:'bandPitch',label:'Hatch gap mm',type:'slider',min:.2,max:3,step:.1,def:.7,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)&&p.bandDrawing==='Hatch'},
     {key:'rowOffset',label:'Row offset',type:'slider',min:0,max:6,step:1,def:1,showIf:p=>p.mode==='Butterfly'},
-    { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop", "Concentric bands", "Butterfly"], def: "Tiles" },
-    { key: "ttype", label: "Tile type", type: "select", options: ["Arcs", "Diagonals"], def: "Arcs" },
-    { key: "fill", label: "Tile fill % (Tiles)", type: "slider", min: 10, max: 100, step: 1, def: 100 },
-    { key: "sep", label: "Lines", type: "select", options: ["Connected", "Separate (never meet)"], def: "Connected" },
+    { key: "ttype", label: "Tile type", type: "select", options: ["Arcs", "Diagonals"], def: "Arcs", showIf: p => p.mode !== "Custom tile" },
+    { key: "fill", label: "Tile fill % (Tiles)", type: "slider", min: 10, max: 100, step: 1, def: 100, showIf: p => p.mode !== "Custom tile" },
+    { key: "sep", label: "Lines", type: "select", options: ["Connected", "Separate (never meet)"], def: "Connected", showIf: p => p.mode !== "Custom tile" },
     { key: "tile", label: "Tile mm", type: "slider", min: 4, max: 60, step: 1, def: 15 },
     { key: "scale", label: "Scale %", type: "slider", min: 10, max: 400, step: 1, def: 100 },
-    { key: "lines", label: "Lines per tile", type: "slider", min: 1, max: 6, step: 1, def: 1 },
-    { key: "spread", label: "Line spread %", type: "slider", min: 10, max: 100, step: 1, def: 100 },
-    { key: "gapmm", label: "Arc gap mm", type: "slider", min: 0, max: 8, step: 0.1, def: 0 },
+    { key: "lines", label: "Lines per tile", type: "slider", min: 1, max: 6, step: 1, def: 1, showIf: p => p.mode !== "Custom tile" },
+    { key: "spread", label: "Line spread %", type: "slider", min: 10, max: 100, step: 1, def: 100, showIf: p => p.mode !== "Custom tile" },
+    { key: "gapmm", label: "Arc gap mm", type: "slider", min: 0, max: 8, step: 0.1, def: 0, showIf: p => p.mode !== "Custom tile" },
     { key: "round", label: "Corner radius % (loop)", type: "slider", min: 10, max: 100, step: 1, def: 100 },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
-    { key: "seed", label: "Seed", type: "seed", def: 9 },
+    { key: "seed", label: "Seed", type: "seed", def: 9, showIf: p => p.mode !== "Custom tile" || p.tileRotation === "Seeded" },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
   overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
@@ -54634,8 +54779,27 @@ export default {
     }
     let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<12&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return out;
   },
+  _gesture(raw,smooth){
+    const clean=Array.isArray(raw)?raw.filter(q=>Array.isArray(q)&&q.length>=2&&q.slice(0,2).every(Number.isFinite)).slice(0,6):[],knots=[[0,.25,0],...(clean.length?clean:[[.14,.14,1]]).map(q=>[Math.max(.01,Math.min(.99,q[0]))*.5,Math.max(.01,Math.min(.99,q[1]))*.5,q[2]===0?0:1]),[.25,0,0]],pts=[];
+    for(let i=0;i<knots.length-1;i++){const a=knots[i],b=knots[i+1],prev=knots[i-1]||a,next=knots[i+2]||b,d=[b[0]-a[0],b[1]-a[1]],ta=d.map((v,k)=>(1-smooth)*v+smooth*(a[2]?(b[k]-prev[k])*.5:v)),tb=d.map((v,k)=>(1-smooth)*v+smooth*(b[2]?(next[k]-a[k])*.5:v));
+      for(let j=0;j<10;j++){const t=j/10,t2=t*t,t3=t2*t;pts.push(a.slice(0,2).map((v,k)=>Math.max(.0001,Math.min(.4999,(2*t3-3*t2+1)*v+(t3-2*t2+t)*ta[k]+(-2*t3+3*t2)*b[k]+(t3-t2)*tb[k]))));}}
+    pts[0]=[0,.25];pts.push([.25,0]);return pts;
+  },
+  _custom(ins,p,c){
+    const num=(v,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+v)?+v:d)),m=num(p.margin,12,0,Math.min(c.W,c.H)/2),w=c.W-2*m,h=c.H-2*m;if(w<=0||h<=0)return {paths:[]};
+    const copies=Math.round(num(p.insetCopies,0,0,4)),smooth=num(p.smoothness,85,0,100)/100,gestures=['TL','TR','BR','BL'].map(k=>this._gesture(p['knots'+k],smooth)),maxPoints=Math.max(...gestures.map(q=>q.length)),requested=num(p.tile,15,1.5,300)*num(p.scale,100,1,1000)/100,t=Math.max(requested,Math.sqrt(w*h*4*(copies+1)*maxPoints/95000)),cols=Math.max(1,Math.floor(w/t)),rows=Math.max(1,Math.floor(h/t)),size=Math.min(t,w/cols,h/rows),ox=(c.W-cols*size)/2,oy=(c.H-rows*size)/2,nc=Math.round(num(p.customColours,1,1,4)),pens=[p.layer??0,p.customPen2??1,p.customPen3??2,p.customPen4??6].map(v=>Math.round(num(v,0,0,11))),paths=[];
+    for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+      const rot=p.tileRotation==='Fixed'?0:p.tileRotation==='Checkerboard'?(x+y)%4:Math.floor(hash2(x,y,+p.seed||0)*4);
+      for(let corner=0;corner<4;corner++){
+        let source=p.cornerLink==='Independent'?corner:p.cornerLink==='Paired'?corner%2:0;
+        const base=gestures[source],swap=p.cornerLink==='Alternate'&&corner%2,convert=q=>{let [a,b]=swap?[q[1],q[0]]:q;if(corner===1||corner===2)a=1-a;if(corner>=2)b=1-b;for(let k=0;k<rot;k++)[a,b]=[1-b,a];return [a,b];};
+        for(let j=0;j<=copies;j++){const inset=num(p.copyGap,.6,.2,20)*j/size;if(inset>=.48)break;const factor=1-2*inset,pts=base.map(convert).map(q=>[ox+(x+.5+(q[0]-.5)*factor)*size,oy+(y+.5+(q[1]-.5)*factor)*size]);paths.push({pts,closed:false,layer:pens[(corner+j)%nc]});}
+      }
+    }return applyStyle({paths},ins?.[0]);
+  },
   compute(ins, p, ctx) {
     if(['Concentric bands','Butterfly'].includes(p.mode))return this._bands(ins,p,ctx);
+    if(p.mode==="Custom tile")return this._custom(ins,p,ctx);
     const { W, H } = ctx;
     const t = Math.max(1.5, p.tile * (p.scale / 100));
     const L = Math.round(p.layer);
@@ -55984,6 +56148,63 @@ export default {
     params: [],
     compute(ins) { return applyStyle(ins[0] || EMPTY, ins[1]); },
   
+};
+```
+
+## venation.js
+
+```js
+import { Pin, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+ key:'venation',name:'Venation',cat:'gen',group:'organic',
+ desc:'Grow a branching vein network towards seeded attractor points. Each attractor influences its nearest branch within Influence radius; branches advance by Branch step and consume attractors within Kill distance. Unlike Root Web noise walks or L-System grammar, targets organise the forks. Wire closed Region paths to grow inside a silhouette with even-odd holes; unwired gives an ellipse. Optional Roots uses path centres (up to 16), or a root near the bottom of the region. Growth and Timeline reconstruct a deterministic prefix; keep Seed, Attractors and structural controls fixed. Branches never cross the boundary: a full segment test rejects crossings, including holes. Colours maps branch order or age to 1–4 pens. Attractors output is a diagnostic dot field, not part of Drawing. Work is bounded at 2500 branches / 1800 attractors / 160 cycles; growth can stop when targets cannot be reached.',
+ ins:[Pin('style','Style'),Pin('paths','Region'),Pin('paths','Roots')],outs:[Pin('paths','Drawing'),Pin('paths','Attractors')],
+ params:[
+ {key:'attractors',label:'Attractors',type:'slider',min:50,max:1800,step:50,def:650},
+ {key:'influence',label:'Influence radius mm',type:'slider',min:5,max:100,step:1,def:45},
+ {key:'kill',label:'Kill distance mm',type:'slider',min:1,max:15,step:.5,def:4},
+ {key:'step',label:'Branch step mm',type:'slider',min:.5,max:8,step:.25,def:2.5},
+ {key:'cycles',label:'Growth cycles',type:'slider',min:10,max:160,step:5,def:85},
+ {key:'motion',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual'},
+ {key:'growth',label:'Growth %',type:'slider',min:0,max:100,step:1,def:100,showIf:p=>p.motion!=='Timeline'},
+ {key:'colours',label:'Colours',type:'slider',min:1,max:4,step:1,def:1},
+ {key:'colourBy',label:'Colour by',type:'select',options:['Branch order','Age'],def:'Branch order',showIf:p=>p.colours>1},
+ {key:'layer',label:'Pen 1',type:'pen',def:0},
+ ...[2,3,4].map(n=>({key:'pen'+n,label:'Pen '+n,type:'pen',def:n===2?1:n===3?2:6,showIf:p=>p.colours>=n})),
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:16},
+ {key:'seed',label:'Seed',type:'seed',def:31}
+ ],
+ _region(p,c,ins){const m=Math.max(0,Math.min(Math.min(c.W,c.H)/2,+p.margin||0)),ps=(ins?.[1]?.paths||[]).filter(q=>q.closed&&q.pts?.length>=3);if(ps.reduce((n,q)=>n+q.pts.length,0)>4000||c.W<=2*m||c.H<=2*m)return null;
+ const fallback=Array.from({length:96},(_,k)=>{const a=k/96*2*Math.PI;return [c.W/2+Math.min((c.W-2*m)/2,(c.H-2*m)*.36)*Math.cos(a),c.H/2+(c.H-2*m)/2*Math.sin(a)];}),polys=ps.length?ps.map(q=>q.pts):[fallback],edges=polys.flatMap(q=>q.map((a,i)=>[a,q[(i+1)%q.length]]));
+ const inside=q=>{if(q[0]<m||q[0]>c.W-m||q[1]<m||q[1]>c.H-m)return false;let b=false;for(const [a,d]of edges)if((a[1]>q[1])!==(d[1]>q[1])&&q[0]<(d[0]-a[0])*(q[1]-a[1])/(d[1]-a[1])+a[0])b=!b;return b;};
+ const cross=(a,b)=>a[0]*b[1]-a[1]*b[0],segment=(a,b)=>{if(!inside(b))return false;const d=[b[0]-a[0],b[1]-a[1]];for(const [u,v]of edges){const e=[v[0]-u[0],v[1]-u[1]],den=cross(d,e);if(Math.abs(den)<1e-10)continue;const w=[u[0]-a[0],u[1]-a[1]],t=cross(w,e)/den,s=cross(w,d)/den;if(t>1e-8&&t<1-1e-8&&s>=0&&s<=1)return false;}return true;};
+ const all=polys.flat(),xs=all.map(q=>q[0]),ys=all.map(q=>q[1]);return {polys,inside,segment,box:[Math.max(m,Math.min(...xs)),Math.max(m,Math.min(...ys)),Math.min(c.W-m,Math.max(...xs)),Math.min(c.H-m,Math.max(...ys))]};},
+ overlay(p,c,ins){return this._region(p,c,ins)?.polys.slice(0,80).map(pts=>({kind:'poly',pts:[...pts,pts[0]]}))||[];},
+ _grow(ins,p,c){
+ const region=this._region(p,c,ins);if(!region)return null;const num=(v,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+v)?+v:d)),rng=mulberry32(num(p.seed,31,-2e9,2e9)),N=Math.round(num(p.attractors,650,1,1800)),influence=num(p.influence,45,2,500),step=num(p.step,2.5,.5,20),kill=num(p.kill,4,.5,50),maxCycles=Math.round(num(p.cycles,85,0,160)),growth=p.motion==='Timeline'&&c.frameCount>1?num(c.frameIdx/(c.frameCount-1),1,0,1):num(p.growth,100,0,100)/100,cycles=Math.round(maxCycles*growth),[x0,y0,x1,y1]=region.box,targets=[];
+ for(let i=0;i<N*40&&targets.length<N;i++){const q=[x0+rng()*(x1-x0),y0+rng()*(y1-y0)];if(region.inside(q))targets.push(q);}
+ let roots=(ins?.[2]?.paths||[]).slice(0,16).map(q=>q.pts?.length?q.pts.reduce((a,b)=>[a[0]+b[0]/q.pts.length,a[1]+b[1]/q.pts.length],[0,0]):null).filter(q=>q&&q.every(Number.isFinite)&&region.inside(q));
+ if(!roots.length){const candidates=[];for(let i=0;i<25;i++)for(let j=0;j<25;j++){const q=[x0+(i+.5)/25*(x1-x0),y0+(j+.5)/25*(y1-y0)];if(region.inside(q))candidates.push(q);}candidates.sort((a,b)=>(b[1]-.15*Math.abs(b[0]-(x0+x1)/2))-(a[1]-.15*Math.abs(a[0]-(x0+x1)/2)));roots=candidates.slice(0,1);}
+ const nodes=roots.map(q=>({q,parent:-1,children:[],age:0,order:0})),live=new Set(targets.map((_,i)=>i)),cell=influence,key=q=>Math.floor(q[0]/cell)+','+Math.floor(q[1]/cell);
+ for(let cycle=0;cycle<cycles&&nodes.length<2500&&live.size;cycle++){
+  const grid=new Map();nodes.forEach((n,i)=>{const k=key(n.q);if(!grid.has(k))grid.set(k,[]);grid.get(k).push(i);});const sums=new Map();
+  for(const i of live){const q=targets[i],gx=Math.floor(q[0]/cell),gy=Math.floor(q[1]/cell);let best=-1,dist=influence;
+   for(let x=gx-1;x<=gx+1;x++)for(let y=gy-1;y<=gy+1;y++)for(const k of grid.get(x+','+y)||[]){const r=nodes[k].q,d=Math.hypot(q[0]-r[0],q[1]-r[1]);if(d<dist){best=k;dist=d;}}
+   if(dist<kill){live.delete(i);continue;}if(best<0)continue;const q0=nodes[best].q,v=sums.get(best)||[0,0];v[0]+=(q[0]-q0[0])/dist;v[1]+=(q[1]-q0[1])/dist;sums.set(best,v);
+  }
+  let added=0;const proposed=[];
+  for(const [i,v]of sums){const L=Math.hypot(...v);if(L<1e-8)continue;const n=nodes[i],q=[n.q[0]+v[0]/L*step,n.q[1]+v[1]/L*step];if(!region.segment(n.q,q))continue;const gx=Math.floor(q[0]/cell),gy=Math.floor(q[1]/cell);let crowded=false;
+   for(let x=gx-1;x<=gx+1&&!crowded;x++)for(let y=gy-1;y<=gy+1&&!crowded;y++)for(const j of grid.get(x+','+y)||[])if(j!==i&&Math.hypot(q[0]-nodes[j].q[0],q[1]-nodes[j].q[1])<step*.65){crowded=true;break;}
+   if(crowded||proposed.some(t=>Math.hypot(q[0]-t[0],q[1]-t[1])<step*.65))continue;
+   if(nodes.length>=2500)break;const child=nodes.length;nodes.push({q,parent:i,children:[],age:cycle+1,order:n.order+(n.children.length?1:0)});n.children.push(child);proposed.push(q);added++;
+  }if(!added)break;
+ }return {nodes,targets,maxCycles};
+ },
+ compute(ins,p,c){const state=this._grow(ins,p,c);if(!state)return [{paths:[]},{paths:[]}];const {nodes,targets,maxCycles}=state,nc=Math.max(1,Math.min(4,Math.round(+p.colours||1))),pens=[p.layer??0,p.pen2??1,p.pen3??2,p.pen4??6].map(v=>Math.max(0,Math.min(11,Math.round(+v||0)))),pen=n=>pens[(p.colourBy==='Age'?Math.min(nc-1,Math.floor(n.age/(maxCycles||1)*nc)):n.order%nc)],paths=[];
+ for(let i=0;i<nodes.length;i++){const n=nodes[i];for(const child of n.children){let k=child,pts=[n.q,nodes[k].q],layer=pen(nodes[k]);if(n.parent>=0&&n.children.length===1&&pen(n)===layer)continue;
+  while(nodes[k].children.length===1){const next=nodes[k].children[0];if(pen(nodes[next])!==layer)break;k=next;pts.push(nodes[k].q);}paths.push({pts,closed:false,layer});}}
+ const dots=targets.map(q=>({pts:Array.from({length:6},(_,i)=>[q[0]+.18*Math.cos(i*Math.PI/3),q[1]+.18*Math.sin(i*Math.PI/3)]),closed:true,layer:pens[0]}));return [applyStyle({paths},ins?.[0]),{paths:dots}];}
 };
 ```
 

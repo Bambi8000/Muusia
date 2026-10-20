@@ -196,9 +196,12 @@
   "scientific"
  ],
  "circpack": [
-  "geometric",
-  "noise",
-  "round"
+  "packing",
+  "circles",
+  "spiral",
+  "rings",
+  "multicolor",
+  "region"
  ],
  "circuit": [
   "fill",
@@ -1707,8 +1710,11 @@
   "pathops"
  ],
  "truchet": [
+  "custom tile",
+  "editable",
   "geometric",
   "maze",
+  "multicolor",
   "plants",
   "round",
   "tiling"
@@ -1963,5 +1969,29 @@
   "slic",
   "colour",
   "regions"
+ ],
+ "hitomezashi": [
+  "geometric",
+  "pattern",
+  "stitch",
+  "grid",
+  "multicolor",
+  "region"
+ ],
+ "tessellation": [
+  "geometric",
+  "tiling",
+  "rhombus",
+  "floret",
+  "multicolor",
+  "region"
+ ],
+ "venation": [
+  "organic",
+  "growth",
+  "branches",
+  "leaf",
+  "animation",
+  "region"
  ]
 }

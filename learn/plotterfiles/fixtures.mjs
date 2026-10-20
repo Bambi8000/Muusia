@@ -1,0 +1,11 @@
+import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';import * as H from '../../src/defs/helpers.js';import {withParameterVisibility} from '../../src/defs/parameter-visibility.js';import {lessons} from './content.mjs';
+export const HERE=path.dirname(fileURLToPath(import.meta.url)),ROOT=path.resolve(HERE,'../..'),defs={};
+for(const key of [...new Set(lessons.map(l=>l.key))])defs[key]=withParameterVisibility((await import('../../src/defs/nodes/'+key+'.js')).default);
+export const defaults=key=>Object.fromEntries(defs[key].params.map(q=>[q.key,q.def]));
+export function patch(l){return {app:'muusia',v:1,name:l.id,canvas:{W:297,H:210},root:{nodes:[{id:9002,type:l.key,x:55,y:40,params:{...defaults(l.key),...l.settings}}],edges:[],outputId:9002}};}
+const app=fs.readFileSync(path.join(ROOT,'src/App.jsx'),'utf8');export const engineSource=app.slice(app.indexOf('function defIns(node)'),app.indexOf('/* ============================================================\n   G-CODE')),exporterSource=app.slice(app.indexOf('function toSVG(ps, ctx)'),app.indexOf('/* --- DXF R12 export'));
+const solid=JSON.parse(app.match(/const SOLID_STYLE = (\{[^;]+\});/)[1].replace(/(\w+):/g,'"$1":')),evalLevel=Function('DEFS','EMPTY','SOLID_STYLE',engineSource+';return evalLevel;')(defs,H.EMPTY,solid);
+export const evaluate=(p,i=0,N=12)=>evalLevel(p.root,{...p.canvas,frameIdx:i,frameCount:N}).out[p.root.outputId][0],toSVG=Function('PENS',exporterSource+';return toSVG;')(H.PENS);
+export function variations(){const floret=patch(lessons[2]);floret.name='floret';Object.assign(floret.root.nodes[0].params,{family:'Floret',cell:7,drawing:'Inset bands',bands:4,colours:4,pen4:6});const animation=patch(lessons[3]);animation.name='venation-animation';animation.root.nodes[0].params.motion='Timeline';return {floret,animation};}
+if(process.argv.includes('--write')){for(const l of lessons)fs.writeFileSync(path.join(HERE,'patches',l.id+'.muusia.json'),JSON.stringify(patch(l),null,2)+'\n');for(const [key,p]of Object.entries(variations()))fs.writeFileSync(path.join(HERE,'patches',key==='floret'?'floret.muusia.json':'venation-animation.muusia.json'),JSON.stringify(p,null,2)+'\n');console.log('Wrote five tutorial patches, Floret and Venation animation.');}
+export {lessons};

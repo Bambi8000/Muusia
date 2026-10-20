@@ -186,9 +186,9 @@ export const NODE_RECENCY = {
     "sha256": "78dbd91650eae0ebcef5ee110beddeff277fc715fc590adc6d454f3a36dab8a7"
   },
   "circpack": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "21400fc64e4cc37a42fc31e2c935dc775b798795108dede4ee4bdc10db511f74"
+    "date": "2026-10-20",
+    "order": 92,
+    "sha256": "4fe9211b9d7d4e0acc7343582c8eb7111b14aa47f05b110a3c3931b20fcf936f"
   },
   "circuit": {
     "date": "2026-08-17",
@@ -609,6 +609,11 @@ export const NODE_RECENCY = {
     "date": "2026-07-22",
     "order": 1,
     "sha256": "501a069833ba4d2015b11a2861254c798491a4e70d97b8471c9380570ea76de4"
+  },
+  "hitomezashi": {
+    "date": "2026-10-20",
+    "order": 92,
+    "sha256": "ae6319867c0c2ad2aba418368303c08cadc1f6cf2a071c73c52d1968d96d36d0"
   },
   "hyperbolic_truchet": {
     "date": "2026-07-22",
@@ -1445,6 +1450,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "cc243dfa3a1fd2538f23cd7cf04936dbaa7a7b2947384dcf14b8e10ce1250929"
   },
+  "tessellation": {
+    "date": "2026-10-20",
+    "order": 92,
+    "sha256": "4822d12751028b5b052d0ae019627dca885c486e385f8f18f5ceae8724ca258d"
+  },
   "testcard": {
     "date": "2026-10-15",
     "order": 81,
@@ -1496,9 +1506,9 @@ export const NODE_RECENCY = {
     "sha256": "207636692493de2bbbb64984a7a5efad54825635ad2c0fdca083755dc247700d"
   },
   "truchet": {
-    "date": "2026-10-19",
-    "order": 90,
-    "sha256": "5cffa3d03d3e4c9bc0cc08303ca73b85a654c076c9845b5af82254a97cd1196e"
+    "date": "2026-10-20",
+    "order": 92,
+    "sha256": "095d35efcf9a90f5189809a7ca53b8da0aa29e9b6db70e15bd55ee2ad2343478"
   },
   "truchet_multi": {
     "date": "2026-08-09",
@@ -1544,6 +1554,11 @@ export const NODE_RECENCY = {
     "date": "2026-09-29",
     "order": 65,
     "sha256": "6b8caa270e6cb4233744fd30dc5053cd5b9d72eaf46beafdce06ae05f96cd4da"
+  },
+  "venation": {
+    "date": "2026-10-20",
+    "order": 92,
+    "sha256": "811d4fec87caa12bb1410cc274be168295b3342065795409b4135f20060c9b14"
   },
   "videotest": {
     "date": "2026-08-17",

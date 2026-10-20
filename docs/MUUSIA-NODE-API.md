@@ -202,6 +202,7 @@ wires — you get modulation for free.
 | `multi` | `options: ["A", "B"]`, array default | A checklist with one green value input per option, using `p:<key>[<zero-based option index>]`. Each wire controls only that choice with the checkbox threshold; `p[key]` remains an array of selected option strings. Unwired choices and saved manual selections survive. Keep option order stable for saved wires. |
 | `pen` | — | 12 color dots → integer 0–11. |
 | `text` | — | Single-line text field. |
+| `tilepoints` | Array default `[[x,y,curve], ...]` | Draggable corner knots in normalized local 0–1 coordinates, with exact X/Y percent fields and square/curve toggles. `curve=0` means square; 1 means smooth. One to six points; the consuming node defines fixed anchors. Stored as an array in params, without a numeric wire. |
 | `file` | — | File picker; pair with `onFile`. **This row is what renders the picker.** `onFile`, `fileBinary`, `fileAccept` and `fileLabel` are all definition-level and none of them creates a button: a node declaring every one of them but no `type: "file"` param opens an inspector with no way to load anything (v2.65 Mesh Slice reached the browser like that). |
 
 Compute must tolerate any numeric value: wires can push values outside min/max, and

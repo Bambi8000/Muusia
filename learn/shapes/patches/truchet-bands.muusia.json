@@ -14,12 +14,90 @@
         "x": 70,
         "y": 40,
         "params": {
+          "mode": "Butterfly",
+          "cornerLink": "Linked",
+          "editCorner": "TL",
+          "knotsTL": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsTR": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsBR": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsBL": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "smoothness": 85,
+          "tileRotation": "Seeded",
+          "insetCopies": 0,
+          "copyGap": 0.6,
+          "customColours": 1,
+          "customPen2": 1,
+          "customPen3": 2,
+          "customPen4": 6,
           "bands": 5,
           "bandRatio": 45,
           "bandDrawing": "Outlines",
           "bandPitch": 0.7,
           "rowOffset": 1,
-          "mode": "Butterfly",
           "ttype": "Arcs",
           "fill": 100,
           "sep": "Connected",

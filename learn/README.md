@@ -398,3 +398,22 @@ artifacts, screenshots and relevant node/helper/evaluator/exporter hashes.
 `node learn/regions/validate.mjs --source` checks the source collection;
 `npm run check:learn` additionally verifies built pages and copied artifacts.
 Only run `--record` after the relevant real browser captures.
+
+
+## Packing, stitching and growth (local, 2026-10-20)
+
+`plotterfiles/` adds five English six-step projects: Circle Packing Spiral/Rings,
+Hitomezashi, Tessellation Rhombus/Floret, Venation and Truchet Custom tile.
+Seven patches, six actual SVG exports, six real Focus captures and a captured
+12-frame Venation ZIP are available. The player starts paused on the empty
+root frame and intentionally resets after maturity. Five source-only G-code
+exports are coordinate/pen-state evidence, not machine presets or ready-to-run
+downloads. Custom Tile drag + square toggle + Save is also checked.
+
+Run `node tools/validate-plotterfiles-suite.mjs` and
+`node learn/plotterfiles/validate.mjs --source` for focused checks. `--record`
+binds actual browser captures and must never be used to invent fresh evidence.
+The shared build and Learn validator cover all six additional pages (69 total),
+patches, captured geometry and scoped dependencies. No reference exports from
+older lessons changed. This draft is based on published 2.131 and has not been
+published. Physical plotting remains untested.

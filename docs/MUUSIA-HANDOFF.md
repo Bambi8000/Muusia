@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **317 files** (319 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **330 files** (332 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 201, Modifiers 79). ESM format:
+  Generators 209, Modifiers 83). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -263,6 +263,70 @@ according to the session's actual capabilities:
   per path on PEN_n layers, nearest-ACI colors, y-up flip, plunge z dropped).
 
 ## Version history (condensed)
+
+### W — 2026-10-20 · PlotterFiles implementation batch (local review)
+
+Daniel approved Spiral Packing, Hitomezashi, Tessellation, Venation and Custom
+Tile after the PlotterFiles review. Based on published 2.131,
+`8b4fe0177ef511dcd1e010795af9d0ad7f96b76a`, on `codex/plotterfiles-suite`
+in `/private/tmp/muusia-line-drape`. Three new modules bring the registry to
+330 modules / 332 entries. APP_VERSION stays 2.131 in this local draft;
+publication requires one actual release-version decision and the usual gate.
+No publication or hardware changes are included.
+
+- Circle Packing adds Spiral / Rings fills at physical radial pitch, clearance,
+  an optional closed Region (with even-odd holes), and 1–4 chosen pens by size
+  or sequence. Ordinary original Outline output remains byte-identical. Very
+  dense jobs reduce curve sampling and, when necessary, seeded packing attempts
+  across the page; the requested fill pitch is preserved.
+- Hitomezashi draws alternating row/column stitches with Seeded, Alternating
+  and Binary strings phases; rotation, stitch ratio, 1–4 pens and exact Region
+  clipping. High-density jobs raise effective grid pitch over the complete page.
+- Tessellation has independently implemented Rhombus and Floret families.
+  Legal cube flips preserve a shared-edge rhombus tiling; Floret has six
+  pentagons around each centre, each with one 60° and four 120° corners.
+  Edges emits shared edges once. Physical inset contours, 1–4 orientation pens
+  and Region clipping are available. Complete Rhombus patches shrink to fit;
+  Floret fills the page. Clipped contours may be open, as intended.
+- Venation is attraction-driven space colonisation inside an ellipse or wired
+  closed Region, with optional path-centre Roots. It preserves holes, exposes a
+  diagnostic Attractors output, and reveals a deterministic growth prefix via
+  Growth / Timeline. Growth can stop early on unreachable targets and resets
+  at the loop boundary; it is not a seamless animation. Work is capped at
+  2500 branches, 1800 attractors and 160 cycles.
+- Truchet Custom tile uses the new `tilepoints` param UI in `src/tile-editor.jsx`.
+  Drag knots or enter X/Y percentages; add/remove points and toggle square
+  corners. Linked / Alternate / Paired / Independent gestures keep fixed
+  matching quarter-edge anchors. Optional internal inset copies deliberately
+  do not connect across edges. Seeded/checkerboard rotations and 1–4 pens are
+  supported. All pre-existing Truchet modes preserve their geometry.
+
+`learn/plotterfiles/` adds five English six-step tutorials, seven complete
+patches (including Floret and Timeline variants), six actual SVG downloads,
+six actual unretouched Focus screenshots, five actual complete G-code exports
+and a captured 12-frame SVG growth ZIP with an offline player. The custom-point
+browser test dragged a point, toggled its square flag and saved the patch; the
+stored coordinates/flag are checked. The guide reaches 69 English pages.
+Machine A Servo 330 × 240 mm is an illustrative software-check profile; no
+physical plot or calibration is claimed.
+
+Validation: `tools/validate-plotterfiles-suite.mjs` covers 102 cases, direct
+published-source legacy comparisons, colour assignment, bounds, exact masked
+segments, Floret coverage/angles, lozenge count, shared-edge deduplication and
+growth prefixes. `learn/plotterfiles/validate.mjs --source` checks all actual
+SVG/G-code coordinates, pen-up rapid moves and all 12 captured frames against
+the app evaluator. Capture manifest binds scoped evaluator/exporter and node /
+editor dependencies. The existing Shapes Butterfly tutorial was actually re-exported: its SVG is
+byte-identical; its G-code and both graph/Focus screenshots were refreshed, with
+neutral new defaults and per-lesson maintenance provenance. Other nine Shapes
+lessons retain their earlier evidence. Catalog validation, production build
+and Learn validation passed (33,060 checks / 69 English pages).
+
+**Existing pen XY plan:** do not treat it as a new PlotterFiles proposal.
+`MUUSIA-PLOTTER-MECH-HANDOFF.md` §5.1 and `klipper/pen-cal.cfg` already describe
+it: apply `PEN_USE` / `SET_GCODE_OFFSET` in Klipper at pen change; Muusia G-code
+stays offset-free. The review originally missed this and has been corrected.
+Do not add a second export-side correction without an explicit design change.
 
 ### 2.131 — 2026-10-20 · Node suites and English Learn publication
 

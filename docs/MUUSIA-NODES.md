@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 328 built-in nodes in the current Muusia source. Conventions used below:
+All 332 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,13 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (205)
+## Generators (209)
+
+**Venation** — Grow a branching vein network towards seeded attractor points. Each attractor influences its nearest branch within Influence radius; branches advance by Branch step and consume attractors within Kill distance. Unlike Root Web noise walks or L-System grammar, targets organise the forks. Wire closed Region paths to grow inside a silhouette with even-odd holes; unwired gives an ellipse. Optional Roots uses path centres (up to 16), or a root near the bottom of the region. Growth and Timeline reconstruct a deterministic prefix; keep Seed, Attractors and structural controls fixed. Branches never cross the boundary: a full segment test rejects crossings, including holes. Colours maps branch order or age to 1–4 pens. Attractors output is a diagnostic dot field, not part of Drawing. Work is bounded at 2500 branches / 1800 attractors / 160 cycles; growth can stop when targets cannot be reached. Tutorial: Packing, stitching and growth / Venation.
+
+**Tessellation** — Shared-edge tilings, not overlapping stamps. Rhombus projects the stepped surface of a monotone cube pile; seeded legal cube flips change the lozenge pattern without gaps. Floret uses six pentagons around each flower centre: each pentagon has one 60° and four 120° corners. Cell edge is requested millimetres; the complete Rhombus hexagon shrinks uniformly if needed to fit Margin. Floret fills the page at the requested scale, with a minimum scale for dense jobs. Edges draws each shared edge once; Inset bands draws nested contours inside each tile. Both combines the two. Colours assigns pens by tile orientation. A wired Region clips the linework exactly, preserving even-odd holes; clipped contours can become open paths. No region means the paper margin. Tutorial: Packing, stitching and growth / Tessellation.
+
+**Hitomezashi** — Alternating horizontal and vertical stitches form Hitomezashi patterns. Each row and column has a binary phase: Seeded picks repeatable phases, Alternating makes a regular rhythm, and Binary strings repeats your 0/1 sequences. Pitch sets the physical grid spacing; Angle rotates the grid before exact clipping to Margin and an optional closed Region, including even-odd holes. Colours 1 uses Pen 1; 2 separates horizontal and vertical; 3 or 4 alternates pens along each axis. Stitch ratio below 100 leaves a gap at each stitch end. Large pages and tiny pitches automatically raise the effective grid pitch to keep the whole page within a bounded stitch count. Seed never changes during animation unless you wire it. Tutorial: Packing, stitching and growth / Hitomezashi.
 
 **Cell Strands** — Parallel strands travel through a shared distorted cell network. Hex strands routes edge bundles through convex hexagons; Ribbon cells uses square cells. Every shared edge uses the same stations, so adjacent bundles meet exactly when both routes reach it. Carry adds routes to otherwise unused cell edges; Density leaves some cells empty. Cell edges is an optional separate pen. Displacement is uniformly reduced until all cells remain convex and inside the margin. Phase moves the deformation in a repeatable loop. Paths may cross inside cells; this is a strand network, not an over/under weave. Shared edge stations use canonical vertex indices and exact shared floating-point coordinates. Occupied cells and Extra routes determine whether a matching route exists on the other side. Displacement is reduced globally until cells remain convex and in bounds. Bundle crossings have no over/under masking. Style and edge/strand pens are supported. Help: Shared-edge bundles.
 
@@ -1238,7 +1244,8 @@ spacing, start radius.
 
 **Flow Field** — Trace a noise field, or choose Vortex, Sinks or Mixed poles. Even spacing grows lines forwards and backwards, stopping them near existing traces. Separation mm controls density; Steps and Trails remain upper limits. Wire closed marker centres or open path starts to Poles; otherwise a ring supplies them. Poles phase turns the fallback ring. Dots marks each trace with real tiny circles. Seed and phase are repeatable; wire Frame rot degrees to Poles phase for motion. Even spacing traces both directions; the separation is a stopping-distance floor rather than an exact equal gap. Poles takes at most 24 marker paths. Curve endpoints stop near older traces; very short proposals are rejected. Even placement and Dots uniformly bound trace work. Original Noise / Random starts / Lines output is unchanged. Help: Even pole streams.
 
-**Truchet** — Tiled quarter-circle patterns. Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen. Band drawing Outlines produces hollow closed annular sectors; Hatch emits open concentric arcs at physical Hatch gap. Butterfly uses paired edge-midpoint semicircles with alternating row/column rotation. These modes do not promise a single continuous route. Dense settings increase tile size uniformly. Help: Butterfly bands.
+**Truchet** — Tiled quarter-circle patterns. Custom tile adds a draggable corner gesture with fixed quarter-edge anchors: edit points in the corner diagram or with X/Y numbers, add/remove points and toggle Square corner. Linked mirrors one gesture across four corners, Alternate swaps axes on alternate corners, Paired shares opposite corners, Independent edits each separately. Rotations preserve the matching edge anchors. Inset copies shrink inside each tile and deliberately do not join across edges. Colours cycles corners/copies through up to four pens. Dense custom grids enlarge the effective tile size uniformly. The editor diagram is the control polygon; the paper preview is the smooth result.  Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen. Tutorial: Packing, stitching and growth / Custom Tile.
+
 
 **Truchet Multiscale** — the Carlson-style multiscale sibling of Truchet:
 strands cross cell edges at fixed stations, and the node **chains** them tile
@@ -1321,8 +1328,8 @@ rotating table. Continuity-safe branch selection; auto-fits to canvas.
 **Contours** — marching-squares contour lines over fBm terrain or wave interference;
 segments are chained into long polylines.
 
-**Circle Packing** — non-overlapping circles grown by rejection sampling; size range
-and optional noise-weighted density.
+**Circle Packing** — Pack non-overlapping circles, optionally inside a wired closed Region with even-odd holes. Fill chooses original Outline, one open Spiral per circle, or nested Rings. Pitch is the radial spacing in millimetres and stays the same in small and large circles. Clearance separates neighbouring circles and keeps them off the region boundary. Colour by Size puts small-to-large circles on the selected pens; Sequence cycles the circles. Dense fills reduce curve sampling detail uniformly while preserving physical pitch. If the minimum ring samples still exceed the budget, fewer seeded packing attempts are used across the whole page. Outline with no region and zero clearance preserves the original drawing. Very detailed regions above 4000 points are rejected; simplify them first. Tutorial: Packing, stitching and growth / Spiral Packing.
+
 
 **Barcode** — vertical bars of varying width filled with boustrophedon strokes;
 a stark rhythm generator (feed it to Stretch).

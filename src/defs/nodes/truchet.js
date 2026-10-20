@@ -5,27 +5,36 @@ export default {
   name: "Truchet",
   cat: "gen",
   group: "geometric",
-  desc: "Tiled quarter-circle patterns. Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
+  desc: "Tiled quarter-circle patterns. Custom tile adds a draggable corner gesture with fixed quarter-edge anchors: edit points in the corner diagram or with X/Y numbers, add/remove points and toggle Square corner. Linked mirrors one gesture across four corners, Alternate swaps axes on alternate corners, Paired shares opposite corners, Independent edits each separately. Rotations preserve the matching edge anchors. Inset copies shrink inside each tile and deliberately do not join across edges. Colours cycles corners/copies through up to four pens. Dense custom grids enlarge the effective tile size uniformly. The editor diagram is the control polygon; the paper preview is the smooth result.  Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop", "Concentric bands", "Butterfly", "Custom tile"], def: "Tiles" },
+    {key:'cornerLink',label:'Corner linking',type:'select',options:['Linked','Alternate','Paired','Independent'],def:'Linked',showIf:p=>p.mode==='Custom tile'},
+    {key:'editCorner',label:'Edit corner',type:'select',options:['TL','TR','BR','BL'],def:'TL',showIf:p=>p.mode==='Custom tile'&&p.cornerLink==='Independent'},
+    ...['TL','TR','BR','BL'].map((name,i)=>({key:'knots'+name,label:name+' gesture',type:'tilepoints',def:[[.02,.28,1],[.14,.14,1],[.28,.02,1]],showIf:p=>p.mode==='Custom tile'&&(p.cornerLink==='Independent'?(p.editCorner||'TL')===name:i===0||(i===1&&p.cornerLink==='Paired'))})),
+    {key:'smoothness',label:'Smoothness %',type:'slider',min:0,max:100,step:1,def:85,showIf:p=>p.mode==='Custom tile'},
+    {key:'tileRotation',label:'Tile rotations',type:'select',options:['Fixed','Checkerboard','Seeded'],def:'Seeded',showIf:p=>p.mode==='Custom tile'},
+    {key:'insetCopies',label:'Inset copies',type:'slider',min:0,max:4,step:1,def:0,showIf:p=>p.mode==='Custom tile'},
+    {key:'copyGap',label:'Inset step mm',type:'slider',min:.2,max:3,step:.1,def:.6,showIf:p=>p.mode==='Custom tile'&&p.insetCopies>0},
+    {key:'customColours',label:'Colours',type:'slider',min:1,max:4,step:1,def:1,showIf:p=>p.mode==='Custom tile'},
+    ...[2,3,4].map(n=>({key:'customPen'+n,label:'Pen '+n,type:'pen',def:n===2?1:n===3?2:6,showIf:p=>p.mode==='Custom tile'&&p.customColours>=n})),
     {key:'bands',label:'Bands per tile',type:'slider',min:1,max:14,step:1,def:5,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
     {key:'bandRatio',label:'Band width %',type:'slider',min:5,max:95,step:1,def:45,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
     {key:'bandDrawing',label:'Band drawing',type:'select',options:['Outlines','Hatch'],def:'Outlines',showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)},
     {key:'bandPitch',label:'Hatch gap mm',type:'slider',min:.2,max:3,step:.1,def:.7,showIf:p=>['Concentric bands','Butterfly'].includes(p.mode)&&p.bandDrawing==='Hatch'},
     {key:'rowOffset',label:'Row offset',type:'slider',min:0,max:6,step:1,def:1,showIf:p=>p.mode==='Butterfly'},
-    { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop", "Concentric bands", "Butterfly"], def: "Tiles" },
-    { key: "ttype", label: "Tile type", type: "select", options: ["Arcs", "Diagonals"], def: "Arcs" },
-    { key: "fill", label: "Tile fill % (Tiles)", type: "slider", min: 10, max: 100, step: 1, def: 100 },
-    { key: "sep", label: "Lines", type: "select", options: ["Connected", "Separate (never meet)"], def: "Connected" },
+    { key: "ttype", label: "Tile type", type: "select", options: ["Arcs", "Diagonals"], def: "Arcs", showIf: p => p.mode !== "Custom tile" },
+    { key: "fill", label: "Tile fill % (Tiles)", type: "slider", min: 10, max: 100, step: 1, def: 100, showIf: p => p.mode !== "Custom tile" },
+    { key: "sep", label: "Lines", type: "select", options: ["Connected", "Separate (never meet)"], def: "Connected", showIf: p => p.mode !== "Custom tile" },
     { key: "tile", label: "Tile mm", type: "slider", min: 4, max: 60, step: 1, def: 15 },
     { key: "scale", label: "Scale %", type: "slider", min: 10, max: 400, step: 1, def: 100 },
-    { key: "lines", label: "Lines per tile", type: "slider", min: 1, max: 6, step: 1, def: 1 },
-    { key: "spread", label: "Line spread %", type: "slider", min: 10, max: 100, step: 1, def: 100 },
-    { key: "gapmm", label: "Arc gap mm", type: "slider", min: 0, max: 8, step: 0.1, def: 0 },
+    { key: "lines", label: "Lines per tile", type: "slider", min: 1, max: 6, step: 1, def: 1, showIf: p => p.mode !== "Custom tile" },
+    { key: "spread", label: "Line spread %", type: "slider", min: 10, max: 100, step: 1, def: 100, showIf: p => p.mode !== "Custom tile" },
+    { key: "gapmm", label: "Arc gap mm", type: "slider", min: 0, max: 8, step: 0.1, def: 0, showIf: p => p.mode !== "Custom tile" },
     { key: "round", label: "Corner radius % (loop)", type: "slider", min: 10, max: 100, step: 1, def: 100 },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
-    { key: "seed", label: "Seed", type: "seed", def: 9 },
+    { key: "seed", label: "Seed", type: "seed", def: 9, showIf: p => p.mode !== "Custom tile" || p.tileRotation === "Seeded" },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
   overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
@@ -45,8 +54,27 @@ export default {
     }
     let style=ins[0],out=applyStyle({paths},style);for(let k=0;k<12&&out.paths.reduce((n,q)=>n+q.pts.length,0)>118000;k++){style={...style,dash:Math.max(.1,+style?.dash||4)*2,gap:Math.max(.1,+style?.gap||3)*2};out=applyStyle({paths},style);}return out;
   },
+  _gesture(raw,smooth){
+    const clean=Array.isArray(raw)?raw.filter(q=>Array.isArray(q)&&q.length>=2&&q.slice(0,2).every(Number.isFinite)).slice(0,6):[],knots=[[0,.25,0],...(clean.length?clean:[[.14,.14,1]]).map(q=>[Math.max(.01,Math.min(.99,q[0]))*.5,Math.max(.01,Math.min(.99,q[1]))*.5,q[2]===0?0:1]),[.25,0,0]],pts=[];
+    for(let i=0;i<knots.length-1;i++){const a=knots[i],b=knots[i+1],prev=knots[i-1]||a,next=knots[i+2]||b,d=[b[0]-a[0],b[1]-a[1]],ta=d.map((v,k)=>(1-smooth)*v+smooth*(a[2]?(b[k]-prev[k])*.5:v)),tb=d.map((v,k)=>(1-smooth)*v+smooth*(b[2]?(next[k]-a[k])*.5:v));
+      for(let j=0;j<10;j++){const t=j/10,t2=t*t,t3=t2*t;pts.push(a.slice(0,2).map((v,k)=>Math.max(.0001,Math.min(.4999,(2*t3-3*t2+1)*v+(t3-2*t2+t)*ta[k]+(-2*t3+3*t2)*b[k]+(t3-t2)*tb[k]))));}}
+    pts[0]=[0,.25];pts.push([.25,0]);return pts;
+  },
+  _custom(ins,p,c){
+    const num=(v,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+v)?+v:d)),m=num(p.margin,12,0,Math.min(c.W,c.H)/2),w=c.W-2*m,h=c.H-2*m;if(w<=0||h<=0)return {paths:[]};
+    const copies=Math.round(num(p.insetCopies,0,0,4)),smooth=num(p.smoothness,85,0,100)/100,gestures=['TL','TR','BR','BL'].map(k=>this._gesture(p['knots'+k],smooth)),maxPoints=Math.max(...gestures.map(q=>q.length)),requested=num(p.tile,15,1.5,300)*num(p.scale,100,1,1000)/100,t=Math.max(requested,Math.sqrt(w*h*4*(copies+1)*maxPoints/95000)),cols=Math.max(1,Math.floor(w/t)),rows=Math.max(1,Math.floor(h/t)),size=Math.min(t,w/cols,h/rows),ox=(c.W-cols*size)/2,oy=(c.H-rows*size)/2,nc=Math.round(num(p.customColours,1,1,4)),pens=[p.layer??0,p.customPen2??1,p.customPen3??2,p.customPen4??6].map(v=>Math.round(num(v,0,0,11))),paths=[];
+    for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+      const rot=p.tileRotation==='Fixed'?0:p.tileRotation==='Checkerboard'?(x+y)%4:Math.floor(hash2(x,y,+p.seed||0)*4);
+      for(let corner=0;corner<4;corner++){
+        let source=p.cornerLink==='Independent'?corner:p.cornerLink==='Paired'?corner%2:0;
+        const base=gestures[source],swap=p.cornerLink==='Alternate'&&corner%2,convert=q=>{let [a,b]=swap?[q[1],q[0]]:q;if(corner===1||corner===2)a=1-a;if(corner>=2)b=1-b;for(let k=0;k<rot;k++)[a,b]=[1-b,a];return [a,b];};
+        for(let j=0;j<=copies;j++){const inset=num(p.copyGap,.6,.2,20)*j/size;if(inset>=.48)break;const factor=1-2*inset,pts=base.map(convert).map(q=>[ox+(x+.5+(q[0]-.5)*factor)*size,oy+(y+.5+(q[1]-.5)*factor)*size]);paths.push({pts,closed:false,layer:pens[(corner+j)%nc]});}
+      }
+    }return applyStyle({paths},ins?.[0]);
+  },
   compute(ins, p, ctx) {
     if(['Concentric bands','Butterfly'].includes(p.mode))return this._bands(ins,p,ctx);
+    if(p.mode==="Custom tile")return this._custom(ins,p,ctx);
     const { W, H } = ctx;
     const t = Math.max(1.5, p.tile * (p.scale / 100));
     const L = Math.round(p.layer);
