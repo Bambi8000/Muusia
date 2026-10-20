@@ -14,6 +14,10 @@
         "x": 20,
         "y": 20,
         "params": {
+          "tonal": false,
+          "toneImage": "",
+          "toneAmount": 65,
+          "toneInvert": false,
           "pattern": "Maze",
           "feed": 0.04,
           "kill": 0.062,

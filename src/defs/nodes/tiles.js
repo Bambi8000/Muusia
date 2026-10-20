@@ -5,10 +5,13 @@ export default {
   name: "Tiles",
   cat: "gen",
   group: "geometric",
-  desc: "Grid of tiles, each a separate closed path: parametric Superellipse, Circle, Triangle, Hexagon, Star, Reuleaux or Cross, with per-tile rotation and jitter. Layout: Grid, Brick (odd rows offset half a cell) or Hex pack (offset rows at 0.866 pitch - circles and hexagons at Size 100 touch their neighbours). Alternate flip rotates every other tile 180 degrees so triangles tessellate. Field variation shares a coherent noise field across tiles, driving scale, angle and shift; Phase loops the field. Clip to own cell keeps the transformed motif inside its original cell. Arc is an open circular sweep. The natural Explosion input.",
-  ins: [Pin("style", "Style")],
+  desc: "Disarray envelope modulates Field variation from Start to End across Vertical, Horizontal, Radial or a closed even-odd Mask. Off preserves the original field. The mask only affects cell centres; use Clip to own cell to keep motifs within the page. Grid of tiles, each a separate closed path: parametric Superellipse, Circle, Triangle, Hexagon, Star, Reuleaux or Cross, with per-tile rotation and jitter. Layout: Grid, Brick (odd rows offset half a cell) or Hex pack (offset rows at 0.866 pitch - circles and hexagons at Size 100 touch their neighbours). Alternate flip rotates every other tile 180 degrees so triangles tessellate. Field variation shares a coherent noise field across tiles, driving scale, angle and shift; Phase loops the field. Clip to own cell keeps the transformed motif inside its original cell. Arc is an open circular sweep. The natural Explosion input.",
+  ins: [Pin("style", "Style"),Pin("paths","Mask")],
   outs: [Pin("paths")],
   params: [
+    {key:"envelope",label:"Disarray envelope",type:"select",options:["Off","Vertical","Horizontal","Radial","Mask"],def:"Off"},
+    {key:"start",label:"Envelope start %",type:"slider",min:0,max:100,step:1,def:0,showIf:p=>p.envelope!=="Off"},
+    {key:"end",label:"Envelope end %",type:"slider",min:0,max:100,step:1,def:100,showIf:p=>p.envelope!=="Off"},
     {key:'field',label:'Field variation %',type:'slider',min:0,max:100,step:1,def:0},
     {key:'fieldScale',label:'Field size mm',type:'slider',min:5,max:200,step:1,def:60,showIf:p=>p.field>0},
     {key:'fieldMove',label:'Field shift %',type:'slider',min:0,max:100,step:1,def:45,showIf:p=>p.field>0},
@@ -125,7 +128,8 @@ export default {
         const cy = oy0 + (hexPack ? r * pitch + ch / 2 : (r + 0.5) * ch);
         let ang = ((p.rot + (rng() - 0.5) * 2 * p.rotJit) * Math.PI) / 180;
         if (p.flipAlt && (r + c) % 2 === 1) ang += Math.PI;
-        const field=Math.max(0,Math.min(1,+p.field/100||0)),size=Math.max(1,+p.fieldScale||60),phase=(+p.phase||0)*Math.PI/180,f=field*noise2(cx/size+Math.cos(phase),cy/size+Math.sin(phase),p.seed),shrink=1-f*Math.max(0,Math.min(1,+p.fieldShrink/100||0));
+        let ev=1;if(p.envelope&&p.envelope!=="Off"){let v=p.envelope==="Horizontal"?(cx-m)/(W-2*m):p.envelope==="Radial"?Math.min(1,Math.hypot((cx-W/2)/((W-2*m)/2),(cy-H/2)/((H-2*m)/2))):(cy-m)/(H-2*m);if(p.envelope==="Mask"){v=0;for(const q of ins[1]?.paths||[]){if(!q.closed)continue;let hit=false;for(let i=0,j=q.pts.length-1;i<q.pts.length;j=i++){const a=q.pts[i],b=q.pts[j];if((a[1]>cy)!==(b[1]>cy)&&cx<(b[0]-a[0])*(cy-a[1])/(b[1]-a[1])+a[0])hit=!hit;}if(hit)v=1-v;}}ev=((+p.start||0)+(Number.isFinite(+p.end)?+p.end:100)*v-(+p.start||0)*v)/100; }
+        const field=ev*Math.max(0,Math.min(1,+p.field/100||0)),size=Math.max(1,+p.fieldScale||60),phase=(+p.phase||0)*Math.PI/180,f=field*noise2(cx/size+Math.cos(phase),cy/size+Math.sin(phase),p.seed),shrink=1-f*Math.max(0,Math.min(1,+p.fieldShrink/100||0));
         ang+=f*(+p.fieldRotate||0)*Math.PI/180;
         const ca = Math.cos(ang), sa = Math.sin(ang),dx=f*(+p.fieldMove||0)/100*cw*.5,dy=f*(+p.fieldMove||0)/100*ch*.35;
         const item={

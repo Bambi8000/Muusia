@@ -1,0 +1,121 @@
+; Muusia v2.131 — raw G-code
+; Machine: A — Servo Z (multi-tip brush) — work area 330 x 240 mm
+; Canvas 297 x 210 mm at origin X0 Y0 — paths 12
+; Draw 1.08 m, travel 0.22 m — est. 1 min (+ pen lifts & pauses)
+; Z mode: SERVO "pen" — up 90° / down 35° (bed-Z untouched)
+; Pen settle: down 120ms / up 80ms
+G21 ; mm
+G90 ; absolute
+G28 ; home
+SET_SERVO SERVO=pen ANGLE=90 ; pen up (servo)
+G4 P80 ; settle before first travel
+; Pen 0: Black
+G0 X203.5 Y84 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X228.5 Y84 F1800
+G1 X228.5 Y126 F1800
+G1 X203.5 Y126 F1800
+G1 X203.5 Y84 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+G0 X207.5 Y88 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X224.5 Y88 F1800
+G1 X224.5 Y122 F1800
+G1 X207.5 Y122 F1800
+G1 X207.5 Y88 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+G0 X209.5 Y96 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X222.5 Y96 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+SET_SERVO SERVO=pen ANGLE=90 ; pen up
+G4 P80 ; settle after lift
+M0 ; CHANGE PEN -> 1: Blue
+G0 X164.5 Y84 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X195.5 Y84 F1800
+G1 X195.5 Y122 F1800
+G1 X164.5 Y122 F1800
+G1 X164.5 Y84 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+G0 X168.5 Y88 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X191.5 Y88 F1800
+G1 X191.5 Y118 F1800
+G1 X168.5 Y118 F1800
+G1 X168.5 Y88 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+G0 X170.5 Y96 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X189.5 Y96 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+SET_SERVO SERVO=pen ANGLE=90 ; pen up
+G4 P80 ; settle after lift
+M0 ; CHANGE PEN -> 2: Red
+G0 X119.5 Y84 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X156.5 Y84 F1800
+G1 X156.5 Y118 F1800
+G1 X119.5 Y118 F1800
+G1 X119.5 Y84 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+G0 X123.5 Y88 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X152.5 Y88 F1800
+G1 X152.5 Y114 F1800
+G1 X123.5 Y114 F1800
+G1 X123.5 Y88 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+G0 X125.5 Y96 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X150.5 Y96 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+SET_SERVO SERVO=pen ANGLE=90 ; pen up
+G4 P80 ; settle after lift
+M0 ; CHANGE PEN -> 3: Green
+G0 X68.5 Y84 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X111.5 Y84 F1800
+G1 X111.5 Y114 F1800
+G1 X68.5 Y114 F1800
+G1 X68.5 Y84 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+G0 X72.5 Y88 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X107.5 Y88 F1800
+G1 X107.5 Y110 F1800
+G1 X72.5 Y110 F1800
+G1 X72.5 Y88 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+G0 X74.5 Y96 F6000
+SET_SERVO SERVO=pen ANGLE=35 ; pen down
+G4 P120 ; settle before draw
+G1 X105.5 Y96 F1800
+SET_SERVO SERVO=pen ANGLE=90
+G4 P80 ; settle
+SET_SERVO SERVO=pen ANGLE=90 ; pen up
+G4 P80 ; settle after lift
+G0 X0 Y0
+; done

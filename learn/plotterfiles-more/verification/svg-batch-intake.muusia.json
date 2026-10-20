@@ -1,0 +1,546 @@
+{
+ "app": "muusia",
+ "v": 1,
+ "name": "svg-batch",
+ "canvas": {
+  "W": 297,
+  "H": 210
+ },
+ "jig": {
+  "mode": "Auto",
+  "magnets": []
+ },
+ "mega": null,
+ "prof": {
+  "workflow": "gcode",
+  "name": "A — Servo Z (multi-tip brush)",
+  "workW": 330,
+  "workH": 240,
+  "originX": 0,
+  "originY": 0,
+  "flipY": false,
+  "pauseCmd": "M0",
+  "tgPen": false,
+  "startG": "G21 ; mm\nG90 ; absolute\nG28 ; home",
+  "endG": "G0 X0 Y0",
+  "zMode": "servo",
+  "servoName": "pen",
+  "servoUp": 90,
+  "servoDown": 35,
+  "penUp": 3,
+  "penDown": 0,
+  "feedDraw": 1800,
+  "feedTravel": 6000,
+  "zFeed": 600,
+  "zHop": 1.5,
+  "zHopOn": true,
+  "penDelayDown": 120,
+  "penDelayUp": 80,
+  "rotOn": false,
+  "rotStepper": "pen_rotate",
+  "rotThresh": 20,
+  "dipOn": false,
+  "dipX": 320,
+  "dipY": 20,
+  "dipZ": -2,
+  "dipEvery": 800,
+  "dipDwell": 600,
+  "maintOn": false,
+  "maintEvery": 4000,
+  "maintMsg": "Advance chalk / re-sharpen",
+  "maintPark": false,
+  "maintX": 20,
+  "maintY": 20,
+  "laserOn": false,
+  "laserOffX": 0,
+  "laserOffY": 0,
+  "laserOnCmd": "SET_PIN PIN=laser VALUE=1",
+  "laserOffCmd": "SET_PIN PIN=laser VALUE=0",
+  "moonrakerUrl": "ws://192.168.0.57:7125/websocket",
+  "canvasCheckOn": false,
+  "id": "machine-1"
+ },
+ "machines": [
+  {
+   "workflow": "gcode",
+   "name": "A — Servo Z (multi-tip brush)",
+   "workW": 330,
+   "workH": 240,
+   "originX": 0,
+   "originY": 0,
+   "flipY": false,
+   "pauseCmd": "M0",
+   "tgPen": false,
+   "startG": "G21 ; mm\nG90 ; absolute\nG28 ; home",
+   "endG": "G0 X0 Y0",
+   "zMode": "servo",
+   "servoName": "pen",
+   "servoUp": 90,
+   "servoDown": 35,
+   "penUp": 3,
+   "penDown": 0,
+   "feedDraw": 1800,
+   "feedTravel": 6000,
+   "zFeed": 600,
+   "zHop": 1.5,
+   "zHopOn": true,
+   "penDelayDown": 120,
+   "penDelayUp": 80,
+   "rotOn": false,
+   "rotStepper": "pen_rotate",
+   "rotThresh": 20,
+   "dipOn": false,
+   "dipX": 320,
+   "dipY": 20,
+   "dipZ": -2,
+   "dipEvery": 800,
+   "dipDwell": 600,
+   "maintOn": false,
+   "maintEvery": 4000,
+   "maintMsg": "Advance chalk / re-sharpen",
+   "maintPark": false,
+   "maintX": 20,
+   "maintY": 20,
+   "laserOn": false,
+   "laserOffX": 0,
+   "laserOffY": 0,
+   "laserOnCmd": "SET_PIN PIN=laser VALUE=1",
+   "laserOffCmd": "SET_PIN PIN=laser VALUE=0",
+   "moonrakerUrl": "ws://192.168.0.57:7125/websocket",
+   "canvasCheckOn": false,
+   "id": "machine-1"
+  },
+  {
+   "workflow": "gcode",
+   "name": "B — Bed Z + rotation",
+   "workW": 330,
+   "workH": 240,
+   "originX": 0,
+   "originY": 0,
+   "flipY": false,
+   "pauseCmd": "M0",
+   "tgPen": false,
+   "startG": "G21 ; mm\nG90 ; absolute\nG28 ; home",
+   "endG": "G0 X0 Y0",
+   "zMode": "bed",
+   "servoName": "pen",
+   "servoUp": 90,
+   "servoDown": 35,
+   "penUp": 3,
+   "penDown": 0,
+   "feedDraw": 1800,
+   "feedTravel": 6000,
+   "zFeed": 600,
+   "zHop": 1.5,
+   "zHopOn": true,
+   "penDelayDown": 120,
+   "penDelayUp": 80,
+   "rotOn": true,
+   "rotStepper": "pen_rotate",
+   "rotThresh": 20,
+   "dipOn": false,
+   "dipX": 320,
+   "dipY": 20,
+   "dipZ": -2,
+   "dipEvery": 800,
+   "dipDwell": 600,
+   "maintOn": false,
+   "maintEvery": 4000,
+   "maintMsg": "Advance chalk / re-sharpen",
+   "maintPark": false,
+   "maintX": 20,
+   "maintY": 20,
+   "laserOn": false,
+   "laserOffX": 0,
+   "laserOffY": 0,
+   "laserOnCmd": "SET_PIN PIN=laser VALUE=1",
+   "laserOffCmd": "SET_PIN PIN=laser VALUE=0",
+   "moonrakerUrl": "ws://192.168.0.57:7125/websocket",
+   "canvasCheckOn": false,
+   "id": "machine-2"
+  },
+  {
+   "workflow": "gcode",
+   "name": "C — Gentle (technical pen)",
+   "workW": 330,
+   "workH": 240,
+   "originX": 0,
+   "originY": 0,
+   "flipY": false,
+   "pauseCmd": "M0",
+   "tgPen": false,
+   "startG": "G21 ; mm\nG90 ; absolute\nCLEAR_PAUSE\nGENTLE_ON ; 50 mm/s, 250 mm/s2, SCV 2 for fragile tips\nPLOT_GO ; leave the Z block pen-up and slow, then plot height",
+   "endG": "GENTLE_OFF ; restore printer.cfg motion limits\nG0 X0 Y0 F3000",
+   "zMode": "servo",
+   "servoName": "pen",
+   "servoUp": 90,
+   "servoDown": 35,
+   "penUp": 3,
+   "penDown": 0,
+   "feedDraw": 1200,
+   "feedTravel": 3000,
+   "zFeed": 300,
+   "zHop": 1.5,
+   "zHopOn": true,
+   "penDelayDown": 300,
+   "penDelayUp": 350,
+   "rotOn": false,
+   "rotStepper": "pen_rotate",
+   "rotThresh": 20,
+   "dipOn": false,
+   "dipX": 320,
+   "dipY": 20,
+   "dipZ": -2,
+   "dipEvery": 800,
+   "dipDwell": 600,
+   "maintOn": false,
+   "maintEvery": 4000,
+   "maintMsg": "Advance chalk / re-sharpen",
+   "maintPark": false,
+   "maintX": 20,
+   "maintY": 20,
+   "laserOn": false,
+   "laserOffX": 0,
+   "laserOffY": 0,
+   "laserOnCmd": "SET_PIN PIN=laser VALUE=1",
+   "laserOffCmd": "SET_PIN PIN=laser VALUE=0",
+   "moonrakerUrl": "ws://192.168.0.57:7125/websocket",
+   "canvasCheckOn": false,
+   "id": "machine-3"
+  }
+ ],
+ "machineIdx": 0,
+ "machineFormat": 2,
+ "customNodes": [],
+ "root": {
+  "nodes": [
+   {
+    "id": 9001,
+    "type": "svg_batch",
+    "x": 40,
+    "y": 40,
+    "params": {
+     "file": "eight-drawings.zip",
+     "cols": 3,
+     "rows": 2,
+     "cellW": 75,
+     "cellH": 75,
+     "gap": 6,
+     "copies": 1,
+     "fit": "Fit cell",
+     "motion": "Manual",
+     "page": 1,
+     "labels": true,
+     "marks": false,
+     "labelPen": 7,
+     "margin": 12
+    },
+    "data": {
+     "svg": {
+      "kind": "svg-batch",
+      "files": [
+       {
+        "name": "shape-1.svg",
+        "paths": [
+         {
+          "pts": [
+           [
+            0,
+            0
+           ],
+           [
+            20,
+            0
+           ],
+           [
+            20,
+            16
+           ],
+           [
+            0,
+            16
+           ]
+          ],
+          "closed": true,
+          "layer": 0
+         }
+        ],
+        "bbox": {
+         "x": 0,
+         "y": 0,
+         "w": 20,
+         "h": 16
+        },
+        "colors": [
+         "#23242A"
+        ],
+        "mm": 1
+       },
+       {
+        "name": "shape-2.svg",
+        "paths": [
+         {
+          "pts": [
+           [
+            0,
+            0
+           ],
+           [
+            21,
+            0
+           ],
+           [
+            21,
+            17
+           ],
+           [
+            0,
+            17
+           ]
+          ],
+          "closed": true,
+          "layer": 0
+         }
+        ],
+        "bbox": {
+         "x": 0,
+         "y": 0,
+         "w": 21,
+         "h": 17
+        },
+        "colors": [
+         "#23242A"
+        ],
+        "mm": 1
+       },
+       {
+        "name": "shape-3.svg",
+        "paths": [
+         {
+          "pts": [
+           [
+            0,
+            0
+           ],
+           [
+            22,
+            0
+           ],
+           [
+            22,
+            18
+           ],
+           [
+            0,
+            18
+           ]
+          ],
+          "closed": true,
+          "layer": 0
+         }
+        ],
+        "bbox": {
+         "x": 0,
+         "y": 0,
+         "w": 22,
+         "h": 18
+        },
+        "colors": [
+         "#23242A"
+        ],
+        "mm": 1
+       },
+       {
+        "name": "shape-4.svg",
+        "paths": [
+         {
+          "pts": [
+           [
+            0,
+            0
+           ],
+           [
+            23,
+            0
+           ],
+           [
+            23,
+            19
+           ],
+           [
+            0,
+            19
+           ]
+          ],
+          "closed": true,
+          "layer": 0
+         }
+        ],
+        "bbox": {
+         "x": 0,
+         "y": 0,
+         "w": 23,
+         "h": 19
+        },
+        "colors": [
+         "#23242A"
+        ],
+        "mm": 1
+       },
+       {
+        "name": "shape-5.svg",
+        "paths": [
+         {
+          "pts": [
+           [
+            0,
+            0
+           ],
+           [
+            24,
+            0
+           ],
+           [
+            24,
+            20
+           ],
+           [
+            0,
+            20
+           ]
+          ],
+          "closed": true,
+          "layer": 0
+         }
+        ],
+        "bbox": {
+         "x": 0,
+         "y": 0,
+         "w": 24,
+         "h": 20
+        },
+        "colors": [
+         "#23242A"
+        ],
+        "mm": 1
+       },
+       {
+        "name": "shape-6.svg",
+        "paths": [
+         {
+          "pts": [
+           [
+            0,
+            0
+           ],
+           [
+            25,
+            0
+           ],
+           [
+            25,
+            21
+           ],
+           [
+            0,
+            21
+           ]
+          ],
+          "closed": true,
+          "layer": 0
+         }
+        ],
+        "bbox": {
+         "x": 0,
+         "y": 0,
+         "w": 25,
+         "h": 21
+        },
+        "colors": [
+         "#23242A"
+        ],
+        "mm": 1
+       },
+       {
+        "name": "shape-7.svg",
+        "paths": [
+         {
+          "pts": [
+           [
+            0,
+            0
+           ],
+           [
+            26,
+            0
+           ],
+           [
+            26,
+            22
+           ],
+           [
+            0,
+            22
+           ]
+          ],
+          "closed": true,
+          "layer": 0
+         }
+        ],
+        "bbox": {
+         "x": 0,
+         "y": 0,
+         "w": 26,
+         "h": 22
+        },
+        "colors": [
+         "#23242A"
+        ],
+        "mm": 1
+       },
+       {
+        "name": "shape-8.svg",
+        "paths": [
+         {
+          "pts": [
+           [
+            0,
+            0
+           ],
+           [
+            27,
+            0
+           ],
+           [
+            27,
+            23
+           ],
+           [
+            0,
+            23
+           ]
+          ],
+          "closed": true,
+          "layer": 0
+         }
+        ],
+        "bbox": {
+         "x": 0,
+         "y": 0,
+         "w": 27,
+         "h": 23
+        },
+        "colors": [
+         "#23242A"
+        ],
+        "mm": 1
+       }
+      ]
+     }
+    }
+   }
+  ],
+  "edges": [],
+  "outputId": 9001
+ }
+}

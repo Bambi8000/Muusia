@@ -1,0 +1,114 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "curve-interference",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "moire_disc",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "x": 50,
+          "y": 50,
+          "radius": 82,
+          "content": "Rings",
+          "pitch": 1.1,
+          "angle": 0,
+          "sweep": 360,
+          "sectorStart": 0,
+          "disorder": 0,
+          "csize": 2.2,
+          "crings": 1,
+          "rim": true,
+          "seed": 1,
+          "layer": 0
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "moire_disc",
+        "x": 480,
+        "y": 40,
+        "params": {
+          "x": 50,
+          "y": 50,
+          "radius": 82,
+          "content": "Rings",
+          "pitch": 1.1,
+          "angle": 0,
+          "sweep": 360,
+          "sectorStart": 0,
+          "disorder": 0,
+          "csize": 2.2,
+          "crings": 1,
+          "rim": true,
+          "seed": 1,
+          "layer": 1
+        }
+      },
+      {
+        "id": 9003,
+        "type": "move_scale",
+        "x": 920,
+        "y": 40,
+        "params": {
+          "dx": 0,
+          "dy": 0,
+          "scale": 100,
+          "scaleY": 0,
+          "origin": "Content center",
+          "ox": 150,
+          "oy": 100,
+          "motion": "Sway",
+          "clock": "Timeline",
+          "travelX": 2,
+          "travelY": 0,
+          "scaleSwing": 0.3,
+          "cycles": 1,
+          "phase": 25
+        }
+      },
+      {
+        "id": 9004,
+        "type": "merge",
+        "x": 1360,
+        "y": 40,
+        "params": {
+          "count": 2,
+          "penPer": false
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "more-0",
+        "from": 9002,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 0
+      },
+      {
+        "id": "more-1",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9004,
+        "toPort": 0
+      },
+      {
+        "id": "more-2",
+        "from": 9003,
+        "fromPort": 0,
+        "to": 9004,
+        "toPort": 1
+      }
+    ],
+    "outputId": 9004
+  }
+}

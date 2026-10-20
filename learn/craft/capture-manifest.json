@@ -14,7 +14,7 @@
     "src/defs/nodes/shape_packing.js": "1246061092e35ef127fe41a844284555abb52a1c5179234a753d103eaacd2ea8",
     "src/defs/nodes/path_bend.js": "b9bbeb10cb61dbd893a602b1237f97fcbb03e93e987ffc9b8407f1aa72c9565f",
     "src/defs/nodes/seamless_tile.js": "099004c45bb42cbf781038b27630eda3201c8be5bba665935bf76d3de1871368",
-    "src/defs/nodes/reaction_patterns.js": "86fca1863405287f5d8f44f7fafaee611c0566f1759355df52bd3bda15abdf33",
+    "src/defs/nodes/reaction_patterns.js": "05e9186cdfae447ad8e705db4b7f36a12c197d9238269815c2413ec3a626a3a2",
     "src/defs/nodes/crystal_growth.js": "0ff9669855c7f30519335d6a4ea961fcde8e4ca4dd1a74166e58567224104502",
     "src/defs/nodes/mesh_render.js": "f39198d938bf2016b98df670370d393b65d6bc5b0057b1c177a61fb9f18ab8f3",
     "src/defs/nodes/array.js": "e409c2c2c56f191e1c953e0d32eba851df4be985a89dafa9e6cbc3e167bcada4",
@@ -165,7 +165,7 @@
       "id": "reaction-patterns",
       "patch": {
         "file": "patches/reaction-patterns.muusia.json",
-        "sha256": "5972d181571bd5dee1253bde768e160023fff0099cf334d6ba192e731b47078e"
+        "sha256": "8a1fed09f4d983c0d42381a5f98aef5c59fbaf18f00dfe819029d7c0ac12eb02"
       },
       "svg": {
         "file": "assets/reaction-patterns.svg",
@@ -174,29 +174,33 @@
       "captures": [
         {
           "file": "assets/reaction-patterns-graph.png",
-          "sha256": "090f5b95c6812a7133b3295a2faac7b7243eefe6e4438aceffc052b2043fa710",
+          "sha256": "5754cf9e1d7c6e6ba2417889610bc932c99c7dca4471aec3b3534893d384231b",
           "view": "graph",
-          "width": 909,
-          "height": 808,
-          "graphZoom": 0.5787037037037038
+          "width": 1280,
+          "height": 720
         },
         {
           "file": "assets/reaction-patterns-focus.png",
-          "sha256": "0ad19b27dd82a7e6c082a164e7270e3bfbd2ad52e235c8cfc48ae851188e4a80",
+          "sha256": "8d043d185301154a9c15c2121cfc250f7e4f1ae00e64b76a95ad09fc0adce037",
           "view": "focus",
-          "width": 909,
-          "height": 808,
-          "graphZoom": 1
+          "width": 1280,
+          "height": 720
         }
       ],
       "animation": {
         "file": "animations/reaction-patterns.zip",
-        "sha256": "8097e073b5576bee4359cb036df46a7f57695150500a5f2a4b0c901b90d31040",
+        "sha256": "e61082165f1ea84c9859444df2b4dcd6aee45294e39bdda65591c060395f709a",
         "frames": 12,
         "patch": {
           "file": "patches/reaction-patterns-animation.muusia.json",
-          "sha256": "e0d8de3200203aa43daa21d4df380f1d41280df0de5d6203356a78f859a34de3"
+          "sha256": "75888069e17892b49822d331d5f52016524e59345f7914dc568ac52a5e984c2f"
         }
+      },
+      "maintenance": {
+        "date": "2026-10-20",
+        "appVersion": "2.131",
+        "basedOnCommit": "364852cf002de5e5e5d2615b6126a8302172e7fd",
+        "scope": "Actual SVG, graph and Focus captures, and 12-frame SVG ZIP recaptured after opt-in PlotterFiles modes; existing geometry preserved. Local build, no physical plotting."
       }
     },
     {

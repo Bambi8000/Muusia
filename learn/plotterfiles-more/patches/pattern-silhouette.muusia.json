@@ -1,0 +1,104 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "pattern-silhouette",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "potato",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "count": 1,
+          "size": 110,
+          "sizeVar": 0,
+          "irr": 0.22,
+          "place": "No overlap",
+          "eyes": "None",
+          "eyeCount": 7,
+          "margin": 12,
+          "seed": 73,
+          "layer": 0
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "reaction_patterns",
+        "x": 480,
+        "y": 40,
+        "params": {
+          "tonal": false,
+          "toneImage": "",
+          "toneAmount": 65,
+          "toneInvert": false,
+          "pattern": "Maze",
+          "feed": 0.04,
+          "kill": 0.062,
+          "detail": 100,
+          "scale": 1,
+          "steps": 900,
+          "motion": "Manual",
+          "growth": 100,
+          "germs": 28,
+          "seedWidth": 12,
+          "level": 0.25,
+          "contours": 2,
+          "wrap": false,
+          "pens": 1,
+          "margin": 30,
+          "seed": 37,
+          "layer": 0
+        }
+      },
+      {
+        "id": 9003,
+        "type": "container",
+        "x": 920,
+        "y": 40,
+        "params": {
+          "shape": "Wired region",
+          "cx": 105,
+          "cy": 148,
+          "rw": 120,
+          "rh": 90,
+          "cr": 55,
+          "rot": 0,
+          "keep": "Inside",
+          "gap": 0,
+          "draw": true,
+          "regionPen": 6
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "more-0",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 2
+      },
+      {
+        "id": "more-1",
+        "from": 9002,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 0
+      },
+      {
+        "id": "more-2",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 1
+      }
+    ],
+    "outputId": 9003
+  }
+}

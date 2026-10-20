@@ -14,6 +14,9 @@
         "x": 70,
         "y": 40,
         "params": {
+          "bandwidth": 30,
+          "underGap": 1,
+          "weavePens": 3,
           "mode": "Hex strands",
           "cell": 25,
           "strands": 7,

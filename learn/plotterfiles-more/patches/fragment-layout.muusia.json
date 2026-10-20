@@ -1,0 +1,331 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "fragment-layout",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "svgimport",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "filename": "fragment-study.svg",
+          "fit": "Scale %",
+          "scale": 100,
+          "margin": 10,
+          "offx": 0,
+          "offy": 0,
+          "dirs": "Original",
+          "colmode": "From SVG colors",
+          "layer": 0
+        },
+        "data": {
+          "svg": {
+            "paths": [
+              {
+                "pts": [
+                  [
+                    25,
+                    35
+                  ],
+                  [
+                    50,
+                    35
+                  ],
+                  [
+                    50,
+                    77
+                  ],
+                  [
+                    25,
+                    77
+                  ]
+                ],
+                "closed": true,
+                "layer": 0,
+                "colorIdx": 0,
+                "group": 0
+              },
+              {
+                "pts": [
+                  [
+                    29,
+                    39
+                  ],
+                  [
+                    46,
+                    39
+                  ],
+                  [
+                    46,
+                    73
+                  ],
+                  [
+                    29,
+                    73
+                  ]
+                ],
+                "closed": true,
+                "layer": 0,
+                "colorIdx": 0,
+                "group": 0
+              },
+              {
+                "pts": [
+                  [
+                    31,
+                    47
+                  ],
+                  [
+                    44,
+                    47
+                  ]
+                ],
+                "closed": false,
+                "layer": 0,
+                "colorIdx": 0,
+                "group": 0
+              },
+              {
+                "pts": [
+                  [
+                    80,
+                    100
+                  ],
+                  [
+                    111,
+                    100
+                  ],
+                  [
+                    111,
+                    138
+                  ],
+                  [
+                    80,
+                    138
+                  ]
+                ],
+                "closed": true,
+                "layer": 1,
+                "colorIdx": 1,
+                "group": 1
+              },
+              {
+                "pts": [
+                  [
+                    84,
+                    104
+                  ],
+                  [
+                    107,
+                    104
+                  ],
+                  [
+                    107,
+                    134
+                  ],
+                  [
+                    84,
+                    134
+                  ]
+                ],
+                "closed": true,
+                "layer": 1,
+                "colorIdx": 1,
+                "group": 1
+              },
+              {
+                "pts": [
+                  [
+                    86,
+                    112
+                  ],
+                  [
+                    105,
+                    112
+                  ]
+                ],
+                "closed": false,
+                "layer": 1,
+                "colorIdx": 1,
+                "group": 1
+              },
+              {
+                "pts": [
+                  [
+                    135,
+                    35
+                  ],
+                  [
+                    172,
+                    35
+                  ],
+                  [
+                    172,
+                    69
+                  ],
+                  [
+                    135,
+                    69
+                  ]
+                ],
+                "closed": true,
+                "layer": 2,
+                "colorIdx": 2,
+                "group": 2
+              },
+              {
+                "pts": [
+                  [
+                    139,
+                    39
+                  ],
+                  [
+                    168,
+                    39
+                  ],
+                  [
+                    168,
+                    65
+                  ],
+                  [
+                    139,
+                    65
+                  ]
+                ],
+                "closed": true,
+                "layer": 2,
+                "colorIdx": 2,
+                "group": 2
+              },
+              {
+                "pts": [
+                  [
+                    141,
+                    47
+                  ],
+                  [
+                    166,
+                    47
+                  ]
+                ],
+                "closed": false,
+                "layer": 2,
+                "colorIdx": 2,
+                "group": 2
+              },
+              {
+                "pts": [
+                  [
+                    190,
+                    100
+                  ],
+                  [
+                    233,
+                    100
+                  ],
+                  [
+                    233,
+                    130
+                  ],
+                  [
+                    190,
+                    130
+                  ]
+                ],
+                "closed": true,
+                "layer": 3,
+                "colorIdx": 3,
+                "group": 3
+              },
+              {
+                "pts": [
+                  [
+                    194,
+                    104
+                  ],
+                  [
+                    229,
+                    104
+                  ],
+                  [
+                    229,
+                    126
+                  ],
+                  [
+                    194,
+                    126
+                  ]
+                ],
+                "closed": true,
+                "layer": 3,
+                "colorIdx": 3,
+                "group": 3
+              },
+              {
+                "pts": [
+                  [
+                    196,
+                    112
+                  ],
+                  [
+                    227,
+                    112
+                  ]
+                ],
+                "closed": false,
+                "layer": 3,
+                "colorIdx": 3,
+                "group": 3
+              }
+            ],
+            "bbox": {
+              "x": 25,
+              "y": 35,
+              "w": 208,
+              "h": 103
+            },
+            "colors": [
+              "#23242A",
+              "#2A56A8",
+              "#C23A30",
+              "#1F7A48"
+            ]
+          }
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "fragment_layout",
+        "x": 480,
+        "y": 40,
+        "params": {
+          "groupBy": "Closed containment",
+          "layout": "Row shelves",
+          "sort": "Area",
+          "descending": true,
+          "gap": 8,
+          "sizing": "Fit page",
+          "blend": 100,
+          "margin": 12
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "more-0",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      }
+    ],
+    "outputId": 9002
+  }
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="297mm" height="210mm" viewBox="0 0 297 210">
+  <!-- Muusia — 12 paths, 297x210 mm -->
+  <g id="pen-0-black" fill="none" stroke="#23242A" stroke-width="0.3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M203.5,84L228.5,84L228.5,126L203.5,126Z"/>
+    <path d="M207.5,88L224.5,88L224.5,122L207.5,122Z"/>
+    <path d="M209.5,96L222.5,96"/>
+  </g>
+  <g id="pen-1-blue" fill="none" stroke="#2A56A8" stroke-width="0.3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M164.5,84L195.5,84L195.5,122L164.5,122Z"/>
+    <path d="M168.5,88L191.5,88L191.5,118L168.5,118Z"/>
+    <path d="M170.5,96L189.5,96"/>
+  </g>
+  <g id="pen-2-red" fill="none" stroke="#C23A30" stroke-width="0.3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M119.5,84L156.5,84L156.5,118L119.5,118Z"/>
+    <path d="M123.5,88L152.5,88L152.5,114L123.5,114Z"/>
+    <path d="M125.5,96L150.5,96"/>
+  </g>
+  <g id="pen-3-green" fill="none" stroke="#1F7A48" stroke-width="0.3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M68.5,84L111.5,84L111.5,114L68.5,114Z"/>
+    <path d="M72.5,88L107.5,88L107.5,110L72.5,110Z"/>
+    <path d="M74.5,96L105.5,96"/>
+  </g>
+</svg>

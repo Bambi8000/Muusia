@@ -12,11 +12,11 @@
     "src/defs/nodes/grid.js": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2",
     "src/defs/nodes/topolar.js": "d809c7d4c1bdb0826c472a0ccae4e37dfac7ce7a57db74f9c9efec07e0af835c",
     "src/defs/nodes/warp.js": "011974f2832ffd852cbe6189295cc20c65850d08429c2d5311cafa6c61ee544b",
-    "src/defs/nodes/truchet.js": "095d35efcf9a90f5189809a7ca53b8da0aa29e9b6db70e15bd55ee2ad2343478",
-    "src/defs/nodes/tiles.js": "fe3663adeacef7cacdf6604c7465c7f0abc0693c658c0ba2535b583d492de88f",
+    "src/defs/nodes/truchet.js": "31947e2db727aa0b8db0ee7adb128539f5f61ea9d43b511a0b4dc374bb54cdaa",
+    "src/defs/nodes/tiles.js": "6441d528fd265fbf4b08bbad3ccf9b6bd894645c4cf56ad6ba56548fb88f2aca",
     "src/defs/nodes/mini_squares.js": "ff808b8962ec6c155dbdd4940d050ab3a8c99342b6e5309bd4da394cc3921b99",
     "src/defs/nodes/network.js": "d68a843aa4b9f57e473bbd4a5ad76c75f6187e16198691cd41f483ef76576e9a",
-    "src/defs/nodes/cell_strands.js": "241e848b97c9b870cea650d032f5801f2660eeb4dcf88da09f2c4769185b33db",
+    "src/defs/nodes/cell_strands.js": "c0d209c5ecbcae0b0c131d8b4fcbd28a5fd69be43ec03f902d40bba452f1b5aa",
     "src/defs/nodes/block_field.js": "e43038d8b58ca378a69df04c3f26e230989f8f2747d458365fa5edbefbed888e",
     "src/defs/nodes/frame.js": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204",
     "src/defs/nodes/matem.js": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5",
@@ -188,7 +188,7 @@
       "id": "truchet-bands",
       "patch": {
         "file": "patches/truchet-bands.muusia.json",
-        "sha256": "458a29dfb29e864bd7edd405309ce4b86ebd22217163645ef91a354d27f3d481"
+        "sha256": "d87bca47fc0f5f3af4fbd9a0fcec7cbc71ba630b15401fd60b1ca5d2b17875b7"
       },
       "svg": {
         "file": "assets/truchet-bands.svg",
@@ -201,31 +201,31 @@
       "captures": [
         {
           "file": "assets/truchet-bands-graph.png",
-          "sha256": "94ae84c7bafd1ecd48f270da337ed5899572b7c393703d0c36d4abb1da8b3ed4",
+          "sha256": "e9f70e8c726fcd20061866201b447c9148e8d323a6535243d7b313de355e54bf",
           "view": "graph",
-          "width": 909,
-          "height": 808
+          "width": 1280,
+          "height": 720
         },
         {
           "file": "assets/truchet-bands-focus.png",
-          "sha256": "c536476ce9c07e05bf94105df1180578ee880044044b80b4a94a3c2e025dc4ce",
+          "sha256": "be6934fc881e31e1981ebdfbbf137d833640c1f6db5b7a982817d4afe8b01448",
           "view": "focus",
-          "width": 909,
-          "height": 808
+          "width": 1280,
+          "height": 720
         }
       ],
       "maintenance": {
         "date": "2026-10-20",
         "appVersion": "2.131",
-        "baseCommit": "8b4fe0177ef511dcd1e010795af9d0ad7f96b76a",
-        "scope": "Actual local Custom tile development build. Butterfly patch refreshed with neutral new parameters. Actual SVG recaptured byte-identically; actual G-code and both graph/Focus screenshots refreshed. Other nine lessons retain their original evidence. No physical plot. Current SVG recaptured again after fixed-rotation Seed visibility and collapsed-inset protection; unchanged Butterfly geometry."
+        "basedOnCommit": "364852cf002de5e5e5d2615b6126a8302172e7fd",
+        "scope": "Actual SVG, G-code, graph and Focus recaptured after opt-in Pattern Mask; existing static Butterfly geometry preserved. This lesson has no animation patch. Local build, no physical plotting."
       }
     },
     {
       "id": "tiles-field",
       "patch": {
         "file": "patches/tiles-field.muusia.json",
-        "sha256": "ba5632e8b1929e1a17b0c3d746226403f37f220f996e0603a892e2c16b8581e4"
+        "sha256": "9c12162cff01f199bc1140d28eb1408ddd5bf672b25ef8c8e95c12271e4bcfe1"
       },
       "svg": {
         "file": "assets/tiles-field.svg",
@@ -233,19 +233,19 @@
       },
       "gcode": {
         "file": "verification/tiles-field.gcode",
-        "sha256": "26d37ebb7b965d014e16d8076580ff6b795e112495d36affee1eef6c74a1ed75"
+        "sha256": "69623b7eef1cf65f750551de094608b6f4bad65db94a0f8226adc47d20e109fc"
       },
       "captures": [
         {
           "file": "assets/tiles-field-graph.png",
-          "sha256": "0d28e0647b35a1b55aaf56b53538103b91dc84a779516a152e93561cae0aafa9",
+          "sha256": "87d2f9ca822611c4bae58218c72d20af734c9252c7476e3f1cc2d12724b212d0",
           "view": "graph",
           "width": 1280,
           "height": 720
         },
         {
           "file": "assets/tiles-field-focus.png",
-          "sha256": "9a0d6546c8f558582c3ea61a0a763ac69d80c97ef9c28bf6e19e8869426ca7fc",
+          "sha256": "cc03cbad8902ecc821618e0456a53b5ce4ee72268311a4c26ec009b869b30d56",
           "view": "focus",
           "width": 1280,
           "height": 720
@@ -257,8 +257,14 @@
         "frames": 12,
         "patch": {
           "file": "patches/tiles-field-animation.muusia.json",
-          "sha256": "f0ade6985ab91d83f86387572c927e38b5d78d823b5d58e7125df2a34ea1b866"
+          "sha256": "c83267815df7eeb089f91821ee8408e69723f5d2f426252d42f24c76a05def0b"
         }
+      },
+      "maintenance": {
+        "date": "2026-10-20",
+        "appVersion": "2.131",
+        "basedOnCommit": "364852cf002de5e5e5d2615b6126a8302172e7fd",
+        "scope": "Actual SVG, graph and Focus captures, and 12-frame SVG ZIP recaptured after opt-in PlotterFiles modes; existing geometry preserved. Local build, no physical plotting."
       }
     },
     {
@@ -336,7 +342,7 @@
       "id": "cell-strands",
       "patch": {
         "file": "patches/cell-strands.muusia.json",
-        "sha256": "f8a42495cc04fe3f5f40a6e50922cb4949fd4628e7e5fcb08e40c125e69099a2"
+        "sha256": "b8aafdcd140f45051151815bab59d3d9c7db8230c4e49cf22de5fc42510af651"
       },
       "svg": {
         "file": "assets/cell-strands.svg",
@@ -344,19 +350,19 @@
       },
       "gcode": {
         "file": "verification/cell-strands.gcode",
-        "sha256": "66c02990939e7f5eb73e8019b254df9423abc9cb6d8f7e30075ea9a9f2004451"
+        "sha256": "ec66d199838c4eae034e647ceb1370ff80b2d5abb4811b82818995bcb52db169"
       },
       "captures": [
         {
           "file": "assets/cell-strands-graph.png",
-          "sha256": "8263151d86af98a4d813392fdcdfc7d9c722a6904ac9184c8462475c66220ce6",
+          "sha256": "4034e556b67b26bedee522a410fabebfa38f36768b3179f59a15be2f7a5804a3",
           "view": "graph",
           "width": 1280,
           "height": 720
         },
         {
           "file": "assets/cell-strands-focus.png",
-          "sha256": "a33eb1c6468e05df1e3b5013b94e6e2c981dc03fbf01989662abc635da731991",
+          "sha256": "8ce5734219926b5d76722f7503d71c0d7fe1251101d1515467404034f6bddca3",
           "view": "focus",
           "width": 1280,
           "height": 720
@@ -368,8 +374,14 @@
         "frames": 12,
         "patch": {
           "file": "patches/cell-strands-animation.muusia.json",
-          "sha256": "b6268b90fdba12328e8971c1d2be07c6c0fa566255d3bdc9dd10af087b65ec44"
+          "sha256": "5f55cd6de45a69807e373075cfc39be5e1b399544575155f9788bcefb28530c0"
         }
+      },
+      "maintenance": {
+        "date": "2026-10-20",
+        "appVersion": "2.131",
+        "basedOnCommit": "364852cf002de5e5e5d2615b6126a8302172e7fd",
+        "scope": "Actual SVG, graph and Focus captures, and 12-frame SVG ZIP recaptured after opt-in PlotterFiles modes; existing geometry preserved. Local build, no physical plotting."
       }
     },
     {

@@ -1,0 +1,122 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "one-line-grid",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "truchet",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "patternMask": false,
+          "maskImage": "",
+          "maskBias": 100,
+          "mode": "Loop",
+          "cornerLink": "Linked",
+          "editCorner": "TL",
+          "knotsTL": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsTR": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsBR": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsBL": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "smoothness": 85,
+          "tileRotation": "Seeded",
+          "insetCopies": 0,
+          "copyGap": 0.6,
+          "customColours": 1,
+          "customPen2": 1,
+          "customPen3": 2,
+          "customPen4": 6,
+          "bands": 5,
+          "bandRatio": 45,
+          "bandDrawing": "Outlines",
+          "bandPitch": 0.7,
+          "rowOffset": 1,
+          "ttype": "Arcs",
+          "fill": 100,
+          "sep": "Connected",
+          "tile": 14,
+          "scale": 100,
+          "lines": 1,
+          "spread": 100,
+          "gapmm": 0,
+          "round": 1,
+          "margin": 15,
+          "seed": 9,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

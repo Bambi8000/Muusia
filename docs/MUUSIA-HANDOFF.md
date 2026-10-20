@@ -264,6 +264,56 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+
+### W — 2026-10-20 · Remaining PlotterFiles features and tutorials (local review)
+
+Built on `364852cf002de5e5e5d2615b6126a8302172e7fd` in the clean
+`codex/plotterfiles-suite` worktree; no push or release bump. The primary checkout’s
+Needle Punch/App/machine changes remain untouched.
+
+- Six new built-in nodes: **3D Automata** (6/18/26 neighbourhood, configurable
+  birth/survival, deterministic generation / Timeline, exposed voxel boundary),
+  **Recursive Structure** (seeded junction beams / nested cages), **Fragment
+  Layout** (containment or explicit multi-path groups, shelves/columns/radial,
+  physical gap, keep size / fit, blend), **Continuous Fill** (retraced lattice
+  tree walk or safely joined scan rows, actual route/lift outputs), **SVG Batch
+  Layout** (SVG/ZIP/JSON intake, frozen independent documents, physical slots,
+  copies/pages/Timeline, labels/cut marks and overflow) and **Plot Prepare**
+  (reuse Cull/Simplify/Join Ends/Travel Sort, pen/group limits, preserved direction,
+  before/after lifts and straight travel comparison).
+- Existing-node extensions: **Cell Strands → Hex weave** with exact crossing
+  gaps, bundle width and up to four pens; **Reaction Patterns → Tonal Turing**
+  with image or closed Tone guiding local solver rates; **Truchet → Pattern mask**
+  with closed text / image orientation field; **FM Rose → Maurer** with angular
+  step and smooth outline; **Tiles → Disarray envelope** (vertical, horizontal,
+  radial or mask). Defaults retain original output. Input port indices preserved.
+- 3D generators share `src/defs/plotter-utilities.js` for normalization, camera
+  and approximate depth visibility. Meshes feed existing consumers; no machine-Z
+  change. Recursive boxes overlap and are not boolean-unioned fabrication solids.
+  Cell / depth resolution coarsens uniformly at work limits; no prefix dropping.
+- Optional primitive `path.group` is documented. SVG Batch emits slot identities;
+  Fragment Layout and Plot Prepare retain them. Other existing modifiers may
+  discard metadata, so do not promise end-to-end group propagation.
+- Fourteen English tutorials under `learn/plotterfiles-more/`, including
+  **One-line Grid**, **Curve Interference** and **Pattern Silhouette** as existing
+  node recipes. Seventeen finished patches and four captured sequence players.
+  Learn now builds 84 pages; 336 node modules / 338 registry entries.
+- Validation: 108 expansion geometry cases, 102 first-batch regression cases,
+  fourteen actual browser SVGs, nine actual Focus captures, six coordinate-checked
+  complete G-code exports, 36 animation frames plus two paginated sheets, actual
+  ZIP and raster intake + Save. Changed legacy tutorial dependencies were truly
+  recaptured; the full catalog/build/Learn gate passed (36,119 checks / 84 pages).
+  No physical plot, calibration, publication or Claude web upload is claimed.
+- Continuous Fill intentionally retraces tree edges and may need separate island
+  routes. SVG colour groups map to successive Muusia pen indices per file; they
+  are not automatically matched to source RGB. Plot Prepare uses numerical route
+  statistics, not calibrated machine runtime. Per-pen XY remains a separate
+  existing Klipper/PEN_USE plan, with offset-free Muusia export.
+
+Next release owner: integrate both PlotterFiles batches, bump APP_VERSION once,
+rerun the shared gate, publish only when Daniel authorizes it, and reconcile the
+primary checkout before moving its unrelated uncommitted work.
+
 ### W — 2026-10-20 · PlotterFiles implementation batch (local review)
 
 Daniel approved Spiral Packing, Hitomezashi, Tessellation, Venation and Custom

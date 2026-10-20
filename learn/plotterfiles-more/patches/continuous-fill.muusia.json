@@ -1,0 +1,115 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "continuous-fill",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "svgimport",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "filename": "ring.svg",
+          "fit": "Scale %",
+          "scale": 100,
+          "margin": 10,
+          "offx": 0,
+          "offy": 0,
+          "dirs": "Original",
+          "colmode": "From SVG colors",
+          "layer": 0
+        },
+        "data": {
+          "svg": {
+            "paths": [
+              {
+                "pts": [
+                  [
+                    45,
+                    30
+                  ],
+                  [
+                    250,
+                    30
+                  ],
+                  [
+                    250,
+                    180
+                  ],
+                  [
+                    45,
+                    180
+                  ]
+                ],
+                "closed": true,
+                "layer": 0,
+                "colorIdx": 0
+              },
+              {
+                "pts": [
+                  [
+                    105,
+                    70
+                  ],
+                  [
+                    170,
+                    70
+                  ],
+                  [
+                    170,
+                    130
+                  ],
+                  [
+                    105,
+                    130
+                  ]
+                ],
+                "closed": true,
+                "layer": 0,
+                "colorIdx": 0
+              }
+            ],
+            "bbox": {
+              "x": 45,
+              "y": 30,
+              "w": 205,
+              "h": 150
+            },
+            "colors": [
+              "#23242A"
+            ]
+          }
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "continuous_fill",
+        "x": 480,
+        "y": 40,
+        "params": {
+          "route": "Tree walk",
+          "pitch": 3,
+          "angle": 0,
+          "margin": 12,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "more-0",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      }
+    ],
+    "outputId": 9002
+  }
+}

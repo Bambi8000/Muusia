@@ -1,0 +1,40 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "hex-weave",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "cell_strands",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "bandwidth": 38,
+          "underGap": 1.2,
+          "weavePens": 3,
+          "mode": "Hex weave",
+          "cell": 38,
+          "strands": 5,
+          "deform": 20,
+          "fieldSize": 55,
+          "phase": 0,
+          "curve": 65,
+          "density": 100,
+          "carry": 35,
+          "edges": false,
+          "edgePen": 7,
+          "margin": 15,
+          "seed": 31,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

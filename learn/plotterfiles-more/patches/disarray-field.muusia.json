@@ -1,0 +1,49 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "disarray-field",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "tiles",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "envelope": "Vertical",
+          "start": 0,
+          "end": 100,
+          "field": 100,
+          "fieldScale": 60,
+          "fieldMove": 65,
+          "fieldRotate": 100,
+          "fieldShrink": 25,
+          "phase": 0,
+          "clipCell": true,
+          "arcSweep": 270,
+          "cols": 16,
+          "rows": 10,
+          "layout": "Grid",
+          "flipAlt": false,
+          "shape": "Superellipse",
+          "superN": 8,
+          "sizeX": 78,
+          "sizeY": 0,
+          "starPts": 5,
+          "starIn": 45,
+          "rot": 0,
+          "rotJit": 0,
+          "margin": 12,
+          "seed": 101,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

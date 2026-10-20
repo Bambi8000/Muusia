@@ -1,0 +1,40 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "automata-3d",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "automata_3d",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "volume": 15,
+          "neighbours": "6 faces",
+          "birth": "1-3",
+          "survival": "1-6",
+          "initial": "Single seed",
+          "density": 8,
+          "motion": "Manual",
+          "generations": 7,
+          "generation": 7,
+          "seed": 19,
+          "yaw": 25,
+          "elevation": 30,
+          "persp": 0,
+          "hidden": true,
+          "size": 155,
+          "margin": 12,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

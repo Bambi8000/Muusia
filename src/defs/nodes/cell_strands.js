@@ -2,10 +2,13 @@ import { Pin, hash2, noise2, applyStyle } from "../helpers.js";
 
 export default {
  key:'cell_strands',name:'Cell Strands',cat:'gen',group:'geometric',
- desc:'Parallel strands travel through a shared distorted cell network. Hex strands routes edge bundles through convex hexagons; Ribbon cells uses square cells. Every shared edge uses the same stations, so adjacent bundles meet exactly when both routes reach it. Carry adds routes to otherwise unused cell edges; Density leaves some cells empty. Cell edges is an optional separate pen. Displacement is uniformly reduced until all cells remain convex and inside the margin. Phase moves the deformation in a repeatable loop. Paths may cross inside cells; this is a strand network, not an over/under weave.',
+ desc:'Parallel strands travel through a shared distorted cell network. Hex strands routes edge bundles through convex hexagons; Ribbon cells uses square cells. Every shared edge uses the same stations, so adjacent bundles meet exactly when both routes reach it. Carry adds routes to otherwise unused cell edges; Density leaves some cells empty. Cell edges is an optional separate pen. Displacement is uniformly reduced until all cells remain convex and inside the margin. Phase moves the deformation in a repeatable loop. Hex weave pairs opposite edges into three bundles. Local over/under priorities rotate by cell; exact intersections cut clearance gaps from lower strands. Bundle width controls edge coverage and Bundle pens colours route families; priorities are local, not a global alternating knot. Curve affects bundle bowing. Original strand modes keep their crossing behaviour.',
  ins:[Pin('style','Style')],outs:[Pin('paths','Drawing')],
  params:[
- {key:'mode',label:'Cells',type:'select',options:['Hex strands','Ribbon cells'],def:'Hex strands'},
+ {key:'bandwidth',label:'Bundle width %',type:'slider',min:5,max:80,step:1,def:30,showIf:p=>p.mode==='Hex weave'},
+ {key:'underGap',label:'Underpass clearance mm',type:'slider',min:.2,max:5,step:.1,def:1,showIf:p=>p.mode==='Hex weave'},
+ {key:'weavePens',label:'Bundle pens',type:'slider',min:1,max:4,step:1,def:3,showIf:p=>p.mode==='Hex weave'},
+ {key:'mode',label:'Cells',type:'select',options:['Hex strands','Ribbon cells','Hex weave'],def:'Hex strands'},
  {key:'cell',label:'Cell size mm',type:'slider',min:8,max:60,step:1,def:25},
  {key:'strands',label:'Strands per bundle',type:'slider',min:1,max:18,step:1,def:7},
  {key:'deform',label:'Displacement %',type:'slider',min:0,max:100,step:1,def:45},
@@ -13,7 +16,7 @@ export default {
  {key:'phase',label:'Field phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.deform>0},
  {key:'curve',label:'Curve %',type:'slider',min:0,max:100,step:1,def:65},
  {key:'density',label:'Occupied cells %',type:'slider',min:0,max:100,step:1,def:80},
- {key:'carry',label:'Extra routes %',type:'slider',min:0,max:100,step:1,def:35},
+ {key:'carry',label:'Extra routes %',type:'slider',min:0,max:100,step:1,def:35,showIf:p=>p.mode!=='Hex weave'},
  {key:'edges',label:'Cell edges',type:'check',def:true},
  {key:'edgePen',label:'Edge pen',type:'pen',def:7,showIf:p=>p.edges},
  {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:15},
@@ -21,6 +24,24 @@ export default {
  {key:'layer',label:'Strand pen',type:'pen',def:0}
  ],
  overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+ _weave(ins,p,c){
+  const net=this._network(p,c);if(!net)return {paths:[]};const {vertices:v,cells,n}=net,paths=[],seen=new Set(),pens=Math.max(1,Math.min(4,Math.round(+p.weavePens||1))),pen=Math.max(0,Math.min(11,Math.round(+p.layer||0))),width=Math.max(.05,Math.min(.8,(+p.bandwidth||30)/100)),clearance=Math.max(.2,Math.min(5,+p.underGap||1));
+  const cross=(a,b)=>a[0]*b[1]-a[1]*b[0],sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+  for(let i=0;i<cells.length;i++){
+   const ids=cells[i];if(p.edges)for(let e=0;e<6;e++){const a=ids[e],b=ids[(e+1)%6],k=[a,b].sort((a,b)=>a-b).join(',');if(!seen.has(k)){seen.add(k);paths.push({pts:[v[a],v[b]],closed:false,layer:Math.max(0,Math.min(11,Math.round(+p.edgePen||0)))});}}
+   if(hash2(i,7,+p.seed||0)>Math.max(0,Math.min(1,(+p.density||0)/100)))continue;
+   const at=(e,t)=>{const a=v[ids[e]],b=v[ids[(e+1)%6]];return [a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1])];},center=ids.reduce((a,id)=>[a[0]+v[id][0]/6,a[1]+v[id][1]/6],[0,0]),routes=[],curve=Math.max(0,Math.min(1,(+p.curve||0)/100));
+   for(let j=0;j<3;j++)for(let k=0;k<n;k++){const t=.5+((k+.5)/n-.5)*width,a=at(j,t),b=at(j+3,1-t),c1=a.map((x,h)=>x+(center[h]-x)*curve),c2=b.map((x,h)=>x+(center[h]-x)*curve),pts=Array.from({length:25},(_,h)=>{const t=h/24,u=1-t;return a.map((x,z)=>u*u*u*x+3*u*u*t*c1[z]+3*u*t*t*c2[z]+t*t*t*b[z]);});routes.push({j,k,pts});}
+   const priority=j=>(j+i)%3;
+   for(const r of routes){const cuts=[],lengths=[0];for(let h=1;h<r.pts.length;h++)lengths.push(lengths[h-1]+Math.hypot(...sub(r.pts[h],r.pts[h-1])));
+    for(const top of routes){if(priority(top.j)<=priority(r.j))continue;for(let h=1;h<r.pts.length;h++)for(let z=1;z<top.pts.length;z++){const a=r.pts[h-1],d=sub(r.pts[h],a),b=top.pts[z-1],e=sub(top.pts[z],b),det=cross(d,e);if(Math.abs(det)<1e-9)continue;const ab=sub(b,a),t=cross(ab,e)/det,u=cross(ab,d)/det;if(t>1e-7&&t<=1&&u>=0&&u<=1){const at=lengths[h-1]+t*(lengths[h]-lengths[h-1]),half=clearance/2;cuts.push([at-half,at+half]);}}}
+    cuts.sort((a,b)=>a[0]-b[0]);const merged=[];for(const q of cuts){const last=merged.at(-1);if(last&&q[0]<=last[1])last[1]=Math.max(last[1],q[1]);else merged.push(q.slice());}
+    const total=lengths.at(-1),bounds=[0,...merged.flat().map(v=>Math.max(0,Math.min(total,v))),total],point=d=>{let h=1;while(h<lengths.length-1&&lengths[h]<d)h++;const t=(d-lengths[h-1])/(lengths[h]-lengths[h-1]||1);return r.pts[h-1].map((v,k)=>v+t*(r.pts[h][k]-v));};
+    for(let h=0;h<bounds.length;h+=2){const a=bounds[h],b=bounds[h+1];if(!(b-a>.01))continue;const pts=[point(a)];for(let z=1;z<lengths.length-1;z++)if(lengths[z]>a&&lengths[z]<b)pts.push(r.pts[z]);pts.push(point(b));paths.push({pts,closed:false,layer:(pen+(r.j+(pens===4?i%2:0))%pens)%12});}
+   }
+  }
+  let out=applyStyle({paths},ins[0]);if(out.paths.reduce((n,q)=>n+q.pts.length,0)>118000&&p.cell<200)return this._weave(ins,{...p,cell:(+p.cell||25)*1.4},c);return out;
+ },
  _network(p,c){
   const num=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=num('margin',15,0,Math.min(c.W,c.H)/2),w=c.W-2*m,h=c.H-2*m;if(w<2||h<2)return null;
   const n=Math.round(num('strands',7,1,24)),size=Math.max(num('cell',25,4,200),Math.sqrt(w*h*n*70/85000)),base=[],index=new Map(),cells=[],key=q=>q.map(x=>Math.round(x*1e6)).join(','),vertex=q=>{const k=key(q);if(!index.has(k)){index.set(k,base.length);base.push(q);}return index.get(k);};
@@ -42,6 +63,7 @@ export default {
   return {vertices,cells,n,m,factor};
  },
  compute(ins,p,c){
+  if(p.mode==='Hex weave')return this._weave(ins,p,c);
   const net=this._network(p,c);if(!net)return {paths:[]};const {vertices:v,cells,n}=net,paths=[],edges=new Set(),seed=Math.round(+p.seed||0),layer=Math.max(0,Math.min(11,Math.round(+p.layer||0))),edgeLayer=Math.max(0,Math.min(11,Math.round(+p.edgePen||0))),density=Math.max(0,Math.min(1,+p.density/100||0)),carry=Math.max(0,Math.min(1,+p.carry/100||0)),curve=Math.max(0,Math.min(1,+p.curve/100||0));
   const station=(a,b,k)=>{if(a>b)[a,b]=[b,a];const t=(k+.5)/n;return [v[a][0]+(v[b][0]-v[a][0])*t,v[a][1]+(v[b][1]-v[a][1])*t];};
   for(let i=0;i<cells.length;i++){

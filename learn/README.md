@@ -417,3 +417,26 @@ The shared build and Learn validator cover all six additional pages (69 total),
 patches, captured geometry and scoped dependencies. No reference exports from
 older lessons changed. This draft is based on published 2.131 and has not been
 published. Physical plotting remains untested.
+
+
+## PlotterFiles expansion — local development review
+
+`plotterfiles-more/` adds fourteen English tutorials and seventeen reproducible
+patches: six new nodes, five extensions and three existing-node recipes. The
+collection is linked from Learn home and Tutorials. Run
+`node tools/validate-plotterfiles-more.mjs` for geometry and
+`node learn/plotterfiles-more/validate.mjs --source` for actual-export evidence.
+The latter checks fourteen browser SVG downloads, six complete G-code downloads,
+38 SVG frames / sheets, actual eight-file ZIP intake, actual raster intake and
+saved frozen data. Nine unretouched Focus pictures show the built-in nodes.
+`verify-exports.mjs --record` is for recording evidence AFTER fresh browser
+captures; it is not a replacement for captures. All source dependencies and
+capture hashes are recorded in `capture-manifest.json`.
+
+2026-10-20 maintenance: opt-in changes to Truchet, Tiles, Cell Strands and
+Reaction Patterns preserve earlier geometry. Custom Tile, Butterfly, Tiles Field,
+Cell Strands and Reaction Patterns were re-exported in the actual local app;
+their affected graph / Focus pictures and available animation sequences were
+recaptured. Per-lesson maintenance metadata preserves the other lessons’ earlier
+provenance. Software-only G-code checks used the illustrative A Servo profile
+with a 330 × 240 mm area and original page coordinates; no hardware was run.

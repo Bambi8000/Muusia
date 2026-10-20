@@ -1,0 +1,36 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "recursive-structure",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "recursive_structure",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "structure": "Junction beams",
+          "depth": 3,
+          "ratio": 43,
+          "occupancy": 48,
+          "beam": 7,
+          "seed": 23,
+          "yaw": 25,
+          "elevation": 30,
+          "persp": 0,
+          "hidden": true,
+          "size": 155,
+          "margin": 12,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

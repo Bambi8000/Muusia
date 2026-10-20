@@ -497,7 +497,9 @@
  "fmrose": [
   "chaos",
   "geometric",
+  "maurer",
   "pens",
+  "polar",
   "repeat",
   "warp"
  ],
@@ -1674,6 +1676,8 @@
   "text"
  ],
  "tiles": [
+  "disarray",
+  "field",
   "geometric",
   "grid",
   "round",
@@ -1713,6 +1717,8 @@
   "custom tile",
   "editable",
   "geometric",
+  "image",
+  "mask",
   "maze",
   "multicolor",
   "plants",
@@ -1927,11 +1933,13 @@
   "repeat"
  ],
  "reaction_patterns": [
+  "animation",
   "growth",
-  "reaction diffusion",
+  "image",
   "maze",
   "organic",
-  "animation"
+  "reaction diffusion",
+  "tone"
  ],
  "crystal_growth": [
   "crystal",
@@ -1950,10 +1958,12 @@
   "render"
  ],
  "cell_strands": [
+  "animation",
   "grid",
-  "pattern",
+  "hex",
   "organic",
-  "animation"
+  "pattern",
+  "weave"
  ],
  "block_field": [
   "3d",
@@ -1993,5 +2003,41 @@
   "leaf",
   "animation",
   "region"
+ ],
+ "automata_3d": [
+  "3d",
+  "animation",
+  "cellular",
+  "mesh",
+  "structural"
+ ],
+ "continuous_fill": [
+  "continuous",
+  "fill",
+  "pathops",
+  "region"
+ ],
+ "fragment_layout": [
+  "layout",
+  "packing",
+  "transform"
+ ],
+ "plot_prepare": [
+  "export",
+  "optimize",
+  "pathops",
+  "plotting"
+ ],
+ "recursive_structure": [
+  "3d",
+  "fractal",
+  "mesh",
+  "structural"
+ ],
+ "svg_batch": [
+  "import",
+  "layout",
+  "production",
+  "svg"
  ]
 }

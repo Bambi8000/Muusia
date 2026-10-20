@@ -5,10 +5,14 @@ export default {
   name: "Truchet",
   cat: "gen",
   group: "geometric",
-  desc: "Tiled quarter-circle patterns. Custom tile adds a draggable corner gesture with fixed quarter-edge anchors: edit points in the corner diagram or with X/Y numbers, add/remove points and toggle Square corner. Linked mirrors one gesture across four corners, Alternate swaps axes on alternate corners, Paired shares opposite corners, Independent edits each separately. Rotations preserve the matching edge anchors. Inset copies shrink inside each tile and deliberately do not join across edges. Colours cycles corners/copies through up to four pens. Dense custom grids enlarge the effective tile size uniformly. The editor diagram is the control polygon; the paper preview is the smooth result.  Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
-  ins: [Pin("style", "Style")],
+  desc: "Tiled quarter-circle patterns. Pattern mask (Tiles mode) changes tile orientation inside closed Mask paths, including holes, or a loaded darkness image fitted across the whole canvas. Inside orientation % blends random orientation with the mask; it does not clip tiles. Closed text outlines work, open centreline text does not define an interior. Custom tile adds a draggable corner gesture with fixed quarter-edge anchors: edit points in the corner diagram or with X/Y numbers, add/remove points and toggle Square corner. Linked mirrors one gesture across four corners, Alternate swaps axes on alternate corners, Paired shares opposite corners, Independent edits each separately. Rotations preserve the matching edge anchors. Inset copies shrink inside each tile and deliberately do not join across edges. Colours cycles corners/copies through up to four pens. Dense custom grids enlarge the effective tile size uniformly. The editor diagram is the control polygon; the paper preview is the smooth result.  Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
+  ins: [Pin("style", "Style"),Pin("paths","Mask")],
   outs: [Pin("paths")],
+  fileImage:true,
   params: [
+    {key:"patternMask",label:"Pattern mask",type:"check",def:false,showIf:p=>p.mode==="Tiles"},
+    {key:"maskImage",label:"Mask image",type:"file",def:"",showIf:p=>p.mode==="Tiles"&&p.patternMask},
+    {key:"maskBias",label:"Inside orientation %",type:"slider",min:0,max:100,step:1,def:100,showIf:p=>p.mode==="Tiles"&&p.patternMask},
     { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop", "Concentric bands", "Butterfly", "Custom tile"], def: "Tiles" },
     {key:'cornerLink',label:'Corner linking',type:'select',options:['Linked','Alternate','Paired','Independent'],def:'Linked',showIf:p=>p.mode==='Custom tile'},
     {key:'editCorner',label:'Edit corner',type:'select',options:['TL','TR','BR','BL'],def:'TL',showIf:p=>p.mode==='Custom tile'&&p.cornerLink==='Independent'},
@@ -72,7 +76,7 @@ export default {
       }
     }return applyStyle({paths},ins?.[0]);
   },
-  compute(ins, p, ctx) {
+  compute(ins, p, ctx, node) {
     if(['Concentric bands','Butterfly'].includes(p.mode))return this._bands(ins,p,ctx);
     if(p.mode==="Custom tile")return this._custom(ins,p,ctx);
     const { W, H } = ctx;
@@ -230,7 +234,9 @@ export default {
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
       if (fillP < 0.999 && hash2(c * 7 + 3, r * 13 + 5, p.seed + 77) > fillP) continue;
       const x0 = ox + c * t, y0 = oy + r * t;
-      const flip = hash2(c, r, p.seed) > 0.5;
+      let probability=.5;
+      if(p.patternMask){let value=0;const x=x0+t/2,y=y0+t/2,ps=ins[1]?.paths||[],img=node?.data?.img;for(const q of ps){if(!q.closed)continue;let hit=false;for(let i=0,j=q.pts.length-1;i<q.pts.length;j=i++){const a=q.pts[i],b=q.pts[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])hit=!hit;}if(hit)value=1-value;}if(!ps.length&&img?.g?.length===img.w*img.h)value=img.g[Math.max(0,Math.min(img.h-1,Math.floor(y/ctx.H*img.h)))*img.w+Math.max(0,Math.min(img.w-1,Math.floor(x/ctx.W*img.w)))];const bias=Math.max(0,Math.min(1,(+p.maskBias||0)/100));probability=(1-bias)/2+value*bias;}
+      const flip = p.patternMask?hash2(c,r,p.seed)<probability:hash2(c,r,p.seed)>.5;
       if (p.ttype === "Arcs") {
         if (flip) { arc(x0, y0, 0); arc(x0 + t, y0 + t, Math.PI); }
         else { arc(x0 + t, y0, Math.PI / 2); arc(x0, y0 + t, -Math.PI / 2); }

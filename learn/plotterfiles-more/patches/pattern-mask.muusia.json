@@ -1,0 +1,159 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "pattern-mask",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "lettering",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "text": "FLOW",
+          "font": "Bold",
+          "size": 65,
+          "weight": 34,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Outline",
+          "hatch": 1.2,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "truchet",
+        "x": 480,
+        "y": 40,
+        "params": {
+          "patternMask": true,
+          "maskImage": "",
+          "maskBias": 100,
+          "mode": "Tiles",
+          "cornerLink": "Linked",
+          "editCorner": "TL",
+          "knotsTL": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsTR": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsBR": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "knotsBL": [
+            [
+              0.02,
+              0.28,
+              1
+            ],
+            [
+              0.14,
+              0.14,
+              1
+            ],
+            [
+              0.28,
+              0.02,
+              1
+            ]
+          ],
+          "smoothness": 85,
+          "tileRotation": "Seeded",
+          "insetCopies": 0,
+          "copyGap": 0.6,
+          "customColours": 1,
+          "customPen2": 1,
+          "customPen3": 2,
+          "customPen4": 6,
+          "bands": 5,
+          "bandRatio": 45,
+          "bandDrawing": "Outlines",
+          "bandPitch": 0.7,
+          "rowOffset": 1,
+          "ttype": "Diagonals",
+          "fill": 100,
+          "sep": "Connected",
+          "tile": 5,
+          "scale": 100,
+          "lines": 1,
+          "spread": 100,
+          "gapmm": 0,
+          "round": 100,
+          "margin": 12,
+          "seed": 9,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "more-0",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 1
+      }
+    ],
+    "outputId": 9002
+  }
+}

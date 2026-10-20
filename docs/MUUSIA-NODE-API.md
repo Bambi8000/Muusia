@@ -347,3 +347,14 @@ Save the file as e.g. `myname.plotternode.js` → **Node ⇣** in the toolbar �
 appears in its palette category immediately. The definition source travels inside saved
 patch files, so patches using custom nodes are self-contained. Re-importing the same
 `key` replaces the previous version.
+
+### Optional fragment identity (local PlotterFiles expansion)
+
+A path may carry a primitive `group` identifier (string or number) to keep its
+related contours together. SVG Batch Layout assigns the slot index; Fragment
+Layout's Explicit group and Plot Prepare preserve these boundaries. This is
+optional metadata, not a new pin type. Modifiers that rebuild path objects can
+lose it (including Import SVG); use closed-containment grouping there, or assign
+explicit groups at the source. Do not infer that every existing node preserves
+this field. When transforming a group, apply the same affine transform to all
+its paths; do not lay out holes and interior details as separate illustrations.

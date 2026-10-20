@@ -1,0 +1,36 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "maurer-rose",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "fmrose",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "mode": "Maurer",
+          "petals": 6,
+          "angleStep": 71,
+          "outline": true,
+          "fc": 5,
+          "fm": 3,
+          "index": 2,
+          "depth": 0.5,
+          "rings": 1,
+          "pens": 1,
+          "rot": 0,
+          "margin": 15,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

@@ -11,7 +11,7 @@
     "src/defs/nodes/hitomezashi.js": "ae6319867c0c2ad2aba418368303c08cadc1f6cf2a071c73c52d1968d96d36d0",
     "src/defs/nodes/tessellation.js": "4822d12751028b5b052d0ae019627dca885c486e385f8f18f5ceae8724ca258d",
     "src/defs/nodes/venation.js": "811d4fec87caa12bb1410cc274be168295b3342065795409b4135f20060c9b14",
-    "src/defs/nodes/truchet.js": "095d35efcf9a90f5189809a7ca53b8da0aa29e9b6db70e15bd55ee2ad2343478",
+    "src/defs/nodes/truchet.js": "31947e2db727aa0b8db0ee7adb128539f5f61ea9d43b511a0b4dc374bb54cdaa",
     "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
     "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684",
     "src/tile-editor.jsx": "ec9c2f901d01c6afd462abc9131aadd90abca6bd3d95af72b6375f23499b1c55"
@@ -83,7 +83,7 @@
     },
     {
       "file": "patches/custom-tile.muusia.json",
-      "sha256": "3ae0028dbd0bf6216d00a47dcf9ae3edd2388e3176031a360de08b4ab0274876"
+      "sha256": "0e422d8d444362d5745b0439c7a670d953b8f63fe3b315508fa3cd5020e361a9"
     },
     {
       "file": "assets/custom-tile.svg",
@@ -91,7 +91,7 @@
     },
     {
       "file": "assets/custom-tile-focus.png",
-      "sha256": "9f80d1cfbe7c3f400a4fbceee5bca4e5892047c5c63b1162e65be5791671c024"
+      "sha256": "4909266e7cb5a7fc5a191c005417c5a2882416e70861de917a1adeb7cd29682f"
     },
     {
       "file": "verification/custom-tile.gcode",
@@ -120,6 +120,14 @@
     {
       "file": "verification/custom-edited.muusia.json",
       "sha256": "c0304b8ae5b45acd34d04114c796bb0de618da15d60f39d0c736726b00046ed4"
+    }
+  ],
+  "maintenance": [
+    {
+      "date": "2026-10-20",
+      "appVersion": "2.131",
+      "basedOnCommit": "364852cf002de5e5e5d2615b6126a8302172e7fd",
+      "scope": "Custom Tile neutral defaults, actual SVG, G-code and Focus recaptured after Pattern Mask was added. Original geometry unchanged; existing custom-editor interaction evidence retained."
     }
   ]
 }

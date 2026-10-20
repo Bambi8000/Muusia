@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "2.131",
+  "basedOnCommit": "364852cf002de5e5e5d2615b6126a8302172e7fd",
+  "date": "2026-10-20",
+  "scope": "Actual local built-in node review: fourteen SVG downloads, nine unretouched Focus views, six complete G-code downloads, 36 animation frames and two paginated sheet frames. Actual eight-file ZIP and raster image intake with Save verified. Optimize route off, illustrative A Servo profile 330x240; no machine run or publication. SVG / G-code match the actual evaluator and exporter.",
+  "browserSvgs": 14,
+  "actualBuiltInViews": 9,
+  "engineSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
+  "exporterSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "sources": {
+    "src/defs/nodes/cell_strands.js": "c0d209c5ecbcae0b0c131d8b4fcbd28a5fd69be43ec03f902d40bba452f1b5aa",
+    "src/defs/nodes/automata_3d.js": "1e3009d3a966f82066518feb47ca7a64680e9c34b5a651406f0bf648e68c9ce0",
+    "src/defs/nodes/recursive_structure.js": "2195bda1d68127a0dfa19babec017f6c1c60f8e4d78a6b1ba9c452fc65cbde2f",
+    "src/defs/nodes/fragment_layout.js": "de4489ec1771bccc15be24a9bfd32abdd2012c96fdc2d8d34fb410df1466c4d7",
+    "src/defs/nodes/reaction_patterns.js": "05e9186cdfae447ad8e705db4b7f36a12c197d9238269815c2413ec3a626a3a2",
+    "src/defs/nodes/truchet.js": "31947e2db727aa0b8db0ee7adb128539f5f61ea9d43b511a0b4dc374bb54cdaa",
+    "src/defs/nodes/fmrose.js": "2d260217772c3f07c3c3a4fef2f80fdc63bff0a13a2b829b4472ae97a61fae51",
+    "src/defs/nodes/tiles.js": "6441d528fd265fbf4b08bbad3ccf9b6bd894645c4cf56ad6ba56548fb88f2aca",
+    "src/defs/nodes/continuous_fill.js": "6ee1d860bfa0c50ad681edf9ac45daa0265fdc9d5f567988ee03ffa42c810bf4",
+    "src/defs/nodes/svg_batch.js": "1967b9c2a1b7a454d495c3fc20151785cc7ae5afb34619599380356033fe3c75",
+    "src/defs/nodes/plot_prepare.js": "b9f65d0b4f691a9a3fbb0f3f24f9d60fedd93abc9456cebf70aee7040294f42e",
+    "src/defs/nodes/merge.js": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf",
+    "src/defs/nodes/container.js": "fb9b11583906d0c0678f8df117224aa41899aef9a13123b1f1bdf1b058a7d801",
+    "src/defs/nodes/svgimport.js": "f9e361eea3e784608ab0754f199ef0793447f3416a3dfac1fdfee3379f44a2a5",
+    "src/defs/nodes/lettering.js": "f39c1aeea1085bfa86176a3c2c289cf1221452e282747c141dcf07f7c571925b",
+    "src/defs/nodes/type_studio.js": "cfdddcaa73d82ff9684cb099da89c4ed6dedcfc5f8f37a1ab83f4bf6c418d78b",
+    "src/defs/nodes/potato.js": "f800a578995ec9c861e6b24493bd5299ec442aac346497a3b3f96a200c90252a",
+    "src/defs/nodes/move_scale.js": "24e05802cad7793d1ff3e4b08f4951503af26072f7a5ceb8c054607289721021",
+    "src/defs/nodes/moire_disc.js": "6c072b96b5aef4d0003ce9b78853d821c353cc9e323e4e23b82d51758f4923e4",
+    "src/defs/plotter-utilities.js": "13f0ed2aa4f485bd4958ab2b4ae5450956f14bb3f75057130c7f321c6b8907cd",
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
+    "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684"
+  },
+  "files": [
+    {
+      "file": "assets/automata-3d-focus.png",
+      "sha256": "87770c3bca030c59f82163c9e2e6da45e97ccfb1af334ccb43917ae0e06bfb51"
+    },
+    {
+      "file": "assets/automata-3d-frames.zip",
+      "sha256": "c6be3b81820de6aeccdadce4d393dfda82f32b9c0c67bdaf7181fb5be70b5cfa"
+    },
+    {
+      "file": "assets/automata-3d.svg",
+      "sha256": "6722d98ff8a7b624712df74cd1fffc2c9a9f90bc2f233608993c32b93bcfe6e4"
+    },
+    {
+      "file": "assets/continuous-fill-focus.png",
+      "sha256": "b86ed1acd332d9f9b903447954c91a069dcc38ecc34aaea6648d0b385443ead0"
+    },
+    {
+      "file": "assets/continuous-fill.svg",
+      "sha256": "73ab4884d241da514cbbad94cb100b0196110a3b0f7d4250c60d6069dd009ec9"
+    },
+    {
+      "file": "assets/curve-interference-frames.zip",
+      "sha256": "8d05b1e99b69e75a90e771389477bb87a891a620f6e5c06d250ac83fe21688bb"
+    },
+    {
+      "file": "assets/curve-interference.svg",
+      "sha256": "48d267ad9493d545c4c38f0373a78832a13eeae409c7c3c5e90f1ae0ea313ce2"
+    },
+    {
+      "file": "assets/disarray-field.svg",
+      "sha256": "dbea3336d783caa3c2f4b3f761badeed98d7fc2ef9da9d6d2f4c9d7723e0c71c"
+    },
+    {
+      "file": "assets/eight-drawings.json",
+      "sha256": "48b0bd59ec95b33e144aa6ba56c7a7b2761828e5698329cb6af13b735bea3295"
+    },
+    {
+      "file": "assets/eight-drawings.zip",
+      "sha256": "317eb0bad59415ab1a18a1b52713166eb461835ba4697332c64c43043424c977"
+    },
+    {
+      "file": "assets/fragment-layout-focus.png",
+      "sha256": "c2fc8dfaa11f1c090a043aaeb09a6739f1119f8a52809abea463b325750f131b"
+    },
+    {
+      "file": "assets/fragment-layout.svg",
+      "sha256": "50100702d2eb107919fbef729c985b77db7a87642590c7ff5245eac82505e862"
+    },
+    {
+      "file": "assets/hex-weave-focus.png",
+      "sha256": "ba462013776f7cb6bea865b4c6ad44cd53913a801ea8c323a73b118d6c506151"
+    },
+    {
+      "file": "assets/hex-weave.svg",
+      "sha256": "fa2a75daeb7681dfdcbb0b4d9f490795ac4687e1f29aece4ea1856a556b3d3d8"
+    },
+    {
+      "file": "assets/maurer-rose.svg",
+      "sha256": "c1677b40e048413969f51451521d6814e2317b1cc791ab551ba3784d160b0eaf"
+    },
+    {
+      "file": "assets/one-line-grid.svg",
+      "sha256": "7721259863c7f5cb7795bfca2aa85631c16fef77addf4137e3594aec34bb5012"
+    },
+    {
+      "file": "assets/pattern-mask-focus.png",
+      "sha256": "b1c7910a8450d6b961c2db425cf837b5a268f91932af5ecb1c6ca9689ca4e7c7"
+    },
+    {
+      "file": "assets/pattern-mask.svg",
+      "sha256": "1d79ce050757f71ab1b679c2714948679dbb0c242d1f60b90a3c7792b0446d1d"
+    },
+    {
+      "file": "assets/pattern-silhouette.svg",
+      "sha256": "97dc3d8c8f5911c1e4fad697c9254343d92a6b42f88635ff5ebc21c7088d370d"
+    },
+    {
+      "file": "assets/plot-preparation-focus.png",
+      "sha256": "0c0cc3e333f110b5235d30a86055806053d44ef7324b9ffa6a44719f348d5db2"
+    },
+    {
+      "file": "assets/plot-preparation.svg",
+      "sha256": "f745bde24ae08f1d4121345c8e2ff469ba09d4fee96f1236b2f4e4edea1495c0"
+    },
+    {
+      "file": "assets/radial-tone.png",
+      "sha256": "fb84be4e5a8a8fa6044967dae4e0985cf0162ad67e8ab1c1c057cf5fd7a75c6b"
+    },
+    {
+      "file": "assets/recursive-structure-focus.png",
+      "sha256": "8a9572acb5626f5d1b57bcb08956dc2c018fdc72ef50029471f20d16eebd3f15"
+    },
+    {
+      "file": "assets/recursive-structure.svg",
+      "sha256": "5567cd9e0a5ea547df416f21cd06e9ab698dfced46341041da760d340d2d33c1"
+    },
+    {
+      "file": "assets/svg-batch-focus.png",
+      "sha256": "d4ccc87c7ae983f114af5bd8c95c43a1a62d9380fee919d5c8fcc615e93761a9"
+    },
+    {
+      "file": "assets/svg-batch-sheets.zip",
+      "sha256": "dead8d03e8a200bcf813d609803678801f31cc87fafa3e56cf629e5be8ffad9d"
+    },
+    {
+      "file": "assets/svg-batch.svg",
+      "sha256": "5a06249222ac77830cb36306ee68065b68bd9cdbb3c22e665ef19db019deafe7"
+    },
+    {
+      "file": "assets/tonal-turing-focus.png",
+      "sha256": "963f5ac8df7fa83570968bf48eae98cfd9596159ba19b9f3014ed9b54031f7b3"
+    },
+    {
+      "file": "assets/tonal-turing-frames.zip",
+      "sha256": "3c2eb24ad5f30717686378527404d2816b408e8f5ec1ae434e53137e49754dfb"
+    },
+    {
+      "file": "assets/tonal-turing.svg",
+      "sha256": "e68e3298027449b8445f1f70fdcfe1303269514ea31b6580a9d28b8d7271abad"
+    },
+    {
+      "file": "patches/automata-3d-animation.muusia.json",
+      "sha256": "79091d22c4dd9d50203c86774599a7c769c907662914d84fb8595d1d1dc2f99e"
+    },
+    {
+      "file": "patches/automata-3d.muusia.json",
+      "sha256": "e811107cc7e5ab3df4bf5b1c70c6c3efff124b2c5807183166592565181f4d9d"
+    },
+    {
+      "file": "patches/continuous-fill.muusia.json",
+      "sha256": "13538d7cf82091e112c34480a97e47141981b7f4e8e15843753b164dbfe7e8c0"
+    },
+    {
+      "file": "patches/curve-interference.muusia.json",
+      "sha256": "6f3d4b489970ff443bb5c90621fd95dfc62f15e4c201dfdff5f05bd9fce6812d"
+    },
+    {
+      "file": "patches/disarray-field.muusia.json",
+      "sha256": "a33d504be2fc650c8de920ea12c2827c1d028bd26b8391e089929db790cbe377"
+    },
+    {
+      "file": "patches/fragment-layout.muusia.json",
+      "sha256": "186423b0df0fa58ad4b899ac2f93b7c7a7b510b53942540df5730623cd289442"
+    },
+    {
+      "file": "patches/hex-weave.muusia.json",
+      "sha256": "2cbe62e98622cd4923b45940e531e910a9db1b216338504769ebf836c847409e"
+    },
+    {
+      "file": "patches/maurer-rose.muusia.json",
+      "sha256": "74c241aa6d2e8007e8c2d330d8c503271bdfcf69534f15a54da0dc8b6758ee46"
+    },
+    {
+      "file": "patches/one-line-grid.muusia.json",
+      "sha256": "cded1e1492a2d4e9ed5c97e6363daaa305bdbc6405353fe3a6a7117af2353d15"
+    },
+    {
+      "file": "patches/pattern-mask.muusia.json",
+      "sha256": "b18d566b145e7ad51398a6af3bfef50a885f656dc2001059c0fc5eef5ea2d11d"
+    },
+    {
+      "file": "patches/pattern-silhouette.muusia.json",
+      "sha256": "93720fe764ab8ee719a207d4bdc1ee60315c2f941a29c77fe18037ac532e7c8b"
+    },
+    {
+      "file": "patches/plot-preparation.muusia.json",
+      "sha256": "e0a811c9cb5dd3305d8ef6b7cec65167a57e1c9e5b4acb8e06df80ce9a676de3"
+    },
+    {
+      "file": "patches/recursive-structure.muusia.json",
+      "sha256": "30f99abc55d7920dd575fb101ab0ab005c1feaaab0b5c7d9c41574e8fd720865"
+    },
+    {
+      "file": "patches/svg-batch-animation.muusia.json",
+      "sha256": "1ddbf6028e807702aa5018bd5c723ccaf70bca9882e9cd829fbef93268407ad4"
+    },
+    {
+      "file": "patches/svg-batch.muusia.json",
+      "sha256": "363124fdf46b42901a5caff703b403faefad860ce371769e65f48eef2f54afcc"
+    },
+    {
+      "file": "patches/tonal-turing-animation.muusia.json",
+      "sha256": "3e37f4d34e3a67c646641b527828a98bcd66335456d0c274ddd79f589d6b35f4"
+    },
+    {
+      "file": "patches/tonal-turing.muusia.json",
+      "sha256": "27385b360862c2791fe7133dace2a73c2c73d5a912da160367f0e87f399cc8c9"
+    },
+    {
+      "file": "verification/automata-3d.gcode",
+      "sha256": "0d99da642beb839e94573fb1b59f876d3de0fd7c5dbb428d793329a9dae18bd9"
+    },
+    {
+      "file": "verification/continuous-fill.gcode",
+      "sha256": "89ffb7f8428c05c6794914bc8d240438f26916827da833ce968e12d0006c73a4"
+    },
+    {
+      "file": "verification/craft-reaction-patterns.gcode",
+      "sha256": "5b860fcf82824509eefc87b53349c113b1b3d1b58d3ff976d61d22531fa1cbfe"
+    },
+    {
+      "file": "verification/fragment-layout.gcode",
+      "sha256": "8a282d16171e7d826a96a78c827e61b527eb349f774bf267b5680cfce82cc19c"
+    },
+    {
+      "file": "verification/plot-preparation.gcode",
+      "sha256": "be04d10411bd91d6caa7894106f161d224737143caa5dbad7e14269ac0b87af5"
+    },
+    {
+      "file": "verification/recursive-structure.gcode",
+      "sha256": "b1d89ab5e3e0ab74a63d7810ab43342de4f9eee9d4d8160ff7f594c2d2583abf"
+    },
+    {
+      "file": "verification/svg-batch-intake.muusia.json",
+      "sha256": "e3233cf1f4d9c4406ecb7f28cd10e06c14f4444836b873de9d30508b96db30e6"
+    },
+    {
+      "file": "verification/svg-batch.gcode",
+      "sha256": "7df05b0e55436d463c8a071d9e3df59d90327dfc5df873e7fc330899d6c76c28"
+    },
+    {
+      "file": "verification/tonal-image-intake.muusia.json",
+      "sha256": "d47813a987379ec40d10f5d1995f108d078de44fbd4ce43b0d87feec813b8ab1"
+    },
+    {
+      "file": "verification/tonal-image-intake.png",
+      "sha256": "fcac7be19200dcd8ec28eac432619042a1db5fc9b6bac7dfc8d69201e6d1a8c2"
+    },
+    {
+      "file": "verification/tutorials-index.png",
+      "sha256": "c964e1a56c095435e097b8c8a766e64510fff507f5607c78c67efbf77353f80d"
+    }
+  ]
+}

@@ -55,6 +55,11 @@ export const NODE_RECENCY = {
     "order": 5,
     "sha256": "a1a70b402856e0efb7ecf25b3ef6da4a1746de53cdcc74cf2d9cce1ee5915383"
   },
+  "automata_3d": {
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "1e3009d3a966f82066518feb47ca7a64680e9c34b5a651406f0bf648e68c9ce0"
+  },
   "barcode": {
     "date": "2026-07-22",
     "order": 1,
@@ -156,9 +161,9 @@ export const NODE_RECENCY = {
     "sha256": "b25c8cb4bf682f53ddf38b1e38ed233cad6f085135efc5084b94c4070bb3c226"
   },
   "cell_strands": {
-    "date": "2026-10-19",
-    "order": 90,
-    "sha256": "241e848b97c9b870cea650d032f5801f2660eeb4dcf88da09f2c4769185b33db"
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "c0d209c5ecbcae0b0c131d8b4fcbd28a5fd69be43ec03f902d40bba452f1b5aa"
   },
   "cellular_mosaic": {
     "date": "2026-07-22",
@@ -249,6 +254,11 @@ export const NODE_RECENCY = {
     "date": "2026-08-01",
     "order": 13,
     "sha256": "fb9b11583906d0c0678f8df117224aa41899aef9a13123b1f1bdf1b058a7d801"
+  },
+  "continuous_fill": {
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "6ee1d860bfa0c50ad681edf9ac45daa0265fdc9d5f567988ee03ffa42c810bf4"
   },
   "contour_field": {
     "date": "2026-08-09",
@@ -436,9 +446,9 @@ export const NODE_RECENCY = {
     "sha256": "45d67f2768787b1eefe918f22188ecd60569511cbda3a0d325153c180d60ccc9"
   },
   "fmrose": {
-    "date": "2026-07-22",
-    "order": 5,
-    "sha256": "7ff455c210773ce0e46f569c4fde3a4a46b2475f4e11f56cb4cfbf2819d8d164"
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "2d260217772c3f07c3c3a4fef2f80fdc63bff0a13a2b829b4472ae97a61fae51"
   },
   "fold": {
     "date": "2026-07-22",
@@ -454,6 +464,11 @@ export const NODE_RECENCY = {
     "date": "2026-07-22",
     "order": 1,
     "sha256": "726f14c876261587d6f4fbe0be8def42264266dd2723ac49724cb6e38b52f4b1"
+  },
+  "fragment_layout": {
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "de4489ec1771bccc15be24a9bfd32abdd2012c96fdc2d8d34fb410df1466c4d7"
   },
   "frame": {
     "date": "2026-10-15",
@@ -1040,6 +1055,11 @@ export const NODE_RECENCY = {
     "order": 57,
     "sha256": "ff2c4e95d3d204eed8e53a6c45d3b1295dcdd2d5169873121eea27fd21da4455"
   },
+  "plot_prepare": {
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "b9f65d0b4f691a9a3fbb0f3f24f9d60fedd93abc9456cebf70aee7040294f42e"
+  },
   "pointcloud": {
     "date": "2026-07-23",
     "order": 9,
@@ -1101,14 +1121,19 @@ export const NODE_RECENCY = {
     "sha256": "5e46b6599164a1945609226ec61a192be2204441739e16739036706ee1b2b0d9"
   },
   "reaction_patterns": {
-    "date": "2026-10-19",
-    "order": 89,
-    "sha256": "86fca1863405287f5d8f44f7fafaee611c0566f1759355df52bd3bda15abdf33"
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "05e9186cdfae447ad8e705db4b7f36a12c197d9238269815c2413ec3a626a3a2"
   },
   "rectcollage": {
     "date": "2026-07-22",
     "order": 1,
     "sha256": "1287e21d5d94525843ee963b8ede98a8ec57127acfabd03954955d14f2e22272"
+  },
+  "recursive_structure": {
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "2195bda1d68127a0dfa19babec017f6c1c60f8e4d78a6b1ba9c452fc65cbde2f"
   },
   "reedsnow": {
     "date": "2026-09-29",
@@ -1425,6 +1450,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "75860d7432656c296ef05b76d2a03f4e490cf15305b825766f92ec3d7d3b67a7"
   },
+  "svg_batch": {
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "1967b9c2a1b7a454d495c3fc20151785cc7ae5afb34619599380356033fe3c75"
+  },
   "svgimport": {
     "date": "2026-09-29",
     "order": 65,
@@ -1466,9 +1496,9 @@ export const NODE_RECENCY = {
     "sha256": "101be6056ae8936b1f3e55fb5d3cc65db74743c2d04421e4e97a367f94cfd4f8"
   },
   "tiles": {
-    "date": "2026-10-19",
-    "order": 90,
-    "sha256": "fe3663adeacef7cacdf6604c7465c7f0abc0693c658c0ba2535b583d492de88f"
+    "date": "2026-10-20",
+    "order": 93,
+    "sha256": "6441d528fd265fbf4b08bbad3ccf9b6bd894645c4cf56ad6ba56548fb88f2aca"
   },
   "tileshuffle": {
     "date": "2026-07-22",
@@ -1507,8 +1537,8 @@ export const NODE_RECENCY = {
   },
   "truchet": {
     "date": "2026-10-20",
-    "order": 92,
-    "sha256": "095d35efcf9a90f5189809a7ca53b8da0aa29e9b6db70e15bd55ee2ad2343478"
+    "order": 93,
+    "sha256": "31947e2db727aa0b8db0ee7adb128539f5f61ea9d43b511a0b4dc374bb54cdaa"
   },
   "truchet_multi": {
     "date": "2026-08-09",

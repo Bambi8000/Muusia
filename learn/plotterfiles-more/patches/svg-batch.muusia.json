@@ -1,0 +1,340 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "svg-batch",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "svg_batch",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "file": "eight-drawings.zip",
+          "cols": 3,
+          "rows": 2,
+          "cellW": 75,
+          "cellH": 75,
+          "gap": 6,
+          "copies": 1,
+          "fit": "Fit cell",
+          "motion": "Manual",
+          "page": 1,
+          "labels": true,
+          "marks": false,
+          "labelPen": 7,
+          "margin": 12
+        },
+        "data": {
+          "svg": {
+            "kind": "svg-batch",
+            "files": [
+              {
+                "name": "shape-1.svg",
+                "paths": [
+                  {
+                    "pts": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        20,
+                        0
+                      ],
+                      [
+                        20,
+                        16
+                      ],
+                      [
+                        0,
+                        16
+                      ]
+                    ],
+                    "closed": true,
+                    "layer": 0
+                  }
+                ],
+                "bbox": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 20,
+                  "h": 16
+                },
+                "mm": 1,
+                "colors": [
+                  "#23242A"
+                ]
+              },
+              {
+                "name": "shape-2.svg",
+                "paths": [
+                  {
+                    "pts": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        21,
+                        0
+                      ],
+                      [
+                        21,
+                        17
+                      ],
+                      [
+                        0,
+                        17
+                      ]
+                    ],
+                    "closed": true,
+                    "layer": 0
+                  }
+                ],
+                "bbox": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 21,
+                  "h": 17
+                },
+                "mm": 1,
+                "colors": [
+                  "#23242A"
+                ]
+              },
+              {
+                "name": "shape-3.svg",
+                "paths": [
+                  {
+                    "pts": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        22,
+                        0
+                      ],
+                      [
+                        22,
+                        18
+                      ],
+                      [
+                        0,
+                        18
+                      ]
+                    ],
+                    "closed": true,
+                    "layer": 0
+                  }
+                ],
+                "bbox": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 22,
+                  "h": 18
+                },
+                "mm": 1,
+                "colors": [
+                  "#23242A"
+                ]
+              },
+              {
+                "name": "shape-4.svg",
+                "paths": [
+                  {
+                    "pts": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        23,
+                        0
+                      ],
+                      [
+                        23,
+                        19
+                      ],
+                      [
+                        0,
+                        19
+                      ]
+                    ],
+                    "closed": true,
+                    "layer": 0
+                  }
+                ],
+                "bbox": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 23,
+                  "h": 19
+                },
+                "mm": 1,
+                "colors": [
+                  "#23242A"
+                ]
+              },
+              {
+                "name": "shape-5.svg",
+                "paths": [
+                  {
+                    "pts": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        24,
+                        0
+                      ],
+                      [
+                        24,
+                        20
+                      ],
+                      [
+                        0,
+                        20
+                      ]
+                    ],
+                    "closed": true,
+                    "layer": 0
+                  }
+                ],
+                "bbox": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 24,
+                  "h": 20
+                },
+                "mm": 1,
+                "colors": [
+                  "#23242A"
+                ]
+              },
+              {
+                "name": "shape-6.svg",
+                "paths": [
+                  {
+                    "pts": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        25,
+                        0
+                      ],
+                      [
+                        25,
+                        21
+                      ],
+                      [
+                        0,
+                        21
+                      ]
+                    ],
+                    "closed": true,
+                    "layer": 0
+                  }
+                ],
+                "bbox": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 25,
+                  "h": 21
+                },
+                "mm": 1,
+                "colors": [
+                  "#23242A"
+                ]
+              },
+              {
+                "name": "shape-7.svg",
+                "paths": [
+                  {
+                    "pts": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        26,
+                        0
+                      ],
+                      [
+                        26,
+                        22
+                      ],
+                      [
+                        0,
+                        22
+                      ]
+                    ],
+                    "closed": true,
+                    "layer": 0
+                  }
+                ],
+                "bbox": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 26,
+                  "h": 22
+                },
+                "mm": 1,
+                "colors": [
+                  "#23242A"
+                ]
+              },
+              {
+                "name": "shape-8.svg",
+                "paths": [
+                  {
+                    "pts": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        27,
+                        0
+                      ],
+                      [
+                        27,
+                        23
+                      ],
+                      [
+                        0,
+                        23
+                      ]
+                    ],
+                    "closed": true,
+                    "layer": 0
+                  }
+                ],
+                "bbox": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 27,
+                  "h": 23
+                },
+                "mm": 1,
+                "colors": [
+                  "#23242A"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

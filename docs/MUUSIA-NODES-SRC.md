@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (330 files, generated)
+# MUUSIA v2.29 — Node Sources (336 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -1197,6 +1197,43 @@ export default {
     }
     return applyStyle({ paths }, ins[0]);
   }
+};
+```
+
+## automata_3d.js
+
+```js
+import {surfaceDrawing} from '../plotter-utilities.js';
+import { Pin, mulberry32, applyStyle } from "../helpers.js";
+
+export default {
+key:'automata_3d',name:'3D Automata',cat:'gen',group:'structural',
+ desc:'A bounded 3D cellular automaton: each generation counts live neighbours in the selected 6-, 18- or 26-cell neighbourhood. Birth and Survival are comma-separated counts or ranges (for example 4-6,9); blank Survival means none. Finite boundaries remain dead; there is no wrap. Single seed or seeded noise initializes the volume. Manual Generation or Timeline reconstructs exactly that generation, not a cumulative union: cells may die. Only exposed voxel faces are emitted. Drawing uses a shared approximate depth raster; thin distant edges can disappear. Mesh is a normalized closed voxel boundary for Mesh Render / Slice / Spikes. Simulation max 22³ cells and 24 generations; mesh max 120k triangles, with volume resolution lowered uniformly when needed. Nothing moves machine Z.',
+ ins:[Pin('style','Style')],outs:[Pin('paths','Drawing'),Pin('mesh','Mesh'),Pin('value','Live cells')],
+ params:[{key:'volume',label:'Volume side',type:'slider',min:5,max:22,step:1,def:15},{key:'neighbours',label:'Neighbourhood',type:'select',options:['6 faces','18 faces + edges','26 all'],def:'6 faces'},
+ {key:'birth',label:'Birth counts',type:'text',def:'1-3'},{key:'survival',label:'Survival counts',type:'text',def:'1-6'},
+ {key:'initial',label:'Initial state',type:'select',options:['Single seed','Noise'],def:'Single seed'},
+ {key:'density',label:'Initial live %',type:'slider',min:1,max:50,step:1,def:8,showIf:p=>p.initial==='Noise'},
+ {key:'motion',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual'},
+ {key:'generations',label:'Mature generation',type:'slider',min:0,max:24,step:1,def:7,showIf:p=>p.motion==='Timeline'},
+ {key:'generation',label:'Generation',type:'slider',min:0,max:24,step:1,def:7,showIf:p=>p.motion!=='Timeline'},
+ {key:'seed',label:'Seed',type:'seed',def:19,showIf:p=>p.initial==='Noise'}, {key:'yaw',label:'View angle °',type:'slider',min:-180,max:180,step:1,def:25},
+ {key:'elevation',label:'View elevation °',type:'slider',min:5,max:85,step:1,def:30},
+ {key:'persp',label:'Perspective',type:'slider',min:0,max:.7,step:.05,def:0},
+ {key:'hidden',label:'Hidden-line removal',type:'check',def:true},
+ {key:'size',label:'Size mm',type:'slider',min:20,max:400,step:1,def:155},
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12},
+ {key:'layer',label:'Pen',type:'pen',def:0}],
+ overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+ _box(a,b){const v=Array.from({length:8},(_,i)=>[i&1?b[0]:a[0],i&2?b[1]:a[1],i&4?b[2]:a[2]]);return [[0,4,6,2],[1,3,7,5],[0,1,5,4],[2,6,7,3],[0,2,3,1],[4,5,7,6]].map(f=>f.map(i=>v[i]));},
+ _state(p,c){const n=Math.max(5,Math.min(22,Math.round(+p.volume||15))),N=n*n*n,rng=mulberry32(+p.seed||0),parse=s=>{const a=new Set();for(const part of String(s??'').split(',')){const m=part.trim().match(/^(\d+)(?:\s*-\s*(\d+))?$/);if(m){const x=+m[1],y=m[2]===undefined?x:+m[2];for(let k=x;k<=Math.min(26,y);k++)a.add(k);}}return a;},B=parse(p.birth),S=parse(p.survival),ds=[],kind=parseInt(p.neighbours)||6;for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){const d=Math.abs(x)+Math.abs(y)+Math.abs(z);if(d&&d<=(kind===6?1:kind===18?2:3))ds.push([x,y,z]);}
+ let a=new Uint8Array(N),b=new Uint8Array(N);if(p.initial==='Noise')for(let k=0;k<N;k++)a[k]=+(rng()<Math.max(.01,Math.min(.5,(+p.density||8)/100)));else {const k=Math.floor(n/2);a[(k*n+k)*n+k]=1;}
+ const gen=p.motion==='Timeline'?Math.round(Math.max(0,Math.min(1,c.frameCount>1?c.frameIdx/(c.frameCount-1):0))*Math.max(0,Math.min(24,+p.generations||0))):Math.max(0,Math.min(24,Math.round(+p.generation||0)));
+ for(let g=0;g<gen;g++){for(let z=0;z<n;z++)for(let y=0;y<n;y++)for(let x=0;x<n;x++){let count=0;for(const [dx,dy,dz]of ds){const X=x+dx,Y=y+dy,Z=z+dz;if(X>=0&&X<n&&Y>=0&&Y<n&&Z>=0&&Z<n)count+=a[(Z*n+Y)*n+X];}const k=(z*n+y)*n+x;b[k]=+(a[k]?S.has(count):B.has(count));}[a,b]=[b,a];}return {a,n,ds};
+ },
+ compute(ins,p,c){const {a,n,ds}=this._state(p,c),faces=[],directions=[[-1,0,0],[1,0,0],[0,-1,0],[0,1,0],[0,0,-1],[0,0,1]];let live=0;for(let z=0;z<n;z++)for(let y=0;y<n;y++)for(let x=0;x<n;x++){if(!a[(z*n+y)*n+x])continue;live++;const box=this._box([x,y,z],[x+1,y+1,z+1]);for(let f=0;f<6;f++){const [dx,dy,dz]=directions[f],X=x+dx,Y=y+dy,Z=z+dz;if(X<0||X>=n||Y<0||Y>=n||Z<0||Z>=n||!a[(Z*n+Y)*n+X])faces.push(box[f]);}}
+ if(faces.length>60000)return this.compute(ins,{...p,volume:Math.max(5,n-2)},c);const result=surfaceDrawing(faces,p,c,ins[0]);return [...result,live];}
+
 };
 ```
 
@@ -5565,10 +5602,13 @@ import { Pin, hash2, noise2, applyStyle } from "../helpers.js";
 
 export default {
  key:'cell_strands',name:'Cell Strands',cat:'gen',group:'geometric',
- desc:'Parallel strands travel through a shared distorted cell network. Hex strands routes edge bundles through convex hexagons; Ribbon cells uses square cells. Every shared edge uses the same stations, so adjacent bundles meet exactly when both routes reach it. Carry adds routes to otherwise unused cell edges; Density leaves some cells empty. Cell edges is an optional separate pen. Displacement is uniformly reduced until all cells remain convex and inside the margin. Phase moves the deformation in a repeatable loop. Paths may cross inside cells; this is a strand network, not an over/under weave.',
+ desc:'Parallel strands travel through a shared distorted cell network. Hex strands routes edge bundles through convex hexagons; Ribbon cells uses square cells. Every shared edge uses the same stations, so adjacent bundles meet exactly when both routes reach it. Carry adds routes to otherwise unused cell edges; Density leaves some cells empty. Cell edges is an optional separate pen. Displacement is uniformly reduced until all cells remain convex and inside the margin. Phase moves the deformation in a repeatable loop. Hex weave pairs opposite edges into three bundles. Local over/under priorities rotate by cell; exact intersections cut clearance gaps from lower strands. Bundle width controls edge coverage and Bundle pens colours route families; priorities are local, not a global alternating knot. Curve affects bundle bowing. Original strand modes keep their crossing behaviour.',
  ins:[Pin('style','Style')],outs:[Pin('paths','Drawing')],
  params:[
- {key:'mode',label:'Cells',type:'select',options:['Hex strands','Ribbon cells'],def:'Hex strands'},
+ {key:'bandwidth',label:'Bundle width %',type:'slider',min:5,max:80,step:1,def:30,showIf:p=>p.mode==='Hex weave'},
+ {key:'underGap',label:'Underpass clearance mm',type:'slider',min:.2,max:5,step:.1,def:1,showIf:p=>p.mode==='Hex weave'},
+ {key:'weavePens',label:'Bundle pens',type:'slider',min:1,max:4,step:1,def:3,showIf:p=>p.mode==='Hex weave'},
+ {key:'mode',label:'Cells',type:'select',options:['Hex strands','Ribbon cells','Hex weave'],def:'Hex strands'},
  {key:'cell',label:'Cell size mm',type:'slider',min:8,max:60,step:1,def:25},
  {key:'strands',label:'Strands per bundle',type:'slider',min:1,max:18,step:1,def:7},
  {key:'deform',label:'Displacement %',type:'slider',min:0,max:100,step:1,def:45},
@@ -5576,7 +5616,7 @@ export default {
  {key:'phase',label:'Field phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.deform>0},
  {key:'curve',label:'Curve %',type:'slider',min:0,max:100,step:1,def:65},
  {key:'density',label:'Occupied cells %',type:'slider',min:0,max:100,step:1,def:80},
- {key:'carry',label:'Extra routes %',type:'slider',min:0,max:100,step:1,def:35},
+ {key:'carry',label:'Extra routes %',type:'slider',min:0,max:100,step:1,def:35,showIf:p=>p.mode!=='Hex weave'},
  {key:'edges',label:'Cell edges',type:'check',def:true},
  {key:'edgePen',label:'Edge pen',type:'pen',def:7,showIf:p=>p.edges},
  {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:15},
@@ -5584,6 +5624,24 @@ export default {
  {key:'layer',label:'Strand pen',type:'pen',def:0}
  ],
  overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+ _weave(ins,p,c){
+  const net=this._network(p,c);if(!net)return {paths:[]};const {vertices:v,cells,n}=net,paths=[],seen=new Set(),pens=Math.max(1,Math.min(4,Math.round(+p.weavePens||1))),pen=Math.max(0,Math.min(11,Math.round(+p.layer||0))),width=Math.max(.05,Math.min(.8,(+p.bandwidth||30)/100)),clearance=Math.max(.2,Math.min(5,+p.underGap||1));
+  const cross=(a,b)=>a[0]*b[1]-a[1]*b[0],sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+  for(let i=0;i<cells.length;i++){
+   const ids=cells[i];if(p.edges)for(let e=0;e<6;e++){const a=ids[e],b=ids[(e+1)%6],k=[a,b].sort((a,b)=>a-b).join(',');if(!seen.has(k)){seen.add(k);paths.push({pts:[v[a],v[b]],closed:false,layer:Math.max(0,Math.min(11,Math.round(+p.edgePen||0)))});}}
+   if(hash2(i,7,+p.seed||0)>Math.max(0,Math.min(1,(+p.density||0)/100)))continue;
+   const at=(e,t)=>{const a=v[ids[e]],b=v[ids[(e+1)%6]];return [a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1])];},center=ids.reduce((a,id)=>[a[0]+v[id][0]/6,a[1]+v[id][1]/6],[0,0]),routes=[],curve=Math.max(0,Math.min(1,(+p.curve||0)/100));
+   for(let j=0;j<3;j++)for(let k=0;k<n;k++){const t=.5+((k+.5)/n-.5)*width,a=at(j,t),b=at(j+3,1-t),c1=a.map((x,h)=>x+(center[h]-x)*curve),c2=b.map((x,h)=>x+(center[h]-x)*curve),pts=Array.from({length:25},(_,h)=>{const t=h/24,u=1-t;return a.map((x,z)=>u*u*u*x+3*u*u*t*c1[z]+3*u*t*t*c2[z]+t*t*t*b[z]);});routes.push({j,k,pts});}
+   const priority=j=>(j+i)%3;
+   for(const r of routes){const cuts=[],lengths=[0];for(let h=1;h<r.pts.length;h++)lengths.push(lengths[h-1]+Math.hypot(...sub(r.pts[h],r.pts[h-1])));
+    for(const top of routes){if(priority(top.j)<=priority(r.j))continue;for(let h=1;h<r.pts.length;h++)for(let z=1;z<top.pts.length;z++){const a=r.pts[h-1],d=sub(r.pts[h],a),b=top.pts[z-1],e=sub(top.pts[z],b),det=cross(d,e);if(Math.abs(det)<1e-9)continue;const ab=sub(b,a),t=cross(ab,e)/det,u=cross(ab,d)/det;if(t>1e-7&&t<=1&&u>=0&&u<=1){const at=lengths[h-1]+t*(lengths[h]-lengths[h-1]),half=clearance/2;cuts.push([at-half,at+half]);}}}
+    cuts.sort((a,b)=>a[0]-b[0]);const merged=[];for(const q of cuts){const last=merged.at(-1);if(last&&q[0]<=last[1])last[1]=Math.max(last[1],q[1]);else merged.push(q.slice());}
+    const total=lengths.at(-1),bounds=[0,...merged.flat().map(v=>Math.max(0,Math.min(total,v))),total],point=d=>{let h=1;while(h<lengths.length-1&&lengths[h]<d)h++;const t=(d-lengths[h-1])/(lengths[h]-lengths[h-1]||1);return r.pts[h-1].map((v,k)=>v+t*(r.pts[h][k]-v));};
+    for(let h=0;h<bounds.length;h+=2){const a=bounds[h],b=bounds[h+1];if(!(b-a>.01))continue;const pts=[point(a)];for(let z=1;z<lengths.length-1;z++)if(lengths[z]>a&&lengths[z]<b)pts.push(r.pts[z]);pts.push(point(b));paths.push({pts,closed:false,layer:(pen+(r.j+(pens===4?i%2:0))%pens)%12});}
+   }
+  }
+  let out=applyStyle({paths},ins[0]);if(out.paths.reduce((n,q)=>n+q.pts.length,0)>118000&&p.cell<200)return this._weave(ins,{...p,cell:(+p.cell||25)*1.4},c);return out;
+ },
  _network(p,c){
   const num=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=num('margin',15,0,Math.min(c.W,c.H)/2),w=c.W-2*m,h=c.H-2*m;if(w<2||h<2)return null;
   const n=Math.round(num('strands',7,1,24)),size=Math.max(num('cell',25,4,200),Math.sqrt(w*h*n*70/85000)),base=[],index=new Map(),cells=[],key=q=>q.map(x=>Math.round(x*1e6)).join(','),vertex=q=>{const k=key(q);if(!index.has(k)){index.set(k,base.length);base.push(q);}return index.get(k);};
@@ -5605,6 +5663,7 @@ export default {
   return {vertices,cells,n,m,factor};
  },
  compute(ins,p,c){
+  if(p.mode==='Hex weave')return this._weave(ins,p,c);
   const net=this._network(p,c);if(!net)return {paths:[]};const {vertices:v,cells,n}=net,paths=[],edges=new Set(),seed=Math.round(+p.seed||0),layer=Math.max(0,Math.min(11,Math.round(+p.layer||0))),edgeLayer=Math.max(0,Math.min(11,Math.round(+p.edgePen||0))),density=Math.max(0,Math.min(1,+p.density/100||0)),carry=Math.max(0,Math.min(1,+p.carry/100||0)),curve=Math.max(0,Math.min(1,+p.curve/100||0));
   const station=(a,b,k)=>{if(a>b)[a,b]=[b,a];const t=(k+.5)/n;return [v[a][0]+(v[b][0]-v[a][0])*t,v[a][1]+(v[b][1]-v[a][1])*t];};
   for(let i=0;i<cells.length;i++){
@@ -9901,6 +9960,32 @@ export default {
     }
     return { paths };
   },
+};
+```
+
+## continuous_fill.js
+
+```js
+import { Pin, applyStyle } from "../helpers.js";
+
+export default {
+ key:'continuous_fill',name:'Continuous Fill',cat:'mod',group:'fillstyle',
+ desc:'Fill closed even-odd regions with continuous routes on a sampled lattice. Tree walk draws one closed, retraced depth-first walk per connected lattice component; every tree edge is drawn twice, so ink can build up. Pitch is the lattice spacing, not uniform hatch spacing. Scan rows makes boustrophedon runs and only joins neighbouring runs when the complete connector lies inside the region. Holes and detached islands may need extra routes. Output Route count and Lifts describe the actual result; there is no universal one-line guarantee. Angle rotates the lattice, not the source. Region borders are tested exactly along connectors; very thin areas between lattice centres can be missed. The lattice coarsens uniformly above 18k samples. No outside shortcut and no cross-pen join is introduced. Source is not included.',
+ ins:[Pin('paths','Region'),Pin('style','Style')],outs:[Pin('paths','Drawing'),Pin('value','Route count'),Pin('value','Lifts')],params:[
+ {key:'route',label:'Routing',type:'select',options:['Tree walk','Scan rows'],def:'Tree walk'},
+ {key:'pitch',label:'Lattice pitch mm',type:'slider',min:.5,max:12,step:.1,def:3},
+ {key:'angle',label:'Angle °',type:'slider',min:-180,max:180,step:1,def:0},
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12},
+ {key:'layer',label:'Pen',type:'pen',def:0}
+ ],
+ overlay(p,c,ins){return (ins?.[0]?.paths||[]).filter(q=>q.closed).slice(0,100).map(q=>({kind:'poly',pts:[...q.pts,q.pts[0]]}));},
+ compute(ins,p,c){const ps=(ins[0]?.paths||[]).filter(q=>q.closed&&q.pts.length>2);if(!ps.length)return [{paths:[]},0,0];if(ps.reduce((s,q)=>s+q.pts.length,0)>5000)return [{paths:[]},0,0];const m=Math.max(0,+p.margin||0),a=(+p.angle||0)*Math.PI/180,co=Math.cos(a),si=Math.sin(a),to=q=>[q[0]*co+q[1]*si,-q[0]*si+q[1]*co],from=q=>[q[0]*co-q[1]*si,q[0]*si+q[1]*co],polys=ps.map(q=>q.pts.map(to));let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(const q of polys)for(const [x,y]of q){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}const pitch=Math.max(.5,+p.pitch||3,Math.sqrt((x1-x0)*(y1-y0)/18000)),nx=Math.max(1,Math.floor((x1-x0)/pitch)),ny=Math.max(1,Math.floor((y1-y0)/pitch));if(nx*ny>20000)return [{paths:[]},0,0];
+  const inside=q=>{const w=from(q);if(w[0]<m||w[0]>c.W-m||w[1]<m||w[1]>c.H-m)return false;let hit=false;for(const ps of polys)for(let i=0,j=ps.length-1;i<ps.length;j=i++){const a=ps[i],b=ps[j];if((a[1]>q[1])!==(b[1]>q[1])&&q[0]<(b[0]-a[0])*(q[1]-a[1])/(b[1]-a[1])+a[0])hit=!hit;}return hit;},cross=(a,b)=>a[0]*b[1]-a[1]*b[0],sub=(a,b)=>[a[0]-b[0],a[1]-b[1]],safe=(a,b)=>{if(!inside(a)||!inside(b))return false;const d=sub(b,a),ts=[0,1];for(const ps of polys)for(let k=0;k<ps.length;k++){const c=ps[k],e=sub(ps[(k+1)%ps.length],c),den=cross(d,e);if(Math.abs(den)<1e-10)continue;const h=sub(c,a),t=cross(h,e)/den,u=cross(h,d)/den;if(t>0&&t<1&&u>=0&&u<=1)ts.push(t);}ts.sort((a,b)=>a-b);for(let k=1;k<ts.length;k++){const t=(ts[k-1]+ts[k])/2;if(!inside([a[0]+t*d[0],a[1]+t*d[1]]))return false;}return true;},at=k=>[x0+(k%nx+.5)*pitch,y0+(Math.floor(k/nx)+.5)*pitch],active=new Uint8Array(nx*ny),seen=new Uint8Array(nx*ny),paths=[],pen=Math.max(0,Math.min(11,Math.round(+p.layer||0)));
+  for(let k=0;k<active.length;k++)active[k]=+inside(at(k));
+  if(p.route==='Scan rows'){let run=[];const flush=()=>{if(run.length>=2)paths.push({pts:run.map(from),closed:false,layer:pen});run=[];};for(let y=0;y<ny;y++)for(let j=0;j<nx;j++){const x=y%2?nx-1-j:j,k=y*nx+x;if(!active[k]){flush();continue;}const q=at(k);if(run.length&&!safe(run.at(-1),q))flush();run.push(q);}flush();}
+  else for(let k=0;k<active.length;k++){if(!active[k]||seen[k])continue;seen[k]=1;const pts=[at(k)],stack=[{k,next:0}];while(stack.length){const f=stack.at(-1),x=f.k%nx,y=Math.floor(f.k/nx),ns=[x+1<nx?f.k+1:-1,y+1<ny?f.k+nx:-1,x>0?f.k-1:-1,y>0?f.k-nx:-1];if(f.next>=4){stack.pop();if(stack.length)pts.push(at(stack.at(-1).k));continue;}const n=ns[f.next++];if(n<0||!active[n]||seen[n]||!safe(at(f.k),at(n)))continue;seen[n]=1;pts.push(at(n));stack.push({k:n,next:0});}if(pts.length>2){pts.pop();paths.push({pts:pts.map(from),closed:true,layer:pen});}}
+  const out=applyStyle({paths},ins[1]);return [out,out.paths.length,Math.max(0,out.paths.length-1)];
+ }
 };
 ```
 
@@ -15651,26 +15736,35 @@ export default {
   name: "FM Rose",
   cat: "gen",
   group: "geometric",
-  desc: "FM synthesis as a polar curve: a modulator warps the carrier that shapes the radius. Low index gives rosettes, high index chaotic flowers; Rings stacks scaled copies with per-ring rotation, and Ring pens cycles successive rings through that many pens starting from Pen.",
+  desc: "Maurer joins 360 samples of r = sin(n × angle), using Angular step degrees between samples; Rose outline adds the smooth curve. Ring pens colours complete rings, preserving continuity. FM synthesis as a polar curve: a modulator warps the carrier that shapes the radius. Low index gives rosettes, high index chaotic flowers; Rings stacks scaled copies with per-ring rotation, and Ring pens cycles successive rings through that many pens starting from Pen.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "fc", label: "Carrier", type: "slider", min: 1, max: 16, step: 1, def: 5 },
-    { key: "fm", label: "Modulator", type: "slider", min: 1, max: 16, step: 1, def: 3 },
-    { key: "index", label: "FM index", type: "slider", min: 0, max: 10, step: 0.1, def: 2 },
-    { key: "depth", label: "Depth", type: "slider", min: 0, max: 1, step: 0.02, def: 0.5 },
+    {key:"mode",label:"Curve",type:"select",options:["FM","Maurer"],def:"FM"},
+    {key:"petals",label:"Rose n",type:"slider",min:1,max:30,step:1,def:6,showIf:p=>p.mode==="Maurer"},
+    {key:"angleStep",label:"Angular step °",type:"slider",min:1,max:359,step:1,def:71,showIf:p=>p.mode==="Maurer"},
+    {key:"outline",label:"Rose outline",type:"check",def:false,showIf:p=>p.mode==="Maurer"},
+    { key: "fc", label: "Carrier", type: "slider", min: 1, max: 16, step: 1, def: 5,showIf:p=>p.mode!=="Maurer" },
+    { key: "fm", label: "Modulator", type: "slider", min: 1, max: 16, step: 1, def: 3,showIf:p=>p.mode!=="Maurer" },
+    { key: "index", label: "FM index", type: "slider", min: 0, max: 10, step: 0.1, def: 2,showIf:p=>p.mode!=="Maurer" },
+    { key: "depth", label: "Depth", type: "slider", min: 0, max: 1, step: 0.02, def: 0.5,showIf:p=>p.mode!=="Maurer" },
     { key: "rings", label: "Rings", type: "slider", min: 1, max: 16, step: 1, def: 1 },
     { key: "pens", label: "Ring pens (cycle)", type: "slider", min: 1, max: 12, step: 1, def: 1 },
     { key: "rot", label: "Rotate deg / ring", type: "slider", min: 0, max: 90, step: 1, def: 0 },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 15 },
     { key: "layer", label: "Pen", type: "pen", def: 0 }
   ],
+  overlay(p,c){return [{kind:"circle",cx:c.W/2,cy:c.H/2,r:Math.max(0,Math.min(c.W,c.H)/2-(+p.margin||0))}];},
   compute(ins, p, ctx) {
     const { W, H } = ctx;
     const m = Math.max(0, p.margin);
     const R = Math.min(W, H) / 2 - m;
     if (R < 5) return applyStyle({ paths: [] }, ins[0]);
     const cx = W / 2, cy = H / 2;
+    if(p.mode==="Maurer"){
+      const n=Math.max(1,Math.min(30,Math.round(+p.petals||6))),d=Math.max(1,Math.min(359,+p.angleStep||71))*Math.PI/180,K=Math.max(1,Math.min(16,Math.round(+p.rings||1))),NP=Math.max(1,Math.min(12,Math.round(+p.pens||1))),paths=[];
+      for(let k=0;k<K;k++){const off=(+p.rot||0)*Math.PI/180*k,point=t=>{const r=R*(K-k)/K*Math.sin(n*t);return [cx+r*Math.cos(t+off),cy+r*Math.sin(t+off)];};paths.push({pts:Array.from({length:360},(_,i)=>point(i*d)),closed:true,layer:((+p.layer||0)+k%NP)%12});if(p.outline)paths.push({pts:Array.from({length:720},(_,i)=>point(i/720*Math.PI*2)),closed:true,layer:((+p.layer||0)+k%NP)%12});}return applyStyle({paths},ins[0]);
+    }
     const fc = Math.max(1, Math.round(p.fc)), fm = Math.max(1, Math.round(p.fm));
     const depth = Math.max(0, Math.min(1, p.depth));
     const K = Math.max(1, Math.min(24, Math.round(p.rings)));
@@ -15683,7 +15777,7 @@ export default {
       const pts = [];
       for (let i = 0; i < NPTS; i++) {
         const th = (i / NPTS) * Math.PI * 2;
-        /* FM synthesis as a polar curve: r follows the modulated carrier */
+        /* Maurer joins 360 samples of r = sin(n × angle), using Angular step degrees between samples; Rose outline adds the smooth curve. Ring pens colours complete rings, preserving continuity. FM synthesis as a polar curve: r follows the modulated carrier */
         const r = (1 + depth * Math.sin(fc * th + p.index * Math.sin(fm * th))) / (1 + depth);
         const rr = R * scale * Math.max(0.02, r);
         pts.push([cx + Math.cos(th + off) * rr, cy + Math.sin(th + off) * rr]);
@@ -15946,6 +16040,42 @@ export default {
       return { paths };
     }
   
+};
+```
+
+## fragment_layout.js
+
+```js
+import { Pin, pathLength } from "../helpers.js";
+
+export default {
+ key:'fragment_layout',name:'Fragment Layout',cat:'mod',group:'transform',
+ desc:'Rearrange existing fragments without losing their internal contours. Group by explicit path.group identifiers, closed-outline containment, or individual paths. Containment assigns a path only when all its vertices and edge samples lie in an outer outline; crossing fragments stay separate. Explicit groups are the reliable option for overlapping illustrations. Row shelves and Columns use physical gap; Radial places groups on separated concentric rings. Sort by bounding area, total path length, direction or original order. Keep size leaves geometry at original millimetres and reports overflow; Fit page uniformly shrinks the complete arrangement when needed. Blend 0 preserves original coordinates, Blend 100 completes the layout; intermediate positions may overlap. Pen layers, path direction and extra point components are preserved.',
+ ins:[Pin('paths','Fragments')],outs:[Pin('paths','Drawing'),Pin('value','Groups'),Pin('value','Overflow')],params:[
+ {key:'groupBy',label:'Group by',type:'select',options:['Closed containment','Explicit group','Each path'],def:'Closed containment'},
+ {key:'layout',label:'Layout',type:'select',options:['Row shelves','Columns','Radial'],def:'Row shelves'},
+ {key:'sort',label:'Sort by',type:'select',options:['Original','Area','Length','Direction'],def:'Area'},
+ {key:'descending',label:'Descending',type:'check',def:true,showIf:p=>p.sort!=='Original'},
+ {key:'gap',label:'Gap mm',type:'slider',min:0,max:30,step:.5,def:6},
+ {key:'sizing',label:'Sizing',type:'select',options:['Keep size','Fit page'],def:'Fit page'},
+ {key:'blend',label:'Blend %',type:'slider',min:0,max:100,step:1,def:100},
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12}
+ ],
+ overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+ _groups(src,p){
+  const paths=src.filter(q=>q.pts?.length>=2),box=ps=>{let x=Infinity,y=Infinity,X=-Infinity,Y=-Infinity;for(const q of ps)for(const a of q.pts){x=Math.min(x,a[0]);y=Math.min(y,a[1]);X=Math.max(X,a[0]);Y=Math.max(Y,a[1]);}return {x,y,w:X-x,h:Y-y};},poly=(q,ps)=>{let on=false;for(let i=0,j=ps.length-1;i<ps.length;j=i++){const a=ps[i],b=ps[j];if((a[1]>q[1])!==(b[1]>q[1])&&q[0]<(b[0]-a[0])*(q[1]-a[1])/(b[1]-a[1])+a[0])on=!on;}return on;},groups=[],map=new Map();
+  if(p.groupBy==='Explicit group'){paths.forEach((q,i)=>{const k=q.group===undefined?'path:'+i:typeof q.group+':'+String(q.group);if(!map.has(k)){const g=[];map.set(k,g);groups.push(g);}map.get(k).push(q);});}
+  else if(p.groupBy==='Each path')groups.push(...paths.map(q=>[q]));
+  else {const bs=paths.map(q=>box([q])),order=paths.map((_,i)=>i).sort((a,b)=>bs[b].w*bs[b].h-bs[a].w*bs[a].h);for(const i of order){const q=paths[i],b=bs[i];let group=null;for(const g of groups){const outer=g[0],bb=box([outer]);if(!outer.closed||b.x<bb.x-1e-7||b.y<bb.y-1e-7||b.x+b.w>bb.x+bb.w+1e-7||b.y+b.h>bb.y+bb.h+1e-7)continue;const samples=[];for(let k=0;k<q.pts.length;k++){const a=q.pts[k],d=q.pts[(k+1)%q.pts.length];samples.push(a);if(k<q.pts.length-1||q.closed)for(let j=1;j<8;j++)samples.push([a[0]+(d[0]-a[0])*j/8,a[1]+(d[1]-a[1])*j/8]);}if(samples.every(a=>poly(a,outer.pts))){group=g;break;}}if(group)group.push(q);else groups.push([q]);}}
+  return groups.map((ps,id)=>{const b=box(ps),q=ps[0],a=q.pts[0],d=q.pts.at(-1);return {ps,id,...b,area:b.w*b.h,length:ps.reduce((s,q)=>s+pathLength(q.pts,q.closed),0),direction:Math.atan2(d[1]-a[1],d[0]-a[0])};});
+ },
+ compute(ins,p,c){const source=ins[0]?.paths||[];if(!source.length)return [{paths:[]},0,0];const groups=this._groups(source,p),m=Math.max(0,+p.margin||0),W=c.W-2*m,H=c.H-2*m,gap=Math.max(0,+p.gap||0),blend=Math.max(0,Math.min(1,(+p.blend||0)/100));if(blend===0)return [{paths:source.map(q=>({...q,pts:q.pts.map(a=>a.slice())}))},groups.length,+(source.some(q=>q.pts.some(a=>a[0]<m||a[0]>c.W-m||a[1]<m||a[1]>c.H-m)))];if(!(W>0&&H>0))return [{paths:[]},groups.length,1];const order=groups.slice(),sort=p.sort==='Area'?'area':p.sort==='Length'?'length':p.sort==='Direction'?'direction':null;if(sort)order.sort((a,b)=>(p.descending?-1:1)*(a[sort]-b[sort])||a.id-b.id);
+  let x=0,y=0,row=0,maxX=0,maxY=0;
+  if(p.layout==='Radial'){let radius=0,used=0,ringSize=0;for(const g of order){const r=Math.hypot(g.w,g.h)/2+gap/2;if(radius===0){g.tx=-g.w/2;g.ty=-g.h/2;radius=r;continue;}const R=radius+r;if(used+2*Math.asin(Math.min(1,r/Math.max(r,R)))>Math.PI*2){radius+=2*ringSize;used=0;ringSize=0;}const rr=radius+r,angle=2*Math.asin(Math.min(1,r/rr));used+=angle/2;g.tx=Math.cos(used)*rr-g.w/2;g.ty=Math.sin(used)*rr-g.h/2;used+=angle/2;ringSize=Math.max(ringSize,r);}}
+  else for(const g of order){const a=p.layout==='Columns'?g.h:g.w,b=p.layout==='Columns'?g.w:g.h,limit=p.layout==='Columns'?H:W;if(x>0&&x+a>limit){x=0;y+=row+gap;row=0;}g.tx=p.layout==='Columns'?y:x;g.ty=p.layout==='Columns'?x:y;x+=a+gap;row=Math.max(row,b);}
+  let loX=Infinity,loY=Infinity,hiX=-Infinity,hiY=-Infinity;for(const g of groups){loX=Math.min(loX,g.tx);loY=Math.min(loY,g.ty);hiX=Math.max(hiX,g.tx+g.w);hiY=Math.max(hiY,g.ty+g.h);}maxX=hiX-loX;maxY=hiY-loY;const fit=p.sizing==='Fit page'?Math.min(1,W/Math.max(.001,maxX),H/Math.max(.001,maxY)):1,ox=m+(W-maxX*fit)/2,oy=m+(H-maxY*fit)/2,paths=[];
+  for(const g of groups)for(const q of g.ps)paths.push({...q,pts:q.pts.map(a=>{const b=a.slice();b[0]=a[0]*(1-blend)+(ox+(g.tx-loX+a[0]-g.x)*fit)*blend;b[1]=a[1]*(1-blend)+(oy+(g.ty-loY+a[1]-g.y)*fit)*blend;return b;})});const overflow=+(paths.some(q=>q.pts.some(a=>a[0]<m-1e-6||a[0]>c.W-m+1e-6||a[1]<m-1e-6||a[1]>c.H-m+1e-6)));return [{paths},groups.length,overflow];
+ }
 };
 ```
 
@@ -36425,6 +36555,32 @@ export default {
 };
 ```
 
+## plot_prepare.js
+
+```js
+import _sort from './travelsort.js';
+import _join from './joinends.js';
+import _simplify from './simplify.js';
+import _cull from './cull.js';
+import { Pin, EMPTY, hash2, pathLength } from "../helpers.js";
+
+export default {
+ key:'plot_prepare',name:'Plot Prepare',cat:'mod',group:'penout',
+ desc:'One preparation stage for culling short paths, simplifying, joining ends and sorting travel. The built-in node reuses Muusia Cull, Simplify, Join Ends and Travel Sort. Groups above 600 paths skip the quadratic join stage. Joins are always same-pen, never cross explicit groups; when Preserve direction is on joins and reversals are disabled. Scope chooses the whole pen set or separate explicit path.group groups. Simplify only open paths so a closed contour cannot collapse to two vertices. All operations default off except pen grouping / travel sorting; no duplicate-removal claim is made. Before / After lifts are path count minus one and Travel saved measures straight pen-up travel from page origin in mm, excluding machine start/end macros and physical pen changes. A negative saving is possible because shortening, grouping or sorting changes path endpoints. Outputs are analysis, not machine time estimates.',
+ ins:[Pin('paths','Drawing')],outs:[Pin('paths','Prepared'),Pin('value','Before lifts'),Pin('value','After lifts'),Pin('value','Travel saved mm')],params:[
+ {key:'scope',label:'Scope',type:'select',options:['Within pen','Within explicit group'],def:'Within pen'},
+ {key:'short',label:'Cull below mm (0 = off)',type:'slider',min:0,max:10,step:.1,def:0},
+ {key:'tol',label:'Simplify mm (0 = off)',type:'slider',min:0,max:1,step:.05,def:0},
+ {key:'preserve',label:'Preserve direction',type:'check',def:true},
+ {key:'join',label:'Join gap mm (0 = off)',type:'slider',min:0,max:5,step:.1,def:0,showIf:p=>!p.preserve},
+ {key:'sort',label:'Sort travel',type:'check',def:true},
+ {key:'rotate',label:'Rotate closed starts',type:'check',def:false,showIf:p=>p.sort&&!p.preserve}
+ ],
+
+ compute(ins,p,c){const paths=ins[0]?.paths||[],travel=ps=>{let d=0,a=[0,0];for(const q of ps){if(!q.pts?.length)continue;d+=Math.hypot(q.pts[0][0]-a[0],q.pts[0][1]-a[1]);a=q.closed?q.pts[0]:q.pts.at(-1);}return d;};const buckets=new Map();paths.forEach((q,i)=>{if(!q.pts?.length)return;const group=q.group===undefined?'ungrouped':typeof q.group+':'+String(q.group),k=q.layer+'|'+group;if(!buckets.has(k))buckets.set(k,[]);buckets.get(k).push(q);});let prepared=[];for(const group of buckets.values()){let out={paths:group};if(p.short>0)out=_cull.compute([out],{mode:'Shorter than',len:Math.max(0,Math.min(10,+p.short)),invert:false});if(p.tol>0)out={paths:out.paths.map(q=>q.closed?q:_simplify.compute([{paths:[q]}],{tol:Math.max(0,Math.min(1,+p.tol))}).paths[0])};if(!p.preserve&&p.join>0&&out.paths.length<=600)out=_join.compute([out],{gap:Math.max(0,Math.min(5,+p.join)),arc:0,angTol:180,samePen:true});const metadata=group[0].group;out.paths=out.paths.map(q=>metadata===undefined?q:{...q,group:metadata});if(p.sort&&p.scope==='Within explicit group')out=_sort.compute([out],{reverse:!p.preserve,rotate:!p.preserve&&p.rotate,bypen:true});prepared.push(...out.paths);}if(p.sort&&p.scope!=='Within explicit group')prepared=_sort.compute([{paths:prepared}],{reverse:!p.preserve,rotate:!p.preserve&&p.rotate,bypen:true}).paths;return [{paths:prepared},Math.max(0,paths.length-1),Math.max(0,prepared.length-1),travel(paths)-travel(prepared)];}
+};
+```
+
 ## pointcloud.js
 
 ```js
@@ -39606,9 +39762,14 @@ import { Pin, EMPTY, mulberry32, applyStyle } from "../helpers.js";
 
 export default {
  key:'reaction_patterns',name:'Reaction Patterns',cat:'gen',group:'organic',
- desc:'A seeded Gray–Scott reaction–diffusion surface, drawn as vector contours. Coral branches, Maze stripes and Spots emerge from local chemical exchange rather than a growing outline. Wired Seeds starts the reaction inside closed paths (even-odd holes) or along open strokes; unwired Seeds scatters small germs. Optional Region masks the sampled simulation, including holes; contour boundaries have grid-resolution error. Use Container afterwards for exact clipping. Pattern scale changes the solver grid, Detail sets its longest dimension (bounded to 128 / 12k cells), and Steps sets the mature simulation time. Manual Growth or Timeline deterministically reconstructs the same prefix on every frame; keep Seed, Steps and structural settings fixed. Growth 0 shows the initial germs, not an empty drawing. Level selects chemical concentration, Contours draws neighbouring levels, and pens cycle by level. Boundary wrap connects opposite page edges only. No playback cache or outside service is used.',
- ins:[Pin('style','Style'),Pin('paths','Seeds'),Pin('paths','Region')],outs:[Pin('paths')],
+ desc:'Tonal Turing optionally varies local feed and kill rates using a darkness image, fitted across the simulation margin, or a closed even-odd Tone input. Mid-grey is neutral; Tone influence controls modulation. Seeds and Region keep their original roles. This guides the texture rather than tracing or reproducing every image detail. A seeded Gray–Scott reaction–diffusion surface, drawn as vector contours. Coral branches, Maze stripes and Spots emerge from local chemical exchange rather than a growing outline. Wired Seeds starts the reaction inside closed paths (even-odd holes) or along open strokes; unwired Seeds scatters small germs. Optional Region masks the sampled simulation, including holes; contour boundaries have grid-resolution error. Use Container afterwards for exact clipping. Pattern scale changes the solver grid, Detail sets its longest dimension (bounded to 128 / 12k cells), and Steps sets the mature simulation time. Manual Growth or Timeline deterministically reconstructs the same prefix on every frame; keep Seed, Steps and structural settings fixed. Growth 0 shows the initial germs, not an empty drawing. Level selects chemical concentration, Contours draws neighbouring levels, and pens cycle by level. Boundary wrap connects opposite page edges only. No playback cache or outside service is used.',
+ fileImage:true,
+ ins:[Pin('style','Style'),Pin('paths','Seeds'),Pin('paths','Region'),Pin('paths','Tone')],outs:[Pin('paths')],
  params:[
+  {key:"tonal",label:"Tonal Turing",type:"check",def:false},
+  {key:"toneImage",label:"Tone image",type:"file",def:"",showIf:p=>p.tonal},
+  {key:"toneAmount",label:"Tone influence %",type:"slider",min:0,max:100,step:1,def:65,showIf:p=>p.tonal},
+  {key:"toneInvert",label:"Invert tone",type:"check",def:false,showIf:p=>p.tonal},
   {key:'pattern',label:'Pattern',type:'select',options:['Coral','Maze','Spots','Custom'],def:'Coral'},
   {key:'feed',label:'Feed',type:'slider',min:.01,max:.08,step:.001,def:.04,showIf:p=>p.pattern==='Custom'},
   {key:'kill',label:'Kill',type:'slider',min:.04,max:.075,step:.001,def:.062,showIf:p=>p.pattern==='Custom'},
@@ -39628,7 +39789,7 @@ export default {
   {key:'layer',label:'First pen',type:'pen',def:0}
  ],
  overlay(p,c,ins){const ps=ins?.[2]?.paths?.filter(q=>q.closed)||[];return ps.length?ps.slice(0,100).map(q=>({kind:'poly',pts:[...q.pts,q.pts[0]]})):[{kind:'rect',x:p.margin,y:p.margin,w:c.W-2*p.margin,h:c.H-2*p.margin}];},
- compute(ins,p,c){
+ compute(ins,p,c,node){
   const n=(k,d,l,h)=>Math.max(l,Math.min(h,Number.isFinite(+p[k])?+p[k]:d)),m=n('margin',12,0,Math.min(c.W,c.H)/2),W=c.W-2*m,H=c.H-2*m;if(!(W>0&&H>0))return EMPTY;
   const detail=Math.round(n('detail',80,32,128)/n('scale',1,.5,3));let nx=Math.max(16,Math.min(128,Math.round(detail*Math.min(1,W/H)))),ny=Math.max(16,Math.min(128,Math.round(detail*Math.min(1,H/W))));if(nx*ny>12000){const f=Math.sqrt(12000/(nx*ny));nx=Math.floor(nx*f);ny=Math.floor(ny*f);}const N=nx*ny;
   const seeds=ins[1]?.paths||[],region=(ins[2]?.paths||[]).filter(q=>q.closed);if([...seeds,...region].reduce((s,q)=>s+q.pts.length,0)>4000)return EMPTY;
@@ -39636,8 +39797,11 @@ export default {
   let A=new Float64Array(N).fill(1),B=new Float64Array(N),a2=new Float64Array(N),b2=new Float64Array(N);const mask=new Uint8Array(N),rng=mulberry32(Math.round(n('seed',37,-2e9,2e9))),germs=Array.from({length:Math.round(n('germs',28,1,80))},()=>[.05+rng()*.9,.05+rng()*.9]),closed=seeds.filter(q=>q.closed),open=seeds.filter(q=>!q.closed),radius=n('seedWidth',12,1,50)/2;
   for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const k=j*nx+i,x=m+i/(nx-1)*W,y=m+j/(ny-1)*H;mask[k]=!region.length||inside(x,y,region);if(!mask[k])continue;let hit=closed.length&&inside(x,y,closed);for(const q of open)for(let z=1;z<q.pts.length&&!hit;z++){const a=q.pts[z-1],b=q.pts[z],dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));hit=Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)<radius;}if(!seeds.length)hit=germs.some(([gx,gy])=>Math.hypot(x-m-gx*W,y-m-gy*H)<Math.max(radius,1.1*Math.max(W/nx,H/ny)));if(hit){B[k]=.9;A[k]=.1;}}
   const parameters={Coral:[.0545,.062],Maze:[.029,.057],Spots:[.0367,.0649]},[feed,kill]=parameters[p.pattern]||[n('feed',.04,.005,.1),n('kill',.062,.03,.09)],t=p.motion==='Timeline'&&c.frameCount>1?Math.max(0,Math.min(1,c.frameIdx/(c.frameCount-1))):n('growth',100,0,100)/100,steps=Math.round(n('steps',650,0,1600)*t);
+  const tone=new Float64Array(N).fill(.5),img=node?.data?.img,toneshapes=(ins[3]?.paths||[]).filter(q=>q.closed);if(toneshapes.reduce((s,q)=>s+q.pts.length,0)>4000)return EMPTY;
+  if(p.tonal)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const x=m+i/(nx-1)*W,y=m+j/(ny-1)*H;let v=toneshapes.length?+inside(x,y,toneshapes):img?.g?.length===img.w*img.h?img.g[Math.min(img.h-1,Math.floor(j/ny*img.h))*img.w+Math.min(img.w-1,Math.floor(i/nx*img.w))]:.5;tone[j*nx+i]=p.toneInvert?1-v:v;}
+  const localFeed=new Float64Array(N),localKill=new Float64Array(N);for(let k=0;k<N;k++){const a=p.tonal?(tone[k]-.5)*n('toneAmount',65,0,100)/100:0;localFeed[k]=Math.max(.005,Math.min(.1,feed+a*.035));localKill[k]=Math.max(.03,Math.min(.09,kill+a*.012));}
   const left=new Int32Array(N),right=new Int32Array(N),up=new Int32Array(N),down=new Int32Array(N);for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const k=j*nx+i;for(const [dst,ii,jj]of [[left,i-1,j],[right,i+1,j],[up,i,j-1],[down,i,j+1]]){const x=p.wrap?(ii+nx)%nx:Math.max(0,Math.min(nx-1,ii)),y=p.wrap?(jj+ny)%ny:Math.max(0,Math.min(ny-1,jj)),v=y*nx+x;dst[k]=mask[v]?v:k;}}
-  for(let it=0;it<steps;it++){for(let k=0;k<N;k++){if(!mask[k]){a2[k]=1;b2[k]=0;continue;}const a=A[k],b=B[k],reaction=a*b*b,la=A[left[k]]+A[right[k]]+A[up[k]]+A[down[k]]-4*a,lb=B[left[k]]+B[right[k]]+B[up[k]]+B[down[k]]-4*b;a2[k]=Math.max(0,Math.min(1,a+.2*la-reaction+feed*(1-a)));b2[k]=Math.max(0,Math.min(1,b+.1*lb+reaction-(kill+feed)*b));}[A,a2]=[a2,A];[B,b2]=[b2,B];}
+  for(let it=0;it<steps;it++){for(let k=0;k<N;k++){if(!mask[k]){a2[k]=1;b2[k]=0;continue;}const a=A[k],b=B[k],reaction=a*b*b,la=A[left[k]]+A[right[k]]+A[up[k]]+A[down[k]]-4*a,lb=B[left[k]]+B[right[k]]+B[up[k]]+B[down[k]]-4*b;a2[k]=Math.max(0,Math.min(1,a+.2*la-reaction+localFeed[k]*(1-a)));b2[k]=Math.max(0,Math.min(1,b+.1*lb+reaction-(localKill[k]+localFeed[k])*b));}[A,a2]=[a2,A];[B,b2]=[b2,B];}
   const paths=[],levels=Math.round(n('contours',2,1,5)),pens=Math.round(n('pens',1,1,6)),pen=Math.round(n('layer',0,0,11));
   for(let level=0;level<levels;level++){const iso=Math.min(.85,n('level',.25,.05,.75)+level*.065),segs=[];
    for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){const k=j*nx+i,v=[B[k],B[k+1],B[k+nx+1],B[k+nx]],coord=[[i,j],[i+1,j],[i+1,j+1],[i,j+1]],hits=[];for(let e=0;e<4;e++){const f=(e+1)%4;if((v[e]>iso)!==(v[f]>iso)){const t=(iso-v[e])/(v[f]-v[e]);hits.push([m+(coord[e][0]+t*(coord[f][0]-coord[e][0]))/(nx-1)*W,m+(coord[e][1]+t*(coord[f][1]-coord[e][1]))/(ny-1)*H]);}}if(hits.length===2)segs.push(hits);else if(hits.length===4){const turn=(v[0]-iso)*(v[2]-iso)-(v[1]-iso)*(v[3]-iso);if(turn>0)segs.push([hits[0],hits[1]],[hits[2],hits[3]]);else segs.push([hits[0],hits[3]],[hits[1],hits[2]]);}}
@@ -39756,6 +39920,39 @@ export default {
       return { paths: out };
     }
   
+};
+```
+
+## recursive_structure.js
+
+```js
+import {surfaceDrawing} from '../plotter-utilities.js';
+import { Pin, hash2, applyStyle } from "../helpers.js";
+
+export default {
+key:'recursive_structure',name:'Recursive Structure',cat:'gen',group:'structural',
+ desc:'Recursive octant subdivision with seeded occupancy. Junction beams connects each occupied cell centre to its retained child centres with three axis-aligned beams; Nested boxes draws retained cell cages. Depth is bounded to 4 and occupancy to 75% to keep the complete structure affordable; the complete depth is lowered uniformly if the mesh would exceed 110k triangles. Retained children are a deterministic prefix as Depth increases. Drawing and Mesh share the same normalized object and camera; Mesh Render can supply other surface treatments. Beams are overlapping closed boxes, not a boolean-unioned watertight solid. Hidden-line removal is an approximate depth raster. Size fits the complete bounding sphere inside the margin.',
+ ins:[Pin('style','Style')],outs:[Pin('paths','Drawing'),Pin('mesh','Mesh')],params:[
+ {key:'structure',label:'Structure',type:'select',options:['Junction beams','Nested boxes'],def:'Junction beams'},
+ {key:'depth',label:'Recursion depth',type:'slider',min:1,max:4,step:1,def:3},
+ {key:'ratio',label:'Child scale %',type:'slider',min:20,max:48,step:1,def:43},
+ {key:'occupancy',label:'Retained children %',type:'slider',min:15,max:75,step:1,def:52},
+ {key:'beam',label:'Beam width %',type:'slider',min:2,max:20,step:1,def:7},
+ {key:'seed',label:'Seed',type:'seed',def:23}, {key:'yaw',label:'View angle °',type:'slider',min:-180,max:180,step:1,def:25},
+ {key:'elevation',label:'View elevation °',type:'slider',min:5,max:85,step:1,def:30},
+ {key:'persp',label:'Perspective',type:'slider',min:0,max:.7,step:.05,def:0},
+ {key:'hidden',label:'Hidden-line removal',type:'check',def:true},
+ {key:'size',label:'Size mm',type:'slider',min:20,max:400,step:1,def:155},
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12},
+ {key:'layer',label:'Pen',type:'pen',def:0}],
+ overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+ _box(a,b){const v=Array.from({length:8},(_,i)=>[i&1?b[0]:a[0],i&2?b[1]:a[1],i&4?b[2]:a[2]]);return [[0,4,6,2],[1,3,7,5],[0,1,5,4],[2,6,7,3],[0,2,3,1],[4,5,7,6]].map(f=>f.map(i=>v[i]));},
+ compute(ins,p,c){const faces=[],depth=Math.max(1,Math.min(4,Math.round(+p.depth||3))),ratio=Math.max(.2,Math.min(.48,(+p.ratio||43)/100)),occupancy=Math.max(.15,Math.min(.75,(+p.occupancy||52)/100)),beam=Math.max(.02,Math.min(.2,(+p.beam||7)/100));
+ const bar=(a,b,w)=>{const lo=a.map((v,k)=>Math.min(v,b[k])-w/2),hi=a.map((v,k)=>Math.max(v,b[k])+w/2);faces.push(...this._box(lo,hi));};
+ const visit=(center,size,level,id)=>{if(faces.length>55000)return;if(p.structure==='Nested boxes'){const r=size/2,vs=Array.from({length:8},(_,i)=>center.map((v,k)=>v+((i>>k)&1?r:-r)));for(let i=0;i<8;i++)for(let k=0;k<3;k++)if(!(i&(1<<k)))bar(vs[i],vs[i|(1<<k)],size*beam*.35);}
+ if(level>=depth)return;for(let i=0;i<8;i++){if(hash2(id,i,+p.seed||0)>occupancy)continue;const child=center.map((v,k)=>v+((i>>k)&1?1:-1)*size*(1-ratio)/2);if(p.structure!=='Nested boxes'){let a=center.slice();for(let k=0;k<3;k++){const b=a.slice();b[k]=child[k];bar(a,b,size*beam);a=b;}}visit(child,size*ratio,level+1,id*8+i+1);}};
+ visit([0,0,0],1,0,1);if(faces.length>55000&&depth>1)return this.compute(ins,{...p,depth:depth-1},c);return surfaceDrawing(faces,p,c,ins[0]);}
+
 };
 ```
 
@@ -53064,6 +53261,44 @@ export default {
 };
 ```
 
+## svg_batch.js
+
+```js
+import {unzipSync,strFromU8} from 'fflate';
+import { Pin, applyStyle, fontStrokes, parseSVG } from "../helpers.js";
+
+export default {
+ key:'svg_batch',name:'SVG Batch Layout',cat:'gen',group:'textimg',fileBinary:true,fileLabel:'Load SVG / ZIP…',fileAccept:'.svg,.zip,.json,image/svg+xml,application/zip,application/json',
+ desc:'Place independent SVG documents on paginated sheets, preserving all paths and colour groups within each document. Source colour groups map to successive Muusia pens per file in encounter order; configure your palette accordingly. Load one SVG, a ZIP of SVGs (alphabetical path order), or a JSON array of {name,svg} entries. Imported geometry is frozen in the patch. Columns, Rows, Cell width / height, Gap and Margin define physical sheet slots. Fit cell scales each document uniformly to its slot; Original mm uses SVG width units and clips nothing, reporting overflow when a motif exceeds its slot or page. Labels and cut marks are optional pen strokes. Copies repeats each document before moving to the next. Page selects one sheet; Timeline advances through pages for SVG frame export. A page above 240k geometry points is empty with Overflow 1; reduce copies or slots. No file is silently dropped: intake rejects over 64 documents, 120k points or 12 MB unpacked data. SVG parser supports vector primitives, not embedded raster, CSS layout or text fonts: convert text to paths first.',
+ ins:[Pin('style','Style')],outs:[Pin('paths','Drawing'),Pin('value','Pages'),Pin('value','Overflow')],params:[
+ {key:'file',label:'SVG batch',type:'file',def:''},
+ {key:'cols',label:'Columns',type:'slider',min:1,max:12,step:1,def:3},
+ {key:'rows',label:'Rows',type:'slider',min:1,max:12,step:1,def:2},
+ {key:'cellW',label:'Cell width mm',type:'slider',min:10,max:200,step:1,def:80},
+ {key:'cellH',label:'Cell height mm',type:'slider',min:10,max:200,step:1,def:80},
+ {key:'gap',label:'Gap mm',type:'slider',min:0,max:30,step:.5,def:6},
+ {key:'copies',label:'Copies per file',type:'slider',min:1,max:30,step:1,def:1},
+ {key:'fit',label:'Sizing',type:'select',options:['Fit cell','Original mm'],def:'Fit cell'},
+ {key:'motion',label:'Page source',type:'select',options:['Manual','Timeline'],def:'Manual'},
+ {key:'page',label:'Page (1-based)',type:'slider',min:1,max:1920,step:1,def:1,showIf:p=>p.motion!=='Timeline'},
+ {key:'labels',label:'Filename labels',type:'check',def:true},
+ {key:'marks',label:'Cell cut marks',type:'check',def:false},
+ {key:'labelPen',label:'Marks / label pen',type:'pen',def:7,showIf:p=>p.labels||p.marks},
+ {key:'margin',label:'Margin mm',type:'slider',min:0,max:60,step:1,def:12}
+ ],
+ overlay(p,c){const m=Math.max(0,+p.margin||0);return [{kind:'rect',x:m,y:m,w:c.W-2*m,h:c.H-2*m}];},
+ onFile(input){let text=String(input),batch=null;if(text.startsWith('data:')){const b=atob(text.slice(text.indexOf(',')+1));if(b.length>12000000)throw Error('Archive exceeds 12 MB');const u=Uint8Array.from(b,x=>x.charCodeAt(0));if(u[0]===80&&u[1]===75){let total=0,count=0;const files=unzipSync(u,{filter:f=>{if(!/\.svg$/i.test(f.name)||f.name.startsWith('__MACOSX/'))return false;count++;total+=f.originalSize;if(count>64||f.originalSize>2000000||total>12000000)throw Error('ZIP exceeds 64 SVGs / 12 MB unpacked');return true;}});batch=Object.keys(files).sort((a,b)=>a.localeCompare(b,'en')).map(name=>({name:name.split('/').at(-1),svg:strFromU8(files[name])}));}else text=strFromU8(u);}const entries=batch||(String(text).trim().startsWith('[')?JSON.parse(text):[{name:'drawing.svg',svg:String(text)}]);if(!Array.isArray(entries)||!entries.length||entries.length>64)throw Error('Load 1–64 SVG documents');let bytes=0,points=0;const files=entries.map((e,i)=>{const text=String(e.svg||'');bytes+=text.length;if(bytes>12000000||text.length>2000000)throw Error('SVG batch exceeds size limit');const data=parseSVG(text);data.paths=data.paths.map(q=>({pts:q.pts,closed:q.closed,layer:Math.max(0,Math.min(11,(+q.colorIdx||0)%12))}));points+=data.paths.reduce((s,q)=>s+q.pts.length,0);if(points>120000)throw Error('SVG batch exceeds 120k points');const doc=new DOMParser().parseFromString(text,'image/svg+xml'),svg=doc.querySelector('svg'),width=String(svg?.getAttribute('width')||''),match=width.match(/^\s*([\d.]+)\s*(mm|cm|in|pt|px)?\s*$/),view=String(svg?.getAttribute('viewBox')||'').trim().split(/[ ,]+/).map(Number),unit={mm:1,cm:10,in:25.4,pt:25.4/72,px:25.4/96},scale=match?+match[1]*(unit[match[2]||'px'])/(view.length===4&&view[2]>0?view[2]:+match[1]||1):25.4/96;return {name:String(e.name||'drawing-'+(i+1)+'.svg').slice(0,120),...data,mm:scale};});return {kind:'svg-batch',files};},
+ compute(ins,p,c,node){const files=node?.data?.svg?.files;if(!Array.isArray(files)||!files.length||files.length>64)return [{paths:[]},0,0];const cols=Math.max(1,Math.min(12,Math.round(+p.cols||3))),rows=Math.max(1,Math.min(12,Math.round(+p.rows||2))),copies=Math.max(1,Math.min(30,Math.round(+p.copies||1))),capacity=cols*rows,pages=Math.ceil(files.length*copies/capacity),page=p.motion==='Timeline'?Math.min(pages-1,Math.floor(Math.max(0,c.frameIdx||0)/Math.max(1,(c.frameCount||1)-1)*pages)):Math.max(0,Math.min(pages-1,Math.round(+p.page||1)-1)),m=Math.max(0,+p.margin||0),gap=Math.max(0,+p.gap||0),w=Math.max(10,+p.cellW||80),h=Math.max(10,+p.cellH||80),paths=[],pen=Math.max(0,Math.min(11,Math.round(+p.labelPen||0)));let overflow=0,points=0;for(const f of files){if(!Array.isArray(f.paths)||!f.bbox)return [{paths:[]},0,1];points+=f.paths.reduce((s,q)=>s+(q.pts?.length||0),0);}if(points>120000)return [{paths:[]},pages,1];let pagePoints=0;for(let j=0;j<capacity;j++){const k=page*capacity+j;if(k>=files.length*copies)break;pagePoints+=files[Math.floor(k/copies)].paths.reduce((s,q)=>s+q.pts.length,0);}if(pagePoints>240000)return [{paths:[]},pages,1];
+ for(let j=0;j<capacity;j++){const k=page*capacity+j;if(k>=files.length*copies)break;const f=files[Math.floor(k/copies)],b=f.bbox,x=m+(j%cols)*(w+gap),y=m+Math.floor(j/cols)*(h+gap),label=p.labels?6:0,available=Math.max(1,h-label),scale=p.fit==='Original mm'?Math.max(.00001,+f.mm||25.4/96):Math.min(w/Math.max(.001,b.w),available/Math.max(.001,b.h)),ox=x+(w-b.w*scale)/2,oy=y+(available-b.h*scale)/2;overflow|=+(b.w*scale>w+.001||b.h*scale>available+.001||x+w>c.W-m+.001||y+h>c.H-m+.001);
+ for(const q of f.paths)paths.push({...q,group:k,layer:Math.max(0,Math.min(11,Math.round(+q.layer||0))),pts:q.pts.map(a=>[ox+(a[0]-b.x)*scale,oy+(a[1]-b.y)*scale,...a.slice(2)])});
+ if(p.labels){const text=f.name.replace(/\.svg$/i,'').slice(0,28),g=fontStrokes(text,2.6,1),sc=Math.min(1,w/Math.max(1,g.width));for(const pts of g.strokes)paths.push({pts:pts.map(a=>[x+a[0]*sc,y+h-3.2+a[1]*sc]),closed:false,layer:pen,group:k});}
+ if(p.marks)for(const [X,Y,sx,sy]of [[x,y,1,1],[x+w,y,-1,1],[x+w,y+h,-1,-1],[x,y+h,1,-1]])paths.push({pts:[[X+sx*2,Y],[X,Y],[X,Y+sy*2]],closed:false,layer:pen,group:k});
+ }
+ return [applyStyle({paths},ins[0]),pages,overflow];
+ }
+};
+```
+
 ## svgimport.js
 
 ```js
@@ -53942,10 +54177,13 @@ export default {
   name: "Tiles",
   cat: "gen",
   group: "geometric",
-  desc: "Grid of tiles, each a separate closed path: parametric Superellipse, Circle, Triangle, Hexagon, Star, Reuleaux or Cross, with per-tile rotation and jitter. Layout: Grid, Brick (odd rows offset half a cell) or Hex pack (offset rows at 0.866 pitch - circles and hexagons at Size 100 touch their neighbours). Alternate flip rotates every other tile 180 degrees so triangles tessellate. Field variation shares a coherent noise field across tiles, driving scale, angle and shift; Phase loops the field. Clip to own cell keeps the transformed motif inside its original cell. Arc is an open circular sweep. The natural Explosion input.",
-  ins: [Pin("style", "Style")],
+  desc: "Disarray envelope modulates Field variation from Start to End across Vertical, Horizontal, Radial or a closed even-odd Mask. Off preserves the original field. The mask only affects cell centres; use Clip to own cell to keep motifs within the page. Grid of tiles, each a separate closed path: parametric Superellipse, Circle, Triangle, Hexagon, Star, Reuleaux or Cross, with per-tile rotation and jitter. Layout: Grid, Brick (odd rows offset half a cell) or Hex pack (offset rows at 0.866 pitch - circles and hexagons at Size 100 touch their neighbours). Alternate flip rotates every other tile 180 degrees so triangles tessellate. Field variation shares a coherent noise field across tiles, driving scale, angle and shift; Phase loops the field. Clip to own cell keeps the transformed motif inside its original cell. Arc is an open circular sweep. The natural Explosion input.",
+  ins: [Pin("style", "Style"),Pin("paths","Mask")],
   outs: [Pin("paths")],
   params: [
+    {key:"envelope",label:"Disarray envelope",type:"select",options:["Off","Vertical","Horizontal","Radial","Mask"],def:"Off"},
+    {key:"start",label:"Envelope start %",type:"slider",min:0,max:100,step:1,def:0,showIf:p=>p.envelope!=="Off"},
+    {key:"end",label:"Envelope end %",type:"slider",min:0,max:100,step:1,def:100,showIf:p=>p.envelope!=="Off"},
     {key:'field',label:'Field variation %',type:'slider',min:0,max:100,step:1,def:0},
     {key:'fieldScale',label:'Field size mm',type:'slider',min:5,max:200,step:1,def:60,showIf:p=>p.field>0},
     {key:'fieldMove',label:'Field shift %',type:'slider',min:0,max:100,step:1,def:45,showIf:p=>p.field>0},
@@ -54062,7 +54300,8 @@ export default {
         const cy = oy0 + (hexPack ? r * pitch + ch / 2 : (r + 0.5) * ch);
         let ang = ((p.rot + (rng() - 0.5) * 2 * p.rotJit) * Math.PI) / 180;
         if (p.flipAlt && (r + c) % 2 === 1) ang += Math.PI;
-        const field=Math.max(0,Math.min(1,+p.field/100||0)),size=Math.max(1,+p.fieldScale||60),phase=(+p.phase||0)*Math.PI/180,f=field*noise2(cx/size+Math.cos(phase),cy/size+Math.sin(phase),p.seed),shrink=1-f*Math.max(0,Math.min(1,+p.fieldShrink/100||0));
+        let ev=1;if(p.envelope&&p.envelope!=="Off"){let v=p.envelope==="Horizontal"?(cx-m)/(W-2*m):p.envelope==="Radial"?Math.min(1,Math.hypot((cx-W/2)/((W-2*m)/2),(cy-H/2)/((H-2*m)/2))):(cy-m)/(H-2*m);if(p.envelope==="Mask"){v=0;for(const q of ins[1]?.paths||[]){if(!q.closed)continue;let hit=false;for(let i=0,j=q.pts.length-1;i<q.pts.length;j=i++){const a=q.pts[i],b=q.pts[j];if((a[1]>cy)!==(b[1]>cy)&&cx<(b[0]-a[0])*(cy-a[1])/(b[1]-a[1])+a[0])hit=!hit;}if(hit)v=1-v;}}ev=((+p.start||0)+(Number.isFinite(+p.end)?+p.end:100)*v-(+p.start||0)*v)/100; }
+        const field=ev*Math.max(0,Math.min(1,+p.field/100||0)),size=Math.max(1,+p.fieldScale||60),phase=(+p.phase||0)*Math.PI/180,f=field*noise2(cx/size+Math.cos(phase),cy/size+Math.sin(phase),p.seed),shrink=1-f*Math.max(0,Math.min(1,+p.fieldShrink/100||0));
         ang+=f*(+p.fieldRotate||0)*Math.PI/180;
         const ca = Math.cos(ang), sa = Math.sin(ang),dx=f*(+p.fieldMove||0)/100*cw*.5,dy=f*(+p.fieldMove||0)/100*ch*.35;
         const item={
@@ -54730,10 +54969,14 @@ export default {
   name: "Truchet",
   cat: "gen",
   group: "geometric",
-  desc: "Tiled quarter-circle patterns. Custom tile adds a draggable corner gesture with fixed quarter-edge anchors: edit points in the corner diagram or with X/Y numbers, add/remove points and toggle Square corner. Linked mirrors one gesture across four corners, Alternate swaps axes on alternate corners, Paired shares opposite corners, Independent edits each separately. Rotations preserve the matching edge anchors. Inset copies shrink inside each tile and deliberately do not join across edges. Colours cycles corners/copies through up to four pens. Dense custom grids enlarge the effective tile size uniformly. The editor diagram is the control polygon; the paper preview is the smooth result.  Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
-  ins: [Pin("style", "Style")],
+  desc: "Tiled quarter-circle patterns. Pattern mask (Tiles mode) changes tile orientation inside closed Mask paths, including holes, or a loaded darkness image fitted across the whole canvas. Inside orientation % blends random orientation with the mask; it does not clip tiles. Closed text outlines work, open centreline text does not define an interior. Custom tile adds a draggable corner gesture with fixed quarter-edge anchors: edit points in the corner diagram or with X/Y numbers, add/remove points and toggle Square corner. Linked mirrors one gesture across four corners, Alternate swaps axes on alternate corners, Paired shares opposite corners, Independent edits each separately. Rotations preserve the matching edge anchors. Inset copies shrink inside each tile and deliberately do not join across edges. Colours cycles corners/copies through up to four pens. Dense custom grids enlarge the effective tile size uniformly. The editor diagram is the control polygon; the paper preview is the smooth result.  Tiles mode draws arc or diagonal tiles; Tile fill leaves a seeded share of tiles empty; Separate clamps arc radii and forces an edge gap so strands never meet or cross. Concentric bands and Butterfly add outlined or arc-hatched bands; Band width controls the dark-to-gap ratio and Row offset sets Butterfly orientation rhythm. Loop mode grows a spanning tree and emits one single closed line that fills the canvas - a maze you can plot without lifting the pen.",
+  ins: [Pin("style", "Style"),Pin("paths","Mask")],
   outs: [Pin("paths")],
+  fileImage:true,
   params: [
+    {key:"patternMask",label:"Pattern mask",type:"check",def:false,showIf:p=>p.mode==="Tiles"},
+    {key:"maskImage",label:"Mask image",type:"file",def:"",showIf:p=>p.mode==="Tiles"&&p.patternMask},
+    {key:"maskBias",label:"Inside orientation %",type:"slider",min:0,max:100,step:1,def:100,showIf:p=>p.mode==="Tiles"&&p.patternMask},
     { key: "mode", label: "Pattern", type: "select", options: ["Tiles", "Loop", "Concentric bands", "Butterfly", "Custom tile"], def: "Tiles" },
     {key:'cornerLink',label:'Corner linking',type:'select',options:['Linked','Alternate','Paired','Independent'],def:'Linked',showIf:p=>p.mode==='Custom tile'},
     {key:'editCorner',label:'Edit corner',type:'select',options:['TL','TR','BR','BL'],def:'TL',showIf:p=>p.mode==='Custom tile'&&p.cornerLink==='Independent'},
@@ -54797,7 +55040,7 @@ export default {
       }
     }return applyStyle({paths},ins?.[0]);
   },
-  compute(ins, p, ctx) {
+  compute(ins, p, ctx, node) {
     if(['Concentric bands','Butterfly'].includes(p.mode))return this._bands(ins,p,ctx);
     if(p.mode==="Custom tile")return this._custom(ins,p,ctx);
     const { W, H } = ctx;
@@ -54955,7 +55198,9 @@ export default {
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
       if (fillP < 0.999 && hash2(c * 7 + 3, r * 13 + 5, p.seed + 77) > fillP) continue;
       const x0 = ox + c * t, y0 = oy + r * t;
-      const flip = hash2(c, r, p.seed) > 0.5;
+      let probability=.5;
+      if(p.patternMask){let value=0;const x=x0+t/2,y=y0+t/2,ps=ins[1]?.paths||[],img=node?.data?.img;for(const q of ps){if(!q.closed)continue;let hit=false;for(let i=0,j=q.pts.length-1;i<q.pts.length;j=i++){const a=q.pts[i],b=q.pts[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])hit=!hit;}if(hit)value=1-value;}if(!ps.length&&img?.g?.length===img.w*img.h)value=img.g[Math.max(0,Math.min(img.h-1,Math.floor(y/ctx.H*img.h)))*img.w+Math.max(0,Math.min(img.w-1,Math.floor(x/ctx.W*img.w)))];const bias=Math.max(0,Math.min(1,(+p.maskBias||0)/100));probability=(1-bias)/2+value*bias;}
+      const flip = p.patternMask?hash2(c,r,p.seed)<probability:hash2(c,r,p.seed)>.5;
       if (p.ttype === "Arcs") {
         if (flip) { arc(x0, y0, 0); arc(x0 + t, y0 + t, Math.PI); }
         else { arc(x0 + t, y0, Math.PI / 2); arc(x0, y0 + t, -Math.PI / 2); }
