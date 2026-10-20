@@ -54,6 +54,47 @@ export const DEFAULT_MACHINE_C = {
   endG: "GENTLE_OFF ; restore printer.cfg motion limits\nG0 X0 Y0 F3000",
 };
 
+export const NEEDLE_MAX_DEPTH = 2;
+export const DEFAULT_NEEDLE_MACHINE = {
+  ...DEFAULT_MACHINE,
+  name: "D — Needle Z (max 2 mm)", toolMode: "needle", zMode: "bed",
+  penDown: 0, penUp: 3, zHopOn: false,
+  zFeed: 120, feedDraw: 120, feedTravel: 1800,
+  rotOn: false, dipOn: false, maintOn: false, tgPen: false, canvasCheckOn: false,
+  startG: "G21\nG90\nNEEDLE_BEGIN ; requires paper-surface calibration, no homing here",
+  endG: "M400 ; leave needle lifted at last punch",
+};
+
+/* Reject the entire job before emitting commands. Never silently shorten a
+   requested punch. A needle job may contain only stationary, explicit plunges. */
+export function needleExportError(ps, prof) {
+  if (prof.toolMode !== "needle") return "";
+  if (prof.zMode !== "bed" || prof.penDown !== 0 || prof.penUp !== 3 || prof.zHopOn)
+    return "Needle profile requires Bed Z, Contact Z 0, Lift Z 3 and Z-hop off.";
+  if (prof.rotOn || prof.dipOn || prof.maintOn || prof.canvasCheckOn)
+    return "Disable rotation, dip, maintenance and canvas check for the needle.";
+  // Custom code cannot bypass the depth guard with arbitrary moves or macros.
+  if (prof.startG !== DEFAULT_NEEDLE_MACHINE.startG || prof.endG !== DEFAULT_NEEDLE_MACHINE.endG)
+    return "Restore the Needle preset start/end commands; custom commands are not supported for needle jobs.";
+  if (![prof.zFeed, prof.feedDraw, prof.feedTravel].every(v => Number.isFinite(v) && v > 0))
+    return "Needle speeds must be finite positive numbers.";
+  const layers = new Set();
+  for (const path of ps.paths) {
+    if (path.__stop) return "Remove Travel Stop markers from the needle job.";
+    if (!path.pts || path.pts.length < 2) return "Connect Needle Punch LAST; every punch needs explicit depth.";
+    const first = path.pts[0];
+    for (const q of path.pts) {
+      if (!Number.isFinite(q[0]) || !Number.isFinite(q[1]) || q[0] !== first[0] || q[1] !== first[1])
+        return "Needle jobs must contain stationary punches only. Connect Needle Punch LAST.";
+      if (!Number.isFinite(q[2]) || q[2] <= 0 || q[2] > NEEDLE_MAX_DEPTH)
+        return `Needle depth must be greater than 0 and at most ${NEEDLE_MAX_DEPTH} mm below the paper. Reduce Needle Punch Depth.`;
+    }
+    layers.add(path.layer);
+  }
+  if (layers.size > 1) return "Use one pen layer for the needle job; automatic pen changes are disabled.";
+  return "";
+}
+
 /* The External SVG template: built from its own small object, never from DEFAULT_MACHINE.
    workW / workH 0 means "not set" — the user enters the verified travel of their own plotter. */
 export const DEFAULT_SVG_MACHINE = {
@@ -172,6 +213,7 @@ export function writeMachineFile(prof) {
   const { id, ...rest } = prof || {};
   const out = { app: "muusia-machine", v: MACHINE_FILE_VERSION, prof: rest };
   if (workflowOf(prof) === "svg-external") out.minApp = MACHINE_MIN_APP;
+  if (prof?.toolMode === "needle") out.minApp = "2.133";
   return JSON.stringify(out, null, 1);
 }
 

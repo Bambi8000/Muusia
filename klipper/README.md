@@ -1,5 +1,14 @@
 # klipper/ — machine-side configs
 
+The opt-in rigid-needle mode and its commissioning steps are documented in
+[Needle setup](../docs/needle/README.md). Paper surface is work Z0; Muusia's
+Needle Z preset limits exported plunges to 2 mm and lifts to Z3 for travel.
+The needle configuration was installed on viivain on 2026-10-17 after a
+backup and validation with its installed Jinja2/Mainsail. Klipper restarted
+successfully and reports ready; needle mode remains off and uncalibrated.
+No axis motion commands or physical needle tests were run; the needle holder
+has not yet been built.
+
 Klipper / Moonraker / KlipperScreen configuration for the X-Carve + BTT Kraken
 plotter build. Parts written **before the Kraken is physically wired** carry
 TODO markers (placeholder serial ID, unverified directions/travels). Do not

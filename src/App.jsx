@@ -20,7 +20,7 @@ import PreviewCropControls from "./preview-crop-controls.jsx";
 import { directionPassFiles } from "./direction-pass-export.js";
 import DirectionPassControls from "./direction-pass-controls.jsx";
 import MuusiaGuide from "./muusia-guide.jsx";
-import { DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
+import { DEFAULT_NEEDLE_MACHINE, needleExportError, DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
 /* ============================================================
@@ -863,6 +863,7 @@ function magnetPlacement(ps, sw, sh, opts) {
 
 /* ---- Jig g-code: pen up, laser on, visit each position, M0 stops ---- */
 function jigGcode(positions, prof, sheetW, sheetH, label) {
+  if (prof.toolMode === "needle") return { text: "; MUUSIA: Laser jig export is disabled in needle mode.\n", warnings: ["Laser jig export is disabled in needle mode"] };
   const f2 = (v) => Math.round(v * 100) / 100;
   const oX = prof.originX || 0, oY = prof.originY || 0;
   const fx = (x) => x + oX;
@@ -893,9 +894,11 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.133"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.134"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
+  const needleError = needleExportError(ps, prof);
+  if (needleError) return `; MUUSIA: Needle G-code export blocked.\n; ${needleError}\n`;
   const f2 = (v) => Math.round(v * 100) / 100;
   const oX = prof.originX || 0, oY = prof.originY || 0;
   const fx = (x) => x + oX;
@@ -1092,6 +1095,7 @@ function toGcode(ps, ctx, prof) {
       if (my) { const v = parseFloat(my[1]); if (v < 0 || v > prof.workH) bad.push(`line ${i + 1}: Y${f2(v)} outside 0..${prof.workH}`); }
     }
     if (bad.length) {
+      if (prof.toolMode === "needle") return "; MUUSIA: Needle G-code export blocked.\n; XY moves exceed the machine work area. Check origin and work area.\n";
       const at = Math.max(0, lines.findIndex((l) => !String(l).startsWith(";")));
       const moves = new Set(bad.map((b) => b.split(":")[0])).size;
       const block = [
@@ -1406,6 +1410,8 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
     if (g.kind === "rect") {
       gEls.push(<rect key={"g" + i} x={ox + (g.x) * s} y={oy + (g.y) * s} width={g.w * s} height={g.h * s}
         fill="none" stroke={G} strokeWidth="1.2" strokeDasharray="5 4" opacity="0.85" />);
+    } else if (g.kind === "text") {
+      gEls.push(<text key={"g" + i} x={ox + g.x * s} y={oy + g.y * s} fontSize={(g.size || 2.2) * s} fill={G}>{g.text}</text>);
     } else if (g.kind === "circle") {
       gEls.push(<circle key={"g" + i} cx={ox + g.cx * s} cy={oy + g.cy * s} r={g.r * s}
         fill="none" stroke={G} strokeWidth="1.2" strokeDasharray="5 4" opacity="0.85" />);
@@ -1848,7 +1854,7 @@ export default function App() {
   const megaH = megaOn ? (megaRoll ? rollLen : (megaMode === "Gap" ? megaR * canvasH + (megaR - 1) * megaSeam : megaR * canvasH - (megaR - 1) * megaSeam)) : canvasH;
   const testRect = testCropRect(testCrop, megaW, megaH);
   /* machine templates live in src/machine.js (DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE) */
-  const [machines, setMachines] = useState(() => assignIds([DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C]));
+  const [machines, setMachines] = useState(() => assignIds([DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_NEEDLE_MACHINE]));
   const [helpFor, setHelpFor] = useState(null); /* node id whose help tooltip is open */
   const [setupFor, setSetupFor] = useState(null); /* node id in slider-setup mode */
   const [nodeNicks, setNodeNicks] = useState(() => {
@@ -3925,6 +3931,13 @@ export default function App() {
                   <button onClick={exportMachine} title="Export machine profile"
                     style={{ background: T.panel2, border: `1px solid ${T.line}`, color: T.text, borderRadius: 3, fontSize: 12, padding: "3px 9px", cursor: "pointer", fontFamily: mono }}>⇡</button>
                 </div>
+                <button style={toolBtn(true)} onClick={() => {
+                  setMachines(ms => [...ms, { ...DEFAULT_NEEDLE_MACHINE, workW: prof.workW || DEFAULT_NEEDLE_MACHINE.workW, workH: prof.workH || DEFAULT_NEEDLE_MACHINE.workH, originX: prof.originX || 0, originY: prof.originY || 0, flipY: !!prof.flipY, id: nextId(ms) }]);
+                  setMachineIdx(machines.length);
+                }}>Add Needle Z profile · max 2 mm</button>
+                {prof.toolMode === "needle" && <div style={{ fontSize: 11, color: T.text, lineHeight: 1.5, margin: "8px 0" }}>
+                  Needle: rigid holder, servo removed. Paper surface = Z0; maximum plunge 2 mm; lift 3 mm. About 4 mm of backing leaves about 2 mm clearance. Start with a 0.5 mm test. Connect Needle Punch LAST and use one pen. On Klipper run NEEDLE_MODE_ON, home, jog the tip to the paper surface, NEEDLE_ZERO_HERE, then lift before moving XY. Recalibrate after homing or changing the needle/material. Requires the needle macros in klipper/printer.cfg.
+                </div>}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Machine name</div>
                   <input type="text" value={prof.name} onChange={(e) => setProf((pr) => ({ ...pr, name: e.target.value }))}
@@ -4026,7 +4039,7 @@ export default function App() {
                   <select value={prof.zMode || "bed"} onChange={(e) => setProf((pr) => ({ ...pr, zMode: e.target.value }))}
                     style={{ flex: 1, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 6px", fontSize: 11 }}>
                     <option value="servo">A — Servo lifts the pen</option>
-                    <option value="bed">B — Bed Z lifts the pen</option>
+                    <option value="bed">B — Z axis lifts the tool</option>
                   </select>
                 </div>
                 <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.05em", margin: "10px 0 4px" }}>Z &amp; SPEEDS</div>

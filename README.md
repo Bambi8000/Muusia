@@ -1,4 +1,4 @@
-# MUUSIA v2.132
+# MUUSIA v2.134
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,11 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Version 2.134 adds **SDF Contours → Soft union**, **Image → Vector dither**,
+**Glyph Halftone → Wired motif**, and the new **Weave Draft** generator with
+2–4 pens. [Four English tutorials](https://bambi8000.github.io/Muusia/learn/designminis/)
+include eight complete patches and actual SVG results.
 
 **Learn Muusia:** the [public learning site](https://bambi8000.github.io/Muusia/learn/) includes seven foundation tutorials, twenty illustrated node guides, animation studies and a typography section covering all fifteen text tools. Try the interactive [Type Studio lesson](https://bambi8000.github.io/Muusia/learn/typography/index.html#type-studio) with ten treatments, then download your text as an editable Muusia project. The guides also cover per-pen SVG export, numeric controls and preparing a first physical plot through SVG or G-code. See the [guide maintenance instructions](learn/README.md) for details. Build with `npm run build`, run `npm run preview:learn`, and open `/learn/index.html` on the local preview server. The PlotterFiles additions include [five packing, stitching and growth projects](https://bambi8000.github.io/Muusia/learn/plotterfiles/) and [fourteen weave, structure and preparation projects](https://bambi8000.github.io/Muusia/learn/plotterfiles-more/), with 24 downloadable patches. These additions require Muusia 2.132 or later.
 
@@ -17,7 +22,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **336 built-in node modules** across Generators,
+HTML file you can double-click. The current source has **338 built-in node modules** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
@@ -100,6 +105,14 @@ animation system possible.
   Explosion...) draw dashed **guide overlays** in the preview when selected.
 
 ## 4. Machines & export
+
+**Needle punching.** Select **D — Needle Z (max 2 mm)** or add the preset in
+Machine Setup. Use **Help → Needle Test · Depth and spacing** for rows of at least 20
+punches at a constant depth and spacing, or connect Needle Punch last.
+The default test maximum is 0.5 mm. The profile
+rejects plunges over 2 mm, and lifts 3 mm before travel. A rigid needle holder
+replaces the servo lift. See [needle setup and calibration](docs/needle/README.md)
+before using the updated Klipper macros; these require machine commissioning.
 
 Machine Setup supports multiple machine profiles (work area, origin on the canvas,
 flip-Y, Z heights, speeds, pen-change pause command, optional brush rotation and dip

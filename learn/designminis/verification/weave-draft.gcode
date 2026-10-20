@@ -1,4 +1,4 @@
-; Muusia v2.133 — raw G-code
+; Muusia v2.134 — raw G-code
 ; Machine: A — Servo Z (multi-tip brush) — work area 330 x 240 mm
 ; Canvas 297 x 210 mm at origin X0 Y0 — paths 4848
 ; Draw 27.53 m, travel 55.36 m — est. 25 min (+ pen lifts & pauses)

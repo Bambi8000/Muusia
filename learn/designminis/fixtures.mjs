@@ -3,6 +3,7 @@ export const HERE=path.dirname(fileURLToPath(import.meta.url)),ROOT=path.resolve
 for(const k of ['sdfcontours','image','glyphtone','weave_draft','lettering','hersheytext','svgimport'])defs[k]=withParameterVisibility((await import('../../src/defs/nodes/'+k+'.js')).default);
 export const defaults=k=>Object.fromEntries(defs[k].params.map(q=>[q.key,structuredClone(q.def)]));
 const app=fs.readFileSync(path.join(ROOT,'src/App.jsx'),'utf8');export const engineSource=app.slice(app.indexOf('function defIns(node)'),app.indexOf('/* ============================================================\n   G-CODE')),exporterSource=app.slice(app.indexOf('function toSVG(ps, ctx)'),app.indexOf('/* --- DXF R12 export'));
+export const gcodeSource=app.slice(app.indexOf('function toGcode('),app.indexOf('function toSVG('));
 const solid=JSON.parse(app.match(/const SOLID_STYLE = (\{[^;]+\});/)[1].replace(/(\w+):/g,'"$1":')),evalLevel=Function('DEFS','EMPTY','SOLID_STYLE',engineSource+';return evalLevel;')(defs,H.EMPTY,solid);
 export const evaluate=p=>evalLevel(p.root,p.canvas).out[p.root.outputId][0],toSVG=Function('PENS',exporterSource+';return toSVG;')(H.PENS);
 export function image(){const w=96,h=64,g=[],rgb=[];for(let y=0;y<h;y++)for(let x=0;x<w;x++){

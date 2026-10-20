@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **337 files** (339 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **338 files** (340 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 213, Modifiers 86). ESM format:
+  Generators 214, Modifiers 86). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -265,12 +265,14 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
-### 2.133 — 2026-10-20 · Design Minis studies: soft union, vector dither, custom motifs and woven drafts
+### 2.134 — 2026-10-20 · Design Minis studies: soft union, vector dither, custom motifs and woven drafts
 
 Daniel authorized items 1–4 and publication. Based on published
 `755a4585b5ade729736a2d441f77dae0ae9313aa`, implemented in the clean
 `/private/tmp/muusia-line-drape` worktree on `codex/designminis-first-four`.
-337 node modules / 339 registry entries; 89 English Learn pages.
+Merged published Needle 2.133 (`d8f17394cb6d69f5efa3b71d21bb40481d0921ca`)
+without altering its safety guards or machine configuration. Final release
+2.134 has 338 node modules / 340 registry entries; 89 English Learn pages.
 
 - SDF Contours gains opt-in **Soft union**: filled or stroked interpretation,
   Even-odd/Union fill rule, Gaussian-blended signed distances and independent
@@ -311,6 +313,11 @@ all rapids occur pen-up and each file finishes pen-up. Shared catalog, build
 and Learn gate passed (37,361 checks / 89 pages). No physical plotting.
 
 Release integration owns commit/push and exact-commit Pages verification.
+New Design Minis SVG/G-code/Focus captures were refreshed on final integrated
+2.134; the capture manifest now also tracks the actual G-code function and
+machine module. Needle export/machine checks passed again after integration. The imported
+Klipper configuration is byte-identical to d8f1739; its optional Python recheck
+was unavailable in this environment because Jinja2 is absent.
 Primary checkout stays on old local main `6a3500a` with unrelated Needle Punch,
 App and hardware work untouched; reconcile that draft with this release before
 integration. Refresh the local Claude project-file snapshot after commit; no

@@ -1036,6 +1036,12 @@
   "mesh",
   "scientific"
  ],
+ "needletest": [
+  "dots",
+  "grid",
+  "machine",
+  "scientific"
+ ],
  "needlepunch": [
   "dots",
   "noise",

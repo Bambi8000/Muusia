@@ -621,6 +621,14 @@ export const EXAMPLES = [
     ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
   },
   {
+    name: "Needle Test · Depth and spacing",
+    desc: "Select Needle Test. Each horizontal row has one fixed depth and spacing, with at least 20 punches. All depth and spacing combinations appear on separate rows. Preview labels give the exact mm values and are never exported. Set Max depth (default 0.5 mm, at most 2 mm), then choose the Needle Z machine profile and export G-code. This node already outputs individual punches: connect directly to output without Needle Punch or modifiers. Calibrate the paper surface before running the file.",
+    canvas: { W: 148, H: 148 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "needletest", x: 40, y: 20, params: { ...defaults("needletest") } },
+    ], edges: [] }),
+  },
+  {
     name: "Surface study · Torn organic rings",
     desc: "Organic Rings with small dotted rings and a full halo feeds Torn, then 2D to 3D Inflate / Auto. Select 2D to 3D. Tiny closed marks narrower than Stroke width become compact solids; dense curves adapt their approximation within one eighth of the width. Every mark/curve stays in the source allocation, while the complete mesh stays under its triangle cap. Try Extrude or Tubes, then lower Depth % for a shallower relief. This reproduces the formerly blank dense-input case; very small stamps are intentionally faceted rather than overlapping thick loops.",
     canvas: { W: 297, H: 210 },

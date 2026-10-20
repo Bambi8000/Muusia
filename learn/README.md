@@ -73,6 +73,12 @@ Use actual PNG encoding for `.png` files: some browser tools return JPEG bytes r
 
 ## Export provenance maintenance
 
+2026-10-20 needle release (v2.133): the physical-plot SVG and both SVG-workflow
+Stack Pens sheets were downloaded again through the actual app. All three SVGs
+are byte-identical to the references. Source records now include the needle
+profile/export integration. PNG captures and historical G-code evidence retain
+their original provenance. No physical machine was operated.
+
 2026-10-19 Craft suite maintenance (local v2.130 development tree): Lens gained
 opt-in Twist/Vortex and Array gained opt-in layouts. The original Travelling
 pinch study and Grid Hairs / Solids composite were downloaded again through the
@@ -442,7 +448,7 @@ provenance. Software-only G-code checks used the illustrative A Servo profile
 with a 330 × 240 mm area and original page coordinates; no hardware was run.
 
 
-## Soft forms, raster marks and woven drafts — Muusia 2.133
+## Soft forms, raster marks and woven drafts — Muusia 2.134
 
 `designminis/` adds four six-step English tutorials for SDF Contours Soft union,
 Image Vector dither, Glyph Halftone Wired motif and the new Weave Draft. Eight
