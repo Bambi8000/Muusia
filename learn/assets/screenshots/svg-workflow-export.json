@@ -1,11 +1,11 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.130",
-  "date": "2026-10-19",
+  "appVersion": "2.133",
+  "date": "2026-10-20",
   "patch": "examples/tutorial-svg-workflow.muusia.json",
   "patchSha256": "6707d0f11b0c68f4b7d8ea611f8585238cf44076b5528c6315af8d711ef97ed5",
   "bundle": "examples/svg-workflow-per-pen.zip",
-  "originalDownload": "Export a two-colour SVG set-sheets-svg (7).zip",
+  "originalDownload": "Export a two-colour SVG set-sheets-svg (8).zip",
   "sha256": "f0ce3fe36c406929766f68e644cdf3c4866602be463e5276172b001a500eca42",
   "selectedNode": "Merge",
   "settings": {
@@ -54,7 +54,7 @@
     {
       "path": "src/machine.js",
       "selector": "file",
-      "sha256": "d8ca1e4d06375c691e55d07757e478cecda6ed7d3f9ccbc2b4300559126df885"
+      "sha256": "58064ae02c5b1d22a09da5fec59031ef7f6850fe3fd07c38f5b8e63b55490680"
     },
     {
       "path": "src/frame-export.js",
@@ -64,12 +64,12 @@
     {
       "path": "src/App.jsx",
       "selector": "app-export-core",
-      "sha256": "fe54a4b4613fba444f707f1ffcdbafb16398ee517504bc708f623684ddc4a5d2"
+      "sha256": "6134483db4a840637c7a57ab4333f9d5fa01fc2e3cc83fad77a429791abd87f9"
     },
     {
       "path": "src/App.jsx",
       "selector": "app-export-data-and-actions",
-      "sha256": "aba92bfd8876066c5764c837aa4e4cfef66747b311f12c81a4cf8e26cd882180"
+      "sha256": "72156dc8fc65f69f9deed7b38e0dff0b0d896df0bee7f79a73562595a86021da"
     },
     {
       "path": "src/App.jsx",
@@ -107,9 +107,9 @@
       "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
     }
   ],
-  "sourceCommit": "7fc30e45226ef55bd4194b0361d2596333f965c9",
+  "sourceCommit": "755a4585b5ade729736a2d441f77dae0ae9313aa",
   "sourceProvenanceVersion": 2,
-  "captureMethod": "Actual in-app Muusia Load/select Merge and download. SVG byte geometry unchanged after removing destructive engine truncation; Optimize route off, Preserve direction on, Mega Canvas off. Stack Pens: margin 0, mirror/numbers/drill off, Red hidden while both sheets exported. Existing PNGs and historical G-code check unchanged. No hardware.",
-  "sourceWorkingTree": "main, uncommitted complete graph output and dense stroke 3D fixes; sourceFiles identify captured code",
-  "recaptureNote": "Actual Stack Pens SVG ZIP downloaded after Wave extension. Red hidden in preview, both sheets exported; each SVG is byte-identical to the earlier reference. Existing PNGs and historical physical/G-code evidence unchanged. No hardware run."
+  "captureMethod": "Actual Muusia v2.133 in-app browser: Load documented patch, select Merge, Optimize route off, Preserve direction on, Mega Canvas off. Download physical SVG; Stack Pens export with Red hidden, margin 0, Mirror/Numbers/Drill off. All three SVG files byte-identical to committed references. A Servo profile. Existing PNGs and historical G-code evidence unchanged. No hardware.",
+  "sourceWorkingTree": "codex/needle-test-release, uncommitted v2.133 needle support; sourceFiles identify captured source",
+  "recaptureNote": "2026-10-20 actual browser recapture after needle profile integration. All SVG bytes unchanged."
 }

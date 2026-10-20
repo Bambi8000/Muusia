@@ -1,4 +1,4 @@
-# MUUSIA v2.132
+# MUUSIA v2.133
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -17,7 +17,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **336 built-in node modules** across Generators,
+HTML file you can double-click. The current source has **337 built-in node modules** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
@@ -100,6 +100,14 @@ animation system possible.
   Explosion...) draw dashed **guide overlays** in the preview when selected.
 
 ## 4. Machines & export
+
+**Needle punching.** Select **D — Needle Z (max 2 mm)** or add the preset in
+Machine Setup. Use **Help → Needle Test · Depth and spacing** for rows of at least 20
+punches at a constant depth and spacing, or connect Needle Punch last.
+The default test maximum is 0.5 mm. The profile
+rejects plunges over 2 mm, and lifts 3 mm before travel. A rigid needle holder
+replaces the servo lift. See [needle setup and calibration](docs/needle/README.md)
+before using the updated Klipper macros; these require machine commissioning.
 
 Machine Setup supports multiple machine profiles (work area, origin on the canvas,
 flip-Y, Z heights, speeds, pen-change pause command, optional brush rotation and dip

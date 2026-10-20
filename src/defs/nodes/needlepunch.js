@@ -5,7 +5,7 @@ export default {
   name: "Needle Punch",
   cat: "mod",
   group: "penout",
-  desc: "Converts lines into needle piercings for a needle mounted in the pen carriage (paper raised on foam). Each punch is emitted as a zero-length path whose points carry z = Depth, the plunge in mm BELOW the machine profile's pen-down contact — set Pen down to the paper surface and Pen up / Z-hop in the machine profile for the lift heights. Interval walks every path and punches each Interval mm starting at Offset (Punch ends adds the endpoints of open paths); Intersections punches every line crossing, including self-crossings; Both combines them; Centers punches once at each path's centroid — chain the Braille or Single Marker node into it. Spacing mod varies the interval along the arc: Wave (sine of Mod length wavelength), Noise (smooth seeded drift), Ramp (spacing grows from tight to loose along each path), Jitter (seeded per-step randomness) — Mod amount sets the swing, up to ±100% of Interval, floored at 0.1 mm. Min gap merges punches closer than the given distance so the needle never stabs the same hole twice. Punches preview as round dots. Bed-Z machines only (servo mode ignores z) and place this node LAST in the chain: any modifier after it strips the z component.",
+  desc: "Converts lines into needle piercings for a needle mounted in the pen carriage (paper raised on foam). Each punch is emitted as a zero-length path whose points carry z = Depth, the plunge in mm BELOW the machine profile's pen-down contact — set Pen down to the paper surface and Pen up / Z-hop in the machine profile for the lift heights. Interval walks every path and punches each Interval mm starting at Offset (Punch ends adds the endpoints of open paths); Intersections punches every line crossing, including self-crossings; Both combines them; Centers punches once at each path's centroid — chain the Braille or Single Marker node into it. Spacing mod varies the interval along the arc: Wave (sine of Mod length wavelength), Noise (smooth seeded drift), Ramp (spacing grows from tight to loose along each path), Jitter (seeded per-step randomness) — Mod amount sets the swing, up to ±100% of Interval, floored at 0.1 mm. Min gap merges punches closer than the given distance so the needle never stabs the same hole twice. Punches preview as round dots. Use the Needle Z machine profile for a maximum 2 mm plunge and a full lift between punches. Start with Depth 0.5 mm. Bed-Z machines only (servo mode ignores z) and place this node LAST in the chain: any modifier after it strips the z component.",
   ins: [Pin("paths", "Lines")],
   outs: [Pin("paths")],
   params: [
@@ -17,7 +17,7 @@ export default {
     { key: "modAmt", label: "Mod amount", type: "slider", min: 0, max: 1, step: 0.05, def: 0.5 },
     { key: "modLen", label: "Mod length (mm)", type: "slider", min: 2, max: 100, step: 1, def: 25 },
     { key: "seed", label: "Seed", type: "seed", def: 7 },
-    { key: "depth", label: "Depth (mm)", type: "slider", min: 0.2, max: 6, step: 0.1, def: 2 },
+    { key: "depth", label: "Depth (mm)", type: "slider", min: 0.2, max: 6, step: 0.1, def: 0.5 },
     { key: "gap", label: "Min gap (mm)", type: "slider", min: 0, max: 5, step: 0.1, def: 0.5 },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],

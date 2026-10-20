@@ -916,9 +916,14 @@ export const NODE_RECENCY = {
     "sha256": "b882c749663f18c3274bc316ea3ee2f6f59b253966a77effeeef1dc33d88908a"
   },
   "needlepunch": {
-    "date": "2026-08-07",
-    "order": 21,
-    "sha256": "c08e651ef4d0dfcc3d6082fa6c750c9f6d1bece2349677b257e4979fdd543512"
+    "date": "2026-10-20",
+    "order": 87,
+    "sha256": "05488e3a8db9be93b75feab72fef8a734b2697730cffc2369645d90575b49773"
+  },
+  "needletest": {
+    "date": "2026-10-20",
+    "order": 87,
+    "sha256": "b000edc406ef0b6f4a7d0200b7f6a22e3062970dfdfba3d6749aa21585bf6979"
   },
   "negspace": {
     "date": "2026-07-22",
