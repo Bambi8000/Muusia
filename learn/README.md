@@ -1,6 +1,6 @@
 # Muusia Learn
 
-An English companion guide to Muusia: seven foundation tutorials, twelve Craft tutorials, ten Shapes tutorials, nineteen PlotterFiles-inspired tutorials, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
+An English companion guide to Muusia: seven foundation tutorials, twelve Craft tutorials, ten Shapes tutorials, nineteen PlotterFiles-inspired tutorials, four Design Minis studies, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
 
 ## Build and preview
 
@@ -440,3 +440,22 @@ their affected graph / Focus pictures and available animation sequences were
 recaptured. Per-lesson maintenance metadata preserves the other lessons’ earlier
 provenance. Software-only G-code checks used the illustrative A Servo profile
 with a 330 × 240 mm area and original page coordinates; no hardware was run.
+
+
+## Soft forms, raster marks and woven drafts — Muusia 2.133
+
+`designminis/` adds four six-step English tutorials for SDF Contours Soft union,
+Image Vector dither, Glyph Halftone Wired motif and the new Weave Draft. Eight
+complete patches include a variation for each lesson. The original tone-study
+PNG and triangle motif SVG are bundled. Four actual SVG downloads, four real
+Focus screenshots, four complete G-code downloads and a real PNG picker/Save
+round trip are checked against current geometry. The G-code verification uses
+the illustrative default A Servo 330 × 240 mm profile with route optimization
+off and direction preserved. No machine or physical ink coverage was tested.
+
+Run `node tools/validate-designminis.mjs` for geometry and
+`node learn/designminis/validate.mjs --source` for the capture checks.
+`--record` is only for recording evidence AFTER actual browser captures.
+The shared build and Learn validator include all five new pages, for 89 total.
+The source JPG captures remain under verification; the published images are
+PNG format conversions without retouching.

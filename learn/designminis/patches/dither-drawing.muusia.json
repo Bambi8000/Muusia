@@ -1,0 +1,103 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "dither-drawing",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "lettering",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "text": "DITHER",
+          "font": "Bold",
+          "size": 65,
+          "weight": 30,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Outline",
+          "hatch": 1.2,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 1,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "image",
+        "x": 480,
+        "y": 40,
+        "params": {
+          "source": "Drawing (wired)",
+          "file": "",
+          "drawingWidth": 1.8,
+          "drawingFill": true,
+          "mode": "Vector dither",
+          "cell": 1.8,
+          "strength": 0.7,
+          "gamma": 1,
+          "cutoff": 0,
+          "invert": false,
+          "ditherScreen": "Dispersed 16×16",
+          "ditherMark": "Circle",
+          "ditherSize": 0.6,
+          "ditherThreshold": 0.5,
+          "ditherAngle": 0,
+          "ramsAngle": 0,
+          "ramsDepth": 14,
+          "ramsSmooth": 1.2,
+          "ramsMin": 1,
+          "ramsWhite": false,
+          "levels": 3,
+          "low": 0.25,
+          "high": 0.75,
+          "minlen": 5,
+          "dotfill": "Spiral fill",
+          "squarefill": "Hatch fill",
+          "squarelayout": "Staggered",
+          "direction": "Image contours",
+          "angle": 75,
+          "flow": 0.75,
+          "passes": 3,
+          "jitter": 0.25,
+          "pitch": 0.3,
+          "colours": 1,
+          "colourmap": "Source colours",
+          "pen2": 4,
+          "pen3": 6,
+          "pen4": 1,
+          "pen5": 5,
+          "pen6": 10,
+          "margin": 12,
+          "seed": 139,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "design-0",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 1
+      }
+    ],
+    "outputId": 9002
+  }
+}

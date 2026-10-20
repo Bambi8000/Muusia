@@ -536,9 +536,9 @@ export const NODE_RECENCY = {
     "sha256": "d081a38f269920ee1dc7414804183665cea14864680e8109a0bd43ae1386db2f"
   },
   "glyphtone": {
-    "date": "2026-07-30",
-    "order": 10,
-    "sha256": "bef19b96b79e0d592c74c17627f6676c3481f5ee8fecb8e2d40bebaa0b4aac11"
+    "date": "2026-10-20",
+    "order": 94,
+    "sha256": "deff38bb4bf29912136625b05753e1f145eeaa5ee4546d2823c713dc019dcaf9"
   },
   "granulate": {
     "date": "2026-07-22",
@@ -636,9 +636,9 @@ export const NODE_RECENCY = {
     "sha256": "a6a19ae16ae71e31a2e48c6615fed01ea26fc1eae5dfc9aa0159c3dc9f578dae"
   },
   "image": {
-    "date": "2026-10-07",
-    "order": 72,
-    "sha256": "3f10f98b6613ba4bda72ffa86e523b9b2ba67596141ca1590bbcec331aa3c4f4"
+    "date": "2026-10-20",
+    "order": 94,
+    "sha256": "05a3c42a6887d7674a4a226bea339a1200bd20dc7ecfa10d9749620e02ed3781"
   },
   "image_rasterise": {
     "date": "2026-08-16",
@@ -1246,9 +1246,9 @@ export const NODE_RECENCY = {
     "sha256": "f8d4376c517c93562890e5627154ecc78a63faf886574fee8a666c22049cd226"
   },
   "sdfcontours": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "5ceff5594207ac736aa7dd1f50d679d27f96b8b3363bbdbdebb9528ff0345e43"
+    "date": "2026-10-20",
+    "order": 94,
+    "sha256": "2ab3dbd04191347afa5209083a70ad3f4fa690e1abac0671b4a3fff21f0ece81"
   },
   "seamless_tile": {
     "date": "2026-10-19",
@@ -1634,6 +1634,11 @@ export const NODE_RECENCY = {
     "date": "2026-07-31",
     "order": 11,
     "sha256": "5cfa9fccc0aaf7911bed6e72e1ce301d0c873a60fc93eabb544086f86fa94e8c"
+  },
+  "weave_draft": {
+    "date": "2026-10-20",
+    "order": 94,
+    "sha256": "f9cb6ac7893e7e376012ec7be49ab78edebe67262b1abe3fd02fc1874c1c881e"
   },
   "whale": {
     "date": "2026-09-17",

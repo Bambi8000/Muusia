@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "2.133",
+  "date": "2026-10-20",
+  "baseCommit": "755a4585b5ade729736a2d441f77dae0ae9313aa",
+  "scope": "Actual local built-in Muusia app: four SVG downloads, four unretouched Focus captures, four full G-code downloads and real PNG picker/Save intake. Route optimization off, preserve direction on, illustrative A Servo 330×240 mm, no hardware run.",
+  "engineSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
+  "exporterSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "sources": {
+    "src/defs/nodes/sdfcontours.js": "2ab3dbd04191347afa5209083a70ad3f4fa690e1abac0671b4a3fff21f0ece81",
+    "src/defs/nodes/image.js": "05a3c42a6887d7674a4a226bea339a1200bd20dc7ecfa10d9749620e02ed3781",
+    "src/defs/nodes/glyphtone.js": "deff38bb4bf29912136625b05753e1f145eeaa5ee4546d2823c713dc019dcaf9",
+    "src/defs/nodes/weave_draft.js": "f9cb6ac7893e7e376012ec7be49ab78edebe67262b1abe3fd02fc1874c1c881e",
+    "src/defs/nodes/lettering.js": "f39c1aeea1085bfa86176a3c2c289cf1221452e282747c141dcf07f7c571925b",
+    "src/defs/nodes/hersheytext.js": "e2b669fb4405df3d56ee866c94f6c6fe35ceca2748f16f3f0a1302b94b62ec61",
+    "src/defs/nodes/svgimport.js": "f9e361eea3e784608ab0754f199ef0793447f3416a3dfac1fdfee3379f44a2a5",
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
+    "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684"
+  },
+  "files": [
+    {
+      "file": "assets/custom-motif-focus.png",
+      "sha256": "edf206783a4d1e91a90b86aaaed132a639fb9e9bea60c4288496e9a1130f5cf1"
+    },
+    {
+      "file": "assets/custom-motif.svg",
+      "sha256": "025463dec9c36f21996714cdb681b300aac71793b2d58676eea47016318fca8d"
+    },
+    {
+      "file": "assets/fluid-union-focus.png",
+      "sha256": "51fcf304fe0ebe97a7f8b23c705cda8f90b3b9200556d4011950af97735bd550"
+    },
+    {
+      "file": "assets/fluid-union.svg",
+      "sha256": "6f913fa18e683cda107c177e1935853ace9cff3d54f8965726fc9b7cb9530dce"
+    },
+    {
+      "file": "assets/tone-study.png",
+      "sha256": "8ecfaf82c6be9495fdbf1fced974b05f10dd9f65cd21b41a880691a8694cb399"
+    },
+    {
+      "file": "assets/triangle-motif.svg",
+      "sha256": "ae3c989ef64684e83295d12a8a57c7d2eda0b6da5ce93251575c1ce51ccf6efe"
+    },
+    {
+      "file": "assets/vector-dither-focus.png",
+      "sha256": "4e4067b51963ece79c41b7b6e7e87a8ea6bbaa664f8a8b57ec993a4b2085a600"
+    },
+    {
+      "file": "assets/vector-dither.svg",
+      "sha256": "6f174f53a822d7dd18df7cea22eacc47793980ee3f3f872daa88ee9e1dbf1740"
+    },
+    {
+      "file": "assets/weave-draft-focus.png",
+      "sha256": "eb3ee38e8f6bb9fa1c604c3f39d0035236bec6073c04028a682495c024132577"
+    },
+    {
+      "file": "assets/weave-draft.svg",
+      "sha256": "07b8a85cf743455728beecf4e577c6b109332a3cd298d17f9d9562c9a4f59c01"
+    },
+    {
+      "file": "patches/custom-motif.muusia.json",
+      "sha256": "203eeb119b7d3aa21baa21c8ad1213945ba516639b059345773917cc5d638300"
+    },
+    {
+      "file": "patches/dither-drawing.muusia.json",
+      "sha256": "ff75cd978a8b560c49475a79df1b83499bb39beae04e0ee10175d4975b423906"
+    },
+    {
+      "file": "patches/fluid-strokes.muusia.json",
+      "sha256": "6956b53cf24009b0686970e8533a266750db7080653fc74600825798e2d4c134"
+    },
+    {
+      "file": "patches/fluid-union.muusia.json",
+      "sha256": "9423c1831082ab950c699aff425ba060d3b87a60edc233bec63592c132310418"
+    },
+    {
+      "file": "patches/motif-occupancy.muusia.json",
+      "sha256": "ff554b9c2a7518ca39a586ce5e372ecd5b939cd935a5e02cf526807b15832141"
+    },
+    {
+      "file": "patches/vector-dither.muusia.json",
+      "sha256": "397fa01e7a8e8cae61d3d52b8ac452d36c18c3fa2663601d399f7e34f62c2bfb"
+    },
+    {
+      "file": "patches/weave-draft.muusia.json",
+      "sha256": "96aec891ccabe1ba945a874a595648241d9617f659a0abbd7c94e5f0a0a50ca8"
+    },
+    {
+      "file": "patches/weave-two-pen.muusia.json",
+      "sha256": "15e5fa90ff19a7efdaffc09330c66ed81c5bd58fd2137689d3b58418dfdfe758"
+    },
+    {
+      "file": "verification/custom-motif-focus.jpg",
+      "sha256": "61b04adc372f27297c639f77f260885698a08b48016d2a61be4e4ba8e3892cd7"
+    },
+    {
+      "file": "verification/custom-motif.gcode",
+      "sha256": "9de6c67692af4e5bb5df3cb6f49e4a6ac1e883f3780ec9ecb2a5c2403bef6e88"
+    },
+    {
+      "file": "verification/fluid-union-focus.jpg",
+      "sha256": "1e3de8938898b8833595ec368125ba1c6c13c96a02cecddf35b2e830284833a9"
+    },
+    {
+      "file": "verification/fluid-union.gcode",
+      "sha256": "1a2a286c0a88cb249501e6086bec7ea923452d06f957ac42e245d1d6150ce11f"
+    },
+    {
+      "file": "verification/image-intake.muusia.json",
+      "sha256": "a64679bd2867a7404690a4e4b598b572d4f35ad3031cdb3d59c3ec3f66a951bc"
+    },
+    {
+      "file": "verification/vector-dither-focus.jpg",
+      "sha256": "ee5a24db47826938fedcba1b7867683892443689c744e6ccd022101261a6bd8f"
+    },
+    {
+      "file": "verification/vector-dither.gcode",
+      "sha256": "139968989b862daabe20f8294e539e8cb23af2f7bb0505508ead10c330f00d28"
+    },
+    {
+      "file": "verification/weave-draft-focus.jpg",
+      "sha256": "962f71dfc00d70f490c072cef78b38722142f11f8ed2b664cde409d48f25ec7a"
+    },
+    {
+      "file": "verification/weave-draft.gcode",
+      "sha256": "66c4e320aa7280206ff0529f0b0ce06bbf69d7c00a32b143ad197695abf713ae"
+    }
+  ]
+}

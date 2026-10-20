@@ -1,0 +1,42 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "weave-two-pen",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "weave_draft",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "pattern": "2/2 Twill",
+          "draft": "10|01",
+          "warp": 48,
+          "weft": 32,
+          "pitch": 4.5,
+          "width": 45,
+          "tracks": 3,
+          "clearance": 0.5,
+          "colours": 2,
+          "pen1": 0,
+          "pen2": 1,
+          "pen3": 2,
+          "pen4": 6,
+          "warpColours": "1:8,2:4",
+          "weftColours": "2:8,1:4",
+          "warpRepeat": "Repeat",
+          "weftRepeat": "Point",
+          "sizing": "Fit to margin",
+          "margin": 15
+        }
+      }
+    ],
+    "edges": [],
+    "outputId": 9001
+  }
+}

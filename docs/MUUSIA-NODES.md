@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 332 built-in nodes in the current Muusia source. Conventions used below:
+All 339 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,7 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (212)
+## Generators (213)
 
 **SVG Batch Layout** — Place independent SVG documents on paginated sheets, preserving all paths and colour groups within each document. Source colour groups map to successive Muusia pens per file in encounter order; configure your palette accordingly. Load one SVG, a ZIP of SVGs (alphabetical path order), or a JSON array of {name,svg} entries. Imported geometry is frozen in the patch. Columns, Rows, Cell width / height, Gap and Margin define physical sheet slots. Fit cell scales each document uniformly to its slot; Original mm uses SVG width units and clips nothing, reporting overflow when a motif exceeds its slot or page. Labels and cut marks are optional pen strokes. Copies repeats each document before moving to the next. Page selects one sheet; Timeline advances through pages for SVG frame export. A page above 240k geometry points is empty with Overflow 1; reduce copies or slots. No file is silently dropped: intake rejects over 64 documents, 120k points or 12 MB unpacked data. SVG parser supports vector primitives, not embedded raster, CSS layout or text fonts: convert text to paths first. Tutorial: Weave, build and prepare.
 
@@ -980,7 +980,9 @@ around the blank spot, then glue the object back in. Chain into Wind Tunnel's
 Obstacle or Container. The sheet plane is perspective-corrected but object
 height adds a small safe-side parallax, so tall objects trace slightly large.
 
-**Image** — turn a local PNG/JPG or any wired path drawing into vector pen
+**Image** — *Vector dither* adds Bayer 4×4/8×8, a seeded dispersed 16×16 screen and Floyd–Steinberg error diffusion. Tone controls occupancy of fixed-size circles, short lines or outlined cells. Cell / spacing and Mark size are in paper millimetres. Dither threshold biases density; Gamma, Strength and White cutoff tune source tones. Ordered/dispersed patterns remain fixed when sources animate, while error diffusion can move marks between neighbours. Dense requests enlarge spacing across the complete image. Select the existing file or blue Drawing source. The original render modes are unchanged.
+
+Turn a local PNG/JPG or any wired path drawing into vector pen
 marks. Connect a blue output to *Drawing*. *Source* Auto prioritises a connected
 drawing and otherwise uses the file; Image (file) and Drawing (wired) force the
 source. An empty connected drawing stays empty. *Drawing stroke mm* controls
@@ -1895,13 +1897,7 @@ concentric collar rings and converging radials, the center opening cut through.
 *Surface* picks Solid (hide back) or Transparent. Adaptive refinement keeps
 funnel walls curved. Rot X/Y to spin — wire Frame for a rotating meteor.
 
-**Glyph Halftone** — a designer's halftone: each grid cell renders its darkness
-as a glyph — filled dot, donut ring, mini-dot cluster, stripe stack or stacked
-chevron (checkboxes). Source is a seeded noise field or an imported image
-(PNG/JPG, fitted to the margin box). *Type by Value* assigns glyphs by darkness
-band, *Random* picks freely; *Big cells* merges 2×2 giants for scale contrast;
-*Pens used* sprays glyphs across pens. Fill pitch is the concentric-fill spacing
-— match it to the pen width for solid blacks.
+**Glyph Halftone** — A designer's halftone: a grid where each cell renders its darkness as a glyph — a filled dot, a donut ring, a cluster of mini dots, a stack of stripes, or a stacked chevron. Source is either a seeded noise field (create from nothing) or an imported image (PNG/JPG, fitted to the margin box). Type by Value assigns glyphs by darkness band (clusters in light areas through to filled dots in dark ones, like classic poster halftones); Random picks freely per cell. Big cells merges some cells into 2×2 giants for scale contrast, Size jitter loosens the grid, Pens used sprays glyphs across several pens starting from the base pen. Select Motifs: Wired motif and connect any drawing to the second input to replace the built-in marks. Size maps darkness to motif area; Occupancy keeps fixed-size motifs and varies their count. Tone gradient aligns to tonal contours. Keep motif pens preserves every source pen, or Cell pen assigns the whole motif to one pen. Each cell is one explicit group. Complex motifs enlarge the cell spacing over the whole page; a motif above 108,000 points is refused rather than truncated. Fill pitch is the concentric-fill line spacing — match it to your pen width for solid blacks.
 
 **Pebble** — a rock two ways. *Spiral shells* fills a pebble outline with
 continuous spirals winding from the edge into 1–3 eye points — Edge packing
@@ -2077,6 +2073,8 @@ modulation (facets facing away from the Light go denser; normalized so Relief 0
 reproduces Flat line-for-line), then tilts the sheet (*Tilt*) and refits it to the
 margin box. Lines alternate direction per facet for efficient plotting; *Outline*
 draws facet borders, folded too in 3D.
+
+**Weave Draft** — Draw a textile from a repeatable over/under draft. Warp runs vertically, weft horizontally. Plain, 2/2 Twill, 2/2 Basket and 5-end Satin are built in; Custom rows uses 1 for warp over and 0 for weft over, with | between equal-length rows (up to 16×16). Warp and weft colour sequences use pen-slot:thread-count entries, for example 1:8,2:4,3:8. Pen slots refer to the selected Pen 1–4 controls, not machine pen numbers. Repeat repeats bands, Mirror doubles the end bands, Point turns back without repeating either end band. Underpass clearance removes the lower thread beneath the full crossing band. Parallel lines gives each thread physical width; dense requests reduce parallel lines uniformly, retaining all requested warp and weft threads. Fit to margin only shrinks an oversized cloth; Keep pitch clips it to the margin. Pitch used and Lines used report the actual drawing values. This is drawn textile structure, not loom instructions.
 
 **Loom** — a dense woven mesh: warp (row) and weft (column) threads on a
 regular grid; *Density* is the thread spacing in mm, auto-coarsened to the
@@ -2797,10 +2795,7 @@ anything.
 first K harmonics: K=1 is an ellipse, K=64 the original. Wire a value into
 Harmonics to morph detail in over an animation; optional epicycle ghost circles.
 
-**SDF Contours** (deform) — distance-field isolines around ALL input geometry:
-unlike per-path Offset, nearby shapes merge into one smooth halo, like
-metaballs. Inside adds negative offsets within closed shapes; open lines get
-stadium-shaped halos.
+**SDF Contours** — Distance-field isolines around ALL input geometry: unlike per-path Offset, nearby shapes merge into one smooth halo, like metaballs. Start/step/count set the contour distances; Inside adds negative offsets within closed shapes. Cell controls field resolution. Soft union rasterizes filled regions or thickened strokes, builds a signed-distance field, then Gaussian-blends that field before tracing. Blend radius softens and joins nearby forms independently of Contour offset, which may be zero or negative. Even-odd preserves counters and cancels overlapping fills; Union treats each closed outline as solid. Open paths use Stroke width in either interpretation. Source interiors remain present at offset zero; large blends can close small holes. Negative offset erodes the result. Resolution adapts across the whole sheet, never truncating the last contours. Keep source retains the original paths as well.
 
 **3D View** (deform) — Surface bend None preserves the original projection.
 Bend / Twist / Cylinder deform a resampled drawing before that camera. Bend axis

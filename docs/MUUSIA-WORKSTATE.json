@@ -1,6 +1,46 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+    {
+      "id": "designminis-first-four",
+      "owner": "Astra",
+      "role": "nodes, Learn and release integration",
+      "baseCommit": "755a4585b5ade729736a2d441f77dae0ae9313aa",
+      "branch": "codex/designminis-first-four",
+      "worktree": "/private/tmp/muusia-line-drape",
+      "files": [
+        "src/defs/nodes/sdfcontours.js",
+        "src/defs/nodes/image.js",
+        "src/defs/nodes/glyphtone.js",
+        "src/defs/nodes/weave_draft.js",
+        "nodes-lab/weave_draft.plotternode.js",
+        "src/defs/node-recency-data.js",
+        "src/defs/catalog.js",
+        "src/App.jsx (APP_VERSION only)",
+        "docs/MUUSIA-NODES.md",
+        "docs/MUUSIA-NODES-SRC.md",
+        "docs/MUUSIA-TAGS.json",
+        "docs/MUUSIA-HANDOFF.md",
+        "docs/MUUSIA-WORKSTATE.json",
+        "learn/designminis/**",
+        "learn/build.mjs",
+        "learn/validate.mjs",
+        "learn/README.md",
+        "learn/generated/manifest.json",
+        "learn/** affected capture provenance and actual recaptures only",
+        "tools/validate-designminis.mjs",
+        "learn/generate-assets.mjs (Image control visibility notes)",
+        "learn/examples/image.muusia.json (generated default controls, geometry unchanged)",
+        "src/App.jsx (preserve remote Needle changes; final version 2.134)",
+        "src/machine.js (remote integration only, captured provenance)",
+        "docs and generated files: reconcile new remote Needle release without changing its behaviour"
+      ],
+      "status": "in_progress",
+      "outcome": "Implement approved Fluid Union, Vector Dither, Custom Motif Raster and Weave Draft, with English tutorials and actual app exports, then publish after the shared gate.",
+      "validation": "Pre-integration gate passed; merge newly published Needle 2.133, recapture four exports on final 2.134 and rerun gate.",
+      "integrationBase": "d8f17394cb6d69f5efa3b71d21bb40481d0921ca"
+    }
+  ],
   "lastIntegration": {
     "version": "2.132",
     "date": "2026-10-20",

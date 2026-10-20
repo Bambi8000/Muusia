@@ -3,7 +3,7 @@ import { Pin, EMPTY, PENS, mulberry32, noise2, pathLength, applyStyle } from "..
 export default {
   key: "image",
     name: "Image", cat: "gen", group: "textimg", fileImage: true, imageMax: 640,
-    desc: "Turn a photo or a wired drawing into real pen paths. Connect any blue Paths output to Drawing; Auto uses the connected drawing, otherwise the loaded image. Source can force Image (file) or Drawing (wired). Drawing stroke mm sets the width used to interpret source lines, not the output pen width. Fill closed shapes uses even-odd interiors per source pen, preserving nested holes. Open lines stay strokes. Drawing keeps its canvas position and is clipped to Margin; source pen colours supply the image colours. Empty wired drawings stay empty. Dense drawings reduce raster detail across the whole sheet. Organic dots turns tone into varied circles, with Outline, Spiral fill or Concentric rings. Short strokes follows image contours, a flow field or a fixed angle; Shadow passes adds ink in darker areas. Cross stitches makes a woven interpretation. Square weave converts tone into the area of staggered squares, with Outline, Hatch fill or alternating Woven fill. Set Jitter to 0 for regular rows; Square layout also offers an aligned Grid. These four modes support 1–6 selected pens: Source colours chooses the closest ink from your Pens palette, Tone bands assigns light-to-dark ranges (Main pen is lightest). Colours change pen assignments without changing geometry. Spacing, Strength, Gamma and White cutoff tune the image; Jitter loosens the rows. Fill / pen pitch should match your pen width. Very dense settings thin marks across the whole image to stay within the point budget. New images load at up to 640 px; reload an older photo for more detail. Rams contour turns tone into long, ordered lines: tonal transitions bend and gather neighbouring lines. Cell / spacing sets the base line spacing; Contour depth sets the relief in millimetres and Strength scales it. Contour angle rotates the line direction, and Contour smoothing softens fine detail. This is a sculptural interpretation of tones, not a calibrated grayscale reproduction. White cutoff removes light areas unless Keep white background is enabled. Use a well-lit portrait with a plain light background; this is tone-based shaping, not face recognition or automatic background removal. A single selected pen draws every contour. Seed is not used by Rams contour. The five earlier render modes retain their original geometry and single-pen behavior. No image is uploaded to a server.",
+    desc: "Turn a photo or a wired drawing into real pen paths. Connect any blue Paths output to Drawing; Auto uses the connected drawing, otherwise the loaded image. Source can force Image (file) or Drawing (wired). Drawing stroke mm sets the width used to interpret source lines, not the output pen width. Fill closed shapes uses even-odd interiors per source pen, preserving nested holes. Open lines stay strokes. Drawing keeps its canvas position and is clipped to Margin; source pen colours supply the image colours. Empty wired drawings stay empty. Dense drawings reduce raster detail across the whole sheet. Organic dots turns tone into varied circles, with Outline, Spiral fill or Concentric rings. Short strokes follows image contours, a flow field or a fixed angle; Shadow passes adds ink in darker areas. Cross stitches makes a woven interpretation. Square weave converts tone into the area of staggered squares, with Outline, Hatch fill or alternating Woven fill. Set Jitter to 0 for regular rows; Square layout also offers an aligned Grid. These four modes support 1–6 selected pens: Source colours chooses the closest ink from your Pens palette, Tone bands assigns light-to-dark ranges (Main pen is lightest). Colours change pen assignments without changing geometry. Spacing, Strength, Gamma and White cutoff tune the image; Jitter loosens the rows. Fill / pen pitch should match your pen width. Very dense settings thin marks across the whole image to stay within the point budget. New images load at up to 640 px; reload an older photo for more detail. Rams contour turns tone into long, ordered lines: tonal transitions bend and gather neighbouring lines. Cell / spacing sets the base line spacing; Contour depth sets the relief in millimetres and Strength scales it. Contour angle rotates the line direction, and Contour smoothing softens fine detail. This is a sculptural interpretation of tones, not a calibrated grayscale reproduction. White cutoff removes light areas unless Keep white background is enabled. Use a well-lit portrait with a plain light background; this is tone-based shaping, not face recognition or automatic background removal. A single selected pen draws every contour. Seed is not used by Rams contour. The five earlier render modes retain their original geometry and single-pen behavior. Vector dither adds fixed-size vector marks using Bayer 4×4/8×8, a seeded dispersed 16×16 screen or Floyd–Steinberg error diffusion. Tone changes occupancy, not mark size. Cell / spacing and Mark size are physical millimetres; very dense requests enlarge the spacing over the complete image. Dispersed screens stay fixed when the source animates; error diffusion may change neighbours as tone changes. No image is uploaded to a server.",
     // Keep Style at port 0 so existing patches keep their connections.
     ins: [Pin("style", "Style"), Pin("paths", "Drawing")], outs: [Pin("paths")],
     params: [
@@ -11,12 +11,17 @@ export default {
       { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
       { key: "drawingWidth", label: "Drawing stroke mm", type: "slider", min: 0.2, max: 12, step: 0.1, def: 1.8, showIf: p => p.source !== "Image (file)" },
       { key: "drawingFill", label: "Fill closed shapes", type: "check", def: false, showIf: p => p.source !== "Image (file)" },
-      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)", "Organic dots", "Short strokes", "Cross stitches", "Square weave", "Rams contour"], def: "Scanline wave" },
+      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)", "Organic dots", "Short strokes", "Cross stitches", "Square weave", "Rams contour", "Vector dither"], def: "Scanline wave" },
       { key: "cell", label: "Cell / spacing mm", type: "slider", min: 0.8, max: 12, step: 0.1, def: 2.4 },
       { key: "strength", label: "Strength", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.8 },
       { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
       { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.06 },
       { key: "invert", label: "Invert", type: "check", def: false },
+      { key: "ditherScreen", label: "Dither screen", type: "select", options: ["Bayer 4×4", "Bayer 8×8", "Dispersed 16×16", "Floyd–Steinberg"], def: "Bayer 8×8", showIf: p => p.mode === "Vector dither" },
+      { key: "ditherMark", label: "Dither mark", type: "select", options: ["Circle", "Short line", "Outlined cell"], def: "Circle", showIf: p => p.mode === "Vector dither" },
+      { key: "ditherSize", label: "Mark size mm", type: "slider", min: 0.1, max: 8, step: 0.1, def: 0.7, showIf: p => p.mode === "Vector dither" },
+      { key: "ditherThreshold", label: "Dither threshold", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5, showIf: p => p.mode === "Vector dither" },
+      { key: "ditherAngle", label: "Mark angle °", type: "slider", min: -180, max: 180, step: 1, def: 0, showIf: p => p.mode === "Vector dither" && p.ditherMark === "Short line" },
       { key: "ramsAngle", label: "Contour angle °", type: "slider", min: -90, max: 90, step: 1, def: 0, showIf: p => p.mode === "Rams contour" },
       { key: "ramsDepth", label: "Contour depth mm", type: "slider", min: 0, max: 40, step: 0.5, def: 14, showIf: p => p.mode === "Rams contour" },
       { key: "ramsSmooth", label: "Contour smoothing mm", type: "slider", min: 0, max: 6, step: 0.1, def: 1.2, showIf: p => p.mode === "Rams contour" },
@@ -43,7 +48,7 @@ export default {
       { key: "pen5", label: "Pen 5", type: "pen", def: 5, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 5 },
       { key: "pen6", label: "Pen 6", type: "pen", def: 10, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 6 },
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
-      { key: "seed", label: "Seed", type: "seed", def: 139, showIf: p => p.mode !== "Rams contour" },
+      { key: "seed", label: "Seed", type: "seed", def: 139, showIf: p => p.mode !== "Rams contour" && (p.mode !== "Vector dither" || p.ditherScreen === "Dispersed 16×16") },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
     _artNumber(v, fallback, lo, hi) {
@@ -411,9 +416,64 @@ export default {
       }
       return applyStyle({paths},ins[0]);
     },
+    _ditherCompute(ins, p, ctx, img) {
+      const fit=this._artFit(p,ctx,img); if(!fit)return EMPTY;
+      const n=this._artNumber,{sample}=this._artSampler(img,fit);
+      const circle=p.ditherMark!=="Short line"&&p.ditherMark!=="Outlined cell";
+      const points=circle?12:p.ditherMark==="Short line"?2:4;
+      const cell=Math.max(n(p.cell,2.4,.2,1000),Math.sqrt(fit.w*fit.h*points/100000));
+      const cols=Math.floor(fit.w/cell),rows=Math.floor(fit.h/cell);if(!cols||!rows)return EMPTY;
+      const ox=fit.x+(fit.w-cols*cell)/2,oy=fit.y+(fit.h-rows*cell)/2;
+      const size=Math.min(cell*.9,n(p.ditherSize,.7,.05,100)),gamma=n(p.gamma,1,.1,8);
+      const strength=n(p.strength,.8,0,1),cutoff=n(p.cutoff,.06,0,1),bias=.5-n(p.ditherThreshold,.5,0,1);
+      const seed=Math.round(n(p.seed,139,-2147483648,2147483647)),layer=Math.round(n(p.layer,0,0,11));
+      const angle=n(p.ditherAngle,0,-36000,36000)*Math.PI/180;
+      const tone=(x,y)=>{const d=Math.pow(p.invert?1-sample(x,y):sample(x,y),gamma);return d<=cutoff?0:Math.max(0,Math.min(1,(d+bias)*strength));};
+      const screen=p.ditherScreen||'Bayer 8×8',N=screen==='Bayer 4×4'?4:screen==='Dispersed 16×16'?16:8;
+      let ranks;
+      if(screen==='Dispersed 16×16'){
+        // Toroidal farthest-point ranking. The explicit name describes the
+        // algorithm; it is not advertised as a calibrated blue-noise spectrum.
+        const rng=mulberry32(seed),dist=new Float64Array(N*N).fill(Infinity);
+        const used=new Uint8Array(N*N);ranks=new Uint16Array(N*N);let next=Math.floor(rng()*N*N);
+        for(let rank=0;rank<N*N;rank++){
+          used[next]=1;ranks[next]=rank;let best=-1,bestScore=-1;
+          for(let j=0;j<N*N;j++)if(!used[j]){
+            let dx=Math.abs(j%N-next%N),dy=Math.abs(Math.floor(j/N)-Math.floor(next/N));dx=Math.min(dx,N-dx);dy=Math.min(dy,N-dy);
+            dist[j]=Math.min(dist[j],dx*dx+dy*dy);const score=dist[j]+rng()*.001;
+            if(score>bestScore){bestScore=score;best=j;}
+          }next=best;
+        }
+      }else{
+        ranks=new Uint16Array(N*N);
+        for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+          let rank=0;for(let bit=1,weight=N*N/4;bit<N;bit*=2,weight/=4){const a=(x&bit)?1:0,b=(y&bit)?1:0;rank+=((a^b)*2+b)*weight;}ranks[y*N+x]=rank;
+        }
+      }
+      const diffuse=screen==='Floyd–Steinberg',paths=[];
+      let error=new Float64Array(cols+2),nextError=new Float64Array(cols+2);
+      for(let row=0;row<rows;row++){
+        const reverse=diffuse&&row%2===1,dir=reverse?-1:1;
+        for(let k=0;k<cols;k++){
+          const col=reverse?cols-1-k:k,x=ox+(col+.5)*cell,y=oy+(row+.5)*cell,d=tone(x,y);
+          const v=diffuse?Math.max(0,Math.min(1,d+error[col+1])):d;
+          const on=diffuse?v>=.5:v>(ranks[(row%N)*N+col%N]+.5)/(N*N);
+          if(diffuse){const e=v-(on?1:0);error[col+1+dir]+=e*7/16;nextError[col+1-dir]+=e*3/16;nextError[col+1]+=e*5/16;nextError[col+1+dir]+=e/16;}
+          if(!on)continue;
+          let pts,closed=false;
+          if(circle){pts=Array.from({length:12},(_,i)=>[x+Math.cos(i*Math.PI/6)*size/2,y+Math.sin(i*Math.PI/6)*size/2]);closed=true;}
+          else if(p.ditherMark==='Outlined cell'){pts=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>[x+a*size/2,y+b*size/2]);closed=true;}
+          else pts=[[-1],[1]].map(([a])=>[x+a*Math.cos(angle)*size/2,y+a*Math.sin(angle)*size/2]);
+          paths.push({pts,closed,layer});
+        }
+        if(diffuse){error=nextError;nextError=new Float64Array(cols+2);}
+      }
+      return applyStyle({paths},ins[0]);
+    },
     compute(ins, p, ctx, node) {
       const img = this._usesDrawing(p,ins) ? this._drawingImage(p,ctx,ins?.[1]) : node?.data?.img;
       if (!img) return EMPTY;
+      if (p.mode === "Vector dither") return this._ditherCompute(ins,p,ctx,img);
       if (p.mode === "Rams contour") return this._ramsCompute(ins, p, ctx, img);
       if (["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode)) return this._artCompute(ins, p, ctx, img);
       if (p.mode === "Contours (trace)") {

@@ -172,6 +172,11 @@ const comparisons = {
 const CATEGORY = { gen: 'Generators', mod: 'Modifiers', dec: 'Decorators', duo: 'Combiners', math: 'Math', route: 'Routing' };
 const GROUP = { geometric: 'Geometric', deform: 'Deform', textimg: 'Text & Image', space: 'Space', penout: 'Pen & Output', transform: 'Transform', fillstyle: 'Fill & Style' };
 const visibilityNotes = {
+  "image.ditherScreen": "Shown only when Render is Vector dither.",
+  "image.ditherMark": "Shown only when Render is Vector dither.",
+  "image.ditherSize": "Shown only when Render is Vector dither.",
+  "image.ditherThreshold": "Shown only when Render is Vector dither.",
+  "image.ditherAngle": "Shown for Vector dither when Dither mark is Short line.",
   'aaltoilu.phase': 'Shown for Along path; this legacy phase is in radians.',
   'aaltoilu.phaseDeg': 'Shown for Radial and Interference; this shared-field phase is in degrees.',
   'aaltoilu.angle': 'Shown for Radial and Interference; sets the common displacement direction.',
@@ -220,7 +225,7 @@ const visibilityNotes = {
   "image.ramsSmooth": "Shown only when Render is Rams contour.",
   "image.ramsMin": "Shown only when Render is Rams contour.",
   "image.ramsWhite": "Shown only when Render is Rams contour.",
-  "image.seed": "Hidden for Rams contour, which is determined entirely by the source tones and contour controls.",
+  "image.seed": "Hidden for Rams contour and deterministic Vector dither screens; shown for Dispersed 16×16 and the earlier seeded render modes.",
   "image.levels": "Shown only when Render is Contours (trace).",
   "image.low": "Shown only when Render is Contours (trace).",
   "image.high": "Shown only when Render is Contours (trace).",

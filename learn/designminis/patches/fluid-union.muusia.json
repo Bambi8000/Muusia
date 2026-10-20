@@ -1,0 +1,75 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "fluid-union",
+  "canvas": {
+    "W": 297,
+    "H": 210
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "lettering",
+        "x": 40,
+        "y": 40,
+        "params": {
+          "text": "SOFT|FORMS",
+          "font": "Bold",
+          "size": 45,
+          "weight": 24,
+          "nib": 35,
+          "slant": 0,
+          "fill": "Outline",
+          "hatch": 1.2,
+          "hangle": 45,
+          "depth": 0,
+          "dangle": 120,
+          "side": "Zigzag",
+          "sidegap": 1.8,
+          "rotate": 0,
+          "tracking": 0.6,
+          "lineh": 1.5,
+          "align": "Center",
+          "yoff": 0,
+          "margin": 12,
+          "layer": 0
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9002,
+        "type": "sdfcontours",
+        "x": 480,
+        "y": 40,
+        "params": {
+          "mode": "Soft union",
+          "blend": 5,
+          "softOffset": 0,
+          "interpretation": "Closed fills",
+          "fillRule": "Even-odd",
+          "softStroke": 3,
+          "softCell": 0.5,
+          "start": 3,
+          "step": 3,
+          "count": 1,
+          "inside": false,
+          "cell": 1.8,
+          "keep": false,
+          "minlen": 1,
+          "layer": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "design-0",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      }
+    ],
+    "outputId": 9002
+  }
+}

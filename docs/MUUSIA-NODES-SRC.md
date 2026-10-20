@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (336 files, generated)
+# MUUSIA v2.29 — Node Sources (337 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -18373,32 +18373,81 @@ export default {
   cat: "gen",
   group: "textimg",
   fileImage: true,
-  desc: "A designer's halftone: a grid where each cell renders its darkness as a glyph — a filled dot, a donut ring, a cluster of mini dots, a stack of stripes, or a stacked chevron. Source is either a seeded noise field (create from nothing) or an imported image (PNG/JPG, fitted to the margin box). Type by Value assigns glyphs by darkness band (clusters in light areas through to filled dots in dark ones, like classic poster halftones); Random picks freely per cell. Big cells merges some cells into 2×2 giants for scale contrast, Size jitter loosens the grid, Pens used sprays glyphs across several pens starting from the base pen. Fill pitch is the concentric-fill line spacing — match it to your pen width for solid blacks.",
-  ins: [Pin("style", "Style")],
+  desc: "A designer's halftone: a grid where each cell renders its darkness as a glyph — a filled dot, a donut ring, a cluster of mini dots, a stack of stripes, or a stacked chevron. Source is either a seeded noise field (create from nothing) or an imported image (PNG/JPG, fitted to the margin box). Type by Value assigns glyphs by darkness band (clusters in light areas through to filled dots in dark ones, like classic poster halftones); Random picks freely per cell. Big cells merges some cells into 2×2 giants for scale contrast, Size jitter loosens the grid, Pens used sprays glyphs across several pens starting from the base pen. Select Motifs: Wired motif and connect any drawing to the second input to replace the built-in marks. Size maps darkness to motif area; Occupancy keeps fixed-size motifs and varies their count. Tone gradient aligns to tonal contours. Keep motif pens preserves every source pen, or Cell pen assigns the whole motif to one pen. Each cell is one explicit group. Complex motifs enlarge the cell spacing over the whole page; a motif above 108,000 points is refused rather than truncated. Fill pitch is the concentric-fill line spacing — match it to your pen width for solid blacks.",
+  ins: [Pin("style", "Style"), Pin("paths", "Motif")],
   outs: [Pin("paths")],
   params: [
+    { key: "motifMode", label: "Motifs", type: "select", options: ["Built-in glyphs", "Wired motif"], def: "Built-in glyphs" },
+    { key: "motifTone", label: "Tone changes", type: "select", options: ["Size", "Occupancy"], def: "Size", showIf: p => p.motifMode === "Wired motif" },
+    { key: "motifOrientation", label: "Motif orientation", type: "select", options: ["Fixed", "Tone gradient"], def: "Fixed", showIf: p => p.motifMode === "Wired motif" },
+    { key: "motifAngle", label: "Motif angle °", type: "slider", min: -180, max: 180, step: 1, def: 0, showIf: p => p.motifMode === "Wired motif" },
+    { key: "motifPens", label: "Motif pens", type: "select", options: ["Cell pen", "Keep motif pens"], def: "Cell pen", showIf: p => p.motifMode === "Wired motif" },
     { key: "source", label: "Source", type: "select", options: ["Noise", "Image"], def: "Noise" },
-    { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
+    { key: "file", label: "Image (PNG/JPG)", type: "file", def: "", showIf: p => p.source === "Image" },
     { key: "cell", label: "Cell mm", type: "slider", min: 3, max: 20, step: 0.5, def: 6 },
-    { key: "gDot", label: "Dots", type: "check", def: true },
-    { key: "gRing", label: "Rings", type: "check", def: true },
-    { key: "gClu", label: "Clusters", type: "check", def: true },
-    { key: "gStr", label: "Stripes", type: "check", def: true },
-    { key: "gChe", label: "Chevrons", type: "check", def: false },
-    { key: "typeby", label: "Type by", type: "select", options: ["Value", "Random"], def: "Value" },
-    { key: "big", label: "Big cells", type: "slider", min: 0, max: 1, step: 0.01, def: 0.25 },
+    { key: "gDot", label: "Dots", type: "check", def: true, showIf: p => p.motifMode !== "Wired motif" },
+    { key: "gRing", label: "Rings", type: "check", def: true, showIf: p => p.motifMode !== "Wired motif" },
+    { key: "gClu", label: "Clusters", type: "check", def: true, showIf: p => p.motifMode !== "Wired motif" },
+    { key: "gStr", label: "Stripes", type: "check", def: true, showIf: p => p.motifMode !== "Wired motif" },
+    { key: "gChe", label: "Chevrons", type: "check", def: false, showIf: p => p.motifMode !== "Wired motif" },
+    { key: "typeby", label: "Type by", type: "select", options: ["Value", "Random"], def: "Value", showIf: p => p.motifMode !== "Wired motif" },
+    { key: "big", label: "Big cells", type: "slider", min: 0, max: 1, step: 0.01, def: 0.25, showIf: p => p.motifMode !== "Wired motif" },
     { key: "jitter", label: "Size jitter", type: "slider", min: 0, max: 1, step: 0.01, def: 0.3 },
     { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.6, step: 0.01, def: 0.08 },
     { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
     { key: "invert", label: "Invert", type: "check", def: false },
     { key: "nscale", label: "Field scale", type: "slider", min: 0.003, max: 0.05, step: 0.001, def: 0.012 },
-    { key: "pitch", label: "Fill pitch mm", type: "slider", min: 0.3, max: 2, step: 0.05, def: 0.6 },
-    { key: "pens", label: "Pens used", type: "slider", min: 1, max: 12, step: 1, def: 1 },
+    { key: "pitch", label: "Fill pitch mm", type: "slider", min: 0.3, max: 2, step: 0.05, def: 0.6, showIf: p => p.motifMode !== "Wired motif" },
+    { key: "pens", label: "Pens used", type: "slider", min: 1, max: 12, step: 1, def: 1, showIf: p => p.motifMode !== "Wired motif" || p.motifPens !== "Keep motif pens" },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
-    { key: "seed", label: "Seed", type: "seed", def: 29 },
-    { key: "layer", label: "Pen", type: "pen", def: 0 },
+    { key: "seed", label: "Seed", type: "seed", def: 29, showIf: p => p.motifMode !== "Wired motif" || p.source === "Noise" || p.jitter > 0 || p.motifTone === "Occupancy" || p.motifPens !== "Keep motif pens" },
+    { key: "layer", label: "Pen", type: "pen", def: 0, showIf: p => p.motifMode !== "Wired motif" || p.motifPens !== "Keep motif pens" },
   ],
+  _motifCompute(ins,p,ctx,node) {
+    const number=(v,d,lo,hi)=>Math.max(lo,Math.min(hi,Number.isFinite(+v)?+v:d));
+    const W=number(ctx.W,297,1,100000),H=number(ctx.H,210,1,100000),margin=number(p.margin,12,0,Math.min(W,H)/2);
+    const w=W-2*margin,h=H-2*margin;if(w<=0||h<=0)return EMPTY;
+    const source=ins?.[1]?.paths||[],motif=source.filter(q=>Array.isArray(q?.pts)&&q.pts.length>=2&&q.pts.every(a=>Array.isArray(a)&&Number.isFinite(a[0])&&Number.isFinite(a[1])));
+    if(!motif.length)return EMPTY;
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    for(const q of motif)for(const [x,y]of q.pts){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+    const cx=(x0+x1)/2,cy=(y0+y1)/2;let radius=0;
+    for(const q of motif)for(const [x,y]of q.pts)radius=Math.max(radius,Math.hypot(x-cx,y-cy));
+    if(!(radius>1e-9&&Number.isFinite(radius)))return EMPTY;
+    const cost=motif.reduce((s,q)=>s+q.pts.length,0),stamps=Math.floor(108000/cost);if(!stamps)return EMPTY;
+    const cell=Math.max(number(p.cell,6,2,1000),Math.sqrt(w*h/stamps));
+    const cols=Math.floor(w/cell),rows=Math.floor(h/cell);if(!cols||!rows)return EMPTY;
+    const ox=margin+(w-cols*cell)/2,oy=margin+(h-rows*cell)/2;
+    const seed=Math.round(number(p.seed,29,-2147483648,2147483647)),gamma=number(p.gamma,1,.1,8),cutoff=number(p.cutoff,.08,0,1),jitter=number(p.jitter,.3,0,1);
+    const img=node?.data?.img,usesImage=p.source==='Image';
+    if(usesImage&&(!img||!Number.isInteger(img.w)||!Number.isInteger(img.h)||img.w<1||img.h<1||img.w*img.h>2560000||img.g?.length!==img.w*img.h))return EMPTY;
+    const scale=usesImage?Math.min(w/img.w,h/img.h):1,ix=usesImage?(W-img.w*scale)/2:0,iy=usesImage?(H-img.h*scale)/2:0;
+    const dark=(x,y)=>{
+      let v=0;
+      if(usesImage){
+        const u=(x-ix)/scale-.5,t=(y-iy)/scale-.5;if(u<-.5||t<-.5||u>img.w-.5||t>img.h-.5)return 0;
+        const a=Math.floor(u),b=Math.floor(t),fx=u-a,fy=t-b;
+        const at=(c,r)=>number(img.g[Math.max(0,Math.min(img.h-1,r))*img.w+Math.max(0,Math.min(img.w-1,c))],0,0,1);
+        v=at(a,b)*(1-fx)*(1-fy)+at(a+1,b)*fx*(1-fy)+at(a,b+1)*(1-fx)*fy+at(a+1,b+1)*fx*fy;
+      }else{let amp=1,tot=0,fq=1;const ns=number(p.nscale,.012,.00001,1);for(let o=0;o<3;o++){v+=amp*noise2(x*ns*fq,y*ns*fq,seed+o*7);tot+=amp;amp*=.5;fq*=2;}v/=tot;}
+      return Math.pow(p.invert?1-v:v,gamma);
+    };
+    const pens=Math.round(number(p.pens,1,1,12)),base=Math.round(number(p.layer,0,0,11)),paths=[];
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      const x=ox+(c+.5)*cell,y=oy+(r+.5)*cell,d=dark(x,y);if(d<=cutoff)continue;
+      const h1=hash2(c*7+1,r*13+5,seed*3+11);
+      if(p.motifTone==='Occupancy'&&h1>=d)continue;
+      const magnify=(p.motifTone==='Occupancy'?1:Math.sqrt(d))*(1-jitter*hash2(c+19,r+3,seed));
+      let angle=number(p.motifAngle,0,-36000,36000)*Math.PI/180;
+      if(p.motifOrientation==='Tone gradient'){const e=cell*.5,gx=dark(x+e,y)-dark(x-e,y),gy=dark(x,y+e)-dark(x,y-e);if(Math.hypot(gx,gy)>1e-7)angle+=Math.atan2(gy,gx)+Math.PI/2;}
+      const co=Math.cos(angle),si=Math.sin(angle),sc=cell*.45/radius*magnify,pen=(base+Math.min(pens-1,Math.floor(hash2(c+37,r+23,seed+17)*pens)))%12;
+      for(const q of motif)paths.push({...q,group:'motif:'+r+':'+c,closed:!!q.closed,layer:p.motifPens==='Keep motif pens'?Math.round(number(q.layer,0,0,11)):pen,pts:q.pts.map(a=>{const u=(a[0]-cx)*sc,v=(a[1]-cy)*sc;return [x+u*co-v*si,y+u*si+v*co,...a.slice(2)];})});
+    }
+    return applyStyle({paths},ins[0]);
+  },
+  overlay(p,ctx) {if(p.motifMode!=="Wired motif")return [];const m=Math.max(0,Math.min(+p.margin||0,Math.min(ctx.W,ctx.H)/2));return [{kind:"rect",x:m,y:m,w:ctx.W-2*m,h:ctx.H-2*m}];},
   compute(ins, p, ctx, node) {
+    if(p.motifMode === "Wired motif")return this._motifCompute(ins,p,ctx,node);
     const { W, H } = ctx;
     const seed = Math.round(p.seed) || 1;
     const cell = Math.max(2, p.cell);
@@ -21193,7 +21242,7 @@ import { Pin, EMPTY, PENS, mulberry32, noise2, pathLength, applyStyle } from "..
 export default {
   key: "image",
     name: "Image", cat: "gen", group: "textimg", fileImage: true, imageMax: 640,
-    desc: "Turn a photo or a wired drawing into real pen paths. Connect any blue Paths output to Drawing; Auto uses the connected drawing, otherwise the loaded image. Source can force Image (file) or Drawing (wired). Drawing stroke mm sets the width used to interpret source lines, not the output pen width. Fill closed shapes uses even-odd interiors per source pen, preserving nested holes. Open lines stay strokes. Drawing keeps its canvas position and is clipped to Margin; source pen colours supply the image colours. Empty wired drawings stay empty. Dense drawings reduce raster detail across the whole sheet. Organic dots turns tone into varied circles, with Outline, Spiral fill or Concentric rings. Short strokes follows image contours, a flow field or a fixed angle; Shadow passes adds ink in darker areas. Cross stitches makes a woven interpretation. Square weave converts tone into the area of staggered squares, with Outline, Hatch fill or alternating Woven fill. Set Jitter to 0 for regular rows; Square layout also offers an aligned Grid. These four modes support 1–6 selected pens: Source colours chooses the closest ink from your Pens palette, Tone bands assigns light-to-dark ranges (Main pen is lightest). Colours change pen assignments without changing geometry. Spacing, Strength, Gamma and White cutoff tune the image; Jitter loosens the rows. Fill / pen pitch should match your pen width. Very dense settings thin marks across the whole image to stay within the point budget. New images load at up to 640 px; reload an older photo for more detail. Rams contour turns tone into long, ordered lines: tonal transitions bend and gather neighbouring lines. Cell / spacing sets the base line spacing; Contour depth sets the relief in millimetres and Strength scales it. Contour angle rotates the line direction, and Contour smoothing softens fine detail. This is a sculptural interpretation of tones, not a calibrated grayscale reproduction. White cutoff removes light areas unless Keep white background is enabled. Use a well-lit portrait with a plain light background; this is tone-based shaping, not face recognition or automatic background removal. A single selected pen draws every contour. Seed is not used by Rams contour. The five earlier render modes retain their original geometry and single-pen behavior. No image is uploaded to a server.",
+    desc: "Turn a photo or a wired drawing into real pen paths. Connect any blue Paths output to Drawing; Auto uses the connected drawing, otherwise the loaded image. Source can force Image (file) or Drawing (wired). Drawing stroke mm sets the width used to interpret source lines, not the output pen width. Fill closed shapes uses even-odd interiors per source pen, preserving nested holes. Open lines stay strokes. Drawing keeps its canvas position and is clipped to Margin; source pen colours supply the image colours. Empty wired drawings stay empty. Dense drawings reduce raster detail across the whole sheet. Organic dots turns tone into varied circles, with Outline, Spiral fill or Concentric rings. Short strokes follows image contours, a flow field or a fixed angle; Shadow passes adds ink in darker areas. Cross stitches makes a woven interpretation. Square weave converts tone into the area of staggered squares, with Outline, Hatch fill or alternating Woven fill. Set Jitter to 0 for regular rows; Square layout also offers an aligned Grid. These four modes support 1–6 selected pens: Source colours chooses the closest ink from your Pens palette, Tone bands assigns light-to-dark ranges (Main pen is lightest). Colours change pen assignments without changing geometry. Spacing, Strength, Gamma and White cutoff tune the image; Jitter loosens the rows. Fill / pen pitch should match your pen width. Very dense settings thin marks across the whole image to stay within the point budget. New images load at up to 640 px; reload an older photo for more detail. Rams contour turns tone into long, ordered lines: tonal transitions bend and gather neighbouring lines. Cell / spacing sets the base line spacing; Contour depth sets the relief in millimetres and Strength scales it. Contour angle rotates the line direction, and Contour smoothing softens fine detail. This is a sculptural interpretation of tones, not a calibrated grayscale reproduction. White cutoff removes light areas unless Keep white background is enabled. Use a well-lit portrait with a plain light background; this is tone-based shaping, not face recognition or automatic background removal. A single selected pen draws every contour. Seed is not used by Rams contour. The five earlier render modes retain their original geometry and single-pen behavior. Vector dither adds fixed-size vector marks using Bayer 4×4/8×8, a seeded dispersed 16×16 screen or Floyd–Steinberg error diffusion. Tone changes occupancy, not mark size. Cell / spacing and Mark size are physical millimetres; very dense requests enlarge the spacing over the complete image. Dispersed screens stay fixed when the source animates; error diffusion may change neighbours as tone changes. No image is uploaded to a server.",
     // Keep Style at port 0 so existing patches keep their connections.
     ins: [Pin("style", "Style"), Pin("paths", "Drawing")], outs: [Pin("paths")],
     params: [
@@ -21201,12 +21250,17 @@ export default {
       { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
       { key: "drawingWidth", label: "Drawing stroke mm", type: "slider", min: 0.2, max: 12, step: 0.1, def: 1.8, showIf: p => p.source !== "Image (file)" },
       { key: "drawingFill", label: "Fill closed shapes", type: "check", def: false, showIf: p => p.source !== "Image (file)" },
-      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)", "Organic dots", "Short strokes", "Cross stitches", "Square weave", "Rams contour"], def: "Scanline wave" },
+      { key: "mode", label: "Render", type: "select", options: ["Scanline wave", "Halftone dots", "Hatch levels", "Flow shade", "Contours (trace)", "Organic dots", "Short strokes", "Cross stitches", "Square weave", "Rams contour", "Vector dither"], def: "Scanline wave" },
       { key: "cell", label: "Cell / spacing mm", type: "slider", min: 0.8, max: 12, step: 0.1, def: 2.4 },
       { key: "strength", label: "Strength", type: "slider", min: 0.1, max: 1, step: 0.05, def: 0.8 },
       { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
       { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.5, step: 0.01, def: 0.06 },
       { key: "invert", label: "Invert", type: "check", def: false },
+      { key: "ditherScreen", label: "Dither screen", type: "select", options: ["Bayer 4×4", "Bayer 8×8", "Dispersed 16×16", "Floyd–Steinberg"], def: "Bayer 8×8", showIf: p => p.mode === "Vector dither" },
+      { key: "ditherMark", label: "Dither mark", type: "select", options: ["Circle", "Short line", "Outlined cell"], def: "Circle", showIf: p => p.mode === "Vector dither" },
+      { key: "ditherSize", label: "Mark size mm", type: "slider", min: 0.1, max: 8, step: 0.1, def: 0.7, showIf: p => p.mode === "Vector dither" },
+      { key: "ditherThreshold", label: "Dither threshold", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5, showIf: p => p.mode === "Vector dither" },
+      { key: "ditherAngle", label: "Mark angle °", type: "slider", min: -180, max: 180, step: 1, def: 0, showIf: p => p.mode === "Vector dither" && p.ditherMark === "Short line" },
       { key: "ramsAngle", label: "Contour angle °", type: "slider", min: -90, max: 90, step: 1, def: 0, showIf: p => p.mode === "Rams contour" },
       { key: "ramsDepth", label: "Contour depth mm", type: "slider", min: 0, max: 40, step: 0.5, def: 14, showIf: p => p.mode === "Rams contour" },
       { key: "ramsSmooth", label: "Contour smoothing mm", type: "slider", min: 0, max: 6, step: 0.1, def: 1.2, showIf: p => p.mode === "Rams contour" },
@@ -21233,7 +21287,7 @@ export default {
       { key: "pen5", label: "Pen 5", type: "pen", def: 5, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 5 },
       { key: "pen6", label: "Pen 6", type: "pen", def: 10, showIf: p => ["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode) && p.colours >= 6 },
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
-      { key: "seed", label: "Seed", type: "seed", def: 139, showIf: p => p.mode !== "Rams contour" },
+      { key: "seed", label: "Seed", type: "seed", def: 139, showIf: p => p.mode !== "Rams contour" && (p.mode !== "Vector dither" || p.ditherScreen === "Dispersed 16×16") },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
     _artNumber(v, fallback, lo, hi) {
@@ -21601,9 +21655,64 @@ export default {
       }
       return applyStyle({paths},ins[0]);
     },
+    _ditherCompute(ins, p, ctx, img) {
+      const fit=this._artFit(p,ctx,img); if(!fit)return EMPTY;
+      const n=this._artNumber,{sample}=this._artSampler(img,fit);
+      const circle=p.ditherMark!=="Short line"&&p.ditherMark!=="Outlined cell";
+      const points=circle?12:p.ditherMark==="Short line"?2:4;
+      const cell=Math.max(n(p.cell,2.4,.2,1000),Math.sqrt(fit.w*fit.h*points/100000));
+      const cols=Math.floor(fit.w/cell),rows=Math.floor(fit.h/cell);if(!cols||!rows)return EMPTY;
+      const ox=fit.x+(fit.w-cols*cell)/2,oy=fit.y+(fit.h-rows*cell)/2;
+      const size=Math.min(cell*.9,n(p.ditherSize,.7,.05,100)),gamma=n(p.gamma,1,.1,8);
+      const strength=n(p.strength,.8,0,1),cutoff=n(p.cutoff,.06,0,1),bias=.5-n(p.ditherThreshold,.5,0,1);
+      const seed=Math.round(n(p.seed,139,-2147483648,2147483647)),layer=Math.round(n(p.layer,0,0,11));
+      const angle=n(p.ditherAngle,0,-36000,36000)*Math.PI/180;
+      const tone=(x,y)=>{const d=Math.pow(p.invert?1-sample(x,y):sample(x,y),gamma);return d<=cutoff?0:Math.max(0,Math.min(1,(d+bias)*strength));};
+      const screen=p.ditherScreen||'Bayer 8×8',N=screen==='Bayer 4×4'?4:screen==='Dispersed 16×16'?16:8;
+      let ranks;
+      if(screen==='Dispersed 16×16'){
+        // Toroidal farthest-point ranking. The explicit name describes the
+        // algorithm; it is not advertised as a calibrated blue-noise spectrum.
+        const rng=mulberry32(seed),dist=new Float64Array(N*N).fill(Infinity);
+        const used=new Uint8Array(N*N);ranks=new Uint16Array(N*N);let next=Math.floor(rng()*N*N);
+        for(let rank=0;rank<N*N;rank++){
+          used[next]=1;ranks[next]=rank;let best=-1,bestScore=-1;
+          for(let j=0;j<N*N;j++)if(!used[j]){
+            let dx=Math.abs(j%N-next%N),dy=Math.abs(Math.floor(j/N)-Math.floor(next/N));dx=Math.min(dx,N-dx);dy=Math.min(dy,N-dy);
+            dist[j]=Math.min(dist[j],dx*dx+dy*dy);const score=dist[j]+rng()*.001;
+            if(score>bestScore){bestScore=score;best=j;}
+          }next=best;
+        }
+      }else{
+        ranks=new Uint16Array(N*N);
+        for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+          let rank=0;for(let bit=1,weight=N*N/4;bit<N;bit*=2,weight/=4){const a=(x&bit)?1:0,b=(y&bit)?1:0;rank+=((a^b)*2+b)*weight;}ranks[y*N+x]=rank;
+        }
+      }
+      const diffuse=screen==='Floyd–Steinberg',paths=[];
+      let error=new Float64Array(cols+2),nextError=new Float64Array(cols+2);
+      for(let row=0;row<rows;row++){
+        const reverse=diffuse&&row%2===1,dir=reverse?-1:1;
+        for(let k=0;k<cols;k++){
+          const col=reverse?cols-1-k:k,x=ox+(col+.5)*cell,y=oy+(row+.5)*cell,d=tone(x,y);
+          const v=diffuse?Math.max(0,Math.min(1,d+error[col+1])):d;
+          const on=diffuse?v>=.5:v>(ranks[(row%N)*N+col%N]+.5)/(N*N);
+          if(diffuse){const e=v-(on?1:0);error[col+1+dir]+=e*7/16;nextError[col+1-dir]+=e*3/16;nextError[col+1]+=e*5/16;nextError[col+1+dir]+=e/16;}
+          if(!on)continue;
+          let pts,closed=false;
+          if(circle){pts=Array.from({length:12},(_,i)=>[x+Math.cos(i*Math.PI/6)*size/2,y+Math.sin(i*Math.PI/6)*size/2]);closed=true;}
+          else if(p.ditherMark==='Outlined cell'){pts=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>[x+a*size/2,y+b*size/2]);closed=true;}
+          else pts=[[-1],[1]].map(([a])=>[x+a*Math.cos(angle)*size/2,y+a*Math.sin(angle)*size/2]);
+          paths.push({pts,closed,layer});
+        }
+        if(diffuse){error=nextError;nextError=new Float64Array(cols+2);}
+      }
+      return applyStyle({paths},ins[0]);
+    },
     compute(ins, p, ctx, node) {
       const img = this._usesDrawing(p,ins) ? this._drawingImage(p,ctx,ins?.[1]) : node?.data?.img;
       if (!img) return EMPTY;
+      if (p.mode === "Vector dither") return this._ditherCompute(ins,p,ctx,img);
       if (p.mode === "Rams contour") return this._ramsCompute(ins, p, ctx, img);
       if (["Organic dots", "Short strokes", "Cross stitches", "Square weave"].includes(p.mode)) return this._artCompute(ins, p, ctx, img);
       if (p.mode === "Contours (trace)") {
@@ -43925,20 +44034,139 @@ export default {
     name: "SDF Contours",
     cat: "mod",
     group: "deform",
-    desc: "Distance-field isolines around ALL input geometry: unlike per-path Offset, nearby shapes merge into one smooth halo, like metaballs. Start/step/count set the contour distances; Inside adds negative offsets within closed shapes. Cell controls field resolution.",
+    desc: "Distance-field isolines around ALL input geometry: unlike per-path Offset, nearby shapes merge into one smooth halo, like metaballs. Start/step/count set the contour distances; Inside adds negative offsets within closed shapes. Cell controls field resolution. Soft union rasterizes filled regions or thickened strokes, builds a signed-distance field, then Gaussian-blends that field before tracing. Blend radius softens and joins nearby forms independently of Contour offset, which may be zero or negative. Even-odd preserves counters and cancels overlapping fills; Union treats each closed outline as solid. Open paths use Stroke width in either interpretation. Source interiors remain present at offset zero; large blends can close small holes. Negative offset erodes the result. Resolution adapts across the whole sheet, never truncating the last contours. Keep source retains the original paths as well.",
     ins: [Pin("paths", "Source")],
     outs: [Pin("paths")],
     params: [
-      { key: "start", label: "First contour mm", type: "slider", min: 0.5, max: 20, step: 0.5, def: 3 },
-      { key: "step", label: "Contour step mm", type: "slider", min: 0.5, max: 15, step: 0.5, def: 3 },
+      { key: "mode", label: "Field mode", type: "select", options: ["Distance contours", "Soft union"], def: "Distance contours" },
+      { key: "blend", label: "Blend radius mm", type: "slider", min: 0, max: 20, step: .5, def: 4, showIf: p => p.mode === "Soft union" },
+      { key: "softOffset", label: "Contour offset mm", type: "slider", min: -20, max: 20, step: .5, def: 0, showIf: p => p.mode === "Soft union" },
+      { key: "interpretation", label: "Interpretation", type: "select", options: ["Closed fills", "Stroked paths"], def: "Closed fills", showIf: p => p.mode === "Soft union" },
+      { key: "fillRule", label: "Fill rule", type: "select", options: ["Even-odd", "Union"], def: "Even-odd", showIf: p => p.mode === "Soft union" && p.interpretation !== "Stroked paths" },
+      { key: "softStroke", label: "Stroke width mm", type: "slider", min: .2, max: 12, step: .1, def: 1, showIf: p => p.mode === "Soft union" },
+      { key: "softCell", label: "Soft field cell mm", type: "slider", min: .2, max: 2, step: .1, def: .6, showIf: p => p.mode === "Soft union" },
+      { key: "start", label: "First contour mm", type: "slider", min: 0.5, max: 20, step: 0.5, def: 3, showIf: p => p.mode !== "Soft union" },
+      { key: "step", label: "Contour step mm", type: "slider", min: 0.5, max: 15, step: 0.5, def: 3, showIf: p => p.mode !== "Soft union" || p.count > 1 },
       { key: "count", label: "Contours", type: "slider", min: 1, max: 8, step: 1, def: 3 },
-      { key: "inside", label: "Inside contours too", type: "check", def: false },
-      { key: "cell", label: "Field cell mm", type: "slider", min: 1, max: 4, step: 0.25, def: 1.8 },
+      { key: "inside", label: "Inside contours too", type: "check", def: false, showIf: p => p.mode !== "Soft union" || p.softOffset > 0 || p.count > 1 && p.softOffset + p.step * (p.count - 1) > 0 },
+      { key: "cell", label: "Field cell mm", type: "slider", min: 1, max: 4, step: 0.25, def: 1.8, showIf: p => p.mode !== "Soft union" },
       { key: "keep", label: "Keep source", type: "check", def: true },
       { key: "minlen", label: "Min contour mm", type: "slider", min: 0, max: 30, step: 1, def: 5 },
       { key: "layer", label: "Contour pen", type: "pen", def: 0 }
     ],
+    _softNumber(v,d,lo,hi) { return Math.max(lo,Math.min(hi,Number.isFinite(+v)?+v:d)); },
+    _softDistance(mask,w,h,target) {
+      // Exact squared Euclidean distance transform, separable lower envelopes.
+      const large=1e12,field=new Float64Array(w*h),max=Math.max(w,h);
+      const f=new Float64Array(max),d=new Float64Array(max),v=new Int32Array(max),z=new Float64Array(max+1);
+      const line=n=>{let k=0;v[0]=0;z[0]=-Infinity;z[1]=Infinity;
+        for(let q=1;q<n;q++){let s;do{s=((f[q]+q*q)-(f[v[k]]+v[k]*v[k]))/(2*(q-v[k]));if(s<=z[k])k--;else break;}while(k>=0);if(k<0){k=0;v[0]=q;z[0]=-Infinity;z[1]=Infinity;}else{k++;v[k]=q;z[k]=s;z[k+1]=Infinity;}}
+        k=0;for(let q=0;q<n;q++){while(z[k+1]<q)k++;d[q]=(q-v[k])**2+f[v[k]];}
+      };
+      for(let x=0;x<w;x++){for(let y=0;y<h;y++)f[y]=mask[y*w+x]===target?0:large;line(h);for(let y=0;y<h;y++)field[y*w+x]=d[y];}
+      for(let y=0;y<h;y++){for(let x=0;x<w;x++)f[x]=field[y*w+x];line(w);for(let x=0;x<w;x++)field[y*w+x]=d[x];}
+      return field;
+    },
+    _softTrace(field,nx,ny,cell,origin,levels,minLength,layer) {
+      const paths=[];
+      for(const level of levels){
+        const nodes=new Map(),edges=[];
+        const add=(a,b)=>{edges.push([a,b]);};
+        for(let r=0;r<ny-1;r++)for(let c=0;c<nx-1;c++){
+          const tl=field[r*nx+c],tr=field[r*nx+c+1],br=field[(r+1)*nx+c+1],bl=field[(r+1)*nx+c];
+          const idx=(tl>level?8:0)|(tr>level?4:0)|(br>level?2:0)|(bl>level?1:0);if(idx===0||idx===15)continue;
+          const edge=(side)=>{
+            const horizontal=side==='T'||side==='B',rr=r+(side==='B'?1:0),cc=c+(side==='R'?1:0);
+            const key=(horizontal?'h':'v')+(rr*nx+cc);
+            if(!nodes.has(key)){
+              const a=horizontal?(side==='T'?tl:bl):(side==='L'?tl:tr),b=horizontal?(side==='T'?tr:br):(side==='L'?bl:br);
+              const t=Math.abs(b-a)>1e-12?Math.max(0,Math.min(1,(level-a)/(b-a))):.5;
+              nodes.set(key,{pt:[origin+(cc+(horizontal?t:0))*cell,origin+(rr+(horizontal?0:t))*cell],links:[]});
+            }return key;
+          };
+          const join=(a,b)=>add(edge(a),edge(b));
+          switch(idx){
+            case 1:case 14:join('L','B');break;case 2:case 13:join('B','R');break;
+            case 3:case 12:join('L','R');break;case 4:case 11:join('T','R');break;
+            case 6:case 9:join('T','B');break;case 7:case 8:join('L','T');break;
+            case 5:case 10:{const centre=(tl+tr+br+bl)/4;const a=idx===5?centre>level:centre<=level;
+              if(a){join('L','T');join('B','R');}else{join('L','B');join('T','R');}break;}
+          }
+        }
+        edges.forEach(([a,b],i)=>{nodes.get(a).links.push(i);nodes.get(b).links.push(i);});
+        const used=new Uint8Array(edges.length);
+        const walk=start=>{let current=start;const chain=[nodes.get(start).pt];let closed=false;
+          while(true){const i=nodes.get(current).links.find(i=>!used[i]);if(i===undefined)break;used[i]=1;const [a,b]=edges[i];current=current===a?b:a;if(current===start){closed=true;break;}chain.push(nodes.get(current).pt);}
+          // Drop only collinear samples; small rounded corners remain intact.
+          const simple=[];for(const pt of chain){while(simple.length>=2){const a=simple.at(-2),b=simple.at(-1),cross=(b[0]-a[0])*(pt[1]-b[1])-(b[1]-a[1])*(pt[0]-b[0]);if(Math.abs(cross)>cell*cell*.001)break;simple.pop();}simple.push(pt);}
+          if(simple.length>=(closed?3:2)&&pathLength(simple,closed)>=minLength)paths.push({pts:simple,closed,layer});
+        };
+        for(const [key,node]of nodes)if(node.links.length===1&&!used[node.links[0]])walk(key);
+        for(const [key,node]of nodes)if(node.links.some(i=>!used[i]))walk(key);
+      }return paths;
+    },
+    _softCompute(ins,p,ctx,coarsen=1) {
+      const src=ins?.[0]||EMPTY,n=this._softNumber,W=n(ctx.W,297,1,100000),H=n(ctx.H,210,1,100000);
+      const blend=n(p.blend,4,0,60),offset=n(p.softOffset,0,-60,60),step=n(p.step,3,.1,30),count=Math.round(n(p.count,3,1,8));
+      const padding=Math.abs(offset)+step*(count-1)+blend*3+5;
+      const segments=[],polys=[];let totalLength=0;
+      for(const path of src.paths||[]){const pts=path?.pts;if(!Array.isArray(pts)||pts.length<2||!pts.every(q=>Array.isArray(q)&&Number.isFinite(q[0])&&Number.isFinite(q[1])))continue;
+        if(p.interpretation!=='Stroked paths'&&path.closed&&pts.length>=3)polys.push(pts);
+        if(p.interpretation==='Stroked paths'||!path.closed){for(let i=0;i<pts.length-(path.closed?0:1);i++){const a=pts[i],b=pts[(i+1)%pts.length];segments.push([a,b]);totalLength+=Math.min(W+H,Math.hypot(b[0]-a[0],b[1]-a[1]));}}
+      }
+      if(!segments.length&&!polys.length)return EMPTY;
+      const stroke=n(p.softStroke,1,.1,30);
+      const cell=Math.max(n(p.softCell,.6,.15,4),blend/50,Math.sqrt((W+padding*2)*(H+padding*2)/200000),Math.sqrt(totalLength*stroke/6000000))*coarsen;
+      const nx=Math.ceil((W+2*padding)/cell)+1,ny=Math.ceil((H+2*padding)/cell)+1,origin=-padding,mask=new Uint8Array(nx*ny);
+      const px=x=>(x-origin)/cell,py=y=>(y-origin)/cell;
+      if(polys.length){
+        if(p.fillRule==='Union'){
+          for(const pts of polys){const scan=new Map();for(let k=0;k<pts.length;k++){const a=pts[k],b=pts[(k+1)%pts.length];if(a[1]===b[1])continue;
+              const lo=Math.max(0,Math.ceil(py(Math.min(a[1],b[1])))),hi=Math.min(ny-1,Math.ceil(py(Math.max(a[1],b[1])))-1);
+              for(let r=lo;r<=hi;r++){if(!scan.has(r))scan.set(r,[]);scan.get(r).push(px(a[0]+(b[0]-a[0])*(origin+r*cell-a[1])/(b[1]-a[1])));}}
+            for(const [r,xs]of scan){xs.sort((a,b)=>a-b);for(let k=0;k+1<xs.length;k+=2)for(let c=Math.max(0,Math.ceil(xs[k]));c<=Math.min(nx-1,Math.floor(xs[k+1]));c++)mask[r*nx+c]=1;}
+          }
+        }else{
+          const scan=Array.from({length:ny},()=>[]);
+          for(const pts of polys)for(let k=0;k<pts.length;k++){const a=pts[k],b=pts[(k+1)%pts.length];if(a[1]===b[1])continue;
+            const lo=Math.max(0,Math.ceil(py(Math.min(a[1],b[1])))),hi=Math.min(ny-1,Math.ceil(py(Math.max(a[1],b[1])))-1);
+            for(let r=lo;r<=hi;r++)scan[r].push(px(a[0]+(b[0]-a[0])*(origin+r*cell-a[1])/(b[1]-a[1])));}
+          for(let r=0;r<ny;r++){const xs=scan[r].sort((a,b)=>a-b);for(let k=0;k+1<xs.length;k+=2)for(let c=Math.max(0,Math.ceil(xs[k]));c<=Math.min(nx-1,Math.floor(xs[k+1]));c++)mask[r*nx+c]=1;}
+        }
+      }
+      const radius=stroke/(2*cell),reach=Math.max(radius,.51);
+      for(const [a,b]of segments){
+        const ax=px(a[0]),ay=py(a[1]),bx=px(b[0]),by=py(b[1]),dx=bx-ax,dy=by-ay,len2=dx*dx+dy*dy;
+        const lo=Math.max(0,Math.ceil(Math.min(ay,by)-reach)),hi=Math.min(ny-1,Math.floor(Math.max(ay,by)+reach));
+        for(let r=lo;r<=hi;r++){let t0=0,t1=1;if(Math.abs(dy)>1e-12){const u=(r-reach-ay)/dy,v=(r+reach-ay)/dy;t0=Math.max(0,Math.min(u,v));t1=Math.min(1,Math.max(u,v));if(t0>t1)continue;}
+          const left=Math.max(0,Math.ceil(Math.min(ax+dx*t0,ax+dx*t1)-reach)),right=Math.min(nx-1,Math.floor(Math.max(ax+dx*t0,ax+dx*t1)+reach));
+          for(let c=left;c<=right;c++){const t=len2>1e-18?Math.max(0,Math.min(1,((c-ax)*dx+(r-ay)*dy)/len2)):0;if(Math.hypot(c-ax-dx*t,r-ay-dy*t)<=reach)mask[r*nx+c]=1;}
+        }
+      }
+      if(!mask.some(v=>v))return EMPTY;
+      const toInk=this._softDistance(mask,nx,ny,1),toPaper=this._softDistance(mask,nx,ny,0);let field=new Float64Array(mask.length);
+      for(let i=0;i<field.length;i++)field[i]=(mask[i]?-1:1)*Math.max(0,Math.sqrt(mask[i]?toPaper[i]:toInk[i])-.5)*cell;
+      const originalField=field.slice(),sigma=blend/(2*cell);
+      if(sigma>.08){const R=Math.ceil(3*sigma),kernel=[];let sum=0;for(let i=-R;i<=R;i++){const w=Math.exp(-i*i/(2*sigma*sigma));kernel.push(w);sum+=w;}
+        for(const horizontal of [true,false]){const out=new Float64Array(field.length);
+          for(let r=0;r<ny;r++)for(let c=0;c<nx;c++){let value=0;for(let i=-R;i<=R;i++){const x=horizontal?Math.max(0,Math.min(nx-1,c+i)):c,y=horizontal?r:Math.max(0,Math.min(ny-1,r+i));value+=field[y*nx+x]*kernel[i+R];}out[r*nx+c]=value/sum;}field=out;}
+      }
+      // Preserve the source interior: smoothing can bridge a concave gap,
+      // but must not erase a narrow original stroke. Negative offset erodes.
+      for(let i=0;i<field.length;i++)field[i]=Math.min(field[i],originalField[i]);
+      const levels=[];for(let i=0;i<count;i++){const d=offset+i*step;levels.push(d);if(p.inside&&d>0)levels.push(-d);}
+      let paths=this._softTrace(field,nx,ny,cell,origin,[...new Set(levels)],n(p.minlen,5,0,1000),Math.round(n(p.layer,0,0,11)));
+      const cost=paths.reduce((s,q)=>s+q.pts.length,0);if(cost>108000&&coarsen<8)return this._softCompute(ins,p,ctx,coarsen*Math.max(1.4,Math.sqrt(cost/100000)));
+      // Clip contour segments, not coordinates: a contour crossing the sheet
+      // boundary stays open instead of acquiring a fictitious border edge.
+      const clipped=[];
+      const clip=(a,b)=>{let lo=0,hi=1;const dx=b[0]-a[0],dy=b[1]-a[1];for(const [v,q]of [[-dx,a[0]],[dx,W-a[0]],[-dy,a[1]],[dy,H-a[1]]]){if(Math.abs(v)<1e-12){if(q<0)return null;}else{const t=q/v;if(v<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);if(lo>hi)return null;}}return [[a[0]+lo*dx,a[1]+lo*dy],[a[0]+hi*dx,a[1]+hi*dy]];};
+      for(const path of paths){if(path.pts.every(([x,y])=>x>=0&&x<=W&&y>=0&&y<=H)){clipped.push(path);continue;}let run=[];const flush=()=>{if(run.length>1)clipped.push({...path,pts:run,closed:false});run=[];};for(let i=0;i<path.pts.length-(path.closed?0:1);i++){const s=clip(path.pts[i],path.pts[(i+1)%path.pts.length]);if(!s){flush();continue;}if(run.length&&Math.hypot(run.at(-1)[0]-s[0][0],run.at(-1)[1]-s[0][1])>1e-7)flush();if(!run.length)run.push(s[0]);run.push(s[1]);}flush();}
+      if(p.keep)clipped.unshift(...src.paths.map(q=>({...q,pts:q.pts.map(a=>a.slice())})));
+      return {paths:clipped};
+    },
     compute(ins, p, ctx) {
+      if(p.mode === "Soft union")return this._softCompute(ins,p,ctx);
       const src = ins[0] || EMPTY;
       if (!src.paths.length) return EMPTY;
       const { W, H } = ctx;
@@ -57759,6 +57987,85 @@ export default {
     }
     return applyStyle({ paths }, ins[0]);
   },
+};
+```
+
+## weave_draft.js
+
+```js
+import { Pin, EMPTY, applyStyle } from "../helpers.js";
+
+export default {
+  key: "weave_draft", name: "Weave Draft", cat: "gen", group: "geometric",
+  desc: "Draw a textile from a repeatable over/under draft. Warp runs vertically, weft horizontally. Plain, 2/2 Twill, 2/2 Basket and 5-end Satin are built in; Custom rows uses 1 for warp over and 0 for weft over, with | between equal-length rows (up to 16×16). Warp and weft colour sequences use pen-slot:thread-count entries, for example 1:8,2:4,3:8. Pen slots refer to the selected Pen 1–4 controls, not machine pen numbers. Repeat repeats bands, Mirror doubles the end bands, Point turns back without repeating either end band. Underpass clearance removes the lower thread beneath the full crossing band. Parallel lines gives each thread physical width; dense requests reduce parallel lines uniformly, retaining all requested warp and weft threads. Fit to margin only shrinks an oversized cloth; Keep pitch clips it to the margin. Pitch used and Lines used report the actual drawing values. This is drawn textile structure, not loom instructions.",
+  ins: [Pin("style", "Style")],
+  outs: [Pin("paths", "Drawing"), Pin("value", "Pitch used mm"), Pin("value", "Lines used")],
+  params: [
+    {key:"pattern",label:"Weave",type:"select",options:["Plain","2/2 Twill","2/2 Basket","5-end Satin","Custom"],def:"2/2 Twill"},
+    {key:"draft",label:"Draft rows (1 = warp over)",type:"text",def:"10|01",showIf:p=>p.pattern==="Custom"},
+    {key:"warp",label:"Warp threads",type:"slider",min:4,max:160,step:1,def:60},
+    {key:"weft",label:"Weft threads",type:"slider",min:4,max:160,step:1,def:40},
+    {key:"pitch",label:"Thread pitch mm",type:"slider",min:1,max:12,step:.25,def:4},
+    {key:"width",label:"Thread width %",type:"slider",min:5,max:85,step:1,def:45},
+    {key:"tracks",label:"Parallel lines",type:"slider",min:1,max:7,step:1,def:3},
+    {key:"clearance",label:"Underpass clearance mm",type:"slider",min:.1,max:4,step:.1,def:.5},
+    {key:"colours",label:"Pen slots",type:"slider",min:2,max:4,step:1,def:2},
+    {key:"pen1",label:"Pen 1",type:"pen",def:0},
+    {key:"pen2",label:"Pen 2",type:"pen",def:1},
+    {key:"pen3",label:"Pen 3",type:"pen",def:7,showIf:p=>p.colours>=3},
+    {key:"pen4",label:"Pen 4",type:"pen",def:10,showIf:p=>p.colours>=4},
+    {key:"warpColours",label:"Warp colours (slot:count)",type:"text",def:"1:8,2:4"},
+    {key:"weftColours",label:"Weft colours (slot:count)",type:"text",def:"2:8,1:4"},
+    {key:"warpRepeat",label:"Warp repeat",type:"select",options:["Repeat","Mirror","Point"],def:"Repeat"},
+    {key:"weftRepeat",label:"Weft repeat",type:"select",options:["Repeat","Mirror","Point"],def:"Point"},
+    {key:"sizing",label:"Oversize cloth",type:"select",options:["Fit to margin","Keep pitch (crop)"],def:"Fit to margin"},
+    {key:"margin",label:"Margin mm",type:"slider",min:0,max:60,step:1,def:15}
+  ],
+  _number(v,d,lo,hi){return Math.max(lo,Math.min(hi,Number.isFinite(+v)?+v:d));},
+  _layout(p,c){const n=this._number,W=n(c.W,297,1,100000),H=n(c.H,210,1,100000),m=n(p.margin,15,0,Math.min(W,H)/2),cols=Math.round(n(p.warp,60,1,160)),rows=Math.round(n(p.weft,40,1,160));
+    let pitch=n(p.pitch,4,.2,1000);if(p.sizing!=='Keep pitch (crop)')pitch=Math.min(pitch,(W-2*m)/cols,(H-2*m)/rows);
+    const tracks=Math.min(Math.round(n(p.tracks,3,1,7)),Math.max(1,Math.floor(100000/(4*cols*rows+4*cols+4*rows))));
+    return {W,H,m,cols,rows,pitch,tracks,x:(W-cols*pitch)/2,y:(H-rows*pitch)/2,w:cols*pitch,h:rows*pitch};
+  },
+  _sequence(text,repeat,colours){
+    const words=String(text??'').trim().split(/[,\s]+/).filter(Boolean);if(!words.length||words.length>32)return null;
+    const bands=[];for(const word of words){const m=/^([1-4])(?::(\d{1,3}))?$/.exec(word);if(!m||+m[1]>colours||+(m[2]||1)<1||+(m[2]||1)>128)return null;bands.push([+m[1]-1,+(m[2]||1)]);}
+    const turn=repeat==='Mirror'?bands.slice().reverse():repeat==='Point'?bands.slice(1,-1).reverse():[];
+    return [...bands,...turn].flatMap(([pen,count])=>Array(count).fill(pen));
+  },
+  _draft(p){
+    if(p.pattern==='Custom'){
+      const rows=String(p.draft??'').replace(/\s/g,'').split('|');if(!rows.length||rows.length>16||!rows[0].length||rows[0].length>16||rows.some(r=>r.length!==rows[0].length||!/^[01]+$/.test(r)))return null;
+      return rows.map(r=>[...r].map(Number));
+    }
+    const size=p.pattern==='Plain'?2:p.pattern==='5-end Satin'?5:4;
+    return Array.from({length:size},(_,r)=>Array.from({length:size},(_,c)=>p.pattern==='Plain'?(r+c)%2===0?1:0:p.pattern==='5-end Satin'?(c-2*r+size*2)%size===0?1:0:p.pattern==='2/2 Basket'?(Math.floor(r/2)+Math.floor(c/2))%2===0?1:0:(c-r+size)%size<2?1:0));
+  },
+  overlay(p,c){const g=this._layout(p,c);return g.W-2*g.m>0&&g.H-2*g.m>0?[{kind:"rect",x:Math.max(g.m,g.x),y:Math.max(g.m,g.y),w:Math.min(g.W-g.m,g.x+g.w)-Math.max(g.m,g.x),h:Math.min(g.H-g.m,g.y+g.h)-Math.max(g.m,g.y)}]:[];},
+  compute(ins,p,c){
+    const g=this._layout(p,c),n=this._number,empty=[EMPTY,0,0];if(!(g.pitch>0&&g.W-2*g.m>0&&g.H-2*g.m>0))return empty;
+    const colours=Math.round(n(p.colours,2,2,4)),warp=this._sequence(p.warpColours??'1:8,2:4',p.warpRepeat,colours),weft=this._sequence(p.weftColours??'2:8,1:4',p.weftRepeat,colours),draft=this._draft(p);
+    if(!warp||!weft||!draft)return empty;
+    const pens=[p.pen1,p.pen2,p.pen3,p.pen4].map((v,i)=>Math.round(n(v,[0,1,7,10][i],0,11))),width=g.pitch*n(p.width,45,0,95)/100,cut=width/2+n(p.clearance,.5,0,1000),paths=[];
+    const over=(col,row)=>draft[row%draft.length][col%draft[0].length]===1;
+    for(const vertical of [true,false]){
+      const count=vertical?g.cols:g.rows,crossings=vertical?g.rows:g.cols,along0=vertical?g.y:g.x,along1=along0+(vertical?g.h:g.w),across0=vertical?g.x:g.y,sequence=vertical?warp:weft;
+      for(let thread=0;thread<count;thread++)for(let track=0;track<g.tracks;track++){
+        const across=across0+(thread+.5)*g.pitch+(g.tracks===1?0:(track/(g.tracks-1)-.5)*width);
+        const min=vertical?g.m:g.m,max=vertical?g.W-g.m:g.H-g.m;if(across<min||across>max)continue;
+        const layer=pens[sequence[thread%sequence.length]],group=(vertical?'warp:':'weft:')+thread;
+        const emit=(a,b)=>{a=Math.max(a,g.m);b=Math.min(b,vertical?g.H-g.m:g.W-g.m);if(b-a<=1e-8)return;paths.push({pts:vertical?[[across,a],[across,b]]:[[a,across],[b,across]],closed:false,layer,group});};
+        let cursor=along0;
+        for(let j=0;j<crossings;j++){
+          const above=vertical?over(thread,j):!over(j,thread);if(above)continue;
+          const centre=along0+(j+.5)*g.pitch,a=Math.max(along0,centre-cut),b=Math.min(along1,centre+cut);
+          if(a>cursor)emit(cursor,a);cursor=Math.max(cursor,b);
+        }
+        if(cursor<along1)emit(cursor,along1);
+      }
+    }
+    return [applyStyle({paths},ins?.[0]),g.pitch,g.tracks];
+  }
 };
 ```
 

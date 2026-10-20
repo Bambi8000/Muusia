@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **330 files** (332 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **337 files** (339 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 209, Modifiers 83). ESM format:
+  Generators 213, Modifiers 86). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -263,6 +263,58 @@ according to the session's actual capabilities:
   per path on PEN_n layers, nearest-ACI colors, y-up flip, plunge z dropped).
 
 ## Version history (condensed)
+
+
+### 2.133 — 2026-10-20 · Design Minis studies: soft union, vector dither, custom motifs and woven drafts
+
+Daniel authorized items 1–4 and publication. Based on published
+`755a4585b5ade729736a2d441f77dae0ae9313aa`, implemented in the clean
+`/private/tmp/muusia-line-drape` worktree on `codex/designminis-first-four`.
+337 node modules / 339 registry entries; 89 English Learn pages.
+
+- SDF Contours gains opt-in **Soft union**: filled or stroked interpretation,
+  Even-odd/Union fill rule, Gaussian-blended signed distances and independent
+  zero/negative contour offset. Source interiors stay present at offset zero;
+  blend can close small holes. Exact Euclidean distance transform, shared edge
+  tracing and whole-field adaptive resolution; no duplicate offset levels.
+  The original Distance contours mode remains byte-identical.
+- Image gains **Vector dither** for file or wired Drawing intake: Bayer 4×4/8×8,
+  seeded farthest-point Dispersed 16×16 and serpentine Floyd–Steinberg. Tone
+  changes occupancy of fixed-size circle/line/square marks. Millimetre spacing,
+  threshold and angle controls; fixed ordered screens do not reseed in motion.
+  Dense settings enlarge spacing over the full image. All ten earlier Image
+  render modes retain published geometry.
+- Glyph Halftone appends a **Motif** input without moving Style. Select Wired
+  motif for whole-drawing repetition with Size/Occupancy, Fixed/Tone gradient
+  orientation and Cell pen/Keep motif pens. Compound motifs share a cell group.
+  Complexity coarsens the grid globally; a single motif above 108k points is
+  refused intact. Original built-in glyph mode is unchanged.
+- **Weave Draft** was imported/tested in the app as a lab node, baked, and the
+  verified lab copy removed. Plain, 2/2 Twill, 2/2 Basket, 5-end Satin or custom
+  rectangular binary rows; independent warp/weft colour-count bands and
+  Repeat/Mirror/Point, 2–4 selected pens and actual underpass clipping. Fit or
+  preserve-pitch crop; numeric Pitch used/Lines used outputs. Dense requests
+  reduce parallel lines uniformly, keeping all thread counts.
+- `learn/designminis/`: four English six-step tutorials, eight editable patches,
+  four actual SVGs and unretouched Focus captures, original PNG/motif sources.
+  Four complete actual G-codes and PNG intake/Save evidence stay source-only.
+  Home, Tutorials and sidebar link to the collection. All four app views were
+  visually inspected. Existing Learn reference captures remain unchanged.
+
+Validation: 106 geometry cases with published-source equality, independent
+Euclidean-distance and weave-crossing oracles, counter preservation, dither
+coverage, complete motif grouping and dense-sheet bounds. Image art 2,339
+checks, Drawing intake 107, Rams contour 256; parameter visibility 288,120
+predicate cases / 11,992 hidden-value comparisons; typography→3D 75 cases.
+Actual SVG bytes and all G-code coordinates match current evaluator output;
+all rapids occur pen-up and each file finishes pen-up. Shared catalog, build
+and Learn gate passed (37,361 checks / 89 pages). No physical plotting.
+
+Release integration owns commit/push and exact-commit Pages verification.
+Primary checkout stays on old local main `6a3500a` with unrelated Needle Punch,
+App and hardware work untouched; reconcile that draft with this release before
+integration. Refresh the local Claude project-file snapshot after commit; no
+Claude web upload is claimed by this task.
 
 
 ### 2.132 — 2026-10-20 · PlotterFiles tools, modes and nineteen English tutorials

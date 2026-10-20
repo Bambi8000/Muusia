@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "2.132",
-  "sourceCommit": "ac8f5358a6683a1a74b970032c51dab7307f764e",
+  "version": "2.133",
+  "sourceCommit": "755a4585b5ade729736a2d441f77dae0ae9313aa",
   "canvas": {
     "W": 297,
     "H": 210
@@ -66,7 +66,7 @@
     "inputs": [
       {
         "path": "learn/generate-assets.mjs",
-        "sha256": "e7307fbf24e03a5a5f33f06c3ef5179fa8337577937331d7fa802408bb21234d"
+        "sha256": "863566c2b5fe0d7c9ce97effb84695d70a272594d671217243f6781dd392120e"
       },
       {
         "path": "learn/lib/fixtures.mjs",
@@ -122,7 +122,7 @@
       },
       {
         "path": "src/defs/nodes/image.js",
-        "sha256": "3f10f98b6613ba4bda72ffa86e523b9b2ba67596141ca1590bbcec331aa3c4f4"
+        "sha256": "05a3c42a6887d7674a4a226bea339a1200bd20dc7ecfa10d9749620e02ed3781"
       },
       {
         "path": "src/defs/nodes/polystudio.js",
@@ -500,7 +500,7 @@
       },
       {
         "path": "examples/image.muusia.json",
-        "sha256": "c4ccaedaeb99702fa8127ec2ab985e867d962c6958733b2de9cfe9f6056ee804"
+        "sha256": "8889bb81cd69a546704d1fddc2ccde741bd6a981c6ffbc162a6899bb17ecfa37"
       },
       {
         "path": "examples/polystudio.muusia.json",
@@ -2506,7 +2506,8 @@
             "Short strokes",
             "Cross stitches",
             "Square weave",
-            "Rams contour"
+            "Rams contour",
+            "Vector dither"
           ],
           "def": "Scanline wave",
           "default": "Scanline wave",
@@ -2569,6 +2570,76 @@
           "default": false,
           "conditional": false,
           "visibleByDefault": true
+        },
+        {
+          "key": "ditherScreen",
+          "label": "Dither screen",
+          "type": "select",
+          "options": [
+            "Bayer 4×4",
+            "Bayer 8×8",
+            "Dispersed 16×16",
+            "Floyd–Steinberg"
+          ],
+          "def": "Bayer 8×8",
+          "default": "Bayer 8×8",
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Vector dither.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "ditherMark",
+          "label": "Dither mark",
+          "type": "select",
+          "options": [
+            "Circle",
+            "Short line",
+            "Outlined cell"
+          ],
+          "def": "Circle",
+          "default": "Circle",
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Vector dither.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "ditherSize",
+          "label": "Mark size mm",
+          "type": "slider",
+          "min": 0.1,
+          "max": 8,
+          "step": 0.1,
+          "def": 0.7,
+          "default": 0.7,
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Vector dither.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "ditherThreshold",
+          "label": "Dither threshold",
+          "type": "slider",
+          "min": 0,
+          "max": 1,
+          "step": 0.01,
+          "def": 0.5,
+          "default": 0.5,
+          "conditional": true,
+          "visibilityNote": "Shown only when Render is Vector dither.",
+          "visibleByDefault": false
+        },
+        {
+          "key": "ditherAngle",
+          "label": "Mark angle °",
+          "type": "slider",
+          "min": -180,
+          "max": 180,
+          "step": 1,
+          "def": 0,
+          "default": 0,
+          "conditional": true,
+          "visibilityNote": "Shown for Vector dither when Dither mark is Short line.",
+          "visibleByDefault": false
         },
         {
           "key": "ramsAngle",
@@ -2904,7 +2975,7 @@
           "def": 139,
           "default": 139,
           "conditional": true,
-          "visibilityNote": "Hidden for Rams contour, which is determined entirely by the source tones and contour controls.",
+          "visibilityNote": "Hidden for Rams contour and deterministic Vector dither screens; shown for Dispersed 16×16 and the earlier seeded render modes.",
           "visibleByDefault": true
         },
         {
@@ -2985,6 +3056,11 @@
               "gamma": 1,
               "cutoff": 0.06,
               "invert": false,
+              "ditherScreen": "Bayer 8×8",
+              "ditherMark": "Circle",
+              "ditherSize": 0.7,
+              "ditherThreshold": 0.5,
+              "ditherAngle": 0,
               "ramsAngle": 0,
               "ramsDepth": 14,
               "ramsSmooth": 1.2,
@@ -3030,6 +3106,11 @@
         "gamma": 1,
         "cutoff": 0.06,
         "invert": false,
+        "ditherScreen": "Bayer 8×8",
+        "ditherMark": "Circle",
+        "ditherSize": 0.7,
+        "ditherThreshold": 0.5,
+        "ditherAngle": 0,
         "ramsAngle": 0,
         "ramsDepth": 14,
         "ramsSmooth": 1.2,

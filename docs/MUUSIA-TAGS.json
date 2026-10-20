@@ -597,7 +597,8 @@
   "image",
   "pens",
   "scatter",
-  "text"
+  "text",
+  "motif"
  ],
  "granulate": [
   "deform",
@@ -717,7 +718,10 @@
   "hatch",
   "image",
   "portrait",
-  "terrain"
+  "terrain",
+  "dither",
+  "bayer",
+  "raster"
  ],
  "image_rasterise": [
   "dots",
@@ -1407,7 +1411,10 @@
  "sdfcontours": [
   "deform",
   "region",
-  "terrain"
+  "terrain",
+  "soft union",
+  "typography",
+  "contours"
  ],
  "seams": [
   "pathops"
@@ -2039,5 +2046,12 @@
   "layout",
   "production",
   "svg"
+ ],
+ "weave_draft": [
+  "weave",
+  "textile",
+  "grid",
+  "multicolor",
+  "pattern"
  ]
 }
