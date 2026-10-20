@@ -1,6 +1,6 @@
 # Muusia Learn
 
-An English companion guide to Muusia: seven foundation tutorials, twelve Craft tutorials, ten Shapes tutorials, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
+An English companion guide to Muusia: seven foundation tutorials, twelve Craft tutorials, ten Shapes tutorials, nineteen PlotterFiles-inspired tutorials, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
 
 ## Build and preview
 
@@ -419,7 +419,7 @@ older lessons changed. This draft is based on published 2.131 and has not been
 published. Physical plotting remains untested.
 
 
-## PlotterFiles expansion — local development review
+## PlotterFiles expansion — Muusia 2.132
 
 `plotterfiles-more/` adds fourteen English tutorials and seventeen reproducible
 patches: six new nodes, five extensions and three existing-node recipes. The

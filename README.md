@@ -1,4 +1,4 @@
-# MUUSIA v2.131
+# MUUSIA v2.132
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -7,7 +7,7 @@ available with the extended L-System and shape/field tools. Learn includes
 
 **A node-graph editor for generative pen-plotter art.**
 
-**Learn Muusia:** the [public learning site](https://bambi8000.github.io/Muusia/learn/) includes seven foundation tutorials, twenty illustrated node guides, animation studies and a typography section covering all fifteen text tools. Try the interactive [Type Studio lesson](https://bambi8000.github.io/Muusia/learn/typography/index.html#type-studio) with ten treatments, then download your text as an editable Muusia project. The guides also cover per-pen SVG export, numeric controls and preparing a first physical plot through SVG or G-code. See the [guide maintenance instructions](learn/README.md) for details. Build with `npm run build`, run `npm run preview:learn`, and open `/learn/index.html` on the local preview server.
+**Learn Muusia:** the [public learning site](https://bambi8000.github.io/Muusia/learn/) includes seven foundation tutorials, twenty illustrated node guides, animation studies and a typography section covering all fifteen text tools. Try the interactive [Type Studio lesson](https://bambi8000.github.io/Muusia/learn/typography/index.html#type-studio) with ten treatments, then download your text as an editable Muusia project. The guides also cover per-pen SVG export, numeric controls and preparing a first physical plot through SVG or G-code. See the [guide maintenance instructions](learn/README.md) for details. Build with `npm run build`, run `npm run preview:learn`, and open `/learn/index.html` on the local preview server. The PlotterFiles additions include [five packing, stitching and growth projects](https://bambi8000.github.io/Muusia/learn/plotterfiles/) and [fourteen weave, structure and preparation projects](https://bambi8000.github.io/Muusia/learn/plotterfiles-more/), with 24 downloadable patches. These additions require Muusia 2.132 or later.
 
 Muusia is a browser-based visual programming environment for creating plotter drawings.
 You build images by wiring nodes together: generators produce line work, modifiers
@@ -17,7 +17,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **318 built-in nodes** across Generators,
+HTML file you can double-click. The current source has **336 built-in node modules** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).

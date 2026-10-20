@@ -1,115 +1,15 @@
 {
   "schemaVersion": 1,
-  "active": [
-    {
-      "id": "plotterfiles-suite",
-      "owner": "Astra",
-      "role": "node and English tutorial implementation",
-      "baseCommit": "8b4fe0177ef511dcd1e010795af9d0ad7f96b76a",
-      "branch": "codex/plotterfiles-suite",
-      "worktree": "/private/tmp/muusia-line-drape",
-      "files": [
-        "src/defs/nodes/circpack.js",
-        "src/defs/nodes/truchet.js",
-        "src/defs/nodes/hitomezashi.js",
-        "src/defs/nodes/tessellation.js",
-        "src/defs/nodes/venation.js",
-        "src/tile-editor.jsx",
-        "src/App.jsx: tilepoints UI and Venation playback help only",
-        "docs/MUUSIA-NODE-API.md",
-        "docs/MUUSIA-NODES.md",
-        "docs/MUUSIA-TAGS.json",
-        "docs/MUUSIA-HANDOFF.md",
-        "src/defs/catalog.js",
-        "src/defs/node-recency-data.js",
-        "docs/MUUSIA-NODES-SRC.md",
-        "tools/validate-plotterfiles-suite.mjs",
-        "learn/plotterfiles/",
-        "learn/build.mjs",
-        "learn/validate.mjs",
-        "learn/generated/manifest.json",
-        "learn/README.md",
-        "learn/shapes/capture-manifest.json",
-        "learn/shapes/patches/truchet-bands.muusia.json",
-        "learn/shapes/assets/truchet-bands*",
-        "learn/shapes/verification/truchet-bands.gcode",
-        "learn/shapes/build.mjs"
-      ],
-      "status": "ready",
-      "outcome": "Five approved features and five English tutorials implemented; 102 geometry cases and full catalog/build/Learn gate passed. Local-only delivery in plotterfiles-suite/preview; no publication or machine changes.",
-      "checks": [
-        "node tools/validate-plotterfiles-suite.mjs: 102 cases",
-        "node tools/validate-catalog.mjs",
-        "npm run build",
-        "npm run check:learn: 33060 checks / 69 pages",
-        "actual SVG/G-code exports, Custom Tile drag/save, 12 growth frames, existing Butterfly recapture"
-      ],
-      "reviewPath": "/Users/daniel/.codex/visualizations/2026/10/12/01a12f65-627a-7b73-a1f8-0b1dbf4558f7/plotterfiles-suite/preview/index.html"
-    },
-    {
-      "id": "plotterfiles-expansion",
-      "owner": "Astra",
-      "role": "remaining approved PlotterFiles features and English tutorials",
-      "baseCommit": "364852cf002de5e5e5d2615b6126a8302172e7fd",
-      "branch": "codex/plotterfiles-suite",
-      "worktree": "/private/tmp/muusia-line-drape",
-      "files": [
-        "src/defs/nodes/cell_strands.js",
-        "src/defs/nodes/reaction_patterns.js",
-        "src/defs/nodes/fmrose.js",
-        "src/defs/nodes/truchet.js",
-        "src/defs/nodes/tiles.js",
-        "src/defs/nodes/automata_3d.js",
-        "src/defs/nodes/recursive_structure.js",
-        "src/defs/nodes/fragment_layout.js",
-        "src/defs/nodes/continuous_fill.js",
-        "src/defs/nodes/svg_batch.js",
-        "src/defs/nodes/plot_prepare.js",
-        "src/defs/plotter-utilities.js",
-        "nodes-lab/*expansion prototypes only",
-        "learn/plotterfiles-more/",
-        "learn/build.mjs",
-        "learn/validate.mjs",
-        "learn/README.md",
-        "learn/generated/manifest.json",
-        "learn/shapes/: affected real captures only",
-        "learn/craft/: affected real captures only",
-        "learn/plotterfiles/: affected real captures only",
-        "docs/MUUSIA-NODES.md",
-        "docs/MUUSIA-TAGS.json",
-        "docs/MUUSIA-NODE-API.md",
-        "docs/MUUSIA-HANDOFF.md",
-        "src/defs/catalog.js",
-        "src/defs/node-recency-data.js",
-        "docs/MUUSIA-NODES-SRC.md",
-        "tools/validate-plotterfiles-more.mjs"
-      ],
-      "status": "ready",
-      "outcome": "All fourteen remaining research candidates implemented as six new nodes, five modes and three existing-node recipes, with fourteen English tutorials and seventeen patches; local only.",
-      "checks": [
-        "108 expansion geometry cases + 102 first-batch cases",
-        "node tools/validate-catalog.mjs",
-        "npm run build",
-        "npm run check:learn: 36119 checks / 84 English pages",
-        "14 actual SVGs, 9 Focus captures, 6 complete G-codes, 38 frames/sheets; ZIP and image intake + Save; affected legacy captures refreshed",
-        "Browser guide: all 14 images loaded and Play / Pause / scrub controls verified"
-      ],
-      "reviewPath": "/Users/daniel/.codex/visualizations/2026/10/12/01a12f65-627a-7b73-a1f8-0b1dbf4558f7/plotterfiles-complete/preview/learn/plotterfiles-more/index.html"
-    }
-  ],
+  "active": [],
   "lastIntegration": {
-    "version": "2.131",
+    "version": "2.132",
     "date": "2026-10-20",
-    "baseCommit": "ee57a9d1c880548499d93a28e8b559a46436e5a0",
-    "branch": "codex/line-drape",
+    "baseCommit": "8b4fe0177ef511dcd1e010795af9d0ad7f96b76a",
+    "branch": "codex/plotterfiles-suite",
     "includedTasks": [
-      "craft-suite",
-      "craft-tutorials",
-      "line-drape",
-      "lsystem-organic",
-      "region-hatch",
-      "shapes-suite"
+      "plotterfiles-suite",
+      "plotterfiles-expansion"
     ],
-    "note": "Authorized publication from clean worktree. Primary checkout remains at 6a3500a with untouched uncommitted Needle Punch/App/hardware work; reconcile it against origin/main before continuing and update its draft release/minApp version."
+    "note": "Authorized release from the clean worktree after all shared checks passed. Primary checkout remains at 6a3500a with untouched uncommitted Needle Punch/App/hardware work; reconcile its draft version/minApp with this release before integration. No physical plotting or Claude web upload."
   }
 }

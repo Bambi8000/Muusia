@@ -265,6 +265,34 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
+### 2.132 — 2026-10-20 · PlotterFiles tools, modes and nineteen English tutorials
+
+Authorized by Daniel’s “julkaise”. Integrates `364852c` and `ac8f535` on top of
+published `8b4fe0177ef511dcd1e010795af9d0ad7f96b76a`, from the clean
+`codex/plotterfiles-suite` worktree. APP_VERSION bumped once from 2.131 to 2.132;
+336 node modules / 338 registry entries, 84 English Learn pages.
+
+- Packing / spiral fills, Hitomezashi, Rhombus / Floret tessellations, Venation
+  growth and the draggable Custom Tile editor.
+- Hex Weave, 3D Automata, Recursive Structure, Fragment Layout, Tonal Turing,
+  Pattern Mask, Maurer Rose, Disarray envelopes, Continuous Fill, SVG Batch
+  Layout and Plot Prepare; three additional existing-node recipes.
+- Nineteen English tutorials and 24 downloadable patches across the two new
+  collections; real SVG/G-code/intake evidence and captured sequence players.
+  Availability text now states Muusia 2.132 or later. Historical capture versions
+  remain accurate; screenshots were not relabelled as 2.132.
+- Validation: both focused suites (102 + 108 geometry cases), catalog freshness,
+  production build and full Learn gate (36,119 checks / 84 pages). Six new-node
+  complete G-codes, fourteen expansion SVGs, 38 expansion frames/sheets, ZIP and
+  image intake + Save, and affected historical tutorial recaptures remain checked.
+  No physical plotting, calibration or machine-profile changes.
+
+Primary checkout remains at `6a3500a` with unrelated Needle Punch/App/hardware
+work. Do not reset or overwrite it; reconcile its draft version / minApp with
+this release before later integration. The clean release snapshot is prepared
+locally after commit; no Claude web upload is implied.
+
+
 ### W — 2026-10-20 · Remaining PlotterFiles features and tutorials (local review)
 
 Built on `364852cf002de5e5e5d2615b6126a8302172e7fd` in the clean
