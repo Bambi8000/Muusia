@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **338 files** (340 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **339 files** (341 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 214, Modifiers 86). ESM format:
+  Generators 214, Modifiers 87). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -263,6 +263,43 @@ according to the session's actual capabilities:
   per path on PEN_n layers, nearest-ACI colors, y-up flip, plunge z dropped).
 
 ## Version history (condensed)
+
+
+### 2.136 local — 2026-10-21 · Line Shadows
+
+Requested and implemented on `codex/line-shadows`, based on published
+`3fba98eb2f83589fd6028d9b8ed3ccf5eecdf1f3`, in `/private/tmp/muusia-line-drape`.
+Publication was not requested in this turn. Source has 339 modules / 341 entries.
+
+`line_shadows` is a modifier under Fill & Style. It even-odd hatches closed input
+regions and projects 1–12 complete line-filled copies around a shared bounding-box
+hinge. Bottom/Top/Left/Right hinges, Line angle/spacing, Fan angle ±80°, optional
+Foreshorten, tangential Shift / layer, optional outlines, Single/Cycle pens and
+Fit-to-margin/Keep-coordinates placement. Fit only shrinks and centres the full
+stack. Additional numeric outputs report source Spacing used mm and Fit scale %.
+Open inputs are ignored; holes are independent of source pen and winding.
+
+An active-edge sweep bounds complete output at 118k points by uniformly raising
+spacing. Input above 24k contour points or outlines already exceeding output
+budget are rejected whole. There is no prefix truncation or hidden back-plane
+removal: darkness comes from all overlapping pen lines. Helpers/engine/exporter
+and machine profiles are unchanged. The prototype was imported through actual
+Node ⇣, inspected with Container Rectangle, baked and revalidated; graduated lab
+copy removed. Help includes Rectangle fan and four-pen Letter O examples.
+
+Focused geometry/contract validation passed 22 cases: analytical rectangle
+projections, shared hinges, independent hole/disjoint-region tests, pen cycling,
+fit bounds, uniform budget coarsening with complete later regions/layers,
+read-only input, degeneracies and numeric-wire extremes. Built-in reload/Save confirmed zero custom definitions. Actual rectangle and
+Letter O SVG/G-code exports match complete graph geometry (84/608 paths,
+168/1216 points); pen-up rapid moves and all coordinates passed. Software
+profile: clearly labelled 330×450 mm servo example, origin 0/0, Flip Y off,
+route optimization off. Portable rectangle patch also loaded successfully in
+published 2.135 with its embedded definition. All 127 Help examples and the
+ordered catalog → build → Learn gate passed (37,913 checks, 90 pages).
+No physical machine is operated. Durable preview examples and current importable
+node are in the thread's `line-shadows/` artifact directory.
+
 
 
 ### 2.135 — 2026-10-21 · Multicolour folded-grid tutorial and Help examples

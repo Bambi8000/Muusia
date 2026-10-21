@@ -1910,6 +1910,7 @@
   "animation",
   "branching"
  ],
+ "line_shadows": ["hatch", "repeat", "transform", "optical"],
  "line_drape": [
   "deform",
   "text",

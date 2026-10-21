@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 340 built-in nodes in the current Muusia source. Conventions used below:
+All 341 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -2357,7 +2357,7 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (86)
+## Modifiers (87)
 
 **Plot Prepare** — One preparation stage for culling short paths, simplifying, joining ends and sorting travel. The built-in node reuses Muusia Cull, Simplify, Join Ends and Travel Sort. Groups above 600 paths skip the quadratic join stage. Joins are always same-pen, never cross explicit groups; when Preserve direction is on joins and reversals are disabled. Scope chooses the whole pen set or separate explicit path.group groups. Simplify only open paths so a closed contour cannot collapse to two vertices. All operations default off except pen grouping / travel sorting; no duplicate-removal claim is made. Before / After lifts are path count minus one and Travel saved measures straight pen-up travel from page origin in mm, excluding machine start/end macros and physical pen changes. A negative saving is possible because shortening, grouping or sorting changes path endpoints. Outputs are analysis, not machine time estimates. Tutorial: Weave, build and prepare.
 
@@ -2729,6 +2729,23 @@ gap) and deals the pieces across 1–6 pens, cycling or randomly. Multi-colour w
 a single stroke.
 
 **Mycelium Fill** — grows organic flesh along a line network: parallel strands follow each input line and the width swells near junctions (3+ path ends meeting, or crossings between paths), so joints read thicker — a slime-mould look on a Voronoi or Network input. Strands invading a neighbouring strut's territory are cut, except near junctions where they merge; *Waviness* adds hyphal wobble, *Taper* thins open ends.
+
+**Line Shadows** — fill wired closed regions with parallel pen lines and fan
+1–12 projected copies around their shared bounding-box Bottom/Top/Left/Right
+hinge. Line angle and source Line spacing define the hatch; Fan angle spans
+0 to ±80° across the Layers. Foreshorten compresses the projected height;
+turning it off makes pure sheared planes. Shift / layer slides copies along the
+hinge. Even-odd filling preserves holes independently of pen and contour winding;
+open source paths are ignored. Draw outlines adds each projected contour. Single
+pen makes dark overlapping shadows; Cycle pens uses Pens used consecutive slots
+starting at First pen. Fit to margin centres the entire stack and shrinks it only
+if oversized; Keep coordinates neither fits nor clips. Spacing used mm reports
+source spacing before projection/fit; Fit scale % reports uniform final scale.
+The active-edge sweep coarsens spacing for the whole drawing to stay within
+118k output points, never truncating later regions or planes. More than 24k
+source contour points, or outlines alone over budget, produce an empty result.
+Guides show the common hinge and optional fit region. Try Container with Draw
+region on, or filled Lettering O. Frame may drive Fan angle or Shift / layer.
 
 **Hatch Fill** — fills closed shapes with hatching (angle, spacing, inset from both
 edges with parity checking); *Outside* region mode inverts via a synthetic frame

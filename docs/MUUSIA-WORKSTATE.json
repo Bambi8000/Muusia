@@ -2,22 +2,25 @@
   "schemaVersion": 1,
   "active": [],
   "lastIntegration": {
-    "version": "2.135",
+    "version": "2.136",
     "date": "2026-10-21",
-    "baseCommit": "67c78d3a6beed699cd909961c7ed16956998d5b4",
-    "branch": "codex/multicolour-grid-tutorial",
+    "baseCommit": "3fba98eb2f83589fd6028d9b8ed3ccf5eecdf1f3",
+    "branch": "codex/line-shadows",
     "worktree": "/private/tmp/muusia-line-drape",
-    "status": "authorized release; catalog/build/Learn passed, exact-commit deployment verification follows push",
-    "validation": "125 Help examples; three actual SVG/G-code comparisons, three real PNG captures, deterministic valid A3 graphs with 3/4 pens and final bounds; 37913 Learn checks, 90 pages",
-    "note": "Only APP_VERSION and additive Help examples change application source; node algorithms and machine config unchanged. Original primary dirty work preserved. No hardware run or Claude web upload."
+    "published": false,
+    "status": "local implementation complete; no publication requested",
+    "validation": "22 focused geometry/contract cases; 127 Help examples; actual Node import → bake → fresh built-in reload/Save; two exact SVG/G-code captures; portable patch works in published 2.135; shared gate 37913 checks / 90 pages",
+    "moduleCount": 339,
+    "registryCount": 341,
+    "note": "Original primary dirty files preserved. No machine run or Claude web upload."
   },
   "lastPublished": {
-    "version": "2.134",
-    "commit": "67c78d3a6beed699cd909961c7ed16956998d5b4",
-    "date": "2026-10-20",
-    "pagesRunId": 39415409558,
+    "version": "2.135",
+    "date": "2026-10-21",
+    "commit": "3fba98eb2f83589fd6028d9b8ed3ccf5eecdf1f3",
+    "pagesRunId": 39566273395,
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified: exact-commit Pages build/deploy succeeded; live app v2.134; four public tutorial pages and SVG illustrations; public Weave Draft patch matched source and produced 4848 paths / 9696 points",
-    "tutorials": "https://bambi8000.github.io/Muusia/learn/designminis/"
+    "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
+    "status": "verified: exact-commit build/deploy succeeded; public app v2.135; three new Help examples visible; Colour drift Help example produced 1200 paths / 6000 points; all three public patch JSONs match committed source; all three public SVG illustrations loaded"
   }
 }

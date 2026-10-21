@@ -1,4 +1,4 @@
-# MUUSIA v2.135
+# MUUSIA v2.136 (local development)
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -7,7 +7,11 @@ available with the extended L-System and shape/field tools. Learn includes
 
 **A node-graph editor for generative pen-plotter art.**
 
-Version 2.135 adds three **Multicolour Grid** Help examples and an
+Local 2.136 adds **Line Shadows**: closed shapes become a hinged fan of
+parallel line-filled planes. Two Help examples demonstrate a rectangle and a
+four-pen letter O. This development version has not been published.
+
+Version 2.135 added three **Multicolour Grid** Help examples and an
 [English folded-grid tutorial](https://bambi8000.github.io/Muusia/learn/multicolour-grid/)
 with three A3 patches, same-seed colour drift and shared-Warp variations.
 
@@ -26,7 +30,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **338 built-in node modules** across Generators,
+HTML file you can double-click. The current source has **339 built-in node modules** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
