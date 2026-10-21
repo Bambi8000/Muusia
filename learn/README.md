@@ -1,6 +1,6 @@
 # Muusia Learn
 
-An English companion guide to Muusia: seven foundation tutorials, twelve Craft tutorials, ten Shapes tutorials, nineteen PlotterFiles-inspired tutorials, four Design Minis studies, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
+An English companion guide to Muusia: seven foundation tutorials, twelve Craft tutorials, ten Shapes tutorials, nineteen PlotterFiles-inspired tutorials, four Design Minis studies, a multicolour folded-grid tutorial, twenty illustrated node guides, thirty real UI screenshots, reproducible SVG comparisons and forty downloadable patches (twenty node examples, seven tutorial projects, a blank starter, seven animation projects, a printable Murmuration project and four Microbes studies). Two reference export artifacts come from the actual app: a per-pen SVG ZIP and a single test SVG. Three English animation-study pages add six motion examples, a combined Grid Hairs + Solids loop, a dated 310-node motion survey and eight earlier interactive probes. Murmuration and Microbes also have live players inside their node guides. The site is static and has no external runtime network dependencies. Its manual-style layout uses a plain text title, compact navigation and practical reference pages; it has no separately invented Muusia logo.
 
 ## Build and preview
 
@@ -465,3 +465,7 @@ Run `node tools/validate-designminis.mjs` for geometry and
 The shared build and Learn validator include all five new pages, for 89 total.
 The source JPG captures remain under verification; the published images are
 PNG format conversions without retouching.
+
+## Multicolour folded grids (2.135, 2026-10-21)
+
+`multicolour-grid/index.html` teaches same-seed three-branch colour drift and three/four-pen Array copies before one Warp. Three complete A3 portrait patches are also built-in Help examples. Existing node algorithms are unchanged. `learn/multicolour-grid/validate.mjs` checks actual graph evaluation, Help-example equality, pen counts, bounds, actual SVG/G-code downloads and PNG capture/source provenance. Run with `--record` only after fresh real app exports and captures. G-code uses a clearly labelled illustrative 330 × 450 mm servo profile, route optimization off, direction preserved and Flip Y off; software evidence stays source-only under `verification/`. No hardware run or physical colour-match claim.

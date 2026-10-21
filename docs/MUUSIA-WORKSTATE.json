@@ -2,24 +2,22 @@
   "schemaVersion": 1,
   "active": [],
   "lastIntegration": {
-    "version": "2.134",
-    "date": "2026-10-20",
-    "baseCommit": "d8f17394cb6d69f5efa3b71d21bb40481d0921ca",
-    "branch": "codex/designminis-first-four",
-    "includedTasks": [
-      "designminis-first-four"
-    ],
+    "version": "2.135",
+    "date": "2026-10-21",
+    "baseCommit": "67c78d3a6beed699cd909961c7ed16956998d5b4",
+    "branch": "codex/multicolour-grid-tutorial",
     "worktree": "/private/tmp/muusia-line-drape",
-    "status": "authorized release build; exact-commit deployment verification follows push",
-    "validation": "106 new geometry cases; original Image art/intake/Rams tests; four current app SVG/G-code/Focus captures and PNG intake; shared gate passed 37361 checks / 89 pages; preserved Needle export/profile guards tested.",
-    "note": "Primary checkout remains at 6a3500a with original uncommitted work. No hardware run or Claude web upload. Prepare clean project-file snapshot after commit."
+    "status": "authorized release; catalog/build/Learn passed, exact-commit deployment verification follows push",
+    "validation": "125 Help examples; three actual SVG/G-code comparisons, three real PNG captures, deterministic valid A3 graphs with 3/4 pens and final bounds; 37913 Learn checks, 90 pages",
+    "note": "Only APP_VERSION and additive Help examples change application source; node algorithms and machine config unchanged. Original primary dirty work preserved. No hardware run or Claude web upload."
   },
   "lastPublished": {
-    "version": "2.133",
-    "commit": "d8f17394cb6d69f5efa3b71d21bb40481d0921ca",
+    "version": "2.134",
+    "commit": "67c78d3a6beed699cd909961c7ed16956998d5b4",
     "date": "2026-10-20",
-    "pagesRunId": 39408529077,
+    "pagesRunId": 39415409558,
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified by Needle integration task"
+    "status": "verified: exact-commit Pages build/deploy succeeded; live app v2.134; four public tutorial pages and SVG illustrations; public Weave Draft patch matched source and produced 4848 paths / 9696 points",
+    "tutorials": "https://bambi8000.github.io/Muusia/learn/designminis/"
   }
 }

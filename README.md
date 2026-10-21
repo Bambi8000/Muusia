@@ -1,4 +1,4 @@
-# MUUSIA v2.134
+# MUUSIA v2.135
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -7,7 +7,11 @@ available with the extended L-System and shape/field tools. Learn includes
 
 **A node-graph editor for generative pen-plotter art.**
 
-Version 2.134 adds **SDF Contours → Soft union**, **Image → Vector dither**,
+Version 2.135 adds three **Multicolour Grid** Help examples and an
+[English folded-grid tutorial](https://bambi8000.github.io/Muusia/learn/multicolour-grid/)
+with three A3 patches, same-seed colour drift and shared-Warp variations.
+
+Version 2.134 added **SDF Contours → Soft union**, **Image → Vector dither**,
 **Glyph Halftone → Wired motif**, and the new **Weave Draft** generator with
 2–4 pens. [Four English tutorials](https://bambi8000.github.io/Muusia/learn/designminis/)
 include eight complete patches and actual SVG results.

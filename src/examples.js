@@ -471,7 +471,445 @@ const SHAPE_LESSONS = [
 
 import { TYPE_STUDIO_STYLES } from "./defs/type-studio.js";
 
+const MULTICOLOUR_GRID_EXAMPLES = [
+  {
+    "name": "Multicolour Grid \u00b7 Colour drift",
+    "desc": "Three pens follow the same seed with small Warp strength and Cell phase differences. Select Merge. Keep Pen change per input off. Open Learn \u2192 Multicolour folded grids for the full tutorial.",
+    "canvas": {
+      "W": 297,
+      "H": 420
+    },
+    "graph": {
+      "nodes": [
+        {
+          "id": 9001,
+          "type": "mm_paper",
+          "x": 30,
+          "y": 40,
+          "collapsed": true,
+          "params": {
+            "fine": 1.5,
+            "midEvery": 0,
+            "majorEvery": 0,
+            "fineOn": true,
+            "snap": false,
+            "border": true,
+            "margin": 30,
+            "penFine": 0,
+            "penMid": 1,
+            "penMajor": 2
+          }
+        },
+        {
+          "id": 9002,
+          "type": "warp",
+          "x": 390,
+          "y": 40,
+          "params": {
+            "safeCells": true,
+            "cellPhase": 0,
+            "mode": "Cell interpolation",
+            "tlx": 0,
+            "tly": 0,
+            "trx": 0,
+            "trY": 0,
+            "brx": 0,
+            "bry": 0,
+            "blx": 0,
+            "bly": 0,
+            "cells": 4,
+            "amp": 40,
+            "seed": 21
+          },
+          "collapsed": true
+        },
+        {
+          "id": 9003,
+          "type": "mm_paper",
+          "x": 30,
+          "y": 200,
+          "collapsed": true,
+          "params": {
+            "fine": 1.5,
+            "midEvery": 0,
+            "majorEvery": 0,
+            "fineOn": true,
+            "snap": false,
+            "border": true,
+            "margin": 30,
+            "penFine": 6,
+            "penMid": 1,
+            "penMajor": 2
+          }
+        },
+        {
+          "id": 9004,
+          "type": "warp",
+          "x": 390,
+          "y": 200,
+          "params": {
+            "safeCells": true,
+            "cellPhase": 2,
+            "mode": "Cell interpolation",
+            "tlx": 0,
+            "tly": 0,
+            "trx": 0,
+            "trY": 0,
+            "brx": 0,
+            "bry": 0,
+            "blx": 0,
+            "bly": 0,
+            "cells": 4,
+            "amp": 38,
+            "seed": 21
+          },
+          "collapsed": true
+        },
+        {
+          "id": 9005,
+          "type": "mm_paper",
+          "x": 30,
+          "y": 360,
+          "collapsed": true,
+          "params": {
+            "fine": 1.5,
+            "midEvery": 0,
+            "majorEvery": 0,
+            "fineOn": true,
+            "snap": false,
+            "border": true,
+            "margin": 30,
+            "penFine": 2,
+            "penMid": 1,
+            "penMajor": 2
+          }
+        },
+        {
+          "id": 9006,
+          "type": "warp",
+          "x": 390,
+          "y": 360,
+          "params": {
+            "safeCells": true,
+            "cellPhase": 358,
+            "mode": "Cell interpolation",
+            "tlx": 0,
+            "tly": 0,
+            "trx": 0,
+            "trY": 0,
+            "brx": 0,
+            "bry": 0,
+            "blx": 0,
+            "bly": 0,
+            "cells": 4,
+            "amp": 42,
+            "seed": 21
+          },
+          "collapsed": true
+        },
+        {
+          "id": 9007,
+          "type": "merge",
+          "x": 750,
+          "y": 170,
+          "params": {
+            "count": 3,
+            "penPer": false
+          },
+          "collapsed": true
+        }
+      ],
+      "edges": [
+        {
+          "id": "e9101",
+          "from": 9001,
+          "fromPort": 0,
+          "to": 9002,
+          "toPort": 0
+        },
+        {
+          "id": "e9102",
+          "from": 9002,
+          "fromPort": 0,
+          "to": 9007,
+          "toPort": 0
+        },
+        {
+          "id": "e9103",
+          "from": 9003,
+          "fromPort": 0,
+          "to": 9004,
+          "toPort": 0
+        },
+        {
+          "id": "e9104",
+          "from": 9004,
+          "fromPort": 0,
+          "to": 9007,
+          "toPort": 1
+        },
+        {
+          "id": "e9105",
+          "from": 9005,
+          "fromPort": 0,
+          "to": 9006,
+          "toPort": 0
+        },
+        {
+          "id": "e9106",
+          "from": 9006,
+          "fromPort": 0,
+          "to": 9007,
+          "toPort": 2
+        }
+      ],
+      "outputId": 9007
+    }
+  },
+  {
+    "name": "Multicolour Grid \u00b7 Three shared-warp pens",
+    "desc": "Array repeats one grid onto three pens before a shared Cell interpolation Warp. Set Pen maps Blue to Teal. Select Warp. Open Learn \u2192 Multicolour folded grids.",
+    "canvas": {
+      "W": 297,
+      "H": 420
+    },
+    "graph": {
+      "nodes": [
+        {
+          "id": 9001,
+          "type": "mm_paper",
+          "x": 30,
+          "y": 40,
+          "collapsed": true,
+          "params": {
+            "fine": 3,
+            "midEvery": 0,
+            "majorEvery": 0,
+            "fineOn": true,
+            "snap": false,
+            "border": true,
+            "margin": 27,
+            "penFine": 0,
+            "penMid": 1,
+            "penMajor": 2
+          }
+        },
+        {
+          "id": 9002,
+          "type": "array",
+          "x": 420,
+          "y": 40,
+          "params": {
+            "layout": "Linear",
+            "columns": 5,
+            "pitchX": 35,
+            "pitchY": 35,
+            "radius": 65,
+            "turns": 2,
+            "height": 130,
+            "start": 0,
+            "motifSize": 18,
+            "follow": true,
+            "yaw": 25,
+            "elevation": 25,
+            "persp": 0,
+            "count": 3,
+            "dx": 0.25,
+            "dy": 0.25,
+            "drot": 0,
+            "dscale": 0.5,
+            "jit": 0,
+            "penPer": true,
+            "seed": 16
+          },
+          "collapsed": true
+        },
+        {
+          "id": 9003,
+          "type": "setpen",
+          "x": 30,
+          "y": 210,
+          "collapsed": true,
+          "params": {
+            "mode": "Single",
+            "from": 1,
+            "layer": 6
+          }
+        },
+        {
+          "id": 9004,
+          "type": "warp",
+          "x": 420,
+          "y": 210,
+          "params": {
+            "safeCells": true,
+            "cellPhase": 0,
+            "mode": "Cell interpolation",
+            "tlx": 0,
+            "tly": 0,
+            "trx": 0,
+            "trY": 0,
+            "brx": 0,
+            "bry": 0,
+            "blx": 0,
+            "bly": 0,
+            "cells": 4,
+            "amp": 42,
+            "seed": 21
+          },
+          "collapsed": true
+        }
+      ],
+      "edges": [
+        {
+          "id": "e9101",
+          "from": 9001,
+          "fromPort": 0,
+          "to": 9002,
+          "toPort": 0
+        },
+        {
+          "id": "e9102",
+          "from": 9002,
+          "fromPort": 0,
+          "to": 9003,
+          "toPort": 0
+        },
+        {
+          "id": "e9103",
+          "from": 9003,
+          "fromPort": 0,
+          "to": 9004,
+          "toPort": 0
+        }
+      ],
+      "outputId": 9004
+    }
+  },
+  {
+    "name": "Multicolour Grid \u00b7 Four shared-warp pens",
+    "desc": "Array repeats one grid onto four pens with a 0.25 mm shift and 0.5% size change per copy. Set Pen maps Green to Teal. Select Warp. Open Learn \u2192 Multicolour folded grids.",
+    "canvas": {
+      "W": 297,
+      "H": 420
+    },
+    "graph": {
+      "nodes": [
+        {
+          "id": 9001,
+          "type": "mm_paper",
+          "x": 30,
+          "y": 40,
+          "collapsed": true,
+          "params": {
+            "fine": 3,
+            "midEvery": 0,
+            "majorEvery": 0,
+            "fineOn": true,
+            "snap": false,
+            "border": true,
+            "margin": 27,
+            "penFine": 0,
+            "penMid": 1,
+            "penMajor": 2
+          }
+        },
+        {
+          "id": 9002,
+          "type": "array",
+          "x": 420,
+          "y": 40,
+          "params": {
+            "layout": "Linear",
+            "columns": 5,
+            "pitchX": 35,
+            "pitchY": 35,
+            "radius": 65,
+            "turns": 2,
+            "height": 130,
+            "start": 0,
+            "motifSize": 18,
+            "follow": true,
+            "yaw": 25,
+            "elevation": 25,
+            "persp": 0,
+            "count": 4,
+            "dx": 0.25,
+            "dy": 0.25,
+            "drot": 0,
+            "dscale": 0.5,
+            "jit": 0,
+            "penPer": true,
+            "seed": 16
+          },
+          "collapsed": true
+        },
+        {
+          "id": 9003,
+          "type": "setpen",
+          "x": 30,
+          "y": 210,
+          "collapsed": true,
+          "params": {
+            "mode": "Single",
+            "from": 3,
+            "layer": 6
+          }
+        },
+        {
+          "id": 9004,
+          "type": "warp",
+          "x": 420,
+          "y": 210,
+          "params": {
+            "safeCells": true,
+            "cellPhase": 0,
+            "mode": "Cell interpolation",
+            "tlx": 0,
+            "tly": 0,
+            "trx": 0,
+            "trY": 0,
+            "brx": 0,
+            "bry": 0,
+            "blx": 0,
+            "bly": 0,
+            "cells": 4,
+            "amp": 42,
+            "seed": 21
+          },
+          "collapsed": true
+        }
+      ],
+      "edges": [
+        {
+          "id": "e9101",
+          "from": 9001,
+          "fromPort": 0,
+          "to": 9002,
+          "toPort": 0
+        },
+        {
+          "id": "e9102",
+          "from": 9002,
+          "fromPort": 0,
+          "to": 9003,
+          "toPort": 0
+        },
+        {
+          "id": "e9103",
+          "from": 9003,
+          "fromPort": 0,
+          "to": 9004,
+          "toPort": 0
+        }
+      ],
+      "outputId": 9004
+    }
+  }
+];
+
 export const EXAMPLES = [
+  ...MULTICOLOUR_GRID_EXAMPLES.map(ex => ({name: ex.name, desc: ex.desc, canvas: ex.canvas, make: defaults => ({...structuredClone(ex.graph), nodes: ex.graph.nodes.map(n => ({...n, params: {...defaults(n.type), ...n.params}}))})})),
   ...SHAPE_LESSONS.map(l=>({name:l.example,desc:l.summary+" "+l.steps.map(s=>s[1]).join(" ")+" "+(l.motion?"Use the English Shapes tutorial for the animation wiring. Leave the seed fixed.":"This is a static starting composition."),canvas:{W:297,H:210},make:defaults=>{const nodes=[],edges=[];if(l.source)nodes.push({id:9001,type:l.source.key,x:30,y:40,params:{...defaults(l.source.key),...l.source.settings}});nodes.push({id:9002,type:l.key,x:l.source?380:30,y:40,params:{...defaults(l.key),...l.settings}});if(l.source)edges.push({id:"e9101",from:9001,fromPort:0,to:9002,toPort:0});return {nodes,edges};}})),
   {
     name: "Marbling · Combed grid",

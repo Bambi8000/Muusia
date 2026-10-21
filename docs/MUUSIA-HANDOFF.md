@@ -265,6 +265,39 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
+### 2.135 — 2026-10-21 · Multicolour folded-grid tutorial and Help examples
+
+Daniel requested the English tutorial and app/tutorial publication. Based on
+published `67c78d3a6beed699cd909961c7ed16956998d5b4`; implementation in
+`/private/tmp/muusia-line-drape`, branch `codex/multicolour-grid-tutorial`.
+Existing node algorithms and machine configuration are unchanged. APP_VERSION
+is 2.135; node counts stay 338 modules / 340 entries; Learn has 90 pages.
+
+- `learn/multicolour-grid/`: one seven-step English tutorial with exact settings,
+  three complete A3 portrait patches, three actual SVG downloads and three genuine
+  PNG captures (seven-node graph plus two Focus views). Linked from Learn home,
+  Tutorials, sidebar and the original Shapes Cell Warp lesson.
+- Three additive `Multicolour Grid` Help examples reproduce the tutorial graphs:
+  three same-seed branches with amp 40/38/42 and phase 0/2/358 degrees into Merge,
+  or three/four Array copies before one shared Warp, with 0.25 mm translation
+  and 0.5% scale change per copy. Explicit Set Pen Single remaps selected slots.
+  Merge preserves source pens. Source grids use Millimeter Paper for density.
+- Tutorial distinguishes source margins from final warped bounds, source-seed
+  changes from small registration drift, pen colours from physical ink, and
+  1:1 crop margins from source paper settings. Existing drawings are unchanged.
+- Actual 2.135 SVG and G-code downloads match the full actual evaluator output:
+  1200/615/820 paths, 6000/3075/4100 points, respectively. G-code was checked with
+  route optimization off, direction preserved, origin 0/0 and Flip Y off using
+  an explicitly illustrative 330×450 mm `Learn — A3 software check` servo profile.
+  Coordinates and pen-up rapid moves were verified. G-code stays source-only;
+  no calibrated profile or physical plot is claimed. Capture manifests bind
+  artifacts to evaluation/export scopes and the actual node/helper sources.
+- Focused validator and all 125 Help example structural checks passed. The
+  ordered catalog → build → Learn gate passed 37,913 checks / 90 reachable
+  English pages. Public exact-commit deployment verification follows push.
+
+
+
 ### 2.134 — 2026-10-20 · Design Minis studies: soft union, vector dither, custom motifs and woven drafts
 
 Daniel authorized items 1–4 and publication. Based on published

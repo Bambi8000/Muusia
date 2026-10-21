@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "2.135",
+  "date": "2026-10-21",
+  "baseCommit": "67c78d3a6beed699cd909961c7ed16956998d5b4",
+  "scope": "Actual built-in local app: three SVG and G-code downloads, two Focus images and one real seven-node graph capture. G-code: illustrative Learn — A3 software check, 330×450 mm, Servo pen 90°/35°, Flip Y off, origin 0/0, route optimization off, direction preserved, no hardware run.",
+  "engineSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
+  "exporterSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "gcodeSha256": "e1648948652ae1ff2b4acb1dd62424d4d111e2292003c0237bcc28d69276c7ab",
+  "sources": {
+    "src/defs/nodes/mm_paper.js": "6b0e47fbb99670083fc2ba58bfef857cde9201ca5a2dc781210f62098418e5d0",
+    "src/defs/nodes/array.js": "e409c2c2c56f191e1c953e0d32eba851df4be985a89dafa9e6cbc3e167bcada4",
+    "src/defs/nodes/setpen.js": "f794990a7915e45f700f2dd80d0590320910da6adbbf8baca98e18f995956c9c",
+    "src/defs/nodes/warp.js": "011974f2832ffd852cbe6189295cc20c65850d08429c2d5311cafa6c61ee544b",
+    "src/defs/nodes/merge.js": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf",
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
+    "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684",
+    "src/machine.js": "58064ae02c5b1d22a09da5fec59031ef7f6850fe3fd07c38f5b8e63b55490680"
+  },
+  "files": [
+    {
+      "file": "assets/colour-drift-focus.png",
+      "sha256": "0cd63742454c2543752d9bc7578bb37252007bffb3925be654e54bae50c4f5c0"
+    },
+    {
+      "file": "assets/colour-drift-graph.png",
+      "sha256": "6e6884baf75799fe77e4710ad93c9beecd95f7e1b2e295ab22a61bb547620e84"
+    },
+    {
+      "file": "assets/folded-grid-3-pen-a3.svg",
+      "sha256": "982a83c9689ed5328987b7fbff69034cd539fe84b6910488a30012e829cf7285"
+    },
+    {
+      "file": "assets/folded-grid-4-pen-a3.svg",
+      "sha256": "70ba45f534dba1b4df624314fb886d8e5d842718750eaba0ce7f052410a9febb"
+    },
+    {
+      "file": "assets/folded-grid-colour-drift-a3.svg",
+      "sha256": "b49c340ae0a719a382c7996848298c345ac60ccdc85f27ff1524e19ac1a295d2"
+    },
+    {
+      "file": "assets/shared-four-focus.png",
+      "sha256": "97f40e4a18f1fbda1f806e83b57ae61bd8b6c439d8c5ad075f746d80075836f0"
+    },
+    {
+      "file": "patches/folded-grid-3-pen-a3.muusia.json",
+      "sha256": "2d9947b74718acac8bedc1be4fcb46dd440a7071541230a1a8711ee5d4fd39b0"
+    },
+    {
+      "file": "patches/folded-grid-4-pen-a3.muusia.json",
+      "sha256": "a8a07fb0404a89ee69a061a6cce2987fba6df23993e7e0b3026cc672b5c57e38"
+    },
+    {
+      "file": "patches/folded-grid-colour-drift-a3.muusia.json",
+      "sha256": "3844b5af25d75623834f7380bb7349baf7d11970968ac206a75df3bf4f06b5e0"
+    },
+    {
+      "file": "verification/colour-drift-focus.jpg",
+      "sha256": "339150e64dc7067ac5b7a412db2e13913d4ade7b8427aa7026377c978208f492"
+    },
+    {
+      "file": "verification/colour-drift-graph.jpg",
+      "sha256": "f2efaed4e56d75ed9981d62be18938c2fb07e2ff0e4e0a3152aeb585a74a4a84"
+    },
+    {
+      "file": "verification/folded-grid-3-pen-a3.gcode",
+      "sha256": "132a2061333c7c66345864d82bf3729c3b1767374b82521ebb8f2e47cc73c7d5"
+    },
+    {
+      "file": "verification/folded-grid-4-pen-a3.gcode",
+      "sha256": "1ab44ce277d9f55e71d2309331b96782d9b9cc69f155e599b0b00c5b93800d98"
+    },
+    {
+      "file": "verification/folded-grid-colour-drift-a3.gcode",
+      "sha256": "2f3788270373cd711d06853aa856d0c9e7d936d060ea01ef9c562cc7b7527a69"
+    },
+    {
+      "file": "verification/shared-four-focus.jpg",
+      "sha256": "4013bd3b3dda2320a4a4ce5e51c2cfd34c52536c33293e3e743e304f2889b98b"
+    }
+  ]
+}

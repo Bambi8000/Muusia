@@ -1,0 +1,121 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "folded-grid-3-pen-a3",
+  "canvas": {
+    "W": 297,
+    "H": 420
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 9001,
+        "type": "mm_paper",
+        "x": 30,
+        "y": 40,
+        "collapsed": true,
+        "params": {
+          "fine": 3,
+          "midEvery": 0,
+          "majorEvery": 0,
+          "fineOn": true,
+          "snap": false,
+          "border": true,
+          "margin": 27,
+          "penFine": 0,
+          "penMid": 1,
+          "penMajor": 2
+        }
+      },
+      {
+        "id": 9002,
+        "type": "array",
+        "x": 420,
+        "y": 40,
+        "params": {
+          "layout": "Linear",
+          "columns": 5,
+          "pitchX": 35,
+          "pitchY": 35,
+          "radius": 65,
+          "turns": 2,
+          "height": 130,
+          "start": 0,
+          "motifSize": 18,
+          "follow": true,
+          "yaw": 25,
+          "elevation": 25,
+          "persp": 0,
+          "count": 3,
+          "dx": 0.25,
+          "dy": 0.25,
+          "drot": 0,
+          "dscale": 0.5,
+          "jit": 0,
+          "penPer": true,
+          "seed": 16
+        },
+        "collapsed": true
+      },
+      {
+        "id": 9003,
+        "type": "setpen",
+        "x": 30,
+        "y": 210,
+        "collapsed": true,
+        "params": {
+          "mode": "Single",
+          "from": 1,
+          "layer": 6
+        }
+      },
+      {
+        "id": 9004,
+        "type": "warp",
+        "x": 420,
+        "y": 210,
+        "params": {
+          "safeCells": true,
+          "cellPhase": 0,
+          "mode": "Cell interpolation",
+          "tlx": 0,
+          "tly": 0,
+          "trx": 0,
+          "trY": 0,
+          "brx": 0,
+          "bry": 0,
+          "blx": 0,
+          "bly": 0,
+          "cells": 4,
+          "amp": 42,
+          "seed": 21
+        },
+        "collapsed": true
+      }
+    ],
+    "edges": [
+      {
+        "id": "e9101",
+        "from": 9001,
+        "fromPort": 0,
+        "to": 9002,
+        "toPort": 0
+      },
+      {
+        "id": "e9102",
+        "from": 9002,
+        "fromPort": 0,
+        "to": 9003,
+        "toPort": 0
+      },
+      {
+        "id": "e9103",
+        "from": 9003,
+        "fromPort": 0,
+        "to": 9004,
+        "toPort": 0
+      }
+    ],
+    "outputId": 9004
+  }
+}
