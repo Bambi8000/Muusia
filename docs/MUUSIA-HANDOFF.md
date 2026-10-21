@@ -265,11 +265,12 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
-### 2.136 local — 2026-10-21 · Line Shadows
+### 2.136 — 2026-10-21 · Line Shadows
 
 Requested and implemented on `codex/line-shadows`, based on published
 `3fba98eb2f83589fd6028d9b8ed3ccf5eecdf1f3`, in `/private/tmp/muusia-line-drape`.
-Publication was not requested in this turn. Source has 339 modules / 341 entries.
+Daniel approved publication on 2026-10-21. Source has 339 modules / 341 entries.
+The release task verifies the exact Pages commit and public Help examples after push.
 
 `line_shadows` is a modifier under Fill & Style. It even-odd hatches closed input
 regions and projects 1–12 complete line-filled copies around a shared bounding-box

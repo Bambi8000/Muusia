@@ -8,11 +8,12 @@
     "branch": "codex/line-shadows",
     "worktree": "/private/tmp/muusia-line-drape",
     "published": false,
-    "status": "local implementation complete; no publication requested",
-    "validation": "22 focused geometry/contract cases; 127 Help examples; actual Node import → bake → fresh built-in reload/Save; two exact SVG/G-code captures; portable patch works in published 2.135; shared gate 37913 checks / 90 pages",
+    "status": "publication authorized; focused and ordered release gate passed; exact-commit deployment verification follows push",
+    "validation": "22 focused geometry/contract cases; 127 Help examples; actual Node import \u2192 bake \u2192 fresh built-in reload/Save; two exact SVG/G-code captures; portable patch works in published 2.135; shared gate 37913 checks / 90 pages",
     "moduleCount": 339,
     "registryCount": 341,
-    "note": "Original primary dirty files preserved. No machine run or Claude web upload."
+    "note": "Original primary dirty files preserved. No machine run or Claude web upload.",
+    "snapshot": "/private/tmp/muusia-project-files-2.136"
   },
   "lastPublished": {
     "version": "2.135",

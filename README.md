@@ -1,4 +1,4 @@
-# MUUSIA v2.136 (local development)
+# MUUSIA v2.136
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -7,9 +7,9 @@ available with the extended L-System and shape/field tools. Learn includes
 
 **A node-graph editor for generative pen-plotter art.**
 
-Local 2.136 adds **Line Shadows**: closed shapes become a hinged fan of
+Version 2.136 adds **Line Shadows**: closed shapes become a hinged fan of
 parallel line-filled planes. Two Help examples demonstrate a rectangle and a
-four-pen letter O. This development version has not been published.
+four-pen letter O.
 
 Version 2.135 added three **Multicolour Grid** Help examples and an
 [English folded-grid tutorial](https://bambi8000.github.io/Muusia/learn/multicolour-grid/)
