@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import * as H from '../src/defs/helpers.js';
+const lab=process.argv.includes('--lab');
+const def=lab?Function(...Object.keys(H),'return '+fs.readFileSync('nodes-lab/handwriting.plotternode.js','utf8'))(...Object.values(H)):(await import('../src/defs/nodes/handwriting.js')).default;
+const defaults=Object.fromEntries(def.params.map(p=>[p.key,p.def]));
+const ctx={W:297,H:210};let checks=0;
+const run=(p={},c=ctx,ins=[])=>def.compute(ins,{...defaults,...p},c);
+const count=o=>o.paths.reduce((n,p)=>n+p.pts.length,0);
+function valid(o,c=ctx,m=15){assert.ok(o.paths.length);assert.ok(count(o)<=110000);for(const p of o.paths){assert.equal(p.closed,false);assert.ok(p.pts.length>=2);assert.ok(Number.isInteger(p.layer)&&p.layer>=0&&p.layer<12);for(const [x,y] of p.pts){assert.ok(Number.isFinite(x)&&Number.isFinite(y));assert.ok(x>=m-1e-7&&x<=c.W-m+1e-7&&y>=m-1e-7&&y<=c.H-m+1e-7);}}}
+function box(o){const pts=o.paths.flatMap(p=>p.pts);return [Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),Math.max(...pts.map(p=>p[1]))];}
+const local=path=>path.pts.map(([x,y])=>[+(x-path.pts[0][0]).toFixed(8),+(y-path.pts[0][1]).toFixed(8)]);
+function test(n,f){f();checks++;console.log('ok '+n);}
+test('both hands produce finite bounded open pen strokes',()=>{for(const mode of ['Cursive','Print'])valid(run({mode}));});
+test('seed reconstructs the exact same writing without mutating parameters',()=>{const p={...defaults,text:'Tomorrow, tomorrow! äöå',seed:41},before=JSON.stringify(p),a=def.compute([],p,ctx);assert.deepEqual(a,def.compute([],p,ctx));assert.equal(JSON.stringify(p),before);assert.notDeepEqual(a,run({...p,seed:42}));});
+test('repeated letters have different shapes, not merely translated positions',()=>{for(const mode of ['Cursive','Print']){const a=run({mode,text:'llllll',joins:false,variation:90,sway:0,size:10});assert.equal(a.paths.length,6);assert.ok(new Set(a.paths.map(p=>JSON.stringify(local(p)))).size>=5);}});
+test('zero variation gives identical repeated master glyphs and is seed-independent',()=>{for(const mode of ['Cursive','Print']){const p={mode,text:'llll',joins:false,variation:0,sway:0};const a=run(p);for(const path of a.paths)assert.deepEqual(local(path),local(a.paths[0]));assert.deepEqual(a,run({...p,seed:100}));}});
+test('cursive bodies form one uninterrupted path per lowercase word',()=>{const a=run({text:'hello hello',sway:0});assert.equal(a.paths.length,2);assert.ok(a.paths.every(p=>p.pts.length>100));assert.equal(run({text:'hello hello',joins:false}).paths.length,10);});
+test('dots and crossbars are deferred until the word body finishes',()=>{const a=run({text:'it it'});assert.equal(a.paths.length,6);assert.ok(a.paths[0].pts.length>30&&a.paths[3].pts.length>30);assert.ok(a.paths[1].pts.length<5&&a.paths[4].pts.length<5);});
+test('spaces, punctuation, capitals and line breaks lift the pen',()=>{assert.equal(run({text:'ll ll|ll'}).paths.length,3);assert.equal(run({text:'ll.ll'}).paths.length,3);assert.equal(run({text:'llLll'}).paths.length,3);});
+test('Print ignores hidden Cursive joins control',()=>assert.deepEqual(run({mode:'Print',joins:true}),run({mode:'Print',joins:false})));
+test('case remains distinct in both hands',()=>{for(const mode of ['Cursive','Print'])assert.notDeepEqual(run({mode,text:'a',variation:0}),run({mode,text:'A',variation:0}));});
+test('all Latin letters, Finnish accents, digits and punctuation are drawn',()=>{for(const mode of ['Cursive','Print'])for(const ch of 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZäöåÄÖÅ0123456789.,!?;:-+/=()\'"&@'){const a=run({mode,text:ch});valid(a);assert.notDeepEqual(a,H.EMPTY);}});
+test('Finnish marks are strokes, and decomposed Unicode is equivalent',()=>{for(const mode of ['Cursive','Print']){assert.equal(run({mode,text:'ä'}).paths.length,run({mode,text:'a'}).paths.length+2);assert.equal(run({mode,text:'å'}).paths.length,run({mode,text:'a'}).paths.length+1);assert.deepEqual(run({mode,text:'äöå'}),run({mode,text:'a\u0308o\u0308a\u030a'}));}});
+test('unsupported symbols get visible question marks and punctuation aliases work',()=>{assert.deepEqual(run({text:'🦔'}),run({text:'?'}));assert.deepEqual(run({text:'“hi”—it’s…'}),run({text:'"hi"-it\'s...'}));});
+test('word wrapping and oversized words retain every complete letter',()=>{const text='hello '.repeat(20).trim(),wide=run({text,mode:'Print',wrap:false}),narrow=run({text,mode:'Print',wrap:true,size:20},{W:80,H:210});valid(narrow,{W:80,H:210});assert.equal(narrow.paths.length,wide.paths.length);assert.equal(run({text:'l'.repeat(200),joins:false},{W:60,H:80}).paths.length,200);});
+test('newlines and | match, including explicit blank rows',()=>{assert.deepEqual(run({text:'hello|world'}),run({text:'hello\nworld'}));assert.ok(box(run({text:'hello||world'}))[3]-box(run({text:'hello||world'}))[1]>box(run({text:'hello|world'}))[3]-box(run({text:'hello|world'}))[1]);});
+test('alignment and vertical placement respect full ink bounds',()=>{for(const align of ['Left','Center','Right']){const a=run({text:'hello',align,position:0}),b=box(a);assert.ok(Math.abs(b[1]-15)<1e-7);assert.ok(Math.abs((align==='Left'?b[0]-15:align==='Right'?b[2]-282:(b[0]+b[2])/2-148.5))<1e-7);}assert.ok(Math.abs(box(run({text:'hello',position:100}))[3]-195)<1e-7);});
+test('size scales physical strokes without enlarging short text to fill the page',()=>{const a=box(run({text:'l',size:4,variation:0,sway:0})),b=box(run({text:'l',size:8,variation:0,sway:0}));assert.ok(Math.abs((b[3]-b[1])/(a[3]-a[1])-2)<1e-8);});
+test('the full 1200-character message retains the last word under a uniform point budget',()=>{for(const mode of ['Cursive','Print']){const text=('m'.repeat(1198))+' x',out=run({mode,text,variation:100,joins:false});valid(out);assert.equal(out.paths.length,mode==='Print'?2398:1200);assert.ok(out.paths.at(-1).pts.length>=2);assert.deepEqual(run({text:'a'.repeat(1201)}),H.EMPTY);}});
+test('empty text and invalid or impossible paper return clean empty outputs',()=>{for(const text of ['', '   ', '|\n|'])assert.deepEqual(run({text}),H.EMPTY);for(const c of [{W:NaN,H:200},{W:20,H:200},{W:200,H:20}])assert.deepEqual(run({},c),H.EMPTY);});
+test('wired numeric extremes clamp safely and complete pen metadata survives',()=>{const a=run({variation:1e8,size:1e8,slant:NaN,seed:Infinity,layer:99,lineh:-99,position:999});valid(a);assert.ok(a.paths.every(p=>p.layer===11));});
+test('style uses actual path-based stroke processing and leaves source writing unchanged',()=>{const a=run(),b=run({},ctx,[{kind:'style',mode:'Dashed',dash:2,gap:1,vary:0,phase:0,seed:1}]);assert.ok(a.paths.length);assert.ok(b.paths.length>a.paths.length);assert.notDeepEqual(a,b);assert.deepEqual(a,run());});
+console.log(`Handwriting: ${checks} checks passed (${lab?'prototype':'built-in'}).`);

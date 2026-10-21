@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 341 built-in nodes in the current Muusia source. Conventions used below:
+All 342 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,10 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (214)
+## Generators (215)
+
+**Handwriting** — Original single-stroke Cursive and Print handwriting, preserving upper/lowercase, Finnish ä/ö/å, digits and common punctuation. Each occurrence has seeded shape, width, height, slant and baseline variation; a/e/r/s/t in Cursive and a/g/r/t/y in Print also have alternate constructions. Variation zero uses regular masters. Cursive joins merges lowercase bodies within words and defers dots, accents and crossbars until the body finishes; spaces, capitals, punctuation and newlines lift the pen. Print ignores the hidden join control. Lowercase height is requested x-height in mm, not total capital height. Word wrap splits oversized words; Align and Vertical position place the full ink bounds within Margin, shrinking the complete block only when needed. Both | and actual newlines work; explicit blank rows are retained. Up to 1200 normalized characters, with visible question marks for unsupported characters. Oversized messages are rejected whole; curve sampling coarsens uniformly above the 110k-point budget without dropping letters. Style uses the standard stroke processing. All paths are open pen strokes, so 2D to 3D should use Stroked paths. This font is authored in the node, with no font asset or external service. The supplied commercial Einstein TTF is not included. Help: Cursive note and Printed notebook.
+
 
 **Needle Test** — needle puncture calibration in horizontal rows. Every row
 uses one fixed depth and one fixed point spacing, with at least 20 punches.

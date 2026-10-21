@@ -265,6 +265,55 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
+### 2.137 local — 2026-10-21 · Handwriting
+
+Based on published `8bacea2e17347d9bd18d45e2c8a00edf09aa0f4e`, implemented on
+`codex/handwriting` in `/private/tmp/muusia-line-drape`. Not published; Daniel
+requested implementation, then supplied a reference font and enabled Chrome
+file access for testing. That permission concerns browser import, not deployment.
+Current source: 340 modules / 342 registry entries, 215 generators.
+
+`handwriting` is a new Text & Image generator with original single-stroke Cursive
+and Print masters, preserving case, Finnish ä/ö/å, digits, punctuation and selected
+Latin accents. Cursive joins lowercase word bodies into one path and defers dots,
+accents and crossbars until the body is complete. Capitals, punctuation and spaces
+lift the pen. Print ignores the hidden join checkbox. Per-occurrence seeded
+width, height, slant, slight rotation and smooth shape deformation vary each
+letter; a few masters have explicitly authored alternate constructions. Baseline
+sway varies rhythm separately. Variation 0 selects regular masters. Seed is stable
+across preview/export and allocated before wrapping/coarsening.
+
+Lowercase height is requested physical x-height. Greedy word wrap preserves
+complete text and explicit empty lines, splitting only oversized words. Ink bounds
+align Left/Center/Right within Margin and Vertical position; the whole composition
+only shrinks when necessary. NFC normalization handles decomposed accents. Up to
+1200 normalized characters; unsupported symbols are visible question marks.
+Curve flattening coarsens uniformly above 110k points, never dropping later text.
+Both hands produce open pen strokes, compatible with 2D to 3D Stroked paths.
+
+Prototype imported and inspected through actual Node ⇣ in IAB, then baked and the
+graduated lab file removed. Fresh built-in Help examples Cursive note and Printed
+notebook produced 57/189 paths and 7349/5856 points. Actual Save has zero custom
+nodes. Chrome import was initially blocked by extension file permission; Daniel
+enabled it, and a fresh built-in patch load succeeded. Both actual SVGs match the
+complete graph output byte-for-byte. Both G-codes match every coordinate within
+0.005001 mm, preserve path order and pen-up rapid / pen-down draw state. Software
+check only: labelled 330×450 mm servo profile, origin 0/0, Flip Y off, Optimize off.
+No hardware run. Twenty focused geometry/contract cases, all 129 Help graphs and
+the ordered catalog → build → Learn gate passed (37,913 checks / 90 English pages).
+No existing helpers, engine, exporters or machine profiles changed; App only
+bumps APP_VERSION. No Learn lesson or public release is claimed.
+
+The supplied Albert Einstein 90 Ultra Bold TTF v1.039 was inspected read-only:
+1758 glyphs, contextual alternates, multiple stylistic sets. Its embedded name
+record prohibits distribution. No font binary, extracted outline or copied
+Einstein master is bundled; this implementation authors its own centreline
+alphabet. A general local-font importer is a separate possible follow-up.
+Durable patches, portable definition, actual exports and screenshots are under
+the thread's `handwriting/` artifact directory. Local Claude snapshot is refreshed
+after commit; no Claude web upload.
+
+
 ### 2.136 — 2026-10-21 · Line Shadows
 
 Requested and implemented on `codex/line-shadows`, based on published

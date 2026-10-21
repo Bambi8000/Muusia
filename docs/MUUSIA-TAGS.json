@@ -2060,5 +2060,11 @@
   "grid",
   "multicolor",
   "pattern"
+ ],
+ "handwriting": [
+  "text",
+  "organic",
+  "random",
+  "stroke"
  ]
 }

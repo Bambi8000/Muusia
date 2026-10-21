@@ -605,6 +605,11 @@ export const NODE_RECENCY = {
     "order": 48,
     "sha256": "ed215a7716bf006dec07023956fc08ef6aced5fec055fd765507907106dd5388"
   },
+  "handwriting": {
+    "date": "2026-10-21",
+    "order": 98,
+    "sha256": "c014f27d0429cdb5bd4b886a3abccd57cdd6705b70a006392581209f1e530c0e"
+  },
   "harmonograph": {
     "date": "2026-07-22",
     "order": 1,
