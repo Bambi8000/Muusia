@@ -1,4 +1,4 @@
-# MUUSIA v2.137 (local development)
+# MUUSIA v2.137
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -7,10 +7,10 @@ available with the extended L-System and shape/field tools. Learn includes
 
 **A node-graph editor for generative pen-plotter art.**
 
-Local 2.137 adds **Handwriting** with Cursive and Print hands: original pen
+Version 2.137 adds **Handwriting** with Cursive and Print hands: original pen
 strokes, connected lowercase words, Finnish accents and seeded differences
 between repeated letters. Try Help → Handwriting · Cursive note / Printed
-notebook. This development version has not been published.
+notebook.
 
 Version 2.136 adds **Line Shadows**: closed shapes become a hinged fan of
 parallel line-filled planes. Two Help examples demonstrate a rectangle and a

@@ -265,12 +265,12 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
-### 2.137 local — 2026-10-21 · Handwriting
+### 2.137 — 2026-10-21 · Handwriting
 
 Based on published `8bacea2e17347d9bd18d45e2c8a00edf09aa0f4e`, implemented on
-`codex/handwriting` in `/private/tmp/muusia-line-drape`. Not published; Daniel
-requested implementation, then supplied a reference font and enabled Chrome
-file access for testing. That permission concerns browser import, not deployment.
+`codex/handwriting` in `/private/tmp/muusia-line-drape`. Daniel approved
+publication on 2026-10-21. The release task verifies the exact Pages commit and
+both public built-in Help examples after push.
 Current source: 340 modules / 342 registry entries, 215 generators.
 
 `handwriting` is a new Text & Image generator with original single-stroke Cursive
@@ -302,7 +302,7 @@ check only: labelled 330×450 mm servo profile, origin 0/0, Flip Y off, Optimize
 No hardware run. Twenty focused geometry/contract cases, all 129 Help graphs and
 the ordered catalog → build → Learn gate passed (37,913 checks / 90 English pages).
 No existing helpers, engine, exporters or machine profiles changed; App only
-bumps APP_VERSION. No Learn lesson or public release is claimed.
+bumps APP_VERSION. Help examples ship with this release; no separate Learn lesson.
 
 The supplied Albert Einstein 90 Ultra Bold TTF v1.039 was inspected read-only:
 1758 glyphs, contextual alternates, multiple stylistic sets. Its embedded name
