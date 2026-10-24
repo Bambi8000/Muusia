@@ -265,14 +265,15 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
-### 2.138 local — 2026-10-24 · Strand Bundle
+### 2.138 — 2026-10-24 · Strand Bundle
 
 Based on published `88b2d7237d4276c71e481e4ece025df173fc7918`, implemented on
 `codex/strand-bundle` in the attached managed worktree
 `/Users/daniel/.codex/worktrees/frayed-bundles/plotter-patcher`. The previous
 `/private/tmp/muusia-line-drape` checkout was prunable after temporary-file cleanup;
-its Git history and the primary dirty checkout were preserved. No publication
-requested for this new node. Source: 341 modules / 343 entries, 216 generators.
+its Git history and the primary dirty checkout were preserved. Daniel approved
+publication on 2026-10-24. The release task verifies the exact Pages commit and
+public Help examples after push. Source: 341 modules / 343 entries, 216 generators.
 
 `strand_bundle` is a new Organic & Flow generator. Pen width and Ink overlap
 plan the packed stem's centreline pitch. Default 0.5 mm / 40% overlap gives at

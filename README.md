@@ -1,4 +1,4 @@
-# MUUSIA v2.138 (local development)
+# MUUSIA v2.138
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -7,10 +7,9 @@ available with the extended L-System and shape/field tools. Learn includes
 
 **A node-graph editor for generative pen-plotter art.**
 
-Local 2.138 adds **Strand Bundle**: pen-width-aware solid stems that open into
+Version 2.138 adds **Strand Bundle**: pen-width-aware solid stems that open into
 ordered fans, flowing ribbons or chaotic threads. Split and return rejoins every
 strand into the winding stem. Four Help examples cover the new behaviors.
-This development version has not been published.
 
 Version 2.137 adds **Handwriting** with Cursive and Print hands: original pen
 strokes, connected lowercase words, Finnish accents and seeded differences
