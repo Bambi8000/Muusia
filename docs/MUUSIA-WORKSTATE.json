@@ -17,12 +17,13 @@
     "branch": "codex/strand-bundle-colours",
     "worktree": "/Users/daniel/.codex/worktrees/frayed-bundles/plotter-patcher",
     "published": false,
-    "status": "local review; no publication requested",
+    "status": "publication authorized; tested implementation unchanged; exact-commit Pages verification follows push",
     "snapshot": "/private/tmp/muusia-project-files-2.140",
     "moduleCount": 341,
     "registryCount": 343,
     "validation": "35 focused cases; 136 Help graphs; two actual browser SVGs match full App geometry; complete 2-pen G-code coordinate and pen-up checks; actual built-in Help, Save/reload; ordered gate passed 37913 checks / 90 English pages.",
-    "note": "Primary unrelated work preserved. User Chrome patch untouched. No hardware run or Claude web upload."
+    "note": "Primary unrelated work preserved. User Chrome patch untouched. No hardware run or Claude web upload.",
+    "implementationCommit": "b3d9998903222575be9470ac7ab97595e2e411ad"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

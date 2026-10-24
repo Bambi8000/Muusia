@@ -265,7 +265,7 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
-### 2.140 — 2026-10-24 · Strand Bundle colour selection (local)
+### 2.140 — 2026-10-24 · Strand Bundle colour selection
 
 Based on published `0103fb00d94500f94958cf010c561894eb6116c0`, branch
 `codex/strand-bundle-colours`. Daniel requested one or more differently coloured
@@ -300,9 +300,11 @@ gate pass (37913 checks / 90 English pages). No engine/helper/machine/exporter
 changes; App only bumps version. Actual screenshots, patches, two SVGs, G-code
 and verification are in this chat's `strand-bundle-colours/` artifact directory.
 
-Local review only; publication has not been requested for this addition. Refresh
-`/private/tmp/muusia-project-files-2.140` after the final commit; do not claim a
-Claude web project upload.
+Daniel authorized publication on 2026-10-24. Implementation commit is
+`b3d9998903222575be9470ac7ab97595e2e411ad`; verify the exact release-commit Pages
+run and both public colour Help examples after pushing. Refresh the local
+`/private/tmp/muusia-project-files-2.140` snapshot after the final commit; no
+Claude web project upload is implied.
 
 ### 2.139 — 2026-10-24 · Strand Bundle length and angled ends
 
