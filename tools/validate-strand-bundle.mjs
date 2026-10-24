@@ -240,4 +240,84 @@ test('bent 3D ends stay bounded, retain every strand and keep roll framing stabl
   const p={dimension:'3D',nib:.05,width:60,overlap:80,count:6,detail:320,startTurn:180,endTurn:-180,startLift:90,endLift:-90,style:'Tangle'};valid(run(p),ctx,15,.05);
 });
 test('3D rejects paper cells too narrow for physical nib and end-mark padding',()=>{assert.deepEqual(run({dimension:'3D',nib:3},{W:33.04,H:100}),[H.EMPTY,0,0]);});
+test('whole bend Off and zero angle preserve the prior 3D outputs byte for byte',()=>{
+  // Captured from parent 1f032ed before adding whole bending, including end cuts/steering.
+  const fixtures=[
+    [{dimension:'3D'},'e8c91fccba5c11cb847562aba33539407a81db47278fdc25cc30315eeac741c3'],
+    [{dimension:'3D',behavior:'Split and return',style:'Tangle',startTurn:-70,startLift:30,endTurn:70,endLift:-40,startCut:-30,endCut:40,colourMode:'By number',strandNumbers:'12,45,88'},'f709d45619b4e723d6a0d9ab6e7cd026a51b74b7d12d61fc881900de49095478']
+  ];
+  for(const [p,hash] of fixtures){
+    const a=run(p);assert.equal(createHash('sha256').update(JSON.stringify(a)).digest('hex'),hash);
+    assert.deepEqual(run({...p,wholeBend:undefined}),a);
+    for(const wholeBend of ['Arc','S-curve'])assert.deepEqual(run({...p,wholeBend,wholeAngle:0,wholePlane:123}),a);
+  }
+});
+const bendPoints=(ps,p)=>D._bendWhole3D([{pts:ps,layer:5,closed:false}],frame3(p))[0].pts;
+test('whole Arc follows an analytical circle through the entire interior',()=>{
+  const length=200,B=Math.PI/2,R=length/B,p={wholeBend:'Arc',wholeAngle:90,length},xs=[0,25,50,75,100,125,150,175,200];
+  const ps=bendPoints(xs.map(x=>[x,0,0]),p),offset=R*(1-Math.cos(B/2))/2;
+  for(let i=0;i<xs.length;i++){
+    const a=(xs[i]-length/2)/R;near(ps[i][0],length/2+R*Math.sin(a));near(ps[i][1],R*(1-Math.cos(a))-offset);near(ps[i][2],0);
+    near(Math.hypot(ps[i][0]-length/2,ps[i][1]-(R-offset)),R);
+  }
+  assert.ok(Math.abs(ps[3][1])>5&&Math.abs(ps[5][1])>5,'central loose area is bent too');
+  const h=1e-3,mid=bendPoints([[100-h,0,0],[100+h,0,0]],p);near((mid[1][0]-mid[0][0])/(2*h),1);near((mid[1][1]-mid[0][1])/(2*h),0);
+});
+test('whole S-curve reverses curvature smoothly and bends opposite halves',()=>{
+  const p={wholeBend:'S-curve',wholeAngle:120,length:200},xs=[0,25,50,75,100,125,150,175,200],ps=bendPoints(xs.map(x=>[x,0,0]),p);
+  for(let i=0;i<xs.length;i++){near(ps[i][0]+ps.at(-1-i)[0],200);near(ps[i][1]+ps.at(-1-i)[1],0);near(ps[i][2],0);}
+  assert.ok(ps[0][1]<-40&&ps.at(-1)[1]>40);assert.deepEqual(ps[4],[100,0,0]);
+  const h=1e-5,a=bendPoints([[100-h,0,0],[100,0,0],[100+h,0,0]],p);
+  for(let k=0;k<3;k++){near((a[1][k]-a[0][k])/h,k===0?1:0);near((a[2][k]-a[1][k])/h,k===0?1:0);}
+});
+test('bend plane rotates deformation around object X and both signs remain meaningful',()=>{
+  const ps=[[20,4,7],[80,-8,5],[130,6,-3],[190,-2,-5]];
+  for(const wholeBend of ['Arc','S-curve']){
+    const p={wholeBend,wholeAngle:110,length:200},a=bendPoints(ps,p),rot=([x,y,z])=>[x,-z,y];
+    const b=bendPoints(ps.map(rot),{...p,wholePlane:90});
+    for(let i=0;i<ps.length;i++)for(let k=0;k<3;k++)near(b[i][k],rot(a[i])[k]);
+    const c=bendPoints(ps,{...p,wholePlane:360});for(let i=0;i<ps.length;i++)for(let k=0;k<3;k++)near(c[i][k],a[i][k]);
+    assert.notDeepEqual(a,bendPoints(ps,{...p,wholeAngle:-110}));
+  }
+});
+test('whole bending rotates complete cross-sections rigidly without modifying inputs or strand identities',()=>{
+  const raw=raw3({behavior:'Split and return',style:'Fan',stem:'Straight',tipVar:0,release:30,rejoin:70}),before=structuredClone(raw);
+  for(const wholeBend of ['Arc','S-curve']){
+    const f=frame3({wholeBend,wholeAngle:140,wholePlane:55}),b=D._bendWhole3D(raw,f);
+    assert.equal(b.length,raw.length);assert.equal(b[0].pts.length,raw[0].pts.length);
+    for(let i=1;i<raw.length;i+=7)for(let j=0;j<raw[i].pts.length;j+=13){
+      const dist=ps=>Math.hypot(...ps[i].pts[j].map((x,k)=>x-ps[0].pts[j][k]));near(dist(b),dist(raw));
+    }
+    assert.deepEqual(b.map(p=>[p.layer,p.ts,p.closed]),raw.map(p=>[p.layer,p.ts,p.closed]));
+  }
+  assert.deepEqual(raw,before);assert.equal(D._bendWhole3D(raw,frame3({wholeBend:'Off'})),raw);
+});
+test('whole deformation composes with existing independently bent ends and cuts',()=>{
+  const p={wholeBend:'Arc',wholeAngle:130,wholePlane:40,behavior:'Split and return',release:30,rejoin:70,startTurn:-70,startLift:30,endTurn:80,endLift:-40,startCut:-50,endCut:60},f=frame3(p),raw=D._bundle3D(f,0);
+  D._cutEnds(raw,f.startCut,f.endCut);const steered=D._steer3D(raw,f),both=D._bendWhole3D(steered,f),whole=D._bendWhole3D(raw,f);
+  for(let i=0;i<raw.length;i++){
+    assert.notDeepEqual(both[i].pts[0],whole[i].pts[0]);assert.notDeepEqual(both[i].pts.at(-1),whole[i].pts.at(-1));
+    for(let j=0;j<raw[i].pts.length;j++)if(raw[i].ts[j]>=f.release&&raw[i].ts[j]<=f.rejoin){assert.deepEqual(both[i].pts[j],whole[i].pts[j]);assert.notDeepEqual(both[i].pts[j],raw[i].pts[j]);}
+  }
+  assert.notDeepEqual(run({...p,dimension:'3D'}),run({...p,dimension:'3D',wholeBend:'Off'}));
+});
+test('whole bend modes retain bounded XY geometry, every coloured strand and stable full-roll framing',()=>{
+  for(const wholeBend of ['Arc','S-curve'])for(const behavior of ['Fray end','Split and return'])for(const style of ['Fan','Flow','Wander','Tangle']){
+    const p={dimension:'3D',wholeBend,wholeAngle:180,wholePlane:65,behavior,style,startTurn:140,startLift:75,endTurn:-150,endLift:-80,startCut:60,endCut:-65,colourMode:'By number',strandNumbers:'2,7',accentPen:5},o=run(p);valid(o);
+    assert.equal(o[0].paths.length,frame3(p).lines);assert.equal(coloured(o,5).length,2);assert.ok(o[0].paths.every(p=>p.pts.every(v=>v.length===2)));
+    const f=frame3(p),raw=D._bundle3D(f,0),a=D._project3D(structuredClone(raw),f,0),b=D._project3D(structuredClone(raw),{...f,axisRotation:2.1},0);near(a.fit,b.fit);
+    assert.deepEqual(geometry(o),geometry(run({...p,colourMode:'Off'})));
+  }
+  const p={dimension:'3D',wholeBend:'S-curve',wholeAngle:-180,wholePlane:210,nib:.05,width:60,overlap:80,count:6,detail:320,length:30,spread:180,style:'Tangle',startTurn:180,endTurn:-180};valid(run(p),ctx,15,.05);
+});
+test('whole bend inactive controls are hidden and inert, and tiny/nonfinite angles remain finite',()=>{
+  for(const p of [{dimension:'2D',wholeBend:'Arc'},{dimension:'3D',wholeBend:'Off'},{dimension:'3D',wholeBend:'Arc',wholeAngle:0}]){
+    const a={...defaults,...p},out=D.compute([],a,ctx);for(const q of D.params)if(q.showIf&&!q.showIf(a))assert.deepEqual(run({...a,[q.key]:q.max??'S-curve'}),out,q.key);
+  }
+  for(const wholeBend of ['Arc','S-curve']){
+    for(const wholeAngle of [1e-10,-1e-10,NaN,Infinity])valid(run({dimension:'3D',wholeBend,wholeAngle,wholePlane:NaN}));
+    const a=bendPoints([[0,2,3],[100,4,5],[200,6,7]],{wholeBend,wholeAngle:1e-10,length:200});
+    for(let i=0;i<a.length;i++)for(let k=0;k<3;k++)near(a[i][k],[[0,2,3],[100,4,5],[200,6,7]][i][k]);
+  }
+});
 console.log(`Strand Bundle: ${checks} geometry/contract cases passed (${lab?'prototype':'built-in'}).`);

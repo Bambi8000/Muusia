@@ -14,15 +14,16 @@
     "version": "2.141",
     "date": "2026-10-24",
     "baseCommit": "88c110f9351c930388b8d3234f1925ed496f514f",
-    "branch": "codex/strand-bundle-3d",
+    "branch": "codex/strand-bundle-whole-bend",
     "worktree": "/Users/daniel/.codex/worktrees/frayed-bundles/plotter-patcher",
     "published": false,
-    "status": "local review; no publication requested",
+    "status": "local review; whole-body bending added; no publication requested",
     "snapshot": "/private/tmp/muusia-project-files-2.141",
     "moduleCount": 341,
     "registryCount": 343,
-    "validation": "49 focused cases, 140 Help graphs, four real built-in Help loads, three full SVGs, two complete G-codes, actual 24-frame SVG ZIP all matched to App evaluation, Save/reload, ordered gate 37913 checks / 90 English pages.",
-    "note": "User clarified independent stem-end bending. True XYZ geometry projected to XY only. Primary unrelated work preserved; no physical machine run or Claude web upload."
+    "validation": "57 focused cases, 142 Help graphs, two additional real built-in Help loads, two complete SVGs and one complete G-code matched to App evaluation, Save/reload, ordered gate 37913 checks / 90 English pages.",
+    "note": "Whole bend Off/Arc/S-curve curves the complete 3D bundle, retaining independent end steering. Off and zero angle preserve prior 3D bytes. Earlier 3D export/24-frame proofs are retained. No physical machine run or Claude web upload.",
+    "followupBaseCommit": "1f032ed6b37fdbf22352ba1015b43389563738ac"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

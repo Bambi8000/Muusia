@@ -265,7 +265,7 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
-### 2.141 — 2026-10-24 · Strand Bundle 3D and independently bent ends (local)
+### 2.141 — 2026-10-24 · Strand Bundle 3D, whole-body and independent end bends (local)
 
 Based on published `88c110f9351c930388b8d3234f1925ed496f514f`, branch
 `codex/strand-bundle-3d`. Space defaults to 2D, retaining the frozen published
@@ -291,7 +291,7 @@ unchanged. No engine/helper/machine/exporter changes. Outputs contain only XY;
 fully collapsed end-on fibres become tiny XY end marks. Paper narrower than the
 nib plus end-mark padding returns empty before fitting, preventing negative fit.
 
-49 focused cases pass: true noncoplanar geometry and all radial directions,
+Initial 3D pass: 49 focused cases cover true noncoplanar geometry and all radial directions,
 circumferential density, camera poles, complete return, fixed roll scale/centre,
 360° closure, cuts, colour identity, dense budgets, independent end steering,
 rigid endpoint sections, unchanged interior joins, aligned cut times and narrow
@@ -312,6 +312,33 @@ artifact directory. Local review only; publication has not been requested for
 this change. Refresh `/private/tmp/muusia-project-files-2.141` after commit;
 no Claude web upload is implied. Primary unrelated work and user Chrome patches
 are preserved. Source count remains 341 modules / 343 entries, 216 generators.
+
+Follow-up in the same unpublished release, based on `1f032ed6b37fdbf22352ba1015b43389563738ac`,
+branch `codex/strand-bundle-whole-bend`: Daniel wants the complete bundle to bend,
+retaining the independent end option. Whole bend adds Off / Arc / S-curve in 3D.
+Bend angle controls signed curvature; Bend plane rotates its direction around X.
+The circular mapping rotates each longitudinal section with the centreline;
+S-curve reverses curvature continuously at the midpoint. All sampled points,
+including the loose middle, are deformed. Cuts and existing Start/End steering
+happen first, then whole bending, then axial roll and projection. Both the uncut
+envelope and retained cut geometry receive the deformation before framing.
+Off and zero angle are exact identity; frozen pre-change 3D output hashes cover
+both default and cut/steered/coloured patches. No engine or exporter changes.
+
+The expanded validator passes 57 cases, adding analytical circles, S symmetry
+and midpoint tangents, bend-plane rotation, rigid sections, complete-body motion,
+composition with ends/cuts, tiny/nonfinite angles, inactive controls, dense bounds,
+colour identities and fixed roll scale. All 142 Help graphs pass. Two new real
+Help loads: 3D whole bend (121 paths / 26741 points, zero end bends) and 3D whole
+bend + ends (121 / 26129). Both actual SVGs match full App graph evaluation
+byte-for-byte; the combined G-code matches every coordinate, pen-up travel and
+one manual pen change, with no machine Z. Actual Save/reload retains S-curve,
+160° bend, 20° plane and both independent end directions, no custom nodes.
+Ordered catalog → build → Learn gate remains green, 37913 checks / 90 English
+pages. Two patches, software-check variants, two actual SVGs, combined G-code,
+Save/reload proof, two real screenshots and verification are in this chat's
+`strand-bundle-whole-bend/` artifact directory. Publication still not requested;
+keep version 2.141 local and refresh its Claude snapshot after the final commit.
 
 ### 2.140 — 2026-10-24 · Strand Bundle colour selection
 
