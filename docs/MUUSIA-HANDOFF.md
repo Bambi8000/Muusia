@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **339 files** (341 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **341 files** (343 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 214, Modifiers 87). ESM format:
+  Generators 216, Modifiers 87). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -264,6 +264,54 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+
+### 2.141 — 2026-10-24 · Strand Bundle 3D and independently bent ends (local)
+
+Based on published `88c110f9351c930388b8d3234f1925ed496f514f`, branch
+`codex/strand-bundle-3d`. Space defaults to 2D, retaining the frozen published
+geometry. In 3D, fibres start around a circular core and spread in real XYZ.
+Circumferential nib spacing plans the extra strands; the same 110k-point budget
+uniformly lowers samples and narrows cores when necessary. Fan opens radially,
+Flow twists an ordered cyclic set, Wander/Tangle deviate independently in depth.
+Axis rotation rolls around object X; View angle/elevation define an orthographic
+camera, and existing Angle rotates the page. A cylinder around untrimmed and
+retained steered geometry fixes the fit and centre for every roll angle. Camera
+changes can alter fitting. Rendering is a transparent wire view of all strands;
+there is no hidden-line or surface output. Numeric Core pitch is circumferential
+in 3D, Core width includes the physical nib. Colour numbers run around the core.
+
+Daniel clarified that the extra end-angle request means bending the stem ends,
+not just tilting cut planes. Start turn/lift and End turn/lift independently steer
+the two end sections with rigid section rotations and quintic blends. Start
+blends to zero at Release; packed End starts after Rejoin. Fray end bends the
+final 30% of each individual free tail. Cuts are applied before steering; XYZ cut
+interpolation carries aligned longitudinal time stations. Zero end directions
+are identity. Cut helper is shared with 2D and its exact default output remains
+unchanged. No engine/helper/machine/exporter changes. Outputs contain only XY;
+fully collapsed end-on fibres become tiny XY end marks. Paper narrower than the
+nib plus end-mark padding returns empty before fitting, preventing negative fit.
+
+49 focused cases pass: true noncoplanar geometry and all radial directions,
+circumferential density, camera poles, complete return, fixed roll scale/centre,
+360° closure, cuts, colour identity, dense budgets, independent end steering,
+rigid endpoint sections, unchanged interior joins, aligned cut times and narrow
+paper. All 140 Help graphs pass. Four actual built-in Help loads: 3D radial fan
+(100 paths / 20472 points), 3D tangled return (121 / 25871), 3D bent ends
+(121 / 26129), and 3D axial rotation (121 / 25871). Three actual SVGs match full
+App evaluation byte-for-byte; two complete G-codes match every XY coordinate,
+pen-up travel, one manual colour change and absence of machine-Z moves. Actual
+Frame rot degrees → Axis rotation SVG ZIP: all 24 frames match complete graph
+evaluation, with 24 distinct views. Save/reload retains Space and all end bends,
+with zero embedded custom definitions. Software-only 450×650 mm servo profile,
+Optimize off for coordinate checks, no machine connection or physical run.
+
+English Help, catalog and source bundle updated; ordered catalog → build → Learn
+gate passes 37913 checks / 90 English pages. Four patches, screenshots, three SVGs,
+two G-codes, 24-frame ZIP and verification are in this chat's `strand-bundle-3d/`
+artifact directory. Local review only; publication has not been requested for
+this change. Refresh `/private/tmp/muusia-project-files-2.141` after commit;
+no Claude web upload is implied. Primary unrelated work and user Chrome patches
+are preserved. Source count remains 341 modules / 343 entries, 216 generators.
 
 ### 2.140 — 2026-10-24 · Strand Bundle colour selection
 

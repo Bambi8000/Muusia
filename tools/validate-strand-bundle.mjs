@@ -138,4 +138,106 @@ test('colour selection handles single-strand, dense and invalid numeric cases wi
     const o=run(p);valid(o,ctx,15,p.nib??.5);assert.deepEqual(geometry(o),geometry(run({...p,colourMode:'Off'})));
   }
 });
+const frame3=p=>D._frame({...defaults,dimension:'3D',...p},ctx);
+const raw3=p=>D._bundle3D(frame3(p),0);
+test('3D creates noncoplanar geometry and free tips in every radial direction',()=>{
+  const p={...straight,dimension:'3D',length:150,width:12,spread:80},f=frame3(p),b=raw3(p),ends=b.map(p=>p.pts.at(-1));
+  assert.ok(ends.some(p=>p[1]>30)&&ends.some(p=>p[1]<-30)&&ends.some(p=>p[2]>30)&&ends.some(p=>p[2]<-30));
+  const a=b[0].pts[0],q=b[Math.floor(f.lines/4)].pts[0],r=b[Math.floor(f.lines/2)].pts[0],t=ends[0];
+  const v=q.map((x,k)=>x-a[k]),w=r.map((x,k)=>x-a[k]),z=t.map((x,k)=>x-a[k]);
+  assert.ok(Math.abs((v[1]*w[2]-v[2]*w[1])*z[0]+(v[2]*w[0]-v[0]*w[2])*z[1]+(v[0]*w[1]-v[1]*w[0])*z[2])>100);
+});
+test('3D cylindrical core respects nib pitch around its full circumference',()=>{
+  for(const nib of [.2,.5,1])for(const overlap of [0,40,80]){
+    const f=frame3({nib,overlap,width:12});near(f.pitch,Math.PI*f.span/f.lines);assert.ok(f.pitch<=nib*(1-overlap/100)+1e-9);
+    assert.ok(f.lines>=Math.ceil(Math.PI*(12-nib)/(nib*(1-overlap/100))));
+  }
+});
+test('3D projects every style, behavior and camera to bounded XY-only paths',()=>{
+  for(const behavior of ['Fray end','Split and return'])for(const style of ['Fan','Flow','Wander','Tangle'])for(const [viewAz,viewEl] of [[0,0],[70,20],[90,90],[-180,-90]]){
+    const o=run({dimension:'3D',behavior,style,viewAz,viewEl,startCut:45,endCut:-30});valid(o);
+    assert.ok(o[0].paths.every(p=>p.pts.every(v=>v.length===2)),'no machine-Z components');
+  }
+});
+test('3D return rejoins the same complete cylindrical core in Y and Z',()=>{
+  for(const style of ['Fan','Flow','Wander','Tangle']){
+    const p={behavior:'Split and return',style,stem:'Meander',release:30,rejoin:80,tipVar:0};
+    const a=raw3(p),b=raw3({...p,spread:0});
+    for(let i=0;i<a.length;i++)for(let k=0;k<a[i].pts.length;k++){
+      const x=b[i].pts[k][0];if(x<=200*.3+1e-8||x>=200*.8-1e-8)for(let j=0;j<3;j++)near(a[i].pts[k][j],b[i].pts[k][j]);
+    }
+  }
+});
+test('3D own-axis roll rotates a fixed object without changing zoom or framing centre',()=>{
+  const p={dimension:'3D',stem:'Straight',style:'Wander',tipVar:0,angle:0,viewAz:70,viewEl:20};
+  const f=frame3(p),raw=raw3(p),o0=D._project3D(structuredClone(raw),f,0),f180={...f,axisRotation:Math.PI},o180=D._project3D(structuredClone(raw),f180,0);
+  near(o0.fit,o180.fit);const xs=raw.flatMap(p=>p.pts.map(v=>v[0])),mid=(Math.min(...xs)+Math.max(...xs))/2;
+  for(let i=0;i<raw.length;i++)for(const k of [0,Math.floor(raw[i].pts.length/2),raw[i].pts.length-1]){
+    const x=raw[i].pts[k][0]-mid;
+    near(o0.paths[i].pts[k][0]+o180.paths[i].pts[k][0],2*(ctx.W/2+Math.sin(f.viewAz)*x*o0.fit));
+    near(o0.paths[i].pts[k][1]+o180.paths[i].pts[k][1],2*(ctx.H/2+Math.sin(f.viewEl)*Math.cos(f.viewAz)*x*o0.fit));
+  }
+  assert.notDeepEqual(o0.paths,o180.paths);
+  for(const axisRotation of [0,45,90,180,270,360])near(D._project3D(structuredClone(raw),{...f,axisRotation:axisRotation*Math.PI/180},0).fit,o0.fit);
+});
+test('a full 3D revolution closes exactly within numerical precision and camera changes the projected view',()=>{
+  const p={dimension:'3D',behavior:'Split and return',axisRotation:0},a=run(p),b=run({...p,axisRotation:360});
+  assert.equal(a[0].paths.length,b[0].paths.length);for(let i=0;i<a[0].paths.length;i++)for(let k=0;k<a[0].paths[i].pts.length;k++)for(let j=0;j<2;j++)near(a[0].paths[i].pts[k][j],b[0].paths[i].pts[k][j]);
+  assert.notDeepEqual(a,run({...p,axisRotation:45}));assert.notDeepEqual(a,run({...p,viewAz:25}));assert.notDeepEqual(a,run({...p,viewEl:-35}));
+});
+test('3D start and end cuts trim XYZ polylines on exact object-space planes',()=>{
+  const f=frame3({...straight,behavior:'Split and return',length:400,width:20,release:30,rejoin:70,startCut:-50,endCut:55}),b=D._bundle3D(f,0);
+  D._cutEnds(b,f.startCut,f.endCut);
+  for(const [start,angle] of [[true,f.startCut],[false,f.endCut]]){const endpoints=b.map(p=>start?p.pts[0]:p.pts.at(-1)),s=Math.tan(angle),c=endpoints[0][0]-s*endpoints[0][1];for(const v of endpoints){near(v[0]-s*v[1],c);assert.equal(v.length,3);}}
+});
+test('3D preserves colour identities, styles, all bundles and the dense point budget',()=>{
+  for(const p of [{count:6,layout:'Rows',startCut:75,endCut:-75},{count:6,nib:.05,overlap:80,width:60,detail:320,length:2000,style:'Tangle'}]){
+    const args={...p,dimension:'3D',colourMode:'By number',strandNumbers:'2, 7',accentPen:5},o=run(args);valid(o,ctx,15,p.nib??.5);
+    assert.deepEqual(geometry(o),geometry(run({...args,colourMode:'Off'})));assert.equal(coloured(o,5).length,2*p.count);
+    assert.equal(o[0].paths.length,frame3(p).lines*p.count);
+  }
+  const p={dimension:'3D',colourMode:'By number',strandNumbers:'1',accentPen:5},style={kind:'style',mode:'Dashed',dash:2,gap:1,vary:0,phase:0,seed:1};
+  const o=run(p,ctx,[style]);assert.ok(o[0].paths.some(p=>p.layer===5)&&o[0].paths.some(p=>p.layer===0));assert.ok(o[0].paths.every(p=>p.pts.every(v=>v.length===2)));
+});
+test('3D end-on collapsed strands become small XY end marks within physical margins',()=>{
+  const p={dimension:'3D',stem:'Straight',spread:0,style:'Fan',viewAz:0,viewEl:0,angle:0},o=run(p);valid(o);
+  for(const path of o[0].paths){assert.equal(path.pts.length,2);assert.ok(H.pathLength(path.pts,false)>.01);}
+});
+test('3D ignores inactive controls and clamps nonfinite camera wires safely',()=>{
+  for(const dimension of ['2D','3D'])for(const style of ['Fan','Tangle']){
+    const p={...defaults,dimension,style},a=D.compute([],p,ctx);for(const q of D.params)if(q.showIf&&!q.showIf(p))assert.deepEqual(D.compute([],{...p,[q.key]:q.max??'Rows'},ctx),a,q.key);
+  }
+  valid(run({dimension:'3D',axisRotation:Infinity,viewAz:NaN,viewEl:-999}));
+});
+test('3D end directions are independent rigid rotations and zero angles are identity',()=>{
+  const p={dimension:'3D',behavior:'Split and return',stem:'Straight',style:'Fan',tipVar:0,release:30,rejoin:70,length:200};
+  const f=frame3(p),raw=D._bundle3D(f,0);assert.equal(D._steer3D(raw,f),raw);
+  const start=D._steer3D(raw,{...f,startTurn:Math.PI/3,startLift:Math.PI/6}),end=D._steer3D(raw,{...f,endTurn:-Math.PI/4,endLift:-Math.PI/6});
+  const both=D._steer3D(raw,{...f,startTurn:Math.PI/3,startLift:Math.PI/6,endTurn:-Math.PI/4,endLift:-Math.PI/6});
+  for(let i=0;i<raw.length;i++){
+    assert.deepEqual(start[i].pts.at(-1),raw[i].pts.at(-1));assert.deepEqual(end[i].pts[0],raw[i].pts[0]);
+    assert.deepEqual(both[i].pts[0],start[i].pts[0]);assert.deepEqual(both[i].pts.at(-1),end[i].pts.at(-1));
+    for(let k=0;k<raw[i].pts.length;k++)if(raw[i].ts[k]>=f.release&&raw[i].ts[k]<=f.rejoin)assert.deepEqual(both[i].pts[k],raw[i].pts[k]);
+    if(i){for(const endpoint of [0,-1])near(Math.hypot(...both[i].pts.at(endpoint).map((v,k)=>v-both[i-1].pts.at(endpoint)[k])),Math.hypot(...raw[i].pts.at(endpoint).map((v,k)=>v-raw[i-1].pts.at(endpoint)[k])));}
+  }
+  const v=raw[0].pts[0].map((x,k)=>x-raw[0].startPivot[k]),cp=Math.cos(Math.PI/6),sp=Math.sin(Math.PI/6),cy=.5,sy=Math.sin(Math.PI/3),x=v[0]*cp-v[2]*sp,z=v[2]*cp+v[0]*sp;
+  const expected=[raw[0].startPivot[0]+x*cy-v[1]*sy,raw[0].startPivot[1]+x*sy+v[1]*cy,raw[0].startPivot[2]+z];
+  for(let k=0;k<3;k++)near(start[0].pts[0][k],expected[k]);
+});
+test('3D cut interpolation retains time stations before independently bending both ends',()=>{
+  const f=frame3({behavior:'Split and return',startCut:65,endCut:-60,startTurn:75,startLift:-35,endTurn:-80,endLift:40}),raw=D._bundle3D(f,0);
+  D._cutEnds(raw,f.startCut,f.endCut);const bent=D._steer3D(raw,f);
+  for(let i=0;i<raw.length;i++){
+    assert.equal(raw[i].pts.length,raw[i].ts.length);assert.ok(raw[i].ts[0]>=0&&raw[i].ts.at(-1)<=raw[i].endT);
+    assert.ok(raw[i].ts.every((t,k)=>!k||t>=raw[i].ts[k-1]));assert.ok(bent[i].pts.every(v=>v.length===3&&v.every(Number.isFinite)));
+  }
+});
+test('bent 3D ends stay bounded, retain every strand and keep roll framing stable',()=>{
+  for(const behavior of ['Fray end','Split and return'])for(const style of ['Fan','Flow','Wander','Tangle']){
+    const p={dimension:'3D',behavior,style,startTurn:150,startLift:80,endTurn:-160,endLift:-85,startCut:-70,endCut:65,tipVar:60};valid(run(p));
+    const f=frame3(p),raw=D._bundle3D(f,0),a=D._project3D(structuredClone(raw),f,0),b=D._project3D(structuredClone(raw),{...f,axisRotation:2},0);near(a.fit,b.fit);
+  }
+  const p={dimension:'3D',nib:.05,width:60,overlap:80,count:6,detail:320,startTurn:180,endTurn:-180,startLift:90,endLift:-90,style:'Tangle'};valid(run(p),ctx,15,.05);
+});
+test('3D rejects paper cells too narrow for physical nib and end-mark padding',()=>{assert.deepEqual(run({dimension:'3D',nib:3},{W:33.04,H:100}),[H.EMPTY,0,0]);});
 console.log(`Strand Bundle: ${checks} geometry/contract cases passed (${lab?'prototype':'built-in'}).`);

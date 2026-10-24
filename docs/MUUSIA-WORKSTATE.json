@@ -2,28 +2,27 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.139",
-    "date": "2026-10-24",
-    "commit": "0103fb00d94500f94958cf010c561894eb6116c0",
-    "pagesRunId": 40102250556,
-    "url": "https://bambi8000.github.io/Muusia/",
-    "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified: exact-commit Pages success; public app v2.139; Angled ends \u00b7 A2 loaded and selected with length 520, Start cut -45, End cut 45, 80 paths / 16917 points; public screenshot saved"
-  },
-  "lastIntegration": {
     "version": "2.140",
     "date": "2026-10-24",
-    "baseCommit": "0103fb00d94500f94958cf010c561894eb6116c0",
-    "branch": "codex/strand-bundle-colours",
+    "commit": "88c110f9351c930388b8d3234f1925ed496f514f",
+    "pagesRunId": 40105665427,
+    "url": "https://bambi8000.github.io/Muusia/",
+    "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
+    "status": "verified: public v2.140; both built-in colour Help examples selected with 87 paths / 19314 points; actual public SVG has 86 black + 1 red, and 82 black + 5 red paths; public screenshot saved"
+  },
+  "lastIntegration": {
+    "version": "2.141",
+    "date": "2026-10-24",
+    "baseCommit": "88c110f9351c930388b8d3234f1925ed496f514f",
+    "branch": "codex/strand-bundle-3d",
     "worktree": "/Users/daniel/.codex/worktrees/frayed-bundles/plotter-patcher",
     "published": false,
-    "status": "publication authorized; tested implementation unchanged; exact-commit Pages verification follows push",
-    "snapshot": "/private/tmp/muusia-project-files-2.140",
+    "status": "local review; no publication requested",
+    "snapshot": "/private/tmp/muusia-project-files-2.141",
     "moduleCount": 341,
     "registryCount": 343,
-    "validation": "35 focused cases; 136 Help graphs; two actual browser SVGs match full App geometry; complete 2-pen G-code coordinate and pen-up checks; actual built-in Help, Save/reload; ordered gate passed 37913 checks / 90 English pages.",
-    "note": "Primary unrelated work preserved. User Chrome patch untouched. No hardware run or Claude web upload.",
-    "implementationCommit": "b3d9998903222575be9470ac7ab97595e2e411ad"
+    "validation": "49 focused cases, 140 Help graphs, four real built-in Help loads, three full SVGs, two complete G-codes, actual 24-frame SVG ZIP all matched to App evaluation, Save/reload, ordered gate 37913 checks / 90 English pages.",
+    "note": "User clarified independent stem-end bending. True XYZ geometry projected to XY only. Primary unrelated work preserved; no physical machine run or Claude web upload."
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
