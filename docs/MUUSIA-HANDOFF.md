@@ -265,6 +265,44 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
+### 2.139 — 2026-10-24 · Strand Bundle length and angled ends
+
+Based on published `091e5e7faf5ce393ae1ce955deba040253bc0a93`, branch
+`codex/strand-bundle-cuts` in the same managed worktree. Daniel reported that
+Strand Bundle stopped growing above 400 mm and requested independently angled
+ends. The actual Chrome patch had A3 landscape, Length 403 and a custom slider
+maximum of 600: the compute clamp silently kept the geometry at 400. Both the
+standard slider range and compute limit now support 30–2000 mm. The existing
+shrink-only fit and physical nib margin still apply; a long requested length
+cannot exceed the selected paper. Existing custom slider ranges remain intact.
+
+Start cut ° and End cut ° independently trim against straight planes in the
+unrotated stem frame, before whole-design rotation. Both default to zero, retaining
+the exact published geometry and free tip variation. With a cut enabled, clipping
+keeps the connected strand containing its protected release/rejoin station;
+disconnected offcuts are discarded, never emitted as extra fragments or pen lifts.
+Steep effective angles are reduced when necessary to protect the loose zone and
+retain every strand. End cuts also work on variable free tips. Fractional rejoin
+stations use a position tolerance to account for shared-grid deduplication. No
+engine/helper/exporter/machine changes. An English Help example, Angled ends · A2,
+uses a real 520 mm length, 24 mm core, Flow, and independent −45° / +45° cuts.
+
+27 focused geometry/contract cases pass, including the frozen published default
+hash, actual lengths 403/650/1189/2000 on ample paper, analytical signed end planes,
+free tips, all styles/stems/behaviors, clamped fractional rejoin, physical nib
+pitch, short/steep/dense budgets and continuous complete strands. All 134 Help
+graphs pass. Actual built-in UI loaded the user's parameters in an isolated local
+copy (500 mm, A3, ±45°, margin 10): 87 paths / 18600 points. The actual SVG matches
+the complete App evaluator byte-for-byte; every G-code coordinate matches within
+0.005001 mm, with pen-up travel and one root travel per strand. Software-only
+450×650 mm profile, origin 0/0, Flip Y and Optimize off; no physical machine run.
+Actual new Help example selected: 80 paths / 16917 points; built-in Save embeds
+zero custom definitions. User's live Chrome patch was preserved. Proof artifacts:
+`strand-bundle-cuts/` in this chat's visualization directory. Ordered catalog →
+build → Learn gate passes 37913 checks / 90 English pages. Daniel authorized publication on 2026-10-24 after the local checks. Verify the
+exact-commit Pages deployment and public Help example after pushing. Refresh the
+local Claude snapshot after commit; do not claim a Claude web upload.
+
 ### 2.138 — 2026-10-24 · Strand Bundle
 
 Based on published `88b2d7237d4276c71e481e4ece025df173fc7918`, implemented on

@@ -5,7 +5,7 @@ export default {
   name: "Strand Bundle",
   cat: "gen",
   group: "organic",
-  desc: "Dense pen-line bundles that fray into individual threads or open and return as a ribbon. Fan and Flow keep a tidy ordered set; Wander drifts and Tangle adds looping, crossing paths. Fray end releases the tips; Split and return brings every strand back into the same packed stem. Stem can be Straight, Sine or seeded Meander, independently of thread motion. Pen width and Ink overlap plan centreline spacing: use your actual drawn line width for a solid dark stem. Preview and SVG use Muusia's standard display stroke, not the selected physical nib. Each strand is one continuous open pen stroke. Complete bundles only shrink to fit their cells, making the physical pitch denser rather than wider. Very dense jobs first reduce curve samples, then narrow all cores equally to preserve every bundle and physical pitch; numeric outputs show maximum core pitch and minimum core width used. A wired dashed Style deliberately breaks the solid stem. Keep Seed fixed for repeatable paths.",
+  desc: "Dense pen-line bundles that fray into individual threads or open and return as a ribbon. Fan and Flow keep a tidy ordered set; Wander drifts and Tangle adds looping, crossing paths. Fray end releases the tips; Split and return brings every strand back into the same packed stem. Stem can be Straight, Sine or seeded Meander, independently of thread motion. Pen width and Ink overlap plan centreline spacing: use your actual drawn line width for a solid dark stem. Preview and SVG use Muusia's standard display stroke, not the selected physical nib. Each strand is one continuous open pen stroke. Length accepts 30–2000 mm before paper fitting. Start cut and End cut tilt independent straight trimming planes in the stem frame; zero preserves the original ends and tip variation. Positive angles move the cutting plane toward the far end as you move across the bundle. Cuts protect the release/rejoin region; extreme angles are reduced when the available end length is too short. Curved or looping offcuts are discarded so each strand stays connected. Complete bundles only shrink to fit their cells, making the physical pitch denser rather than wider. Very dense jobs first reduce curve samples, then narrow all cores equally to preserve every bundle and physical pitch; numeric outputs show maximum core pitch and minimum core width used. A wired dashed Style deliberately breaks the solid stem. Keep Seed fixed for repeatable paths.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths", "Drawing"),Pin("value", "Core pitch mm"),Pin("value", "Core width mm")],
   params: [
@@ -14,7 +14,9 @@ export default {
     {key:"nib",label:"Pen width mm",type:"slider",min:0.05,max:3,step:0.05,def:0.5},
     {key:"overlap",label:"Ink overlap %",type:"slider",min:0,max:80,step:1,def:40},
     {key:"width",label:"Bundle width mm",type:"slider",min:1,max:60,step:0.5,def:12},
-    {key:"length",label:"Length mm",type:"slider",min:30,max:400,step:1,def:200},
+    {key:"length",label:"Length mm",type:"slider",min:30,max:2000,step:1,def:200},
+    {key:"startCut",label:"Start cut °",type:"slider",min:-75,max:75,step:1,def:0},
+    {key:"endCut",label:"End cut °",type:"slider",min:-75,max:75,step:1,def:0},
     {key:"release",label:"Release at %",type:"slider",min:10,max:80,step:1,def:48},
     {key:"rejoin",label:"Rejoin at %",type:"slider",min:25,max:95,step:1,def:85,showIf:p=>p.behavior==="Split and return"},
     {key:"spread",label:"Spread mm",type:"slider",min:0,max:180,step:1,def:90},
@@ -54,7 +56,8 @@ export default {
     const style=['Fan','Flow','Wander','Tangle'].includes(p.style)?p.style:'Wander';
     const stem=['Straight','Sine','Meander'].includes(p.stem)?p.stem:'Sine';
     return {W,H,m,nib,count,rows,cellW,cellH,lines,span,pitch,steps,behavior,style,stem,
-      length:num('length',200,30,400),release:num('release',48,10,80)/100,
+      startCut:num('startCut',0,-75,75)*Math.PI/180,endCut:num('endCut',0,-75,75)*Math.PI/180,
+      length:num('length',200,30,2000),release:num('release',48,10,80)/100,
       rejoin:Math.min(.95,Math.max(num('release',48,10,80)/100+.1,num('rejoin',85,25,95)/100)),
       spread:num('spread',90,0,180),chaos:['Wander','Tangle'].includes(style)?num('chaos',65,0,100)/100:0,
       threadCycles:style==='Fan'?0:num('threadCycles',2.2,.5,6),tipVar:behavior==='Fray end'?num('tipVar',25,0,65)/100:0,
@@ -90,14 +93,53 @@ export default {
             x+=f.spread*E*f.chaos*.36*Math.sin(TAU*f.threadCycles*rate*u+a);
             y+=f.spread*E*f.chaos*(.43*Math.cos(TAU*f.threadCycles*rate*u+a)+.17*Math.sin(TAU*f.threadCycles*1.7*u+c));
           }
-          return [x*ca-y*sa,x*sa+y*ca];
+          return [x,y];
         };
         // A shared longitudinal grid plus exact release/rejoin stations retains C1 joins.
         const ts=[];for(let k=0;k<=Math.floor(end*f.steps);k++)ts.push(k/f.steps);
         ts.push(end);if(f.release<end)ts.push(f.release);if(f.behavior==='Split and return')ts.push(f.rejoin);
         ts.sort((a,b)=>a-b);const pts=[];
-        for(let k=0;k<ts.length;k++){if(k&&Math.abs(ts[k]-ts[k-1])<1e-10)continue;const v=point(ts[k]);pts.push(v);x0=Math.min(x0,v[0]);x1=Math.max(x1,v[0]);y0=Math.min(y0,v[1]);y1=Math.max(y1,v[1]);}
-        bundle.push({pts,closed:false,layer:f.layer});
+        for(let k=0;k<ts.length;k++){if(k&&Math.abs(ts[k]-ts[k-1])<1e-10)continue;const v=point(ts[k]);pts.push(v);}
+        bundle.push({pts,closed:false,layer:f.layer,
+          startAnchor:point(f.release),endAnchor:point(f.behavior==='Split and return'?f.rejoin:f.release)});
+      }
+      // Cut in the unrotated stem frame. Protect release/rejoin stations so a
+      // steep cut never erases the loose zone or splits a strand into fragments.
+      for(const [angle,start] of [[f.startCut,true],[f.endCut,false]]){
+        if(angle===0)continue; // Old patches retain their exact points and tip variation.
+        const requested=Math.tan(angle),anchorKey=start?'startAnchor':'endAnchor';
+        const projection=(v,slope)=>v[0]-slope*v[1];
+        const limits=slope=>{
+          let tip=start?-Infinity:Infinity,anchor=start?Infinity:-Infinity;
+          for(const path of bundle){
+            const a=projection(path[anchorKey],slope),e=projection(start?path.pts[0]:path.pts.at(-1),slope);
+            tip=start?Math.max(tip,e):Math.min(tip,e);
+            anchor=start?Math.min(anchor,a):Math.max(anchor,a);
+          }
+          return {tip,room:start?anchor-tip:tip-anchor};
+        };
+        // Limit the effective angle only if there is insufficient end length.
+        let scale=1;
+        if(limits(requested).room<1e-6){let lo=0,hi=1;for(let k=0;k<40;k++){const mid=(lo+hi)/2;if(limits(requested*mid).room>=1e-6)lo=mid;else hi=mid;}scale=lo;}
+        const slope=requested*scale,cut=limits(slope).tip;
+        for(const path of bundle){
+          const ps=path.pts,anchor=path[anchorKey];
+          const at=ps.findIndex(v=>Math.hypot(v[0]-anchor[0],v[1]-anchor[1])<1e-6);
+          if(at<0)continue;
+          const distance=v=>(projection(v,slope)-cut)*(start?1:-1);
+          // Keep the connected stroke containing the protected station. Linear
+          // interpolation places its new endpoint exactly on the cutting plane.
+          for(let j=at;start?j>0:j<ps.length-1;start?j--:j++){
+            const k=j+(start?-1:1),a=ps[j],z=ps[k],da=distance(a),dz=distance(z);
+            if(dz < -1e-9){const t=Math.max(0,Math.min(1,da/(da-dz))),v=[a[0]+(z[0]-a[0])*t,a[1]+(z[1]-a[1])*t];
+              path.pts=start?(t<1e-12?ps.slice(j):[v,...ps.slice(j)]):(t<1e-12?ps.slice(0,j+1):[...ps.slice(0,j+1),v]);break;}
+          }
+        }
+      }
+      for(const path of bundle){
+        path.pts=path.pts.map(([x,y])=>[x*ca-y*sa,x*sa+y*ca]);
+        delete path.startAnchor;delete path.endAnchor;
+        for(const v of path.pts){x0=Math.min(x0,v[0]);x1=Math.max(x1,v[0]);y0=Math.min(y0,v[1]);y1=Math.max(y1,v[1]);}
       }
       // Leave half a physical nib around every plotted centreline. Never enlarge pitch.
       const pad=f.nib/2,fit=Math.min(1,(f.cellW-2*pad)/Math.max(1e-9,x1-x0),(f.cellH-2*pad)/Math.max(1e-9,y1-y0));

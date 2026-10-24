@@ -1,27 +1,35 @@
 {
   "schemaVersion": 1,
   "active": [],
-  "lastIntegration": {
+  "lastPublished": {
     "version": "2.138",
     "date": "2026-10-24",
-    "baseCommit": "88b2d7237d4276c71e481e4ece025df173fc7918",
-    "branch": "codex/strand-bundle",
-    "worktree": "/Users/daniel/.codex/worktrees/frayed-bundles/plotter-patcher",
-    "published": false,
-    "status": "publication authorized; focused and ordered release gate passed; exact-commit Pages verification follows push",
-    "snapshot": "/private/tmp/muusia-project-files-2.138",
-    "moduleCount": 341,
-    "registryCount": 343,
-    "validation": "20 focused geometry/contract cases; all 133 Help graphs; actual Node import/bake/fresh built-in Help/Save; complete actual SVG/G-code comparisons for Neat fan and Tangled return; ordered shared gate passed 37913 checks / 90 English pages.",
-    "note": "Primary unrelated dirty work preserved. Managed worktree replaces prunable temporary checkout. No hardware run or Claude web upload."
-  },
-  "lastPublished": {
-    "version": "2.137",
-    "date": "2026-10-21",
-    "commit": "88b2d7237d4276c71e481e4ece025df173fc7918",
-    "pagesRunId": 39645364587,
+    "commit": "091e5e7faf5ce393ae1ce955deba040253bc0a93",
+    "pagesRunId": 40099753459,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified: exact-commit Pages build/deploy succeeded; public Muusia v2.137; both built-in Handwriting Help examples loaded and selected: Cursive 57 paths / 7349 points, Print 189 paths / 5856 points; actual public screenshot saved"
+    "status": "verified: exact-commit Pages build/deploy succeeded; public Muusia v2.138; all four built-in Strand Bundle Help examples loaded and selected: Neat fan 33/7293, Wandering ends 40/8115, Tangled return 33/7293, Ribbon return 33/7326 paths/points; actual public screenshot saved"
+  },
+  "lastIntegration": {
+    "version": "2.139",
+    "date": "2026-10-24",
+    "baseCommit": "091e5e7faf5ce393ae1ce955deba040253bc0a93",
+    "branch": "codex/strand-bundle-cuts",
+    "worktree": "/Users/daniel/.codex/worktrees/frayed-bundles/plotter-patcher",
+    "published": false,
+    "status": "publication authorized; all checks passed; exact-commit Pages verification follows push",
+    "snapshot": "/private/tmp/muusia-project-files-2.139",
+    "moduleCount": 341,
+    "registryCount": 343,
+    "validation": "27 focused cases; all 134 Help graphs; actual A3 SVG/G-code full coordinate equivalence; A2 Help and built-in Save verified; ordered gate 37913 Learn checks / 90 English pages.",
+    "note": "User Chrome graph unchanged; primary unrelated dirty work preserved. No hardware or Claude web upload."
+  },
+  "lastArtifact": {
+    "id": "multicolour-cell-warp-patches",
+    "date": "2026-10-21",
+    "baseCommit": "67c78d3a6beed699cd909961c7ed16956998d5b4",
+    "directory": "/Users/daniel/.codex/visualizations/2026/10/12/01a12f65-627a-7b73-a1f8-0b1dbf4558f7/multicolour-cell-warp",
+    "outcome": "Three built-in-node A3 multicolour examples with actual public-app SVG exports and screenshots. Shared Warp with Array and optional same-seed separate-branch registration drift. No source change or release.",
+    "checks": "All three patches loaded and final output selected in public Muusia 2.134; actual SVG exports checked for 3/4 pen groups, path counts and A3 dimensions; deterministic shared-Warp geometry and paper bounds checked."
   }
 }

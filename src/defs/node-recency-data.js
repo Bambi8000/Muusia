@@ -1447,8 +1447,8 @@ export const NODE_RECENCY = {
   },
   "strand_bundle": {
     "date": "2026-10-24",
-    "order": 99,
-    "sha256": "d82409c1b00e185b1cbde9f199e3583d384010930cde569b0f5f4cb2738c6ca3"
+    "order": 100,
+    "sha256": "7a8c91db901612231dc76e22d5412c7676e00e64d1d5b62be90c9db45793724b"
   },
   "stretch": {
     "date": "2026-07-22",

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {createHash} from 'node:crypto';
 import * as H from '../src/defs/helpers.js';
 const lab=process.argv.includes('--lab');
 const D=lab?Function(...Object.keys(H),'return '+fs.readFileSync('nodes-lab/strand_bundle.plotternode.js','utf8'))(...Object.values(H)):(await import('../src/defs/nodes/strand_bundle.js')).default;
@@ -31,4 +32,61 @@ test('a core narrower than the selected nib remains one continuous strand',()=>{
 test('hidden controls have no effect on inactive modes',()=>{for(const behavior of ['Fray end','Split and return'])for(const style of ['Fan','Flow','Wander','Tangle'])for(const stem of ['Straight','Sine']){const p={...defaults,behavior,style,stem},a=D.compute([],p,ctx);for(const q of D.params)if(q.showIf&&!q.showIf(p)){assert.deepEqual(D.compute([],{...p,[q.key]:q.max??'Rows'},ctx),a,q.key);}}});
 test('invalid paper and numeric wires remain bounded and deterministic',()=>{for(const c of [{W:NaN,H:297},{W:20,H:200},{W:200,H:20}])assert.deepEqual(run({},c),[H.EMPTY,0,0]);const p={count:999,nib:NaN,angle:Infinity,spread:1e10,width:Infinity,release:999,rejoin:-999,chaos:999,layer:99,detail:1e9};valid(run(p));assert.deepEqual(run(p),run(p));});
 test('Style processing preserves original parameters and valid pen indices',()=>{const p={...defaults,layer:7},before=JSON.stringify(p);const a=D.compute([],p,ctx),b=D.compute([{kind:'style',mode:'Dashed',dash:2,gap:1,vary:0,phase:0,seed:1}],p,ctx);assert.ok(b[0].paths.length>a[0].paths.length);assert.ok(b[0].paths.every(p=>p.layer===7));assert.equal(JSON.stringify(p),before);});
+test('length above 400 is real geometry before fitting, through 2000 mm',()=>{
+  assert.equal(D.params.find(p=>p.key==='length').max,2000);
+  for(const length of [400,403,650,1189,2000]){
+    const o=run({...straight,spread:0,length}, {W:2500,H:500});
+    near(o[0].paths[0].pts.at(-1)[0]-o[0].paths[0].pts[0][0],length);
+    near(o[1],settings(straight).pitch);
+  }
+  assert.notDeepEqual(run({...straight,length:403},{W:1000,H:500}),run({...straight,length:400},{W:1000,H:500}));
+});
+test('zero cuts preserve the published default geometry byte for byte',()=>{
+  const hash=createHash('sha256').update(JSON.stringify(run())).digest('hex');
+  assert.equal(hash,'1c6c40b573bfa38801512e85b41f0375b2e1fad5fbe3a395bb2056a4d3cbe95c');
+  assert.deepEqual(run({startCut:0,endCut:0}),run({startCut:undefined,endCut:undefined}));
+});
+test('independent signed cuts place every straight packed endpoint on its analytical plane',()=>{
+  for(const startCut of [-60,0,35])for(const endCut of [-45,0,65]){
+    const p={...straight,behavior:'Split and return',width:20,length:180,rejoin:70,spread:0,startCut,endCut},o=run(p,{W:500,H:500});
+    const roots=o[0].paths.map(p=>p.pts[0]),tips=o[0].paths.map(p=>p.pts.at(-1));
+    for(const [ends,angle] of [[roots,startCut],[tips,endCut]]){
+      const slope=Math.tan(angle*Math.PI/180),c=ends[0][0]-slope*ends[0][1];
+      for(const v of ends)near(v[0]-slope*v[1],c);
+    }
+    near(o[1],settings(p).pitch);near(o[2],20);
+    const base=run({...p,startCut:0,endCut:0},{W:500,H:500});
+    for(let i=0;i<o[0].paths.length;i++){
+      assert.ok(H.pathLength(o[0].paths[i].pts,false)<=H.pathLength(base[0].paths[i].pts,false)+1e-7);
+      if(!startCut)near(roots[i][0]-roots[0][0],0);
+      if(!endCut)near(tips[i][0]-tips[0][0],0);
+    }
+  }
+});
+test('free Fan tips also meet an exact tilted end plane',()=>{
+  for(const endCut of [-25,25]){
+    const o=run({...straight,length:200,spread:60,endCut},{W:500,H:500});
+    const ends=o[0].paths.map(p=>p.pts.at(-1)),slope=Math.tan(endCut*Math.PI/180),c=ends[0][0]-slope*ends[0][1];
+    for(const v of ends)near(v[0]-slope*v[1],c);
+  }
+});
+test('cuts preserve one connected stroke and protected release/rejoin across all styles and stems',()=>{
+  for(const behavior of ['Fray end','Split and return'])for(const style of ['Fan','Flow','Wander','Tangle'])for(const stem of ['Straight','Sine','Meander']){
+    const p={behavior,style,stem,startCut:65,endCut:-70,release:15,rejoin:95,bend:50,tipVar:65,width:30,spread:180,length:150};
+    const o=run(p);valid(o);assert.equal(o[0].paths.length,settings(p).lines);
+    for(const path of o[0].paths)for(let k=1;k<path.pts.length;k++)assert.ok(Math.hypot(path.pts[k][0]-path.pts[k-1][0],path.pts[k][1]-path.pts[k-1][1])>1e-10,'duplicate cut point');
+  }
+});
+test('clamped fractional rejoin stations still receive the end cut',()=>{
+  const p={...straight,behavior:'Split and return',length:180,release:20,rejoin:25,endCut:40};
+  const o=run(p,{W:500,H:500}),slope=Math.tan(40*Math.PI/180),ends=o[0].paths.map(p=>p.pts.at(-1)),c=ends[0][0]-slope*ends[0][1];
+  for(const v of ends)near(v[0]-slope*v[1],c);
+});
+test('steep cuts retain every narrow, short and dense bundle within the same physical budget',()=>{
+  for(const p of [
+    {length:30,width:60,startCut:75,endCut:-75,behavior:'Split and return',release:10,rejoin:95},
+    {width:1,nib:3,startCut:-75,endCut:75},
+    {nib:.05,overlap:80,width:60,count:6,detail:320,startCut:75,endCut:-75,length:2000,style:'Tangle',behavior:'Split and return'}
+  ]){const o=run(p);valid(o,ctx,15,p.nib??.5);assert.equal(o[0].paths.length,settings(p).lines*(p.count??1));assert.deepEqual(o,run(p));}
+});
 console.log(`Strand Bundle: ${checks} geometry/contract cases passed (${lab?'prototype':'built-in'}).`);
