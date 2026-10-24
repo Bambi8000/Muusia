@@ -5,12 +5,20 @@ export default {
   name: "Strand Bundle",
   cat: "gen",
   group: "organic",
-  desc: "Dense pen-line bundles that fray into individual threads or open and return as a ribbon. Fan and Flow keep a tidy ordered set; Wander drifts and Tangle adds looping, crossing paths. Fray end releases the tips; Split and return brings every strand back into the same packed stem. Stem can be Straight, Sine or seeded Meander, independently of thread motion. Pen width and Ink overlap plan centreline spacing: use your actual drawn line width for a solid dark stem. Preview and SVG use Muusia's standard display stroke, not the selected physical nib. Each strand is one continuous open pen stroke. Length accepts 30–2000 mm before paper fitting. Start cut and End cut tilt independent straight trimming planes in the stem frame; zero preserves the original ends and tip variation. Positive angles move the cutting plane toward the far end as you move across the bundle. Cuts protect the release/rejoin region; extreme angles are reduced when the available end length is too short. Curved or looping offcuts are discarded so each strand stays connected. Complete bundles only shrink to fit their cells, making the physical pitch denser rather than wider. Very dense jobs first reduce curve samples, then narrow all cores equally to preserve every bundle and physical pitch; numeric outputs show maximum core pitch and minimum core width used. A wired dashed Style deliberately breaks the solid stem. Keep Seed fixed for repeatable paths.",
+  desc: "Dense pen-line bundles that fray into individual threads or open and return as a ribbon. Fan and Flow keep a tidy ordered set; Wander drifts and Tangle adds looping, crossing paths. Fray end releases the tips; Split and return brings every strand back into the same packed stem. Stem can be Straight, Sine or seeded Meander, independently of thread motion. Pen width and Ink overlap plan centreline spacing: use your actual drawn line width for a solid dark stem. Preview and SVG use Muusia's standard display stroke, not the selected physical nib. Each strand is one continuous open pen stroke. Length accepts 30–2000 mm before paper fitting. Start cut and End cut tilt independent straight trimming planes in the stem frame; zero preserves the original ends and tip variation. Positive angles move the cutting plane toward the far end as you move across the bundle. Cuts protect the release/rejoin region; extreme angles are reduced when the available end length is too short. Curved or looping offcuts are discarded so each strand stays connected. Complete bundles only shrink to fit their cells, making the physical pitch denser rather than wider. Very dense jobs first reduce curve samples, then narrow all cores equally to preserve every bundle and physical pitch; numeric outputs show maximum core pitch and minimum core width used. A wired dashed Style deliberately breaks the solid stem. Keep Seed fixed for repeatable paths. Colour selection assigns complete strands to an Accent pen, replacing their Base pen without adding duplicate paths. By number accepts 1-based numbers and inclusive ranges (1, 5, 10-12). Spaced uses First coloured strand, Coloured strands and Strand interval. Random selects a unique repeatable set using a separate Colour seed; increasing the count adds to the same set. Numbers follow the order across the unrotated core, repeat for every bundle, and ignore out-of-range indices. Selecting colours never changes path geometry. Use pens of the same drawn width to retain the planned density. Off preserves old monochrome patches.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths", "Drawing"),Pin("value", "Core pitch mm"),Pin("value", "Core width mm")],
   params: [
     {key:"behavior",label:"Behavior",type:"select",options:["Fray end","Split and return"],def:"Fray end"},
     {key:"style",label:"Threads",type:"select",options:["Fan","Flow","Wander","Tangle"],def:"Wander"},
+    {key:"layer",label:"Base pen",type:"pen",def:0},
+    {key:"colourMode",label:"Colour selection",type:"select",options:["Off","By number","Spaced","Random"],def:"Off"},
+    {key:"strandNumbers",label:"Strand numbers (1, 5, 10-12)",type:"text",def:"1",showIf:p=>p.colourMode==="By number"},
+    {key:"colourFirst",label:"First coloured strand",type:"slider",min:1,max:1200,step:1,def:1,showIf:p=>p.colourMode==="Spaced"},
+    {key:"colourCount",label:"Coloured strands",type:"slider",min:1,max:1200,step:1,def:1,showIf:p=>["Spaced","Random"].includes(p.colourMode)},
+    {key:"colourStep",label:"Strand interval",type:"slider",min:1,max:1200,step:1,def:5,showIf:p=>p.colourMode==="Spaced"},
+    {key:"colourSeed",label:"Colour seed",type:"seed",def:7,showIf:p=>p.colourMode==="Random"},
+    {key:"accentPen",label:"Accent pen",type:"pen",def:2,showIf:p=>["By number","Spaced","Random"].includes(p.colourMode)},
     {key:"nib",label:"Pen width mm",type:"slider",min:0.05,max:3,step:0.05,def:0.5},
     {key:"overlap",label:"Ink overlap %",type:"slider",min:0,max:80,step:1,def:40},
     {key:"width",label:"Bundle width mm",type:"slider",min:1,max:60,step:0.5,def:12},
@@ -32,7 +40,7 @@ export default {
     {key:"detail",label:"Curve detail",type:"slider",min:64,max:320,step:1,def:220},
     {key:"margin",label:"Margin mm",type:"slider",min:0,max:60,step:1,def:15},
     {key:"seed",label:"Seed",type:"seed",def:17},
-    {key:"layer",label:"Pen",type:"pen",def:0},
+
   ],
   overlay(p,ctx) {
     const m=Number.isFinite(+p.margin)?Math.max(0,Math.min(60,+p.margin)):15;
@@ -65,8 +73,32 @@ export default {
       angle:num('angle',-90,-180,180)*Math.PI/180,seed:num('seed',17,-2147483648,2147483647)|0,
       layer:Math.round(num('layer',0,0,11))};
   },
+  _colourSelection(p,lines) {
+    const num=(key,def,min,max)=>Number.isFinite(+p[key])?Math.round(Math.max(min,Math.min(max,+p[key]))):def;
+    const selected=new Set();
+    if(p.colourMode==='By number'){
+      // Bound both parsing and range expansion; indices outside this bundle are ignored.
+      const text=String(p.strandNumbers??'1').slice(0,1024).replace(/(\d)\s*[-–—]\s*(?=\d)/g,'$1-');
+      for(const token of text.split(/[,;\s]+/).slice(0,128)){
+        const m=token.match(/^(\d+)(?:-(\d+))?$/);if(!m)continue;
+        const a=Number(m[1]),b=Number(m[2]??m[1]);if(!Number.isSafeInteger(a)||!Number.isSafeInteger(b)||a<1||b<1)continue;
+        for(let n=Math.max(1,Math.min(a,b));n<=Math.min(lines,Math.max(a,b));n++)selected.add(n-1);
+      }
+    }else if(p.colourMode==='Spaced'){
+      const first=num('colourFirst',1,1,1200)-1,step=num('colourStep',5,1,1200),count=num('colourCount',1,1,1200);
+      for(let k=0;k<count&&first+k*step<lines;k++)selected.add(first+k*step);
+    }else if(p.colourMode==='Random'){
+      // A separate stream leaves every geometry random draw unchanged. Increasing
+      // count extends the same shuffled prefix; all bundles use the same indices.
+      const rng=mulberry32((num('colourSeed',7,-2147483648,2147483647)^0x51ed270b)|0),order=Array.from({length:lines},(_,i)=>i);
+      const count=Math.min(lines,num('colourCount',1,1,1200));
+      for(let k=0;k<count;k++){const j=k+Math.floor(rng()*(lines-k));[order[k],order[j]]=[order[j],order[k]];selected.add(order[k]);}
+    }
+    return {selected,pen:num('accentPen',2,0,11)};
+  },
   compute(ins,p,ctx) {
     const f=this._frame(p,ctx);if(!f)return [EMPTY,0,0];
+    const colour=this._colourSelection(p,f.lines);
     const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*t*(t*(t*6-15)+10);};
     const TAU=2*Math.PI,ca=Math.cos(f.angle),sa=Math.sin(f.angle),paths=[];
     let maxPitch=0,minWidth=Infinity;
@@ -100,7 +132,7 @@ export default {
         ts.push(end);if(f.release<end)ts.push(f.release);if(f.behavior==='Split and return')ts.push(f.rejoin);
         ts.sort((a,b)=>a-b);const pts=[];
         for(let k=0;k<ts.length;k++){if(k&&Math.abs(ts[k]-ts[k-1])<1e-10)continue;const v=point(ts[k]);pts.push(v);}
-        bundle.push({pts,closed:false,layer:f.layer,
+        bundle.push({pts,closed:false,layer:colour.selected.has(i)?colour.pen:f.layer,
           startAnchor:point(f.release),endAnchor:point(f.behavior==='Split and return'?f.rejoin:f.release)});
       }
       // Cut in the unrotated stem frame. Protect release/rejoin stations so a

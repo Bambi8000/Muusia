@@ -89,4 +89,53 @@ test('steep cuts retain every narrow, short and dense bundle within the same phy
     {nib:.05,overlap:80,width:60,count:6,detail:320,startCut:75,endCut:-75,length:2000,style:'Tangle',behavior:'Split and return'}
   ]){const o=run(p);valid(o,ctx,15,p.nib??.5);assert.equal(o[0].paths.length,settings(p).lines*(p.count??1));assert.deepEqual(o,run(p));}
 });
+const coloured=(o,pen=2)=>o[0].paths.flatMap((p,i)=>p.layer===pen?[i]:[]);
+const geometry=o=>o[0].paths.map(({layer,...path})=>path);
+test('one explicit strand is recoloured without duplicated paths or geometric changes',()=>{
+  const base=run(),o=run({colourMode:'By number',strandNumbers:'20',accentPen:2});valid(o);
+  assert.deepEqual(coloured(o),[19]);assert.deepEqual(geometry(o),geometry(base));assert.deepEqual(o.slice(1),base.slice(1));
+});
+test('lists, inclusive and reversed ranges form a unique bounded selection',()=>{
+  const o=run({colourMode:'By number',strandNumbers:'1, 5; 10 - 12  12  16–14 0 -2 bad 3.5 99999',accentPen:5});
+  assert.deepEqual(coloured(o,5),[0,4,9,10,11,13,14,15]);
+  const all=run({colourMode:'By number',strandNumbers:'1-999999999',accentPen:11});
+  assert.ok(all[0].paths.every(p=>p.layer===11));
+  assert.deepEqual(coloured(run({colourMode:'By number',strandNumbers:'bad 0 -1 3.5 1e3'})),[]);
+});
+test('spaced selection uses exact one-based first, count and interval without wrapping',()=>{
+  const p={colourMode:'Spaced',colourFirst:3,colourCount:4,colourStep:7};assert.deepEqual(coloured(run(p)),[2,9,16,23]);
+  assert.deepEqual(coloured(run({...p,colourFirst:999})),[]);
+  const o=run({...p,colourFirst:1,colourCount:1200,colourStep:1});assert.equal(coloured(o).length,o[0].paths.length);
+});
+test('random colour selection is unique, repeatable, nested by count and independent of shape seed',()=>{
+  const p={colourMode:'Random',colourCount:7,colourSeed:25},a=run(p);assert.equal(coloured(a).length,7);assert.deepEqual(a,run(p));
+  assert.notDeepEqual(coloured(a),coloured(run({...p,colourSeed:26})));
+  assert.deepEqual(coloured(a),coloured(run({...p,seed:2000,style:'Tangle',startCut:40,endCut:-35})));
+  const more=new Set(coloured(run({...p,colourCount:12})));for(const i of coloured(a))assert.ok(more.has(i));
+  assert.deepEqual(geometry(a),geometry(run()));
+});
+test('each bundle receives the same local strand numbers, including packed return and cuts',()=>{
+  const p={colourMode:'By number',strandNumbers:'2, 7-9',count:6,behavior:'Split and return',startCut:50,endCut:-45,style:'Tangle'};
+  const o=run(p),base=run({...p,colourMode:'Off'}),n=settings(p).lines;valid(o);assert.deepEqual(geometry(o),geometry(base));
+  for(let b=0;b<6;b++)assert.deepEqual(coloured([{paths:o[0].paths.slice(b*n,(b+1)*n)}]),[1,6,7,8]);
+});
+test('colour controls are inactive and hidden outside their selection mode',()=>{
+  for(const colourMode of ['Off','By number','Spaced','Random']){
+    const p={...defaults,colourMode},a=D.compute([],p,ctx);
+    for(const q of D.params)if(q.showIf&&!q.showIf(p))assert.deepEqual(D.compute([],{...p,[q.key]:q.type==='text'?'2-30':q.max??'Rows'},ctx),a,q.key);
+  }
+});
+test('colouring replaces the base pen and survives Style without adding duplicate full strokes',()=>{
+  const p={colourMode:'By number',strandNumbers:'2, 5-6',layer:7,accentPen:3},o=run(p);
+  assert.deepEqual(coloured(o,3),[1,4,5]);assert.ok(o[0].paths.every(p=>p.layer===3||p.layer===7));
+  assert.deepEqual(run({...p,accentPen:7}),run({layer:7}));
+  const style={kind:'style',mode:'Dashed',dash:2,gap:1,vary:0,phase:0,seed:1},d=run(p,ctx,[style]);
+  assert.ok(d[0].paths.some(p=>p.layer===3)&&d[0].paths.some(p=>p.layer===7));
+  const g=run({...p,colourMode:'Off'},ctx,[style]);assert.deepEqual(geometry(d),geometry(g));
+});
+test('colour selection handles single-strand, dense and invalid numeric cases within the point budget',()=>{
+  for(const p of [{width:1,nib:3,colourMode:'Random',colourCount:1200},{nib:.05,overlap:80,width:60,count:6,detail:320,colourMode:'Random',colourCount:1200,accentPen:999},{colourMode:'Spaced',colourFirst:NaN,colourCount:Infinity,colourStep:-999,accentPen:NaN}]){
+    const o=run(p);valid(o,ctx,15,p.nib??.5);assert.deepEqual(geometry(o),geometry(run({...p,colourMode:'Off'})));
+  }
+});
 console.log(`Strand Bundle: ${checks} geometry/contract cases passed (${lab?'prototype':'built-in'}).`);

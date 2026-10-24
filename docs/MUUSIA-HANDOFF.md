@@ -265,6 +265,45 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
+### 2.140 — 2026-10-24 · Strand Bundle colour selection (local)
+
+Based on published `0103fb00d94500f94958cf010c561894eb6116c0`, branch
+`codex/strand-bundle-colours`. Daniel requested one or more differently coloured
+strands and control over which strands receive the colour. Strand Bundle now has
+Base pen and Colour selection (Off / By number / Spaced / Random), with a separate
+Accent pen. By number accepts 1-based lists and inclusive ranges, including
+reversed ranges and typographic dashes. Invalid and out-of-range indices are
+ignored; parsing is bounded to 1024 characters / 128 tokens, and range expansion
+to the actual strand count. Spaced selects first/count/interval without wrapping.
+Random uses a separate Colour seed and partial seeded shuffle, ensuring unique
+selections and nested sets when count increases. Local core indices repeat for
+every bundle, before whole-design rotation. Changing colours or their seed never
+changes any point, point order, number of paths, geometry RNG draw or fit. The
+selected pen replaces the Base pen on the entire open strand, without duplicating
+it. A wired dashed Style preserves pen layers. Off is the default, preserving old
+patches exactly. Only active selection controls show. Base/Accent pen controls
+are placed near the top so they are easy to find.
+
+Two English Help examples: One coloured thread (strand 35) and Several coloured
+threads (8, 22, 36, 50, 64), each A3 landscape, 87 paths / 19314 points. Both were
+loaded from built-in Help and visually inspected. Spaced/Random UI visibility was
+checked. Save and reload retain the exact list and selected pen; Save embeds zero
+custom node definitions. Actual browser SVGs match complete App evaluation
+byte-for-byte, with respectively 1 and 5 red paths; the five-strand G-code matches
+every coordinate in pen order, performs one manual pen change, and has exactly
+one pen-up root travel per strand plus terminal park. Route optimization off for
+coordinate checks; software-only 450×650 mm profile, no machine connection or
+physical run. All 35 focused cases pass, covering explicit, spaced, nested random,
+multi-bundle and dense selection, Style, inactive controls and frozen published
+default geometry. All 136 Help graphs and the ordered catalog → build → Learn
+gate pass (37913 checks / 90 English pages). No engine/helper/machine/exporter
+changes; App only bumps version. Actual screenshots, patches, two SVGs, G-code
+and verification are in this chat's `strand-bundle-colours/` artifact directory.
+
+Local review only; publication has not been requested for this addition. Refresh
+`/private/tmp/muusia-project-files-2.140` after the final commit; do not claim a
+Claude web project upload.
+
 ### 2.139 — 2026-10-24 · Strand Bundle length and angled ends
 
 Based on published `091e5e7faf5ce393ae1ce955deba040253bc0a93`, branch
