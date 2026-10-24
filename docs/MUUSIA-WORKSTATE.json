@@ -17,14 +17,16 @@
     "branch": "codex/klipper-prepare",
     "worktree": "/Users/daniel/.codex/worktrees/frayed-bundles/plotter-patcher",
     "published": true,
-    "status": "Muusia app published; Prepare installed live; hardware-config commit local only (push rejected by automatic approval review)",
+    "status": "Muusia 2.141 published; Prepare installed live and hardware configuration published to main",
     "snapshot": "/private/tmp/muusia-project-files-2.141",
     "moduleCount": 341,
     "registryCount": 343,
     "validation": "57 focused cases, 142 Help graphs, two additional real built-in Help loads, two complete SVGs and one complete G-code matched to App evaluation, Save/reload, ordered gate 37913 checks / 90 English pages.",
     "note": "Automatic and manual PREPARE installed and physically verified at machine X0 Y450 Z75, idle waiting for PRINT_START alias of existing PLOT_START. Pre-existing primary needle changes preserved.",
     "followupBaseCommit": "1f032ed6b37fdbf22352ba1015b43389563738ac",
-    "hardwareRepositoryPublished": false
+    "hardwareRepositoryPublished": true,
+    "hardwareCommit": "548556da834b046c013939a9d74cba9694b092ba",
+    "hardwarePublicationAuthorization": "Explicit user approval 2026-10-24: Kyll\u00e4, julkaise my\u00f6s koneasetukset"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

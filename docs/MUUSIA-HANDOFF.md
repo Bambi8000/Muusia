@@ -311,12 +311,16 @@ Evidence: this chat's `klipper-prepare/` and
 `strand-bundle-whole-bend/public-2.141-whole-bend.jpg`.
 Primary checkout still contains pre-existing uncommitted needle work; only this
 task's additive hardware changes were mirrored there. Do not reset or publish
-that unrelated tree. Automatic approval review rejected pushing this machine-specific configuration
-to GitHub: the app publication request was not considered explicit authorization
-for publishing hardware configuration. Hardware changes are installed on Viivain
-and committed locally; no hardware-config push occurred. The printer.cfg delta
-is only the new include;
-the live needle changes remain as previously installed/recorded in primary.
+that unrelated tree. The printer.cfg delta is only the new include; the live
+needle changes remain as previously installed/recorded in primary.
+
+Daniel explicitly authorized publishing the machine configuration on 2026-10-24
+(“Kyllä, julkaise myös koneasetukset”), resolving the initial automatic approval
+rejection. Hardware commit `548556da834b046c013939a9d74cba9694b092ba` was pushed
+to Bambi8000/Muusia main. This follow-up records that publication; it does not
+restart Klipper or move the machine again. Verify the exact final Pages run and
+GitHub file checksums, then refresh the clean 2.141 local snapshot. App source
+and its version remain unchanged.
 
 ### 2.141 — 2026-10-24 · Strand Bundle 3D, whole-body and independent end bends (published)
 
