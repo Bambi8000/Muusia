@@ -2066,5 +2066,11 @@
   "organic",
   "random",
   "stroke"
+ ],
+ "strand_bundle": [
+  "organic",
+  "hatch",
+  "stroke",
+  "random"
  ]
 }

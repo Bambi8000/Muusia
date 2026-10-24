@@ -2,26 +2,26 @@
   "schemaVersion": 1,
   "active": [],
   "lastIntegration": {
-    "version": "2.137",
-    "date": "2026-10-21",
-    "baseCommit": "8bacea2e17347d9bd18d45e2c8a00edf09aa0f4e",
-    "branch": "codex/handwriting",
-    "worktree": "/private/tmp/muusia-line-drape",
+    "version": "2.138",
+    "date": "2026-10-24",
+    "baseCommit": "88b2d7237d4276c71e481e4ece025df173fc7918",
+    "branch": "codex/strand-bundle",
+    "worktree": "/Users/daniel/.codex/worktrees/frayed-bundles/plotter-patcher",
     "published": false,
-    "status": "publication authorized; focused and ordered release gate passed; exact-commit Pages verification follows push",
-    "snapshot": "/private/tmp/muusia-project-files-2.137",
-    "moduleCount": 340,
-    "registryCount": 342,
-    "validation": "20 focused cases; 129 Help graphs; actual prototype Node import, bake, fresh built-in Help and Save (zero custom nodes); Chrome patch import after permission enabled; 2 complete actual SVG/G-code comparisons; ordered shared gate passed 37913 checks / 90 pages.",
-    "note": "Primary unrelated dirty work preserved. Original centreline alphabet; supplied commercial TTF inspected read-only and not bundled. No physical machine run or Claude web upload."
+    "status": "local implementation complete; publication not requested",
+    "snapshot": "/private/tmp/muusia-project-files-2.138",
+    "moduleCount": 341,
+    "registryCount": 343,
+    "validation": "20 focused geometry/contract cases; all 133 Help graphs; actual Node import/bake/fresh built-in Help/Save; complete actual SVG/G-code comparisons for Neat fan and Tangled return; ordered shared gate passed 37913 checks / 90 English pages.",
+    "note": "Primary unrelated dirty work preserved. Managed worktree replaces prunable temporary checkout. No hardware run or Claude web upload."
   },
   "lastPublished": {
-    "version": "2.136",
+    "version": "2.137",
     "date": "2026-10-21",
-    "commit": "8bacea2e17347d9bd18d45e2c8a00edf09aa0f4e",
-    "pagesRunId": 39618538375,
+    "commit": "88b2d7237d4276c71e481e4ece025df173fc7918",
+    "pagesRunId": 39645364587,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified: exact-commit Pages build/deploy succeeded; public app v2.136; both new built-in Help examples loaded and selected; Rectangle fan 84 paths / 168 points, Letter O 608 paths / 1216 points; actual public screenshot saved"
+    "status": "verified: exact-commit Pages build/deploy succeeded; public Muusia v2.137; both built-in Handwriting Help examples loaded and selected: Cursive 57 paths / 7349 points, Print 189 paths / 5856 points; actual public screenshot saved"
   }
 }

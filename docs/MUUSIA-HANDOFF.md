@@ -265,6 +265,58 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
+### 2.138 local — 2026-10-24 · Strand Bundle
+
+Based on published `88b2d7237d4276c71e481e4ece025df173fc7918`, implemented on
+`codex/strand-bundle` in the attached managed worktree
+`/Users/daniel/.codex/worktrees/frayed-bundles/plotter-patcher`. The previous
+`/private/tmp/muusia-line-drape` checkout was prunable after temporary-file cleanup;
+its Git history and the primary dirty checkout were preserved. No publication
+requested for this new node. Source: 341 modules / 343 entries, 216 generators.
+
+`strand_bundle` is a new Organic & Flow generator. Pen width and Ink overlap
+plan the packed stem's centreline pitch. Default 0.5 mm / 40% overlap gives at
+most 0.3 mm pitch; the exact line count rounds upward to cover Bundle width.
+Each line is a real uninterrupted open pen stroke. Straight, Sine and seeded
+Meander stems are independent of thread motion. Fan/Flow preserve ordered,
+non-crossing graphs. Wander drifts; Tangle adds loops and crossings only in the
+loose zone. Fray end has variable free tip lengths. Split and return gives every
+strand a zero-displacement, zero-derivative release and rejoin, then a densely
+packed final stem. Rejoin clamps at least ten percentage points after Release.
+Inactive mode controls hide and have no effect. Angle rotates the whole design;
+1–6 complete bundles fit row/column cells, shrinking only and reserving half a
+physical nib at the margin. There is no path clipping or prefix truncation.
+
+Numeric outputs are maximum Core pitch mm and minimum Core width mm, the latter
+including the physical nib. The 110k-point budget uniformly lowers longitudinal
+sampling, then narrows every core equally if needed, keeping the physical pitch
+and every requested bundle. Preview/SVG retain Muusia's existing display stroke;
+Pen width plans physical density. A wired dashed Style intentionally breaks the
+solid stem. No engine, helper, machine or exporter changes; App only bumps version.
+
+Prototype imported through actual Node ⇣ and visually checked in IAB, including
+Fray end and Split and return. Then baked, revalidated, lab copy removed. Four
+Help examples: Neat fan (33 paths / 7293 points), Wandering ends (40 / 8115),
+Ribbon return (33 / 7326), Tangled return (33 / 7293). Fresh built-in Help and
+Save verified; Save embeds zero custom definitions. Real screenshots show packed
+black stems, neat and chaotic release and rejoining. Actual Neat fan and Tangled
+return SVGs match complete graph output byte-for-byte; both G-codes match all
+coordinates within 0.005001 mm and use exactly one root travel per strand plus
+terminal park. Pen-up rapids and pen-down draw state verified. Software-only
+330×450 mm servo profile, origin 0/0, Flip Y off, route optimization off; no
+physical machine run. Twenty geometry/contract cases and all 133 Help graphs
+passed, including ordered clean strands, exact rejoin, nib spacing, hidden-control
+invariance, complete dense output and every bundle. Ordered catalog → build →
+Learn passed: 37,913 checks, 90 English pages. No new Learn lesson is claimed.
+
+Durable artifacts in the thread's `strand-bundle/`: four builtin/portable patches,
+current importable definition, genuine Focus screenshots, two complete actual
+SVG/G-code captures and `verification.json`. Local Claude snapshot is refreshed
+after commit; no Claude web upload. Primary unrelated dirty source/hardware work
+was not changed. New worktree dependencies resolve to the installed primary
+packages through ignored local directory entries; no dependency versions changed.
+
+
 ### 2.137 — 2026-10-21 · Handwriting
 
 Based on published `8bacea2e17347d9bd18d45e2c8a00edf09aa0f4e`, implemented on
