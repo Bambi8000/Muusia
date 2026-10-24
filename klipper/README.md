@@ -28,6 +28,33 @@ deploy blindly.
 
 See MUUSIA-PLOTTER-MECH-HANDOFF.md §5.1 for the pen-cal workflow and offset math.
 
+## Paper loading: Prepare and Print Start
+
+`printer.cfg` includes `prepare.cfg`. **Prepare** is on the idle touchscreen
+menu and the `PREPARE` macro is also available in Mainsail. Five seconds after
+Klipper becomes ready, including a firmware/software restart, it automatically
+runs the same sequence: pen up → full homing (existing Z-first override) → park
+at **machine X0 Y450**, with Z left at its homed clearance height. It then stays
+idle displaying “Place paper, then run PRINT_START”. No job file is started and
+there is no automatic pen seating, pause, resume or timed continuation.
+
+Prepare clears paper and G92 coordinate offsets so X0 Y450 is a machine position,
+independent of the previous paper origin. After placing the paper, press
+**Print Start** (`PRINT_START`): this is an alias for the existing `PLOT_START`
+fixed-block pen setup. Existing `PLOT_START`, M0 pen changes, PLOT_GO and Resume
+remain unchanged. Preparation is rejected while printing/paused or in needle
+mode; a pending startup action is cancelled by either button. The startup hook
+skips active jobs/needle mode and does not retry later. Rigid needles continue
+to use their separate calibration workflow.
+
+Back up the live files before installing `prepare.cfg`, the single include in
+`printer.cfg`, and the updated `viivain-screen.conf`. Restarting Klipper activates
+the automatic movement; restarting KlipperScreen reloads the buttons. Set
+`initial_duration: 0` in the delayed section to disable automatic preparation
+while retaining the manual button. `python3 tools/validate-prepare-klipper.py`
+renders the real templates offline, including shifted coordinates, job/needle
+guards, startup scheduling and screen actions. No axes move during this check.
+
 ## Firmware build (Kraken v1.1)
 
 Built on the Pi (`viivain`), Klipper v0.13.0-718 at the time of writing. The

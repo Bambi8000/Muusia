@@ -265,7 +265,60 @@ according to the session's actual capabilities:
 ## Version history (condensed)
 
 
-### 2.141 — 2026-10-24 · Strand Bundle 3D, whole-body and independent end bends (local)
+### W — 2026-10-24 · Viivain Prepare button and automatic paper-loading park
+
+Based on published `b1b8fc76db56582f29bfb420c98122fd257a62bf`, branch
+`codex/klipper-prepare`. Daniel requests PREPARE at machine X0 Y450, both on
+startup and on demand, then idle until the pen-setup macro. He clarified
+PRINT_START rather than SET_PEN; the existing machine macro is PLOT_START.
+New `klipper/prepare.cfg` is included by one added line in printer.cfg. PREPARE
+lifts the servo pen, runs the existing full Z-first G28 override, then a separate
+post-homing helper clears paper/G92 shifts and parks at machine X0 Y450 with Z
+left high. The helper is evaluated after homing, so G92 uses fresh machine XYZ.
+M400 finishes before “Place paper, then run PRINT_START”. No automatic job,
+pen-down, M0, PAUSE or RESUME. PRINT_START aliases existing PLOT_START and does
+not start a file. PLOT_START, pen-change M0, PLOT_GO and Resume remain unchanged.
+
+A five-second delayed hook runs PREPARE every time Klipper becomes ready,
+including RESTART. It skips active/paused jobs and needle mode with no later
+retry. Both buttons cancel a pending startup action; manual macros reject an
+active/paused job, and PREPARE rejects needle mode. The parked target is checked
+against travel before any motion. Idle touchscreen now has Prepare and Print
+Start; the restart dialog explains the automatic home/park. Automatic startup
+can be disabled with initial_duration: 0 while retaining the button.
+
+Actual installation on viivain uses its live printer.cfg (including the prior
+needle changes), adding ONLY the prepare include and preserving every existing
+macro/calibration setting. Backup is
+`/home/nakit/printer_data/config_backups/muusia-prepare-20261024T164737Z`.
+Compared live hashes before writing; a changed/active machine would abort.
+Klipper and KlipperScreen restarted successfully. The authorized startup
+physically completed: motion_report live_position [0,450,75,0], zero live
+velocity, homed xyz, standby, not paused, servo up, and the expected wait
+message. No PRINT_START or drawing was run. KlipperScreen log confirms the new
+menu loaded and main_menu initialized; Mainsail shows PREPARE and PRINT START.
+Existing unrelated timelapse “unknown command” notices were not changed.
+
+40 offline checks pass on the Pi's installed Jinja2 2.11.3 and real Klipper
+GCodeMove transform methods: nested evaluation order, paper/G92 shifts, startup
+states, travel and job/needle guards, exact XY target and screen actions.
+Machine profile validator: 62 checks. Public Muusia 2.141 was verified separately
+at commit b1b8fc7 / successful Pages run 40112327936; public Help whole-bend +
+ends is S-curve, 121 paths / 26129 points. No app source/export behavior changes
+in this hardware follow-up. Local snapshot exporter now includes prepare.cfg,
+viivain-screen.conf and the offline validator; refresh and checksum after commit.
+Evidence: this chat's `klipper-prepare/` and
+`strand-bundle-whole-bend/public-2.141-whole-bend.jpg`.
+Primary checkout still contains pre-existing uncommitted needle work; only this
+task's additive hardware changes were mirrored there. Do not reset or publish
+that unrelated tree. Automatic approval review rejected pushing this machine-specific configuration
+to GitHub: the app publication request was not considered explicit authorization
+for publishing hardware configuration. Hardware changes are installed on Viivain
+and committed locally; no hardware-config push occurred. The printer.cfg delta
+is only the new include;
+the live needle changes remain as previously installed/recorded in primary.
+
+### 2.141 — 2026-10-24 · Strand Bundle 3D, whole-body and independent end bends (published)
 
 Based on published `88c110f9351c930388b8d3234f1925ed496f514f`, branch
 `codex/strand-bundle-3d`. Space defaults to 2D, retaining the frozen published
@@ -308,8 +361,8 @@ Optimize off for coordinate checks, no machine connection or physical run.
 English Help, catalog and source bundle updated; ordered catalog → build → Learn
 gate passes 37913 checks / 90 English pages. Four patches, screenshots, three SVGs,
 two G-codes, 24-frame ZIP and verification are in this chat's `strand-bundle-3d/`
-artifact directory. Local review only; publication has not been requested for
-this change. Refresh `/private/tmp/muusia-project-files-2.141` after commit;
+artifact directory. This initial pass was reviewed locally before the
+subsequent authorized publication recorded below. Refresh `/private/tmp/muusia-project-files-2.141` after commit;
 no Claude web upload is implied. Primary unrelated work and user Chrome patches
 are preserved. Source count remains 341 modules / 343 entries, 216 generators.
 
@@ -337,8 +390,9 @@ one manual pen change, with no machine Z. Actual Save/reload retains S-curve,
 Ordered catalog → build → Learn gate remains green, 37913 checks / 90 English
 pages. Two patches, software-check variants, two actual SVGs, combined G-code,
 Save/reload proof, two real screenshots and verification are in this chat's
-`strand-bundle-whole-bend/` artifact directory. Publication still not requested;
-keep version 2.141 local and refresh its Claude snapshot after the final commit.
+`strand-bundle-whole-bend/` artifact directory. This phase was reviewed locally, then Daniel authorized publication.
+Published as b1b8fc7 via successful Pages run 40112327936 on 2026-10-24;
+public 2.141 and its complete whole-bend Help result verified in the browser.
 
 ### 2.140 — 2026-10-24 · Strand Bundle colour selection
 
