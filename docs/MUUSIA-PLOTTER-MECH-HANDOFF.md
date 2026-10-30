@@ -9,7 +9,8 @@ Continue/Abort prompt, then plots), the paper-setup macros (PAPER_ZERO /
 Z_PAPER_BLOCK) are in printer.cfg, and per-print timelapse video lands in
 Telegram automatically. Z endstop + servo DONE (2026-08-24): a real NC switch
 sits on MIN3 (`^PF1`) at the top of Z travel (machine Z 0..75; homing order is
-Z first, then X, then Y, so homing is safe with a pen resting on the sheet),
+Z first, then X, then Y; the current magnetic module requires an empty dock
+and empty rack before homing),
 and the S0017M is mounted on the finished pen holder with tuned angles — down
 80, up 135, `initial_angle: 135` so the pen is up after every restart.
 PEN_UP / PEN_DOWN are `SET_SERVO` again with a `G4 P250` dwell so the servo
@@ -20,6 +21,14 @@ hard-won pitfalls in section 8 (session log). Next task: **first plot with the
 real pen — the calibration figure** (100 mm square + diagonals + circle +
 registration marks), which checks dimensional accuracy, corner registration,
 servo timing and pen pressure on one sheet.
+
+**Current pen-module milestone (2026-10-30):** the magnetic side-entry pickup
+and return succeeded manually with one rack. The current startup now homes
+with both the carriage dock and rack empty, parks at machine X0 Y450 Z75,
+then waits for manual attachment of pen 1 and a normal file **Print**. The
+earlier fixed-block and Plot Start instructions below are retained as history;
+the current workflow and the ten-rack plan are in section 7.2. Do not home
+with a pen module attached to the dock or sitting in a rack.
 
 Working language: Finnish in chat, English in all code/GUI/docs.
 
@@ -55,8 +64,8 @@ Working language: Finnish in chat, English in all code/GUI/docs.
   switch on STOP2 or sensorless DIAG = future auto-square). Z has a real NC
   switch on MIN3 (`^PF1`) at the TOP of travel, added 2026-08-24: machine Z
   runs 0 (bottom of travel) .. 75 (switch). `[homing_override]` homes Z first
-  — upward, which also lifts the pen clear of the paper — then X, then Y, so
-  homing is safe with a pen resting on the sheet. Work zero (pen contact
+  — upward — then X, then Y. With the current magnetic-module workflow, both
+  the carriage dock and rack must be empty before homing (§7.2). Work zero (pen contact
   height) is still a gcode offset from `Z_ZERO_HERE`, re-declared after
   pen/paper changes. The homing parameters are tight for measured reasons:
   only 2 mm from the trigger point to the mechanical end (hence
@@ -251,8 +260,11 @@ times.
 
 ### 5.1 Pen offset calibration (laser, KlipperScreen)
 
-Designed August 2026; draft Klipper configs exist (see `klipper/` below), waiting
-for the Kraken to be wired. Different pens (diameters, holders) put the tip at
+Historical August 2026 laser-based proposal; its draft `pen-cal.cfg` is not
+included in the live printer configuration. The current magnetic-module plan
+uses Rotring Isograph in a normal holder as the absolute XY reference and
+stores separate XY offsets for each pen and compatible holder size (§7.2).
+Different pens (diameters, holders) put the tip at
 slightly different XY positions — this workflow measures that per pen so all pens
 follow the same line, entirely on the RPi touchscreen:
 
@@ -370,7 +382,8 @@ Constraints to respect:
 
 ## 7. Job workflow (proven 2026-08-12, air run end to end)
 
-The per-plot ritual. Muusia's machine profile keeps **Origin X/Y at 0** —
+This section records the older fixed-block workflow. For the current magnetic
+pen-module startup, use section 7.2. Muusia's machine profile keeps **Origin X/Y at 0** —
 paper placement is entirely a machine-side operation now.
 
 1. Boot → `G28` once (homes XY, gives Z a starting zero).
@@ -430,10 +443,13 @@ KlipperScreen's own auto-generated section in that file survives edits.
 `[main] use_default_menu: False` replaces the default menu; `auto_open_extrude:
 False` stops the Extrude panel popping up when a job pauses for a pen change.
 
-- **Idle menu** (8 top-level buttons): Pen Up, Pen Down, Plot Start (runs
-  `PLOT_START`, no confirmation), Print (file browser), Move (jog + homing),
+- **Current idle menu**: Pen Up, Pen Down, Prepare, Print (file browser), Move (jog + homing),
   Macros (every macro without a leading underscore), Console, More (Motors Off,
   Pen Release, Restart Klipper, Settings, Network, Update).
+- There is no separate Print Start button or `PRINT_START` macro. The selected
+  file's `PLOT_GO` start command initializes the measured paper frame after
+  manual pen attachment. `PLOT_START` remains an internal job-setup macro and
+  does not home the loaded dock.
 - **Job menu** (5 buttons, the menu button on the job status page — also
   while paused at an M0 pen change): Pen Up, Pen Down, Move, Macros, Console.
   Resume/Cancel stay on the job status page itself.
@@ -448,6 +464,69 @@ False` stops the Extrude panel popping up when a job pauses for a pen change.
 - **Trap:** `PEN_UP`/`PEN_DOWN` are defined in both `printer.cfg` and the
   not-yet-included `pen-cal.cfg`. Klipper refuses duplicate sections — remove
   them from pen-cal.cfg before ever including it (§5.1).
+
+### 7.2 Magnetic pen modules: one-rack proof and ten-rack plan (2026-10-30)
+
+**Proven mechanically:** the carriage dock engages a pen module by entering
+from the Y direction into its cross and magnets. The first module was picked
+up, left in rack 1, and picked up again while the operator inspected each
+stage. The first approach from above was rejected: the central cross requires
+side entry. The tested rack-1 center in **machine coordinates** is X41.5,
+Y2.5, Z18.0; the entry point is X41.5, Y17.5, Z18.0. Pickup slides Y−15 mm,
+lifts to machine Z62.5, then exits toward the paper. Return lowers at the
+rack center, slides Y+15 mm to release the magnets, then lifts the empty dock.
+The initial user-supplied paper-relative rack X was corrected by −3 mm during
+physical alignment. These are measured values for rack 1 only.
+
+**Current installed startup:** both the carriage dock and rack 1 must be
+physically empty before power-up, Klipper restart, or `PREPARE`. The startup
+hook runs `PREPARE`: PEN_UP, Z-first homing, clear prior offsets, park at
+machine X0 Y450 Z75, then PEN_DOWN for manual attachment of pen 1. The
+operator attaches the module to the dock, leaves rack 1 empty, selects a
+G-code file, and presses **Print**. The Gentle profile begins with `PLOT_GO`;
+on the first job it sets paper work zero to measured machine X42 Y29 Z8.5,
+raises to machine Z62.5, enters the paper at work X0 Y7.5, and lowers to
+work Z0 with the servo lifted. There is no separate Print Start step.
+`PICK_UP_1` and `LEAVE_1` are installed in `klipper/pen-change.cfg` and were
+checked offline for command order and guards; the physical trial above used
+Mainsail console moves, so the new macros still need a supervised live test.
+Only rack 1 is installed. `M0` still pauses for a manual change; automatic
+selection of a second pen has not been built.
+
+**Ten-rack layout:** the front edge has room for ten racks. Rack numbers must
+match Muusia pen numbers: rack 1 ↔ pen 1 through rack 10 ↔ pen 10. Racks
+**1–6 take normal holders** and racks **7–10 take large holders**. Normal and
+large racks are physically different. Rack 1 is the only mounted and
+measured one; the other nine await 3D printing and individual X-position
+measurement. The intended family shares the same Y, Z, side-entry distance,
+and clearance height, with X varying by rack. Verify every rack before
+enabling it; do not extrapolate its X from the first rack alone.
+
+**Pen identity and alignment:** a rack has fixed machine geometry and an
+occupancy state. A pen record has a stable name/ID, color, type/tip, and the
+holder sizes it fits. A pen may fit a normal holder, a large holder, or both.
+The XY correction belongs to the **pen + holder-size combination**, not to
+the rack number. Rotring Isograph in a **normal holder** is the absolute
+reference at X0/Y0. Rotring in a large holder needs its own measured XY
+correction, as does every other compatible pen/holder combination. The Z jig
+sets every pen against a known block when it is installed in a holder; paper
+Z0 is shared, so no per-pen Z offset is planned. Keep paper-origin offsets,
+pen-tip XY offsets, and rack machine positions separate so drawing alignment
+cannot alter pickup or return geometry.
+
+**Planned operator setup:** KlipperScreen should show the dock and ten
+numbered racks, the pen assigned to each occupied rack, and each holder's
+size. Everyday use should be a quick assignment from a small saved pen
+library; XY calibration is a separate, infrequent operation. The dock starts
+with pen 1 attached and rack 1 empty after the empty-machine homing. For now,
+the [browser mockup](../mockups/pen-rack/index.html) demonstrates the setup:
+rack 1 is active, racks 2–10 are future placeholders, and each pen may hold
+different normal/large XY corrections. Its state is browser-local only and it
+sends no commands to Klipper. Before future automatic changes, Muusia's
+exported file must identify the next pen with an executable command; the
+current `M0 ; CHANGE PEN -> n` comment only pauses and cannot select a rack.
+Because there is no physical module-identity sensor, the operator must keep
+the displayed dock/rack assignments consistent with the actual modules.
 
 ## 8. Session log 2026-08-12 — workflow commissioning (keep the pitfalls)
 

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Viivain · Kynänarikat — mockup</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f4f5f7;background:#101216;font-synthesis:none}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 80% 0,#263238 0,transparent 43%),#101216}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.44}.shell{max-width:1240px;min-height:100vh;margin:auto;padding:24px}.screen{min-height:680px;background:#171a1f;border:1px solid #343941;border-radius:28px;box-shadow:0 30px 100px #0008;overflow:hidden;display:grid;grid-template-columns:218px 1fr}.rail{background:#12151a;border-right:1px solid #30353d;padding:26px 15px;display:flex;flex-direction:column;gap:12px}.brand{display:flex;align-items:center;gap:12px;padding:0 10px 21px;border-bottom:1px solid #30353d;margin-bottom:8px;font-size:22px;font-weight:800;letter-spacing:-.04em}.brandmark{width:31px;height:31px;border-radius:9px;background:#f4c84b;color:#191b1d;display:grid;place-items:center;font-size:22px}.rail button{border:0;color:#b9c0c9;background:transparent;text-align:left;min-height:54px;border-radius:13px;padding:0 15px;font-weight:700}.rail button.active{color:#171a1f;background:#f4c84b}.rail .spacer{flex:1}.rail small{color:#89929e;line-height:1.55;padding:0 12px}.main{min-width:0;padding:27px 32px 32px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:25px}.eyebrow{color:#f4c84b;text-transform:uppercase;letter-spacing:.13em;font-size:12px;font-weight:800;margin:0 0 7px}.top h1{font-size:30px;letter-spacing:-.045em;line-height:1.15;margin:0}.muted{color:#9fa7b1}.top .muted{margin:8px 0 0}.demo{display:flex;align-items:center;gap:8px;background:#382d19;border:1px solid #806530;color:#f5d988;border-radius:999px;padding:9px 13px;font-size:12px;font-weight:800;white-space:nowrap}.dot{width:8px;height:8px;border-radius:50%;background:#f4c84b}.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:17px}.card{background:#20242b;border:1px solid #393f48;border-radius:19px;padding:20px}.card h2{font-size:17px;margin:0 0 14px;letter-spacing:-.02em}.dock{display:flex;gap:16px;align-items:center;padding:17px;background:#152926;border:1px solid #32786b;border-radius:15px;margin-bottom:16px}.dock-icon{height:58px;width:58px;flex:none;border:2px solid #66d6ba;border-radius:15px;display:grid;place-items:center;color:#75e3c7;font-size:27px}.dock strong{display:block;font-size:20px}.dock span{display:block;color:#9dc9be;font-size:13px;margin-top:4px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.section-title h2{margin:0}.pill{font-size:11px;font-weight:800;padding:7px 10px;border-radius:999px;background:#2e353f;color:#c2cad4;white-space:nowrap}.pill.live{background:#1d493e;color:#80e1bc}.pill.future{background:#34383e;color:#9da5af}.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.slot{min-height:83px;border:1px solid #3a414a;border-radius:13px;background:#272c33;color:inherit;text-align:left;padding:12px 14px;display:flex;justify-content:space-between;gap:8px;align-items:center}.slot.current{border-color:#e0b944;background:#373426}.slot.future{background:#1d2127;color:#8a929c}.slot .num{font-size:13px;font-weight:800;color:#f4c84b}.slot.future .num{color:#8a929c}.slot strong{display:block;font-size:15px;margin-top:5px}.slot small{display:block;color:#9fa7b1;margin-top:4px}.slot .arrow{font-size:22px;color:#f4c84b}.slot.future .arrow{color:#5d6671}.status-line{display:flex;align-items:center;gap:10px;padding:14px 0;border-top:1px solid #373e47;color:#c4cbd3;font-size:14px}.status-line:first-of-type{border-top:0}.status-line b{margin-left:auto;color:#fff;text-align:right}.status-bullet{width:9px;height:9px;border-radius:50%;background:#79d5b4;flex:none}.status-bullet.gray{background:#7f8894}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}.primary,.secondary,.danger{border-radius:12px;min-height:47px;padding:0 17px;font-size:13px;font-weight:800}.primary{border:1px solid #f4c84b;background:#f4c84b;color:#151718}.secondary{border:1px solid #56606a;background:#2b3038;color:#f1f3f5}.danger{border:1px solid #6b4242;background:#402a2a;color:#ffb8b8}.hint{color:#9fa7b1;font-size:13px;line-height:1.5}.notice{border:1px solid #6c5a30;background:#30291d;color:#f2da9c;padding:13px 15px;border-radius:13px;font-size:13px;line-height:1.5;margin-top:16px}.page{display:none}.page.active{display:block}.field{display:flex;flex-direction:column;gap:7px;margin:0 0 15px}.field label{font-size:12px;font-weight:800;color:#bfc6cf}.field input,.field select{width:100%;border:1px solid #4b535f;background:#171b21;color:#fff;border-radius:11px;min-height:45px;padding:0 12px}.field input:focus,.field select:focus{outline:2px solid #f4c84b;outline-offset:1px}.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.profile{display:flex;align-items:center;gap:14px;padding:15px;border:1px solid #3d444d;border-radius:14px;margin-bottom:10px;background:#252a31}.swatch{height:37px;width:37px;border-radius:11px;border:2px solid #ffffff55;flex:none}.profile strong{display:block}.profile small{display:block;color:#9ca6b1;margin-top:3px}.profile .pill{margin-left:auto}.divider{height:1px;background:#3a414a;margin:18px 0}.toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#f4c84b;color:#191a1b;padding:12px 18px;border-radius:13px;font-size:13px;font-weight:800;box-shadow:0 10px 30px #0008;z-index:10;max-width:min(90vw,500px);text-align:center}.hidden{display:none!important}.subhead{font-size:14px;color:#b8c0c9;line-height:1.55;margin:0 0 19px}.cal-box{border-left:4px solid #f4c84b;background:#2d2a21;border-radius:0 12px 12px 0;padding:14px 17px;margin:12px 0 22px;color:#ebdfba;line-height:1.5;font-size:14px}.kbd{display:inline-block;border:1px solid #555e69;border-radius:6px;padding:2px 6px;background:#2b3038;font-size:12px}.footer{padding-top:17px;font-size:12px;color:#818b97}.footer button{background:none;border:0;color:#c5ccd5;text-decoration:underline;padding:0}.position{font-variant-numeric:tabular-nums}.tag{display:inline-flex;align-items:center;gap:5px;color:#d9e0e8;background:#303741;border-radius:6px;padding:4px 7px;font-size:11px;font-weight:800}
+    @media(max-width:850px){.shell{padding:0}.screen{border-radius:0;min-height:100vh;grid-template-columns:154px 1fr}.rail{padding:18px 9px}.rail button{padding:0 9px;font-size:13px}.brand{font-size:17px}.main{padding:22px}.grid{grid-template-columns:1fr}.top h1{font-size:25px}}
+    @media(max-width:600px){.screen{display:block}.rail{position:sticky;top:0;z-index:3;display:flex;flex-direction:row;overflow:auto;align-items:center;padding:8px;border-right:0;border-bottom:1px solid #30353d}.brand{margin:0;padding:0 6px 0 0;border:0;font-size:0}.brandmark{width:32px;height:32px}.rail button{flex:none;min-height:43px;padding:0 10px}.rail .spacer,.rail small{display:none}.main{padding:18px}.top{margin-bottom:18px}.top h1{font-size:24px}.demo{font-size:10px;padding:7px 9px}.slots{grid-template-columns:1fr 1fr}.slot{min-height:82px;padding:10px}.slot strong{font-size:13px}.field-row{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<div class="shell"><div class="screen">
+  <nav class="rail" aria-label="Päävalikko">
+    <div class="brand"><span class="brandmark">✣</span> Viivain</div>
+    <button data-page="overview" class="active">Yleiskuva</button>
+    <button data-page="racks">Kynänarikat</button>
+    <button data-page="library">Kynäkirjasto</button>
+    <button data-page="calibration">Kalibrointi</button>
+    <div class="spacer"></div>
+    <small>KlipperScreen-valikon selainmockup.<br>Ei yhteyttä koneeseen.</small>
+  </nav>
+  <main class="main">
+    <div class="top"><div><p class="eyebrow">Kynien setup</p><h1 id="pageTitle">Kynien tilanne</h1><p class="muted" id="pageLead">Rotring on telakassa. Narikka 1 odottaa kynää.</p></div><div class="demo"><span class="dot"></span> DEMO · EI OHJAA KONETTA</div></div>
+    <section class="page active" id="overview">
+      <div class="grid"><div class="card"><h2>Nykyinen tilanne</h2><div class="dock"><div class="dock-icon">✣</div><div><strong id="dockName">Rotring Isograph</strong><span id="dockDetail">Telakassa · Muusia kynä 1</span></div></div><div class="section-title"><h2>Narikat</h2><span class="pill live">1 / 10 käytössä</span></div><p class="hint">1–6 normal-moduuleille · 7–10 isoille moduuleille</p><div id="overviewSlots" class="slots"></div></div><div class="card"><h2>Käyttövalmius</h2><div class="status-line"><span class="status-bullet"></span> Käytössä oleva narikka <b>1 · Normal</b></div><div class="status-line"><span class="status-bullet"></span> X/Y-referenssi <b>Rotring · normal-pidin</b></div><div class="status-line"><span class="status-bullet gray"></span> Muut narikat <b>Odottaa 3D-tulostusta</b></div><p class="hint">Narikan numero vastaa tulevaisuudessa Muusian kynän numeroa. Numerointi näkyy jo tässä mockupissa.</p><div class="actions"><button class="primary" data-page="racks">Avaa narikat</button></div><div class="notice">Tämä on käyttöliittymän kokeilu. Poiminta- ja jättöpainikkeet muuttavat vain mockupin näkymää.</div></div></div>
+    </section>
+    <section class="page" id="racks">
+      <div class="grid"><div class="card"><div class="section-title"><h2>Narikat 1–10</h2><span class="pill live">Narikka 1 käytössä</span></div><p class="hint">1–6 normal · 7–10 iso. Vain narikka 1 on asennettu.</p><div id="rackSlots" class="slots"></div></div><div class="card"><div class="section-title"><h2>Narikka 1</h2><span class="pill live">Muusia 1 · Normal</span></div><p class="hint">Poimintapiste konekoordinaateissa: <b class="position">X41,5 · Y2,5 · Z18</b>. Sivupoiminta tulee Y-suunnasta. Tähän narikkaan sopii vain normal-moduuli.</p><div class="divider"></div><div class="field"><label for="rackPen">Narikkaan asetettu kynä</label><select id="rackPen"></select></div><div class="actions"><button class="primary" id="saveRack">Tallenna narikka 1</button></div><div class="divider"></div><h2>Liikkeen kokeilu</h2><p class="hint">Painikkeet simuloivat vain telakan ja narikan tilan muutosta.</p><div class="actions"><button class="secondary" id="leavePen">Simuloi jättö</button><button class="secondary" id="pickPen">Simuloi poiminta</button></div><p class="hint" id="rackActionHint"></p></div></div>
+    </section>
+    <section class="page" id="library">
+      <div class="grid"><div class="card"><div class="section-title"><h2>Tallennetut kynät</h2><span class="pill">Pieni kirjasto</span></div><div id="profiles"></div><p class="hint">Samalla kynällä voi olla eri X/Y-korjaus normal- ja iso-pitimessä. Narikan numero kertoo sen fyysisen paikan.</p></div><div class="card"><h2>Lisää kynä</h2><p class="subhead">Rotring Isograph normal-pitimessä on nollareferenssi. Rotringille iso-pitimessä mitataan oma X/Y-korjaus.</p><form id="addProfile"><div class="field"><label for="penName">Kynän nimi</label><input id="penName" maxlength="36" required placeholder="Esim. sininen fineliner"></div><div class="field-row"><div class="field"><label for="penType">Tyyppi / kärki</label><input id="penType" maxlength="32" placeholder="Esim. 0,5 mm"></div><div class="field"><label for="penFit">Sopivat pitimet</label><select id="penFit"><option value="normal">Vain normal</option><option value="iso">Vain iso</option><option value="both">Normal ja iso</option></select></div></div><div class="field"><label for="penColor">Väri</label><input id="penColor" type="color" value="#5b9af7" style="padding:5px;height:45px"></div><button class="primary" type="submit">Tallenna kynä</button></form></div></div>
+    </section>
+    <section class="page" id="calibration">
+      <div class="grid"><div class="card"><h2>Rotring normal-pitimessä on nollapiste</h2><p class="subhead">Rotring Isograph normal-pitimessä on absoluuttinen referenssi <span class="kbd">X0 / Y0</span>. Rotring iso-pitimessä ja muut kynä–pidin-yhdistelmät kalibroidaan siihen nähden. Z-jigi pitää kärjet samalla korkeudella.</p><div class="cal-box">Piirrä kohdistusmerkki referenssiyhdistelmällä, vaihda kalibroitava kynä ja pidin, ja säädä sen X/Y-korjaus, kunnes merkkien keskikohdat osuvat yhteen.</div><div class="field-row"><div class="field"><label for="calHolder">Pitimen koko</label><select id="calHolder"><option value="normal">Normal</option><option value="iso">Iso</option></select></div><div class="field"><label for="calPen">Kalibroitava kynä</label><select id="calPen"></select></div></div><div class="field-row"><div class="field"><label for="calX">X-korjaus (mm)</label><input id="calX" type="number" step="0.01" inputmode="decimal" value="0"></div><div class="field"><label for="calY">Y-korjaus (mm)</label><input id="calY" type="number" step="0.01" inputmode="decimal" value="0"></div></div><div class="actions"><button class="primary" id="saveCalibration">Tallenna tämän pitimen X/Y-korjaus</button></div></div><div class="card"><h2>Kalibroinnin tila</h2><div id="calibrationList"></div><div class="notice">Mockup tallentaa syötetyt arvot vain tähän selaimeen. Se ei piirrä merkkejä eikä muuta Klipperin asetuksia.</div></div></div>
+    </section>
+    <div class="footer">Mockup · vain narikka 1 on fyysisesti käytössä · <button id="resetDemo">Palauta demon alkutila</button></div>
+  </main>
+</div></div>
+<div id="toast" class="toast hidden" role="status"></div>
+<script>
+  const KEY = 'viivain-pen-rack-mockup-v2';
+  const LEGACY_KEY = 'viivain-pen-rack-mockup-v1';
+  const emptyOffset = () => ({ dx: 0, dy: 0, calibrated: false });
+  const initial = () => ({
+    dock: 'rotring', dockHolder: 'normal', rack1: null,
+    profiles: [{
+      id: 'rotring', name: 'Rotring Isograph', type: 'Referenssikynä', color: '#f4c84b',
+      fits: ['normal', 'iso'],
+      offsets: { normal: { dx: 0, dy: 0, calibrated: true }, iso: emptyOffset() }
+    }]
+  });
+  function migrate(old) {
+    if (!old || !Array.isArray(old.profiles) || !old.profiles.some(p => p.id === 'rotring')) return initial();
+    return {
+      dock: old.dock || null, dockHolder: 'normal', rack1: old.rack1 || null,
+      profiles: old.profiles.map(p => {
+        if (p.id === 'rotring') return initial().profiles[0];
+        const size = p.size === 'iso' ? 'iso' : 'normal';
+        return {
+          id: p.id, name: p.name, type: p.type, color: p.color,
+          fits: [size], offsets: { [size]: { dx: Number(p.dx || 0), dy: Number(p.dy || 0), calibrated: !!p.calibrated } }
+        };
+      })
+    };
+  }
+  let state;
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY));
+    state = saved?.profiles?.some(p => p.id === 'rotring') ? saved : migrate(JSON.parse(localStorage.getItem(LEGACY_KEY)));
+  } catch { state = initial(); }
+  const $ = id => document.getElementById(id);
+  const profile = id => state.profiles.find(p => p.id === id);
+  const offset = (p, holder) => p?.offsets?.[holder];
+  const fits = (p, holder) => !!p?.fits?.includes(holder);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+  let toastTimer;
+  function toast(message) {
+    const el = $('toast'); el.textContent = message; el.classList.remove('hidden');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.add('hidden'), 3700);
+  }
+  function slotHtml(n) {
+    const holder = n <= 6 ? 'Normal' : 'Iso';
+    if (n > 1) return `<div class="slot future" aria-label="Narikka ${n}, ${holder.toLowerCase()}, tuleva paikka"><div><div class="num">${String(n).padStart(2, '0')} · Muusia ${n} · ${holder}</div><strong>Tuleva narikka</strong><small>Ei vielä asennettu</small></div><span class="arrow">○</span></div>`;
+    const p = profile(state.rack1);
+    return `<button class="slot current" data-page="racks"><div><div class="num">01 · Muusia 1 · Normal</div><strong>${p ? esc(p.name) : 'Tyhjä'}</strong><small>${p && !fits(p, 'normal') ? 'Kynä ei sovi normal-pitimeen' : p ? 'Normal-pidin narikassa' : 'Kynä telakassa tai paikka vapaa'}</small></div><span class="arrow">›</span></button>`;
+  }
+  function leadText(name) {
+    if (name === 'overview') {
+      const dock = profile(state.dock);
+      return `${dock?.name || 'Telakka'} on ${dock ? 'telakassa' : 'tyhjä'}. Narikka 1 on ${state.rack1 ? 'varattu' : 'tyhjä'}.`;
+    }
+    return { racks: 'Narikka 1 on käytössä. Muut paikat odottavat asennusta.', library: 'Kynällä voi olla oma korjaus kummallekin pitimelle.', calibration: 'Rotring normal-pitimessä on X/Y-referenssi.' }[name];
+  }
+  function offsetText(p, holder) {
+    const o = offset(p, holder);
+    return o?.calibrated ? `X${Number(o.dx).toFixed(2)} / Y${Number(o.dy).toFixed(2)} mm` : 'Ei kalibroitu';
+  }
+  function renderCalibrationOptions() {
+    const holder = $('calHolder').value;
+    const previous = $('calPen').value;
+    const choices = state.profiles.filter(p => fits(p, holder) && !(p.id === 'rotring' && holder === 'normal'));
+    $('calPen').innerHTML = choices.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('') || '<option value="">Ei kalibroitavia kyniä tässä pitimessä</option>';
+    $('calPen').value = choices.some(p => p.id === previous) ? previous : choices[0]?.id || '';
+    loadCalibration();
+    $('saveCalibration').disabled = !$('calPen').value;
+  }
+  function loadCalibration() {
+    const o = offset(profile($('calPen').value), $('calHolder').value);
+    $('calX').value = o?.dx ?? 0;
+    $('calY').value = o?.dy ?? 0;
+  }
+  function render() {
+    const dock = profile(state.dock);
+    $('dockName').textContent = dock?.name || 'Tyhjä telakka';
+    $('dockDetail').textContent = dock ? `Telakassa · ${state.dockHolder === 'iso' ? 'Iso' : 'Normal'}-pidin · Muusia kynä 1` : 'Valmis poimintaan';
+    $('pageLead').textContent = leadText(document.querySelector('.page.active')?.id || 'overview');
+    $('overviewSlots').innerHTML = Array.from({ length: 10 }, (_, i) => slotHtml(i + 1)).join('');
+    $('rackSlots').innerHTML = $('overviewSlots').innerHTML;
+    const choices = state.profiles.filter(p => fits(p, 'normal') && (p.id !== state.dock || p.id === state.rack1));
+    $('rackPen').innerHTML = '<option value="">Tyhjä</option>' + choices.map(p => `<option value="${esc(p.id)}">${esc(p.name)} · normal-pidin</option>`).join('');
+    $('rackPen').value = state.rack1 || '';
+    $('leavePen').disabled = !dock || !!state.rack1 || state.dockHolder !== 'normal';
+    $('pickPen').disabled = !!dock || !state.rack1 || !fits(profile(state.rack1), 'normal');
+    $('rackActionHint').textContent = state.rack1 && !fits(profile(state.rack1), 'normal') ? 'Narikka 1 vaatii normal-pitimen.' : dock && state.rack1 ? 'Narikka on varattu. Tyhjennä se ennen jättöä.' : dock && state.dockHolder !== 'normal' ? 'Telakassa on iso pidin, joka ei sovi narikkaan 1.' : dock ? 'Voit simuloida normal-pitimen jättämistä tyhjään narikkaan.' : state.rack1 ? 'Voit simuloida poimintaa narikasta.' : 'Telakka ja narikka ovat tyhjät.';
+    $('profiles').innerHTML = state.profiles.map(p => {
+      const statuses = p.fits.map(holder => `${holder === 'iso' ? 'Iso' : 'Normal'}: ${offsetText(p, holder)}`).join(' · ');
+      const color = /^#[0-9a-fA-F]{6}$/.test(p.color) ? p.color : '#888888';
+      return `<div class="profile"><span class="swatch" style="background:${color}"></span><div><strong>${esc(p.name)}</strong><small>${esc(p.type || 'Kynä')} · ${esc(statuses)}</small></div><span class="pill ${p.id === 'rotring' ? 'live' : ''}">${p.id === 'rotring' ? 'Referenssi: normal' : p.fits.length === 2 ? 'Molemmat pitimet' : p.fits[0] === 'iso' ? 'Iso' : 'Normal'}</span></div>`;
+    }).join('');
+    renderCalibrationOptions();
+    $('calibrationList').innerHTML = state.profiles.flatMap(p => p.fits.map(holder => {
+      const o = offset(p, holder);
+      return `<div class="status-line"><span class="status-bullet ${o?.calibrated ? '' : 'gray'}"></span>${esc(p.name)} · ${holder === 'iso' ? 'iso' : 'normal'}<b>${esc(offsetText(p, holder))}</b></div>`;
+    })).join('');
+    save();
+  }
+  function page(name) {
+    document.querySelectorAll('.page').forEach(e => e.classList.toggle('active', e.id === name));
+    document.querySelectorAll('.rail button[data-page]').forEach(e => e.classList.toggle('active', e.dataset.page === name));
+    $('pageTitle').textContent = { overview: 'Kynien tilanne', racks: 'Kynänarikat', library: 'Kynäkirjasto', calibration: 'X/Y-kalibrointi' }[name];
+    $('pageLead').textContent = leadText(name);
+  }
+  document.addEventListener('click', e => { const button = e.target.closest('[data-page]'); if (button) page(button.dataset.page); });
+  $('saveRack').addEventListener('click', () => {
+    const id = $('rackPen').value || null;
+    if (id === state.dock) return toast('Sama kynä ei voi olla telakassa ja narikassa.');
+    if (id && !fits(profile(id), 'normal')) return toast('Narikkaan 1 tarvitaan normal-pidin.');
+    state.rack1 = id; render(); toast('Narikka 1 tallennettu tähän selaimeen.');
+  });
+  $('leavePen').addEventListener('click', () => {
+    if (!state.dock || state.rack1) return;
+    if (state.dockHolder !== 'normal') return toast('Iso pidin ei sovi narikkaan 1.');
+    state.rack1 = state.dock; state.dock = null; render(); toast('Simuloitu jättö: kynä 1 on narikassa.');
+  });
+  $('pickPen').addEventListener('click', () => {
+    if (state.dock || !state.rack1 || !fits(profile(state.rack1), 'normal')) return;
+    state.dock = state.rack1; state.dockHolder = 'normal'; state.rack1 = null;
+    render(); toast('Simuloitu poiminta: kynä 1 on telakassa.');
+  });
+  $('addProfile').addEventListener('submit', e => {
+    e.preventDefault(); const name = $('penName').value.trim(); if (!name) return;
+    const fit = $('penFit').value;
+    const fitsList = fit === 'both' ? ['normal', 'iso'] : [fit];
+    const offsets = Object.fromEntries(fitsList.map(holder => [holder, emptyOffset()]));
+    state.profiles.push({ id: 'pen-' + Date.now(), name, type: $('penType').value.trim() || 'Kynä', color: $('penColor').value, fits: fitsList, offsets });
+    $('addProfile').reset(); render(); toast(`${name} lisätty kynäkirjastoon.`);
+  });
+  $('calHolder').addEventListener('change', renderCalibrationOptions);
+  $('calPen').addEventListener('change', loadCalibration);
+  $('saveCalibration').addEventListener('click', () => {
+    const holder = $('calHolder').value, p = profile($('calPen').value);
+    if (!p || !fits(p, holder) || (p.id === 'rotring' && holder === 'normal')) return;
+    const dx = Number($('calX').value), dy = Number($('calY').value);
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return toast('Syötä kelvolliset X- ja Y-arvot.');
+    p.offsets[holder] = { dx, dy, calibrated: true };
+    render(); toast(`${p.name} · ${holder === 'iso' ? 'iso' : 'normal'}-pitimen X/Y-korjaus tallennettu.`);
+  });
+  $('resetDemo').addEventListener('click', () => { state = initial(); render(); page('overview'); toast('Demon alkutila palautettu.'); });
+  render();
+</script>
+</body>
+</html>
