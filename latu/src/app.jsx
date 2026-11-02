@@ -13,7 +13,7 @@ import PlaybackPanel from "./playback-panel.jsx";
 import { buildTimeline, sampleTimeline } from "./sim.js";
 import { ActionMenu, Icon, SelectionInspector } from "./editor-controls.jsx";
 import ResumePanel from "./resume-panel.jsx";
-import { buildContinuation, continuationFilename, resumeLocation, resumeTargetForSelection } from "./resume.js";
+import { buildContinuation, continuationFilename, continuationStartup, resumeLocation, resumeTargetForSelection } from "./resume.js";
 
 const EMPTY = `; LATU\n; Open a Muusia .gcode file to inspect its toolpath.\n`;
 
@@ -56,6 +56,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [resumeTarget, setResumeTarget] = useState({ lineIndex: null, fraction: 0 });
+  const [replayStartup, setReplayStartup] = useState(false);
   const [split, setSplit] = useState(56);
   const [dirty, setDirty] = useState(false);
   const [selectedStrokeIds, setSelectedStrokeIds] = useState([]);
@@ -268,18 +269,20 @@ export default function App() {
   const safety = useMemo(() => auditDocument(doc), [doc]);
   const usedPens = useMemo(() => [...new Map(doc.sections.map((section) => [section.penIndex, { penIndex: section.penIndex, name: section.name, color: doc.meta.penColors?.[section.penIndex] || doc.strokes.find((stroke) => stroke.penIndex === section.penIndex)?.color || COLOR_PALETTE[section.penIndex % COLOR_PALETTE.length] }])).values()], [doc]);
   const visualLocked = doc.warnings.unsafeModal || playbackOpen || measureMode || resumeOpen;
-  const continuation = useMemo(() => resumeOpen ? buildContinuation(doc, resumeTarget, activeProfile) : null, [doc, resumeTarget, activeProfile, resumeOpen]);
+  const startup = useMemo(() => resumeOpen ? continuationStartup(doc) : null, [doc, resumeOpen]);
+  const continuation = useMemo(() => resumeOpen ? buildContinuation(doc, resumeTarget, activeProfile, { replayStartup }) : null, [doc, resumeTarget, activeProfile, resumeOpen, replayStartup]);
   const continuationMarker = useMemo(() => resumeOpen ? resumeLocation(doc, resumeTarget)?.position : null, [doc, resumeTarget, resumeOpen]);
   const openResume = () => {
     const target = resumeTargetForSelection(doc, selectedLine, selectedPoints);
     setResumeTarget(resumeLocation(doc, target) ? target : { lineIndex: doc.strokes[0]?.lineStart ?? null, fraction: 0 });
+    setReplayStartup(false);
     setResumeOpen(true); setSidebarOpen(true); setPenMode(false); setBoxMode(false); setMeasureMode(false); setDraftPoints([]);
     setPlaybackOpen(false); setPlaying(false);
     if (paneMode === "text") setPaneMode("split");
   };
   const createContinuation = () => {
     if (doc.source !== source) return;
-    const result = buildContinuation(doc, resumeTarget, activeProfile);
+    const result = buildContinuation(doc, resumeTarget, activeProfile, { replayStartup });
     if (result.error) { setMessage(result.error); return; }
     clearTimeout(parseTimer.current);
     applySource(result.source, "Created continuation copy · check Playback, then Save as a new file", false);
@@ -396,7 +399,7 @@ export default function App() {
     </header>
     <main className={`workspace mode-${paneMode}`}>
       {(paneMode !== "text" || resumeOpen) && sidebarOpen && <aside className={`editor-sidebar${resumeOpen ? " resume-sidebar" : ""}`}>
-        {resumeOpen ? <ResumePanel doc={doc} target={resumeTarget} result={continuation} filename={continuationFilename(name)} pending={doc.source !== source} onTarget={(target) => { setResumeTarget(target); setSelectedLine(target.lineIndex); }} onClose={() => setResumeOpen(false)} onCreate={createContinuation} /> : playbackOpen ? <section className="selection-inspector"><div className="inspector-heading"><h2>Playback preview</h2></div><p className="selection-empty">Pen widths and paper color are below the canvas.</p><p className="selection-tip">Close Playback to return to editing. Your selection stays in place.</p></section> : <SelectionInspector strokes={selectedStrokeIds.length} points={selectedPoints.length} events={selectedEventIds.length} sections={doc.sections} locked={visualLocked} move={move} onMoveChange={setMove} actions={{
+        {resumeOpen ? <ResumePanel doc={doc} target={resumeTarget} result={continuation} startup={startup} replayStartup={replayStartup} onReplayStartup={setReplayStartup} filename={continuationFilename(name)} pending={doc.source !== source} onTarget={(target) => { setResumeTarget(target); setSelectedLine(target.lineIndex); }} onClose={() => setResumeOpen(false)} onCreate={createContinuation} /> : playbackOpen ? <section className="selection-inspector"><div className="inspector-heading"><h2>Playback preview</h2></div><p className="selection-empty">Pen widths and paper color are below the canvas.</p><p className="selection-tip">Close Playback to return to editing. Your selection stays in place.</p></section> : <SelectionInspector strokes={selectedStrokeIds.length} points={selectedPoints.length} events={selectedEventIds.length} sections={doc.sections} locked={visualLocked} move={move} onMoveChange={setMove} actions={{
           clear: clearSelection, move: runMove, scale: () => setScaleOpen(true), reverse: () => applySource(reverseStrokes(doc, selectedStrokeIds), "Reversed strokes"),
           insert: () => applySource(insertMidpoint(doc, selectedStrokeIds[0], selectedLine), "Inserted midpoint"), split: () => applySource(splitStroke(doc, selectedStrokeIds[0], selectedLine), "Split stroke", false),
           optimize: runOptimize, join: runJoin, pen: runMoveToSection, copy: runCopy, paste: runPaste, delete: runDelete, resume: openResume, yUp,

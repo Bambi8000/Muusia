@@ -97,10 +97,16 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] `Create continuation copy` on pois käytöstä, kunnes kohdistuksen, kynän ja plot-korkeuden tarkistus on kuitattu. Kohdan vaihto nollaa kuittauksen.
 - [ ] `Cancel` ja Esc poistuvat aloituskohdan valinnasta muuttamatta G-codea.
 - [ ] Kopion nimeksi tulee `alkuperäinen-resume.gcode`; Save ei kirjoita automaattisesti alkuperäisen tiedoston päälle.
-- [ ] Kopion ensimmäinen XY-liike on kynä ylhäällä. Kynän lasku ja piirtonopeuden palautus tapahtuvat vasta aloituskohdassa.
+- [ ] Siirtyminen START-kohtaan tapahtuu kynä ylhäällä. Kynän lasku ja piirtonopeuden palautus tapahtuvat vasta aloituskohdassa.
 - [ ] Playbackissa aiempi piirto on poistunut, jäljellä oleva piirto on alkuperäisillä koordinaateilla ja myöhemmät kynänvaihdot ovat tallella.
 - [ ] Toisen kynän kohdalta aloitus näyttää oikean kynän eikä toista ohitettuja kynänvaihtoja.
-- [ ] G28-, PLOT_GO- ja PLOT_HEIGHT-alkukomentoja ei ajeta uudestaan. Näytetty ohje kertoo koneen valmistelusta.
+- [ ] `Machine startup → Keep current setup` jättää G28-, PLOT_GO- ja PLOT_HEIGHT-alkukomennot pois ja käyttää koneen nykyistä paperin nollaa ja korkeutta.
+- [ ] `Run original startup` ottaa alkuperäiset aloituskomennot ja aloitussiirtymät mukaan niiden alkuperäisessä järjestyksessä. Aiempi piirto ei toistu.
+- [ ] `View startup G-code` näyttää mukaan tulevat rivit alkuperäisine rivinumeroineen. Aloitustavan vaihto nollaa tarkistuskuittauksen.
+- [ ] PLOT_GO sekä tiedoston alkuun tallennetut G92- ja SET_GCODE_OFFSET-origokomennot säilyvät jatkokopiossa. Nopeusasetukset ja CLEAR_PAUSE eivät kahdennu.
+- [ ] Tiedosto, jossa on vain PLOT_HEIGHT mutta ei paperin XY-nollan asetusta, kertoo tästä paneelissa. Canvas-origin säilyy eikä sitä lisätä toiseksi koneoffsetiksi.
+- [ ] Bed-Z-tiedoston homing ja origon asetus tapahtuvat ennen LATUn lisäämää Z-nostoa. START-kohdan paine vastaa alkuperäistä.
+- [ ] Alkuperäisen aloituksen jälkeen kynä kulkee nostettuna START-kohtaan. Myöhemmät kynänvaihdot ja lopetuskomennot säilyvät.
 - [ ] Undo palauttaa koko alkuperäisen piirron editoriin; nimi jää kopion nimeksi alkuperäisen suojaamiseksi.
 - [ ] Viimeisen piirto-osuuden loppupiste, tuntemattomat komennot ja tukematon konetila estävät kopion tekemisen selkeällä virheellä.
 - [ ] Servo-Z-testifixture ja bed-Z:n painevaihtelu toimivat. Paperi, nollapisteet, homing, kynä ja korkeus tarkistetaan koneella ennen fyysistä koetta.

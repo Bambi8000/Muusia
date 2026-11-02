@@ -44,18 +44,40 @@ Review the result in Playback, then Save. Undo restores the full drawing in the
 editor (the copy filename remains, so it still cannot silently overwrite the
 original).
 
-Continuation does **not** home the machine, restore lost paper offsets, or replay
-`PLOT_GO` / `PLOT_HEIGHT`. Before running, the operator must establish the original
-paper X/Y zero, safe plot height and correct pen, with the machine homed and the
-paper unmoved. LATU emits G21/G90, a source-matched pen lift, pen-up travel to the
-start, the pen-down/pressure command, settle time and drawing feed. The original
-suffix, including subsequent pen changes and end commands, is retained.
+Choose how the continuation starts under **Machine startup**:
+
+- **Keep current setup** (default) uses the machine's existing paper X/Y zero
+  and plot height. Homing and entry macros are omitted.
+- **Run original startup** retains the source file's setup and initial travel,
+  in their original order, up to the first pen-down. This includes `G28`,
+  `PLOT_GO`, `PLOT_HEIGHT`, canvas checks and explicit paper offsets when present.
+  **View startup G-code** shows the included lines with original line numbers.
+  Changing the startup choice resets the setup acknowledgement.
+
+After that setup, LATU restores G21/G90 and the current motion limits, lifts the
+pen, travels to the chosen START, lowers the pen to the original/interpolated
+pressure, waits for it to settle and restores the drawing feed. No earlier
+drawing is replayed. The original suffix, including subsequent pen changes and
+end commands, is retained. Bed-Z homing/setup runs before the generated Z lift.
+
+Paper must stay in its original position and the required pen must be loaded.
+Only setup actually present in the source file is replayed; the active machine
+profile's Start G-code is not substituted. Canvas origin metadata is preserved
+without applying a second machine offset. `PLOT_GO` uses the machine's stored
+paper setup; a file with only `PLOT_HEIGHT` does not restore paper X/Y zero and
+the panel says so. Macro internals and physical homing are not simulated by
+Playback.
 
 Supported: absolute millimetre pen paths using source-calibrated servo controls,
 `PEN_UP` / `PEN_DOWN`, or bed-Z (including interpolated pressure). The first
-version rejects relative/inch modes, unknown macros, offset changes, extrusion,
-laser/pin output, rotary tools and saved/restored machine state; it does not
-guess how to reconstruct them. Starts inside dip/maintenance blocks and files
+version rejects relative/inch modes, unknown macros, extrusion, laser/pin
+output, rotary tools and saved/restored machine state. Explicit `G92 X/Y/Z` and
+absolute `SET_GCODE_OFFSET` are supported only inside the replayed startup;
+`G92` additionally requires the affected axes to be homed by that startup,
+because it defines zero at the current physical position. Incremental offsets
+and offset changes after startup remain unsupported. Both
+X and Y must be explicitly positioned after setup and before the first drawing
+move. Starts inside dip/maintenance blocks and files
 with unfinished blocks are also refused. Actual printer motion is not tested by
 the application test suite; inspect the generated file before a physical run.
 

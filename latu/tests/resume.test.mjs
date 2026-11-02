@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { parseGcode } from "../src/parser.js";
 import { combineGcodeSources, updatePenColor } from "../src/model.js";
-import { buildContinuation, continuationFilename, resumeTargetForSelection } from "../src/resume.js";
+import { buildContinuation, continuationFilename, continuationStartup, resumeTargetForSelection } from "../src/resume.js";
 import { DEFAULT_PROFILE } from "../src/profile.js";
 
 const fixture = await readFile(new URL("./fixtures/servo-z.gcode", import.meta.url), "utf8");
@@ -68,6 +68,133 @@ test("startup motion and arbitrary profile start code are not replayed", () => {
   assert.doesNotMatch(result.source, /^(?:G28|PLOT_GO|PLOT_HEIGHT|G92)\b/m);
   assert.match(result.source, /^_GENTLE_JOB_ON$/m);
   assert.deepEqual(result.omittedStartup.map((item) => item.command), ["G28", "PLOT_GO", "PLOT_HEIGHT"]);
+});
+
+test("original startup replays homing, paper setup and entry travel once, before the continuation", () => {
+  const input = fixture.replace("G21 ; mm", "G21 ; mm\nG28 ; home\nCLEAR_PAUSE\n_GENTLE_JOB_ON\nPLOT_GO\nPLOT_HEIGHT\nCANVAS_CHECK X_MIN=0 X_MAX=100 Y_MIN=0 Y_MAX=100");
+  const doc = parseGcode(input, profile), target = { lineIndex: doc.strokes[0].lineEnd, fraction: 0.5 };
+  const startup = continuationStartup(doc);
+  const result = buildContinuation(doc, target, { ...profile, startG: "CUSTOM_PROFILE_SETUP" }, { replayStartup: true });
+  assert.equal(result.error, null);
+  assert.deepEqual(result.omittedStartup, []);
+  assert.equal(startup.hasOrigin, true);
+  const prefix = result.source.split("; LATU original startup begin\n")[1].split("; LATU original startup end")[0];
+  assert.ok(prefix.endsWith(startup.lines.map((line) => line.raw).join("\n") + "\n"), "startup stays verbatim after LATU's generated editor/profile comments");
+  for (const command of ["G28", "PLOT_GO", "PLOT_HEIGHT", "CLEAR_PAUSE", "_GENTLE_JOB_ON", "CANVAS_CHECK"]) assert.equal((result.source.match(new RegExp(`^${command}\\b`, "gm")) || []).length, 1, command);
+  assert.doesNotMatch(prefix, /ANGLE=80|^G1 X/m);
+  assert.match(prefix, /G0 X10 Y20 F3000/);
+  assert.doesNotMatch(result.source, /CUSTOM_PROFILE_SETUP|No homing or paper-offset/);
+  const resumed = parseGcode(result.source, profile);
+  assert.deepEqual(resumed.strokes[0].pts[0], [30, 30, null]);
+  const firstDraw = resumed.strokes[0].lineStart;
+  assert.ok(resumed.lines.slice(0, firstDraw).filter(({ op }) => op.kind === "move").every(({ op }) => op.stateBefore === "up"));
+  assert.equal(resumed.stats.drawLength, 30);
+});
+
+test("patch-21 original startup keeps the exact remaining geometry at every cut", () => {
+  const doc = parseGcode(patch, profile);
+  for (const segment of drawing(doc)) for (const fraction of [0, 0.37, 1]) {
+    const target = { lineIndex: segment.line, fraction };
+    const manual = buildContinuation(doc, target, profile);
+    const replayed = buildContinuation(doc, target, profile, { replayStartup: true });
+    assert.equal(replayed.error, manual.error);
+    if (manual.error) continue;
+    assert.match(replayed.source, /^PLOT_HEIGHT$/m);
+    assert.deepEqual(drawing(parseGcode(replayed.source, profile)).map(({ from, to, pen }) => ({ from, to, pen })), drawing(parseGcode(manual.source, profile)).map(({ from, to, pen }) => ({ from, to, pen })));
+    assert.ok(replayed.source.endsWith(doc.lines.slice(segment.line + (fraction === 1 ? 1 : 0)).map((line) => line.raw + line.ending).join("")));
+  }
+});
+
+test("explicit paper offsets require startup replay and preserve original job coordinates", () => {
+  for (const origin of ["G92 X0 Y0", "SET_GCODE_OFFSET X=42 Y=20 Z=0 MOVE=0", "SET_GCODE_OFFSET X=42 Y=20 MOVE=1 MOVE_SPEED=20"]) {
+    const input = fixture.replace("G90 ; absolute", `G90 ; absolute\nG28\n${origin}`);
+    const doc = parseGcode(input, profile), target = { lineIndex: doc.strokes[0].lineStart, fraction: 0.5 };
+    assert.match(buildContinuation(doc, target, profile).error, /Run original startup/);
+    const result = buildContinuation(doc, target, profile, { replayStartup: true });
+    assert.equal(result.error, null, origin);
+    assert.ok(result.source.includes(`\n${origin}\n`));
+    assert.deepEqual(parseGcode(result.source, profile).strokes[0].pts[0], [20, 20, null]);
+    assert.equal(parseGcode(result.source, profile).meta.originX, 0, "canvas origin is not applied as another machine offset");
+  }
+});
+
+test("startup replay refuses accumulating offsets, opaque macros and state changes after drawing starts", () => {
+  for (const code of ["SET_GCODE_OFFSET X_ADJUST=10", "SET_GCODE_OFFSET X=10 MOVE=2", "SET_GCODE_OFFSET X=10 MOVE_SPEED=-1", "SET_GCODE_OFFSET X=NaN", "G92 E0", "G92 XNaN", "CUSTOM_SETUP", "SET_PIN PIN=laser VALUE=1", "RESTORE_GCODE_STATE NAME=work MOVE=1", "G91"]) {
+    const doc = parseGcode(fixture.replace("G21 ; mm", `${code}\nG21 ; mm`), profile);
+    const result = buildContinuation(doc, { lineIndex: doc.strokes[0].lineStart, fraction: 0.5 }, profile, { replayStartup: true });
+    assert.ok(result.error, code); assert.equal(result.source, null, code);
+  }
+  for (const code of ["G92 X0 Y0", "SET_GCODE_OFFSET X=10 Y=20", "PLOT_GO", "G28"]) {
+    const doc = parseGcode(fixture.replace("G1 X30 Y40 F1800", `${code}\nG1 X30 Y40 F1800`), profile);
+    for (const target of [doc.strokes[0].lineStart, doc.strokes.at(-1).lineStart]) {
+      assert.ok(buildContinuation(doc, { lineIndex: target, fraction: 0 }, profile, { replayStartup: true }).error, code);
+    }
+  }
+});
+
+test("coordinates from before a paper-origin reset cannot be used for a continuation", () => {
+  const input = fixture.replace("G21 ; mm", "G21 ; mm\nG28").replace("G0 X10 Y20 F3000", "G0 X10 Y20 F3000\nG92 X0 Y0\nG0 X10 F3000");
+  const doc = parseGcode(input, profile);
+  assert.match(buildContinuation(doc, { lineIndex: doc.strokes[1].lineStart, fraction: 0 }, profile, { replayStartup: true }).error, /X\/Y position/);
+});
+
+test("plot-height setup does not invalidate an already known XY approach", () => {
+  for (const code of ["PLOT_HEIGHT", "G92 Z0", "SET_GCODE_OFFSET Z=1 MOVE=0"]) {
+    const doc = parseGcode(fixture.replace("G21 ; mm", "G21 ; mm\nG28").replace("G0 X10 Y20 F3000", `G0 X10 Y20 F3000\n${code}`), profile);
+    const result = buildContinuation(doc, { lineIndex: doc.strokes[0].lineStart, fraction: 0.5 }, profile, { replayStartup: true });
+    assert.equal(result.error, null, code);
+    assert.equal(continuationStartup(doc).hasOrigin, false, "height alone does not restore paper XY");
+    assert.deepEqual(parseGcode(result.source, profile).strokes[0].pts[0], [20, 20, null]);
+  }
+});
+
+test("G92 cannot redefine paper zero at the arbitrary position where the previous run stopped", () => {
+  for (const startup of ["G92 X0 Y0", "G28 X\nG92 X0 Y0", "G28 X Y\nG92 Z0"]) {
+    const doc = parseGcode(fixture.replace("G21 ; mm", `G21 ; mm\n${startup}`), profile);
+    const result = buildContinuation(doc, { lineIndex: doc.strokes[0].lineStart, fraction: 0 }, profile, { replayStartup: true });
+    assert.match(result.error, /does not home those axes/);
+    assert.equal(result.source, null);
+  }
+  const doc = parseGcode(fixture.replace("G21 ; mm", "G21 ; mm\nG28 X Y\nG92 X0 Y0"), profile);
+  assert.equal(buildContinuation(doc, { lineIndex: doc.strokes[0].lineStart, fraction: 0 }, profile, { replayStartup: true }).error, null);
+});
+
+test("bed-Z startup homes before lifting and still resumes at the interpolated pressure", () => {
+  const bedProfile = { ...profile, zMode: "bed" };
+  const doc = parseGcode(bed.replace("G90", "G90\nG28\nSET_GCODE_OFFSET X=10 Y=20 Z=1 MOVE=0"), bedProfile);
+  const result = buildContinuation(doc, { lineIndex: doc.strokes[0].lineEnd, fraction: 0.5 }, bedProfile, { replayStartup: true });
+  assert.equal(result.error, null);
+  assert.ok(result.source.indexOf("\nG28\n") < result.source.indexOf("\nG1 Z3"));
+  assert.ok(result.source.indexOf("\nSET_GCODE_OFFSET") < result.source.indexOf("\nG1 Z3"));
+  assert.deepEqual(point(parseGcode(result.source, bedProfile).strokes[0].pts[0]), [15, 10, -0.15]);
+});
+
+test("startup replay restores later limits and current pen without past pen changes", () => {
+  const input = fixture.replace("G21 ; mm", "G21 ; mm\nM220 S50").replace("PAUSE ; CHANGE PEN", "M220 S75\nPAUSE ; CHANGE PEN");
+  const doc = parseGcode(input, profile);
+  const result = buildContinuation(doc, { lineIndex: doc.strokes[1].lineStart, fraction: 0.5 }, profile, { replayStartup: true });
+  assert.equal(result.error, null);
+  assert.ok(result.source.indexOf("M220 S50") < result.source.indexOf("M220 S75"));
+  assert.equal((result.source.match(/^M220 /gm) || []).length, 2);
+  const resumed = parseGcode(result.source, profile);
+  assert.equal(resumed.strokes[0].penIndex, 7);
+  assert.equal(resumed.sections[0].name, "Magenta");
+  assert.equal(resumed.events.filter((event) => event.kind === "pen-change").length, 0);
+});
+
+test("startup replay preserves CRLF, macro pen controls and combined group boundaries", () => {
+  const source = fixture.replaceAll("SET_SERVO SERVO=pen ANGLE=135", "PEN_UP ;").replaceAll("SET_SERVO SERVO=pen ANGLE=80", "PEN_DOWN ;");
+  const combined = combineGcodeSources(parseGcode(source, profile), [{ name: "second.gcode", source }], profile, "first.gcode");
+  const doc = parseGcode(combined.source.trimEnd().replaceAll("\n", "\r\n"), profile);
+  const result = buildContinuation(doc, { lineIndex: doc.strokes.at(-1).lineStart, fraction: 0.5 }, profile, { replayStartup: true });
+  assert.equal(result.error, null);
+  assert.doesNotMatch(result.source, /(?<!\r)\n/);
+  const resumed = parseGcode(result.source, profile);
+  assert.equal(resumed.groups.length, 1);
+  assert.equal(resumed.groups[0].name, "second.gcode");
+  assert.equal((result.source.match(/^; LATU GROUP .* BEGIN/gm) || []).length, (result.source.match(/^; LATU GROUP .* END/gm) || []).length);
+  assert.match(result.source, /^PEN_UP$/m);
+  assert.match(result.source, /^PEN_DOWN$/m);
 });
 
 test("source servo calibration takes precedence over a mismatched active profile", () => {
