@@ -61,6 +61,7 @@ export function SelectionInspector({ strokes, points, events, sections, locked, 
       <div className="selection-summary">{points ? `${points} point${points === 1 ? "" : "s"}` : `${strokes} stroke${strokes === 1 ? "" : "s"}`}{events > 0 && ` · ${events} event${events === 1 ? "" : "s"}`}</div>
       {locked && <p className="selection-tip">Editing is paused during playback, measuring or an unsafe G-code mode.</p>}
       {strokes > 0 && <>
+        <button className="resume-selection" disabled={locked} onClick={actions.resume}>Continue from here…</button>
         <div className="inspector-label">Move {points ? "points" : "selection"}<span>mm</span></div>
         <div className="move-fields">{["x", "y"].map((axis) => <label key={axis}><b>{axis.toUpperCase()}</b><input aria-label={`Move ${axis.toUpperCase()}`} type="number" step="0.1" value={move[axis]} disabled={locked} onChange={(event) => onMoveChange({ ...move, [axis]: event.target.value })} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); actions.move(); } }} /></label>)}</div>
         <button className="move-action" disabled={locked} onClick={() => actions.move()}>Apply move</button>

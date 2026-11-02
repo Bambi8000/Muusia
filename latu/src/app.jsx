@@ -12,6 +12,8 @@ import { loadProfiles, profileForDocument, saveProfiles } from "./profile.js";
 import PlaybackPanel from "./playback-panel.jsx";
 import { buildTimeline, sampleTimeline } from "./sim.js";
 import { ActionMenu, Icon, SelectionInspector } from "./editor-controls.jsx";
+import ResumePanel from "./resume-panel.jsx";
+import { buildContinuation, continuationFilename, resumeLocation, resumeTargetForSelection } from "./resume.js";
 
 const EMPTY = `; LATU\n; Open a Muusia .gcode file to inspect its toolpath.\n`;
 
@@ -52,6 +54,8 @@ export default function App() {
   const [yUp, setYUp] = useState(true);
   const [paneMode, setPaneMode] = useState("split");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [resumeOpen, setResumeOpen] = useState(false);
+  const [resumeTarget, setResumeTarget] = useState({ lineIndex: null, fraction: 0 });
   const [split, setSplit] = useState(56);
   const [dirty, setDirty] = useState(false);
   const [selectedStrokeIds, setSelectedStrokeIds] = useState([]);
@@ -112,6 +116,7 @@ export default function App() {
     setActiveProfileId(matchingProfile.id);
     setSource(text); setDoc(parseGcode(text, matchingProfile)); setName(filename || "untitled.gcode");
     setDirty(false); setSelectedLine(null); setHoveredLine(null); fileHandleRef.current = handle;
+    setResumeOpen(false);
     setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); setViewResetKey((value) => value + 1); historyRef.current = { past: [], future: [] };
   };
   loadTextRef.current = loadText;
@@ -133,6 +138,7 @@ export default function App() {
   };
   const selectLine = (line, options = {}) => {
     setSelectedLine(line);
+    if (resumeOpen) { setResumeTarget(resumeTargetForSelection(doc, line, options.point ? [options.point] : [])); return; }
     if (line == null) { if (!options.additive) { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); } return; }
     const stroke = options.point ? doc.strokes[options.point.strokeId] : doc.strokes.find((item) => line >= item.lineStart && line <= item.lineEnd);
     const event = doc.events.find((item) => line >= item.lineStart && line <= item.lineEnd);
@@ -261,9 +267,27 @@ export default function App() {
   };
   const safety = useMemo(() => auditDocument(doc), [doc]);
   const usedPens = useMemo(() => [...new Map(doc.sections.map((section) => [section.penIndex, { penIndex: section.penIndex, name: section.name, color: doc.meta.penColors?.[section.penIndex] || doc.strokes.find((stroke) => stroke.penIndex === section.penIndex)?.color || COLOR_PALETTE[section.penIndex % COLOR_PALETTE.length] }])).values()], [doc]);
-  const visualLocked = doc.warnings.unsafeModal || playbackOpen || measureMode;
+  const visualLocked = doc.warnings.unsafeModal || playbackOpen || measureMode || resumeOpen;
+  const continuation = useMemo(() => resumeOpen ? buildContinuation(doc, resumeTarget, activeProfile) : null, [doc, resumeTarget, activeProfile, resumeOpen]);
+  const continuationMarker = useMemo(() => resumeOpen ? resumeLocation(doc, resumeTarget)?.position : null, [doc, resumeTarget, resumeOpen]);
+  const openResume = () => {
+    const target = resumeTargetForSelection(doc, selectedLine, selectedPoints);
+    setResumeTarget(resumeLocation(doc, target) ? target : { lineIndex: doc.strokes[0]?.lineStart ?? null, fraction: 0 });
+    setResumeOpen(true); setSidebarOpen(true); setPenMode(false); setBoxMode(false); setMeasureMode(false); setDraftPoints([]);
+    setPlaybackOpen(false); setPlaying(false);
+    if (paneMode === "text") setPaneMode("split");
+  };
+  const createContinuation = () => {
+    if (doc.source !== source) return;
+    const result = buildContinuation(doc, resumeTarget, activeProfile);
+    if (result.error) { setMessage(result.error); return; }
+    clearTimeout(parseTimer.current);
+    applySource(result.source, "Created continuation copy · check Playback, then Save as a new file", false);
+    fileHandleRef.current = null; setName(continuationFilename(name)); setResumeOpen(false);
+  };
   const clearSelection = () => { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); setSelectedLine(null); };
   const chooseTool = (tool) => {
+    setResumeOpen(false);
     setBoxMode(tool === "box"); setPenMode(tool === "pen"); setMeasureMode(tool === "measure"); setDraftPoints([]);
     if (paneMode === "text") setPaneMode("split");
   };
@@ -292,7 +316,7 @@ export default function App() {
       if (command && event.key.toLowerCase() === "z") { event.preventDefault(); if (event.shiftKey) redo(); else undo(); }
       else if (command && event.key.toLowerCase() === "a") { event.preventDefault(); setSelectedStrokeIds(doc.strokes.map((stroke) => stroke.id)); setSelectedEventIds([]); setSelectedPoints([]); }
       else if (!visualLocked && (event.key === "Delete" || event.key === "Backspace")) { event.preventDefault(); runDelete(); }
-      else if (event.key === "Escape") { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); setSelectedLine(null); setDraftPoints([]); setPenMode(false); setBoxMode(false); setMeasureMode(false); }
+      else if (event.key === "Escape") { setSelectedStrokeIds([]); setSelectedEventIds([]); setSelectedPoints([]); setSelectedLine(null); setDraftPoints([]); setPenMode(false); setBoxMode(false); setMeasureMode(false); setResumeOpen(false); }
       else if (event.key === "Enter" && penMode) { event.preventDefault(); commitDraft(); }
       else if (!visualLocked && selectedStrokeIds.length && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
         event.preventDefault(); const step = event.shiftKey ? 1 : .1;
@@ -344,6 +368,8 @@ export default function App() {
           <button className="quiet" onClick={() => setEventsOpen(true)} disabled={visualLocked}><Icon name="plus" /> Event</button>
         </div>
         <ActionMenu label="Document" icon="page">
+          <div className="menu-heading">Resume a stopped drawing</div>
+          <button onClick={openResume} disabled={!doc.strokes.length}>Continue from here…</button>
           <div className="menu-heading">Canvas & drawing</div>
           <button onClick={openCanvasResize}>Canvas size…</button>
           <button onClick={() => setColorsOpen(true)} disabled={!doc.strokes.length}>Pen colors…</button>
@@ -361,7 +387,7 @@ export default function App() {
             <button onClick={() => { setSearchOpen(true); if (paneMode === "canvas") setPaneMode("split"); }}>Find / Replace…</button>
             <label className="menu-check"><input type="checkbox" checked={showTravels} onChange={(event) => setShowTravels(event.target.checked)} /> Show travel moves</label>
             <label className="menu-check"><input type="checkbox" checked={yUp} onChange={(event) => setYUp(event.target.checked)} /> Y+ points up</label>
-            <label className="menu-check"><input type="checkbox" checked={sidebarOpen} onChange={(event) => setSidebarOpen(event.target.checked)} /> Selection & layers panel</label>
+            <label className="menu-check"><input type="checkbox" checked={sidebarOpen} disabled={resumeOpen} onChange={(event) => setSidebarOpen(event.target.checked)} /> Selection & layers panel</label>
           </ActionMenu>
         </div>
       </div>
@@ -369,11 +395,11 @@ export default function App() {
       <input ref={combineInputRef} type="file" accept=".gcode,.gc,.nc,text/plain" multiple hidden onChange={(event) => { if (event.target.files.length) combineFiles(event.target.files); event.target.value = ""; }} />
     </header>
     <main className={`workspace mode-${paneMode}`}>
-      {paneMode !== "text" && sidebarOpen && <aside className="editor-sidebar">
-        {playbackOpen ? <section className="selection-inspector"><div className="inspector-heading"><h2>Playback preview</h2></div><p className="selection-empty">Pen widths and paper color are below the canvas.</p><p className="selection-tip">Close Playback to return to editing. Your selection stays in place.</p></section> : <SelectionInspector strokes={selectedStrokeIds.length} points={selectedPoints.length} events={selectedEventIds.length} sections={doc.sections} locked={visualLocked} move={move} onMoveChange={setMove} actions={{
+      {(paneMode !== "text" || resumeOpen) && sidebarOpen && <aside className={`editor-sidebar${resumeOpen ? " resume-sidebar" : ""}`}>
+        {resumeOpen ? <ResumePanel doc={doc} target={resumeTarget} result={continuation} filename={continuationFilename(name)} pending={doc.source !== source} onTarget={(target) => { setResumeTarget(target); setSelectedLine(target.lineIndex); }} onClose={() => setResumeOpen(false)} onCreate={createContinuation} /> : playbackOpen ? <section className="selection-inspector"><div className="inspector-heading"><h2>Playback preview</h2></div><p className="selection-empty">Pen widths and paper color are below the canvas.</p><p className="selection-tip">Close Playback to return to editing. Your selection stays in place.</p></section> : <SelectionInspector strokes={selectedStrokeIds.length} points={selectedPoints.length} events={selectedEventIds.length} sections={doc.sections} locked={visualLocked} move={move} onMoveChange={setMove} actions={{
           clear: clearSelection, move: runMove, scale: () => setScaleOpen(true), reverse: () => applySource(reverseStrokes(doc, selectedStrokeIds), "Reversed strokes"),
           insert: () => applySource(insertMidpoint(doc, selectedStrokeIds[0], selectedLine), "Inserted midpoint"), split: () => applySource(splitStroke(doc, selectedStrokeIds[0], selectedLine), "Split stroke", false),
-          optimize: runOptimize, join: runJoin, pen: runMoveToSection, copy: runCopy, paste: runPaste, delete: runDelete, yUp,
+          optimize: runOptimize, join: runJoin, pen: runMoveToSection, copy: runCopy, paste: runPaste, delete: runDelete, resume: openResume, yUp,
         }} />}
         <Outline doc={doc} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} onSelectLine={selectLine} onSelectGroup={(ids, additive) => { setSelectedPoints([]); setSelectedEventIds([]); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); setMessage(`Selected file group · ${ids.length} strokes`); }} onReorder={(next) => !visualLocked && applySource(next, "Reordered strokes", false)} />
       </aside>}
@@ -384,7 +410,7 @@ export default function App() {
       {paneMode !== "text" && <section className="canvas-pane" style={paneMode === "split" ? { width: `${split}%` } : undefined}>
         <div className="pane-heading"><strong>{playbackOpen ? "Playback preview" : "Canvas"}</strong><button className="quiet" onClick={openCanvasResize}>{doc.meta.canvasW ? `${doc.meta.canvasW} × ${doc.meta.canvasH} mm` : "Set canvas size…"}</button></div>
         <div className="canvas-content">
-        <CanvasView doc={doc} viewResetKey={viewResetKey} showTravels={showTravels} yUp={yUp} hoveredLine={hoveredLine} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} selectedPoints={selectedPoints} boxSelecting={boxMode} drawing={penMode} measuring={measureMode} draftPoints={draftPoints} playback={playbackOpen ? { active: true, time: playbackTime, timeline, sample: playbackSample, penWidths, paperColor } : null} onAddPoint={(point) => setDraftPoints((points) => [...points, point])} onInsertPoint={(strokeId, line, point) => !visualLocked && applySource(insertPoint(doc, strokeId, line, point), "Inserted point")} onHoverLine={setHoveredLine} onSelectLine={selectLine} onSelectStrokes={(ids, additive) => { setSelectedPoints([]); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); }} onTranslate={(dx, dy) => !visualLocked && runMove(dx, dy)} onMovePoints={(dx, dy) => !visualLocked && runMove(dx, dy)} onCursor={setCursor} />
+        <CanvasView doc={doc} resumePicking={resumeOpen} resumeMarker={continuationMarker} onResumePick={(target) => { setResumeTarget(target); setSelectedLine(target.lineIndex); }} viewResetKey={viewResetKey} showTravels={showTravels} yUp={yUp} hoveredLine={hoveredLine} selectedLine={selectedLine} selectedStrokeIds={selectedStrokeIds} selectedPoints={selectedPoints} boxSelecting={boxMode} drawing={penMode} measuring={measureMode} draftPoints={draftPoints} playback={playbackOpen ? { active: true, time: playbackTime, timeline, sample: playbackSample, penWidths, paperColor } : null} onAddPoint={(point) => setDraftPoints((points) => [...points, point])} onInsertPoint={(strokeId, line, point) => !visualLocked && applySource(insertPoint(doc, strokeId, line, point), "Inserted point")} onHoverLine={setHoveredLine} onSelectLine={selectLine} onSelectStrokes={(ids, additive) => { setSelectedPoints([]); setSelectedStrokeIds((current) => additive ? [...new Set([...current, ...ids])] : ids); }} onTranslate={(dx, dy) => !visualLocked && runMove(dx, dy)} onMovePoints={(dx, dy) => !visualLocked && runMove(dx, dy)} onCursor={setCursor} />
         {boxMode && <div className="canvas-hint">Drag a box around strokes · Shift adds</div>}
         {penMode && <div className="canvas-hint">Click points · Enter to finish · Esc to cancel <strong>{draftPoints.length} pts</strong></div>}
         {measureMode && <div className="canvas-hint">Drag between two points to measure · Esc exits</div>}

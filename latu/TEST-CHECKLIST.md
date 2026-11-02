@@ -86,6 +86,25 @@ Merkitse kohta valmiiksi vasta, kun sekä toiminto että odotettu tulos toteutuv
 - [ ] `Draw` luo uuden vedon ja Enter päättää sen; Esc peruu.
 - [ ] Undo/Redo palauttaa canvas- ja tekstimuokkaukset oikeassa järjestyksessä.
 
+## Keskeytetyn piirron jatkaminen
+
+- [ ] Avaa alkuperäinen tiedosto ja valitse `Document → Continue from here…`; sama toiminto löytyy valinnan sivupaneelista.
+- [ ] Canvas-klikkaus valitsee aloituksen viivalta ja vihreä START-merkki näyttää kohdan. Raahaus panoroi eikä siirrä piirrosta.
+- [ ] Alkuperäinen rivinumero valitsee oikean piirto-G1-rivin. Päällekkäisissä vedoissa rivinumero erottaa eri piirtoajot.
+- [ ] G-code-rivin valinta alkaa ennen kyseistä liikettä. Liukusäätimen 0 % toistaa liikkeen, 100 % jatkaa sen loppupisteestä.
+- [ ] Ennen toiminnon avaamista valittu yksittäinen canvas-piste tulee täsmälliseksi aloituspisteeksi.
+- [ ] Sivupaneeli näyttää oikeat X/Y-koordinaatit, kynän ja jäljellä olevan piirron määrän.
+- [ ] `Create continuation copy` on pois käytöstä, kunnes kohdistuksen, kynän ja plot-korkeuden tarkistus on kuitattu. Kohdan vaihto nollaa kuittauksen.
+- [ ] `Cancel` ja Esc poistuvat aloituskohdan valinnasta muuttamatta G-codea.
+- [ ] Kopion nimeksi tulee `alkuperäinen-resume.gcode`; Save ei kirjoita automaattisesti alkuperäisen tiedoston päälle.
+- [ ] Kopion ensimmäinen XY-liike on kynä ylhäällä. Kynän lasku ja piirtonopeuden palautus tapahtuvat vasta aloituskohdassa.
+- [ ] Playbackissa aiempi piirto on poistunut, jäljellä oleva piirto on alkuperäisillä koordinaateilla ja myöhemmät kynänvaihdot ovat tallella.
+- [ ] Toisen kynän kohdalta aloitus näyttää oikean kynän eikä toista ohitettuja kynänvaihtoja.
+- [ ] G28-, PLOT_GO- ja PLOT_HEIGHT-alkukomentoja ei ajeta uudestaan. Näytetty ohje kertoo koneen valmistelusta.
+- [ ] Undo palauttaa koko alkuperäisen piirron editoriin; nimi jää kopion nimeksi alkuperäisen suojaamiseksi.
+- [ ] Viimeisen piirto-osuuden loppupiste, tuntemattomat komennot ja tukematon konetila estävät kopion tekemisen selkeällä virheellä.
+- [ ] Servo-Z-testifixture ja bed-Z:n painevaihtelu toimivat. Paperi, nollapisteet, homing, kynä ja korkeus tarkistetaan koneella ennen fyysistä koetta.
+
 ## Skaalaus ja turvallisuus
 
 - [ ] Uniform scale säilyttää kuvasuhteen.

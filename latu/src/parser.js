@@ -54,6 +54,7 @@ function parseLine(line, meta, profile) {
     if (hasXY) return { kind: "move", command: command.startsWith("G0") && !command.startsWith("G01") ? "G0" : "G1", params, comment };
     if (hasZ) return { kind: "zmove", command: "G1", params, comment };
     if (hasE) return { kind: "macro", macro: "EXTRUDER_MOVE", eventKind: "dose", params, comment };
+    if (finite(params.F)) return { kind: "feed", command, params, comment };
     return { kind: "other", command, params, comment };
   }
   if (command === "G4" || command === "G04") return { kind: "dwell", ms: params.P ?? ((params.S ?? 0) * 1000), params, comment };
@@ -86,6 +87,9 @@ function servoState(op, meta, profile) {
 }
 
 function zState(op, meta, profile, inferred) {
+  // A resumed pressure move may start above the profile's nominal contact Z.
+  // This explicit marker is emitted by LATU's continuation builder.
+  if (/^pen down at continuation pressure$/i.test(op.comment.trim())) return "down";
   const z = op.params.Z;
   const up = profile?.penUp ?? inferred.at(-1);
   const down = profile?.penDown ?? inferred[0];
@@ -186,6 +190,7 @@ export function parseGcode(source, profile = {}) {
       if (next) { if (next !== "down") finishStroke(); penState = next; }
     } else if (op.kind === "zmove") {
       z = op.params.Z;
+      if (finite(op.params.F)) feed = op.params.F;
       const next = zState(op, meta, profile, inferredZ);
       if (next) { if (next !== "down") finishStroke(); penState = next; }
     } else if (op.kind === "macro" && (op.macro === "PEN_UP" || op.macro === "PEN_DOWN")) {
@@ -217,6 +222,8 @@ export function parseGcode(source, profile = {}) {
         }
       }
       x = nx; y = ny; z = nz; feed = nextFeed; positionLine = lineIndex;
+    } else if (op.kind === "feed") {
+      feed = op.params.F;
     } else if (op.kind === "dwell") {
       dwellMs += op.ms || 0;
     }

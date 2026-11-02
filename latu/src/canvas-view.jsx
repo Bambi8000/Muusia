@@ -39,7 +39,7 @@ function fitView(doc, width, height) {
   return { scale, ox: (width - spanX * scale) / 2 - b.minX * scale, oy: (height - spanY * scale) / 2 - b.minY * scale };
 }
 
-export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hoveredLine, selectedLine, selectedStrokeIds, selectedPoints, boxSelecting, drawing, measuring, draftPoints, playback, onAddPoint, onInsertPoint, onHoverLine, onSelectLine, onSelectStrokes, onTranslate, onMovePoints, onCursor }) {
+export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hoveredLine, selectedLine, selectedStrokeIds, selectedPoints, boxSelecting, drawing, measuring, draftPoints, playback, resumePicking, resumeMarker, onResumePick, onAddPoint, onInsertPoint, onHoverLine, onSelectLine, onSelectStrokes, onTranslate, onMovePoints, onCursor }) {
   const wrapRef = useRef(null);
   const staticRef = useRef(null);
   const overlayRef = useRef(null);
@@ -131,7 +131,7 @@ export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hovere
         ctx.fillStyle = "#11161b"; ctx.beginPath(); ctx.arc(point[0], point[1], 3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }
     }
-    for (const strokeId of selectedStrokeIds) {
+    for (const strokeId of resumePicking ? [] : selectedStrokeIds) {
       const stroke = doc.strokes[strokeId]; if (!stroke) continue;
       ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath();
       stroke.pts.forEach((rawPoint, pointIndex) => {
@@ -181,13 +181,19 @@ export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hovere
     }
     const event = line == null ? null : doc.events.find((item) => line >= item.lineStart && line <= item.lineEnd);
     if (event) { const p = toScreen([event.x, event.y]); ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p[0], p[1], 12, 0, Math.PI * 2); ctx.stroke(); }
-  }, [hoveredLine, selectedLine, selectedStrokeIds, selectedPoints, selectedPointKeys, dragOffset, draftPoints, boxRect, measurement, measuring, doc, index, view, size, toScreen, playback, playbackActive]);
+    if (resumePicking && resumeMarker) {
+      const p = toScreen(resumeMarker);
+      ctx.save(); ctx.setLineDash([]); ctx.lineWidth = 3; ctx.strokeStyle = "#72d8ae"; ctx.fillStyle = "#11251b";
+      ctx.beginPath(); ctx.arc(p[0], p[1], 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.font = "700 12px system-ui"; ctx.fillStyle = "#72d8ae"; ctx.textAlign = "left"; ctx.fillText("START", Math.max(4, Math.min(size.width - 50, p[0] + 13)), Math.max(15, Math.min(size.height - 5, p[1] - 12))); ctx.restore();
+    }
+  }, [hoveredLine, selectedLine, selectedStrokeIds, selectedPoints, selectedPointKeys, dragOffset, draftPoints, boxRect, measurement, measuring, doc, index, view, size, toScreen, playback, playbackActive, resumePicking, resumeMarker]);
 
   const pointerPoint = (event) => {
     const rect = overlayRef.current.getBoundingClientRect();
     return [event.clientX - rect.left, event.clientY - rect.top];
   };
-  const pick = (screen) => {
+  const pick = (screen, snapPoints = true) => {
     const world = toWorld(screen); const radius = 8 / view.scale;
     const gx = Math.floor(world[0] / GRID_MM), gy = Math.floor(world[1] / GRID_MM);
     let best = null, bestDistance = radius, bestPoint = null, pointDistance = 7 / view.scale;
@@ -202,7 +208,7 @@ export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hovere
         }
       }
     }
-    if (bestPoint) return bestPoint;
+    if (bestPoint && snapPoints) return bestPoint;
     if (best) return best;
     const event = doc.events.find((item) => { const point = toScreen([item.x, item.y]); return Math.hypot(point[0] - screen[0], point[1] - screen[1]) <= 12; });
     return event ? { line: event.lineStart, event } : null;
@@ -213,7 +219,7 @@ export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hovere
     const pointSelected = hit?.stroke && selectedPointKeys.has(`${hit.stroke.id}:${hit.pointIndex}`);
     const worldStart = toWorld(screen);
     if (measuring) setMeasurement({ a: worldStart, b: worldStart });
-    dragRef.current = { start: screen, worldStart, view, moved: false, mode: measuring ? "measure" : drawing ? "draw" : boxSelecting ? "box" : pointSelected ? "pointsMove" : hit?.stroke && selectedStrokeIds.includes(hit.stroke.id) ? "move" : "pan", hit };
+    dragRef.current = { start: screen, worldStart, view, moved: false, mode: resumePicking ? "pan" : measuring ? "measure" : drawing ? "draw" : boxSelecting ? "box" : pointSelected ? "pointsMove" : hit?.stroke && selectedStrokeIds.includes(hit.stroke.id) ? "move" : "pan", hit };
   };
   const onPointerMove = (event) => {
     const point = pointerPoint(event); const world = toWorld(point); onCursor(world);
@@ -234,6 +240,17 @@ export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hovere
   };
   const onPointerUp = (event) => {
     const drag = dragRef.current; dragRef.current = null;
+    if (resumePicking) {
+      if (drag && !drag.moved) {
+        const screen = pointerPoint(event), hit = pick(screen, false);
+        if (hit?.stroke) {
+          const world = toWorld(screen), dx = hit.b[0] - hit.a[0], dy = hit.b[1] - hit.a[1], length2 = dx * dx + dy * dy;
+          const fraction = length2 ? Math.max(0, Math.min(1, ((world[0] - hit.a[0]) * dx + (world[1] - hit.a[1]) * dy) / length2)) : 0;
+          onResumePick({ lineIndex: hit.line, fraction });
+        }
+      }
+      return;
+    }
     if (drag?.mode === "measure") { setMeasurement({ a: drag.worldStart, b: toWorld(pointerPoint(event)) }); return; }
     if (drag?.mode === "draw") { if (!drag.moved) onAddPoint(toWorld(pointerPoint(event))); return; }
     if (drag?.mode === "box") {
@@ -266,7 +283,7 @@ export default function CanvasView({ doc, viewResetKey, showTravels, yUp, hovere
   };
 
   const onDoubleClick = (event) => {
-    if (drawing || measuring) return;
+    if (drawing || measuring || resumePicking) return;
     const screen = pointerPoint(event), hit = pick(screen);
     if (hit?.stroke) onInsertPoint(hit.stroke.id, hit.line, toWorld(screen));
     else setView(fitView(doc, size.width, size.height));
