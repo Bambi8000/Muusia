@@ -24418,7 +24418,7 @@ export default {
   name: "Isometric Blocks",
   cat: "gen",
   group: "geometric",
-  desc: "Build a page of separated isometric blocks with an exact 30° top projection. Terraces, Stairs, Wave and Random set quantized heights; Density leaves open cells, and Stagger offsets alternate rows. Height, Levels and Cell gap shape the arrangement, which scales as a whole to fit Margin. Edges are drawn once per block. Side hatch shades the two visible faces at different densities; All faces adds a light top hatch. Artwork has the plotted edges and shading; separate closed Top, Left and Right faces are ready for Hatch Fill or other region effects. Face hatches use their own pens. Style changes Artwork only.",
+  desc: "Build a page of separated isometric blocks with an exact 30° top projection. Terraces, Stairs, Wave and Random set quantized heights; Density leaves open cells, and Stagger offsets alternate rows. Top taper 0→1 morphs a cuboid into a tapered block with a 20%-width top: wire Frame wave loop to Top taper to animate its silhouette. Height motion smoothly changes each block's height without moving its base; wire Frame t 0→1 to Motion phase for a seamless Pulse, Sweep or Ripple loop. The shared maximum-height envelope keeps every frame registered on the page. Height, Levels and Cell gap shape the arrangement, which scales as a whole to fit Margin. Edges are drawn once per block. Side hatch shades the two visible faces at different densities; All faces adds a light top hatch. Artwork has the plotted edges and shading; separate closed Top, Left and Right faces are ready for Hatch Fill or other region effects. Face hatches use their own pens. Style changes Artwork only.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths", "Artwork"), Pin("paths", "Top faces"), Pin("paths", "Left faces"), Pin("paths", "Right faces")],
   params: [
@@ -24427,6 +24427,10 @@ export default {
     { key: "pattern", label: "Height pattern", type: "select", options: ["Terraces", "Stairs", "Wave", "Random"], def: "Terraces" },
     { key: "levels", label: "Height levels", type: "slider", min: 1, max: 10, step: 1, def: 5 },
     { key: "height", label: "Max height × width", type: "slider", min: 0.2, max: 2.5, step: 0.05, def: 1.3 },
+    { key: "taper", label: "Top taper 0–1", type: "slider", min: 0, max: 1, step: 0.01, def: 0 },
+    { key: "motion", label: "Height motion", type: "select", options: ["Still", "Pulse", "Sweep", "Ripple"], def: "Still" },
+    { key: "motionPhase", label: "Motion phase 0–1", type: "slider", min: 0, max: 1, step: 0.01, def: 0, showIf: p => p.motion !== "Still" },
+    { key: "motionAmount", label: "Motion amount %", type: "slider", min: 0, max: 100, step: 1, def: 70, showIf: p => p.motion !== "Still" },
     { key: "density", label: "Occupied cells %", type: "slider", min: 5, max: 100, step: 1, def: 95 },
     { key: "stagger", label: "Stagger rows", type: "check", def: true },
     { key: "gap", label: "Cell gap × width", type: "slider", min: 0, max: 0.8, step: 0.02, def: 0.18 },
@@ -24457,6 +24461,11 @@ export default {
     const rows = Math.round(num(p.rows, 1, 16, 3));
     const levels = Math.round(num(p.levels, 1, 10, 5));
     const heightRatio = num(p.height, 0.2, 2.5, 1.3);
+    const topScale = 1 - 0.8 * num(p.taper, 0, 1, 0);
+    const motion = ["Pulse", "Sweep", "Ripple"].includes(p.motion) ? p.motion : "Still";
+    const motionPhase = num(p.motionPhase, 0, 1, 0);
+    const motionAmount = num(p.motionAmount, 0, 100, 70) / 100;
+    const animatedHeight = motion !== "Still" && motionAmount > 0;
     const density = num(p.density, 5, 100, 95) / 100;
     const gapRatio = num(p.gap, 0, 0.8, 0.18);
     const stagger = !!p.stagger && rows > 1;
@@ -24487,7 +24496,17 @@ export default {
         value = Math.max(0, 1 - Math.hypot(dx, dy) / Math.sqrt(2));
       }
       const tier = Math.min(levels - 1, Math.floor(Math.max(0, Math.min(0.999999, value)) * levels));
-      const h = maxH * (levels === 1 ? 1 : 0.28 + 0.72 * tier / (levels - 1));
+      const baseHeight = levels === 1 ? 1 : 0.28 + 0.72 * tier / (levels - 1);
+      let heightFraction = baseHeight;
+      if (animatedHeight) {
+        const nx = (x - (cols - 1) / 2) / Math.max(1, cols - 1);
+        const ny = (y - (rows - 1) / 2) / Math.max(1, rows - 1);
+        const offset = motion === "Sweep" ? x / Math.max(1, cols - 1) * 0.7 + y / Math.max(1, rows - 1) * 0.3
+          : motion === "Ripple" ? Math.hypot(nx, ny) * 0.9 : 0;
+        const wave = 0.5 + 0.5 * Math.cos(2 * Math.PI * (motionPhase - offset));
+        heightFraction = baseHeight * (1 - motionAmount) + (0.18 + 0.82 * wave) * motionAmount;
+      }
+      const h = maxH * heightFraction;
       proposed.push({ x, y, h });
     }
     if (!proposed.length) return empty;
@@ -24505,10 +24524,17 @@ export default {
     const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
     for (const { x, y, h } of proposed) {
       const cx = startX + x * (width + gap) + (stagger && y % 2 ? (width + gap) / 2 : 0) + width / 2;
-      const topY = startY + y * (diamondH + maxH + gap) + maxH - h;
-      const T = point(cx, topY), R = point(cx + width / 2, topY + diamondH / 2);
-      const B = point(cx, topY + diamondH), L = point(cx - width / 2, topY + diamondH / 2);
-      const Rp = point(R[0], R[1] + h), Bp = point(B[0], B[1] + h), Lp = point(L[0], L[1] + h);
+      const rowY = startY + y * (diamondH + maxH + gap);
+      const baseY = rowY + maxH;
+      const topY = animatedHeight ? baseY - h : rowY + maxH - h;
+      const midY = topY + diamondH / 2;
+      const T = point(cx, topScale === 1 ? topY : midY - diamondH * topScale / 2);
+      const R = point(cx + width * topScale / 2, midY);
+      const B = point(cx, topScale === 1 ? topY + diamondH : midY + diamondH * topScale / 2);
+      const L = point(cx - width * topScale / 2, midY);
+      const Rp = point(cx + width / 2, animatedHeight ? baseY + diamondH / 2 : midY + h);
+      const Bp = point(cx, animatedHeight ? baseY + diamondH : topY + diamondH + h);
+      const Lp = point(cx - width / 2, animatedHeight ? baseY + diamondH / 2 : midY + h);
       const layer = edgePen;
       art.push({ pts: [T, R, Rp, Bp, Lp, L], closed: true, layer });
       line(L, B, layer); line(B, R, layer); line(B, Bp, layer);
@@ -24520,11 +24546,11 @@ export default {
         const rightCount = Math.floor((width / 2) / hatchGap);
         for (let j = 1; j <= leftCount; j++) {
           const t = j / (leftCount + 1), a = mix(L, B, t);
-          hatch(a, [a[0], a[1] + h], leftPen);
+          hatch(a, topScale === 1 ? [a[0], a[1] + h] : mix(Lp, Bp, t), leftPen);
         }
         for (let j = 1; j <= rightCount; j++) {
           const t = j / (rightCount + 1), a = mix(B, R, t);
-          hatch(a, [a[0], a[1] + h], rightPen);
+          hatch(a, topScale === 1 ? [a[0], a[1] + h] : mix(Bp, Rp, t), rightPen);
         }
         if (shading === "All faces") {
           const topCount = Math.floor((width / 2) / (hatchGap * 2.2));

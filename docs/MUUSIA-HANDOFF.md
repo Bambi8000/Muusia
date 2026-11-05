@@ -264,6 +264,24 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.158 — 2026-11-05 · Frame-driven Isometric Blocks
+
+Isometric Blocks now has Top taper 0–1: zero retains the original cuboid and
+one narrows its top to 20% of the fixed base. A Frame wave-loop wire to Top
+taper morphs the silhouette directly. Height motion offers Still, Pulse,
+Sweep and Ripple; Frame t 0→1 wired to Motion phase 0–1 makes a seamless
+height loop, with Motion amount controlling its strength. Heights change
+smoothly over the original quantized pattern while the seeded occupancy,
+bases and maximum-height page framing remain fixed. The original default and
+Stairs/Random example output hashes are unchanged. Tapered Top, Left and Right
+face outputs remain closed and the face hatches follow the sloped edges.
+Help includes Animated morph with both Frame wires already connected. The
+focused validator passed 68 checks, and all 167 Help graphs loaded. A local
+12-frame export produced 12 distinct SVGs (360 paths each) and 12 distinct
+G-code files (460 coordinate moves each), all finite. Catalog, production
+build and 37,913 Learn checks passed. APP_VERSION and README advance to
+2.158. Public deployment verification follows the source commit.
+
 ### 2.157 — 2026-11-05 · Isometric Blocks generator
 
 Isometric Blocks is a new Geometric generator of separate 30° projected

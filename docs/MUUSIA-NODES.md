@@ -112,10 +112,16 @@ quantized by Height levels. Max height × width sets the tallest cuboid and
 Cell gap × width separates the blocks. The complete composition scales to fit
 Margin. Artwork draws each visible edge once; Side hatch adds differently
 spaced lines to the left and right faces, while All faces also hatches the top.
+Top taper changes each cuboid into a truncated pyramid while keeping its base
+fixed; 0 is a full-size top and 1 narrows the top to 20% width. Wire Frame's
+wave loop directly to Top taper for a repeating shape morph. Height motion
+offers Pulse, Sweep and Ripple; wire Frame t 0→1 to Motion phase 0–1 and set
+Motion amount to animate the heights smoothly. The seed and occupied cells stay
+fixed, and a shared maximum-height envelope keeps every frame registered.
 Edge, Left shade, Right shade and Top shade pens can be assigned separately.
 Top faces, Left faces and Right faces are closed region outputs for Hatch Fill
-and other effects. Style affects Artwork only. Help: Terraced city and Rising
-staircase.
+and other effects. Style affects Artwork only. Help: Animated morph, Terraced
+city and Rising staircase.
 
 **Reaction Patterns** — Tonal Turing optionally varies local feed and kill rates using a darkness image, fitted across the simulation margin, or a closed even-odd Tone input. Mid-grey is neutral; Tone influence controls modulation. Seeds and Region keep their original roles. This guides the texture rather than tracing or reproducing every image detail. A seeded Gray–Scott reaction–diffusion surface, drawn as vector contours. Coral branches, Maze stripes and Spots emerge from local chemical exchange rather than a growing outline. Wired Seeds starts the reaction inside closed paths (even-odd holes) or along open strokes; unwired Seeds scatters small germs. Optional Region masks the sampled simulation, including holes; contour boundaries have grid-resolution error. Use Container afterwards for exact clipping. Pattern scale changes the solver grid, Detail sets its longest dimension (bounded to 128 / 12k cells), and Steps sets the mature simulation time. Manual Growth or Timeline deterministically reconstructs the same prefix on every frame; keep Seed, Steps and structural settings fixed. Growth 0 shows the initial germs, not an empty drawing. Level selects chemical concentration, Contours draws neighbouring levels, and pens cycle by level. Boundary wrap connects opposite page edges only. No playback cache or outside service is used. Tutorial: Weave, build and prepare.
 vector contours: Coral, Maze, Spots or Custom Feed/Kill. Style / Seeds / Region

@@ -910,6 +910,18 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Isometric Blocks · Animated morph",
+    desc: "Press Play in ANIMATE, or scrub the frame slider. Frame t drives Motion phase 0–1 so heights sweep across the blocks in a seamless loop; Frame wave loop drives Top taper 0–1 so their tops narrow and widen. The bases and page framing stay fixed. Select Isometric Blocks to try Pulse or Ripple and adjust Motion amount; export SVG or G-code frames from ANIMATE.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "frame", x: 20, y: 20, params: { ...defaults("frame") } },
+      { id: 9002, type: "isometric_blocks", x: 370, y: 20, params: { ...defaults("isometric_blocks"), cols: 7, rows: 3, pattern: "Terraces", levels: 5, height: 1.3, density: 95, motion: "Sweep", motionAmount: 85, shading: "All faces", seed: 29 } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: "p:motionPhase" },
+      { id: "e9102", from: 9001, fromPort: 2, to: 9002, toPort: "p:taper" },
+    ] }),
+  },
+  {
     name: "Isometric Blocks · Terraced city",
     desc: "A 30° isometric field rises towards the middle. Select Isometric Blocks to change Columns, Rows, Height pattern, Height levels, Max height and Occupied cells. Side hatch uses different pens for the left and right faces. Top, Left and Right faces are separate closed outputs for Hatch Fill.",
     canvas: { W: 297, H: 210 },

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import vm from "node:vm";
 import { Pin, hash2, applyStyle } from "../src/defs/helpers.js";
@@ -12,6 +13,7 @@ const defaults = Object.fromEntries(def.params.map(row => [row.key, row.def]));
 const page = { W: 297, H: 210 };
 const run = (over = {}, style, ctx = page) => def.compute([style], { ...defaults, ...over }, ctx);
 const sig = x => JSON.stringify(x);
+const sha = x => crypto.createHash("sha256").update(sig(x)).digest("hex");
 const bounds = paths => paths.reduce((b, q) => q.pts.reduce((a, [x, y]) =>
   [Math.min(a[0], x), Math.min(a[1], y), Math.max(a[2], x), Math.max(a[3], y)], b), [Infinity, Infinity, -Infinity, -Infinity]);
 const area = path => Math.abs(path.pts.reduce((sum, [x, y], i) => {
@@ -38,8 +40,14 @@ check(def.ins.length === 1 && def.ins[0].type === "style", "style input");
 check(def.outs.length === 4 && def.outs.every(pin => pin.type === "paths"), "four path outputs");
 check(def.params.find(row => row.key === "pattern")?.options.length === 4, "height pattern options descriptor");
 check(def.params.find(row => row.key === "shading")?.options.length === 3, "shading options descriptor");
+check(def.params.find(row => row.key === "motion")?.options.join(",") === "Still,Pulse,Sweep,Ripple", "height motion options descriptor");
+check(def.params.find(row => row.key === "motionPhase")?.showIf({ motion: "Sweep" }) && !def.params.find(row => row.key === "motionPhase")?.showIf({ motion: "Still" }), "phase is shown only with height motion");
+check(def.params.find(row => row.key === "taper")?.min === 0 && def.params.find(row => row.key === "taper")?.max === 1, "Frame wave loop can drive top taper directly");
 check(def.params.find(row => row.key === "hatchGap")?.showIf({ shading: "Side hatch" }) && !def.params.find(row => row.key === "hatchGap")?.showIf({ shading: "Edges only" }), "hatch slider visibility");
 const all = run();
+check(sha(all) === "a9f3cec5a9c530f656ff33b941a369574c2d4079ba2bd00cc2bd244881a42fb8", "existing default geometry stays byte-identical");
+check(sha(run({ pattern: "Stairs", shading: "All faces", cols: 7, rows: 3 })) === "3cf081d6bfcff0205a3f0cc3ba651b41e74c17a05de46edf714e314974ed2a4a", "existing staircase example stays byte-identical");
+check(sha(run({ pattern: "Random", seed: 42 })) === "4a765cbf6bdc4b966bc7b30c9658e8d042e826b545105be99b973ca9dd4563b1", "existing random pattern stays byte-identical");
 check(all.length === 4 && all[1].paths.length === 20 && all[2].paths.length === 20 && all[3].paths.length === 20, "default occupied cells and faces");
 check(all[0].paths.length > all[1].paths.length * 4, "default has visible edge and hatch linework");
 check(all.every(set => valid(set)), "all outputs have finite, bounded points and valid pens");
@@ -49,6 +57,26 @@ const top = all[1].paths[0].pts;
 check(Math.abs((top[1][1] - top[0][1]) / (top[1][0] - top[0][0]) - 1 / Math.sqrt(3)) < 1e-10, "top edges use exact 30° isometric projection");
 check(all[2].paths.every(q => Math.abs(q.pts[2][0] - q.pts[1][0]) < 1e-10) && all[3].paths.every(q => Math.abs(q.pts[2][0] - q.pts[1][0]) < 1e-10), "side edges are vertical");
 check(sig(run()) === sig(all), "seeded default deterministic");
+check(sig(run({ motion: "Still", motionPhase: 0.7, taper: 0 })) === sig(all), "motion controls preserve existing still graph");
+check(sig(run({ motion: "Ripple", motionAmount: 0, motionPhase: 0.37 })) === sig(all), "zero motion amount preserves existing geometry");
+const taper = run({ taper: 0.9375, shading: "All faces" });
+const plainAll = run({ shading: "All faces" });
+check(taper.every(set => valid(set)) && blocksSeparate(taper), "tapered blocks stay valid, bounded and separate");
+check(taper[1].paths.every((q, i) => area(q) < area(plainAll[1].paths[i])) && taper[1].paths.every(q => q.closed), "top scale reduces closed top faces");
+check(taper[2].paths.every((q, i) => sig(q.pts.slice(2)) === sig(plainAll[2].paths[i].pts.slice(2))) && taper[3].paths.every((q, i) => sig(q.pts.slice(2)) === sig(plainAll[3].paths[i].pts.slice(2))), "taper leaves every bottom edge fixed");
+const taperedTop = taper[1].paths[0].pts;
+check(Math.abs((taperedTop[1][1] - taperedTop[0][1]) / (taperedTop[1][0] - taperedTop[0][0]) - 1 / Math.sqrt(3)) < 1e-10, "taper preserves 30° isometric top edges");
+check(taper[0].paths.some(q => q.layer === 1) && taper[0].paths.some(q => q.layer === 2) && taper[0].paths.some(q => q.layer === 3), "taper shades all three faces");
+for (const motion of ["Pulse", "Sweep", "Ripple"]) {
+  const first = run({ motion, motionPhase: 0, motionAmount: 80, taper: 0.875 });
+  const middle = run({ motion, motionPhase: 0.5, motionAmount: 80, taper: 0.875 });
+  const seam = run({ motion, motionPhase: 1, motionAmount: 80, taper: 0.875 });
+  check(first.every(set => valid(set)) && middle.every(set => valid(set)) && blocksSeparate(first) && blocksSeparate(middle), `${motion} keeps animated blocks valid and separate`);
+  check(sig(first) !== sig(middle), `${motion} changes block shapes across frames`);
+  check(first[2].paths.every((q, i) => sig(q.pts.slice(2)) === sig(middle[2].paths[i].pts.slice(2))), `${motion} holds the block bases for registration`);
+  check(first[1].paths.every((q, i) => q.pts.every((pt, j) => pt.every((v, k) => Math.abs(v - seam[1].paths[i].pts[j][k]) < 1e-8))), `${motion} closes its phase seam`);
+  check(sig(first) === sig(run({ motion, motionPhase: 0, motionAmount: 80, taper: 0.875 })), `${motion} is deterministic when scrubbing`);
+}
 const edges = run({ shading: "Edges only" });
 check(edges[0].paths.length === edges[1].paths.length * 4, "edges-only output draws each prism with one silhouette and three internal edges");
 check(edges[0].paths.filter(q => q.closed).length === edges[1].paths.length, "one outer outline per block");

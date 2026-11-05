@@ -702,8 +702,8 @@ export const NODE_RECENCY = {
   },
   "isometric_blocks": {
     "date": "2026-11-05",
-    "order": 119,
-    "sha256": "32ad894f25cb2d078a39f327ccdf69c18c59eda4250b9a55305410b39dd3c1c2"
+    "order": 120,
+    "sha256": "bfb4a8d40d3a1eaae3e745cf46b95da613bfdc4bfbbc453a4a14424f8fa8f9ab"
   },
   "jitter": {
     "date": "2026-07-22",

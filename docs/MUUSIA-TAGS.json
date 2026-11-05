@@ -809,6 +809,8 @@
   "geometric",
   "isometric",
   "cubes",
+  "animation",
+  "morph",
   "hatch",
   "pens",
   "repeat"

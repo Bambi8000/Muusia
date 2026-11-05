@@ -1,4 +1,4 @@
-# MUUSIA v2.157
+# MUUSIA v2.158
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,11 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Version 2.158 animates **Isometric Blocks** from the Frame node. Top taper
+morphs cuboids into tapered blocks; Pulse, Sweep and Ripple move their heights
+without shifting the bases. Try Help → Isometric Blocks · Animated morph, then
+press Play under ANIMATE.
 
 Version 2.157 adds **Isometric Blocks**, an illustrated block field with
 terraces, stairs, waves or seeded heights. Its 30° outlines and separately
