@@ -276,8 +276,10 @@ focus and Draw Path influence. The lab definition was imported in the local app,
 then baked and rechecked as a built-in. The focused validator passed 27 checks;
 all 158 Help graphs, catalog/recency gate, production build and 37,913 Learn
 checks passed. The local Focus field example rendered 37 paths / 74 points on
-an A4 wide sheet. APP_VERSION and README advanced to 2.152. Public deployment
-and its exact Pages run are recorded in WORKSTATE after verification.
+an A4 wide sheet. APP_VERSION and README advanced to 2.152. Source commit
+`38a95d9d0f098ced18ba765ed93c5f9ed9efdaa6` deployed through exact successful
+Pages run `42048986344`. The public app at `?v=2.152` showed v2.152, the node
+in Geometric and the Focus field Help example at 37 paths / 74 points.
 
 ### 2.151 — 2026-11-05 · Pattern Tile control placement
 
