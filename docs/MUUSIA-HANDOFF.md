@@ -280,7 +280,9 @@ Help examples rendered. The closed example produced 25 paths / 964 points;
 its actual local SVG had 25 paths and A4-wide viewBox, and its G-code had 940
 coordinate moves without NaN or Infinity. Catalog and recency, production build
 and all 37,913 Learn checks passed. APP_VERSION and README advance to
-2.153. Deployment verification follows the source commit. The 2.152 docs-only
+2.153. Source commit `2599b94489922ba7194bc790bfa5d33a683ecbfc` deployed through
+exact successful Pages run `42053001184`. The public app at `?v=2.153` showed
+v2.153 and Melting outline at 25 paths / 964 points. The 2.152 docs-only
 Pages run `42049530208` timed out while GitHub reported `updating_pages`;
 the earlier 2.152 source run `42048986344` succeeded and the public app was
 verified before this task.

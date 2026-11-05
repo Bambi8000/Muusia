@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.152",
+    "version": "2.153",
     "date": "2026-11-05",
-    "commit": "38a95d9d0f098ced18ba765ed93c5f9ed9efdaa6",
-    "pagesRunId": 42048986344,
+    "commit": "2599b94489922ba7194bc790bfa5d33a683ecbfc",
+    "pagesRunId": 42053001184,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.152 and visible Adaptive Grid Focus field Help example; exact Pages run succeeded"
+    "status": "verified public Muusia 2.153 and visible Drip Melting outline Help example; exact Pages run succeeded"
   },
   "lastIntegration": {
     "version": "2.153",
@@ -16,14 +16,14 @@
     "baseCommit": "6dbc455903543bdcb7f17cafab9d8994fc6463a3",
     "branch": "codex/drip",
     "worktree": "/private/tmp/muusia-topology-145",
-    "published": false,
-    "status": "Muusia 2.153 Drip validated; deployment verification pending",
-    "snapshot": "Pending clean committed snapshot",
+    "published": true,
+    "status": "Muusia 2.153 Drip published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.153 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 349,
     "registryCount": 351,
     "validation": "Drip 29 checks, 160 Help graphs, catalog and recency, local UI lab import and both built-in Help examples, actual local SVG and G-code, ordered release gate of 37,913 Learn checks / 90 English pages.",
-    "note": "Built from a clean isolated branch; unrelated primary checkout changes were preserved. The prior 2.152 docs-only Pages run timed out while updating_pages, but source run succeeded and public app was verified.",
-    "commit": "pending"
+    "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved. The prior 2.152 docs-only Pages run timed out while updating_pages, but source run succeeded and public app was verified.",
+    "commit": "2599b94489922ba7194bc790bfa5d33a683ecbfc"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
