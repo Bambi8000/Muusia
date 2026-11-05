@@ -805,6 +805,14 @@
   "organic",
   "texture"
  ],
+ "isometric_blocks": [
+  "geometric",
+  "isometric",
+  "cubes",
+  "hatch",
+  "pens",
+  "repeat"
+ ],
  "jitter": [
   "deform",
   "warp"

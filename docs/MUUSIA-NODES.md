@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 352 built-in nodes in the current Muusia source. Conventions used below:
+All 353 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,7 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (222)
+## Generators (223)
 
 **Adaptive Grid** — a square grid that refines its cells near a focus point,
 an incoming drawing, or a seeded noise field. *Detail source* selects Focus,
@@ -104,6 +104,18 @@ Help includes Needle Test · Depth and spacing.
 **Cell Strands** — Parallel strands travel through a shared distorted cell network. Hex strands routes edge bundles through convex hexagons; Ribbon cells uses square cells. Every shared edge uses the same stations, so adjacent bundles meet exactly when both routes reach it. Carry adds routes to otherwise unused cell edges; Density leaves some cells empty. Cell edges is an optional separate pen. Displacement is uniformly reduced until all cells remain convex and inside the margin. Phase moves the deformation in a repeatable loop. Hex weave pairs opposite edges into three bundles. Local over/under priorities rotate by cell; exact intersections cut clearance gaps from lower strands. Bundle width controls edge coverage and Bundle pens colours route families; priorities are local, not a global alternating knot. Curve affects bundle bowing. Original strand modes keep their crossing behaviour. Tutorial: Weave, build and prepare.
 
 **Block Field** — A real 3D column terrain or scattered cube field. Heights come from coherent Noise or a loaded Image darkness map. Terraces quantizes heights; zero means smooth heights. Cell gap separates columns. Drawing shows visible faces with outlines or paper-spaced hatching and raster hidden-line removal. Mesh contains complete closed blocks, centred and normalized by the standard mesh contract, for Mesh Render, Mesh Slice and 3D Spikes. View angle/elevation change Drawing only; downstream mesh consumers use their own camera. Phase shifts noise in a deterministic loop. Image requires a loaded file. Preview uses a fixed bounding envelope across noise motion; Mesh normalization can change as actual bounds change. The mesh contains complete outward-wound closed boxes, including touching internal faces; it is not a boolean-unioned terrain. Normalized Mesh dimensions may refit while noise moves; Drawing keeps a phase-independent envelope. Hidden drawing uses a bounded raster depth buffer and can show pixel-scale residuals at edges. Downstream camera/size are independent. Image darkness is sampled at column centres; missing image produces empty outputs. Help: Stepped noise terrain.
+
+**Isometric Blocks** — A page of separate illustrated blocks with exact 30°
+isometric top edges. Columns, Rows and Stagger rows lay them out; Density leaves
+seeded open cells. Height pattern chooses Terraces, Stairs, Wave or Random,
+quantized by Height levels. Max height × width sets the tallest cuboid and
+Cell gap × width separates the blocks. The complete composition scales to fit
+Margin. Artwork draws each visible edge once; Side hatch adds differently
+spaced lines to the left and right faces, while All faces also hatches the top.
+Edge, Left shade, Right shade and Top shade pens can be assigned separately.
+Top faces, Left faces and Right faces are closed region outputs for Hatch Fill
+and other effects. Style affects Artwork only. Help: Terraced city and Rising
+staircase.
 
 **Reaction Patterns** — Tonal Turing optionally varies local feed and kill rates using a darkness image, fitted across the simulation margin, or a closed even-odd Tone input. Mid-grey is neutral; Tone influence controls modulation. Seeds and Region keep their original roles. This guides the texture rather than tracing or reproducing every image detail. A seeded Gray–Scott reaction–diffusion surface, drawn as vector contours. Coral branches, Maze stripes and Spots emerge from local chemical exchange rather than a growing outline. Wired Seeds starts the reaction inside closed paths (even-odd holes) or along open strokes; unwired Seeds scatters small germs. Optional Region masks the sampled simulation, including holes; contour boundaries have grid-resolution error. Use Container afterwards for exact clipping. Pattern scale changes the solver grid, Detail sets its longest dimension (bounded to 128 / 12k cells), and Steps sets the mature simulation time. Manual Growth or Timeline deterministically reconstructs the same prefix on every frame; keep Seed, Steps and structural settings fixed. Growth 0 shows the initial germs, not an empty drawing. Level selects chemical concentration, Contours draws neighbouring levels, and pens cycle by level. Boundary wrap connects opposite page edges only. No playback cache or outside service is used. Tutorial: Weave, build and prepare.
 vector contours: Coral, Maze, Spots or Custom Feed/Kill. Style / Seeds / Region

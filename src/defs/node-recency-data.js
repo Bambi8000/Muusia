@@ -700,6 +700,11 @@ export const NODE_RECENCY = {
     "order": 68,
     "sha256": "eb6490f4146cf8ceee28e9f8840797ad18c2814a7a567bd368b8f516d767185d"
   },
+  "isometric_blocks": {
+    "date": "2026-11-05",
+    "order": 119,
+    "sha256": "32ad894f25cb2d078a39f327ccdf69c18c59eda4250b9a55305410b39dd3c1c2"
+  },
   "jitter": {
     "date": "2026-07-22",
     "order": 1,

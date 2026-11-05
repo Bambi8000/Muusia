@@ -910,6 +910,22 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Isometric Blocks · Terraced city",
+    desc: "A 30° isometric field rises towards the middle. Select Isometric Blocks to change Columns, Rows, Height pattern, Height levels, Max height and Occupied cells. Side hatch uses different pens for the left and right faces. Top, Left and Right faces are separate closed outputs for Hatch Fill.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "isometric_blocks", x: 35, y: 25, params: { ...defaults("isometric_blocks"), cols: 7, rows: 3, pattern: "Terraces", levels: 5, height: 1.3, density: 95, stagger: true, shading: "Side hatch", seed: 29 } },
+    ], edges: [] }),
+  },
+  {
+    name: "Isometric Blocks · Rising staircase",
+    desc: "Block heights climb diagonally across the paper. All faces adds a lightly hatched top, with each face on its own pen. Select Isometric Blocks and try Stairs, Wave, Random or Terraces; change Cell gap and Stagger rows to reshape the composition.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "isometric_blocks", x: 35, y: 25, params: { ...defaults("isometric_blocks"), cols: 7, rows: 3, pattern: "Stairs", levels: 6, height: 1.3, density: 95, stagger: true, shading: "All faces", seed: 29 } },
+    ], edges: [] }),
+  },
+  {
     name: "Leaf Field · Leaves apart",
     desc: "No overlap keeps the whole leaf, its veins and its stem clear of every other leaf. Select Leaf Field and change Leaf gap mm to open or tighten the spacing. When the paper is too full, fewer than the requested Leaves are drawn; turning No overlap off restores the original seeded field.",
     canvas: { W: 297, H: 210 },
