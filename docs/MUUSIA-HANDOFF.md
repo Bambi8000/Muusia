@@ -264,7 +264,7 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
-### W — 2026-11-05 · Reaction Labyrinth, local review
+### 2.145 — 2026-11-05 · Reaction Labyrinth
 
 Daniel requested both drawing interpretations of the reaction-diffusion
 reference. The new built-in Reaction Labyrinth generator has a Continuous path
@@ -273,15 +273,14 @@ contours mode (closed boundaries traced from a seeded Gray–Scott field). Share
 size, centre, margin, pattern scale, evolution, pen and seed controls accompany
 mode-specific Turns/Meander and Threshold/Contour bands. Help contains one
 reproducible example for each mode. The node, focused validator, catalog, tags,
-recency, source bundle and generated Learn manifest are prepared from the clean
+recency, source bundle and generated Learn manifest are integrated from the clean
 v2.144 published tree in an isolated worktree. The focused validator passed 39
 checks; all 147 Help examples, catalog, build and 37,913 Learn checks passed.
 In the real local app, the default continuous example produced 1 path and 7,309
 points; switching to separate contours produced 44 paths and 7,072 points.
-SVG and selected-node G-code were generated in the app. No physical plot or
-public release has been made. Next integration task: confirm publication scope,
-rebase onto the latest main, bump APP_VERSION, run the ordered release gate and
-verify the exact Pages deployment. The local worktree branch is
+SVG and selected-node G-code were generated in the app. No physical plot has
+been made. Daniel authorized publication. Run the ordered release gate and
+verify the exact Pages deployment after push. The release branch is
 `codex/reaction-labyrinth`.
 
 ### 2.144 — 2026-11-05 · Barbed Wire star spikes
