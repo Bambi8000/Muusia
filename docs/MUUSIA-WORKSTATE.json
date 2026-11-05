@@ -10,7 +10,7 @@
       "worktree": "/private/tmp/muusia-topology-145",
       "scope": "src/defs/nodes/pattern_tile.js, tools/validate-pattern-tile.mjs, src/examples.js, docs/MUUSIA-NODES.md, docs/MUUSIA-NODES-SRC.md, docs/MUUSIA-HANDOFF.md, docs/MUUSIA-WORKSTATE.json, src/defs/catalog.js, src/defs/node-recency-data.js, learn/generated/manifest.json, src/App.jsx, README.md",
       "status": "ready",
-      "outcome": "Line rendering implemented; local app, SVG/G-code, examples and release gate passed; publication pending."
+      "outcome": "Line rendering and angle control passed focused checks, local app exports, examples and ordered release gate; publication pending."
     }
   ],
   "lastPublished": {

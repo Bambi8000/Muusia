@@ -2,13 +2,14 @@ import { Pin, EMPTY, applyStyle } from "../helpers.js";
 
 export default {
   key: "pattern_tile", name: "Pattern Tile", cat: "gen", group: "textimg",
-  desc: "Paint a small grid motif and repeat it across the paper. Drag across cells to draw or erase. Outline merges touching painted cells into contours without internal grid lines. Line draws one horizontal stroke through each painted run, joining adjacent cells without pen lifts; Slash and Cross draw marks in individual cells. Cell size sets the physical pitch, Shift moves the repeat by whole cells, and Margin keeps it inside the page. Pattern is the full page; Tile is one centred repeat unit that can feed Seamless Tile. Both outputs are editable vector paths and are saved with the patch. Large patterns beyond the 120k-point budget return empty rather than a partial drawing.",
+  desc: "Paint a small grid motif and repeat it across the paper. Drag across cells to draw or erase. Outline merges touching painted cells into contours without internal grid lines. Line draws a straight stroke through each painted cell; Line angle turns it from horizontal (0°) through diagonal to vertical (90°). Strokes that meet across painted cells join without pen lifts. Slash and Cross draw marks in individual cells. Cell size sets the physical pitch, Shift moves the repeat by whole cells, and Margin keeps it inside the page. Pattern is the full page; Tile is one centred repeat unit that can feed Seamless Tile. Both outputs are editable vector paths and are saved with the patch. Large patterns beyond the 120k-point budget return empty rather than a partial drawing.",
   ins: [Pin("style", "Style")], outs: [Pin("paths", "Pattern"), Pin("paths", "Tile")],
   params: [
     { key: "cells", label: "Paint motif", type: "patterngrid", def: ["00011000","00111100","01100110","11000011","11000011","01100110","00111100","00011000"] },
     { key: "grid", label: "Grid cells", type: "slider", min: 3, max: 16, step: 1, def: 8 },
     { key: "cell", label: "Cell size mm", type: "slider", min: 3, max: 24, step: .5, def: 7 },
     { key: "mark", label: "Draw as", type: "select", options: ["Outline", "Line", "Slash", "Cross"], def: "Outline" },
+    { key: "lineAngle", label: "Line angle °", type: "slider", min: 0, max: 180, step: 1, def: 0, showIf: p => p.mark === "Line" },
     { key: "shiftX", label: "Shift X cells", type: "slider", min: -16, max: 16, step: 1, def: 0 },
     { key: "shiftY", label: "Shift Y cells", type: "slider", min: -16, max: 16, step: 1, def: 0 },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
@@ -28,7 +29,7 @@ export default {
     const m = Math.max(0, Math.min(Math.min(W, H) / 2, Number.isFinite(+p.margin) ? +p.margin : 12));
     return [{ kind: "rect", x: m, y: m, w: W - 2 * m, h: H - 2 * m }];
   },
-  _draw(grid, cols, rows, xAt, yAt, active, mark, layer) {
+  _draw(grid, cols, rows, xAt, yAt, active, mark, layer, lineAngle = 0) {
     const paths = [], limit = 120000;
     const add = (pts, closed = false) => { paths.push({ pts, closed, layer }); };
     if (mark === "Outline") {
@@ -72,16 +73,32 @@ export default {
         if (v.length >= (closed ? 3 : 2)) add(v.map(([x, y]) => [xAt(x), yAt(y)]), closed);
       }
     } else if (mark === "Line") {
-      for (let y = 0; y < rows; y++) {
-        let x = 0;
-        while (x < cols) {
-          if (!active(x, y)) { x++; continue; }
-          const start = x;
-          while (x < cols && active(x, y)) x++;
-          const middle = (yAt(y) + yAt(y + 1)) / 2;
-          add([[xAt(start), middle], [xAt(x), middle]]);
-          if (paths.length * 2 > limit) return EMPTY;
+      const theta = lineAngle * Math.PI / 180;
+      const dx = Math.cos(theta), dy = Math.sin(theta);
+      const key = pt => `${Math.round(pt[0] * 1e6)},${Math.round(pt[1] * 1e6)}`;
+      const starts = new Map(), segments = [];
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+        if (!active(x, y)) continue;
+        const left = xAt(x), right = xAt(x + 1), top = yAt(y), bottom = yAt(y + 1);
+        const cx = (left + right) / 2, cy = (top + bottom) / 2;
+        const t = Math.min(Math.abs(dx) < 1e-9 ? Infinity : (right - left) / (2 * Math.abs(dx)),
+          Math.abs(dy) < 1e-9 ? Infinity : (bottom - top) / (2 * Math.abs(dy)));
+        const segment = { a: [cx - dx * t, cy - dy * t], b: [cx + dx * t, cy + dy * t], used: false };
+        segments.push(segment);
+        const k = key(segment.a);
+        if (!starts.has(k)) starts.set(k, []);
+        starts.get(k).push(segment);
+        if (segments.length * 2 > limit) return EMPTY;
+      }
+      for (const first of segments) {
+        if (first.used) continue;
+        let end = first.b, cur = first;
+        while (cur && !cur.used) {
+          cur.used = true;
+          end = cur.b;
+          cur = (starts.get(key(end)) || []).find(s => !s.used);
         }
+        add([first.a, end]);
       }
     } else {
       for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
@@ -111,11 +128,12 @@ export default {
     const on = (x, y) => x >= 0 && x < cols && y >= 0 && y < rows && a[((y + sy) % n + n) % n][((x + sx) % n + n) % n];
     const layer = Math.max(0, Math.min(11, Math.round(Number.isFinite(+p.layer) ? +p.layer : 0)));
     const mark = ["Outline", "Line", "Slash", "Cross"].includes(p.mark) ? p.mark : "Outline";
-    const pattern = this._draw(a, cols, rows, x => Math.min(W - m, m + x * pitch), y => Math.min(H - m, m + y * pitch), on, mark, layer);
+    const lineAngle = Math.max(0, Math.min(180, Number.isFinite(+p.lineAngle) ? +p.lineAngle : 0));
+    const pattern = this._draw(a, cols, rows, x => Math.min(W - m, m + x * pitch), y => Math.min(H - m, m + y * pitch), on, mark, layer, lineAngle);
     const tilePitch = Math.min(pitch, width / n, height / n);
     const ox = (W - n * tilePitch) / 2, oy = (H - n * tilePitch) / 2;
     const tileOn = (x, y) => a[((y + sy) % n + n) % n][((x + sx) % n + n) % n];
-    const tile = this._draw(a, n, n, x => ox + x * tilePitch, y => oy + y * tilePitch, tileOn, mark, layer);
+    const tile = this._draw(a, n, n, x => ox + x * tilePitch, y => oy + y * tilePitch, tileOn, mark, layer, lineAngle);
     return [applyStyle(pattern, ins?.[0]), applyStyle(tile, ins?.[0])];
   },
 };

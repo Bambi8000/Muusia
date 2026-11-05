@@ -27,15 +27,16 @@ live wired values as well as stored settings, including in Muusia Guide.
 drawing, erasing, Clear, Fill, Invert and a 3×3 repeat preview. Grid cells
 resamples the painted motif from 3×3 to 16×16. Cell size sets physical pitch in
 millimetres. Outline joins adjacent painted cells into contours without internal
-grid lines. Line draws one horizontal pen stroke through each painted run,
-joining neighbouring cells without pen lifts; Slash and Cross make marks in
-each painted cell. Shift
-X/Y move the periodic motif by whole cells, Margin clips it to the paper, and
+grid lines. Line draws a stroke through each painted cell: Line angle turns it
+from horizontal (0°) through diagonal (45°) to vertical (90°), and strokes
+that meet across painted cells join without pen lifts. Slash and Cross make
+fixed marks in each painted cell. Shift X/Y move the periodic motif by whole
+cells, Margin clips it to the paper, and
 Pen selects the drawing layer. Pattern outputs the full-page vector repeat;
 Tile outputs one centred, paper-fitted unit to connect to Seamless Tile or other
 modifiers. Both outputs keep the painted grid in the saved patch. Very large
 output is rejected whole at 120k points instead of exporting a partial motif.
-Help: Painted page repeat and Motif into Seamless Tile.
+Help: Painted page repeat, Angled lines and Motif into Seamless Tile.
 
 **Draw Path** — draw one open line or closed region directly in the node.
 Points mode adds points on the small paper, drags any point and offers exact X/Y

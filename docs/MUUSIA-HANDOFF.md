@@ -264,6 +264,24 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.150 — 2026-11-05 · Pattern Tile Line angle
+
+Daniel added Line angle to the requested Pattern Tile Line mode before this
+follow-up finished. The angle slider appears only for Line and ranges 0–180°.
+Each painted cell receives a straight vector stroke clipped to its cell;
+strokes meeting at cell boundaries join into a single path. At 0° this keeps
+the published horizontal runs, at 90° it joins vertical runs, and at 45° it
+joins diagonal neighbours. Pattern and Tile outputs use the same angle. A new
+Help example starts at 45°. The focused validator passed 37 checks covering
+the three joins, angle changes, bounds and unchanged Outline output. The fresh
+local app loaded Angled lines with 174 open paths / 348 points at 45°. Changing
+the visible Line angle field to 90° changed the preview to 134 open paths /
+268 points; its actual SVG contained 134 vertical paths and G-code preview
+contained 820 lines. All 156 Help graphs, the 349-entry catalog and recency,
+production build and ordered Learn gate of 37,913 checks passed. APP_VERSION
+and README advance to 2.150. Verify the exact Pages run and public app before
+calling it published.
+
 ### 2.149 — 2026-11-05 · Pattern Tile Line drawing
 
 Daniel requested Draw as: Line for the editable repeat-pattern tile. Line
@@ -278,8 +296,10 @@ joining, separation and horizontal geometry. A fresh local app loaded the Help
 example, exposed Line in Draw as, and previewed 189 open paths / 378 points.
 Its actual SVG contained 189 horizontal vector paths; G-code preview contained
 1,150 lines. All 155 Help graphs, the 349-entry catalog and recency, production
-build and the ordered Learn gate of 37,913 checks passed. Verify the exact Pages
-run and public result before calling it published.
+build and the ordered Learn gate of 37,913 checks passed. The source commit
+`a63abea9fd061a7f730a5fbc779d017d60946aed` deployed through exact
+successful Pages run `42031052945`; the public app showed v2.149. Daniel's
+angle request followed before the final release record was written.
 
 ### 2.148 — 2026-11-05 · Pattern Tile editor
 

@@ -35,6 +35,16 @@ check(lines[1].paths.every(q => q.pts[0][1] === q.pts[1][1]), "line strokes stay
 const splitLines = run({ grid: 3, cells: ["101","000","000"], mark: "Line" });
 check(splitLines[1].paths.length === 2, "unpainted cell separates line strokes");
 check(run({ grid: 3, cells: ["100","000","000"], mark: "Line" })[1].paths[0].pts[1][0] - run({ grid: 3, cells: ["100","000","000"], mark: "Line" })[1].paths[0].pts[0][0] === 7, "single painted cell remains visible");
+const angleParam = def.params.find(p => p.key === "lineAngle");
+check(angleParam?.type === "slider" && angleParam.showIf({ mark: "Line" }) && !angleParam.showIf({ mark: "Outline" }), "angle appears only in Line mode");
+const vertical = run({ grid: 3, cells: ["010","010","000"], mark: "Line", lineAngle: 90 });
+check(vertical[1].paths.length === 1 && Math.abs(vertical[1].paths[0].pts[0][0] - vertical[1].paths[0].pts[1][0]) < 1e-8, "90 degrees joins a vertical run");
+check(Math.abs(vertical[1].paths[0].pts[1][1] - vertical[1].paths[0].pts[0][1] - 14) < 1e-8, "vertical stroke spans both painted cells");
+const diagonal = run({ grid: 3, cells: ["100","010","001"], mark: "Line", lineAngle: 45 });
+check(diagonal[1].paths.length === 1 && diagonal[1].paths[0].pts[1][0] > diagonal[1].paths[0].pts[0][0], "45 degrees joins diagonal neighbours");
+check(signature(run({ mark: "Line", lineAngle: 30 })) !== signature(run({ mark: "Line" })), "angle changes the output geometry");
+check(signature(run({ lineAngle: 90 })) === signature(run()), "angle leaves Outline unchanged");
+check(valid(run({ mark: "Line", lineAngle: 179 })[0]), "steep angle remains finite and valid");
 check(signature(run({ shiftX: 1 })) !== signature(run()), "horizontal shift moves repeat");
 check(signature(run({ shiftY: 1 })) !== signature(run()), "vertical shift moves repeat");
 check(signature(run({ cell: 12 })) !== signature(run()), "cell size changes repeat");
