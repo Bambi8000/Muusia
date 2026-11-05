@@ -279,7 +279,9 @@ build and all 37,913 Learn checks passed. The local built-in example rendered
 368 paths / 1160 points.
 Its actual SVG exported 368 paths in two pen groups, and G-code had 792
 coordinate moves without NaN or Infinity. APP_VERSION and README advance to
-2.154. Public deployment verification follows the source commit.
+2.154. Source commit `0aeeb0dbc26e59a20925496c77f24a769685af87` deployed
+through exact successful Pages run `42056499512`. The public app at `?v=2.154`
+showed v2.154 and Cross-hatched drops at 368 paths / 1160 points.
 
 ### 2.153 — 2026-11-05 · Drip modifier
 
