@@ -1686,6 +1686,28 @@ export const EXAMPLES = [
     }),
   },
   {
+    name: "Topology · Möbius one edge", desc: "Select Topology. The half-twisted band has one continuous boundary, drawn in blue. Switch Surface to Cylinder band to see its two separate boundaries. Half twists 1, 3 and 5 all keep the Möbius strip one-sided; Twist direction reverses its handedness. Drawing is a plotted grid, while the orange Mesh output is a real open triangle surface for Mesh Render.",
+    canvas: { W: 210, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "topology", x: 30, y: 20, params: { ...defaults("topology"), shape: "Mobius strip" } },
+    ], edges: [] }),
+  },
+  {
+    name: "Topology · Möbius mesh render", desc: "Topology's orange Mesh output feeds Mesh Render. Select Mesh Render to switch between illustrated, contour, hatch and edge views with hidden surfaces. The Möbius sheet has one boundary and is open, so use it as an image surface rather than a solid slice. Change Topology Surface to Torus or Trefoil tube for closed meshes.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "topology", x: 20, y: 20, params: { ...defaults("topology"), shape: "Mobius strip" } },
+      { id: 9002, type: "mesh_render", x: 370, y: 20, params: { ...defaults("mesh_render"), drawing: "Illustration", shadow: false, selfShadow: false, contours: 16, pitch: 2.2, detail: 80, size: 165 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 2, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "Topology · Linked torus loops", desc: "Hopf link has two interlocked torus components, with no boundary. Torus is one ring; Trefoil tube is a single knotted ring; Klein bottle is a self-crossing one-sided immersion. Use the orange Mesh output with Mesh Render for shaded inspection, or keep the native plotted wire grid.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "topology", x: 30, y: 20, params: { ...defaults("topology"), shape: "Hopf link", viewAz: 15, viewEl: 50 } },
+    ], edges: [] }),
+  },
+  {
     name: "Iris · Six colours", desc: "A3 iris with six separate pen layers: black, orange, blue, teal, purple and ochre. Colour mode → Six pens; choose each colour on the node and customise the inks in Pens.",
     canvas: { W: 420, H: 297 },
     make: (defaults) => ({

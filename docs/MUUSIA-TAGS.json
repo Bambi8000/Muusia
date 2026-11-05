@@ -1719,6 +1719,12 @@
   "deform",
   "round"
  ],
+ "topology": [
+  "3d",
+  "mesh",
+  "round",
+  "structural"
+ ],
  "torn": [
   "chaos",
   "clip",

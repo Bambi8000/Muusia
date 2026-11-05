@@ -264,6 +264,27 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### W — 2026-11-05 · Topology generator, local review
+
+Daniel requested a Möbius loop mesh and related topology forms. The new built-in
+Topology generator offers Möbius strip, Cylinder band, Torus, Klein bottle,
+Trefoil tube and Hopf link. Its Drawing output is a plottable 3D wire grid;
+Boundary highlights the single Möbius edge or two cylinder edges; Mesh is a
+normalized triangle surface for Mesh Render. The Möbius, cylinder and Klein
+surfaces are open or self-intersecting and are not solid slice stock. Torus,
+Trefoil and Hopf are closed triangle surfaces. Controls cover odd half twists,
+handedness, band/tube width, tessellation, wire thinning, view and placement.
+The focused validator passed 80 checks including actual mesh boundary loops,
+determinism, bounds, all six forms, Mesh Render intake and a closed Torus slice.
+All 150 Help example graphs and the 347-node catalog pass. The ordered build
+and Learn gate passed with 37,913 checks. The real local app previewed every
+form, loaded the Möbius Mesh Render example, and generated a 150-path SVG and
+G-code from it.
+No physical plot or public Topology release has been made. Next integration task:
+take this isolated `codex/topology` branch, check current main, bump the next
+APP_VERSION, rerun the ordered release gate, publish only when authorized, and
+verify the exact Pages deployment.
+
 ### 2.145 — 2026-11-05 · Reaction Labyrinth
 
 Daniel requested both drawing interpretations of the reaction-diffusion
@@ -279,8 +300,9 @@ checks; all 147 Help examples, catalog, build and 37,913 Learn checks passed.
 In the real local app, the default continuous example produced 1 path and 7,309
 points; switching to separate contours produced 44 paths and 7,072 points.
 SVG and selected-node G-code were generated in the app. No physical plot has
-been made. Daniel authorized publication. Run the ordered release gate and
-verify the exact Pages deployment after push. The release branch is
+been made. Daniel authorized publication. The ordered release gate passed, and
+exact Pages run 41996586312 succeeded for commit 189d98d5ba63fa6412584df5e0079bafa4ea5b30.
+The public app showed v2.145 and both Help examples. The release branch was
 `codex/reaction-labyrinth`.
 
 ### 2.144 — 2026-11-05 · Barbed Wire star spikes

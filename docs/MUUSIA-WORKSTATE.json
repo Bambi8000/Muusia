@@ -1,29 +1,52 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+    {
+      "id": "topology-20261105",
+      "owner": "Astra",
+      "role": "node author",
+      "baseCommit": "189d98d5ba63fa6412584df5e0079bafa4ea5b30",
+      "files": [
+        "nodes-lab/topology.plotternode.js",
+        "src/defs/nodes/topology.js",
+        "tools/validate-topology.mjs",
+        "src/examples.js",
+        "docs/MUUSIA-NODES.md",
+        "docs/MUUSIA-TAGS.json",
+        "docs/MUUSIA-HANDOFF.md",
+        "docs/MUUSIA-WORKSTATE.json",
+        "src/defs/catalog.js",
+        "src/defs/node-recency-data.js",
+        "docs/MUUSIA-NODES-SRC.md",
+        "learn/generated/manifest.json"
+      ],
+      "status": "ready",
+      "outcome": "Topology with six surface/link forms, plotted wire/boundary paths and triangle mesh is implemented, validated and ready for local review; publication is a separate release task."
+    }
+  ],
   "lastPublished": {
-    "version": "2.142",
+    "version": "2.145",
     "date": "2026-11-05",
-    "commit": "bcbed23e8cb21c5c2c94a1956bb186a3b0a434e6",
-    "pagesRunId": 41989846918,
+    "commit": "189d98d5ba63fa6412584df5e0079bafa4ea5b30",
+    "pagesRunId": 41996586312,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.142 and Wind Free tips Help: 15 paths / 840 points; exact Pages run succeeded"
+    "status": "verified public Muusia 2.145 and both Reaction Labyrinth Help examples; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.142",
+    "version": "2.145",
     "date": "2026-11-05",
-    "baseCommit": "11c71a417f6a4b8bc0ecf602c7b90a968a556b69",
-    "branch": "codex/wind-closed",
-    "worktree": "/private/tmp/muusia-wind-release",
+    "baseCommit": "408640963ef62a5863f5f5b89ae439df818f1118",
+    "branch": "codex/reaction-labyrinth",
+    "worktree": "/private/tmp/muusia-barbed-wire-release-143",
     "published": true,
-    "status": "Muusia 2.142 Wind modifier published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.142",
-    "moduleCount": 342,
-    "registryCount": 344,
-    "validation": "Wind geometry invariants, 144 Help graphs, catalog and recency, local SVG and G-code, ordered release gate of 37,913 Learn checks / 90 English pages; exact Pages run and public Free tips result verified.",
-    "note": "Published only the Wind release from an isolated checkout; the older local working tree and its unrelated changes were preserved.",
-    "commit": "bcbed23e8cb21c5c2c94a1956bb186a3b0a434e6"
+    "status": "Muusia 2.145 Reaction Labyrinth published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.145 (clean committed snapshot, prepared locally; not uploaded)",
+    "moduleCount": 344,
+    "registryCount": 346,
+    "validation": "Reaction Labyrinth 39 geometry checks, 147 Help graphs, catalog and recency, local SVG and G-code, ordered release gate of 37,913 Learn checks / 90 English pages; exact Pages run and public examples verified.",
+    "note": "Published only Reaction Labyrinth from a clean checkout; unrelated primary checkout changes were preserved.",
+    "commit": "189d98d5ba63fa6412584df5e0079bafa4ea5b30"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

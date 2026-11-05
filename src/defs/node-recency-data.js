@@ -1540,6 +1540,11 @@ export const NODE_RECENCY = {
     "order": 90,
     "sha256": "d809c7d4c1bdb0826c472a0ccae4e37dfac7ce7a57db74f9c9efec07e0af835c"
   },
+  "topology": {
+    "date": "2026-11-05",
+    "order": 108,
+    "sha256": "ef88f72522082c9e28fdcc03ea67f0ba5bd2ee6d8ca0d60287fec052801d75ee"
+  },
   "torn": {
     "date": "2026-08-10",
     "order": 24,
