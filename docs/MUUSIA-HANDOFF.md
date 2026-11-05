@@ -264,6 +264,30 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.148 — 2026-11-05 · Pattern Tile editor
+
+Daniel chose the next fffuel-inspired tool: an editable repeat-pattern tile.
+Pattern Tile is a built-in generator with a paintable 3–16 cell square motif,
+click/drag draw and erase, Clear/Fill/Invert and a live 3×3 mini preview.
+The Pattern output repeats the motif across the sheet; Tile outputs one centred
+unit for modifiers such as Seamless Tile. Outline merges touching painted cells
+into vector contours without internal seams. Slash and Cross offer simpler pen
+marks. Cell size, whole-cell X/Y shift, margin and pen are adjustable. The saved
+patch keeps the painted cells. A 120k-point budget rejects an oversized output
+whole rather than silently dropping part of the image.
+
+The custom-node prototype was imported into the local app, painted and visually
+inspected, then baked into the built-in definition. Its focused validator passed
+25 checks including deterministic output, both pins, contiguous-cell merging,
+parameter changes, bounds and point budget. Help examples include a direct page
+repeat and the Tile output feeding Seamless Tile. Both loaded in the fresh app:
+the direct page showed 28 paths and 610 points, SVG preview contained 28 vector
+paths and G-code preview 766 lines; Seamless Tile showed 279 paths and 972 points.
+All 155 Help graphs, the 349-entry catalog, production build and the ordered
+Learn gate of 37,913 checks passed. No physical plot has been made. APP_VERSION
+and README advance to 2.148 on `codex/pattern-tile` from clean v2.147.
+Publish the exact commit and verify the corresponding Pages run and public app.
+
 ### 2.147 — 2026-11-05 · Draw Path generator
 
 Daniel chose the first fffuel-inspired idea: an editable line and shape source.

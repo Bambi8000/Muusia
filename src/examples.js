@@ -910,6 +910,23 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Pattern Tile · Painted page repeat",
+    desc: "Select Pattern Tile and paint on the grid. Drag to draw or erase; the 3×3 preview and the full-page vector repeat update immediately. Try Outline, Slash and Cross, then change Cell size or Grid cells. Pattern is the complete page output.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "pattern_tile", x: 30, y: 20, params: { ...defaults("pattern_tile"), cell: 6.5, margin: 14 } },
+    ], edges: [] }),
+  },
+  {
+    name: "Pattern Tile · Motif into Seamless Tile",
+    desc: "Paint the Pattern Tile grid, then use its second blue output, Tile, as a source for Seamless Tile. Try Half drop or Mirror to build a larger repeat unit from your edited motif. The first Pattern output remains a direct page repeat.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "pattern_tile", x: 25, y: 20, params: { ...defaults("pattern_tile"), cell: 7, margin: 12 } },
+      { id: 9002, type: "seamless_tile", x: 370, y: 20, params: { ...defaults("seamless_tile"), repeat: "Half drop", width: 70, height: 50, view: "3×3 preview" } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 1, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Draw Path · Open barbed curve",
     desc: "Select Draw Path and drag the points in its editor. Click empty paper to add a point or choose Freehand to replace the whole stroke with a drawn gesture. Smoothness rounds the path; Closed shape stays Off. The blue path flows into Barbed Wire, so the spikes follow your own curve.",
     canvas: { W: 297, H: 210 },

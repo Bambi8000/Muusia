@@ -21,7 +21,19 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (219)
+## Generators (220)
+
+**Pattern Tile** — paint a small square grid motif in the node, with click/drag
+drawing, erasing, Clear, Fill, Invert and a 3×3 repeat preview. Grid cells
+resamples the painted motif from 3×3 to 16×16. Cell size sets physical pitch in
+millimetres. Outline joins adjacent painted cells into contours without internal
+grid lines; Slash and Cross make pen-friendly marks in each painted cell. Shift
+X/Y move the periodic motif by whole cells, Margin clips it to the paper, and
+Pen selects the drawing layer. Pattern outputs the full-page vector repeat;
+Tile outputs one centred, paper-fitted unit to connect to Seamless Tile or other
+modifiers. Both outputs keep the painted grid in the saved patch. Very large
+output is rejected whole at 120k points instead of exporting a partial motif.
+Help: Painted page repeat and Motif into Seamless Tile.
 
 **Draw Path** — draw one open line or closed region directly in the node.
 Points mode adds points on the small paper, drags any point and offers exact X/Y

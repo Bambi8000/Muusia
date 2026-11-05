@@ -1020,6 +1020,11 @@ export const NODE_RECENCY = {
     "order": 89,
     "sha256": "b9bbeb10cb61dbd893a602b1237f97fcbb03e93e987ffc9b8407f1aa72c9565f"
   },
+  "pattern_tile": {
+    "date": "2026-11-05",
+    "order": 110,
+    "sha256": "4384925bb04387953cf7be19b97d45faf30f7fc78e56dd7d9b64a39461fa1426"
+  },
   "patternfill": {
     "date": "2026-07-30",
     "order": 10,

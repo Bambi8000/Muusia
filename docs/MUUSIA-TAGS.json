@@ -415,6 +415,13 @@
   "organic",
   "region"
  ],
+ "pattern_tile": [
+  "editable",
+  "grid",
+  "pattern",
+  "repeat",
+  "tile"
+ ],
  "duga": [
   "3d",
   "machine",

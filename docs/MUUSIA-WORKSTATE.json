@@ -1,6 +1,18 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+    {
+      "id": "pattern-tile-2026-11-05",
+      "owner": "Astra",
+      "role": "node implementation and release integration",
+      "baseCommit": "be36c8079560cfdfe351f5a6b9b598d0db103dbf",
+      "branch": "codex/pattern-tile",
+      "worktree": "/private/tmp/muusia-topology-145",
+      "scope": "nodes-lab/pattern_tile.plotternode.js, src/defs/nodes/pattern_tile.js, src/pattern-tile-editor.jsx, src/App.jsx, src/defs/catalog.js, src/defs/node-recency-data.js, src/examples.js, docs/MUUSIA-TAGS.json, docs/MUUSIA-HANDOFF.md, docs/MUUSIA-NODES-SRC.md, docs/MUUSIA-WORKSTATE.json, tools/validate-pattern-tile.mjs, generated catalog/Learn manifests, README.md",
+      "status": "ready",
+      "outcome": "Painted repeat-tile editor and both vector outputs implemented; local app, examples and release gate passed; publication pending."
+    }
+  ],
   "lastPublished": {
     "version": "2.145",
     "date": "2026-11-05",
