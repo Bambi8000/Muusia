@@ -284,7 +284,10 @@ Focused Wind invariants, 144 Help graphs, catalog recency and lint passed.
 The ordered release gate passed: catalog, full build, then all 37,913 Learn
 checks. In the real local app the Help graph produced one closed 720-point
 path; SVG contained one closed 297 × 210 mm pen path and G-code generated 741
-lines. Publication and exact Pages run verification follow the release push.
+lines. Published as `bcbed23e8cb21c5c2c94a1956bb186a3b0a434e6` through
+Pages run 41989846918. The public 2.142 app loaded Wind · Free tips with 15
+paths / 840 points and showed its direction/position arrow, turbulence and
+open-line anchor controls.
 
 
 ### W — 2026-10-24 · Viivain Prepare button and automatic paper-loading park
