@@ -264,6 +264,24 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.143 — 2026-11-05 · Barbed Wire modifier
+
+Daniel asked to publish the new Barbed Wire node so he can try it. This release
+is based on the published Wind v2.142 main state, keeping unrelated unfinished
+work in the primary checkout out of the release. The modifier accepts any blue
+path drawing and offers Twisted pair, Alternating thorns and Razor blades.
+Barb spacing, length, lean, side and seeded variation are shared controls;
+strand gap/twist pitch and blade width appear in their relevant modes. Source
+pens are inherited by default. Open and closed paths work, including a seamless
+closed twist, and Clip to paper trims extended barbs at the selected margin.
+Dense drawings thin source paths evenly and coarsen spacing/sampling to bound
+the result. Help adds Barbed Wire · Four strands. Catalog, tags, recency and
+node-source bundle are regenerated. The focused validator passes 43 geometry,
+determinism, control and bounds checks; all 145 Help graphs pass. The ordered
+release gate (catalog, full build, Learn) passes with 37,913 Learn checks.
+The prior local candidate produced a 164-path SVG and G-code in the real app.
+No physical plot has been run. The exact Pages deployment is checked after push.
+
 ### 2.142 — 2026-11-05 · Wind modifier with positioned gusts and anchored paths
 
 Based on GitHub main `11c71a417f6a4b8bc0ecf602c7b90a968a556b69`,

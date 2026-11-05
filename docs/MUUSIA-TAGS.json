@@ -54,6 +54,12 @@
   "chaos",
   "scientific"
  ],
+ "barbed_wire": [
+  "decoration",
+  "deform",
+  "line",
+  "texture"
+ ],
  "barcode": [
   "scientific"
  ],

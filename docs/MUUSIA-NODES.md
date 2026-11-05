@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 344 built-in nodes in the current Muusia source. Conventions used below:
+All 345 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -2363,7 +2363,18 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (88)
+## Modifiers (89)
+
+**Barbed Wire** — turns every incoming line into plotter paths shaped like
+barbed wire. *Twisted pair* draws two crossing strands and paired hooks;
+*Alternating thorns* uses one strand with sharp hooks; *Razor blades* adds
+pointed closed blades. *Barb spacing*, *Barb length*, *Barb lean* and *Barb sides*
+set the pattern. Twisted pair exposes *Strand gap* and *Twist pitch*; Razor
+blades exposes *Blade width*. *Variation* and *Seed* loosen the regularity.
+The source pen is inherited unless *Inherit source pens* is off. Open and
+closed input paths work; twists wrap around closed loops without a seam.
+*Clip to paper* cuts barbs at the selected margin. Very dense input is evenly
+thinned to keep the drawing bounded. Help includes Barbed Wire · Four strands.
 
 **Wind** — bends paths in the selected wind direction. *Wind direction* uses
 page angles: 0° blows right, 90° down. *Position X/Y %* places the wind source
