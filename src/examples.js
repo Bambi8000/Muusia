@@ -1670,6 +1670,22 @@ export const EXAMPLES = [
     }),
   },
   {
+    name: "Reaction Labyrinth · One line", desc: "One uninterrupted field-guided line curls from the rim to the centre. Turns controls the number of coils, Meander their wiggle, and Evolution and Pattern scale change the underlying reaction-diffusion field. No pen lifts occur inside this drawing.",
+    canvas: { W: 210, H: 210 },
+    make: (defaults) => ({
+      nodes: [{ id: 9001, type: "reaction_labyrinth", x: 30, y: 20, params: { ...defaults("reaction_labyrinth"), mode: "Continuous path" } }],
+      edges: [],
+    }),
+  },
+  {
+    name: "Reaction Labyrinth · Separate contours", desc: "The same seeded Gray-Scott growth is traced as many individual closed vector contours. Threshold changes which boundaries are followed; Contour bands adds nested lines. The pen lifts between separate loops.",
+    canvas: { W: 210, H: 210 },
+    make: (defaults) => ({
+      nodes: [{ id: 9001, type: "reaction_labyrinth", x: 30, y: 20, params: { ...defaults("reaction_labyrinth"), mode: "Separate contours" } }],
+      edges: [],
+    }),
+  },
+  {
     name: "Iris · Six colours", desc: "A3 iris with six separate pen layers: black, orange, blue, teal, purple and ochre. Colour mode → Six pens; choose each colour on the node and customise the inks in Pens.",
     canvas: { W: 420, H: 297 },
     make: (defaults) => ({

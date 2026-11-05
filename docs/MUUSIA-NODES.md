@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 345 built-in nodes in the current Muusia source. Conventions used below:
+All 346 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,7 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (216)
+## Generators (217)
 
 **Strand Bundle** — A pen-width-aware dense stem that frays at the end or splits and returns as a ribbon. Fan and Flow preserve ordered non-crossing graphs; Wander drifts and Tangle adds backwards loops and crossings in the loose zone. Straight, Sine or seeded Meander stems are independent of thread style. Pen width and Ink overlap determine the maximum centreline pitch: nib × (1 − overlap/100). Each strand remains one complete open pen path through the release and rejoin. Release/rejoin envelopes have zero displacement and first derivative at their boundaries. Tip variation applies only to Fray end. Split and return clamps Rejoin at to at least ten percentage points after Release at. One to six bundles fit separate row/column cells, shrinking only; a physical nib radius is reserved at the margin. No automatic enlargement increases ink spacing. Above 110k points, lower all curve sampling uniformly, then narrow all cores equally while retaining every strand and bundle. Core pitch mm reports the maximum fitted pitch; Core width mm reports the minimum fitted physical width including the nib. Standard preview/SVG use their display stroke; Pen width plans real plotting density. A dashed Style deliberately breaks the solid core. Numeric inputs are clamped and Seed is deterministic. Help: Neat fan, Wandering ends, Ribbon return and Tangled return. Length now accepts up to 2000 mm before shrink-only paper fitting. Start cut ° and End cut ° independently trim the ends against straight planes in the stem frame (−75…75°). Zero retains the original exact geometry and free tip variation; angled cuts trim to a common plane, discarding disconnected offcuts. Steep angles are reduced when necessary to protect the release/rejoin region. Each retained strand remains one connected path. Help also includes Angled ends · A2. Colour selection can replace the Base pen of selected whole strands with an Accent pen: By number accepts 1-based lists and inclusive ranges, Spaced selects a first strand/count/interval, and Random uses a separate Colour seed with unique nested selections. Numbering follows the original core order before rotation and repeats in each bundle; invalid or out-of-range indices are ignored. Colouring does not alter, duplicate or reorder geometry, and a wired Style retains the selected pen layers. Off preserves monochrome patches. Help: One coloured thread and Several coloured threads. Space 3D adds a genuinely circular core and radial XYZ fibre geometry. Axis rotation rolls the object around its length; View angle/elevation control the orthographic camera, and Angle controls the page. Fan opens radially, Flow twists a cyclic ordered set, and Wander/Tangle deviate in all dimensions. Core pitch is circumferential in 3D; the circular core uses additional fibres under the same uniform point budget. 3D numbering runs around the core. A fixed cylindrical envelope prevents roll-dependent zoom/recentering. Coloured fibres and cut planes rotate with the object. Transparent wire rendering retains all strands. Outputs contain XY only, with tiny end marks for exact end-on collapse. Space 2D preserves the published geometry. Help: 3D radial fan, 3D tangled return and 3D axial rotation (Frame rot degrees → Axis rotation). In 3D, Start turn/lift and End turn/lift bend the two ends independently with rigid section rotations and smooth zero-derivative joins. Start bends up to Release at; the packed end bends after Rejoin at, or the final 30% of each free tail bends in Fray end. Cuts occur before bending. Zero directions preserve the original 3D geometry. Help also includes 3D bent ends. Whole bend (Off / Arc / S-curve) curves the entire 3D object, including its loose middle. Bend angle sets signed curvature; Bend plane rotates its plane around object X. Arc uses a circular centreline and S-curve reverses curvature smoothly at the midpoint; cross-sections rotate rigidly. Independent Start/End turn/lift are applied first, so whole-body and end bending work together. Off or a zero Bend angle preserves all previous geometry exactly. Whole bending precedes Axis rotation and camera projection; roll keeps its fixed framing. Help: 3D whole bend and 3D whole bend + ends.
 
@@ -348,6 +348,21 @@ reuses that field for pen, width, band, size and placement edits; changing Form,
 Seed, Density, Growth or Edge texture recalculates it and can take a few seconds.
 Style-compatible, with a 112,000-point limit before Style. Help includes
 Coral · Brain study and Coral · Radial colours.
+
+**Reaction Labyrinth** — a circular, seeded reaction-diffusion drawing with two
+plotter modes. *Continuous path* uses the simulated field to bend one long
+spiral from the rim toward the centre. It is a single open pen path, with no
+internal lifts; it is a field-guided composition rather than an exact contour
+of the simulation. *Separate contours* traces the closed boundaries of the
+Gray–Scott field, making many independent loops with pen lifts between them.
+*Pattern scale*, *Evolution* and *Seed* change the shared simulated field.
+*Turns* and *Meander* appear for the single line; *Threshold* and *Contour
+bands* appear for the independent contours. *Diameter mm*, *Centre X/Y %* and
+*Margin mm* fit and place the result on paper. Both modes output ordinary
+vector paths and accept Style. Dense contour output is sampled evenly to stay
+within the 110,000-point budget. Help includes Reaction Labyrinth · One line
+and Reaction Labyrinth · Separate contours. For arbitrary region, seed and image
+inputs rather than a circular composition, use Reaction Patterns.
 
 **Iris** — large, seeded eye studies drawn as organic radial fibres. *Eye shape*
 chooses Human (round), Cat (vertical almond), Goat (horizontal rounded rectangle)

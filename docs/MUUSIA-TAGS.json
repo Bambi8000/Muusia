@@ -1284,6 +1284,13 @@
   "hatch",
   "region"
  ],
+ "reaction_labyrinth": [
+  "growth",
+  "line",
+  "maze",
+  "organic",
+  "reaction diffusion"
+ ],
  "rectcollage": [
   "clip",
   "grid"

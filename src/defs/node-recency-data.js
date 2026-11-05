@@ -1140,6 +1140,11 @@ export const NODE_RECENCY = {
     "order": 57,
     "sha256": "5e46b6599164a1945609226ec61a192be2204441739e16739036706ee1b2b0d9"
   },
+  "reaction_labyrinth": {
+    "date": "2026-11-05",
+    "order": 107,
+    "sha256": "e161b00372af48aaf13e04a1eda0d996b8c87a18205c2d8af472682f9408fc0e"
+  },
   "reaction_patterns": {
     "date": "2026-10-20",
     "order": 93,
