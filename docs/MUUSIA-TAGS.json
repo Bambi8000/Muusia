@@ -409,6 +409,12 @@
   "grid",
   "weave"
  ],
+ "drawn_path": [
+  "editable",
+  "line",
+  "organic",
+  "region"
+ ],
  "duga": [
   "3d",
   "machine",

@@ -375,6 +375,11 @@ export const NODE_RECENCY = {
     "order": 89,
     "sha256": "dae5798f70ee5021037455e901244a8d9f0281a08b58aaea3ad2579cf763db98"
   },
+  "drawn_path": {
+    "date": "2026-11-05",
+    "order": 109,
+    "sha256": "6fd37a35045deb59c8147242bf504c378a4d7a403aecc35dba8a31638a95b490"
+  },
   "duga": {
     "date": "2026-09-29",
     "order": 64,

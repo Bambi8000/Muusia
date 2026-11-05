@@ -1,4 +1,4 @@
-# MUUSIA v2.146
+# MUUSIA v2.147
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,11 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Version 2.147 adds **Draw Path**: draw an open line or closed shape from editable
+points or a freehand stroke, then connect it to any path modifier. Smoothness
+also removes small wobbles from freehand drawings. Try Help → Draw Path ·
+Freehand smoothing, Open barbed curve or Closed hatch shape.
 
 Version 2.146 adds **Topology**: a Möbius strip with one continuous edge,
 cylinder band, torus, Klein bottle immersion, trefoil tube and Hopf link. Each

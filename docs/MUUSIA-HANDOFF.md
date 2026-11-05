@@ -264,6 +264,29 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.147 — 2026-11-05 · Draw Path generator
+
+Daniel chose the first fffuel-inspired idea: an editable line and shape source.
+Draw Path is a built-in generator with Points and Freehand editor modes, exact
+point coordinates, a closed-region option, Smoothness, paper Margin, Style and
+Pen. Its ordinary path output feeds existing modifiers. Freehand points save
+with the patch; long gestures thin to 128 points without dropping the tail.
+After Daniel found Smoothness barely affected dense freehand strokes, the node
+now filters small wiggles along path travel before curve interpolation, while
+zero retains the original point-to-point line. The editor uses the same filter
+for its guide, and the paper preview no longer overlays the raw control polygon
+on the smooth result. Help has Open barbed curve, Closed hatch shape and
+Freehand smoothing examples. The focused validator has 26 checks including a
+dense shaky stroke, finite bounds, closed/open semantics, and point budget.
+All 153 Help graphs and the 348-node catalog pass. The local app loaded the
+closed hatch example, previewed 53 paths, and generated actual SVG and G-code.
+The Freehand smoothing example changed from 0.49 m at Smoothness 0 to 0.29 m
+at 100 in the live preview. No physical plot has been made. Release gate:
+catalog, production build and Learn validation pass with 37,913 checks.
+The release advances APP_VERSION and README to 2.147 on the isolated
+`codex/drawn-path` branch from clean 2.146. Verify the exact Pages run and
+public Draw Path examples after push.
+
 ### 2.146 — 2026-11-05 · Topology generator
 
 Daniel requested a Möbius loop mesh and related topology forms. The new built-in

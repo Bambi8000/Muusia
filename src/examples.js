@@ -910,6 +910,34 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Draw Path · Open barbed curve",
+    desc: "Select Draw Path and drag the points in its editor. Click empty paper to add a point or choose Freehand to replace the whole stroke with a drawn gesture. Smoothness rounds the path; Closed shape stays Off. The blue path flows into Barbed Wire, so the spikes follow your own curve.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 25, y: 20, params: { ...defaults("drawn_path"), points: [[.08,.75],[.25,.36],[.43,.64],[.63,.28],[.83,.51],[.94,.24]], smoothness: 78 } },
+      { id: 9002, type: "barbed_wire", x: 365, y: 20, params: { ...defaults("barbed_wire"), spacing: 17, length: 6 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "Draw Path · Closed hatch shape",
+    desc: "Select Draw Path to edit this closed organic outline. Turn Closed shape Off to make one open line instead; Hatch Fill then has no area to fill. With it On, Hatch Fill uses the shape as a region and plots diagonal lines inside it. Smoothness and Margin affect the outline before the fill.",
+    canvas: { W: 210, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 25, y: 20, params: { ...defaults("drawn_path"), closed: true, points: [[.48,.12],[.72,.19],[.88,.45],[.78,.75],[.51,.88],[.21,.79],[.11,.49],[.25,.21]], smoothness: 72, margin: 16 } },
+      { id: 9002, type: "hatch", x: 365, y: 20, params: { ...defaults("hatch"), spacing: 2.7, angle: 35, layer: 1 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "Draw Path · Freehand smoothing",
+    desc: "A dense point stroke shows the Freehand smoothing clearly. Select Draw Path and move Smoothness from 0 to 100: the small zigzags flatten while the broad wave remains. Freehand in the editor lets you draw your own stroke; it replaces these sample points.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 25, y: 20, params: { ...defaults("drawn_path"),
+        points: Array.from({length: 64}, (_, i) => [.08 + .84 * i / 63, .5 + .18 * Math.sin(i / 8) + (i % 2 ? .018 : -.018)]),
+        smoothness: 0 } },
+    ], edges: [] }),
+  },
+  {
     name: "Barbed Wire · Four strands",
     desc: "Four horizontal Grid lines feed Barbed Wire. The default Star barbs style draws twisted double strands with crossed straight spikes and small knots. Adjust Spikes per side, Barb spacing and length to change the rhythm; Strand gap and Twist pitch shape the cable. Switch Type for hooked Twisted pair, Alternating thorns or Razor blades. The source pen is inherited, and Clip to paper trims tips at the edge.",
     canvas: { W: 297, H: 210 },

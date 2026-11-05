@@ -203,6 +203,7 @@ wires — you get modulation for free.
 | `pen` | — | 12 color dots → integer 0–11. |
 | `text` | — | Single-line text field. |
 | `tilepoints` | Array default `[[x,y,curve], ...]` | Draggable corner knots in normalized local 0–1 coordinates, with exact X/Y percent fields and square/curve toggles. `curve=0` means square; 1 means smooth. One to six points; the consuming node defines fixed anchors. Stored as an array in params, without a numeric wire. |
+| `drawpath` | Array default `[[x,y], ...]` | Draw an open or closed path in a normalized 0–1 paper editor. Points mode adds, drags and removes control points, with exact X/Y percent fields; Freehand captures a stroke and thins it to at most 128 stored points. The node chooses whether to close the path and how to map the normalized drawing onto the canvas. Stored with the patch, without a numeric wire. |
 | `file` | — | File picker; pair with `onFile`. **This row is what renders the picker.** `onFile`, `fileBinary`, `fileAccept` and `fileLabel` are all definition-level and none of them creates a button: a node declaring every one of them but no `type: "file"` param opens an inspector with no way to load anything (v2.65 Mesh Slice reached the browser like that). |
 
 Compute must tolerate any numeric value: wires can push values outside min/max, and

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import TileEditor from "./tile-editor.jsx";
+import DrawnPathEditor from "./drawn-path-editor.jsx";
 import { isParameterActive, parameterPresentation } from "./defs/parameter-visibility.js";
 import { DEFS_NODES } from "./defs/index.js";
 import { EXAMPLES } from "./examples.js";
@@ -894,7 +895,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.146"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.147"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -1717,6 +1718,7 @@ function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, por
     );
   }
   if (def.type === "tilepoints") return <TileEditor value={value} onChange={onChange} label={def.label} theme={T} />;
+  if (def.type === "drawpath") return <DrawnPathEditor value={value} onChange={onChange} label={def.label} closed={def.closed} smoothness={def.smoothness} paperW={def.paperW} paperH={def.paperH} margin={def.margin} theme={T} />;
   if (def.type === "text") {
     return (
       <div style={{ marginBottom: 6 }}>
@@ -3632,7 +3634,10 @@ export default function App() {
                           ) : (
                             def.params.filter((pd) => parameterPresentation(pd, pvals[node.id] || node.params, wiredParams.has(pd.key) || (pd.type === "multi" && pd.options.some((_, i) => wiredParams.has(`${pd.key}[${i}]`)))) !== "hidden").map((pd) => {
                               const isNum = pd.type === "slider" || pd.type === "number" || pd.type === "seed" || pd.type === "check";
-                              const pdE = (node.pmax && node.pmax[pd.key] != null) ? { ...pd, max: node.pmax[pd.key] } : pd;
+                              const pdE = pd.type === "drawpath"
+                                ? { ...pd, closed: !!(pvals[node.id] || node.params).closed, smoothness: (pvals[node.id] || node.params).smoothness,
+                                  paperW: canvasW, paperH: canvasH, margin: (pvals[node.id] || node.params).margin }
+                                : (node.pmax && node.pmax[pd.key] != null) ? { ...pd, max: node.pmax[pd.key] } : pd;
                               return (
                                 <ParamRow key={pd.key} def={pdE} value={node.params[pd.key]}
                                   wired={wiredParams.has(pd.key)}
