@@ -286,7 +286,10 @@ paths and G-code preview 766 lines; Seamless Tile showed 279 paths and 972 point
 All 155 Help graphs, the 349-entry catalog, production build and the ordered
 Learn gate of 37,913 checks passed. No physical plot has been made. APP_VERSION
 and README advance to 2.148 on `codex/pattern-tile` from clean v2.147.
-Publish the exact commit and verify the corresponding Pages run and public app.
+Published source commit `3cd7ec6cb541875bd1122234d12ca1517d1a27d9` through
+the exact successful Pages run `42006848586`. The public app showed v2.148 and
+its Pattern Tile Help example rendered 28 paths / 610 points. The unrelated
+primary checkout remains untouched.
 
 ### 2.147 — 2026-11-05 · Draw Path generator
 
