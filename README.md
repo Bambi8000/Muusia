@@ -1,4 +1,4 @@
-# MUUSIA v2.153
+# MUUSIA v2.154
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,11 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Version 2.154 adds **Cross hatch** fill to Drip's Round and Pointed drops.
+Hatch spacing, angle and inset set the texture; an optional separate pen colors
+the fill. Thread stays a single line, and older Drip patches retain their
+unfilled geometry. Try Help → Drip · Cross-hatched drops.
 
 Version 2.153 adds **Drip**, a modifier that grows falling ink marks from
 open lines or the flow-facing edge of closed shapes. Choose Round, Pointed or

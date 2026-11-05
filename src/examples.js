@@ -910,6 +910,15 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Drip · Cross-hatched drops",
+    desc: "Draw Path feeds Drip. Round drops contain two diagonal hatch passes clipped to each outline. Select Drip to change Drop fill, Hatch spacing, Hatch angle and Hatch inset. Separate hatch pen colours the fill independently; turn it off to use the source pen. Pointed drops can also be filled, while Thread has no enclosed area.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 25, y: 20, params: { ...defaults("drawn_path"), points: [[.08,.35],[.26,.29],[.46,.37],[.66,.28],[.9,.34]], smoothness: 80, margin: 12 } },
+      { id: 9002, type: "drip", x: 370, y: 20, params: { ...defaults("drip"), fill: "Cross hatch", spacing: 20, density: 100, length: 43, variation: 55, width: 12, sway: 4, hatchSpacing: 1.7, hatchAngle: 45, hatchInset: .4, hatchOwnPen: true, hatchPen: 1 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Drip · Flowing ink line",
     desc: "Draw Path feeds Drip. The open curve grows ink runs with narrow necks and round ends. Select Drip and change Spacing, Density, Length, Variation, Width, Sway or Flow direction. Pointed makes sharp tapers and Thread makes single pen strokes. Result includes the original line; Drips outputs only the added marks.",
     canvas: { W: 297, H: 210 },

@@ -13784,7 +13784,7 @@ import { Pin, EMPTY, mulberry32, signedArea } from "../helpers.js";
 
 export default {
   key: "drip", name: "Drip", cat: "mod", group: "deform",
-  desc: "Grow hanging ink drips from any incoming path drawing. Open strokes drip along their length; closed shapes drip from the edges facing Flow direction by default. Round makes a narrow-necked, bulb-ended contour; Pointed makes a sharp tapered drip; Thread makes a single flowing line. Spacing, Density, Length, Variation, Width, Sway and Seed shape the rhythm. Keep source includes the original paths in Result; Drips outputs only the new marks for further effects. Clip to margin bounds the added drips without changing the incoming drawing.",
+  desc: "Grow hanging ink drips from any incoming path drawing. Open strokes drip along their length; closed shapes drip from the edges facing Flow direction by default. Round makes a narrow-necked, bulb-ended contour; Pointed makes a sharp tapered drip; Thread makes a single flowing line. Cross hatch fills Round or Pointed drops with two clipped line directions; spacing, angle, inset and an optional separate pen control the fill. Spacing, Density, Length, Variation, Width, Sway and Seed shape the rhythm. Keep source includes the original paths in Result; Drips outputs only the new marks for further effects. Clip to margin bounds the added drips without changing the incoming drawing.",
   ins: [Pin("paths", "Source")],
   outs: [Pin("paths", "Result"), Pin("paths", "Drips")],
   params: [
@@ -13795,6 +13795,12 @@ export default {
     { key: "length", label: "Length mm", type: "slider", min: 3, max: 100, step: 1, def: 28 },
     { key: "variation", label: "Length variation %", type: "slider", min: 0, max: 100, step: 1, def: 65 },
     { key: "width", label: "Width mm", type: "slider", min: .5, max: 16, step: .5, def: 5, showIf: p => p.style !== "Thread" },
+    { key: "fill", label: "Drop fill", type: "select", options: ["None", "Cross hatch"], def: "None", showIf: p => p.style !== "Thread" },
+    { key: "hatchSpacing", label: "Hatch spacing mm", type: "slider", min: .5, max: 8, step: .1, def: 1.7, showIf: p => p.style !== "Thread" && p.fill === "Cross hatch" },
+    { key: "hatchAngle", label: "Hatch angle °", type: "slider", min: 0, max: 180, step: 1, def: 45, showIf: p => p.style !== "Thread" && p.fill === "Cross hatch" },
+    { key: "hatchInset", label: "Hatch inset mm", type: "slider", min: 0, max: 2, step: .1, def: .3, showIf: p => p.style !== "Thread" && p.fill === "Cross hatch" },
+    { key: "hatchOwnPen", label: "Separate hatch pen", type: "check", def: false, showIf: p => p.style !== "Thread" && p.fill === "Cross hatch" },
+    { key: "hatchPen", label: "Hatch pen", type: "pen", def: 1, showIf: p => p.style !== "Thread" && p.fill === "Cross hatch" && !!p.hatchOwnPen },
     { key: "direction", label: "Flow direction °", type: "slider", min: 0, max: 360, step: 1, def: 90 },
     { key: "sway", label: "Sway mm", type: "slider", min: 0, max: 20, step: .5, def: 3 },
     { key: "keep", label: "Keep source", type: "check", def: true },
@@ -13812,6 +13818,10 @@ export default {
       spacing: n("spacing", 12, 2, 100), density: n("density", 88, 0, 100) / 100,
       length: n("length", 28, 1, 250), variation: n("variation", 65, 0, 100) / 100,
       width: n("width", 5, .2, 50), sway: n("sway", 3, 0, 80),
+      hatchSpacing: n("hatchSpacing", 1.7, .35, 20),
+      hatchAngle: n("hatchAngle", 45, -3600, 3600),
+      hatchInset: n("hatchInset", .3, 0, 5),
+      hatchPen: Math.round(n("hatchPen", 1, 0, 11)),
       seed: Math.round(n("seed", 37, -1e9, 1e9)),
       style: ["Round", "Pointed", "Thread"].includes(p.style) ? p.style : "Round",
       edge: p.edge === "All edges" ? "All edges" : "Facing flow" };
@@ -13828,7 +13838,37 @@ export default {
     const s = this._settings(p, c), source = ins?.[0] || EMPTY;
     if (!s || !Array.isArray(source.paths) || source.paths.length > 10000) return [EMPTY, EMPTY];
     const original = [], drips = [];
-    let inputPoints = 0, dripPoints = 0, dripCount = 0;
+    let inputPoints = 0, dripPoints = 0, dripCount = 0, hatchRows = 0;
+    const crossHatch = p.fill === "Cross hatch" && s.style !== "Thread";
+    const hatchContour = (polygon, sourceLayer) => {
+      const filled = [];
+      const layer = p.hatchOwnPen ? s.hatchPen : sourceLayer;
+      for (const degrees of [s.hatchAngle, s.hatchAngle + 90]) {
+        const angle = degrees * Math.PI / 180, ca = Math.cos(angle), sa = Math.sin(angle);
+        const rotated = polygon.map(([x, y]) => [x * ca + y * sa, -x * sa + y * ca]);
+        let minY = Infinity, maxY = -Infinity;
+        for (const q of rotated) { minY = Math.min(minY, q[1]); maxY = Math.max(maxY, q[1]); }
+        const start = Math.ceil((minY + 1e-7) / s.hatchSpacing) * s.hatchSpacing;
+        for (let y = start, row = 0; y < maxY - 1e-7; y += s.hatchSpacing, row++) {
+          if (++hatchRows > 60000) return null;
+          const xs = [];
+          for (let i = 0, j = rotated.length - 1; i < rotated.length; j = i++) {
+            const a = rotated[i], b = rotated[j];
+            if ((a[1] > y) !== (b[1] > y)) xs.push(a[0] + (y - a[1]) * (b[0] - a[0]) / (b[1] - a[1]));
+          }
+          xs.sort((a, b) => a - b);
+          for (let i = 0; i + 1 < xs.length; i += 2) {
+            const x0 = xs[i] + s.hatchInset, x1 = xs[i + 1] - s.hatchInset;
+            if (x1 - x0 < .35) continue;
+            const a = row % 2 ? x1 : x0, b = row % 2 ? x0 : x1;
+            const back = x => [x * ca - y * sa, x * sa + y * ca];
+            filled.push({ pts: [back(a), back(b)], closed: false, layer });
+            if (filled.length > 50000 || dripPoints + filled.length * 2 + (p.keep ? inputPoints : 0) > 118000) return null;
+          }
+        }
+      }
+      return filled;
+    };
     for (let pi = 0; pi < source.paths.length; pi++) {
       const path = source.paths[pi];
       if (!Array.isArray(path?.pts)) return [EMPTY, EMPTY];
@@ -13898,7 +13938,15 @@ export default {
             }
             const clean = [];
             for (const q of out) if (!clean.length || Math.hypot(q[0] - clean[clean.length-1][0], q[1] - clean[clean.length-1][1]) > .05) clean.push(q);
-            if (clean.length >= 2) { drips.push({ pts: clean, closed: false, layer }); dripPoints += clean.length; }
+            if (clean.length >= 2) {
+              drips.push({ pts: clean, closed: false, layer }); dripPoints += clean.length;
+              if (crossHatch && clean.length >= 3) {
+                const filled = hatchContour(clean, layer);
+                if (!filled) return [EMPTY, EMPTY];
+                drips.push(...filled);
+                dripPoints += filled.length * 2;
+              }
+            }
             if (dripPoints + (p.keep ? inputPoints : 0) > 118000) return [EMPTY, EMPTY];
           }
         }

@@ -264,6 +264,23 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.154 — 2026-11-05 · Drip cross hatch fill
+
+Drip's Round and Pointed contours can now be filled with two perpendicular
+sets of plotter hatch lines. Each segment is clipped to its own drip polygon;
+Hatch spacing, angle and inset change the texture. Separate hatch pen lets the
+fill use another pen while source and outlines retain theirs. Thread has no
+enclosed region and ignores fill. The default None keeps old patch geometry
+unchanged. Complete-output caps reject excessive hatch work without clipping
+the tail of the drawing. A new Help graph shows two-pen filled drops. The
+focused validator passed 46 checks including containment and old-patch
+compatibility; all 161 Help graphs loaded. Catalog and recency, production
+build and all 37,913 Learn checks passed. The local built-in example rendered
+368 paths / 1160 points.
+Its actual SVG exported 368 paths in two pen groups, and G-code had 792
+coordinate moves without NaN or Infinity. APP_VERSION and README advance to
+2.154. Public deployment verification follows the source commit.
+
 ### 2.153 — 2026-11-05 · Drip modifier
 
 Drip is a new Deform modifier that adds pen-ready ink runs to any path input.

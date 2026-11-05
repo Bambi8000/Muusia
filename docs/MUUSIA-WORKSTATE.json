@@ -11,19 +11,19 @@
     "status": "verified public Muusia 2.153 and visible Drip Melting outline Help example; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.153",
+    "version": "2.154",
     "date": "2026-11-05",
-    "baseCommit": "6dbc455903543bdcb7f17cafab9d8994fc6463a3",
-    "branch": "codex/drip",
+    "baseCommit": "f047920d76a2d1df5b6053d429fe3d3ee5ae6d23",
+    "branch": "codex/drip-crosshatch",
     "worktree": "/private/tmp/muusia-topology-145",
-    "published": true,
-    "status": "Muusia 2.153 Drip published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.153 (clean committed snapshot, prepared locally; not uploaded)",
+    "published": false,
+    "status": "Muusia 2.154 Drip cross hatch validated; deployment verification pending",
+    "snapshot": "Pending clean committed snapshot",
     "moduleCount": 349,
     "registryCount": 351,
-    "validation": "Drip 29 checks, 160 Help graphs, catalog and recency, local UI lab import and both built-in Help examples, actual local SVG and G-code, ordered release gate of 37,913 Learn checks / 90 English pages.",
-    "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved. The prior 2.152 docs-only Pages run timed out while updating_pages, but source run succeeded and public app was verified.",
-    "commit": "2599b94489922ba7194bc790bfa5d33a683ecbfc"
+    "validation": "Drip 46 checks, 161 Help graphs, catalog and recency, local two-pen cross hatch preview, actual SVG with 368 paths / two pen groups and G-code with 792 moves, ordered release gate of 37,913 Learn checks / 90 English pages.",
+    "note": "Built from a clean isolated branch; unrelated primary checkout changes were preserved.",
+    "commit": "pending"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

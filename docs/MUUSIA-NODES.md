@@ -2445,14 +2445,19 @@ different modes make an instant layered backdrop.
 can drip along their entire length. For closed shapes, *Facing flow* uses only
 the edges whose outward side points along *Flow direction*; *All edges* removes
 that restriction. Round makes narrow-necked, bulb-ended open contours;
-Pointed tapers to a sharp end; Thread draws one centreline per drip. Spacing,
-Density, Length, Length variation, Width, Sway and Seed control the rhythm.
+Pointed tapers to a sharp end; Thread draws one centreline per drip. *Drop fill*
+adds Cross hatch inside Round or Pointed contours. Hatch spacing and Angle set
+two perpendicular line passes; Hatch inset draws them back from the outline.
+Separate hatch pen assigns the fill its own pen, while the source and outlines
+retain their original pen. Thread has no enclosed area and ignores fill.
+Spacing, Density, Length, Length variation, Width, Sway and Seed control the rhythm.
 Keep source determines whether Result includes the original paths. Drips is a
 second output containing just the added marks, useful for a different pen or
 further effects. Clip drips to margin bounds only the new marks; it does not
 move or trim the source drawing. Original pen layers are inherited. Excessive
-requests return empty whole, without a partial run. Help: Flowing ink line and
-Melting outline.
+requests return empty whole, without a partial run. Existing saved patches
+default to no fill. Help: Cross-hatched drops, Flowing ink line and Melting
+outline.
 
 **Barbed Wire** — turns every incoming line into plotter paths shaped like
 barbed wire. *Star barbs* draws a twisted double strand with straight crossed
