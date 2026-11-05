@@ -909,6 +909,30 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 ];
 
 export const EXAMPLES = [
+  {
+    name: "Wind · Anchored loop",
+    desc: "A closed Superformula outline holds its windward edge while its far side bends right. Select Wind and change Wind direction and Position X/Y to move the source and anchored edge. Choose Single anchor for a point attachment or Off to pass the closed outline through unchanged. Turbulence adds seeded gusts.",
+    canvas: { W: 297, H: 210 },
+    make: (defaults) => ({
+      nodes: [
+        { id: 9001, type: "superformula", x: 30, y: 20, params: { ...defaults("superformula"), m: 4, n1: 2, n2: 2, n3: 2, margin: 30 } },
+        { id: 9002, type: "wind", x: 360, y: 20, params: { ...defaults("wind"), angle: 0, force: 28, bendability: 0.8, stiffness: 0.2 } },
+      ],
+      edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }],
+    }),
+  },
+  {
+    name: "Wind · Free tips",
+    desc: "Vertical Grid lines hold their top ends and release their bottom tips. Select Wind; Open line anchors is Start only. Wind direction turns the lean, Position X/Y moves the source arrow, Wind width changes its reach, and Turbulence makes the bends irregular. Choose Both ends to pin the tips again.",
+    canvas: { W: 297, H: 210 },
+    make: (defaults) => ({
+      nodes: [
+        { id: 9001, type: "grid", x: 30, y: 20, params: { ...defaults("grid"), vlines: 15, hlines: 0, margin: 50, res: 2 } },
+        { id: 9002, type: "wind", x: 360, y: 20, params: { ...defaults("wind"), angle: 0, force: 26, bendability: 0.8, stiffness: 0.25, width: 100, turbulence: 0.55, gustScale: 35, openAnchor: "Start only" } },
+      ],
+      edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }],
+    }),
+  },
   {name:"Strand Bundle · 3D whole bend",desc:"Select Strand Bundle. Whole bend = Arc curves the entire object, including the loose middle. Bend angle controls the amount and sign; Bend plane rotates the bending direction around the object's length. Start/End turn and lift are all zero here: the curve comes entirely from Whole bend. Try S-curve for opposite curvature in the two halves. Off restores the previous shape exactly. Existing end steering can be added independently. Axis rotation rolls the curved object; camera and Angle still control the view and page.",canvas:{W:420,H:297},make:defaults=>({nodes:[{id:9001,type:"strand_bundle",x:50,y:60,params:{...defaults("strand_bundle"),dimension:"3D",wholeBend:"Arc",wholeAngle:150,wholePlane:0,behavior:"Split and return",style:"Flow",stem:"Straight",width:12,length:300,spread:60,release:25,rejoin:75,threadCycles:0.8,angle:0,viewAz:90,viewEl:55,colourMode:"By number",strandNumbers:"12, 45, 88",accentPen:2}}],edges:[]})},
   {name:"Strand Bundle · 3D whole bend + ends",desc:"Select Strand Bundle. Whole bend = S-curve bends the complete body in opposite directions across its midpoint. Start turn/lift and End turn/lift add independent bends to the ends, before whole bending. Start/End cut still trim separate planes. Set Whole bend to Off to keep only the end bends, or zero the four end directions to keep only the whole-body curve. Bend plane chooses the plane of global curvature; Axis rotation then rolls the complete object. All outputs remain continuous ordinary XY pen paths with the same coloured strand identities.",canvas:{W:420,H:297},make:defaults=>({nodes:[{id:9001,type:"strand_bundle",x:50,y:60,params:{...defaults("strand_bundle"),dimension:"3D",wholeBend:"S-curve",wholeAngle:160,wholePlane:20,behavior:"Split and return",style:"Wander",stem:"Straight",width:12,length:300,spread:60,release:30,rejoin:70,threadCycles:1.2,chaos:25,angle:0,viewAz:90,viewEl:55,startTurn:-45,startLift:25,endTurn:50,endLift:-30,startCut:-30,endCut:40,colourMode:"By number",strandNumbers:"12, 45, 88",accentPen:2}}],edges:[]})},
   {name:"Strand Bundle · 3D bent ends",desc:"Select Strand Bundle. Start turn/lift and End turn/lift bend the two ends independently in 3D. Turn rotates sideways around object Z; lift rotates through depth around object Y. The packed start blends back to the original path at Release at, and the packed tail starts bending after Rejoin at. In Fray end, the final 30% of each free tail bends instead. End cross-sections rotate rigidly and the blends have zero derivative at their joins. Start cut/End cut trim before bending and remain separate controls. Axis rotation spins the complete bent object.",canvas:{W:420,H:297},make:defaults=>({nodes:[{id:9001,type:"strand_bundle",x:50,y:60,params:{...defaults("strand_bundle"),dimension:"3D",behavior:"Split and return",style:"Wander",stem:"Straight",width:12,length:300,spread:90,release:30,rejoin:70,threadCycles:1.4,chaos:35,angle:0,viewAz:75,viewEl:30,axisRotation:20,startTurn:-70,startLift:30,endTurn:70,endLift:-40,startCut:-30,endCut:40,colourMode:"By number",strandNumbers:"12, 45, 88",accentPen:2}}],edges:[]})},

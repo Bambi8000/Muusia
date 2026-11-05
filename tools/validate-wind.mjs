@@ -1,0 +1,70 @@
+import assert from "node:assert/strict";
+import wind from "../src/defs/nodes/wind.js";
+
+const defaults = Object.fromEntries(wind.params.map(({ key, def }) => [key, def]));
+const ctx = { W: 300, H: 200 };
+const line = { pts: [[20, 20], [20, 120]], closed: false, layer: 3, custom: "kept" };
+const closed = { pts: [[30, 30], [80, 30], [80, 80], [30, 80]], closed: true, layer: 2, custom: "loop" };
+const source = { paths: [line, closed], note: "kept" };
+const run = (changes = {}, input = source) => wind.compute([input], { ...defaults, ...changes }, ctx);
+const middle = (path) => path.pts[Math.floor(path.pts.length / 2)];
+
+const bent = run();
+assert.deepEqual(bent.paths[0].pts[0], line.pts[0]);
+assert.deepEqual(bent.paths[0].pts.at(-1), line.pts.at(-1));
+assert.ok(middle(bent.paths[0])[0] > 20);
+assert.equal(bent.paths[0].layer, 3);
+assert.equal(bent.paths[0].custom, "kept");
+assert.equal(bent.note, "kept");
+const loop = bent.paths[1];
+assert.equal(loop.closed, true);
+assert.equal(loop.layer, 2);
+assert.equal(loop.custom, "loop");
+assert.ok(loop.pts.length > closed.pts.length);
+assert.deepEqual(loop.pts[0], closed.pts[0]);
+assert.ok(Math.max(...loop.pts.map((pt) => pt[0])) > 80);
+assert.ok(loop.pts.filter((pt) => pt[0] === 30).length >= 2);
+assert.notDeepEqual(loop.pts[0], loop.pts.at(-1));
+assert.ok(loop.pts.every((pt) => pt.every(Number.isFinite)));
+assert.deepEqual(run({ closedMode: "Off" }).paths[1], closed);
+const single = run({ closedMode: "Single anchor" }).paths[1];
+assert.deepEqual(single.pts[0], closed.pts[0]);
+assert.ok(Math.max(...single.pts.map((pt) => pt[0])) > 80);
+assert.ok(run({ angle: 180, positionX: 100 }).paths[1].pts.some((pt) => pt[0] < 30));
+assert.ok(Math.max(...run({ stiffness: 0 }).paths[1].pts.map((pt) => pt[0])) >
+  Math.max(...run({ stiffness: 1 }).paths[1].pts.map((pt) => pt[0])));
+
+assert.ok(middle(run({ angle: 180, positionX: 100 }).paths[0])[0] < 20);
+assert.ok(run({ angle: 90 }).paths[0].pts.every((pt) => Math.abs(pt[0] - 20) < 1e-9));
+assert.deepEqual(run({ force: 0 }), source);
+assert.deepEqual(run({ bendability: 0 }), source);
+
+const soft = middle(run({ stiffness: 0 }).paths[0])[0];
+const stiff = middle(run({ stiffness: 1 }).paths[0])[0];
+assert.ok(soft > stiff && stiff > 20);
+assert.ok(middle(run({ bendability: 1 }).paths[0])[0] > middle(run({ bendability: 0.25 }).paths[0])[0]);
+assert.deepEqual(run({ openAnchor: "Start only" }).paths[0].pts[0], line.pts[0]);
+assert.ok(run({ openAnchor: "Start only" }).paths[0].pts.at(-1)[0] > 20);
+assert.ok(run({ openAnchor: "End only" }).paths[0].pts[0][0] > 20);
+assert.deepEqual(run({ openAnchor: "End only" }).paths[0].pts.at(-1), line.pts.at(-1));
+assert.ok(middle(run({ positionX: 60 }).paths[0])[0] < middle(bent.paths[0])[0]);
+assert.ok(middle(run({ positionY: 0 }).paths[0])[0] < middle(bent.paths[0])[0]);
+assert.ok(middle(run({ width: 20 }).paths[0])[0] < middle(run({ width: 300 }).paths[0])[0]);
+assert.deepEqual(run({ turbulence: 1, seed: 12 }), run({ turbulence: 1, seed: 12 }));
+assert.notDeepEqual(run({ turbulence: 1, seed: 12 }), run({ turbulence: 1, seed: 13 }));
+assert.deepEqual(run({ turbulence: 0, seed: 12 }), run({ turbulence: 0, seed: 13 }));
+assert.deepEqual(run({ turbulence: 1 }).paths[0].pts[0], line.pts[0]);
+assert.deepEqual(run({ turbulence: 1 }).paths[0].pts.at(-1), line.pts.at(-1));
+assert.deepEqual(wind.overlay(defaults, ctx)[0], { kind: "point", x: 0, y: 100 });
+
+const corner = { paths: [{ pts: [[10, 10], [10, 60], [60, 60]], closed: false, layer: 1 }] };
+const cornerResult = run({}, corner).paths[0];
+assert.deepEqual(cornerResult.pts[0], [10, 10]);
+assert.deepEqual(cornerResult.pts.at(-1), [60, 60]);
+assert.ok(cornerResult.pts.every((pt) => pt.every(Number.isFinite)));
+assert.ok(cornerResult.pts.length > corner.paths[0].pts.length);
+const explicitSeam = { paths: [{ ...closed, pts: [...closed.pts, closed.pts[0]] }] };
+const seamResult = run({}, explicitSeam).paths[0];
+assert.equal(seamResult.closed, true);
+assert.notDeepEqual(seamResult.pts[0], seamResult.pts.at(-1));
+console.log("Wind modifier: anchors, position, width, turbulence, direction, seam and finite output OK");

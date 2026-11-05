@@ -1665,6 +1665,11 @@ export const NODE_RECENCY = {
     "order": 49,
     "sha256": "6ec67465ff36fd40a6a90c65f88a34162a9c2de7fb63b10bfe6b7ba15bb76c95"
   },
+  "wind": {
+    "date": "2026-11-05",
+    "order": 105,
+    "sha256": "15be91f75292fe2808dd019de31f5b9e3627714d8a36d6b57f384ecff24c4b0f"
+  },
   "windtunnel": {
     "date": "2026-08-01",
     "order": 13,

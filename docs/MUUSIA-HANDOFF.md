@@ -38,11 +38,11 @@ text are **English**.
   isStyle, signedArea, parseSVG, SFONT, fontStrokes`. PENS loads user colors from
   localStorage key `muusia-pens` at import time (try/catch — Node CLI runs warn
   harmlessly about localstorage).
-- `src/defs/nodes/*.js` — one file per node, **341 files** (343 nodes total, with
+- `src/defs/nodes/*.js` — one file per node, **342 files** (344 nodes total, with
   group + reititys, which are Combiners/Routing entries defined inline in
   App.jsx and therefore absent from this directory — every count in
   NODES.md includes them, so a bare `ls | wc -l` is always two short;
-  Generators 216, Modifiers 87). ESM format:
+  Generators 216, Modifiers 88). ESM format:
   `import { ... } from "../helpers.js";` + `export default { key: "x", name, cat,
   group, desc, ins, outs, params, overlay?, compute };`
 - `src/defs/index.js` — assembles `DEFS_NODES` via `import.meta.glob` (eager),
@@ -263,6 +263,28 @@ according to the session's actual capabilities:
   per path on PEN_n layers, nearest-ACI colors, y-up flip, plunge z dropped).
 
 ## Version history (condensed)
+
+### 2.142 — 2026-11-05 · Wind modifier with positioned gusts and anchored paths
+
+Based on GitHub main `11c71a417f6a4b8bc0ecf602c7b90a968a556b69`,
+integrated separately from the divergent local checkout and its unrelated
+uncommitted work. Wind bends open paths with both endpoints fixed. Closed paths
+default to a pinned windward strip and leeward bulge; Single anchor pins one
+windward point, and Off passes loops through. Wind direction, force,
+bendability and stiffness affect both modes. Position X/Y sets a page-space
+wind source; Width shapes its lateral reach, and an arrow guide shows its
+location and angle. Turbulence adds smooth seeded gusts with an adjustable
+spatial scale. Start only and End only can release one open-line end while the
+other stays fixed; Both ends is the default. Closed output keeps a valid seam,
+pen and path metadata. Help includes Wind · Anchored loop (Superformula → Wind)
+and Wind · Free tips (Grid → Wind). Generated catalog, node recency, source bundle and
+Learn manifest were refreshed; APP_VERSION advanced from 2.141 to 2.142.
+
+Focused Wind invariants, 144 Help graphs, catalog recency and lint passed.
+The ordered release gate passed: catalog, full build, then all 37,913 Learn
+checks. In the real local app the Help graph produced one closed 720-point
+path; SVG contained one closed 297 × 210 mm pen path and G-code generated 741
+lines. Publication and exact Pages run verification follow the release push.
 
 
 ### W — 2026-10-24 · Viivain Prepare button and automatic paper-loading park

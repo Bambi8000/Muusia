@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 343 built-in nodes in the current Muusia source. Conventions used below:
+All 344 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -2363,7 +2363,23 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (87)
+## Modifiers (88)
+
+**Wind** — bends paths in the selected wind direction. *Wind direction* uses
+page angles: 0° blows right, 90° down. *Position X/Y %* places the wind source
+on the page (shown by an arrow guide); wind starts there and *Wind width mm*
+sets how far its influence reaches to either side. Move the source to the
+opposite side when reversing direction. *Turbulence* adds smooth, deterministic
+gusts; *Gust size mm* controls their scale and *Seed* changes the pattern.
+*Wind force* increases the push, *Bendability* makes paths yield more readily,
+and *Stiffness* resists the bend. Wind pushes across each path rather than
+stretching it along itself. Open lines hold *Both ends* by default; *Start only*
+releases the far end and *End only* releases the start. *Closed shapes* defaults
+to *Windward edge*: a narrow upwind strip stays anchored while the leeward side
+bulges with the wind. *Single anchor* holds one windward point instead, and
+*Off* passes closed paths through unchanged. Loops stay closed without a doubled
+seam point. Pens and path metadata are preserved. Help includes Wind · Anchored loop
+and Wind · Free tips.
 
 **Plot Prepare** — One preparation stage for culling short paths, simplifying, joining ends and sorting travel. The built-in node reuses Muusia Cull, Simplify, Join Ends and Travel Sort. Groups above 600 paths skip the quadratic join stage. Joins are always same-pen, never cross explicit groups; when Preserve direction is on joins and reversals are disabled. Scope chooses the whole pen set or separate explicit path.group groups. Simplify only open paths so a closed contour cannot collapse to two vertices. All operations default off except pen grouping / travel sorting; no duplicate-removal claim is made. Before / After lifts are path count minus one and Travel saved measures straight pen-up travel from page origin in mm, excluding machine start/end macros and physical pen changes. A negative saving is possible because shortening, grouping or sorting changes path endpoints. Outputs are analysis, not machine time estimates. Tutorial: Weave, build and prepare.
 

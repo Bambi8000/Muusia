@@ -1855,6 +1855,11 @@
   "water",
   "organic"
  ],
+ "wind": [
+  "deform",
+  "line",
+  "organic"
+ ],
  "windtunnel": [
   "combine",
   "flow",
