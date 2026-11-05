@@ -910,6 +910,23 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Adaptive Grid · Focus field",
+    desc: "A coarse square grid becomes finer around the focus marker. Select Adaptive Grid, move Focus X/Y and change Influence radius, Detail, Refine levels or Min cell. Grid emits each shared line only once for plotting; Cells emits separate closed rectangles for filling or further processing.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "adaptive_grid", x: 35, y: 25, params: { ...defaults("adaptive_grid"), focusX: 37, focusY: 56, radius: 86, maxCell: 36, minCell: 4, detail: 94 } },
+    ], edges: [] }),
+  },
+  {
+    name: "Adaptive Grid · Follow a drawing",
+    desc: "Draw Path feeds Adaptive Grid's Influence input. Its closed shape attracts smaller cells along the outline; change the points or switch to Freehand to draw your own. Set Detail source to Focus or Noise to explore the other modes. Select Grid for the plotter-safe lattice, or wire Cells into Hatch Fill for individual regions.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 25, y: 20, params: { ...defaults("drawn_path"), closed: true, points: [[.26,.55],[.33,.28],[.51,.2],[.7,.39],[.74,.69],[.56,.83],[.38,.73]], smoothness: 70, margin: 18 } },
+      { id: 9002, type: "adaptive_grid", x: 370, y: 20, params: { ...defaults("adaptive_grid"), source: "Input drawing", maxCell: 42, radius: 42, detail: 98, levels: 4, minCell: 4 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Pattern Tile · Painted page repeat",
     desc: "Select Pattern Tile and paint on the grid. Drag to draw or erase; the 3×3 preview and the full-page vector repeat update immediately. Try Outline, Line, Slash and Cross, then change Cell size or Grid cells. Line angle turns each line; 0° joins horizontal neighbours and 90° joins vertical ones. Pattern is the complete page output.",
     canvas: { W: 297, H: 210 },

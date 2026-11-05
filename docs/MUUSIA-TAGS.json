@@ -415,6 +415,13 @@
   "organic",
   "region"
  ],
+ "adaptive_grid": [
+  "grid",
+  "adaptive",
+  "geometric",
+  "field",
+  "region"
+ ],
  "pattern_tile": [
   "editable",
   "grid",

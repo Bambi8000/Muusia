@@ -11,19 +11,19 @@
     "status": "verified public Muusia 2.151 and visible Line angle Help example; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.151",
+    "version": "2.152",
     "date": "2026-11-05",
-    "baseCommit": "acda02dc5e0877768189d3c370bb172e6cb9bd84",
-    "branch": "codex/pattern-tile-line",
+    "baseCommit": "647ce125002311531b2dcda850becf03a0e504f0",
+    "branch": "codex/adaptive-grid",
     "worktree": "/private/tmp/muusia-topology-145",
-    "published": true,
-    "status": "Muusia 2.151 Pattern Tile Line angle published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.151 (clean committed snapshot, prepared locally; not uploaded)",
-    "moduleCount": 347,
-    "registryCount": 349,
-    "validation": "Pattern Tile 38 checks, 156 Help graphs, catalog and recency, small-screen UI and local SVG/G-code, ordered release gate of 37,913 Learn checks / 90 English pages; exact Pages run and public angled-line example verified.",
-    "note": "Published from clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "3b1f4b325f1734e2ac3100efbf2f3925cdee60a9"
+    "published": false,
+    "status": "Muusia 2.152 Adaptive Grid validated; deployment verification pending",
+    "snapshot": "Pending clean committed snapshot",
+    "moduleCount": 348,
+    "registryCount": 350,
+    "validation": "Adaptive Grid 27 checks, 158 Help graphs, catalog and recency, local UI lab import and built-in Focus example, ordered release gate of 37,913 Learn checks / 90 English pages.",
+    "note": "Built from a clean isolated branch; unrelated primary checkout changes were preserved.",
+    "commit": "pending"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

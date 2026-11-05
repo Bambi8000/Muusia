@@ -264,6 +264,21 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.152 — 2026-11-05 · Adaptive Grid
+
+Adaptive Grid is a new Geometric generator with two blue outputs. Grid draws
+unique shared edges with no overplotting; Cells emits separate closed rectangles
+for Hatch Fill and other region effects. A focus point, wired path drawing or
+seeded noise field controls local subdivision. Max/Min cell, Refine levels,
+Detail, Influence radius, Noise size, Seed, Margin and Pen bound the result.
+The generator rejects oversized requests whole. Two new Help graphs demonstrate
+focus and Draw Path influence. The lab definition was imported in the local app,
+then baked and rechecked as a built-in. The focused validator passed 27 checks;
+all 158 Help graphs, catalog/recency gate, production build and 37,913 Learn
+checks passed. The local Focus field example rendered 37 paths / 74 points on
+an A4 wide sheet. APP_VERSION and README advanced to 2.152. Public deployment
+and its exact Pages run are recorded in WORKSTATE after verification.
+
 ### 2.151 — 2026-11-05 · Pattern Tile control placement
 
 After verifying Line angle in the public v2.150 app, the 720 px-high browser

@@ -5,6 +5,11 @@ export const NODE_RECENCY = {
     "order": 90,
     "sha256": "794046d06dd40273ccbf67a96db141272b55284e41f5b15bf39f796ba0d96b90"
   },
+  "adaptive_grid": {
+    "date": "2026-11-05",
+    "order": 114,
+    "sha256": "8e4c1517716e06ec4b649ed12c969faa77c6d671d185305b4ca5a978f9b59a65"
+  },
   "adsr": {
     "date": "2026-07-22",
     "order": 1,

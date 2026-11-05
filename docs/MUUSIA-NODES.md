@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 348 built-in nodes in the current Muusia source. Conventions used below:
+All 350 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,19 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (220)
+## Generators (221)
+
+**Adaptive Grid** — a square grid that refines its cells near a focus point,
+an incoming drawing, or a seeded noise field. *Detail source* selects Focus,
+Input drawing or Noise. Focus X/Y and Influence radius locate the fine area;
+connect Draw Path or any path set to Influence to follow a drawing. An unwired
+Input drawing leaves the coarse grid. Max cell determines the base lattice;
+Min cell and Refine levels bound the subdivision. Detail controls how readily
+cells split. Noise size and Seed shape a repeatable field. Grid outputs each
+shared edge only once, avoiding overplotting. Cells outputs individual closed
+rectangles for Hatch Fill and other region effects. Both outputs respect Margin
+and Pen. Large requests are rejected whole rather than partly plotted. Help:
+Focus field and Follow a drawing.
 
 **Pattern Tile** — paint a small square grid motif in the node, with click/drag
 drawing, erasing, Clear, Fill, Invert and a 3×3 repeat preview. Grid cells
