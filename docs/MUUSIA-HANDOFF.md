@@ -264,6 +264,23 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.155 — 2026-11-05 · Leaf Field generator
+
+Leaf Field is a new Nature generator that spreads separate, plotter-ready
+leaves across the paper. Scatter moves from even rows to loose placement;
+Direction offers Aligned, Wave and Whorl. Five shape choices include a seeded
+mix of Lance, Oval, Lobed and Serrated leaves. Length, size variation, width,
+angle, bend, vein pairs and stems shape each blade. Artwork combines outlines
+and details on separate pens; Leaves emits closed fillable silhouettes, and
+Veins emits open strokes. All marks fit Margin. Style affects Artwork only.
+Two Help graphs show Breezy scatter and Whorl. The lab definition was imported
+through Node ⇣, then baked into the built-in node and checked on a fresh app
+load. The focused validator passed 40 checks, all 163 Help graphs loaded,
+and the catalog, production build and 37,913 Learn checks passed. The local
+Breezy scatter SVG had 700 paths in two pen groups; G-code had 13,370
+coordinate moves, both free of NaN/Infinity. APP_VERSION and README advance
+to 2.155. Public deployment verification follows the source commit.
+
 ### 2.154 — 2026-11-05 · Drip cross hatch fill
 
 Drip's Round and Pointed contours can now be filled with two perpendicular

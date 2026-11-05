@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 351 built-in nodes in the current Muusia source. Conventions used below:
+All 352 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,7 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (221)
+## Generators (222)
 
 **Adaptive Grid** — a square grid that refines its cells near a focus point,
 an incoming drawing, or a seeded noise field. *Detail source* selects Focus,
@@ -1974,6 +1974,17 @@ a wandering main stem with sharp little kinks, sparse side branches, berries as
 small circles on stalk tips (sometimes clustered), and loose open cup flowers.
 Tip mix balances berries against cups; Leaves adds pointed ovals; a light ink
 wobble is baked in — chain into Hand Drawn for more.
+
+**Leaf Field** — a page of separate botanical leaves. *Leaves*, Length, Size
+variation, Width / length and Shape control the silhouettes: Lance, Oval,
+Lobed, Serrated or a seeded Mixed assortment. Scatter moves from even rows to
+loose placement; Direction can align the leaves, wave them across the page or
+turn them into a Whorl around its centre. Base angle and Angle spread steer
+the blades, while Leaf bend curves each midrib. Vein pairs and Stems add
+details. Artwork combines Leaf pen outlines and Vein pen details. The Leaves
+output is closed outlines for Hatch Fill; Veins is open detail strokes. All
+three stay inside Margin, and Style affects Artwork only. Help: Breezy scatter
+and Whorl.
 
 **Power Pole** — wireframe 3D utility poles: Finnish Wood (single pole, crossarm, pin insulators, guy wire), US Utility (double crossarm, cylinder transformer), Japanese Concrete (stacked arms, transformer drums). Wires hangs catenary cables from the insulators; rotate with Yaw/Pitch, wire Frame to orbit.
 

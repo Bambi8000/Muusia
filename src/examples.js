@@ -910,6 +910,22 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Leaf Field · Breezy scatter",
+    desc: "A page of mixed leaf silhouettes with a soft wave in their direction. Select Leaf Field and change Leaves, Scatter, Shape, Length, Width or Vein pairs. Artwork combines the two pens; Leaves contains closed outlines for Hatch Fill, and Veins contains only the open details.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "leaf_field", x: 35, y: 25, params: { ...defaults("leaf_field"), count: 70, size: 23, scatter: 0.2, shape: "Mixed", direction: "Wave", angle: 25, angleVar: 42, veins: 4, seed: 42 } },
+    ], edges: [] }),
+  },
+  {
+    name: "Leaf Field · Whorl",
+    desc: "The same leaf generator turns each blade around the paper centre. Select Leaf Field and switch Direction between Whorl, Wave and Aligned, or try Lobed and Serrated shapes. The closed Leaves output can feed Hatch Fill without including the open veins.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "leaf_field", x: 35, y: 25, params: { ...defaults("leaf_field"), count: 92, size: 19, sizeVar: 0.45, width: 0.42, scatter: 0.13, shape: "Lance", direction: "Whorl", angle: 0, angleVar: 17, bend: 0.5, veins: 3, seed: 19 } },
+    ], edges: [] }),
+  },
+  {
     name: "Drip · Cross-hatched drops",
     desc: "Draw Path feeds Drip. Round drops contain two diagonal hatch passes clipped to each outline. Select Drip to change Drop fill, Hatch spacing, Hatch angle and Hatch inset. Separate hatch pen colours the fill independently; turn it off to use the source pen. Pointed drops can also be filled, while Thread has no enclosed area.",
     canvas: { W: 297, H: 210 },

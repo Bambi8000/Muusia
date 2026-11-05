@@ -1,4 +1,4 @@
-# MUUSIA v2.154
+# MUUSIA v2.155
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,10 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Version 2.155 adds **Leaf Field**, a full-page generator with mixed leaf shapes,
+even-to-scattered placement, wave or whorl direction, and separate pens for
+closed outlines and veins. Try Help → Leaf Field · Breezy scatter / Whorl.
 
 Version 2.154 adds **Cross hatch** fill to Drip's Round and Pointed drops.
 Hatch spacing, angle and inset set the texture; an optional separate pen colors
