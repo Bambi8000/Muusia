@@ -409,6 +409,13 @@
   "grid",
   "weave"
  ],
+ "drip": [
+  "drip",
+  "ink",
+  "organic",
+  "deform",
+  "plotter"
+ ],
  "drawn_path": [
   "editable",
   "line",

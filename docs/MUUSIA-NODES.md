@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 350 built-in nodes in the current Muusia source. Conventions used below:
+All 351 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -2439,7 +2439,20 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (89)
+## Modifiers (90)
+
+**Drip** — grows falling ink marks from an incoming path drawing. Open strokes
+can drip along their entire length. For closed shapes, *Facing flow* uses only
+the edges whose outward side points along *Flow direction*; *All edges* removes
+that restriction. Round makes narrow-necked, bulb-ended open contours;
+Pointed tapers to a sharp end; Thread draws one centreline per drip. Spacing,
+Density, Length, Length variation, Width, Sway and Seed control the rhythm.
+Keep source determines whether Result includes the original paths. Drips is a
+second output containing just the added marks, useful for a different pen or
+further effects. Clip drips to margin bounds only the new marks; it does not
+move or trim the source drawing. Original pen layers are inherited. Excessive
+requests return empty whole, without a partial run. Help: Flowing ink line and
+Melting outline.
 
 **Barbed Wire** — turns every incoming line into plotter paths shaped like
 barbed wire. *Star barbs* draws a twisted double strand with straight crossed

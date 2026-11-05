@@ -264,6 +264,27 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.153 — 2026-11-05 · Drip modifier
+
+Drip is a new Deform modifier that adds pen-ready ink runs to any path input.
+Open paths can drip along their whole length; closed paths default to edges
+facing the chosen flow direction, independent of contour winding. Round,
+Pointed and Thread shapes offer bulb-ended, tapered and single-line marks.
+Spacing, Density, Length, Length variation, Width, Flow direction, Sway, Margin
+and Seed control the result. Result optionally includes the untouched source;
+Drips isolates the new marks. The node rejects excessive work whole. Two Help
+graphs show an open ink line and a closed melting outline. The lab file was
+imported and inspected in the local app, then baked and validated as a built-in.
+The focused validator passed 29 checks, all 160 Help graphs loaded, and both
+Help examples rendered. The closed example produced 25 paths / 964 points;
+its actual local SVG had 25 paths and A4-wide viewBox, and its G-code had 940
+coordinate moves without NaN or Infinity. Catalog and recency, production build
+and all 37,913 Learn checks passed. APP_VERSION and README advance to
+2.153. Deployment verification follows the source commit. The 2.152 docs-only
+Pages run `42049530208` timed out while GitHub reported `updating_pages`;
+the earlier 2.152 source run `42048986344` succeeded and the public app was
+verified before this task.
+
 ### 2.152 — 2026-11-05 · Adaptive Grid
 
 Adaptive Grid is a new Geometric generator with two blue outputs. Grid draws

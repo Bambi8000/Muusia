@@ -910,6 +910,24 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Drip · Flowing ink line",
+    desc: "Draw Path feeds Drip. The open curve grows ink runs with narrow necks and round ends. Select Drip and change Spacing, Density, Length, Variation, Width, Sway or Flow direction. Pointed makes sharp tapers and Thread makes single pen strokes. Result includes the original line; Drips outputs only the added marks.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 25, y: 20, params: { ...defaults("drawn_path"), points: [[.08,.43],[.22,.38],[.36,.48],[.5,.34],[.64,.44],[.78,.32],[.93,.39]], smoothness: 80, margin: 12 } },
+      { id: 9002, type: "drip", x: 370, y: 20, params: { ...defaults("drip"), spacing: 13, density: 94, length: 35, variation: 75, width: 6, sway: 4 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "Drip · Melting outline",
+    desc: "A closed Draw Path sends its lower, flow-facing edge to Drip; the upper edge stays clean. Set Closed shape edge to All edges to grow marks around the whole outline. Flow direction rotates which edge is eligible. Turn Keep source off to see the separate drips alone.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 25, y: 20, params: { ...defaults("drawn_path"), closed: true, points: [[.14,.25],[.85,.24],[.87,.52],[.71,.61],[.51,.54],[.31,.63],[.14,.52]], smoothness: 55, margin: 16 } },
+      { id: 9002, type: "drip", x: 370, y: 20, params: { ...defaults("drip"), spacing: 11, density: 94, length: 31, variation: 72, width: 7, sway: 3, seed: 45 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Adaptive Grid · Focus field",
     desc: "A coarse square grid becomes finer around the focus marker. Select Adaptive Grid, move Focus X/Y and change Influence radius, Detail, Refine levels or Min cell. Grid emits each shared line only once for plotting; Cells emits separate closed rectangles for filling or further processing.",
     canvas: { W: 297, H: 210 },

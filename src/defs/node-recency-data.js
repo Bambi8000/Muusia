@@ -385,6 +385,11 @@ export const NODE_RECENCY = {
     "order": 109,
     "sha256": "6fd37a35045deb59c8147242bf504c378a4d7a403aecc35dba8a31638a95b490"
   },
+  "drip": {
+    "date": "2026-11-05",
+    "order": 115,
+    "sha256": "f65a1fed32a7e17af9f53190e3567852a49d070deca0a0f1e44268e906353f3c"
+  },
   "duga": {
     "date": "2026-09-29",
     "order": 64,
