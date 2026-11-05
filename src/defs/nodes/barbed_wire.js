@@ -13,7 +13,8 @@ function clipSegment(a, b, x0, y0, x1, y1) {
     if (v < 0) lo = Math.max(lo, t); else hi = Math.min(hi, t);
     if (lo > hi) return null;
   }
-  return [[a[0] + lo * dx, a[1] + lo * dy], [a[0] + hi * dx, a[1] + hi * dy]];
+  return [[clamp(a[0] + lo * dx, x0, x1), clamp(a[1] + lo * dy, y0, y1)],
+    [clamp(a[0] + hi * dx, x0, x1), clamp(a[1] + hi * dy, y0, y1)]];
 }
 
 function route(pts, closed) {
@@ -45,17 +46,18 @@ export default {
   name: "Barbed Wire",
   cat: "mod",
   group: "deform",
-  desc: "Turns every wired line into barbed wire. Twisted pair draws two crossing strands and hooked barb pairs. Alternating thorns keeps one strand and adds sharp hooks. Razor blades keeps one strand and adds pointed closed blades. Spacing, barb length, lean angle, side, strand gap, twist pitch, blade width and variation shape the result. The source path's pen is inherited by default. Closed paths wrap without a twist seam. Clip to paper cuts any barbs that would extend past the margin. Very dense input is thinned evenly to bound the drawing; each retained path is processed in full.",
+  desc: "Turns every wired line into barbed wire. Star barbs draws a twisted double strand with straight, crossed spikes and small wire knots. Twisted pair has hooked barb pairs; Alternating thorns uses one strand with sharp hooks; Razor blades adds pointed closed blades. Spacing, barb length, lean angle, side, strand gap, twist pitch and variation shape the result. The source pen is inherited by default. Closed paths wrap without a twist seam. Clip to paper trims tips at the margin. Dense input is thinned evenly to bound the drawing.",
   ins: [Pin("paths", "Line")],
   outs: [Pin("paths")],
   params: [
-    { key: "mode", label: "Type", type: "select", options: ["Twisted pair", "Alternating thorns", "Razor blades"], def: "Twisted pair" },
-    { key: "spacing", label: "Barb spacing mm", type: "slider", min: 3, max: 60, step: 0.5, def: 12 },
-    { key: "length", label: "Barb length mm", type: "slider", min: 1, max: 20, step: 0.5, def: 5 },
+    { key: "mode", label: "Type", type: "select", options: ["Star barbs", "Twisted pair", "Alternating thorns", "Razor blades"], def: "Star barbs" },
+    { key: "spacing", label: "Barb spacing mm", type: "slider", min: 3, max: 60, step: 0.5, def: 18 },
+    { key: "length", label: "Barb length mm", type: "slider", min: 1, max: 20, step: 0.5, def: 3.5 },
     { key: "angle", label: "Barb lean °", type: "slider", min: -60, max: 60, step: 1, def: 22 },
     { key: "side", label: "Barb sides", type: "select", options: ["Both", "Alternate", "Left", "Right"], def: "Both" },
-    { key: "gap", label: "Strand gap mm", type: "slider", min: 0.2, max: 6, step: 0.1, def: 1.2, showIf: p => p.mode === "Twisted pair" },
-    { key: "twist", label: "Twist pitch mm", type: "slider", min: 2, max: 40, step: 0.5, def: 9, showIf: p => p.mode === "Twisted pair" },
+    { key: "gap", label: "Strand gap mm", type: "slider", min: 0.2, max: 6, step: 0.1, def: 1.2, showIf: p => p.mode === "Twisted pair" || p.mode === "Star barbs" },
+    { key: "twist", label: "Twist pitch mm", type: "slider", min: 2, max: 40, step: 0.5, def: 9, showIf: p => p.mode === "Twisted pair" || p.mode === "Star barbs" },
+    { key: "arms", label: "Spikes per side", type: "slider", min: 1, max: 3, step: 1, def: 2, showIf: p => p.mode === "Star barbs" },
     { key: "blade", label: "Blade width mm", type: "slider", min: 0.5, max: 8, step: 0.1, def: 2.2, showIf: p => p.mode === "Razor blades" },
     { key: "vary", label: "Variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.15 },
     { key: "clip", label: "Clip to paper", type: "check", def: true },
@@ -81,7 +83,8 @@ export default {
     const stride = Math.max(1, Math.ceil(all.length / 5000));
     const routes = all.filter((_, i) => i % stride === 0);
     const total = routes.reduce((n, r) => n + r.length, 0);
-    const twisted = p.mode === "Twisted pair", razor = p.mode === "Razor blades";
+    const star = p.mode === "Star barbs";
+    const twisted = p.mode === "Twisted pair" || star, razor = p.mode === "Razor blades";
     const gap = clamp(p.gap ?? 1.2, 0.2, 6), twist = clamp(p.twist ?? 9, 2, 40);
     const barbLength = clamp(p.length ?? 5, 1, 20), lean = Math.tan(clamp(p.angle ?? 22, -60, 60) * Math.PI / 180);
     const vary = clamp(p.vary ?? 0, 0, 1), spacing = Math.max(3, p.spacing || 12, total / 3500);
@@ -133,7 +136,15 @@ export default {
         const sides = p.side === "Left" ? [1] : p.side === "Right" ? [-1] : p.side === "Alternate" ? [k % 2 ? -1 : 1] : [1, -1];
         const point = (along, across) => [q.x + q.tx * along + q.nx * across, q.y + q.ty * along + q.ny * across];
         for (const side of sides) {
-          if (razor) {
+          if (star) {
+            const arms = clamp(Math.round(p.arms ?? 2), 1, 3);
+            for (let a = 0; a < arms; a++) {
+              const fan = arms === 1 ? 0 : (2 * a / (arms - 1) - 1);
+              const reach = len * (1 - 0.12 * Math.abs(fan));
+              emit([point(fan * gap * 0.3, side * gap * 0.16),
+                point(lean * len * 0.3 + fan * len * 0.58, side * reach)], false, r.layer);
+            }
+          } else if (razor) {
             const w = clamp(p.blade ?? 2.2, 0.5, 8), sl = lean * len * 0.35;
             emit([point(-w * 0.55, 0), point(-w * 0.18 + sl, side * len * 0.88), point(sl, side * len), point(w * 0.55, 0)], true, r.layer);
           } else if (twisted) {
@@ -141,6 +152,13 @@ export default {
           } else {
             emit([point(0, 0), point(lean * len * 0.32, side * len * 0.65), point(lean * len * 0.32 + len * 0.26, side * len)], false, r.layer);
           }
+        }
+        if (star) {
+          // Short crossing strokes suggest the little wire knot at each spike cluster.
+          const w = Math.max(0.35, gap * 0.7);
+          emit([point(-w, -gap * 0.35), point(w, gap * 0.35)], false, r.layer);
+          emit([point(-w, gap * 0.35), point(w, -gap * 0.35)], false, r.layer);
+          emit([point(-w * 0.45, -gap * 0.5), point(w * 0.45, gap * 0.5)], false, r.layer);
         }
       }
     });

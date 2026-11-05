@@ -264,6 +264,22 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.144 — 2026-11-05 · Barbed Wire star spikes
+
+Daniel supplied two reference images showing thin twisted wire with short,
+straight spikes clustered at dark knots, on both straight runs and loops.
+Barbed Wire now defaults to Star barbs: two crossing strands, one to three
+spikes per selected side, and short knot strokes at each barb. Default barb
+spacing is 18 mm and length is 3.5 mm; the existing hooked Twisted pair,
+Alternating thorns and Razor blades modes remain selectable. The Help example
+and node documentation explain the new controls. Clipped coordinates are
+clamped exactly to the paper bounds, including near-zero rounding at an edge.
+The Barbed Wire validator covers star geometry, pen inheritance, determinism,
+clipping and every mode. All 145 Help examples and the ordered catalog, build,
+Learn release gate pass. This release uses the clean v2.143 published tree and
+does not include the primary checkout's unrelated unfinished work. No physical
+plot has been run. Check the exact Pages run and public Help example after push.
+
 ### 2.143 — 2026-11-05 · Barbed Wire modifier
 
 Daniel asked to publish the new Barbed Wire node so he can try it. This release

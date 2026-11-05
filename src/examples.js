@@ -911,7 +911,7 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 export const EXAMPLES = [
   {
     name: "Barbed Wire · Four strands",
-    desc: "Four horizontal Grid lines feed Barbed Wire. Select Barbed Wire and switch Type between Twisted pair, Alternating thorns and Razor blades. Barb spacing and length set the rhythm; Barb sides, lean and Variation change the silhouette. Twisted pair adds Strand gap and Twist pitch; Razor blades adds Blade width. The source pen is inherited, and Clip to paper trims tips at the edge.",
+    desc: "Four horizontal Grid lines feed Barbed Wire. The default Star barbs style draws twisted double strands with crossed straight spikes and small knots. Adjust Spikes per side, Barb spacing and length to change the rhythm; Strand gap and Twist pitch shape the cable. Switch Type for hooked Twisted pair, Alternating thorns or Razor blades. The source pen is inherited, and Clip to paper trims tips at the edge.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [
       { id: 9001, type: "grid", x: 20, y: 20, params: { ...defaults("grid"), vlines: 0, hlines: 4, margin: 28 } },

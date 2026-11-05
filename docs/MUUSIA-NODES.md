@@ -2366,10 +2366,12 @@ different modes make an instant layered backdrop.
 ## Modifiers (89)
 
 **Barbed Wire** — turns every incoming line into plotter paths shaped like
-barbed wire. *Twisted pair* draws two crossing strands and paired hooks;
+barbed wire. *Star barbs* draws a twisted double strand with straight crossed
+spikes and small wire knots; *Spikes per side* controls the number of arms.
+*Twisted pair* draws two crossing strands and paired hooks;
 *Alternating thorns* uses one strand with sharp hooks; *Razor blades* adds
 pointed closed blades. *Barb spacing*, *Barb length*, *Barb lean* and *Barb sides*
-set the pattern. Twisted pair exposes *Strand gap* and *Twist pitch*; Razor
+set the pattern. Both double-strand modes expose *Strand gap* and *Twist pitch*; Razor
 blades exposes *Blade width*. *Variation* and *Seed* loosen the regularity.
 The source pen is inherited unless *Inherit source pens* is off. Open and
 closed input paths work; twists wrap around closed loops without a seam.

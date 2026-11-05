@@ -1,4 +1,4 @@
-# MUUSIA v2.143
+# MUUSIA v2.144
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -7,8 +7,9 @@ available with the extended L-System and shape/field tools. Learn includes
 
 **A node-graph editor for generative pen-plotter art.**
 
-Version 2.143 adds **Barbed Wire**: turn any wired line into a twisted pair,
-alternating thorns or razor blades. Try Help → Barbed Wire · Four strands.
+Version 2.144 adds **Star barbs** to Barbed Wire: twisted double strands with
+crossed sharp spikes and small knots, based on Daniel's reference image. The
+earlier hooked, thorn and blade styles remain available. Try Help → Barbed Wire · Four strands.
 
 Version 2.138 adds **Strand Bundle**: pen-width-aware solid stems that open into
 ordered fans, flowing ribbons or chaotic threads. Split and return rejoins every

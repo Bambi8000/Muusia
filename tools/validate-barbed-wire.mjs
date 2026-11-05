@@ -15,7 +15,7 @@ let checks = 0;
 const ok = (yes, why) => { assert.ok(yes, why); checks++; };
 const sourceBefore = hash(source);
 
-for (const mode of ['Twisted pair', 'Alternating thorns', 'Razor blades']) {
+for (const mode of ['Star barbs', 'Twisted pair', 'Alternating thorns', 'Razor blades']) {
   const r = run({ mode });
   ok(r.paths.length > 15, `${mode}: wire and barbs drawn`);
   ok(r.paths.every(q => q.pts.length >= 2 && q.pts.every(pt => pt.every(Number.isFinite))), `${mode}: finite paths`);
@@ -25,8 +25,12 @@ for (const mode of ['Twisted pair', 'Alternating thorns', 'Razor blades']) {
   ok(count(r) < 115000, `${mode}: bounded`);
 }
 ok(hash(source) === sourceBefore, 'source is unchanged');
-ok(run().paths.filter(q => q.layer === 3 && q.pts.length > 100).length === 2, 'twisted pair has two continuous rails on open line');
-ok(run().paths.filter(q => q.layer === 7 && q.closed && q.pts.length > 100).length === 2, 'closed source has two seamless closed rails');
+ok(run({ mode: 'Twisted pair' }).paths.filter(q => q.layer === 3 && q.pts.length > 100).length === 2, 'twisted pair has two continuous rails on open line');
+ok(run({ mode: 'Twisted pair' }).paths.filter(q => q.layer === 7 && q.closed && q.pts.length > 100).length === 2, 'closed source has two seamless closed rails');
+ok(run().paths.filter(q => q.layer === 3 && q.pts.length > 100).length === 2, 'star barbs have two continuous rails');
+ok(run().paths.filter(q => q.layer === 7 && q.closed && q.pts.length > 100).length === 2, 'star barbs have seamless closed rails');
+ok(run().paths.length > run({ mode: 'Twisted pair' }).paths.length, 'star barbs add individual spikes and knots');
+ok(run({ arms: 3 }).paths.length > run().paths.length, 'spikes per side adds arms');
 ok(run({ mode: 'Alternating thorns' }).paths.filter(q => q.layer === 7 && q.closed).length === 1, 'single wire remains closed');
 ok(run({ mode: 'Razor blades' }).paths.some(q => q.closed && q.pts.length === 4), 'razor blades are closed four-point forms');
 ok(hash(run({ mode: 'Razor blades' })) !== hash(run({ mode: 'Alternating thorns' })), 'types differ');
@@ -47,7 +51,7 @@ ok(edge.paths.every(q => q.pts.every(([x, y]) => x >= 0 && x <= 210 && y >= 0 &&
 const gridParams = Object.fromEntries(Grid.params.map(q => [q.key, q.def]));
 const grid = Grid.compute([], { ...gridParams, vlines: 0, hlines: 4 }, ctx);
 ok(run({}, grid).paths.length > grid.paths.length, 'real Grid output converts to barbed wire');
-for (const key of ['gap', 'twist', 'blade', 'layer', 'margin']) {
+for (const key of ['gap', 'twist', 'arms', 'blade', 'layer', 'margin']) {
   const q = N.params.find(x => x.key === key);
   ok(typeof q.showIf === 'function', `${key} is conditional`);
 }

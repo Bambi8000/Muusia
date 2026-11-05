@@ -62,8 +62,8 @@ export const NODE_RECENCY = {
   },
   "barbed_wire": {
     "date": "2026-11-05",
-    "order": 105,
-    "sha256": "fa6ee3c40c86cb1357c43e89ef60d8f05a767e1ad5a45db5ab1891b217de873f"
+    "order": 106,
+    "sha256": "acf05265a34c3d04b3c2d4952fd2a029b668f8020aaa1fca5e80ed5fec48d36c"
   },
   "barcode": {
     "date": "2026-07-22",
