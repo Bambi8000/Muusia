@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.154",
+    "version": "2.155",
     "date": "2026-11-05",
-    "commit": "0aeeb0dbc26e59a20925496c77f24a769685af87",
-    "pagesRunId": 42056499512,
+    "commit": "5949e6e5b26ffe06ec3346119f4e51f3beed4b94",
+    "pagesRunId": 42059966157,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.154 and visible Drip Cross-hatched drops Help example; exact Pages run succeeded"
+    "status": "verified public Muusia 2.155 and visible Leaf Field Breezy scatter Help example at 700 paths; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.154",
+    "version": "2.155",
     "date": "2026-11-05",
-    "baseCommit": "f047920d76a2d1df5b6053d429fe3d3ee5ae6d23",
-    "branch": "codex/drip-crosshatch",
+    "baseCommit": "4c36d9bb2297788ae2f90fca671e8330bf9281d8",
+    "branch": "codex/leaf-field",
     "worktree": "/private/tmp/muusia-topology-145",
     "published": true,
-    "status": "Muusia 2.154 Drip cross hatch published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.154 (clean committed snapshot, prepared locally; not uploaded)",
-    "moduleCount": 349,
-    "registryCount": 351,
-    "validation": "Drip 46 checks, 161 Help graphs, catalog and recency, local two-pen cross hatch preview, actual SVG with 368 paths / two pen groups and G-code with 792 moves, ordered release gate of 37,913 Learn checks / 90 English pages.",
+    "status": "Muusia 2.155 Leaf Field published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.155 (clean committed snapshot, prepared locally; not uploaded)",
+    "moduleCount": 350,
+    "registryCount": 352,
+    "validation": "Leaf Field 40 checks, 163 Help graphs, catalog and recency, local Breezy scatter and Whorl previews, actual SVG with 700 paths / two pen groups and G-code with 13,370 coordinate moves, ordered release gate of 37,913 Learn checks / 90 English pages. Public 2.155 Help example showed 700 paths.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "0aeeb0dbc26e59a20925496c77f24a769685af87"
+    "commit": "5949e6e5b26ffe06ec3346119f4e51f3beed4b94"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

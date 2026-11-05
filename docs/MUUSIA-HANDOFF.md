@@ -279,7 +279,10 @@ load. The focused validator passed 40 checks, all 163 Help graphs loaded,
 and the catalog, production build and 37,913 Learn checks passed. The local
 Breezy scatter SVG had 700 paths in two pen groups; G-code had 13,370
 coordinate moves, both free of NaN/Infinity. APP_VERSION and README advance
-to 2.155. Public deployment verification follows the source commit.
+to 2.155. Source commit `5949e6e5b26ffe06ec3346119f4e51f3beed4b94`
+deployed through exact successful Pages run `42059966157`. The public app at
+`?v=2.155` showed v2.155 and the Breezy scatter Help example at 700 paths /
+14,000 points.
 
 ### 2.154 — 2026-11-05 · Drip cross hatch fill
 
