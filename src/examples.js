@@ -910,6 +910,14 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Leaf Field · Leaves apart",
+    desc: "No overlap keeps the whole leaf, its veins and its stem clear of every other leaf. Select Leaf Field and change Leaf gap mm to open or tighten the spacing. When the paper is too full, fewer than the requested Leaves are drawn; turning No overlap off restores the original seeded field.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "leaf_field", x: 35, y: 25, params: { ...defaults("leaf_field"), count: 90, size: 22, scatter: 0.2, noOverlap: true, gap: 2.5, shape: "Mixed", direction: "Wave", veins: 4, seed: 42 } },
+    ], edges: [] }),
+  },
+  {
     name: "Leaf Field · Breezy scatter",
     desc: "A page of mixed leaf silhouettes with a soft wave in their direction. Select Leaf Field and change Leaves, Scatter, Shape, Length, Width or Vein pairs. Artwork combines the two pens; Leaves contains closed outlines for Hatch Fill, and Veins contains only the open details.",
     canvas: { W: 297, H: 210 },

@@ -1981,10 +1981,13 @@ Lobed, Serrated or a seeded Mixed assortment. Scatter moves from even rows to
 loose placement; Direction can align the leaves, wave them across the page or
 turn them into a Whorl around its centre. Base angle and Angle spread steer
 the blades, while Leaf bend curves each midrib. Vein pairs and Stems add
-details. Artwork combines Leaf pen outlines and Vein pen details. The Leaves
+details. *No overlap* places each complete leaf, including its stem, clear of
+every other leaf by at least *Leaf gap mm*. If all requested leaves cannot fit,
+the remainder are omitted; the switch defaults off to preserve older patches.
+Artwork combines Leaf pen outlines and Vein pen details. The Leaves
 output is closed outlines for Hatch Fill; Veins is open detail strokes. All
-three stay inside Margin, and Style affects Artwork only. Help: Breezy scatter
-and Whorl.
+three stay inside Margin, and Style affects Artwork only. Help: Leaves apart,
+Breezy scatter and Whorl.
 
 **Power Pole** — wireframe 3D utility poles: Finnish Wood (single pole, crossarm, pin insulators, guy wire), US Utility (double crossarm, cylinder transformer), Japanese Concrete (stacked arms, transformer drums). Wires hangs catenary cables from the insulators; rotate with Yaw/Pitch, wire Frame to orbit.
 

@@ -752,8 +752,8 @@ export const NODE_RECENCY = {
   },
   "leaf_field": {
     "date": "2026-11-05",
-    "order": 117,
-    "sha256": "0495af007f23e870fc7207394a3a88b1e46f5d29bc7d0068cb15b218bc428d25"
+    "order": 118,
+    "sha256": "10aa5670703ba4e9fa3fd35b52057f25655710f7f6a34931cde233f6092e71d6"
   },
   "lens": {
     "date": "2026-10-19",

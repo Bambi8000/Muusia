@@ -264,6 +264,21 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.156 — 2026-11-05 · Leaf Field No overlap
+
+Leaf Field now has a No overlap checkbox and Leaf gap mm slider. The placement
+search tests the bounding boxes of complete leaves, including stems and veins,
+so accepted specimens stay at least the requested distance apart. If a dense
+request cannot fit after bounded seeded attempts, entire leaves are omitted;
+the three outputs remain in sync. The default Off preserves the exact 2.155
+seeded geometry, verified by its output hash. The new Leaves apart Help graph
+requests 90 leaves with a 2.5 mm gap and draws 70 on A4 wide. The focused
+validator passed 54 checks including dense-page spacing and determinism;
+all 164 Help graphs loaded. Local SVG exported 700 paths in two pen groups,
+and G-code had 13,370 coordinate moves, both without NaN/Infinity. Catalog,
+production build and 37,913 Learn checks passed. APP_VERSION and README
+advance to 2.156. Public deployment verification follows the source commit.
+
 ### 2.155 — 2026-11-05 · Leaf Field generator
 
 Leaf Field is a new Nature generator that spreads separate, plotter-ready
