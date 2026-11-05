@@ -280,7 +280,9 @@ faces, pen layers, disjoint blocks, bounds and dense-page work limits. All 166
 Help graphs loaded. The local Rising staircase SVG had 360 paths in four pen
 groups and G-code had 460 coordinate moves, with no NaN/Infinity. Catalog,
 production build and 37,913 Learn checks passed. APP_VERSION and README
-advance to 2.157. Public deployment verification follows the source commit.
+advance to 2.157. Source commit `4fd9fd70` deployed in successful Pages run
+`42064382479`. The public app displayed v2.157 and the Rising staircase Help
+example rendered 360 paths with Stairs and All faces selected.
 
 ### 2.156 — 2026-11-05 · Leaf Field No overlap
 

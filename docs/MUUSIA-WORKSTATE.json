@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.156",
+    "version": "2.157",
     "date": "2026-11-05",
-    "commit": "4438ec8955b04cf059c39e215c68c486a3a61487",
-    "pagesRunId": 42061634893,
+    "commit": "4fd9fd70e0e7441e02ed37fdf3789d6174d38588",
+    "pagesRunId": 42064382479,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.156 and visible Leaf Field Leaves apart Help example with No overlap on and 2.5 mm gap; exact Pages run succeeded"
+    "status": "verified public Muusia 2.157 and visible Isometric Blocks Rising staircase Help example at 360 paths; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.156",
+    "version": "2.157",
     "date": "2026-11-05",
-    "baseCommit": "ddec43a72c0490921c9a6b1bb2e8a2e2d8a74e2b",
-    "branch": "codex/leaf-field-no-overlap",
+    "baseCommit": "750965f097fa1465e26ded544c315d4a07c403e9",
+    "branch": "codex/isometric-blocks",
     "worktree": "/private/tmp/muusia-topology-145",
     "published": true,
-    "status": "Muusia 2.156 Leaf Field No overlap published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.156 (clean committed snapshot, prepared locally; not uploaded)",
-    "moduleCount": 350,
-    "registryCount": 352,
-    "validation": "Leaf Field 54 checks including exact old-patch output and specimen clearance, 164 Help graphs, catalog and recency, local Leaves apart preview, actual SVG with 700 paths / two pen groups and G-code with 13,370 coordinate moves, ordered release gate of 37,913 Learn checks / 90 English pages. Public 2.156 Help example showed No overlap on, 2.5 mm gap and 700 paths.",
+    "status": "Muusia 2.157 Isometric Blocks published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.157 (clean committed snapshot, prepared locally; not uploaded)",
+    "moduleCount": 351,
+    "registryCount": 353,
+    "validation": "Isometric Blocks 40 checks, 166 Help graphs, catalog and recency, local Terraced city and Rising staircase previews, actual SVG with 360 paths / four pen groups and G-code with 460 coordinate moves, ordered release gate of 37,913 Learn checks / 90 English pages. Public 2.157 example showed 360 paths.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "4438ec8955b04cf059c39e215c68c486a3a61487"
+    "commit": "4fd9fd70e0e7441e02ed37fdf3789d6174d38588"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
