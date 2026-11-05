@@ -1,6 +1,18 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+    {
+      "id": "pattern-tile-line-2026-11-05",
+      "owner": "Astra",
+      "role": "Pattern Tile mode and release integration",
+      "baseCommit": "acda02dc5e0877768189d3c370bb172e6cb9bd84",
+      "branch": "codex/pattern-tile-line",
+      "worktree": "/private/tmp/muusia-topology-145",
+      "scope": "src/defs/nodes/pattern_tile.js, tools/validate-pattern-tile.mjs, src/examples.js, docs/MUUSIA-NODES.md, docs/MUUSIA-NODES-SRC.md, docs/MUUSIA-HANDOFF.md, docs/MUUSIA-WORKSTATE.json, src/defs/catalog.js, src/defs/node-recency-data.js, learn/generated/manifest.json, src/App.jsx, README.md",
+      "status": "ready",
+      "outcome": "Line rendering implemented; local app, SVG/G-code, examples and release gate passed; publication pending."
+    }
+  ],
   "lastPublished": {
     "version": "2.148",
     "date": "2026-11-05",

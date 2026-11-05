@@ -1,4 +1,4 @@
-# MUUSIA v2.148
+# MUUSIA v2.149
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,9 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Version 2.149 adds **Line** to Pattern Tile's Draw as menu: each painted run
+becomes one horizontal pen stroke, so neighbouring cells join without pen lifts.
 
 Version 2.148 adds **Pattern Tile**: paint an editable grid motif and repeat it
 as plotter-ready paths across the page. Outline joins touching cells; Slash and

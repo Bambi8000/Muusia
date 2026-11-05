@@ -2,13 +2,13 @@ import { Pin, EMPTY, applyStyle } from "../helpers.js";
 
 export default {
   key: "pattern_tile", name: "Pattern Tile", cat: "gen", group: "textimg",
-  desc: "Paint a small grid motif and repeat it across the paper. Drag across cells to draw or erase. Outline merges touching painted cells into continuous contours without internal grid lines; Slash and Cross draw simple pen marks in every painted cell. Cell size sets the physical pitch, Shift moves the repeat by whole cells, and Margin keeps it inside the page. Pattern is the full page; Tile is one centred repeat unit that can feed Seamless Tile. Both outputs are editable vector paths and are saved with the patch. Large patterns beyond the 120k-point budget return empty rather than a partial drawing.",
+  desc: "Paint a small grid motif and repeat it across the paper. Drag across cells to draw or erase. Outline merges touching painted cells into contours without internal grid lines. Line draws one horizontal stroke through each painted run, joining adjacent cells without pen lifts; Slash and Cross draw marks in individual cells. Cell size sets the physical pitch, Shift moves the repeat by whole cells, and Margin keeps it inside the page. Pattern is the full page; Tile is one centred repeat unit that can feed Seamless Tile. Both outputs are editable vector paths and are saved with the patch. Large patterns beyond the 120k-point budget return empty rather than a partial drawing.",
   ins: [Pin("style", "Style")], outs: [Pin("paths", "Pattern"), Pin("paths", "Tile")],
   params: [
     { key: "cells", label: "Paint motif", type: "patterngrid", def: ["00011000","00111100","01100110","11000011","11000011","01100110","00111100","00011000"] },
     { key: "grid", label: "Grid cells", type: "slider", min: 3, max: 16, step: 1, def: 8 },
     { key: "cell", label: "Cell size mm", type: "slider", min: 3, max: 24, step: .5, def: 7 },
-    { key: "mark", label: "Draw as", type: "select", options: ["Outline", "Slash", "Cross"], def: "Outline" },
+    { key: "mark", label: "Draw as", type: "select", options: ["Outline", "Line", "Slash", "Cross"], def: "Outline" },
     { key: "shiftX", label: "Shift X cells", type: "slider", min: -16, max: 16, step: 1, def: 0 },
     { key: "shiftY", label: "Shift Y cells", type: "slider", min: -16, max: 16, step: 1, def: 0 },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
@@ -71,6 +71,18 @@ export default {
         });
         if (v.length >= (closed ? 3 : 2)) add(v.map(([x, y]) => [xAt(x), yAt(y)]), closed);
       }
+    } else if (mark === "Line") {
+      for (let y = 0; y < rows; y++) {
+        let x = 0;
+        while (x < cols) {
+          if (!active(x, y)) { x++; continue; }
+          const start = x;
+          while (x < cols && active(x, y)) x++;
+          const middle = (yAt(y) + yAt(y + 1)) / 2;
+          add([[xAt(start), middle], [xAt(x), middle]]);
+          if (paths.length * 2 > limit) return EMPTY;
+        }
+      }
     } else {
       for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
         if (!active(x, y)) continue;
@@ -98,7 +110,7 @@ export default {
     const sy = ((Math.round(+p.shiftY || 0) % n) + n) % n;
     const on = (x, y) => x >= 0 && x < cols && y >= 0 && y < rows && a[((y + sy) % n + n) % n][((x + sx) % n + n) % n];
     const layer = Math.max(0, Math.min(11, Math.round(Number.isFinite(+p.layer) ? +p.layer : 0)));
-    const mark = ["Outline", "Slash", "Cross"].includes(p.mark) ? p.mark : "Outline";
+    const mark = ["Outline", "Line", "Slash", "Cross"].includes(p.mark) ? p.mark : "Outline";
     const pattern = this._draw(a, cols, rows, x => Math.min(W - m, m + x * pitch), y => Math.min(H - m, m + y * pitch), on, mark, layer);
     const tilePitch = Math.min(pitch, width / n, height / n);
     const ox = (W - n * tilePitch) / 2, oy = (H - n * tilePitch) / 2;

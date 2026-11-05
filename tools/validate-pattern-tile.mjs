@@ -28,6 +28,13 @@ check(tile.paths.every(q => q.pts.every(([x,y]) => x >= 12 && x <= 198 && y >= 1
 check(pattern.paths.some(q => q.closed), "outline produces closed contours");
 check(signature(run({ mark: "Slash" })) !== signature(run()), "slash mode changes geometry");
 check(run({ mark: "Cross" })[0].paths.length === run({ mark: "Slash" })[0].paths.length * 2, "cross adds second mark");
+const lines = run({ grid: 3, cells: ["110","010","000"], mark: "Line" });
+check(lines[1].paths.length === 2 && lines[1].paths.every(q => q.pts.length === 2 && !q.closed), "line makes one open stroke per painted run");
+check(lines[1].paths[0].pts[1][0] - lines[1].paths[0].pts[0][0] === 14, "horizontal neighbours join into one 2-cell stroke");
+check(lines[1].paths.every(q => q.pts[0][1] === q.pts[1][1]), "line strokes stay horizontal");
+const splitLines = run({ grid: 3, cells: ["101","000","000"], mark: "Line" });
+check(splitLines[1].paths.length === 2, "unpainted cell separates line strokes");
+check(run({ grid: 3, cells: ["100","000","000"], mark: "Line" })[1].paths[0].pts[1][0] - run({ grid: 3, cells: ["100","000","000"], mark: "Line" })[1].paths[0].pts[0][0] === 7, "single painted cell remains visible");
 check(signature(run({ shiftX: 1 })) !== signature(run()), "horizontal shift moves repeat");
 check(signature(run({ shiftY: 1 })) !== signature(run()), "vertical shift moves repeat");
 check(signature(run({ cell: 12 })) !== signature(run()), "cell size changes repeat");

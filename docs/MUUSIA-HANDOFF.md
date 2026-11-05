@@ -264,6 +264,23 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.149 — 2026-11-05 · Pattern Tile Line drawing
+
+Daniel requested Draw as: Line for the editable repeat-pattern tile. Line
+creates one horizontal open vector stroke per consecutive painted run. One
+cell remains a full-cell line, neighbouring cells join without pen lifts, and
+blank cells separate runs. It works in both full-page Pattern and single Tile
+outputs, inheriting Style, margin, physical cell size, shifts and pen. The
+existing Outline, Slash and Cross output remains unchanged. The Pattern Tile
+Help description and node reference now explain the new mode. APP_VERSION and
+README advance to 2.149. The focused validator passed 30 checks including run
+joining, separation and horizontal geometry. A fresh local app loaded the Help
+example, exposed Line in Draw as, and previewed 189 open paths / 378 points.
+Its actual SVG contained 189 horizontal vector paths; G-code preview contained
+1,150 lines. All 155 Help graphs, the 349-entry catalog and recency, production
+build and the ordered Learn gate of 37,913 checks passed. Verify the exact Pages
+run and public result before calling it published.
+
 ### 2.148 — 2026-11-05 · Pattern Tile editor
 
 Daniel chose the next fffuel-inspired tool: an editable repeat-pattern tile.

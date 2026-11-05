@@ -911,7 +911,7 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 export const EXAMPLES = [
   {
     name: "Pattern Tile · Painted page repeat",
-    desc: "Select Pattern Tile and paint on the grid. Drag to draw or erase; the 3×3 preview and the full-page vector repeat update immediately. Try Outline, Slash and Cross, then change Cell size or Grid cells. Pattern is the complete page output.",
+    desc: "Select Pattern Tile and paint on the grid. Drag to draw or erase; the 3×3 preview and the full-page vector repeat update immediately. Try Outline, Line, Slash and Cross, then change Cell size or Grid cells. Line joins neighbouring painted cells into one horizontal pen stroke. Pattern is the complete page output.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [
       { id: 9001, type: "pattern_tile", x: 30, y: 20, params: { ...defaults("pattern_tile"), cell: 6.5, margin: 14 } },
