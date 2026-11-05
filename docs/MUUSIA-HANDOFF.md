@@ -264,6 +264,20 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.151 — 2026-11-05 · Pattern Tile control placement
+
+After verifying Line angle in the public v2.150 app, the 720 px-high browser
+view showed the slider below the visible portion of the tall painted node.
+Draw as and its conditional Line angle are now the first two parameters,
+above Paint motif, so the new control is visible without panning. The cell
+editor, 3×3 repeat preview, geometry and patch parameter keys are unchanged.
+APP_VERSION and README advance to 2.151. The fresh local app at a 1280×720
+viewport showed both Draw as and the 45° slider above the paint grid, with
+the 174-path angled preview still visible. The focused validator passed 38
+checks including control order; all 156 Help graphs, catalog and recency,
+production build and ordered Learn gate of 37,913 checks passed. Verify the
+exact Pages run and public app before calling it published.
+
 ### 2.150 — 2026-11-05 · Pattern Tile Line angle
 
 Daniel added Line angle to the requested Pattern Tile Line mode before this
@@ -279,8 +293,10 @@ the visible Line angle field to 90° changed the preview to 134 open paths /
 268 points; its actual SVG contained 134 vertical paths and G-code preview
 contained 820 lines. All 156 Help graphs, the 349-entry catalog and recency,
 production build and ordered Learn gate of 37,913 checks passed. APP_VERSION
-and README advance to 2.150. Verify the exact Pages run and public app before
-calling it published.
+and README advanced to 2.150. Source commit
+`59dab2e0ee74161be5d23ae99920c1af0cb1ccac` deployed through exact
+successful Pages run `42032167675`. The public app at `?v=2.150` showed
+v2.150, Line angle at 45°, and 174 paths / 348 points in the new Help example.
 
 ### 2.149 — 2026-11-05 · Pattern Tile Line drawing
 

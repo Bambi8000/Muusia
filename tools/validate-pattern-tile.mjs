@@ -19,6 +19,7 @@ const signature = value => JSON.stringify(value);
 
 check(def.key === "pattern_tile" && def.ins[0].type === "style" && def.outs.length === 2, "pin contract");
 check(def.params.find(p => p.key === "cells")?.type === "patterngrid", "editable grid parameter");
+check(def.params[0]?.key === "mark" && def.params[1]?.key === "lineAngle" && def.params[2]?.key === "cells", "drawing controls appear above the paint grid");
 const [pattern, tile] = run();
 check(pattern.paths.length > tile.paths.length && tile.paths.length > 0, "both outputs draw, page repeats motif");
 check(valid(pattern) && valid(tile), "finite vector paths and valid pens");

@@ -5,11 +5,11 @@ export default {
   desc: "Paint a small grid motif and repeat it across the paper. Drag across cells to draw or erase. Outline merges touching painted cells into contours without internal grid lines. Line draws a straight stroke through each painted cell; Line angle turns it from horizontal (0°) through diagonal to vertical (90°). Strokes that meet across painted cells join without pen lifts. Slash and Cross draw marks in individual cells. Cell size sets the physical pitch, Shift moves the repeat by whole cells, and Margin keeps it inside the page. Pattern is the full page; Tile is one centred repeat unit that can feed Seamless Tile. Both outputs are editable vector paths and are saved with the patch. Large patterns beyond the 120k-point budget return empty rather than a partial drawing.",
   ins: [Pin("style", "Style")], outs: [Pin("paths", "Pattern"), Pin("paths", "Tile")],
   params: [
+    { key: "mark", label: "Draw as", type: "select", options: ["Outline", "Line", "Slash", "Cross"], def: "Outline" },
+    { key: "lineAngle", label: "Line angle °", type: "slider", min: 0, max: 180, step: 1, def: 0, showIf: p => p.mark === "Line" },
     { key: "cells", label: "Paint motif", type: "patterngrid", def: ["00011000","00111100","01100110","11000011","11000011","01100110","00111100","00011000"] },
     { key: "grid", label: "Grid cells", type: "slider", min: 3, max: 16, step: 1, def: 8 },
     { key: "cell", label: "Cell size mm", type: "slider", min: 3, max: 24, step: .5, def: 7 },
-    { key: "mark", label: "Draw as", type: "select", options: ["Outline", "Line", "Slash", "Cross"], def: "Outline" },
-    { key: "lineAngle", label: "Line angle °", type: "slider", min: 0, max: 180, step: 1, def: 0, showIf: p => p.mark === "Line" },
     { key: "shiftX", label: "Shift X cells", type: "slider", min: -16, max: 16, step: 1, def: 0 },
     { key: "shiftY", label: "Shift Y cells", type: "slider", min: -16, max: 16, step: 1, def: 0 },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
