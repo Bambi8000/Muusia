@@ -275,8 +275,11 @@ APP_VERSION and README advance to 2.151. The fresh local app at a 1280×720
 viewport showed both Draw as and the 45° slider above the paint grid, with
 the 174-path angled preview still visible. The focused validator passed 38
 checks including control order; all 156 Help graphs, catalog and recency,
-production build and ordered Learn gate of 37,913 checks passed. Verify the
-exact Pages run and public app before calling it published.
+production build and ordered Learn gate of 37,913 checks passed. Source commit
+`3b1f4b325f1734e2ac3100efbf2f3925cdee60a9` deployed through exact
+successful Pages run `42033141415`. The public app at `?v=2.151` showed
+v2.151 and the Angled lines Help example with Draw as and Line angle visible
+above the paint grid; its 45° preview contained 174 paths / 348 points.
 
 ### 2.150 — 2026-11-05 · Pattern Tile Line angle
 

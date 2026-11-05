@@ -1,41 +1,29 @@
 {
   "schemaVersion": 1,
-  "active": [
-    {
-      "id": "pattern-tile-line-2026-11-05",
-      "owner": "Astra",
-      "role": "Pattern Tile mode and release integration",
-      "baseCommit": "acda02dc5e0877768189d3c370bb172e6cb9bd84",
-      "branch": "codex/pattern-tile-line",
-      "worktree": "/private/tmp/muusia-topology-145",
-      "scope": "src/defs/nodes/pattern_tile.js, tools/validate-pattern-tile.mjs, src/examples.js, docs/MUUSIA-NODES.md, docs/MUUSIA-NODES-SRC.md, docs/MUUSIA-HANDOFF.md, docs/MUUSIA-WORKSTATE.json, src/defs/catalog.js, src/defs/node-recency-data.js, learn/generated/manifest.json, src/App.jsx, README.md",
-      "status": "ready",
-      "outcome": "Line angle and control placement passed 38 focused checks, small-screen app inspection, examples and ordered release gate; publication pending."
-    }
-  ],
+  "active": [],
   "lastPublished": {
-    "version": "2.148",
+    "version": "2.151",
     "date": "2026-11-05",
-    "commit": "3cd7ec6cb541875bd1122234d12ca1517d1a27d9",
-    "pagesRunId": 42006848586,
+    "commit": "3b1f4b325f1734e2ac3100efbf2f3925cdee60a9",
+    "pagesRunId": 42033141415,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.148 and Pattern Tile Help example; exact Pages run succeeded"
+    "status": "verified public Muusia 2.151 and visible Line angle Help example; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.148",
+    "version": "2.151",
     "date": "2026-11-05",
-    "baseCommit": "be36c8079560cfdfe351f5a6b9b598d0db103dbf",
-    "branch": "codex/pattern-tile",
+    "baseCommit": "acda02dc5e0877768189d3c370bb172e6cb9bd84",
+    "branch": "codex/pattern-tile-line",
     "worktree": "/private/tmp/muusia-topology-145",
     "published": true,
-    "status": "Muusia 2.148 Pattern Tile published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.148 (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.151 Pattern Tile Line angle published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.151 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 347,
     "registryCount": 349,
-    "validation": "Pattern Tile 25 geometry checks, 155 Help graphs, catalog and recency, local SVG/G-code, ordered release gate of 37,913 Learn checks / 90 English pages; exact Pages run and public Pattern Tile example verified.",
+    "validation": "Pattern Tile 38 checks, 156 Help graphs, catalog and recency, small-screen UI and local SVG/G-code, ordered release gate of 37,913 Learn checks / 90 English pages; exact Pages run and public angled-line example verified.",
     "note": "Published from clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "3cd7ec6cb541875bd1122234d12ca1517d1a27d9"
+    "commit": "3b1f4b325f1734e2ac3100efbf2f3925cdee60a9"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
