@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.155",
+    "version": "2.156",
     "date": "2026-11-05",
-    "commit": "5949e6e5b26ffe06ec3346119f4e51f3beed4b94",
-    "pagesRunId": 42059966157,
+    "commit": "4438ec8955b04cf059c39e215c68c486a3a61487",
+    "pagesRunId": 42061634893,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.155 and visible Leaf Field Breezy scatter Help example at 700 paths; exact Pages run succeeded"
+    "status": "verified public Muusia 2.156 and visible Leaf Field Leaves apart Help example with No overlap on and 2.5 mm gap; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.155",
+    "version": "2.156",
     "date": "2026-11-05",
-    "baseCommit": "4c36d9bb2297788ae2f90fca671e8330bf9281d8",
-    "branch": "codex/leaf-field",
+    "baseCommit": "ddec43a72c0490921c9a6b1bb2e8a2e2d8a74e2b",
+    "branch": "codex/leaf-field-no-overlap",
     "worktree": "/private/tmp/muusia-topology-145",
     "published": true,
-    "status": "Muusia 2.155 Leaf Field published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.155 (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.156 Leaf Field No overlap published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.156 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 350,
     "registryCount": 352,
-    "validation": "Leaf Field 40 checks, 163 Help graphs, catalog and recency, local Breezy scatter and Whorl previews, actual SVG with 700 paths / two pen groups and G-code with 13,370 coordinate moves, ordered release gate of 37,913 Learn checks / 90 English pages. Public 2.155 Help example showed 700 paths.",
+    "validation": "Leaf Field 54 checks including exact old-patch output and specimen clearance, 164 Help graphs, catalog and recency, local Leaves apart preview, actual SVG with 700 paths / two pen groups and G-code with 13,370 coordinate moves, ordered release gate of 37,913 Learn checks / 90 English pages. Public 2.156 Help example showed No overlap on, 2.5 mm gap and 700 paths.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "5949e6e5b26ffe06ec3346119f4e51f3beed4b94"
+    "commit": "4438ec8955b04cf059c39e215c68c486a3a61487"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

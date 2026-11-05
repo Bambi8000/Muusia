@@ -277,7 +277,10 @@ validator passed 54 checks including dense-page spacing and determinism;
 all 164 Help graphs loaded. Local SVG exported 700 paths in two pen groups,
 and G-code had 13,370 coordinate moves, both without NaN/Infinity. Catalog,
 production build and 37,913 Learn checks passed. APP_VERSION and README
-advance to 2.156. Public deployment verification follows the source commit.
+advance to 2.156. Source commit `4438ec8955b04cf059c39e215c68c486a3a61487`
+deployed through exact successful Pages run `42061634893`. The public app at
+`?v=2.156` showed v2.156 and the Leaves apart Help example with No overlap on,
+2.5 mm gap and 700 paths / 14,000 points.
 
 ### 2.155 — 2026-11-05 · Leaf Field generator
 
