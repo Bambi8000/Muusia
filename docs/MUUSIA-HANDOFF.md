@@ -264,7 +264,7 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
-### W — 2026-11-05 · Topology generator, local review
+### 2.146 — 2026-11-05 · Topology generator
 
 Daniel requested a Möbius loop mesh and related topology forms. The new built-in
 Topology generator offers Möbius strip, Cylinder band, Torus, Klein bottle,
@@ -280,10 +280,9 @@ All 150 Help example graphs and the 347-node catalog pass. The ordered build
 and Learn gate passed with 37,913 checks. The real local app previewed every
 form, loaded the Möbius Mesh Render example, and generated a 150-path SVG and
 G-code from it.
-No physical plot or public Topology release has been made. Next integration task:
-take this isolated `codex/topology` branch, check current main, bump the next
-APP_VERSION, rerun the ordered release gate, publish only when authorized, and
-verify the exact Pages deployment.
+No physical plot has been made. Daniel authorized publication. The release
+uses the isolated `codex/topology` branch from clean v2.145, with APP_VERSION
+and README advanced to 2.146. Verify the exact Pages deployment after push.
 
 ### 2.145 — 2026-11-05 · Reaction Labyrinth
 

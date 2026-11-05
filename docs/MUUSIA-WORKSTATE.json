@@ -1,29 +1,6 @@
 {
   "schemaVersion": 1,
-  "active": [
-    {
-      "id": "topology-20261105",
-      "owner": "Astra",
-      "role": "node author",
-      "baseCommit": "189d98d5ba63fa6412584df5e0079bafa4ea5b30",
-      "files": [
-        "nodes-lab/topology.plotternode.js",
-        "src/defs/nodes/topology.js",
-        "tools/validate-topology.mjs",
-        "src/examples.js",
-        "docs/MUUSIA-NODES.md",
-        "docs/MUUSIA-TAGS.json",
-        "docs/MUUSIA-HANDOFF.md",
-        "docs/MUUSIA-WORKSTATE.json",
-        "src/defs/catalog.js",
-        "src/defs/node-recency-data.js",
-        "docs/MUUSIA-NODES-SRC.md",
-        "learn/generated/manifest.json"
-      ],
-      "status": "ready",
-      "outcome": "Topology with six surface/link forms, plotted wire/boundary paths and triangle mesh is implemented, validated and ready for local review; publication is a separate release task."
-    }
-  ],
+  "active": [],
   "lastPublished": {
     "version": "2.145",
     "date": "2026-11-05",
