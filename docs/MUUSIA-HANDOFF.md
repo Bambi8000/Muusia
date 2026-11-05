@@ -280,7 +280,9 @@ focused validator passed 68 checks, and all 167 Help graphs loaded. A local
 12-frame export produced 12 distinct SVGs (360 paths each) and 12 distinct
 G-code files (460 coordinate moves each), all finite. Catalog, production
 build and 37,913 Learn checks passed. APP_VERSION and README advance to
-2.158. Public deployment verification follows the source commit.
+2.158. Source commit `2ef5f1b` deployed in successful Pages run
+`42067517816`. The public app displayed v2.158 and Animated morph with both
+Frame wires, showing 360 paths at frame 7/12.
 
 ### 2.157 — 2026-11-05 · Isometric Blocks generator
 

@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.157",
+    "version": "2.158",
     "date": "2026-11-05",
-    "commit": "4fd9fd70e0e7441e02ed37fdf3789d6174d38588",
-    "pagesRunId": 42064382479,
+    "commit": "2ef5f1b04c62cb5e03c5a5e3e5229ebbb57b9a05",
+    "pagesRunId": 42067517816,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.157 and visible Isometric Blocks Rising staircase Help example at 360 paths; exact Pages run succeeded"
+    "status": "verified public Muusia 2.158 and visible Isometric Blocks Animated morph Help example at frame 7/12 with 360 paths; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.157",
+    "version": "2.158",
     "date": "2026-11-05",
-    "baseCommit": "750965f097fa1465e26ded544c315d4a07c403e9",
-    "branch": "codex/isometric-blocks",
+    "baseCommit": "5ab2b53c105c5afc3dc83593c4ca36bc0e153063",
+    "branch": "codex/isometric-blocks-animation",
     "worktree": "/private/tmp/muusia-topology-145",
     "published": true,
-    "status": "Muusia 2.157 Isometric Blocks published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.157 (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.158 Isometric Blocks Frame animation published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.158 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 351,
     "registryCount": 353,
-    "validation": "Isometric Blocks 40 checks, 166 Help graphs, catalog and recency, local Terraced city and Rising staircase previews, actual SVG with 360 paths / four pen groups and G-code with 460 coordinate moves, ordered release gate of 37,913 Learn checks / 90 English pages. Public 2.157 example showed 360 paths.",
+    "validation": "Isometric Blocks 68 checks including unchanged previous geometry hashes and frame registration, 167 Help graphs, catalog and recency, local Animated morph visual preview, 12 distinct SVG frames at 360 paths each and 12 distinct G-code frames at 460 coordinate moves each, ordered release gate of 37,913 Learn checks / 90 English pages. Public 2.158 example showed frame 7/12 and 360 paths.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "4fd9fd70e0e7441e02ed37fdf3789d6174d38588"
+    "commit": "2ef5f1b04c62cb5e03c5a5e3e5229ebbb57b9a05"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
