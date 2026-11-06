@@ -283,6 +283,9 @@ Adaptive Grid cells. A 1600-cell stress run took about 110 ms locally and had
 zero conflicts. The baked three-node UI example produced 189 paths in four
 pens. Actual SVG had four pen groups, 189 finite paths and no invalid values;
 actual G-code had 756 finite drawing moves. No physical plot was made.
+Commit `a6c099bf216276ba45031962cd32e4b3c4ddef0e` was published by
+Pages run `42242842456` (success). The public v2.162 app, both Help entries
+and the 189-path four-pen example were verified in the browser.
 
 ### 2.161 — 2026-11-06 · Image Compare and mobile camera choice
 
