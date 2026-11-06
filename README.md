@@ -1,4 +1,4 @@
-# MUUSIA v2.159
+# MUUSIA v2.160
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,10 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Version 2.160 adds **Spiral Image**: a photo drives one continuous elliptical
+or circular line. Dark areas make it wiggle more, while the pen remains down
+through light areas. Try Help → Spiral Image · One continuous line.
 
 Version 2.159 adds **Engrave Image**: load a photo and choose flowing lines,
 straight engraving, or short facet strokes. Contours, main hatch, shadow

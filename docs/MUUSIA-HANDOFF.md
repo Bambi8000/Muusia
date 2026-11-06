@@ -264,6 +264,25 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.160 — 2026-11-06 · One-line Spiral Image
+
+Spiral Image adds a Text & Image generator with exactly one continuous open
+path from the centre of a locally loaded image to its rim (or the reverse).
+Ellipse/Circle, Turn spacing, Tone wiggle, Wiggle wavelength, Contrast, White
+cutoff, Center X/Y, Start angle, Pen and Margin control the result. Dark pixels
+increase radial wiggle, while light pixels retain the smooth base spiral;
+therefore the pen stays down even through white areas. Strong wiggle can cross
+adjacent turns. Large requests coarsen spacing uniformly to hold a 30k-point
+limit. No Style input can accidentally break the one-line output.
+
+The lab prototype was imported with Node ⇣ and corrected after the real UI
+exposed an incorrect single-output wrapper. The baked node then showed one
+25,662-point path from a high-contrast test graphic. An actual SVG export
+contained one path without non-finite values; actual G-code had one pen-down
+run and 25,661 drawing moves. The focused validator passed 26,669 checks.
+Help includes One continuous line (the user selects a local photo). No
+physical plot was made.
+
 ### 2.159 — 2026-11-06 · Engrave Image
 
 Engrave Image is a built-in Text & Image generator that turns a locally loaded

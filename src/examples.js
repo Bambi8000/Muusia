@@ -910,6 +910,12 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Spiral Image · One continuous line",
+    desc: "Choose a high-contrast photo on Spiral Image. One unbroken spiral travels through the whole image. Dark areas add zigzag movement to that same line; light areas retain its smooth base. Turn spacing mm controls density, Tone wiggle mm controls darkness, and Spiral shape switches between Ellipse and Circle. The line can cross itself, but it never lifts. Export one SVG path or one G-code pen-down run.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "spiral_image", x: 30, y: 20, params: { ...defaults("spiral_image"), shape: "Ellipse", pitch: 1.7, wiggle: 1.8, wavelength: 4.5 } }], edges: [] }),
+  },
+  {
     name: "Engrave Image · Flow study",
     desc: "Choose a clear photo on Engrave Image. Flow makes long lines curve with the tones; white areas stay open. Line spacing controls print density, Flow bend controls the curve and Shadow threshold places a second pen in the darks. Outlines, Hatching, Shadows and Dots are separate outputs. Start on A4 wide with a fine pen.",
     canvas: { W: 297, H: 210 },

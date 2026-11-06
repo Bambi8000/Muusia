@@ -1425,6 +1425,11 @@ export const NODE_RECENCY = {
     "order": 82,
     "sha256": "52310d2e3a4eb1bdcec41a2c73b044012f41877c153064f0d7ba6108bf768103"
   },
+  "spiral_image": {
+    "date": "2026-11-06",
+    "order": 122,
+    "sha256": "63035973b0feffe22b14ab592936ba7074da7bc483ef51fee4ec2f6c1ca59876"
+  },
   "spiro": {
     "date": "2026-07-22",
     "order": 1,

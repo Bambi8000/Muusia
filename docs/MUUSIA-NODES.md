@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 354 built-in nodes in the current Muusia source. Conventions used below:
+All 355 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,7 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (224)
+## Generators (225)
 
 **Adaptive Grid** — a square grid that refines its cells near a focus point,
 an incoming drawing, or a seeded noise field. *Detail source* selects Focus,
@@ -1076,6 +1076,19 @@ Artwork output combines all four; the remaining outputs let each be wired
 separately. Hand wobble and Seed are deterministic. The image fits inside
 Margin without cropping; very dense settings coarsen uniformly. Processing
 stays local. Help: Engrave Image · Flow study, Straight hatch and Facets.
+
+**Spiral Image** — turns a local PNG/JPG into exactly one continuous open
+spirographic line, from centre to rim or the reverse. Ellipse fills more of a
+wide/tall source; Circle gives a round engraving. Turn spacing mm sets the
+spiral density. Darker pixels make the single path oscillate radially; Tone
+wiggle mm, Wiggle wavelength mm, Contrast and White cutoff shape the ink
+texture. The base spiral still travels through white areas, so this is a
+one-pen route rather than a background removal tool. Strong wiggle can cross
+neighbouring turns. Center X/Y %, Start angle and Direction position the
+route. The whole line stays within the image's fitted margin and within the
+paper; overly dense settings enlarge the effective turn spacing uniformly.
+There is no Style input, because dashes would break the one-line guarantee.
+No seed is needed and processing stays local. Help: One continuous line.
 
 **Photo Trace** — recovers a real object's outline at true physical size and
 position from a photo. Print `public/markers/muusia-markers-a4.png` (or `-a3`)

@@ -1619,6 +1619,13 @@
   "geometric",
   "round"
  ],
+ "spiral_image": [
+  "continuous",
+  "image",
+  "line",
+  "spiral",
+  "portrait"
+ ],
  "split": [
   "clip",
   "combine"
