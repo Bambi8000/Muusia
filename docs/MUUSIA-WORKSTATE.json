@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.159",
+    "version": "2.160",
     "date": "2026-11-06",
-    "commit": "eac6cb8a5a39342093a7f7556513f9314275729a",
-    "pagesRunId": 42230047480,
+    "commit": "4f30fc12dbef8289a86136eceb93b61006cb626b",
+    "pagesRunId": 42233147398,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.159 and three visible Engrave Image Help examples; exact Pages run succeeded"
+    "status": "verified public Muusia 2.160 and visible Spiral Image Help example; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.159",
+    "version": "2.160",
     "date": "2026-11-06",
-    "baseCommit": "3da09993282fa2ea16618f72589bfad7fd7cdca3",
-    "branch": "codex/engrave-image",
+    "baseCommit": "a7643872b415ce4a61445c80adde99025e5aeb44",
+    "branch": "codex/spiral-image",
     "worktree": "/private/tmp/muusia-topology-145",
     "published": true,
-    "status": "Muusia 2.159 Engrave Image published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.159 (clean committed snapshot, prepared locally; not uploaded)",
-    "moduleCount": 352,
-    "registryCount": 354,
-    "validation": "Engrave Image 6810 focused checks, 170 Help graphs, catalog and recency, local Flow/Straight/Facets previews, actual 1057-path four-pen SVG and finite G-code with 15191 drawing moves, ordered release gate of 37913 Learn checks / 90 English pages. Public v2.159 showed all three Engrave Image Help examples.",
+    "status": "Muusia 2.160 Spiral Image published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.160 (clean committed snapshot, prepared locally; not uploaded)",
+    "moduleCount": 353,
+    "registryCount": 355,
+    "validation": "Spiral Image 26669 focused checks, 171 Help graphs, catalog and recency, local one-line previews, actual one-path SVG and finite G-code with one pen-down run and 25661 drawing moves, ordered release gate of 37913 Learn checks / 90 English pages. Public v2.160 showed the Spiral Image Help example.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "eac6cb8a5a39342093a7f7556513f9314275729a"
+    "commit": "4f30fc12dbef8289a86136eceb93b61006cb626b"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
