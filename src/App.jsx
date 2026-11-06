@@ -896,7 +896,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.161"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.162"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -3838,7 +3838,11 @@ export default function App() {
               </div>
             </div>
             {primaryOut && !primaryPS.paths.length && (isStyle(primaryOut[0]) || typeof primaryOut[0] === "number") ? (
-              <OutPreview out={primaryOut} W={megaW} H={megaH} width={316} />
+              <>
+                <OutPreview out={primaryOut} W={megaW} H={megaH} width={316} />
+                {primaryGuides?.length > 0 && <PathsSVG ps={EMPTY} W={megaW} H={megaH} width={316}
+                  height={316 * (megaH / megaW)} guides={primaryGuides} pad={8} />}
+              </>
             ) : (
               <ZoomBox width={316} height={316 * (megaH / megaW)}>
                 <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} bg={previewBg} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={testCrop.active ? null : previewMagnets} onMagnets={!testCrop.active && jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} arrows={showArrows} pad={8} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} />

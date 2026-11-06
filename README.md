@@ -1,4 +1,4 @@
-# MUUSIA v2.161
+# MUUSIA v2.162
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,11 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Version 2.162 adds **Focal Point** to share one animated X/Y position and
+radius across nodes, plus **Colour Neighbours** to assign different pens to
+touching closed shapes. Try Help → Focal Point · Shared colour grid and Colour
+Neighbours · Four inks.
 
 Version 2.161 adds **Image Compare**: use one image to make a two- or
 four-panel plotter style sheet. Flow, Straight, Facets and Spiral can be

@@ -910,6 +910,30 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Focal Point · Shared colour grid",
+    desc: "Move Focal Point X %, Y % and Radius mm. Its value wires drive Adaptive Grid, so all of its refinement follows one focus. Cells then feed Colour Neighbours, which assigns four pens so touching cells differ. Try wiring the same X % and Y % outputs to Spiral Image Center X/Y or Portrait Focus X/Y; one pair of sliders can control several nodes.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "focal_point", x: 20, y: 20, params: { ...defaults("focal_point"), x: 36, y: 58, radius: 88 } },
+      { id: 9002, type: "adaptive_grid", x: 285, y: 20, params: { ...defaults("adaptive_grid"), maxCell: 37, minCell: 7, levels: 3, detail: 88 } },
+      { id: 9003, type: "colour_neighbours", x: 555, y: 20, params: { ...defaults("colour_neighbours"), colors: 4, touch: 0.4 } },
+    ], edges: [
+      { id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: "p:focusX" },
+      { id: "e9102", from: 9001, fromPort: 1, to: 9002, toPort: "p:focusY" },
+      { id: "e9103", from: 9001, fromPort: 4, to: 9002, toPort: "p:radius" },
+      { id: "e9104", from: 9002, fromPort: 1, to: 9003, toPort: 0 },
+    ] }),
+  },
+  {
+    name: "Colour Neighbours · Four inks",
+    desc: "Adaptive Grid Cells are closed shapes. Colour Neighbours assigns four pens so shared borders and corners have different ink. Change Pens in use to two to see unresolved neighbours on the Conflicts output, or increase Touch distance mm to treat nearby cells as adjacent. Colored keeps the exact original cell outlines and path order.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "adaptive_grid", x: 25, y: 20, params: { ...defaults("adaptive_grid"), source: "Focus", focusX: 60, focusY: 45, maxCell: 36, minCell: 7, levels: 3 } },
+      { id: 9002, type: "colour_neighbours", x: 350, y: 20, params: { ...defaults("colour_neighbours"), colors: 4, touch: 0.4 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 1, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Image Compare · Four ways to draw a photo",
     desc: "Choose one photo on Image Compare. The same image fills four labelled panels: A Flow, B Straight, C Facets and D Spiral. Line spacing, Contrast and White cutoff affect every panel together. Switch to Two panels for a larger side-by-side view, or change the A–D styles to make your own comparison. Sheet exports the whole page; A–D let you send one treatment onward. On a phone or tablet, Take photo opens the device camera when supported.",
     canvas: { W: 420, H: 297 },

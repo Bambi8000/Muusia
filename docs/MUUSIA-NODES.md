@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 356 built-in nodes in the current Muusia source. Conventions used below:
+All 358 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -2508,7 +2508,18 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (90)
+## Modifiers (91)
+
+**Colour Neighbours** — assigns a chosen palette of two to six pens to
+closed input shapes. Touch distance mm treats shared borders, corners,
+overlaps and nearby edges as neighbours. The deterministic assignment tries
+to give neighbours different pens while preserving every input coordinate,
+path order and open path's original pen. Colored is the drawing; Conflicts
+marks unresolved same-pen neighbours when the palette is too small or the
+colouring search cannot avoid them. Duplicate pen choices reduce the effective
+palette. Inputs over 2200 closed regions or 50000 vertices pass through whole
+to avoid partially coloured drawings. Wire Adaptive Grid Cells or other closed
+regions into Regions. Help: Four inks and Shared colour grid.
 
 **Drip** — grows falling ink marks from an incoming path drawing. Open strokes
 can drip along their entire length. For closed shapes, *Facing flow* uses only
@@ -3407,7 +3418,14 @@ mm on that axis. Trim marks, fold ticks or dashed fold lines and panel frames go
 on the Mark pen. Compare **Zine** (booklet imposition, page order by folds) and
 **Mini Canvas** (contact sheets and one-sided production runs).
 
-## Math (10)
+## Math (11)
+
+**Focal Point** — one X %, Y % and Radius mm controller with five numeric
+outputs: X %, Y %, X mm, Y mm and Radius mm. The percentage outputs can feed
+Focus X/Y on Adaptive Grid or Portrait and Center X/Y on Spiral Image; the
+millimetre outputs use full paper coordinates. Its selected preview shows a
+point and radius guide that is never plotted. Frame can animate any of its
+three controls. Help: Shared colour grid.
 
 **Frame** — the animation clock. Outputs: `t 0→1` linear ramp (last frame = 1),
 `frame #` integer, `wave loop` and `ping-pong` (seamless: frame N continues into

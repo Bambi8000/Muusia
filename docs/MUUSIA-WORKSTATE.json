@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.160",
+    "version": "2.161",
     "date": "2026-11-06",
-    "commit": "4f30fc12dbef8289a86136eceb93b61006cb626b",
-    "pagesRunId": 42233147398,
+    "commit": "0231cf74156b0255b145be33ec68ad4b9de3d7b7",
+    "pagesRunId": 42235633040,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.160 and visible Spiral Image Help example; exact Pages run succeeded"
+    "status": "verified public Muusia 2.161 and visible Image Compare Help example; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.160",
+    "version": "2.161",
     "date": "2026-11-06",
-    "baseCommit": "a7643872b415ce4a61445c80adde99025e5aeb44",
-    "branch": "codex/spiral-image",
+    "baseCommit": "891a30414eef12c14a77b223599334edc9752de0",
+    "branch": "codex/image-compare-camera",
     "worktree": "/private/tmp/muusia-topology-145",
     "published": true,
-    "status": "Muusia 2.160 Spiral Image published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.160 (clean committed snapshot, prepared locally; not uploaded)",
-    "moduleCount": 353,
-    "registryCount": 355,
-    "validation": "Spiral Image 26669 focused checks, 171 Help graphs, catalog and recency, local one-line previews, actual one-path SVG and finite G-code with one pen-down run and 25661 drawing moves, ordered release gate of 37913 Learn checks / 90 English pages. Public v2.160 showed the Spiral Image Help example.",
+    "status": "Muusia 2.161 Image Compare and mobile camera picker published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.161 (clean committed snapshot, prepared locally; not uploaded)",
+    "moduleCount": 354,
+    "registryCount": 356,
+    "validation": "Image Compare 100795 focused checks, 172 Help graphs, catalog and recency, local four-style preview, actual 1206-path finite SVG and finite G-code with 23459 drawing moves, camera file intake checked in desktop browser, ordered release gate of 37913 Learn checks / 90 English pages. Public v2.161 showed the Image Compare Help example. Physical mobile camera not tested.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "4f30fc12dbef8289a86136eceb93b61006cb626b"
+    "commit": "0231cf74156b0255b145be33ec68ad4b9de3d7b7"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

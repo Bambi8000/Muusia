@@ -253,6 +253,13 @@
   "mesh",
   "region"
  ],
+ "colour_neighbours": [
+  "colour",
+  "grid",
+  "pens",
+  "region",
+  "tiling"
+ ],
  "colour_scribble": [
   "abstract",
   "colour",
@@ -533,6 +540,12 @@
   "round",
   "structural",
   "wave"
+ ],
+ "focal_point": [
+  "animation",
+  "focus",
+  "math",
+  "region"
  ],
  "fmrose": [
   "chaos",

@@ -264,6 +264,26 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.162 — 2026-11-06 · Shared Focal Point and neighbouring pens
+
+Focal Point is a Math node emitting X/Y as percentages and page millimetres,
+plus a radius value. It exposes numeric inputs for Frame animation and shows
+the point/radius as non-plotted preview guides. Colour Neighbours accepts
+closed path regions, detects shared corners/borders, overlap and near edges,
+then assigns 2–6 chosen pens with a deterministic saturation-first colouring
+heuristic. Open paths and all original geometry remain intact. The Conflicts
+output shows any unresolved same-pen adjacency; overly large region sets pass
+through whole. The two Help examples show Focal Point wired into Adaptive Grid
+and Cells wired into Colour Neighbours.
+
+Both prototypes were imported through Node ⇣ before baking. Focused validators
+passed for output values and guides, a four-way touching test, gap/containment,
+insufficient pens, deterministic output, intact coordinates and 72 real
+Adaptive Grid cells. A 1600-cell stress run took about 110 ms locally and had
+zero conflicts. The baked three-node UI example produced 189 paths in four
+pens. Actual SVG had four pen groups, 189 finite paths and no invalid values;
+actual G-code had 756 finite drawing moves. No physical plot was made.
+
 ### 2.161 — 2026-11-06 · Image Compare and mobile camera choice
 
 Image Compare is a Text & Image generator with one local image picker, a two-
@@ -281,6 +301,9 @@ sheet; actual SVG had 1206 finite paths on A3 and G-code had 23459 finite G1
 drawing moves. The focused validator passed 100795 checks, including two/four
 panels, output identity, pens, bounds, deterministic output and parameter
 variation. Help includes Four ways to draw a photo. No physical plot was made.
+Commit `0231cf74156b0255b145be33ec68ad4b9de3d7b7` was published by
+Pages run `42235633040` (success). Public v2.161 and the Image Compare Help
+example were verified in the browser.
 
 ### 2.160 — 2026-11-06 · One-line Spiral Image
 

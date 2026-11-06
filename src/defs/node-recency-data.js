@@ -240,6 +240,11 @@ export const NODE_RECENCY = {
     "order": 19,
     "sha256": "640f8b60ede2268fdb5619eaaaaad7ee48c6be060f59fe34219fb6847aa72d59"
   },
+  "colour_neighbours": {
+    "date": "2026-11-06",
+    "order": 124,
+    "sha256": "330df919129596b5bc2d1765ead4bbe319dc1c1a461b1609302346f245f6e24a"
+  },
   "colour_scribble": {
     "date": "2026-10-05",
     "order": 71,
@@ -474,6 +479,11 @@ export const NODE_RECENCY = {
     "date": "2026-10-20",
     "order": 93,
     "sha256": "2d260217772c3f07c3c3a4fef2f80fdc63bff0a13a2b829b4472ae97a61fae51"
+  },
+  "focal_point": {
+    "date": "2026-11-06",
+    "order": 124,
+    "sha256": "8826634510d02c3a8657ad2afc574d3a7b51c0f89c71f6f029e683eece9e0e97"
   },
   "fold": {
     "date": "2026-07-22",
