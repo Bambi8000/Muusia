@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 353 built-in nodes in the current Muusia source. Conventions used below:
+All 354 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,7 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (223)
+## Generators (224)
 
 **Adaptive Grid** — a square grid that refines its cells near a focus point,
 an incoming drawing, or a seeded noise field. *Detail source* selects Focus,
@@ -1063,6 +1063,19 @@ foreshortens, and scaling is rotation-invariant, so wiring the animation Frame
 into Yaw orbits the galaxy without size jumps. *Dot shape*: Circle (small
 ring), Dash (a stroke streaking along the galactic rotation — star-trail
 look) or Point (0.1 mm pen poke).
+
+**Engrave Image** — turns a local PNG/JPG into four plotter-ready layers on
+one sheet. Flow bends long hatching strokes through the image tones;
+Straight keeps parallel diagonal lines; Facets makes short strokes whose
+direction follows local tone boundaries. Line spacing mm, Base angle,
+Contrast and White cutoff set the main marks. Darker areas gain a second
+hatch pass; Crosshatch shadows adds a separately penned pass above Shadow
+threshold. Contour outlines traces one image tone boundary, and Light dots
+can mark midtones. Outline, Hatch, Shadow and Dot pens are independent. The
+Artwork output combines all four; the remaining outputs let each be wired
+separately. Hand wobble and Seed are deterministic. The image fits inside
+Margin without cropping; very dense settings coarsen uniformly. Processing
+stays local. Help: Engrave Image · Flow study, Straight hatch and Facets.
 
 **Photo Trace** — recovers a real object's outline at true physical size and
 position from a photo. Print `public/markers/muusia-markers-a4.png` (or `-a3`)

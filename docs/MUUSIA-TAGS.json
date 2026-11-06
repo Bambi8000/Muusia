@@ -462,6 +462,13 @@
   "flow",
   "round"
  ],
+ "engrave_image": [
+  "image",
+  "hatch",
+  "flow",
+  "dots",
+  "pens"
+ ],
  "eraser": [
   "clip",
   "plants",

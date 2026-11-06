@@ -264,6 +264,33 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.159 — 2026-11-06 · Engrave Image
+
+Engrave Image is a built-in Text & Image generator that turns a locally loaded
+PNG/JPG into plotter-ready vector marks. Flow makes long lines that bend with
+tone, Straight makes parallel hatch lines and Facets builds small strokes
+aligned with local tone edges. Dark areas add a second main hatch pass;
+Crosshatch shadows, Contour outlines and Light dots can each be turned off.
+Artwork combines the layers, while Outlines, Hatching, Shadows and Dots expose
+them separately; four pen controls let users plot them independently. Spacing,
+angle, bend, contrast, white cutoff, shadow threshold, wobble, minimum stroke,
+margin and seed are live controls. Image processing stays in the browser.
+
+The prototype was imported through Node ⇣, inspected with all three modes,
+then baked and tested on a fresh app load as a built-in. A synthetic image gave
+1,057 Flow paths on a 300 × 200 mm sheet. The actual app's SVG contained 1,057
+paths across four pen groups, and its G-code contained 15,191 drawing moves
+stamped v2.159; neither export contained non-finite values. The focused
+validator passed 6,810 checks, all 170 Help examples loaded, catalog and
+recency checks passed, production build passed, and Learn validated 37,913
+checks over 90 English pages. Three new Help starting patches require the
+user to select an image. No physical plot was made.
+
+Next planned PlotterLens-inspired work from Daniel's request: one-line image
+spiral, a side-by-side image-style comparison, camera capture, a shared focal
+point control, and adjacency-aware pen assignment. Start each as a bounded
+task and show real visual examples between stages.
+
 ### 2.158 — 2026-11-05 · Frame-driven Isometric Blocks
 
 Isometric Blocks now has Top taper 0–1: zero retains the original cuboid and

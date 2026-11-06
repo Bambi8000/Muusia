@@ -410,6 +410,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "4c520ad980ac5b52fd719a6d87a54841e34ef1440e5bb83feeeb38a9895d616d"
   },
+  "engrave_image": {
+    "date": "2026-11-06",
+    "order": 121,
+    "sha256": "3c44d311f76255c25241ba3a9ae209f367a57c4b18f4ad69d30b082d5d5612bb"
+  },
   "eraser": {
     "date": "2026-07-23",
     "order": 9,

@@ -910,6 +910,24 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Engrave Image · Flow study",
+    desc: "Choose a clear photo on Engrave Image. Flow makes long lines curve with the tones; white areas stay open. Line spacing controls print density, Flow bend controls the curve and Shadow threshold places a second pen in the darks. Outlines, Hatching, Shadows and Dots are separate outputs. Start on A4 wide with a fine pen.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "engrave_image", x: 30, y: 20, params: { ...defaults("engrave_image"), mode: "Flow", spacing: 2.2, bend: 5, seed: 43 } }], edges: [] }),
+  },
+  {
+    name: "Engrave Image · Straight hatch",
+    desc: "Load a photo, then use Straight for orderly diagonal engraving. Adjust Base angle and Line spacing; Crosshatch shadows adds a second direction only to darker areas. Try turning Contour outlines and Light dots off to see the main hatch alone. The image stays on this device.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "engrave_image", x: 30, y: 20, params: { ...defaults("engrave_image"), mode: "Straight", angle: -35, spacing: 2.2, seed: 43 } }], edges: [] }),
+  },
+  {
+    name: "Engrave Image · Facets",
+    desc: "Load a photo with strong shapes. Facets builds tone from many short strokes that turn at local boundaries. It is lighter than the long-line modes. Lower Min stroke mm to retain tiny marks or turn Light dots off for a cleaner page. Each output can be sent to its own downstream modifier.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "engrave_image", x: 30, y: 20, params: { ...defaults("engrave_image"), mode: "Facets", spacing: 2.2, seed: 43 } }], edges: [] }),
+  },
+  {
     name: "Isometric Blocks · Animated morph",
     desc: "Press Play in ANIMATE, or scrub the frame slider. Frame t drives Motion phase 0–1 so heights sweep across the blocks in a seamless loop; Frame wave loop drives Top taper 0–1 so their tops narrow and widen. The bases and page framing stay fixed. Select Isometric Blocks to try Pulse or Ripple and adjust Motion amount; export SVG or G-code frames from ANIMATE.",
     canvas: { W: 297, H: 210 },
