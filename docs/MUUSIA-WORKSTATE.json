@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.158",
-    "date": "2026-11-05",
-    "commit": "2ef5f1b04c62cb5e03c5a5e3e5229ebbb57b9a05",
-    "pagesRunId": 42067517816,
+    "version": "2.159",
+    "date": "2026-11-06",
+    "commit": "eac6cb8a5a39342093a7f7556513f9314275729a",
+    "pagesRunId": 42230047480,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/multicolour-grid/",
-    "status": "verified public Muusia 2.158 and visible Isometric Blocks Animated morph Help example at frame 7/12 with 360 paths; exact Pages run succeeded"
+    "status": "verified public Muusia 2.159 and three visible Engrave Image Help examples; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.158",
-    "date": "2026-11-05",
-    "baseCommit": "5ab2b53c105c5afc3dc83593c4ca36bc0e153063",
-    "branch": "codex/isometric-blocks-animation",
+    "version": "2.159",
+    "date": "2026-11-06",
+    "baseCommit": "3da09993282fa2ea16618f72589bfad7fd7cdca3",
+    "branch": "codex/engrave-image",
     "worktree": "/private/tmp/muusia-topology-145",
     "published": true,
-    "status": "Muusia 2.158 Isometric Blocks Frame animation published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.158 (clean committed snapshot, prepared locally; not uploaded)",
-    "moduleCount": 351,
-    "registryCount": 353,
-    "validation": "Isometric Blocks 68 checks including unchanged previous geometry hashes and frame registration, 167 Help graphs, catalog and recency, local Animated morph visual preview, 12 distinct SVG frames at 360 paths each and 12 distinct G-code frames at 460 coordinate moves each, ordered release gate of 37,913 Learn checks / 90 English pages. Public 2.158 example showed frame 7/12 and 360 paths.",
+    "status": "Muusia 2.159 Engrave Image published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.159 (clean committed snapshot, prepared locally; not uploaded)",
+    "moduleCount": 352,
+    "registryCount": 354,
+    "validation": "Engrave Image 6810 focused checks, 170 Help graphs, catalog and recency, local Flow/Straight/Facets previews, actual 1057-path four-pen SVG and finite G-code with 15191 drawing moves, ordered release gate of 37913 Learn checks / 90 English pages. Public v2.159 showed all three Engrave Image Help examples.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "2ef5f1b04c62cb5e03c5a5e3e5229ebbb57b9a05"
+    "commit": "eac6cb8a5a39342093a7f7556513f9314275729a"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
