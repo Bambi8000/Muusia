@@ -283,6 +283,10 @@ finite G1 drawing moves. All 174 Help examples passed, along with the catalog,
 production build and 37,913 Learn checks across 90 English pages. No physical
 plot was made.
 
+Source commit `d0f341481a7e45c25430f5f44272727fb8127f64` was published by
+Pages run `42248189763` (success). Public v2.163 showed both image pickers,
+loaded two different PNGs and rendered the same 163-path four-panel comparison.
+
 ### 2.162 — 2026-11-06 · Shared Focal Point and neighbouring pens
 
 Focal Point is a Math node emitting X/Y as percentages and page millimetres,
