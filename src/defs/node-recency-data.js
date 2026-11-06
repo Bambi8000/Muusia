@@ -670,6 +670,11 @@ export const NODE_RECENCY = {
     "order": 94,
     "sha256": "05a3c42a6887d7674a4a226bea339a1200bd20dc7ecfa10d9749620e02ed3781"
   },
+  "image_compare": {
+    "date": "2026-11-06",
+    "order": 123,
+    "sha256": "f2820aa85c1abb20614f6cd427e60b012330c68d4694ecfd055accfc80111af9"
+  },
   "image_rasterise": {
     "date": "2026-08-16",
     "order": 31,

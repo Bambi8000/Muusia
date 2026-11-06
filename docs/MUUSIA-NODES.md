@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 355 built-in nodes in the current Muusia source. Conventions used below:
+All 356 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -21,7 +21,7 @@ live wired values as well as stored settings, including in Muusia Guide.
 
 ---
 
-## Generators (225)
+## Generators (226)
 
 **Adaptive Grid** — a square grid that refines its cells near a focus point,
 an incoming drawing, or a seeded noise field. *Detail source* selects Focus,
@@ -1076,6 +1076,17 @@ Artwork output combines all four; the remaining outputs let each be wired
 separately. Hand wobble and Seed are deterministic. The image fits inside
 Margin without cropping; very dense settings coarsen uniformly. Processing
 stays local. Help: Engrave Image · Flow study, Straight hatch and Facets.
+
+**Image Compare** — loads one local photo and lays out two or four plotter
+studies on one sheet. A–D each choose Flow (curved tone hatch), Straight
+(diagonal hatch), Facets (short gradient-aligned strokes) or Spiral (one
+continuous tonal route inside its panel). All panels share Line spacing,
+Contrast and White cutoff, so style differences are easy to judge. Panel gap,
+Margin and optional frames set the layout; each panel has a separate Pen and
+output, in addition to the complete Sheet output. The panel letters are plotted
+as strokes. The image remains on the device. Image pickers now also offer Take
+photo… with the device's camera option on supported phones/tablets; desktop
+browsers use their normal file chooser. Help: Four ways to draw a photo.
 
 **Spiral Image** — turns a local PNG/JPG into exactly one continuous open
 spirographic line, from centre to rim or the reverse. Ellipse fills more of a

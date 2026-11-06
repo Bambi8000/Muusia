@@ -910,6 +910,12 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Image Compare · Four ways to draw a photo",
+    desc: "Choose one photo on Image Compare. The same image fills four labelled panels: A Flow, B Straight, C Facets and D Spiral. Line spacing, Contrast and White cutoff affect every panel together. Switch to Two panels for a larger side-by-side view, or change the A–D styles to make your own comparison. Sheet exports the whole page; A–D let you send one treatment onward. On a phone or tablet, Take photo opens the device camera when supported.",
+    canvas: { W: 420, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "image_compare", x: 30, y: 20, params: { ...defaults("image_compare"), layout: "Four", spacing: 1.7 } }], edges: [] }),
+  },
+  {
     name: "Spiral Image · One continuous line",
     desc: "Choose a high-contrast photo on Spiral Image. One unbroken spiral travels through the whole image. Dark areas add zigzag movement to that same line; light areas retain its smooth base. Turn spacing mm controls density, Tone wiggle mm controls darkness, and Spiral shape switches between Ellipse and Circle. The line can cross itself, but it never lifts. Export one SVG path or one G-code pen-down run.",
     canvas: { W: 297, H: 210 },

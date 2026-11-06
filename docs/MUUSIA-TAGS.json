@@ -763,6 +763,15 @@
   "bayer",
   "raster"
  ],
+ "image_compare": [
+  "compare",
+  "engrave",
+  "hatch",
+  "image",
+  "pens",
+  "portrait",
+  "spiral"
+ ],
  "image_rasterise": [
   "dots",
   "grid",

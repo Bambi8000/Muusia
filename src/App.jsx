@@ -896,7 +896,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.160"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.161"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -1621,7 +1621,7 @@ function NumBox({ value, onChange, width = 52, disabled, min, max }) {
   );
 }
 
-function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, portProps, optionInputs, onFileText, fileMode, fileLabel, fileAccept, onPromote }) {
+function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, portProps, optionInputs, onFileText, fileMode, fileLabel, fileAccept, fileCapture, onPromote }) {
   if (value === undefined) value = def.def;
   const lbl = { fontSize: 10, color: T.dim, letterSpacing: "0.02em" };
   const dot = portRef ? (
@@ -1735,25 +1735,31 @@ function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, por
     );
   }
   if (def.type === "file") {
+    const readFile = (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (f && onFileText) {
+        const r = new FileReader();
+        r.onload = () => onFileText(String(r.result), f.name);
+        if (fileMode === "dataurl") r.readAsDataURL(f);
+        else r.readAsText(f);
+      }
+      e.target.value = "";
+    };
+    const pickerStyle = {
+      background: T.panel2, border: `1px solid ${T.accent}55`, color: T.text, borderRadius: 3,
+      fontSize: 10, padding: "4px 9px", cursor: "pointer", flexShrink: 0,
+    };
     return (
       <div style={{ ...rowS, gap: 8 }}>
-        <label style={{
-          background: T.panel2, border: `1px solid ${T.accent}55`, color: T.text, borderRadius: 3,
-          fontSize: 10, padding: "4px 9px", cursor: "pointer", flexShrink: 0,
-        }}>
+        <label style={pickerStyle}>
           {fileLabel || "Choose SVG…"}
           <input type="file" accept={fileAccept || (fileMode === "dataurl" ? "image/*" : ".svg,image/svg+xml")} style={{ display: "none" }}
-            onChange={(e) => {
-              const f = e.target.files && e.target.files[0];
-              if (f && onFileText) {
-                const r = new FileReader();
-                r.onload = () => onFileText(String(r.result), f.name);
-                if (fileMode === "dataurl") r.readAsDataURL(f);
-                else r.readAsText(f);
-              }
-              e.target.value = "";
-            }} />
+            onChange={readFile} />
         </label>
+        {fileCapture && <label style={pickerStyle} title="Use the camera on a phone or tablet">
+          Take photo…
+          <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={readFile} />
+        </label>}
         <div style={{ ...lbl, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: value ? T.text : T.dim }}>
           {value || "no file"}
         </div>
@@ -3662,6 +3668,7 @@ export default function App() {
                                   fileMode={def.fileImage || def.fileBinary ? "dataurl" : "text"}
                                   fileLabel={def.fileImage ? "Choose image…" : (def.fileLabel || null)}
                                   fileAccept={def.fileAccept || null}
+                                  fileCapture={!!def.fileImage}
                                   onPromote={stack.length > 0 ? () => {
                                     const gid = stack[stack.length - 1];
                                     setRoot((r) => updateAt(r, stack.slice(0, -1), (lvl) => ({

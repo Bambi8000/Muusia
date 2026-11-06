@@ -264,6 +264,24 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.161 — 2026-11-06 · Image Compare and mobile camera choice
+
+Image Compare is a Text & Image generator with one local image picker, a two-
+or four-panel sheet and separate A–D outputs. Each panel chooses Flow,
+Straight, Facets or Spiral. They share tone controls and have independent pen
+assignments. Panel letters and optional frames are plotter strokes. A normal
+image picker and a Take photo… picker now use the same intake path; the latter
+sets `accept="image/*" capture="environment"` for a supported mobile browser.
+The desktop file-picker route was verified; a physical phone camera was not
+available for testing.
+
+The lab prototype was imported through Node ⇣ and previewed with a real local
+test image. The baked built-in produced a four-panel 1206-path, 24665-point
+sheet; actual SVG had 1206 finite paths on A3 and G-code had 23459 finite G1
+drawing moves. The focused validator passed 100795 checks, including two/four
+panels, output identity, pens, bounds, deterministic output and parameter
+variation. Help includes Four ways to draw a photo. No physical plot was made.
+
 ### 2.160 — 2026-11-06 · One-line Spiral Image
 
 Spiral Image adds a Text & Image generator with exactly one continuous open
