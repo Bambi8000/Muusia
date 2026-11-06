@@ -6,16 +6,19 @@ export default {
   cat: "gen",
   group: "textimg",
   fileImage: true,
+  fileImageSlots: { file: "img", file2: "img2" },
+  fileButtonLabels: { file: "Choose image A…", file2: "Choose image B…" },
   imageMax: 400,
-  desc: "Load one image and compare two or four plotter treatments on the same sheet. Each panel samples the same pixels and uses the same contrast and white cutoff. Flow curves hatch lines, Straight keeps diagonal lines, Facets uses short directional marks, and Spiral draws one unbroken line within its panel. Change the A–D style choices, line spacing and pens, then wire an individual panel output to continue working with the result you like. The comparison is vector artwork and can be exported.",
+  desc: "Load images A and B to compare them side by side. Two panels show one treatment of each image; Four panels show A and B on the top row and again on the bottom row, so each image can be tried with two styles. The left column uses A and the right column uses B. With only one image loaded, that image fills both columns for a style comparison. Flow curves hatch lines, Straight keeps diagonal lines, Facets uses short directional marks, and Spiral draws one unbroken line within its panel. All panels share contrast and white cutoff. A–D outputs let you continue working with one panel.",
   ins: [],
   outs: [Pin("paths", "Sheet"), Pin("paths", "A"), Pin("paths", "B"), Pin("paths", "C"), Pin("paths", "D")],
   params: [
-    { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
+    { key: "file", label: "Image A (PNG/JPG)", type: "file", def: "" },
+    { key: "file2", label: "Image B (PNG/JPG)", type: "file", def: "" },
     { key: "layout", label: "Panels", type: "select", options: ["Two", "Four"], def: "Four" },
     { key: "styleA", label: "A style", type: "select", options: ["Flow", "Straight", "Facets", "Spiral"], def: "Flow" },
-    { key: "styleB", label: "B style", type: "select", options: ["Flow", "Straight", "Facets", "Spiral"], def: "Straight" },
-    { key: "styleC", label: "C style", type: "select", options: ["Flow", "Straight", "Facets", "Spiral"], def: "Facets", showIf: p => p.layout === "Four" },
+    { key: "styleB", label: "B style", type: "select", options: ["Flow", "Straight", "Facets", "Spiral"], def: "Flow" },
+    { key: "styleC", label: "C style", type: "select", options: ["Flow", "Straight", "Facets", "Spiral"], def: "Spiral", showIf: p => p.layout === "Four" },
     { key: "styleD", label: "D style", type: "select", options: ["Flow", "Straight", "Facets", "Spiral"], def: "Spiral", showIf: p => p.layout === "Four" },
     { key: "spacing", label: "Line spacing mm", type: "slider", min: 0.8, max: 6, step: 0.1, def: 1.7 },
     { key: "contrast", label: "Contrast", type: "slider", min: 0.5, max: 3, step: 0.05, def: 1.65 },
@@ -39,10 +42,12 @@ export default {
   },
   compute(ins, p, ctx, node) {
     const empty = Array.from({ length: 5 }, () => ({ paths: [] }));
-    const img = node?.data?.img, W = ctx?.W, H = ctx?.H;
-    if (!Number.isFinite(W) || !Number.isFinite(H) || W <= 0 || H <= 0 ||
-      !img || !Number.isInteger(img.w) || !Number.isInteger(img.h) || img.w < 2 || img.h < 2 ||
-      img.w * img.h > 2560000 || !img.g || img.g.length !== img.w * img.h) return empty;
+    const W = ctx?.W, H = ctx?.H;
+    const validImage = img => img && Number.isInteger(img.w) && Number.isInteger(img.h) && img.w >= 2 && img.h >= 2 &&
+      img.w * img.h <= 2560000 && img.g && img.g.length === img.w * img.h;
+    const imgA = validImage(node?.data?.img) ? node.data.img : null;
+    const imgB = validImage(node?.data?.img2) ? node.data.img2 : null;
+    if (!Number.isFinite(W) || !Number.isFinite(H) || W <= 0 || H <= 0 || (!imgA && !imgB)) return empty;
     const n = (v, lo, hi, d) => Number.isFinite(+v) ? Math.max(lo, Math.min(hi, +v)) : d;
     const m = n(p.margin, 0, 50, 10), gap = n(p.gutter, 4, 30, 12), four = p.layout !== "Two";
     const pw = (W - 2 * m - gap) / 2, ph = four ? (H - 2 * m - gap) / 2 : H - 2 * m;
@@ -56,6 +61,7 @@ export default {
       [[[3, 1], [3, 8], [6, 8], [9, 6], [9, 3], [6, 1], [3, 1]]],
     ];
     for (let i = 0, count = four ? 4 : 2; i < count; i++) {
+      const img = i % 2 === 0 ? (imgA || imgB) : (imgB || imgA);
       const x = m + (i % 2) * (pw + gap), y = m + Math.floor(i / 2) * (ph + gap);
       const pen = Math.round(n(p["pen" + "ABCD"[i]], 0, 11, 0));
       const style = ["Flow", "Straight", "Facets", "Spiral"].includes(p["style" + "ABCD"[i]]) ? p["style" + "ABCD"[i]] : "Flow";

@@ -896,7 +896,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.162"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.163"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -1621,7 +1621,7 @@ function NumBox({ value, onChange, width = 52, disabled, min, max }) {
   );
 }
 
-function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, portProps, optionInputs, onFileText, fileMode, fileLabel, fileAccept, fileCapture, onPromote }) {
+function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, portProps, optionInputs, onFileText, fileMode, fileLabel, fileAccept, onPromote }) {
   if (value === undefined) value = def.def;
   const lbl = { fontSize: 10, color: T.dim, letterSpacing: "0.02em" };
   const dot = portRef ? (
@@ -1756,10 +1756,6 @@ function ParamRow({ def, value, onChange, wired, inactive, liveVal, portRef, por
           <input type="file" accept={fileAccept || (fileMode === "dataurl" ? "image/*" : ".svg,image/svg+xml")} style={{ display: "none" }}
             onChange={readFile} />
         </label>
-        {fileCapture && <label style={pickerStyle} title="Use the camera on a phone or tablet">
-          Take photo…
-          <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={readFile} />
-        </label>}
         <div style={{ ...lbl, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: value ? T.text : T.dim }}>
           {value || "no file"}
         </div>
@@ -3666,9 +3662,8 @@ export default function App() {
                                     onMouseUp: (e) => finishWire(e, node.id, "p:" + pd.key, "value"),
                                   } : null}
                                   fileMode={def.fileImage || def.fileBinary ? "dataurl" : "text"}
-                                  fileLabel={def.fileImage ? "Choose image…" : (def.fileLabel || null)}
+                                  fileLabel={def.fileButtonLabels?.[pd.key] || (def.fileImage ? "Choose image…" : (def.fileLabel || null))}
                                   fileAccept={def.fileAccept || null}
-                                  fileCapture={!!def.fileImage}
                                   onPromote={stack.length > 0 ? () => {
                                     const gid = stack[stack.length - 1];
                                     setRoot((r) => updateAt(r, stack.slice(0, -1), (lvl) => ({
@@ -3679,6 +3674,7 @@ export default function App() {
                                     })));
                                   } : null}
                                   onFileText={pd.type === "file" && def.fileImage ? (dataUrl, name) => {
+                                    const imageSlot = def.fileImageSlots?.[pd.key] || "img";
                                     if (def.faceAnalysis || def.bgImage) {
                                       intakeImage(dataUrl, name).then(({ img, src }) => {
                                         setNodesL((ns) => ns.map((n) => n.id === node.id
@@ -3714,7 +3710,7 @@ export default function App() {
                                         rgb[i * 3 + 2] = Math.round(d[i * 4 + 2] * a + 255 * (1 - a));
                                       }
                                       setNodesL((ns) => ns.map((n) => n.id === node.id
-                                        ? { ...n, params: { ...n.params, [pd.key]: name }, data: { ...(n.data || {}), img: { w, h, g, rgb } } }
+                                        ? { ...n, params: { ...n.params, [pd.key]: name }, data: { ...(n.data || {}), [imageSlot]: { w, h, g, rgb } } }
                                         : n));
                                     };
                                     img.onerror = () => {

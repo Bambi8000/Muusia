@@ -1077,16 +1077,17 @@ separately. Hand wobble and Seed are deterministic. The image fits inside
 Margin without cropping; very dense settings coarsen uniformly. Processing
 stays local. Help: Engrave Image · Flow study, Straight hatch and Facets.
 
-**Image Compare** — loads one local photo and lays out two or four plotter
-studies on one sheet. A–D each choose Flow (curved tone hatch), Straight
+**Image Compare** — loads two local images independently and lays out two or
+four plotter studies on one sheet. Image A fills the left column and Image B
+the right; if only one image is loaded, it fills both columns. A–D each choose Flow (curved tone hatch), Straight
 (diagonal hatch), Facets (short gradient-aligned strokes) or Spiral (one
 continuous tonal route inside its panel). All panels share Line spacing,
 Contrast and White cutoff, so style differences are easy to judge. Panel gap,
 Margin and optional frames set the layout; each panel has a separate Pen and
 output, in addition to the complete Sheet output. The panel letters are plotted
-as strokes. The image remains on the device. Image pickers now also offer Take
-photo… with the device's camera option on supported phones/tablets; desktop
-browsers use their normal file chooser. Help: Four ways to draw a photo.
+as strokes. Both images remain on the device. In the default four-panel
+arrangement the top row uses Flow for A/B and the bottom row uses Spiral for
+A/B. Help: Two images, two styles.
 
 **Spiral Image** — turns a local PNG/JPG into exactly one continuous open
 spirographic line, from centre to rim or the reverse. Ellipse fills more of a

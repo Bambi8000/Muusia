@@ -264,6 +264,25 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.163 — 2026-11-06 · Two-image Image Compare
+
+Image Compare now has separate Choose image A… and Choose image B… pickers.
+Two panels compare the two images with one style; four panels show both images
+in Flow on the top row and Spiral on the bottom row by default. A/B stay in
+the left/right columns. Existing one-image patches still fill both columns,
+and their saved A–D style choices remain valid. The shared image intake stores
+each picker in its own image slot. The Take photo… control was removed from
+image nodes. Help and node documentation explain the two-image arrangement.
+
+The focused validator passed 178,346 checks covering both image slots,
+fallback, output independence, legacy styles, deterministic finite geometry,
+pens and bounds. The real local app loaded two different PNGs and showed
+distinct images in A/B and C/D, with 163 plotted paths and separate filenames
+in the UI. Actual SVG contained 163 finite paths and G-code contained 10,636
+finite G1 drawing moves. All 174 Help examples passed, along with the catalog,
+production build and 37,913 Learn checks across 90 English pages. No physical
+plot was made.
+
 ### 2.162 — 2026-11-06 · Shared Focal Point and neighbouring pens
 
 Focal Point is a Math node emitting X/Y as percentages and page millimetres,

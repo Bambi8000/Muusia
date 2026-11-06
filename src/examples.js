@@ -934,8 +934,8 @@ export const EXAMPLES = [
     ], edges: [{ id: "e9101", from: 9001, fromPort: 1, to: 9002, toPort: 0 }] }),
   },
   {
-    name: "Image Compare · Four ways to draw a photo",
-    desc: "Choose one photo on Image Compare. The same image fills four labelled panels: A Flow, B Straight, C Facets and D Spiral. Line spacing, Contrast and White cutoff affect every panel together. Switch to Two panels for a larger side-by-side view, or change the A–D styles to make your own comparison. Sheet exports the whole page; A–D let you send one treatment onward. On a phone or tablet, Take photo opens the device camera when supported.",
+    name: "Image Compare · Two images, two styles",
+    desc: "Choose image A and image B separately on Image Compare. A fills the left column and B fills the right. The top row draws both with Flow; the bottom row draws both with Spiral. Switch to Two panels to compare one style in larger panels, or change A–D styles independently. Line spacing, Contrast and White cutoff affect every panel together. Sheet exports the whole page; A–D let you send one treatment onward. With only one image loaded, it fills both columns.",
     canvas: { W: 420, H: 297 },
     make: defaults => ({ nodes: [{ id: 9001, type: "image_compare", x: 30, y: 20, params: { ...defaults("image_compare"), layout: "Four", spacing: 1.7 } }], edges: [] }),
   },

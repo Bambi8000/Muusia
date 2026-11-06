@@ -1,4 +1,4 @@
-# MUUSIA v2.162
+# MUUSIA v2.163
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,11 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Version 2.163 gives **Image Compare** two independent image pickers. Image A
+appears in the left column and Image B in the right. Two panels compare one
+style; four panels compare two styles for each image. Loading only one image
+still fills both columns. Try Help → Image Compare · Two images, two styles.
 
 Version 2.162 adds **Focal Point** to share one animated X/Y position and
 radius across nodes, plus **Colour Neighbours** to assign different pens to
@@ -15,8 +20,7 @@ Neighbours · Four inks.
 Version 2.161 adds **Image Compare**: use one image to make a two- or
 four-panel plotter style sheet. Flow, Straight, Facets and Spiral can be
 compared with shared tone controls, then used through separate outputs.
-Image nodes also offer **Take photo…** on phones and tablets. Try Help →
-Image Compare · Four ways to draw a photo.
+Try the current Image Compare example in Help.
 
 Version 2.160 adds **Spiral Image**: a photo drives one continuous elliptical
 or circular line. Dark areas make it wiggle more, while the pen remains down
