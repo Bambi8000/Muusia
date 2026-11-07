@@ -1759,7 +1759,9 @@ Understands G90/G91, G20/G21 and G2/G3 arcs (IJ and R forms, tessellated at
 macros pass through as non-motion. Simplify drops points closer than the given
 pitch. Deterministic — no seed.
 
-**Import SVG** — load an SVG file's paths onto the canvas (no text/CSS support).
+**Import SVG** — load vector paths from an SVG. Source groups become separately visible layers: Show all, Hide all, each checkbox, and Solo. Hidden source layers start hidden but can be shown. Drag the import in Preview, use its lower-right handle to resize and its top handle to rotate. Offset X/Y, Size %, and Rotation also have numeric controls. Text and CSS styling are not converted. Example: import a grouped logo, solo one group, then wire the result to a pen modifier.
+
+**Import PDF** — import drawn vector paths from a PDF, page by page. Choose Page, fit to the canvas or use physical PDF scale, then drag, resize and rotate in Preview with the same handles as Import SVG. Embedded images and text are skipped; a scanned page has no vector paths to plot. Example: import a two-page vector illustration, choose page 2, set a single pen, and export SVG or G-code.
 
 **Stroke** — not geometry: produces a *style* (dash patterns etc.) for generators'
 Style inputs.

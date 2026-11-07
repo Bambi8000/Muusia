@@ -264,6 +264,24 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.164 — 2026-11-07 · PDF import and direct drawing placement
+
+Import PDF reads vector paths page by page and exposes Page, Fit, Size, Rotation,
+offset, colour and pen controls. Raster images and text inside PDFs are skipped.
+Import SVG now lists source groups with per-group visibility, Show all, Hide all
+and Solo; source-hidden groups start hidden. Both import nodes can be dragged,
+resized from a corner and rotated from a handle directly in Preview. The
+controls update their node parameters and therefore save with the patch.
+
+Focused SVG and two-page PDF validators passed. In the local app, a two-page PDF
+changed page and exported SVG after drag/resize/rotate; SVG layer controls
+changed visible path counts and the selected result exported finite SVG and
+G-code. Four affected saved Learn examples were re-exported through the real
+browser UI and their SVG text matched the historical captures byte for byte.
+Historical patches keep their original JSON; their new optional controls load
+at defaults. Catalog (359 keys), production build and 37,913 Learn checks across
+90 English pages passed. No physical plot or PDF text/raster conversion is claimed.
+
 ### 2.163 — 2026-11-06 · Two-image Image Compare
 
 Image Compare now has separate Choose image A… and Choose image B… pickers.

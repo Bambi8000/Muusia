@@ -1749,7 +1749,13 @@
   "warp"
  ],
  "svgimport": [
-  "text"
+  "import",
+  "svg",
+  "layer"
+ ],
+ "pdfimport": [
+  "import",
+  "image"
  ],
  "sweep3d": [
   "3d",

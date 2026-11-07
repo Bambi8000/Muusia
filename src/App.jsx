@@ -525,7 +525,8 @@ const NODE_HELP = {
   stretch: "monotonic band remap: geometry entering the band stretches uniformly along it and everything beyond shifts by the amount \u2014 no folds, straight smears. Directional or vanishing-point perspective mode; edge falloff shapes; per-path jitter. The pixel-smear effect, done right. Guide overlay.",
   stringpluck: "a plucked string rendered as stacked time frames: modal sum with e^(-d k^2 t) damping, so high harmonics die first and the stack smooths downward, exactly like a real string. Serpentine rows for plotting.",
   superformula: "the Gielis superformula: one equation spanning stars, flowers, polygons and diatoms via m/n1/n2/n3. Rings with twist fill the shape concentrically.",
-  svgimport: "load an SVG file's paths onto the canvas (no text/CSS support).",
+  svgimport: "Import SVG paths with per-layer visibility. Drag the drawing in Preview; use the corner and top handles to resize and rotate it. Text and CSS styling are not converted.",
+  pdfimport: "Import vector paths from a PDF page. Choose the page, then drag, resize and rotate the drawing in Preview. Embedded images and text are skipped.",
   switch: "a selector gate: the Select value picks which of the wired path inputs passes through; unwired inputs are skipped and the index wraps. Wire Steps into Select for per-frame scene switching.",
   symmetry: "mirror/radial kaleidoscope repetition.",
   tangle: "melts geometry into wandering tangle inside a zone, anchored at the zone edge (guide overlay).",
@@ -896,7 +897,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.163"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.164"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -1371,13 +1372,14 @@ function ZoomBox({ children, width, height }) {
     </div>
   );
 }
-function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = null, magnets = null, onMagnets = null, placing = false, bg = null, measure = null, onMeasure = null, measuring = false, testCrop = null, onTestCrop = null }) {
+function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = null, magnets = null, onMagnets = null, placing = false, bg = null, measure = null, onMeasure = null, measuring = false, testCrop = null, onTestCrop = null, importEdit = null }) {
   const sx = (width - pad * 2) / W, sy = (height - pad * 2) / H;
   const s = Math.min(sx, sy);
   const ox = (width - W * s) / 2, oy = (height - H * s) / 2;
   const dragRef = useRef(-1);
   const measDragRef = useRef(-1);
   const cropDragRef = useRef(null);
+  const importDragRef = useRef(null);
   const toMM = (e) => {
     const svg = e.currentTarget.ownerSVGElement || e.currentTarget;
     const r = svg.getBoundingClientRect();
@@ -1516,7 +1518,21 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
         }
         onMagnets([...(magnets || []), [q1(mx), q1(my)]]);
       } : undefined}
-      onPointerMove={onMagnets || onMeasure || onTestCrop ? (e) => {
+      onPointerMove={onMagnets || onMeasure || onTestCrop || importEdit ? (e) => {
+        if (importDragRef.current && importEdit) {
+          const d = importDragRef.current;
+          const [x, y] = toMM(e);
+          if (d.kind === "move") importEdit.onChange({ offx: q1(d.offx + x - d.x), offy: q1(d.offy + y - d.y) });
+          else if (d.kind === "size") {
+            const radius = Math.hypot(x - d.cx, y - d.cy);
+            importEdit.onChange({ editScale: Math.max(1, Math.min(500, Math.round(d.size * radius / Math.max(0.001, d.radius)))) });
+          } else if (d.kind === "rotate") {
+            const angle = Math.atan2(y - d.cy, x - d.cx);
+            const delta = Math.atan2(Math.sin(angle - d.angle), Math.cos(angle - d.angle));
+            importEdit.onChange({ rotation: Math.max(-180, Math.min(180, Math.round(d.rotation + delta * 180 / Math.PI))) });
+          }
+          return;
+        }
         if (cropDragRef.current && onTestCrop) {
           const [x, y] = toMM(e), d = cropDragRef.current;
           onTestCrop({ x: q1(d.x + x - d.px), y: q1(d.y + y - d.py) });
@@ -1529,8 +1545,8 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
         if (j >= 0 && onMeasure) { onMeasure((measure || []).map((q, k) => k === j ? [cx, cy] : q)); return; }
         if (i >= 0 && onMagnets) onMagnets(magnets.map((q, k) => k === i ? [cx, cy] : q));
       } : undefined}
-      onPointerUp={onMagnets || onMeasure || onTestCrop ? () => { dragRef.current = -1; measDragRef.current = -1; cropDragRef.current = null; } : undefined}
-      onPointerCancel={() => { cropDragRef.current = null; dragRef.current = -1; measDragRef.current = -1; }}>
+      onPointerUp={onMagnets || onMeasure || onTestCrop || importEdit ? () => { dragRef.current = -1; measDragRef.current = -1; cropDragRef.current = null; importDragRef.current = null; } : undefined}
+      onPointerCancel={() => { cropDragRef.current = null; dragRef.current = -1; measDragRef.current = -1; importDragRef.current = null; }}>
       <rect x={ox} y={oy} width={W * s} height={H * s} fill="none" stroke={T.paperLine} strokeWidth="1" />
       {bg && bg.src ? (
         <image key="bg" href={bg.src}
@@ -1545,6 +1561,34 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
       {gEls}
       {mEls}
       {msEls}
+      {importEdit && (() => {
+        const b = importEdit.bbox;
+        const x = ox + b.x * s, y = oy + b.y * s, w = Math.max(4, b.w * s), h = Math.max(4, b.h * s);
+        const sizeX = Math.min(width - 9, x + w), sizeY = Math.min(height - 9, y + h);
+        const rotY = y < 30 ? y + 20 : y - 20;
+        const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+        const begin = (e, kind) => {
+          e.stopPropagation();
+          const [mx, my] = toMM(e);
+          importDragRef.current = { kind, x: mx, y: my, cx, cy,
+            offx: Number(importEdit.params.offx) || 0, offy: Number(importEdit.params.offy) || 0,
+            size: Number(importEdit.params.editScale) || 100, rotation: Number(importEdit.params.rotation) || 0,
+            radius: Math.hypot(mx - cx, my - cy), angle: Math.atan2(my - cy, mx - cx) };
+          try { e.currentTarget.ownerSVGElement.setPointerCapture(e.pointerId); } catch (err) {}
+        };
+        return <g data-import-edit="true" stroke={T.accent}>
+          <rect aria-label="Drag imported drawing" x={x} y={y} width={w} height={h}
+            fill="rgba(226,87,74,0.025)" strokeWidth="1.4" strokeDasharray="5 4" style={{ cursor: "move" }}
+            onMouseDown={e => e.stopPropagation()} onPointerDown={e => begin(e, "move")} />
+          <circle aria-label="Scale imported drawing" cx={sizeX} cy={sizeY} r="8"
+            fill={T.paper} strokeWidth="2" style={{ cursor: "nwse-resize" }}
+            onMouseDown={e => e.stopPropagation()} onPointerDown={e => begin(e, "size")} />
+          <line x1={x + w / 2} y1={y} x2={x + w / 2} y2={rotY} pointerEvents="none" />
+          <circle aria-label="Rotate imported drawing" cx={x + w / 2} cy={rotY} r="8"
+            fill={T.paper} strokeWidth="2" style={{ cursor: "grab" }}
+            onMouseDown={e => e.stopPropagation()} onPointerDown={e => begin(e, "rotate")} />
+        </g>;
+      })()}
       {testCrop && testCrop.fits && <g data-test-crop="true">
         <path d={`M${ox},${oy}h${W * s}v${H * s}h${-W * s}Z M${ox + (testCrop.x + testCrop.margin) * s},${oy + (testCrop.y + testCrop.margin) * s}h${(testCrop.w - 2 * testCrop.margin) * s}v${(testCrop.h - 2 * testCrop.margin) * s}h${-(testCrop.w - 2 * testCrop.margin) * s}Z`}
           fill="rgba(23,26,32,0.3)" fillRule="evenodd" pointerEvents="none" />
@@ -2500,6 +2544,16 @@ export default function App() {
   const primaryNode = lvl.nodes.find((n) => n.id === primary);
   const primaryOut = primary != null ? results[primary] : null;
   const primaryPS = primaryOut && primaryOut[0] && primaryOut[0].paths ? primaryOut[0] : EMPTY;
+  const importEdit = primaryNode && (primaryNode.type === "svgimport" || primaryNode.type === "pdfimport") && primaryPS.paths.length
+    && !testCrop.active && !measureOn && !jigPlace ? (() => {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const path of primaryPS.paths) for (const [x, y] of path.pts) {
+        minX = Math.min(minX, x); minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+      }
+      return { bbox: { x: minX, y: minY, w: maxX - minX, h: maxY - minY },
+        params: primaryNode.params, onChange: (delta) => setParamsMulti(primaryNode.id, delta) };
+    })() : null;
   /* --- Pop-out preview window (two-monitor workflow). No portal dependency:
      the drawing is written into the popup as an SVG string (toSVG), which keeps
      the file free of extra dependencies. CSS scales it to the window. --- */
@@ -3720,21 +3774,47 @@ export default function App() {
                                     };
                                     img.src = dataUrl;
                                   } : pd.type === "file" && def.onFile ? (text, name) => {
-                                    try {
-                                      const parsed = def.onFile(text);
+                                    setNodesL((ns) => ns.map((n) => n.id === node.id
+                                      ? { ...n, params: { ...n.params, [pd.key]: `Loading ${name}…` }, data: { ...(n.data || {}), svg: undefined } } : n));
+                                    Promise.resolve().then(() => def.onFile(text)).then((parsed) => {
                                       setNodesL((ns) => ns.map((n) => n.id === node.id
-                                        ? { ...n, params: { ...n.params, [pd.key]: name }, data: { ...(n.data || {}), svg: parsed } }
-                                        : n));
-                                    } catch (err) {
+                                        ? { ...n, params: { ...n.params, [pd.key]: name,
+                                          ...(def.key === "svgimport" ? { visibleLayers: {} } : {}),
+                                          ...(def.key === "pdfimport" ? { page: 1 } : {}) },
+                                          data: { ...(n.data || {}), svg: parsed } } : n));
+                                    }).catch((err) => {
                                       setNodesL((ns) => ns.map((n) => n.id === node.id
-                                        ? { ...n, params: { ...n.params, [pd.key]: "Error: " + err.message } }
-                                        : n));
-                                    }
+                                        ? { ...n, params: { ...n.params, [pd.key]: "Error: " + err.message } } : n));
+                                    });
                                   } : null}
                                   onChange={(v) => setParam(node.id, pd.key, v)} />
                               );
                             })
                           )}
+                          {setupFor !== node.id && node.type === "svgimport" && node.data?.svg?.layers?.length ? (() => {
+                            const layers = node.data.svg.layers;
+                            const current = node.params.visibleLayers || {};
+                            const isOn = (l) => current[l.id] ?? l.visible;
+                            const setAll = (on) => setParam(node.id, "visibleLayers", Object.fromEntries(layers.map(l => [l.id, on])));
+                            return <div style={{ borderTop: `1px solid ${T.line}`, marginTop: 8, paddingTop: 7, fontSize: 10 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                                <strong style={{ flex: 1, color: T.text }}>SVG layers · {layers.filter(isOn).length}/{layers.length}</strong>
+                                <button onClick={() => setAll(true)} style={{ background: "none", border: 0, color: T.accent, cursor: "pointer" }}>Show all</button>
+                                <button onClick={() => setAll(false)} style={{ background: "none", border: 0, color: T.dim, cursor: "pointer" }}>Hide all</button>
+                              </div>
+                              <div style={{ maxHeight: 150, overflowY: "auto" }}>
+                                {layers.map(l => <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 5, minHeight: 24 }}>
+                                  <input type="checkbox" checked={!!isOn(l)} onChange={e => setParam(node.id, "visibleLayers", { ...current, [l.id]: e.target.checked })} style={{ accentColor: T.accent }} />
+                                  <span title={l.name} style={{ flex: 1, color: isOn(l) ? T.text : T.dim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.name}</span>
+                                  <button title={`Show only ${l.name}`} onClick={() => setParam(node.id, "visibleLayers", Object.fromEntries(layers.map(q => [q.id, q.id === l.id])))}
+                                    style={{ background: "none", border: `1px solid ${T.line}`, borderRadius: 3, color: T.dim, cursor: "pointer", fontSize: 9 }}>Solo</button>
+                                </div>)}
+                              </div>
+                            </div>;
+                          })() : null}
+                          {setupFor !== node.id && node.type === "pdfimport" && node.data?.svg?.pages?.length ? (
+                            <div style={{ color: T.dim, fontSize: 10, marginTop: 4 }}>{node.data.svg.pages.length} PDF page{node.data.svg.pages.length === 1 ? "" : "s"} · vector paths only</div>
+                          ) : null}
                           {setupFor !== node.id && def.faceAnalysis && node.data && node.data.src ? (
                             <AnalyzeButton data={node.data} T={T}
                               onResult={(analysis) => setNodesL((ns) => ns.map((n) => n.id === node.id
@@ -3794,7 +3874,7 @@ export default function App() {
                   <SimView ps={testCrop.active && testRect.fits ? (routeOpt ? routeOptimize(cropTestPiece(wPS, testRect), preserveDir) : cropTestPiece(wPS, testRect)) : (routeOpt ? routeOptimize(wPS, preserveDir) : wPS)} W={testCrop.active && testRect.fits ? testRect.w : megaW} H={testCrop.active && testRect.fits ? testRect.h : megaH} width={fw} height={fh} />
                 ) : (
                   <ZoomBox width={fw} height={fh}>
-                    <PathsSVG ps={wPS} W={megaW} H={megaH} width={fw} height={fh} arrows={showArrows} pad={12} bg={previewBg} guides={guides} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} />
+                    <PathsSVG ps={wPS} W={megaW} H={megaH} width={fw} height={fh} arrows={showArrows} pad={12} bg={previewBg} guides={guides} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} importEdit={watchId === primary ? importEdit : null} />
                   </ZoomBox>
                 )}
               </div>
@@ -3841,7 +3921,7 @@ export default function App() {
               </>
             ) : (
               <ZoomBox width={316} height={316 * (megaH / megaW)}>
-                <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} bg={previewBg} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={testCrop.active ? null : previewMagnets} onMagnets={!testCrop.active && jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} arrows={showArrows} pad={8} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} />
+                <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={316} bg={previewBg} guides={primaryGuides} height={316 * (megaH / megaW)} magnets={testCrop.active ? null : previewMagnets} onMagnets={!testCrop.active && jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} arrows={showArrows} pad={8} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} importEdit={importEdit} />
               </ZoomBox>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
@@ -4703,7 +4783,7 @@ export default function App() {
                 return (
                   <ZoomBox width={bw2} height={bh2}>
                     <PathsSVG ps={primaryPS} W={megaW} H={megaH} width={bw2} height={bh2}
-                      arrows={showArrows} pad={16} bg={previewBg} guides={primaryGuides} magnets={testCrop.active ? null : previewMagnets} onMagnets={!testCrop.active && jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} />
+                      arrows={showArrows} pad={16} bg={previewBg} guides={primaryGuides} magnets={testCrop.active ? null : previewMagnets} onMagnets={!testCrop.active && jigMode === "Manual" ? setManualMags : null} placing={jigMode === "Manual" && jigPlace} measure={measureOn ? measurePts : null} onMeasure={measureOn ? setMeasurePts : null} measuring={measureOn} testCrop={testCrop.active ? testRect : null} onTestCrop={changeTestCrop} importEdit={importEdit} />
                   </ZoomBox>
                 );
               })()

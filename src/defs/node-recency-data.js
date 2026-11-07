@@ -1075,6 +1075,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "6f7231b1a365ad06e1215ebbaf0bd47891764b9f1e1c9f922c057bbf53bc76f7"
   },
+  "pdfimport": {
+    "date": "2026-11-07",
+    "order": 126,
+    "sha256": "452f68e291f921bcedf544808a62aed082ed75d0ae4c0f4c7056084666b12a4c"
+  },
   "pebble": {
     "date": "2026-07-30",
     "order": 10,
@@ -1541,9 +1546,9 @@ export const NODE_RECENCY = {
     "sha256": "1967b9c2a1b7a454d495c3fc20151785cc7ae5afb34619599380356033fe3c75"
   },
   "svgimport": {
-    "date": "2026-09-29",
-    "order": 65,
-    "sha256": "f9e361eea3e784608ab0754f199ef0793447f3416a3dfac1fdfee3379f44a2a5"
+    "date": "2026-11-07",
+    "order": 126,
+    "sha256": "59f3fa38db4c26c1c5370490f818994cf1d3778be7874ab32975c97fde03f91f"
   },
   "sweep3d": {
     "date": "2026-08-09",

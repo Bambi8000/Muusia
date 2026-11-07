@@ -4,6 +4,7 @@
   "date": "2026-10-20",
   "baseCommit": "d8f17394cb6d69f5efa3b71d21bb40481d0921ca",
   "scope": "Actual local built-in Muusia app: four SVG downloads, four unretouched Focus captures, four full G-code downloads and real PNG picker/Save intake. Route optimization off, preserve direction on, illustrative A Servo 330×240 mm, no hardware run.",
+  "sourceRecapture": "2026-11-07, Muusia 2.164 local browser: loaded patches/custom-motif.muusia.json, selected its output, exported SVG with route optimization off, and compared the complete 111993-character SVG with assets/custom-motif.svg; byte-identical. Historical captures and their appVersion remain unchanged.",
   "engineSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
   "exporterSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
   "gcodeSha256": "e1648948652ae1ff2b4acb1dd62424d4d111e2292003c0237bcc28d69276c7ab",
@@ -14,7 +15,7 @@
     "src/defs/nodes/weave_draft.js": "f9cb6ac7893e7e376012ec7be49ab78edebe67262b1abe3fd02fc1874c1c881e",
     "src/defs/nodes/lettering.js": "f39c1aeea1085bfa86176a3c2c289cf1221452e282747c141dcf07f7c571925b",
     "src/defs/nodes/hersheytext.js": "e2b669fb4405df3d56ee866c94f6c6fe35ceca2748f16f3f0a1302b94b62ec61",
-    "src/defs/nodes/svgimport.js": "f9e361eea3e784608ab0754f199ef0793447f3416a3dfac1fdfee3379f44a2a5",
+    "src/defs/nodes/svgimport.js": "59f3fa38db4c26c1c5370490f818994cf1d3778be7874ab32975c97fde03f91f",
     "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
     "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684",
     "src/machine.js": "58064ae02c5b1d22a09da5fec59031ef7f6850fe3fd07c38f5b8e63b55490680"

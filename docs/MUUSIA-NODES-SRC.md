@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (356 files, generated)
+# MUUSIA v2.29 — Node Sources (357 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -36736,6 +36736,42 @@ export default {
 };
 ```
 
+## pdfimport.js
+
+```js
+import { Pin, EMPTY } from "../helpers.js";
+import { placeImportedPaths } from "../import-placement.js";
+
+export default {
+  key: "pdfimport", name: "Import PDF", cat: "gen", group: "textimg",
+  desc: "Import drawn vector paths from a PDF page. Images and text are skipped. Choose a page, then drag, resize or rotate the drawing in Preview.",
+  ins: [Pin("style", "Style")], outs: [Pin("paths")],
+  fileBinary: true, fileAccept: ".pdf,application/pdf", fileLabel: "Choose PDF…",
+  params: [
+    { key: "filename", label: "PDF file", type: "file", def: "" },
+    { key: "page", label: "Page", type: "number", min: 1, max: 100, step: 1, def: 1 },
+    { key: "fit", label: "Fit", type: "select", options: ["Fit to canvas", "Scale %"], def: "Fit to canvas" },
+    { key: "scale", label: "Scale %", type: "slider", min: 1, max: 400, step: 1, def: 100 },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
+    { key: "offx", label: "Offset X mm", type: "slider", min: -200, max: 200, step: 0.5, def: 0 },
+    { key: "offy", label: "Offset Y mm", type: "slider", min: -200, max: 200, step: 0.5, def: 0 },
+    { key: "editScale", label: "Size %", type: "slider", min: 1, max: 500, step: 1, def: 100 },
+    { key: "rotation", label: "Rotation °", type: "slider", min: -180, max: 180, step: 1, def: 0 },
+    { key: "colmode", label: "Colors", type: "select", options: ["From PDF colors", "Single pen"], def: "Single pen" },
+    { key: "layer", label: "Pen (if single)", type: "pen", def: 0 },
+  ],
+  async onFile(dataUrl) {
+    const { parsePdfDataUrl } = await import("../pdf-browser.js");
+    return parsePdfDataUrl(dataUrl);
+  },
+  compute(ins, p, ctx, node) {
+    const pdf = node?.data?.svg;
+    const page = pdf?.pages?.[Math.max(0, Math.min(pdf.pages.length - 1, Math.round(Number(p.page) || 1) - 1))];
+    return page ? placeImportedPaths(page, p, ctx, ins[0]) : EMPTY;
+  },
+};
+```
+
 ## pebble.js
 
 ```js
@@ -56125,7 +56161,9 @@ export default {
 ## svgimport.js
 
 ```js
-import { Pin, EMPTY, PENS, applyStyle, signedArea, parseSVG } from "../helpers.js";
+import { Pin, EMPTY } from "../helpers.js";
+import { placeImportedPaths } from "../import-placement.js";
+import { parseSvgWithLayers } from "../svg-layer-parser.js";
 
 export default {
   key: "svgimport",
@@ -56137,38 +56175,22 @@ export default {
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
       { key: "offx", label: "Offset X mm", type: "slider", min: -200, max: 200, step: 0.5, def: 0 },
       { key: "offy", label: "Offset Y mm", type: "slider", min: -200, max: 200, step: 0.5, def: 0 },
+      { key: "editScale", label: "Size %", type: "slider", min: 1, max: 500, step: 1, def: 100 },
+      { key: "rotation", label: "Rotation °", type: "slider", min: -180, max: 180, step: 1, def: 0 },
       { key: "dirs", label: "Directions", type: "select", options: ["Original", "Closed clockwise", "Closed counter-clockwise"], def: "Original" },
       { key: "colmode", label: "Colors", type: "select", options: ["From SVG colors", "Single pen"], def: "From SVG colors" },
       { key: "layer", label: "Pen (if single)", type: "pen", def: 0 },
     ],
-    onFile(text) { return parseSVG(text); },
+    onFile(text) { return parseSvgWithLayers(text); },
     compute(ins, p, ctx, node) {
       const svg = node && node.data && node.data.svg;
       if (!svg) return EMPTY;
-      const { W, H } = ctx;
-      let s, ox, oy;
-      if (p.fit === "Fit to canvas") {
-        s = Math.min((W - 2 * p.margin) / svg.bbox.w, (H - 2 * p.margin) / svg.bbox.h);
-        ox = (W - svg.bbox.w * s) / 2 - svg.bbox.x * s;
-        oy = (H - svg.bbox.h * s) / 2 - svg.bbox.y * s;
-      } else {
-        s = p.scale / 100;
-        ox = p.margin - svg.bbox.x * s;
-        oy = p.margin - svg.bbox.y * s;
-      }
-      const paths = svg.paths.map((sp) => {
-        let pts = sp.pts.map(([x, y]) => [x * s + ox + p.offx, y * s + oy + p.offy]);
-        if (sp.closed && p.dirs !== "Original") {
-          const cw = signedArea(pts) > 0; // y-alas -koordinaatistossa
-          const wantCw = p.dirs === "Closed clockwise";
-          if (cw !== wantCw) pts = [...pts].reverse();
-        }
-        return {
-          pts, closed: sp.closed,
-          layer: p.colmode === "Single pen" ? Math.round(p.layer) : sp.colorIdx % PENS.length,
-        };
+      return placeImportedPaths(svg, p, ctx, ins[0], (sp) => {
+        if (sp.shapeVisible === false) return false;
+        const id = sp.sourceLayer;
+        if (id == null) return true; // legacy frozen patches
+        return p.visibleLayers?.[id] ?? svg.layers?.[id]?.visible ?? true;
       });
-      return applyStyle({ paths }, ins[0]);
     },
   
 };

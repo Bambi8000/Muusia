@@ -150,6 +150,15 @@ let e2 = null; try { H.parseSVG("<html><body></body></html>"); } catch (e) { e2 
 ok(!!e2, "non-SVG document throws (" + (e2 && e2.message) + ")");
 ok(JSON.stringify(H.parseSVG(FIX)) === JSON.stringify(svg), "parseSVG deterministic");
 
+const LAYER_FIX = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+  <g id="front" inkscape:label="Front"><line x1="0" y1="0" x2="10" y2="0"/></g>
+  <g id="back" style="display:none"><line x1="0" y1="10" x2="10" y2="10"/></g>
+  <line x1="0" y1="20" x2="10" y2="20"/>
+</svg>`;
+const layered = def.onFile(LAYER_FIX);
+ok(layered.layers.length === 3 && layered.layers[0].name === "Front" && layered.layers[1].name === "back", "source group names and ungrouped shapes preserved");
+ok(layered.layers[1].visible === false && layered.paths.map(p => p.sourceLayer).join(",") === "0,1,2", "hidden source group and stable path membership");
+
 /* ---------- 2. the node's compute ---------- */
 const defaults = () => { const p = {}; for (const pr of def.params) p[pr.key] = pr.def; return p; };
 const p0 = defaults();
@@ -164,6 +173,15 @@ ok(run(p0, undefined, {}) === H.EMPTY && run(p0, undefined, { data: {} }) === H.
 
 const r1 = run(p0), r2 = run(p0);
 ok(JSON.stringify(r1) === JSON.stringify(r2), "compute deterministic");
+const layeredNode = { data: { svg: layered } };
+ok(run(p0, undefined, layeredNode).paths.length === 2, "hidden source layer is hidden by default");
+ok(run({ ...p0, visibleLayers: { 0: false, 1: true, 2: false } }, undefined, layeredNode).paths.length === 1, "Solo-style source layer override");
+ok(run({ ...p0, visibleLayers: { 0: true, 1: true, 2: true } }, undefined, layeredNode).paths.length === 3, "Show all includes previously hidden group");
+ok(run({ ...p0, visibleLayers: { 0: false, 1: false, 2: false } }, undefined, layeredNode).paths.length === 0, "Hide all removes every source path");
+const size2 = run({ ...p0, editScale: 200 });
+const rot90 = run({ ...p0, rotation: 90 });
+ok(near(bb(size2).x1 - bb(size2).x0, 2 * (bb(r1).x1 - bb(r1).x0)), "Size % scales imported drawing around its centre");
+ok(finiteAll(rot90) && JSON.stringify(rot90) !== JSON.stringify(r1), "Rotation turns finite imported drawing");
 ok(r1.paths.length === expectPaths && finiteAll(r1), "compute keeps all " + r1.paths.length + " paths, finite (" + npts(r1) + " pts)");
 ok(r1.paths.every((q) => Number.isInteger(q.layer) && q.layer >= 0 && q.layer < H.PENS.length), "layers are integer pens");
 ok(r1.paths.every((q, i) => q.layer === svg.paths[i].colorIdx % H.PENS.length), "'From SVG colors' maps colorIdx -> pen");
