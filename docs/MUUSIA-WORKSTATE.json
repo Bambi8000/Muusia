@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.163",
-    "date": "2026-11-06",
-    "commit": "d0f341481a7e45c25430f5f44272727fb8127f64",
-    "pagesRunId": 42248189763,
+    "version": "2.164",
+    "date": "2026-11-07",
+    "commit": "40fd1e6804ec1a1c27915ede0fa09d75b75924c2",
+    "pagesRunId": 42373022963,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.163, both image pickers and two-image four-panel comparison; exact Pages run succeeded"
+    "status": "verified public Muusia 2.164, two-page PDF import with vector preview and placement handles; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.163",
-    "date": "2026-11-06",
-    "baseCommit": "45260ca8bb590cbd6a87fbed6ea369832c7127a6",
-    "branch": "codex/image-compare-two-images",
+    "version": "2.164",
+    "date": "2026-11-07",
+    "baseCommit": "44cb9c3e7a7a175c1ece07961b7dd800d1aba6ef",
+    "branch": "codex/pdf-import-layout",
     "worktree": "/private/tmp/muusia-topology-145",
     "published": true,
-    "status": "Muusia 2.163 two-image Image Compare published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.163 (clean committed snapshot, prepared locally; not uploaded)",
-    "moduleCount": 356,
-    "registryCount": 358,
-    "validation": "Two independent image slots, fallback, legacy styles, output independence, deterministic finite geometry, pens and bounds: 178346 checks. All 174 Help graphs, catalog and recency, local and public 163-path four-panel previews, actual finite SVG with 163 paths and G-code with 10636 G1 drawing moves, ordered release gate of 37913 Learn checks / 90 English pages. Public v2.163 showed both image pickers and loaded two different PNGs.",
+    "status": "Muusia 2.164 PDF vector import, direct import placement, and SVG layer visibility published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.164 (clean committed snapshot, prepared locally; not uploaded)",
+    "moduleCount": 357,
+    "registryCount": 359,
+    "validation": "Focused SVG and two-page PDF validators; actual local SVG/G-code exports and drag/resize/rotate interaction; four old browser SVG re-exports byte-identical to captures; catalog and recency; production build; 37913 Learn checks / 90 English pages. Public v2.164 loaded the two-page PDF and showed its vector paths and direct placement handles.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "d0f341481a7e45c25430f5f44272727fb8127f64"
+    "commit": "40fd1e6804ec1a1c27915ede0fa09d75b75924c2"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

@@ -282,6 +282,10 @@ Historical patches keep their original JSON; their new optional controls load
 at defaults. Catalog (359 keys), production build and 37,913 Learn checks across
 90 English pages passed. No physical plot or PDF text/raster conversion is claimed.
 
+Source commit `40fd1e6804ec1a1c27915ede0fa09d75b75924c2` was published by
+Pages run `42373022963` (success). Public v2.164 loaded a two-page PDF and
+showed its vector drawing and direct placement handles.
+
 ### 2.163 — 2026-11-06 · Two-image Image Compare
 
 Image Compare now has separate Choose image A… and Choose image B… pickers.
