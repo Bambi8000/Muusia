@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.164",
-    "date": "2026-11-07",
-    "commit": "40fd1e6804ec1a1c27915ede0fa09d75b75924c2",
-    "pagesRunId": 42373022963,
+    "version": "2.165",
+    "date": "2026-11-08",
+    "commit": "520bf7ad5e6b0ae1cd3b07b7189decc3ded6a75b",
+    "pagesRunId": 42520029380,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.164, two-page PDF import with vector preview and placement handles; exact Pages run succeeded"
+    "status": "verified public Muusia 2.165 receipt canvas presets and export, and LATU receipt preview; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.164",
-    "date": "2026-11-07",
-    "baseCommit": "44cb9c3e7a7a175c1ece07961b7dd800d1aba6ef",
-    "branch": "codex/pdf-import-layout",
-    "worktree": "/private/tmp/muusia-topology-145",
+    "version": "2.165",
+    "date": "2026-11-08",
+    "baseCommit": "cdd3efc00f7592cf9626749d580fd0e899073944",
+    "branch": "codex/muusia-receipt-release",
+    "worktree": "/private/tmp/muusia-receipt-release",
     "published": true,
-    "status": "Muusia 2.164 PDF vector import, direct import placement, and SVG layer visibility published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.164 (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.165 receipt export and LATU receipt preview published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.165 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 357,
     "registryCount": 359,
-    "validation": "Focused SVG and two-page PDF validators; actual local SVG/G-code exports and drag/resize/rotate interaction; four old browser SVG re-exports byte-identical to captures; catalog and recency; production build; 37913 Learn checks / 90 English pages. Public v2.164 loaded the two-page PDF and showed its vector paths and direct placement handles.",
+    "validation": "LATU 74 tests, print-server 2 tests, actual local 512 x 711-dot receipt export opened in LATU, catalog, production build, 37913 Learn checks / 90 English pages. Public Muusia v2.165 and LATU receipt controls verified. Epson hardware remains untested.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "40fd1e6804ec1a1c27915ede0fa09d75b75924c2"
+    "commit": "520bf7ad5e6b0ae1cd3b07b7189decc3ded6a75b"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

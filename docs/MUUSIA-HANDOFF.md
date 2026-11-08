@@ -279,6 +279,9 @@ Grid canvas, and the local LATU opened it with the expected image, dimensions,
 length and cut setting. LATU's 74 tests, two print-server tests including public
 origin preflight, catalog (359 keys), production build, and 37,913 Learn checks
 across 90 English pages passed. No Epson has been connected or physically tested.
+Source commit `520bf7ad5e6b0ae1cd3b07b7189decc3ded6a75b` was published by
+Pages run `42520029380` (success). Public Muusia showed v2.165, both receipt
+presets and the receipt controls; public LATU showed Open receipt preview….
 
 ### 2.164 — 2026-11-07 · PDF import and direct drawing placement
 
