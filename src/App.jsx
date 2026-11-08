@@ -22,6 +22,7 @@ import PreviewCropControls from "./preview-crop-controls.jsx";
 import { directionPassFiles } from "./direction-pass-export.js";
 import DirectionPassControls from "./direction-pass-controls.jsx";
 import MuusiaGuide from "./muusia-guide.jsx";
+import { renderReceipt, sendReceipt, RECEIPT_MAX_HEIGHT_DOTS } from "./thermal-print.js";
 import { DEFAULT_NEEDLE_MACHINE, needleExportError, DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
@@ -897,7 +898,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.164"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.165"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2638,6 +2639,11 @@ export default function App() {
 
   const [copied, setCopied] = useState(false);
   const [exportKind, setExportKind] = useState("gcode");
+  const [printUrl, setPrintUrl] = useState("http://127.0.0.1:8631");
+  const [printToken, setPrintToken] = useState("");
+  const [printCut, setPrintCut] = useState(true);
+  const [printBusy, setPrintBusy] = useState(false);
+  const [printStatus, setPrintStatus] = useState("");
   const gcodeRef = useRef(null);
   const loadRef = useRef(null);
   const [simOn, setSimOn] = useState(false);
@@ -2760,6 +2766,38 @@ export default function App() {
   const doExport = () => { setGcode(megaOn ? megaPreview("gcode") : toGcodeGated(exportPS(), ctx)); setExportKind("gcode"); setCopied(false); };
   const doExportSVG = () => { setGcode(megaOn ? megaPreview("svg") : toSVG(exportPS(), ctx)); setExportKind("svg"); setCopied(false); };
   const doExportDXF = () => { setGcode(megaOn ? megaPreview("dxf") : toDXF(exportPS(), ctx)); setExportKind("dxf"); setCopied(false); };
+  const doReceiptPrint = async () => {
+    setPrintBusy(true);
+    setPrintStatus("Preparing 512-dot receipt…");
+    try {
+      const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH);
+      setPrintStatus(`Sending ${Math.round(receipt.height / 180 * 25.4)} mm receipt…`);
+      const job = await sendReceipt(printUrl, printToken, receipt, printCut);
+      setPrintStatus(`Printed · job ${job.id.slice(0, 8)}`);
+    } catch (err) {
+      setPrintStatus(`Print failed: ${err.message || err}`);
+    } finally {
+      setPrintBusy(false);
+    }
+  };
+  const downloadReceiptFile = () => {
+    try {
+      const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH);
+      const data = JSON.stringify({ format: "muusia-receipt", version: 1, ...receipt, cut: printCut });
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${projName || "patch"}.muusia-receipt.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setPrintStatus(`Receipt file saved · ${receipt.width} × ${receipt.height} dots`);
+    } catch (err) {
+      setPrintStatus(`Receipt export failed: ${err.message || err}`);
+    }
+  };
   const downloadMega = (kind) => {
     /* browsers block sequential programmatic downloads -> bundle everything in one zip */
     const tiles = megaTiles();
@@ -3255,6 +3293,8 @@ export default function App() {
             title="Paper size presets"
             style={{ background: T.panel2, color: T.text, border: "1px solid " + T.line, borderRadius: 3, padding: "2px 4px", fontSize: 10 }}>
             <option value="">Size preset</option>
+            <option value="72x100">Receipt · 72 × 100 mm</option>
+            <option value="72x250">Receipt strip · 72 × 250 mm</option>
             <option value="210x148">A5 wide</option>
             <option value="148x210">A5 tall</option>
             <option value="297x210">A4 wide</option>
@@ -4298,6 +4338,30 @@ export default function App() {
               }}>
               EXPORT DXF (laser cut, R12)
             </button>
+            <div style={{ marginTop: 14, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
+              <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", color: T.text }}>MUUSIA PRINT · TM-T88V</div>
+              <div style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, margin: "4px 0 7px" }}>
+                Selected node → black lines on 80 mm thermal paper. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / 180 * 25.4)} mm long.
+              </div>
+              <input aria-label="Receipt server URL" value={printUrl} onChange={e => setPrintUrl(e.target.value)} placeholder="http://127.0.0.1:8631"
+                style={{ boxSizing: "border-box", width: "100%", background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, padding: "5px 7px", fontSize: 10, fontFamily: mono }} />
+              <input aria-label="Receipt server token" type="password" value={printToken} onChange={e => setPrintToken(e.target.value)} placeholder="Print server token"
+                style={{ boxSizing: "border-box", width: "100%", marginTop: 5, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, padding: "5px 7px", fontSize: 10, fontFamily: mono }} />
+              <label style={{ display: "flex", gap: 5, alignItems: "center", fontSize: 10, marginTop: 6, color: T.text }}>
+                <input type="checkbox" checked={printCut} onChange={e => setPrintCut(e.target.checked)} /> Cut after print
+              </label>
+              <button onClick={downloadReceiptFile} disabled={!primaryPS.paths.length || megaOn}
+                title={megaOn ? "Turn off Mega Canvas for receipt export" : "Save a receipt file for LATU preview"}
+                style={{ width: "100%", marginTop: 6, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length && !megaOn ? T.text : T.dim, fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: primaryPS.paths.length && !megaOn ? "pointer" : "default" }}>
+                DOWNLOAD RECEIPT FILE
+              </button>
+              <button onClick={doReceiptPrint} disabled={!primaryPS.paths.length || megaOn || printBusy}
+                title={megaOn ? "Turn off Mega Canvas for the first receipt print" : "Send the selected node to the local Raspberry Pi print server"}
+                style={{ width: "100%", marginTop: 6, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.value}`, background: "transparent", color: primaryPS.paths.length && !megaOn && !printBusy ? T.value : T.dim, fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: primaryPS.paths.length && !megaOn && !printBusy ? "pointer" : "default" }}>
+                {printBusy ? "PRINTING…" : "PRINT RECEIPT"}
+              </button>
+              {printStatus && <div role="status" style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, marginTop: 5 }}>{printStatus}</div>}
+            </div>
           </div>
 
           {/* ---------- Mega canvas ---------- */}

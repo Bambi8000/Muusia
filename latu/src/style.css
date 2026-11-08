@@ -69,3 +69,12 @@ button.quiet { border-color: transparent; background: transparent; color: #a8b5c
 @media (max-width: 1150px) { .tool-label { display: none; }.tool-bar { gap: 6px; padding-inline: 10px; }.tool-group button { padding-inline: 7px; }.document-bar { gap: 12px; padding-inline: 14px; }.brand { flex-basis: 110px; } }
 @media (max-width: 950px) { .view-actions { margin-left: auto; }.editor-sidebar { flex-basis: 220px; }.document-title small span { display: none; }.brand { flex-basis: auto; }.brand small { display: none; }.document-bar { gap: 10px; }.file-actions { gap: 2px; }.editor-header .playback-toggle { min-width: 132px; padding-inline: 14px; }.statusbar { gap: 10px; font-size: 9px; }.statusbar span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; } }
 @media (max-width: 700px) { .document-bar { flex-wrap: wrap; padding: 10px; gap: 10px; }.document-title { flex-basis: calc(100% - 140px); }.file-actions { flex: 1; }.tool-bar { gap: 8px; }.tool-group { flex-wrap: wrap; }.history-actions { padding-right: 4px; }.view-actions { margin-left: auto; }.editor-sidebar { flex-basis: 190px; }.selection-inspector { padding: 10px; }.selection-actions { grid-template-columns: 1fr; }.pane-heading { padding-inline: 6px; }.pane-heading strong span { display: none; }.canvas-hint { max-width: calc(100% - 20px); width: max-content; }.safety-panel { max-width: calc(100% - 20px); } }
+.receipt-dialog { width: min(620px, calc(100vw - 30px)); max-height: calc(100vh - 30px); display: flex; flex-direction: column; overflow: hidden; }
+.receipt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.receipt-head p { overflow-wrap: anywhere; }
+.receipt-head button { font-size: 18px; }
+.receipt-meta { margin-bottom: 10px; color: #b6c6d6; font: 11px var(--mono); }
+.receipt-scroll { min-height: 0; overflow: auto; padding: 15px; border: 1px solid #3a4651; border-radius: 6px; background: #31363b; text-align: center; }
+.receipt-scroll canvas { display: block; width: min(100%, 512px); height: auto; margin: 0 auto; background: white; image-rendering: pixelated; box-shadow: 0 4px 18px #0008; }
+.receipt-note { margin: 10px 0 0 !important; line-height: 1.5; }
+.receipt-error { padding: 12px; border: 1px solid #7d4f4f; border-radius: 5px; background: #301e20; color: #f6bcbc; font-size: 12px; }

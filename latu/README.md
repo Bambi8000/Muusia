@@ -1,5 +1,16 @@
 # LATU
 
+## Muusia Print receipts
+
+Muusia's receipt path sends a JSON job containing a 512-dot-wide, 1-bit bitmap to
+the Raspberry Pi server. The server converts it to ESC/POS bytes for the printer;
+neither format is G-code. Muusia can also download the bitmap as
+`*.muusia-receipt.json` without a printer. In LATU choose **Document → Open receipt
+preview…** or drop that file into the window. LATU also previews `.escpos` files
+containing the current TM-T88V raster, feed and cut commands. The preview is
+read-only because the raster has no editable vector strokes. Regular `.gcode`
+files continue to open in LATU's editor.
+
 LATU is Muusia's line-preserving G-code reader/editor sub-app. The M0 viewer
 provides Muusia servo/bed-Z parsing, canvas and text synchronization, file
 open/save, zoom/pan, event markers, and timing statistics. M1 adds multi-stroke

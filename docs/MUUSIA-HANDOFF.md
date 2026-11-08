@@ -264,6 +264,22 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.165 — 2026-11-08 · Receipt export and LATU preview
+
+Muusia now offers 72 × 100 mm and 72 × 250 mm receipt canvas presets. Its Print
+section rasterizes the selected node to a 512-dot monochrome receipt. A receipt
+JSON file can be downloaded without hardware; a local Raspberry Pi service can
+send the same pixels as ESC/POS to a TM-T88V over USB. The public Muusia origin
+is allowed through the print service's token-protected local CORS gate. LATU
+opens the JSON file or the resulting ESC/POS stream in a read-only preview; it
+does not turn receipt pixels into editable G-code strokes.
+
+The local production Muusia exported a 512 × 711-dot receipt from a 72 × 100 mm
+Grid canvas, and the local LATU opened it with the expected image, dimensions,
+length and cut setting. LATU's 74 tests, two print-server tests including public
+origin preflight, catalog (359 keys), production build, and 37,913 Learn checks
+across 90 English pages passed. No Epson has been connected or physically tested.
+
 ### 2.164 — 2026-11-07 · PDF import and direct drawing placement
 
 Import PDF reads vector paths page by page and exposes Page, Fit, Size, Rotation,

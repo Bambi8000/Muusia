@@ -14,6 +14,8 @@ import { buildTimeline, sampleTimeline } from "./sim.js";
 import { ActionMenu, Icon, SelectionInspector } from "./editor-controls.jsx";
 import ResumePanel from "./resume-panel.jsx";
 import { buildContinuation, continuationFilename, continuationStartup, resumeLocation, resumeTargetForSelection } from "./resume.js";
+import ReceiptPreview from "./receipt-preview.jsx";
+import { parseEscPos, parseReceiptJson } from "./receipt.js";
 
 const EMPTY = `; LATU\n; Open a Muusia .gcode file to inspect its toolpath.\n`;
 
@@ -63,6 +65,7 @@ export default function App() {
   const [selectedEventIds, setSelectedEventIds] = useState([]);
   const [selectedPoints, setSelectedPoints] = useState([]);
   const [message, setMessage] = useState("");
+  const [receiptFile, setReceiptFile] = useState(null);
   const [move, setMove] = useState({ x: 0, y: 0 });
   const [scaleOpen, setScaleOpen] = useState(false);
   const [eventsOpen, setEventsOpen] = useState(false);
@@ -87,6 +90,7 @@ export default function App() {
   const [draftPoints, setDraftPoints] = useState([]);
   const [scaleOptions, setScaleOptions] = useState({ mode: "factor", sx: 1, sy: 1, uniform: true, angle: 0, width: 297, height: 420, margin: 0, preserveAspect: true, anchor: "center", customX: 0, customY: 0 });
   const inputRef = useRef(null);
+  const receiptInputRef = useRef(null);
   const combineInputRef = useRef(null);
   const fileHandleRef = useRef(null);
   const parseTimer = useRef(null);
@@ -156,6 +160,15 @@ export default function App() {
     else if (!options.additive) setSelectedEventIds([]);
   };
   const loadFile = async (file, handle = null) => loadText(await file.text(), file.name, handle);
+  const loadReceiptFile = async (file) => {
+    try {
+      const receipt = /\.escpos$/i.test(file.name) ? parseEscPos(await file.arrayBuffer()) : parseReceiptJson(await file.text());
+      setReceiptFile({ name: file.name, receipt });
+      setMessage(`Opened receipt preview · ${receipt.height} rows`);
+    } catch (error) {
+      setReceiptFile({ name: file.name, error: error.message || String(error) });
+    }
+  };
 
   const combineFiles = async (files) => {
     const items = await Promise.all([...files].map(async (file) => ({ name: file.name, source: await file.text() })));
@@ -345,7 +358,7 @@ export default function App() {
     return () => cancelAnimationFrame(frame);
   }, [playing, playbackSpeed, timeline.total]);
 
-  return <div className={`app${playbackOpen ? " playback-shown" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const files = event.dataTransfer.files; if (files.length > 1) combineFiles(files); else if (files[0]) loadFile(files[0]); }}>
+  return <div className={`app${playbackOpen ? " playback-shown" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const files = event.dataTransfer.files; if (files.length > 1) combineFiles(files); else if (files[0]) { if (/\.(muusia-receipt\.json|escpos)$/i.test(files[0].name)) loadReceiptFile(files[0]); else loadFile(files[0]); } }}>
     <header className="editor-header">
       <div className="document-bar">
         <div className="brand"><span className="brand-mark">L</span><div><strong>LATU</strong><small>G-code editor</small></div></div>
@@ -371,6 +384,8 @@ export default function App() {
           <button className="quiet" onClick={() => setEventsOpen(true)} disabled={visualLocked}><Icon name="plus" /> Event</button>
         </div>
         <ActionMenu label="Document" icon="page">
+          <div className="menu-heading">Receipt</div>
+          <button onClick={() => receiptInputRef.current?.click()}>Open receipt preview…</button>
           <div className="menu-heading">Resume a stopped drawing</div>
           <button onClick={openResume} disabled={!doc.strokes.length}>Continue from here…</button>
           <div className="menu-heading">Canvas & drawing</div>
@@ -395,6 +410,7 @@ export default function App() {
         </div>
       </div>
       <input ref={inputRef} type="file" accept=".gcode,.gc,.nc,text/plain" hidden onChange={(event) => event.target.files[0] && loadFile(event.target.files[0])} />
+      <input ref={receiptInputRef} type="file" accept=".muusia-receipt.json,.escpos,application/json,application/octet-stream" hidden onChange={(event) => { if (event.target.files[0]) loadReceiptFile(event.target.files[0]); event.target.value = ""; }} />
       <input ref={combineInputRef} type="file" accept=".gcode,.gc,.nc,text/plain" multiple hidden onChange={(event) => { if (event.target.files.length) combineFiles(event.target.files); event.target.value = ""; }} />
     </header>
     <main className={`workspace mode-${paneMode}`}>
@@ -430,6 +446,7 @@ export default function App() {
       </div>
     </main>
     {playbackOpen && <PlaybackPanel timeline={timeline} time={playbackTime} playing={playing} speed={playbackSpeed} autoFollow={autoFollow} penWidths={penWidths} paperColor={paperColor} onPaperColor={setPaperColor} onPenWidth={(penIndex, width) => setPenWidths((values) => ({ ...values, [penIndex]: Math.max(.05, Math.min(20, Number(width) || .3)) }))} onTime={seekPlayback} onPlaying={changePlaying} onSpeed={setPlaybackSpeed} onAutoFollow={setAutoFollow} onClose={() => { setPlaybackOpen(false); setPlaying(false); }} onChapter={(chapter) => { seekPlayback(chapter.time); setSelectedLine(chapter.lineIndex); }} />}
+    {receiptFile && <ReceiptPreview file={receiptFile} onClose={() => setReceiptFile(null)} />}
     <footer className="statusbar">
       <span>{stats.join(" · ")}</span>
       <span>{safety.length ? `⚠ ${safety.length} safety warning${safety.length === 1 ? "" : "s"}` : "Dialect OK"}</span>
