@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.166",
+    "version": "2.168",
     "date": "2026-11-09",
-    "commit": "f4305cb6e057c98e75dd3774e395679591812565",
-    "pagesRunId": 42582131828,
+    "commit": "dd530036e61db6206cfda3b4a256c4f35524e535",
+    "pagesRunId": 42634974420,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.166 numbered receipt animation export and LATU ZIP playback; exact Pages run succeeded"
+    "status": "verified public Muusia 2.168 and Liike receipt animation view; exact Pages run attempt 2 succeeded"
   },
   "lastIntegration": {
-    "version": "2.166",
+    "version": "2.168",
     "date": "2026-11-09",
-    "baseCommit": "d968e2d1a67de75eaa4bcb25c15c2c8f008bc64b",
-    "branch": "codex/receipt-animation",
-    "worktree": "/private/tmp/muusia-receipt-animation",
+    "baseCommit": "c9ce8e8a30e009ea79c4d20bfc308f187c0785ad",
+    "branch": "codex/liike-receipt-animation",
+    "worktree": "/private/tmp/muusia-liike-receipt",
     "published": true,
-    "status": "Muusia 2.166 receipt animation export and LATU ZIP playback published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.166 (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.168 Liike receipt animation published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.168-pi-print (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 357,
     "registryCount": 359,
-    "validation": "LATU 75 tests, actual local 3-frame 512 x 741-dot receipt ZIP opened and played in LATU with frame numbers and crop marks, catalog, production builds, 37913 Learn checks / 90 English pages. Public Muusia v2.166 and LATU ZIP playback verified. Epson hardware remains untested.",
+    "validation": "Liike 154 tests and build, catalog, root build and 37913 Learn checks passed. Local three-photo receipt sequence sorted and exported; public Liike receipt view and Muusia v2.168 verified. Epson hardware remains untested.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "f4305cb6e057c98e75dd3774e395679591812565"
+    "commit": "dd530036e61db6206cfda3b4a256c4f35524e535"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

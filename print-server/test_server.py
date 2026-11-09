@@ -5,6 +5,8 @@ import tempfile
 import threading
 import time
 import unittest
+import zipfile
+import io
 from http.server import ThreadingHTTPServer
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -13,6 +15,23 @@ import server
 
 
 class PrintServerTests(unittest.TestCase):
+    def test_inspect_receipt_json_and_zip_rejects_bad_members(self):
+        receipt = {"format": "muusia-receipt", "version": 1, "width": 512, "height": 1,
+                   "data": base64.b64encode(bytes([0x80]) + bytes(63)).decode(), "cut": False}
+        raw = json.dumps(receipt).encode()
+        self.assertEqual(server.inspect_file("card.muusia-receipt.json", raw)[0]["height"], 1)
+        archive_bytes = io.BytesIO()
+        with zipfile.ZipFile(archive_bytes, "w") as archive:
+            archive.writestr("a/f001.muusia-receipt.json", raw)
+            archive.writestr("b/f002.muusia-receipt.json", raw)
+        self.assertEqual(len(server.inspect_file("frames.zip", archive_bytes.getvalue())), 2)
+        with zipfile.ZipFile(archive_bytes, "a") as archive:
+            archive.writestr("bad.txt", b"not a receipt")
+        with self.assertRaisesRegex(ValueError, "unsupported"):
+            server.inspect_file("frames.zip", archive_bytes.getvalue())
+        with self.assertRaisesRegex(ValueError, "Bitmap byte count"):
+            server.inspect_file("bad.json", json.dumps({**receipt, "data": "AA=="}).encode())
+
     def test_escpos_image_chunks_and_cuts(self):
         pixels = bytes([0x80]) + bytes(512 * 257 // 8 - 1)
         output = server.escpos_image(512, 257, pixels)
@@ -64,6 +83,26 @@ class PrintServerTests(unittest.TestCase):
                     self.assertEqual(response.headers["Access-Control-Allow-Private-Network"], "true")
                 with urlopen(Request(base + "/health", headers={"X-Muusia-Token": "test-token", "Origin": public_origin}), timeout=2) as response:
                     self.assertEqual(response.status, 200)
+                    self.assertEqual(json.load(response)["mode"], "test file")
+                with urlopen(base + "/", timeout=2) as response:
+                    self.assertIn(b"Muusia Print", response.read())
+                    self.assertIn("default-src 'none'", response.headers["Content-Security-Policy"])
+                with urlopen(Request(base + "/api/jobs", headers={"X-Muusia-Token": "test-token"}), timeout=2) as response:
+                    self.assertTrue(any(job["id"] == job_id for job in json.load(response)["jobs"]))
+                with urlopen(Request(base + "/api/jobs/" + job_id + "/receipt", headers={"X-Muusia-Token": "test-token"}), timeout=2) as response:
+                    self.assertEqual(json.load(response)["data"], base64.b64encode(bytes([0x80]) + bytes(63)).decode())
+                waiting_id = "a" * 32
+                with server.jobs_lock:
+                    server.jobs[waiting_id] = {"id": waiting_id, "status": "queued", "name": "Waiting", "height": 1,
+                                               "width": 512, "cut": False, "createdAt": time.time()}
+                with urlopen(Request(base + "/api/jobs/" + waiting_id, method="DELETE", headers={"X-Muusia-Token": "test-token"}), timeout=2) as response:
+                    self.assertEqual(json.load(response)["status"], "cancelled")
+                with server.jobs_lock:
+                    server.jobs.pop(waiting_id, None)
+                with urlopen(Request(base + "/api/inspect", data=json.dumps({"format": "muusia-receipt", "version": 1,
+                         "width": 512, "height": 1, "data": base64.b64encode(bytes(64)).decode()}).encode(), headers={
+                             "X-Muusia-Token": "test-token", "X-Muusia-Filename": "test.muusia-receipt.json"}), timeout=2) as response:
+                    self.assertEqual(len(json.load(response)["receipts"]), 1)
                 with self.assertRaises(HTTPError) as wrong_origin:
                     urlopen(Request(base + "/health", headers={"X-Muusia-Token": "test-token", "Origin": "https://example.com"}), timeout=2)
                 self.assertEqual(wrong_origin.exception.code, 403)

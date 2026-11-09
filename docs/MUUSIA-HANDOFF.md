@@ -264,6 +264,27 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### W — 2026-11-09 · Raspberry Pi Muusia Print dashboard
+
+`print` (Raspberry Pi 3, Raspberry Pi OS 64-bit / Debian 13) now runs a
+headless Python user service at `127.0.0.1:8631`, with linger enabled for boot.
+The Mac reaches it through an SSH tunnel on local port 8633. The dashboard
+accepts Muusia receipt JSON or animation ZIP, PNG/JPEG/WebP images, text and
+an Epson stress card. It previews bitmaps and frame sequences, queues up to
+64 jobs, displays recent status, and can cancel waiting jobs. Imported receipt
+files are validated before queueing. The service token remains on the Pi;
+the dashboard holds it only in the browser tab session. Job history is in
+memory and clears on service restart.
+
+The Pi is currently in dry-run mode: it writes ESC/POS bytes to
+`/home/print/muusia-print/test-output.escpos`, never to USB. The live Pi
+accepted a test job and wrote bytes exactly matching the encoder. A 12-frame
+Muusia ZIP was previewed and fully queued locally; text, image and test-card
+previews were checked. Python server tests, JavaScript syntax and shell syntax
+passed. Epson hardware, USB class, paper, cutter and actual print quality
+remain untested. See `docs/MUUSIA-PRINT.md` for access and the later device
+switch.
+
 ### 2.168 — 2026-11-09 · Liike thermal receipt animation
 
 Liike has a new Receipt animation workflow for photographs of Muusia's
@@ -275,6 +296,10 @@ center on a shared canvas while retaining each source photo and its changing
 surroundings; edge colors cover alignment gaps. Playback and existing GIF,
 video and PNG ZIP exports use the assembled sequence. No original photos are
 sent to a server.
+
+Source commit `dd530036e61db6206cfda3b4a256c4f35524e535` was published
+by Pages run `42634974420` (attempt 2, success). The public Liike receipt
+view and Muusia v2.168 were verified.
 
 Focused tests cover receipt tick detection amid artwork and full-photo
 centering/edge coverage. Real local UI tests used three photos constructed
