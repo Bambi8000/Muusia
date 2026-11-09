@@ -183,14 +183,25 @@
     finally { await refresh(); previewCurrent(); }
   }
 
+  async function cutPaper() {
+    if (!state.health?.ready) return;
+    const button = $('#cut-only'); button.disabled = true;
+    try {
+      await api('/api/cut', { method: 'POST' });
+      message('Cut command added to the queue. TM-T88V leaves a small edge tab.');
+      await refresh();
+    } catch (error) { message(error.message, true); }
+    finally { button.disabled = !state.health?.ready; }
+  }
+
   function jobElement(job) {
     const row = document.createElement('div'); row.className = 'job-row';
-    const icon = document.createElement('span'); icon.className = 'job-icon'; icon.textContent = '▤'; row.append(icon);
+    const icon = document.createElement('span'); icon.className = 'job-icon'; icon.textContent = job.kind === 'cut' ? '✂' : '▤'; row.append(icon);
     const info = document.createElement('div'); const title = document.createElement('div'); title.className = 'job-name'; title.textContent = job.name || 'Receipt';
-    const meta = document.createElement('div'); meta.className = 'job-meta'; meta.textContent = `${job.width || 512} × ${job.height} dots · ${new Date(job.createdAt * 1000).toLocaleTimeString()}${job.error ? ` · ${job.error}` : ''}`;
+    const meta = document.createElement('div'); meta.className = 'job-meta'; meta.textContent = `${job.kind === 'cut' ? 'Cutter command' : `${job.width || 512} × ${job.height} dots`} · ${new Date(job.createdAt * 1000).toLocaleTimeString()}${job.error ? ` · ${job.error}` : ''}`;
     info.append(title, meta); row.append(info);
     const actions = document.createElement('div'); actions.className = 'job-actions'; const status = document.createElement('span'); status.className = `job-status ${job.status}`; status.textContent = job.status; actions.append(status);
-    const preview = document.createElement('button'); preview.textContent = 'Preview'; preview.addEventListener('click', async () => { try { const receipt = await api(`/api/jobs/${job.id}/receipt`); stage([{ ...receipt, name: job.name }], 'Loaded a previous job for preview.'); } catch (error) { message(error.message, true); setView('dashboard'); } }); actions.append(preview);
+    if (job.kind !== 'cut') { const preview = document.createElement('button'); preview.textContent = 'Preview'; preview.addEventListener('click', async () => { try { const receipt = await api(`/api/jobs/${job.id}/receipt`); stage([{ ...receipt, name: job.name }], 'Loaded a previous job for preview.'); } catch (error) { message(error.message, true); setView('dashboard'); } }); actions.append(preview); }
     if (job.status === 'queued') { const cancel = document.createElement('button'); cancel.textContent = 'Cancel'; cancel.addEventListener('click', async () => { try { await api(`/api/jobs/${job.id}`, { method: 'DELETE' }); await refresh(); } catch (error) { message(error.message, true); setView('dashboard'); } }); actions.append(cancel); }
     row.append(actions); return row;
   }
@@ -223,6 +234,7 @@
       renderJobs();
       $('#queue-current').disabled = !state.receipts.length || !health.ready;
       $('#queue-all').disabled = !state.receipts.length || !health.ready;
+      $('#cut-only').disabled = !health.ready;
     } catch (error) {
       $('#sidebar-dot').classList.remove('online'); $('#sidebar-status').textContent = 'Disconnected';
       if (/Invalid print token|not configured/.test(error.message)) { $('#connect-screen').classList.remove('hidden'); $('#connect-error').textContent = error.message; }
@@ -249,6 +261,7 @@
   $('#make-text').addEventListener('click', makeText); $('#make-test').addEventListener('click', makeTest);
   $('#frame-select').addEventListener('change', event => { state.selected = Number(event.target.value); previewCurrent(); });
   $('#queue-current').addEventListener('click', () => addToQueue(false)); $('#queue-all').addEventListener('click', () => addToQueue(true));
+  $('#cut-only').addEventListener('click', cutPaper);
   $('#refresh-jobs').addEventListener('click', refresh);
   $('#server-address').textContent = location.origin;
   try { state.token = sessionStorage.getItem('muusia-print-token') || ''; } catch { /* Private browsing can disable storage. */ }

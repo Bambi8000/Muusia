@@ -6,6 +6,12 @@ config_dir="$HOME/.config"
 service_dir="$config_dir/systemd/user"
 env_file="$config_dir/muusia-print.env"
 
+if ! id -nG | tr ' ' '\n' | grep -qx lp; then
+    printf 'Add %s to the lp group first: sudo usermod -aG lp %s\n' "$(id -un)" "$(id -un)" >&2
+    printf 'Then start a new SSH login and run setup-pi.sh again.\n' >&2
+    exit 1
+fi
+
 mkdir -p "$service_dir"
 install -m 644 "$here/muusia-print.service" "$service_dir/muusia-print.service"
 

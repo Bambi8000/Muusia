@@ -38,7 +38,7 @@ class PrintServerTests(unittest.TestCase):
         self.assertEqual(output[:10], b"\x1b@\x1dv0\x00\x40\x00\x00\x01")
         self.assertEqual(output[10], 0x80)
         self.assertEqual(output[10 + 256 * 64:10 + 256 * 64 + 8], b"\x1dv0\x00\x40\x00\x01\x00")
-        self.assertTrue(output.endswith(b"\x1bJ\x70\x1dV\x00"))
+        self.assertTrue(output.endswith(b"\x1dV\x41\x20"))
 
     def test_http_queue_auth_and_file_output(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -71,6 +71,21 @@ class PrintServerTests(unittest.TestCase):
                 self.assertEqual(status, "done")
                 with open(output_path, "rb") as result:
                     self.assertEqual(result.read(), server.escpos_image(512, 1, bytes([0x80]) + bytes(63), False))
+                before_cut = os.path.getsize(output_path)
+                with urlopen(Request(base + "/api/cut", data=b"", method="POST", headers=headers), timeout=2) as response:
+                    self.assertEqual(response.status, 202)
+                    cut_id = json.load(response)["id"]
+                for _ in range(50):
+                    with urlopen(Request(base + "/api/jobs/" + cut_id, headers=headers), timeout=2) as response:
+                        cut_job = json.load(response)
+                    if cut_job["status"] == "done":
+                        break
+                    time.sleep(0.01)
+                self.assertEqual(cut_job["kind"], "cut")
+                self.assertEqual(cut_job["status"], "done")
+                with open(output_path, "rb") as result:
+                    result.seek(before_cut)
+                    self.assertEqual(result.read(), b"\x1dV\x00")
                 public_origin = "https://bambi8000.github.io"
                 preflight = Request(base + "/api/jobs", method="OPTIONS", headers={
                     "Origin": public_origin,

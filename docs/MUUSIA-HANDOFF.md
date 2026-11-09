@@ -264,6 +264,32 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### W — 2026-11-09 · Epson TM-T88V USB printing and cutter
+
+The Raspberry Pi 3 now sees the Epson TM-T88V (`04b8:0202`) as `/dev/usb/lp0`.
+The `print` user joined the `lp` group. Its systemd user service runs Python
+through `sg lp`, giving the print process device access without terminating the
+user session. The private environment file selects `MUUSIA_PRINT_DEVICE` and
+no longer selects dry-run file output. The dashboard has a standalone **Cut
+paper** button that queues only `GS V 0`, without paper feed.
+
+The first physical test exposed a short 112-dot fixed feed: the cutter reached
+the drawing. Normal receipt cutting now uses `GS V 65 32`, letting the TM-T88V
+feed to its cutter position with 32 extra dots before cutting. A HELLO WORLD
+receipt, the Epson thermal test card and one Muusia receipt image were sent
+through the USB service. Daniel confirmed all three images printed cleanly and
+the cuts were below the artwork. A separate full-cut request (`GS V 0`) after
+200 blank feed rows still left one edge tab. This matches Epson's specified
+partial-cut mechanism for TM-T88V; a software full-cut setting did not detach
+the paper completely. The three original receipt bitmaps are preserved on the
+Pi in `~/muusia-print/first-usb-prints-2026-11-09.json` with mode 0600.
+
+The focused Python tests check receipt raster output and exact cut-only bytes;
+JavaScript and shell syntax checks pass. The Pi intermittently reports
+`throttled=0x50005` (current undervoltage/throttling as well as history).
+Daniel explicitly asked to proceed despite that warning. Printer status and
+paper-out reporting are still not implemented.
+
 ### W — 2026-11-09 · Raspberry Pi Muusia Print dashboard
 
 `print` (Raspberry Pi 3, Raspberry Pi OS 64-bit / Debian 13) now runs a

@@ -4,7 +4,7 @@ Description=Muusia thermal receipt print server
 [Service]
 Type=simple
 EnvironmentFile=%h/.config/muusia-print.env
-ExecStart=/usr/bin/python3 %h/muusia-print/server.py
+ExecStart=/usr/bin/sg lp -c "/usr/bin/python3 %h/muusia-print/server.py"
 Restart=on-failure
 RestartSec=3
 

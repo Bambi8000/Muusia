@@ -1,6 +1,6 @@
 # Muusia Print: Raspberry Pi -tulostussivu
 
-Tila 9.11.2026: Muusian valitun solmun viivat voidaan rasteroida 512 pisteen levyiseksi mustavalkoiseksi kuittikuvaksi. Raspberry Pi:n Muusia Print -sivulla voi esikatsella kuitteja, kuvia, tekstiä ja testikorttia sekä lisätä niitä tulostusjonoon. Ilman Epsonia palvelin toimii kuivatestitilassa ja tallentaa ESC/POS-komennot tiedostoon. Epson TM-T88V:tä ei ole vielä kytketty tai testattu.
+Tila 9.11.2026: Raspberry Pi 3:n Muusia Print -sivu tulostaa Epson TM-T88V:lle USB:n kautta. Sivulla voi esikatsella kuitteja, kuvia, tekstiä ja testikorttia sekä lisätä niitä tulostusjonoon. Kolme talteen otettua työtä — teksti, Epson-testikortti ja Muusia-kuitti — tulostettiin oikealle paperille. Käyttäjä vahvisti, että kuvat ja leikkaukset tulivat siististi. Erillinen täyden leikkauksen komento testattiin: laite jätti edelleen yhden reunakielekkeen, kuten TM-T88V:n osittaisleikkaukselta odotetaan. Pi ilmoittaa ajoittaista alijännitettä; käyttäjä pyysi jatkamaan tulostusta siitä huolimatta.
 
 `DOWNLOAD RECEIPT FILE` tallentaa saman bittikuvan `*.muusia-receipt.json`-tiedostoksi ilman tulostinta. Tiedosto sisältää `format`, `version`, `width`, `height`, Base64-muotoisen 1-bittisen `data`-kentän ja `cut`-valinnan. Latu näyttää tiedoston kohdasta **Document → Open receipt preview…**. Latu voi myös avata tämän palvelimen tuottaman `.escpos`-tavuvirran esikatseluun; kumpaakaan muotoa ei tulkita G-codeksi tai muokattaviksi viivoiksi.
 
@@ -17,12 +17,12 @@ Ensimmäistä Epsonin laitetestiä varten avaa valmis esimerkki **Help → Test 
 ## Paperi ja tulostin
 
 - Epsonin mukaan 80 mm:n paperin todellinen leveys on 79,5 ± 0,5 mm, rullan suurin halkaisija 83 mm ja hylsyn sisähalkaisija 12 mm. Tulostettava alue on 512 pistettä eli noin 72 mm. Tarkista rullan hylsy ja lämpöherkkä puoli ennen hankintaa. [TM-T88V Technical Reference Guide](https://download4.epson.biz/sec_pubs/bs/pdf/TM-T88V_trg_en_revG.pdf)
-- Ohjelma käyttää ESC/POSin `GS v 0` -kuvakomentoa ja `GS V` -leikkauskomentoa. Epson merkitsee `GS v 0`:n vanhentuneeksi mutta TM-T88V:n tukemaksi; uudempi grafiikkakomento on jatkokehityksen vaihtoehto. [TM-T88V:n komennot](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/tmt88v.html)
+- Ohjelma käyttää ESC/POSin `GS v 0` -kuvakomentoa. Tavallisen kuitin leikkaus käyttää `GS V 65 32` -komentoa: tulostin syöttää paperin leikkuriin, lisää 32 pisteen marginaalin ja leikkaa. Alkuperäinen kiinteä 112 pisteen syöttö leikkasi ensimmäisen laitetestin kuvion keskeltä. Erillinen **Cut paper** lähettää vain `GS V 0` -komennon eikä syötä paperia. TM-T88V jättää leikatun kuitin reunaan pienen kiinnikkeen; tämä on mallin normaali osittaisleikkaus. [Epsonin leikkauskomennot](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/gs_cv.html), [TM-T88V Technical Reference Guide](https://download4.epson.biz/sec_pubs/bs/pdf/TM-T88V_trg_en_revG.pdf)
 - Lähtökohtana on 80 mm:n paperiasetus. Jos käytetty tulostin on vaihdettu 58 mm:n asetukseen, 512 pisteen kuva ei mahdu; varmista asetukset itsetestitulosteesta.
 
 ## Raspberry Pi -asennus
 
-Pi:lle riittää Python 3:n vakiokirjasto. Tiedostot asennetaan `print`-käyttäjän kotihakemiston `muusia-print`-kansioon. `setup-pi.sh` luo oman satunnaisen tunnuksen ja laittaa palvelun kirjoittamaan kuivatestissä `test-output.escpos`-tiedostoon. Tunnusta ei tallenneta Git-repositorioon. Palvelu kuuntelee Pi:n omassa `127.0.0.1:8631`-osoitteessa.
+Pi:lle riittää Python 3:n vakiokirjasto. Tiedostot asennetaan `print`-käyttäjän kotihakemiston `muusia-print`-kansioon. Lisää käyttäjä ensin `lp`-ryhmään komennolla `sudo usermod -aG lp print` ja avaa uusi SSH-istunto. `setup-pi.sh` luo oman satunnaisen tunnuksen ja laittaa uuden asennuksen kirjoittamaan kuivatestissä `test-output.escpos`-tiedostoon. Tunnusta ei tallenneta Git-repositorioon. Palvelu kuuntelee Pi:n omassa `127.0.0.1:8631`-osoitteessa. Käyttäjäpalvelu käynnistää Pythonin `lp`-ryhmässä ilman koko käyttäjäistunnon katkaisua.
 
 ```sh
 cd ~/muusia-print
@@ -45,16 +45,16 @@ Avaa selaimessa `http://127.0.0.1:8633/`. Tämän Macin portti 8631 on varattu t
 - **Text** tekee yksinkertaisen tekstikuitin selaimessa.
 - **Test card** luo tiheät viivat, ruudukot, kaaret, harmaasävyruudut ja tummat palkit Epsonin ensimmäistä laitetestiä varten.
 - **Print queue** näyttää odottavat, käynnissä olevat ja valmistuneet työt. Odottavan työn voi perua, ja aiemman työn esikatsella tai lisätä jonoon uudelleen.
+- **Cut paper** lisää jonoon vain `GS V 0` -leikkauskomennon. Se leikkaa nykyisestä kohdasta eikä syötä kuvaa pidemmälle paperista ulos. Täyden leikkauksen pyyntö jätti todellisessa testissä TM-T88V:n normaalin reunakielekkeen; sitä ei voi poistaa tällä komennolla.
 
 Jono ja työhistoria ovat Pi:n muistissa: palvelun uudelleenkäynnistys tyhjentää ne. Yksittäinen kuva saa olla enintään 512 × 4096 pistettä. Jonoon mahtuu 64 odottavaa työtä ja historiaan 100 työtä. `done` tarkoittaa, että ESC/POS-tavut on kirjoitettu tiedostoon tai USB-laitteelle; se ei todista paperitulosteen laatua. Kuivatestitiedostoon kertyy kaikkien töiden tavut peräkkäin.
 
-## Ensimmäinen laitetesti
+## USB-tulostus
 
-1. Kun Epson on hankittu, varmista tulostimen omalla itsetestillä paperi, USB-tila ja automaattileikkuri. Kytke 24 V virtalähde ja USB-B-kaapeli. Tarkista Pi:llä `ls -l /dev/usb/lp*`. Palvelin käyttää USB Printer Class -laitetta; TM-T88V voi olla myös Vendor Class -tilassa, jolloin `/dev/usb/lp0` ei synny. Tarkista USB-luokka tulostimen asetuksista. Varmista tarvittaessa, että `print`-käyttäjä kuuluu `lp`-ryhmään. [Epsonin USB-luokat](https://download4.epson.biz/sec_pubs/bs/pdf/TM-T88V_trg_en_revG.pdf)
-2. Avaa Muusia, valitse pieni viivapiirros ja jätä Mega Canvas pois. Tulostus skaalautuu 72 mm:n tulostusleveyteen. Enimmäispituus on noin 58 cm; aloita paljon lyhyemmällä kuvalla.
-3. Syötä palvelimen token ja paina `PRINT RECEIPT`. Halutessasi poista `Cut after print` -valinta ensimmäisessä testissä.
-4. Vaihda vasta tässä vaiheessa Pi:n `~/.config/muusia-print.env`-tiedoston `MUUSIA_PRINT_OUTPUT_FILE=...`-rivi muotoon `MUUSIA_PRINT_DEVICE=/dev/usb/lp0` ja käynnistä palvelu uudelleen komennolla `systemctl --user restart muusia-print.service`. Tarkista tarvittaessa `journalctl --user -u muusia-print.service -n 50`. `/health` ja `/api/jobs/<id>` vaativat saman tunnuksen.
+Tällä Pi:llä Epson näkyy USB-tunnisteella `04b8:0202`, tuotteen nimi on `TM-T88V` ja laitepolku on `/dev/usb/lp0`. Palvelun ympäristötiedostossa `~/.config/muusia-print.env` on `MUUSIA_PRINT_DEVICE=/dev/usb/lp0`, eikä kuivatestin `MUUSIA_PRINT_OUTPUT_FILE` ole enää käytössä. Jos tulostin irrotetaan tai laitepolku vaihtuu, tarkista `lsusb`, `ls -l /dev/usb/lp*`, `systemctl --user status muusia-print.service` ja `journalctl --user -u muusia-print.service -n 50`. Uudella Pi-asennuksella vaihda ympäristötiedoston kuivatestirivi USB-laitepolkuun vasta, kun laite tunnistuu.
+
+Muusiassa valitse pieni viivapiirros ja jätä Mega Canvas pois. Tulostus skaalautuu 72 mm:n tulostusleveyteen. Enimmäispituus on noin 58 cm; aloita paljon lyhyemmällä kuvalla. Käytä tämän Macin palvelinosoitetta `http://127.0.0.1:8633` ja Pi:n tunnusta. Tulostussivun työt kulkevat saman palvelun kautta. `/health` ja `/api/jobs/<id>` vaativat saman tunnuksen.
 
 ## Rajat ja seuraava vaihe
 
-Muusian oma tulostuspolku käsittelee viivat mustina riippumatta kynäväristä. Dashboardin kuvat muunnetaan mustavalkoisiksi selaimessa. Epsonin USB-tila, paperin lämpöherkkä puoli, tulostusjälki, leikkuri ja tilalukeminen odottavat fyysistä laitetestiä.
+Muusian oma tulostuspolku käsittelee viivat mustina riippumatta kynäväristä. Dashboardin kuvat muunnetaan mustavalkoisiksi selaimessa. Palvelun `done` kertoo, että tavut menivät USB-laitteelle; Epsonin oma tila ja paperin loppuminen eivät vielä palaudu sivulle. Pi on raportoinut arvon `throttled=0x50005` eli ajoittaista alijännitettä ja hidastumista. [Raspberry Pi:n virtalähdesuositus Pi 3:lle](https://www.raspberrypi.com/documentation/computers/getting-started.html)

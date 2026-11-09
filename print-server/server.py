@@ -104,8 +104,9 @@ def escpos_image(width, height, pixels, cut=True):
         out.extend((0x1D, 0x76, 0x30, 0, stride & 255, stride >> 8, rows & 255, rows >> 8))
         out.extend(pixels[row * stride:(row + rows) * stride])
     if cut:
-        # The cutter sits about 14 mm after the head on TM-T88V.
-        out.extend(b"\x1bJ\x70\x1dV\x00")  # feed 112 dots, then cut
+        # TM-T88V GS V Function B advances to its cutter position, adds 32 dots
+        # of white margin, then cuts. A fixed 112-dot feed cut into real output.
+        out.extend(b"\x1dV\x41\x20")
     return bytes(out)
 
 
@@ -128,7 +129,7 @@ def print_worker():
             jobs[job_id]["status"] = "printing"
             jobs[job_id]["startedAt"] = time.time()
         try:
-            data = escpos_image(WIDTH, image[0], image[1], cut)
+            data = b"\x1dV\x00" if image is None else escpos_image(WIDTH, image[0], image[1], cut)
             file_output = os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")
             if file_output:
                 fd = os.open(file_output, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
@@ -258,8 +259,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self._authorized():
             return
-        if self.path not in ("/api/jobs", "/api/inspect"):
+        if self.path not in ("/api/jobs", "/api/inspect", "/api/cut"):
             self._json(404, {"error": "Not found"})
+            return
+        if self.path == "/api/cut":
+            if self.headers.get("Content-Length", "0") != "0":
+                self._json(400, {"error": "Cut command takes no body"})
+                return
+            self._enqueue("Cut paper", 0, None, True, "cut")
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
@@ -280,6 +287,9 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, TypeError, binascii.Error, json.JSONDecodeError) as exc:
             self._json(400, {"error": str(exc)})
             return
+        self._enqueue(name, height, pixels, cut, "receipt")
+
+    def _enqueue(self, name, height, pixels, cut, kind):
         job_id = uuid.uuid4().hex
         queue_error = None
         with jobs_lock:
@@ -292,10 +302,13 @@ class Handler(BaseHTTPRequestHandler):
                     job_images.pop(oldest, None)
             if queue_error is None:
                 jobs[job_id] = {"id": job_id, "status": "queued", "name": name, "height": height,
-                                "width": WIDTH, "cut": cut, "createdAt": time.time()}
-                job_images[job_id] = pixels
+                                "width": WIDTH if pixels is not None else 0, "cut": cut,
+                                "kind": kind, "createdAt": time.time()}
+                if pixels is not None:
+                    job_images[job_id] = pixels
                 try:
-                    work.put_nowait((job_id, (height, pixels), cut))
+                    image = (height, pixels) if pixels is not None else None
+                    work.put_nowait((job_id, image, cut))
                 except queue.Full:
                     del jobs[job_id]
                     job_images.pop(job_id, None)
