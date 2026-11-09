@@ -280,6 +280,10 @@ the ZIP, stepped between frames and played the numbered sequence. LATU's 75
 tests, catalog (359 keys), production builds and 37,913 Learn checks across 90
 English pages passed. Epson hardware remains untested.
 
+Source commit `f4305cb6e057c98e75dd3774e395679591812565` was published by
+Pages run `42582131828` (success). Public Muusia showed v2.166 and Receipt × N;
+public LATU opened the three-frame receipt ZIP with playback controls.
+
 ### 2.165 — 2026-11-08 · Receipt export and LATU preview
 
 Muusia now offers 72 × 100 mm and 72 × 250 mm receipt canvas presets. Its Print

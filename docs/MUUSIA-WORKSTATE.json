@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.165",
-    "date": "2026-11-08",
-    "commit": "520bf7ad5e6b0ae1cd3b07b7189decc3ded6a75b",
-    "pagesRunId": 42520029380,
+    "version": "2.166",
+    "date": "2026-11-09",
+    "commit": "f4305cb6e057c98e75dd3774e395679591812565",
+    "pagesRunId": 42582131828,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.165 receipt canvas presets and export, and LATU receipt preview; exact Pages run succeeded"
+    "status": "verified public Muusia 2.166 numbered receipt animation export and LATU ZIP playback; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.165",
-    "date": "2026-11-08",
-    "baseCommit": "cdd3efc00f7592cf9626749d580fd0e899073944",
-    "branch": "codex/muusia-receipt-release",
-    "worktree": "/private/tmp/muusia-receipt-release",
+    "version": "2.166",
+    "date": "2026-11-09",
+    "baseCommit": "d968e2d1a67de75eaa4bcb25c15c2c8f008bc64b",
+    "branch": "codex/receipt-animation",
+    "worktree": "/private/tmp/muusia-receipt-animation",
     "published": true,
-    "status": "Muusia 2.165 receipt export and LATU receipt preview published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.165 (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.166 receipt animation export and LATU ZIP playback published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.166 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 357,
     "registryCount": 359,
-    "validation": "LATU 74 tests, print-server 2 tests, actual local 512 x 711-dot receipt export opened in LATU, catalog, production build, 37913 Learn checks / 90 English pages. Public Muusia v2.165 and LATU receipt controls verified. Epson hardware remains untested.",
+    "validation": "LATU 75 tests, actual local 3-frame 512 x 741-dot receipt ZIP opened and played in LATU with frame numbers and crop marks, catalog, production builds, 37913 Learn checks / 90 English pages. Public Muusia v2.166 and LATU ZIP playback verified. Epson hardware remains untested.",
     "note": "Published from a clean isolated branch; unrelated primary checkout changes were preserved.",
-    "commit": "520bf7ad5e6b0ae1cd3b07b7189decc3ded6a75b"
+    "commit": "f4305cb6e057c98e75dd3774e395679591812565"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
