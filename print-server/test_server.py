@@ -12,9 +12,52 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 import server
+import native_fonts
 
 
 class PrintServerTests(unittest.TestCase):
+    def test_native_font_programs_are_bounded_and_use_rom_commands(self):
+        self.assertEqual(set(native_fonts.TESTS), {"font-sample", "scaling-matrix", "typography-matrix", "character-pages"})
+        for test in native_fonts.TESTS.values():
+            self.assertLess(len(test.data), 5000)
+            self.assertTrue(test.data.startswith(b"\x1b@"))
+            self.assertTrue(test.data.endswith(b"\x1dV\x41\x20"))
+            self.assertIn(b"\x1bM\x00", test.data)
+            if test.id != "character-pages":
+                self.assertIn(b"\x1bM\x01", test.data)
+        matrix = native_fonts.TESTS["scaling-matrix"].data
+        for height in range(1, 9):
+            for width in range(1, 9):
+                self.assertEqual(matrix.count(b"\x1d!" + bytes((((width - 1) << 4) | (height - 1),)) + b"M"), 2)
+        pages = native_fonts.TESTS["character-pages"].data
+        self.assertIn(b"\x1bR\x05", pages)
+        self.assertIn(b"FI: [\\]{|}", pages)
+        self.assertIn(b"\x1d!\x11", pages)
+        for page in (0, 2, 5, 19):
+            self.assertIn(b"\x1bt" + bytes((page,)), pages)
+
+    def test_all_character_pages_and_native_composition(self):
+        self.assertEqual(len(native_fonts.CODE_PAGES), 42)
+        self.assertEqual(len(native_fonts.COUNTRIES), 18)
+        self.assertEqual(native_fonts.page_catalog()["userDefinedPage"], 255)
+        for page in native_fonts.CODE_PAGES:
+            self.assertEqual(len(native_fonts.page_glyphs(page)["glyphs"]), 224)
+        cyrillic = native_fonts.compose({"page": 17, "text": "Привет", "font": "A", "width": 2, "height": 2})
+        self.assertIn("Привет".encode("cp866"), cyrillic.data)
+        self.assertIn(b"\x1bt\x11", cyrillic.data)
+        icelandic = native_fonts.compose({"page": 35, "text": "Þór Ðýr", "font": "B", "country": 9})
+        self.assertIn("Þór Ðýr".encode("cp861"), icelandic.data)
+        self.assertIn(b"\x1bR\x09", icelandic.data)
+        katakana = native_fonts.compose({"page": 1, "hex": "80 81 FF", "cut": False})
+        self.assertIn(b"\x80\x81\xff", katakana.data)
+        self.assertFalse(katakana.data.endswith(b"\x1dV\x41\x20"))
+        with self.assertRaisesRegex(ValueError, "glyph byte codes"):
+            native_fonts.compose({"page": 1, "text": "カタカナ"})
+        with self.assertRaisesRegex(ValueError, "20–FF"):
+            native_fonts.compose({"page": 0, "hex": "1B 41"})
+        with self.assertRaisesRegex(ValueError, "24 printed lines"):
+            native_fonts.compose({"page": 0, "text": "A" * 1000, "width": 8})
+
     def test_inspect_receipt_json_and_zip_rejects_bad_members(self):
         receipt = {"format": "muusia-receipt", "version": 1, "width": 512, "height": 1,
                    "data": base64.b64encode(bytes([0x80]) + bytes(63)).decode(), "cut": False}
@@ -80,6 +123,54 @@ class PrintServerTests(unittest.TestCase):
                 with open(output_path, "rb") as result:
                     result.seek(before_cut)
                     self.assertEqual(result.read(), b"\x1dV\x00")
+                with urlopen(base + "/api/native-tests", timeout=2) as response:
+                    self.assertEqual(len(json.load(response)["tests"]), 4)
+                native = native_fonts.TESTS["font-sample"]
+                with urlopen(base + "/api/native-tests/font-sample", timeout=2) as response:
+                    self.assertEqual(json.load(response)["id"], native.id)
+                with urlopen(base + "/api/native-tests/font-sample/bin", timeout=2) as response:
+                    self.assertEqual(response.read(), native.data)
+                    self.assertIn("muusia-font-sample.bin", response.headers["Content-Disposition"])
+                before_native = os.path.getsize(output_path)
+                with urlopen(Request(base + "/api/native-tests/font-sample", data=b"", method="POST"), timeout=2) as response:
+                    native_id = json.load(response)["id"]
+                for _ in range(50):
+                    with urlopen(base + "/api/jobs/" + native_id, timeout=2) as response:
+                        native_status = json.load(response)["status"]
+                    if native_status == "done":
+                        break
+                    time.sleep(0.01)
+                self.assertEqual(native_status, "done")
+                with open(output_path, "rb") as result:
+                    result.seek(before_native)
+                    self.assertEqual(result.read(), native.data)
+                with urlopen(base + "/api/native-pages", timeout=2) as response:
+                    self.assertEqual(len(json.load(response)["pages"]), 42)
+                with urlopen(base + "/api/native-pages/35", timeout=2) as response:
+                    self.assertEqual(json.load(response)["name"], "PC861 · Icelandic")
+                composition = {"page": 17, "font": "A", "width": 2, "height": 2, "text": "Привет"}
+                composed = native_fonts.compose(composition)
+                content = json.dumps(composition).encode()
+                with urlopen(Request(base + "/api/native-compose/preview", data=content,
+                                     headers={"Content-Type": "application/json"}), timeout=2) as response:
+                    self.assertIn("Привет", json.load(response)["preview"][-1])
+                with urlopen(Request(base + "/api/native-compose/bin", data=content,
+                                     headers={"Content-Type": "application/json"}), timeout=2) as response:
+                    self.assertEqual(response.read(), composed.data)
+                before_compose = os.path.getsize(output_path)
+                with urlopen(Request(base + "/api/native-compose", data=content,
+                                     headers={"Content-Type": "application/json"}), timeout=2) as response:
+                    composed_id = json.load(response)["id"]
+                for _ in range(50):
+                    with urlopen(base + "/api/jobs/" + composed_id, timeout=2) as response:
+                        composed_status = json.load(response)["status"]
+                    if composed_status == "done":
+                        break
+                    time.sleep(0.01)
+                self.assertEqual(composed_status, "done")
+                with open(output_path, "rb") as result:
+                    result.seek(before_compose)
+                    self.assertEqual(result.read(), composed.data)
                 public_origin = "https://bambi8000.github.io"
                 preflight = Request(base + "/api/jobs", method="OPTIONS", headers={
                     "Origin": public_origin,

@@ -17,6 +17,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote
 
+import native_fonts
+
 
 WIDTH = 512
 MAX_HEIGHT = 4096
@@ -128,7 +130,12 @@ def print_worker():
             jobs[job_id]["status"] = "printing"
             jobs[job_id]["startedAt"] = time.time()
         try:
-            data = b"\x1dV\x00" if image is None else escpos_image(WIDTH, image[0], image[1], cut)
+            if image is None:
+                data = b"\x1dV\x00"
+            elif isinstance(image, bytes):
+                data = image
+            else:
+                data = escpos_image(WIDTH, image[0], image[1], cut)
             file_output = os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")
             if file_output:
                 fd = os.open(file_output, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
@@ -162,12 +169,14 @@ class Handler(BaseHTTPRequestHandler):
             return None
         return origin or ""
 
-    def _headers(self, status, length, content_type="application/json"):
+    def _headers(self, status, length, content_type="application/json", filename=None):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(length))
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
+        if filename:
+            self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
         self.send_header("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; form-action 'self'; base-uri 'none'")
         if self._origin():
             self.send_header("Access-Control-Allow-Origin", self._origin())
@@ -211,6 +220,30 @@ class Handler(BaseHTTPRequestHandler):
             with jobs_lock:
                 queued = sum(j["status"] == "queued" for j in jobs.values())
             self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device})
+        elif self.path == "/api/native-pages":
+            self._json(200, native_fonts.page_catalog())
+        elif re.fullmatch(r"/api/native-pages/\d+", self.path):
+            page = int(self.path.rsplit("/", 1)[-1])
+            if page in native_fonts.CODE_PAGES:
+                self._json(200, native_fonts.page_glyphs(page))
+            else:
+                self._json(404, {"error": "Character page not found"})
+        elif self.path == "/api/native-tests":
+            self._json(200, {"tests": native_fonts.catalog()})
+        elif re.fullmatch(r"/api/native-tests/[a-z0-9-]+/bin", self.path):
+            test_id = self.path.split("/")[3]
+            test = native_fonts.TESTS.get(test_id)
+            if not test:
+                self._json(404, {"error": "Native test not found"})
+            else:
+                self._headers(200, len(test.data), "application/octet-stream", f"muusia-{test.id}.bin")
+                self.wfile.write(test.data)
+        elif re.fullmatch(r"/api/native-tests/[a-z0-9-]+", self.path):
+            test_id = self.path.rsplit("/", 1)[-1]
+            if test_id in native_fonts.TESTS:
+                self._json(200, native_fonts.details(test_id))
+            else:
+                self._json(404, {"error": "Native test not found"})
         elif self.path == "/api/jobs":
             with jobs_lock:
                 listing = [dict(job) for job in jobs.values()]
@@ -254,6 +287,35 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self._origin_allowed():
             return
+        if self.path in ("/api/native-compose", "/api/native-compose/preview", "/api/native-compose/bin"):
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 5000:
+                    raise ValueError("Native text request is too large or empty")
+                test = native_fonts.compose(json.loads(self.rfile.read(length)))
+            except (ValueError, TypeError, json.JSONDecodeError) as exc:
+                self._json(400, {"error": str(exc)})
+                return
+            if self.path.endswith("/preview"):
+                self._json(200, {"name": test.name, "description": test.description,
+                                 "bytes": len(test.data), "preview": test.preview,
+                                 "previewNote": "Approximation only: the Epson renders its own ROM glyphs."})
+            elif self.path.endswith("/bin"):
+                self._headers(200, len(test.data), "application/octet-stream", "muusia-native-glyphs.bin")
+                self.wfile.write(test.data)
+            else:
+                self._enqueue(test.name, 0, None, test.data.endswith(b"\x1dV\x41\x20"), "native", raw=test.data)
+            return
+        if re.fullmatch(r"/api/native-tests/[a-z0-9-]+", self.path):
+            test_id = self.path.rsplit("/", 1)[-1]
+            test = native_fonts.TESTS.get(test_id)
+            if not test:
+                self._json(404, {"error": "Native test not found"})
+            elif self.headers.get("Content-Length", "0") != "0":
+                self._json(400, {"error": "Native test takes no body"})
+            else:
+                self._enqueue(test.name, 0, None, True, "native", raw=test.data)
+            return
         if self.path not in ("/api/jobs", "/api/inspect", "/api/cut"):
             self._json(404, {"error": "Not found"})
             return
@@ -284,7 +346,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         self._enqueue(name, height, pixels, cut, "receipt")
 
-    def _enqueue(self, name, height, pixels, cut, kind):
+    def _enqueue(self, name, height, pixels, cut, kind, raw=None):
         job_id = uuid.uuid4().hex
         queue_error = None
         with jobs_lock:
@@ -302,7 +364,7 @@ class Handler(BaseHTTPRequestHandler):
                 if pixels is not None:
                     job_images[job_id] = pixels
                 try:
-                    image = (height, pixels) if pixels is not None else None
+                    image = raw if raw is not None else (height, pixels) if pixels is not None else None
                     work.put_nowait((job_id, image, cut))
                 except queue.Full:
                     del jobs[job_id]

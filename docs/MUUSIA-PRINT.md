@@ -47,6 +47,25 @@ Avaa selaimessa `http://127.0.0.1:8633/`. Tämän Macin portti 8631 on varattu t
 - **Print queue** näyttää odottavat, käynnissä olevat ja valmistuneet työt. Odottavan työn voi perua, ja aiemman työn esikatsella tai lisätä jonoon uudelleen.
 - **Cut paper** lisää jonoon vain `GS V 0` -leikkauskomennon. Se leikkaa nykyisestä kohdasta eikä syötä kuvaa pidemmälle paperista ulos. Täyden leikkauksen pyyntö jätti todellisessa testissä TM-T88V:n normaalin reunakielekkeen; sitä ei voi poistaa tällä komennolla.
 
+## Printer Lab: Epsonin omat fontit
+
+Pi:n tulostussivun **Printer Lab** ja Muusian tulostuspaneelin **PRINTER LAB · NATIVE FONTS** käyttävät Epsonin sisäisiä Font A- ja Font B -bittikarttafontteja. Testit muodostetaan palvelimella rajatuista ESC/POS-komennoista; esikatselu on arvio, koska oikeat merkit piirretään tulostimen muistissa. Jokaisen kokeen voi jonottaa tai ladata täsmälleen samana `.bin`-komentovirtana.
+
+- **Font A / B** tulostaa kirjaimet, numerot ja ASCII-välimerkit kummallakin fontilla.
+- **Font scaling matrix** näyttää kummankin fontin kaikki 1–8× leveys- ja korkeusyhdistelmät. Jokaisella H1–H8-rivillä kahdeksan `M`-merkkiä ovat vasemmalta oikealle W1–W8; suurelle korkeudelle asetetaan vastaava riviväli.
+- **Typography matrix** näyttää normaalin, lihavoidun, alleviivatun ja käänteisen tekstin, 2× leveyden/korkeuden sekä vasemman, keskitetyn ja oikean tasauksen.
+- **Character pages** näyttää 2× kokoisina suomalaiset `ÄäÖöÅå`-merkit ja tavut `80–FF` PC437-, PC850-, PC865- ja PC858-sivuilla; PC858-rivillä on myös euro-merkki. Lisäksi alussa on Ruotsin kansainvälisen merkistön (`ESC R 5`) ASCII-merkeillä tehty ÄÖÅäöå-koe.
+
+Neljä koetta lähetettiin Pi:n USB-jonon kautta 9.11.2026. Palvelu merkitsi kaikki neljä valmiiksi. Käyttäjän mukaan kolme ensimmäistä näytti hyvältä, mutta alkuperäisen Character pages -testin ääkköset puuttuivat ja merkit olivat liian pieniä. Merkistötesti suurennettiin ja lisättiin Ruotsin merkistökokeilu. Korjattu kuitti tulostui ja käyttäjä vahvisti sen toimivaksi. Jokainen koe päättyy samaan `GS V 65 32` -leikkaukseen kuin normaalit kuitit. [TM-T88V:n tukemat komennot](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/tmt88v.html), [fonttikoko 1–8×](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/gs_exclamation.html), [merkistösivut](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/esc_lt.html), [kansainvälinen merkistö](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/esc_cr.html).
+
+### Kaikki valmiit merkit Muusiassa
+
+Epson listaa tälle TM-T88V:lle 43 merkistösivua, joista 42 sisältää valmiit merkit ja sivu 255 on käyttäjän määrittelemä. Lisäksi käytettävissä on 18 kansainvälistä asetusta (`ESC R 0–17`). **Native glyph explorer** näyttää kaikki 42 valmista sivua ja jokaisen tavupaikat `20–FF`. Valittu merkki lisätään tulostettavaan tavujonoon täsmällisellä heksakoodilla, joten myös sellaiset sivut ovat käytettävissä, joille selaimen tai Pythonin Unicode-muunnosta ei ole. Tuetuilla muunnoksilla voi kirjoittaa tekstiä suoraan: esimerkiksi kyrillinen PC866 (sivu 17), islantilainen PC861 (35) ja kyrillinen Windows 1251 (46). Fontti A/B, leveys ja korkeus 1–8×, lihavointi, alleviivaus, käänteinen tulostus ja leikkaus ovat valittavissa. Esikatselu, `.bin`-vienti ja tulostus käyttävät samaa rajattua ohjelmageneraattoria.
+
+Ruudukon merkit ovat tietokoneen merkkikartan arvio; Epsonin sisäisen fontin todellinen ulkoasu näkyy paperilla. Asian kielten monimerkkiset fontit riippuvat laitteen kielimallista, eikä niitä oleteta käytettävissä oleviksi tässä M244A-yksilössä. Tyhjä käyttäjän määrittelemä sivu 255 ei sisällä valmiita merkkejä. Epsonin tekninen opas määrittää mallille myös **180 × 180 dpi** -tarkkuuden; varhaisen projektihandoutin 203 dpi oli arvio. [Epsonin TM-T88V-merkistösivut](https://download4.epson.biz/sec_pubs/pos/reference_en/charcode/supported_codepage.html), [kansainväliset asetukset](https://download4.epson.biz/sec_pubs/pos/reference_en/charcode/supported_international.html), [TM-T88V Technical Reference Guide](https://download4.epson.biz/sec_pubs/bs/pdf/TM-T88V_trg_en_revG.pdf).
+
+Pi:n kautta tulostettiin lisäksi 2× kokoiset PC866-kyrillinen ja PC861-islantilainen esimerkkikuitti. Käyttäjä vahvisti molempien merkkien näkyvän oikein paperilla. Muut merkistösivut ovat valittavissa, mutta niiden yksittäisten merkkien paperiasua ei ole vielä tarkistettu.
+
 Jono ja työhistoria ovat Pi:n muistissa: palvelun uudelleenkäynnistys tyhjentää ne. Yksittäinen kuva saa olla enintään 512 × 4096 pistettä. Jonoon mahtuu 64 odottavaa työtä ja historiaan 100 työtä. `done` tarkoittaa, että ESC/POS-tavut on kirjoitettu tiedostoon tai USB-laitteelle; se ei todista paperitulosteen laatua. Kuivatestitiedostoon kertyy kaikkien töiden tavut peräkkäin.
 
 ## USB-tulostus

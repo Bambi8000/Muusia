@@ -22,7 +22,7 @@ import PreviewCropControls from "./preview-crop-controls.jsx";
 import { directionPassFiles } from "./direction-pass-export.js";
 import DirectionPassControls from "./direction-pass-controls.jsx";
 import MuusiaGuide from "./muusia-guide.jsx";
-import { renderReceipt, sendReceipt, RECEIPT_MAX_HEIGHT_DOTS } from "./thermal-print.js";
+import { renderReceipt, sendReceipt, nativeFontTests, nativeFontTest, nativeFontBinary, sendNativeFontTest, nativePageCatalog, nativePageGlyphs, previewNativeComposition, nativeCompositionBinary, sendNativeComposition, RECEIPT_MAX_HEIGHT_DOTS } from "./thermal-print.js";
 import { DEFAULT_NEEDLE_MACHINE, needleExportError, DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
@@ -898,7 +898,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.169"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.170"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2643,6 +2643,18 @@ export default function App() {
   const [printCut, setPrintCut] = useState(true);
   const [printBusy, setPrintBusy] = useState(false);
   const [printStatus, setPrintStatus] = useState("");
+  const [nativeTests, setNativeTests] = useState([]);
+  const [nativeTestId, setNativeTestId] = useState("");
+  const [nativePreview, setNativePreview] = useState(null);
+  const [nativeBusy, setNativeBusy] = useState(false);
+  const [nativeStatus, setNativeStatus] = useState("");
+  const [glyphCatalog, setGlyphCatalog] = useState(null);
+  const [glyphDetail, setGlyphDetail] = useState(null);
+  const [glyphConfig, setGlyphConfig] = useState({ page: 0, country: 0, font: "A", width: 1, height: 1, bold: false, underline: false, reverse: false, cut: true, text: "", hex: "" });
+  const [glyphPick, setGlyphPick] = useState("");
+  const [glyphPreview, setGlyphPreview] = useState(null);
+  const [glyphBusy, setGlyphBusy] = useState(false);
+  const [glyphStatus, setGlyphStatus] = useState("");
   const gcodeRef = useRef(null);
   const loadRef = useRef(null);
   const [simOn, setSimOn] = useState(false);
@@ -2778,6 +2790,89 @@ export default function App() {
     } finally {
       setPrintBusy(false);
     }
+  };
+  const chooseNativeTest = async (id) => {
+    setNativeTestId(id);
+    setNativePreview(null);
+    const detail = await nativeFontTest(printUrl, id);
+    setNativePreview(detail);
+  };
+  const openNativeLab = async () => {
+    setNativeBusy(true);
+    setNativeStatus("Loading Epson font tests…");
+    try {
+      const [tests, catalog] = await Promise.all([nativeFontTests(printUrl), nativePageCatalog(printUrl)]);
+      setNativeTests(tests);
+      setGlyphCatalog(catalog);
+      if (tests.length) await chooseNativeTest(tests[0].id);
+      if (catalog.pages.length) await chooseGlyphPage(catalog.pages[0].id);
+      setNativeStatus("");
+    } catch (err) { setNativeStatus(`Printer Lab: ${err.message || err}`); }
+    finally { setNativeBusy(false); }
+  };
+  const printNativeTest = async () => {
+    if (!nativeTestId) return;
+    setNativeBusy(true);
+    setNativeStatus("Printing with Epson's internal font…");
+    try {
+      const job = await sendNativeFontTest(printUrl, nativeTestId);
+      setNativeStatus(`Font test printed · job ${job.id.slice(0, 8)}`);
+    } catch (err) { setNativeStatus(`Font test failed: ${err.message || err}`); }
+    finally { setNativeBusy(false); }
+  };
+  const downloadNativeTest = async () => {
+    if (!nativeTestId) return;
+    setNativeBusy(true);
+    try {
+      const blob = await nativeFontBinary(printUrl, nativeTestId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `muusia-${nativeTestId}.bin`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setNativeStatus("ESC/POS binary saved.");
+    } catch (err) { setNativeStatus(`Download failed: ${err.message || err}`); }
+    finally { setNativeBusy(false); }
+  };
+  const updateGlyph = (key, value) => setGlyphConfig(previous => ({ ...previous, [key]: value }));
+  const chooseGlyphPage = async (page) => {
+    const detail = await nativePageGlyphs(printUrl, Number(page));
+    setGlyphDetail(detail);
+    setGlyphConfig(previous => ({ ...previous, page: Number(page), text: detail.unicodeInput ? previous.text : "" }));
+    setGlyphPick("");
+    setGlyphPreview(null);
+  };
+  const addGlyphByte = () => {
+    if (!glyphPick) return;
+    setGlyphConfig(previous => ({ ...previous, hex: `${previous.hex.trim()} ${glyphPick}`.trim() }));
+  };
+  const previewGlyphComposition = async () => {
+    setGlyphBusy(true);
+    setGlyphStatus("");
+    try { setGlyphPreview(await previewNativeComposition(printUrl, glyphConfig)); }
+    catch (err) { setGlyphStatus(`Glyph preview: ${err.message || err}`); }
+    finally { setGlyphBusy(false); }
+  };
+  const downloadGlyphComposition = async () => {
+    setGlyphBusy(true);
+    try {
+      const blob = await nativeCompositionBinary(printUrl, glyphConfig);
+      const url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = `muusia-page-${glyphConfig.page}.bin`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setGlyphStatus("Native glyph ESC/POS binary saved.");
+    } catch (err) { setGlyphStatus(`Glyph download: ${err.message || err}`); }
+    finally { setGlyphBusy(false); }
+  };
+  const printGlyphComposition = async () => {
+    setGlyphBusy(true);
+    setGlyphStatus("Sending native glyphs to Epson…");
+    try {
+      const job = await sendNativeComposition(printUrl, glyphConfig);
+      setGlyphStatus(`Native glyphs printed · job ${job.id.slice(0, 8)}`);
+    } catch (err) { setGlyphStatus(`Glyph print: ${err.message || err}`); }
+    finally { setGlyphBusy(false); }
   };
   const downloadReceiptFile = () => {
     try {
@@ -4411,6 +4506,63 @@ export default function App() {
                 {printBusy ? "PRINTING…" : "PRINT RECEIPT"}
               </button>
               {printStatus && <div role="status" style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, marginTop: 5 }}>{printStatus}</div>}
+              <div style={{ borderTop: `1px solid ${T.line}`, marginTop: 12, paddingTop: 10 }}>
+                <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 11, color: T.text, letterSpacing: "0.08em" }}>PRINTER LAB · NATIVE FONTS</div>
+                <div style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, marginTop: 4 }}>Font A/B, 1–8× scaling, typography and character pages. The Epson renders the actual glyphs.</div>
+                {!nativeTests.length ? <button onClick={openNativeLab} disabled={nativeBusy}
+                  style={{ width: "100%", marginTop: 7, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.line}`, background: "transparent", color: T.text, fontFamily: disp, fontWeight: 700, fontSize: 11 }}>LOAD FONT TESTS</button> : <>
+                  <select aria-label="Native font test" value={nativeTestId} onChange={e => chooseNativeTest(e.target.value).catch(err => setNativeStatus(err.message || String(err)))}
+                    style={{ boxSizing: "border-box", width: "100%", marginTop: 7, padding: "5px 7px", background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, fontSize: 10 }}>
+                    {nativeTests.map(test => <option key={test.id} value={test.id}>{test.name}</option>)}
+                  </select>
+                  {nativePreview && <><div style={{ color: T.dim, fontSize: 10, marginTop: 5 }}>{nativePreview.description}</div>
+                    <pre aria-label="Approximate native font preview" style={{ maxHeight: 130, overflow: "auto", whiteSpace: "pre", background: T.panel2, border: `1px solid ${T.line}`, padding: 7, color: T.text, fontSize: nativeTestId === "character-pages" ? 16 : 9, lineHeight: 1.4 }}>{nativePreview.preview.join("\n")}</pre>
+                    <div style={{ color: T.dim, fontSize: 9 }}>Preview is approximate; Epson uses its own bitmap fonts.</div></>}
+                  <div style={{ display: "flex", gap: 5, marginTop: 7 }}>
+                    <button onClick={downloadNativeTest} disabled={nativeBusy || !nativePreview} style={{ flex: 1, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.line}`, background: "transparent", color: T.text, fontFamily: disp, fontWeight: 700, fontSize: 10 }}>DOWNLOAD .BIN</button>
+                    <button onClick={printNativeTest} disabled={nativeBusy || !nativePreview} style={{ flex: 1, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.value}`, background: "transparent", color: T.value, fontFamily: disp, fontWeight: 700, fontSize: 10 }}>PRINT TEST</button>
+                  </div>
+                </>}
+                {nativeStatus && <div role="status" style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, marginTop: 5 }}>{nativeStatus}</div>}
+                {glyphCatalog && <details style={{ borderTop: `1px solid ${T.line}`, marginTop: 11, paddingTop: 9 }}>
+                  <summary style={{ color: T.text, fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: "pointer" }}>GLYPH EXPLORER · 42 PAGES</summary>
+                  <div style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, marginTop: 6 }}>Cyrillic, Icelandic and other Epson ROM pages. Choose a glyph byte for any page; Unicode typing is available where its mapping is known.</div>
+                  <select aria-label="Native character page" value={glyphConfig.page} onChange={e => chooseGlyphPage(e.target.value).catch(err => setGlyphStatus(err.message || String(err)))}
+                    style={{ boxSizing: "border-box", width: "100%", marginTop: 7, padding: 5, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, fontSize: 10 }}>
+                    {glyphCatalog.pages.map(page => <option key={page.id} value={page.id}>{page.id} · {page.name}</option>)}
+                  </select>
+                  <select aria-label="Native international set" value={glyphConfig.country} onChange={e => updateGlyph("country", Number(e.target.value))}
+                    style={{ boxSizing: "border-box", width: "100%", marginTop: 5, padding: 5, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, fontSize: 10 }}>
+                    {glyphCatalog.countries.map(country => <option key={country.id} value={country.id}>{country.id} · {country.name}</option>)}
+                  </select>
+                  <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+                    <select aria-label="Native font" value={glyphConfig.font} onChange={e => updateGlyph("font", e.target.value)} style={{ flex: 1, minWidth: 0, background: T.panel2, color: T.text, fontSize: 10 }}><option>A</option><option>B</option></select>
+                    <select aria-label="Native glyph width" value={glyphConfig.width} onChange={e => updateGlyph("width", Number(e.target.value))} style={{ flex: 1, minWidth: 0, background: T.panel2, color: T.text, fontSize: 10 }}>{Array.from({ length: 8 }, (_, i) => <option key={i + 1} value={i + 1}>W{i + 1}×</option>)}</select>
+                    <select aria-label="Native glyph height" value={glyphConfig.height} onChange={e => updateGlyph("height", Number(e.target.value))} style={{ flex: 1, minWidth: 0, background: T.panel2, color: T.text, fontSize: 10 }}>{Array.from({ length: 8 }, (_, i) => <option key={i + 1} value={i + 1}>H{i + 1}×</option>)}</select>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 6, fontSize: 9, color: T.text }}>
+                    {[["bold", "Bold"], ["underline", "Underline"], ["reverse", "Reverse"], ["cut", "Cut"]].map(([key, label]) => <label key={key}><input type="checkbox" checked={glyphConfig[key]} onChange={e => updateGlyph(key, e.target.checked)} /> {label}</label>)}
+                  </div>
+                  <textarea aria-label="Native Unicode text" value={glyphConfig.text} onChange={e => updateGlyph("text", e.target.value)} disabled={!glyphDetail?.unicodeInput} rows={2} placeholder={glyphDetail?.unicodeInput ? "Type text in this page" : "Use byte codes for this page"}
+                    style={{ boxSizing: "border-box", width: "100%", marginTop: 7, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, fontSize: 10 }} />
+                  <div style={{ display: "flex", gap: 4, marginTop: 5 }}>
+                    <select aria-label="Choose native glyph byte" value={glyphPick} onChange={e => setGlyphPick(e.target.value)} style={{ flex: 1, minWidth: 0, background: T.panel2, color: T.text, fontSize: 10 }}>
+                      <option value="">Choose byte…</option>
+                      {glyphDetail?.glyphs.map(glyph => <option key={glyph.hex} value={glyph.hex}>{glyph.hex} · {glyph.char || "ROM glyph"}</option>)}
+                    </select>
+                    <button onClick={addGlyphByte} disabled={!glyphPick} style={{ color: T.text, background: T.panel2, border: `1px solid ${T.line}`, fontSize: 10 }}>ADD</button>
+                  </div>
+                  <input aria-label="Native glyph bytes" value={glyphConfig.hex} onChange={e => updateGlyph("hex", e.target.value)} placeholder="Exact bytes, e.g. 8E 84 99"
+                    style={{ boxSizing: "border-box", width: "100%", marginTop: 5, padding: 5, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, fontSize: 10, fontFamily: mono }} />
+                  <div style={{ display: "flex", gap: 4, marginTop: 7 }}>
+                    <button onClick={previewGlyphComposition} disabled={glyphBusy} style={{ flex: 1, color: T.text, background: T.panel2, border: `1px solid ${T.line}`, fontSize: 9 }}>PREVIEW</button>
+                    <button onClick={downloadGlyphComposition} disabled={glyphBusy} style={{ flex: 1, color: T.text, background: T.panel2, border: `1px solid ${T.line}`, fontSize: 9 }}>.BIN</button>
+                    <button onClick={printGlyphComposition} disabled={glyphBusy} style={{ flex: 1, color: T.value, background: T.panel2, border: `1px solid ${T.value}`, fontSize: 9 }}>PRINT</button>
+                  </div>
+                  {glyphPreview && <pre aria-label="Native glyph composition preview" style={{ maxHeight: 120, overflow: "auto", whiteSpace: "pre", color: T.text, fontSize: 10 }}>{glyphPreview.preview.join("\n")}</pre>}
+                  {glyphStatus && <div role="status" style={{ color: T.dim, fontSize: 10, marginTop: 5 }}>{glyphStatus}</div>}
+                </details>}
+              </div>
             </div>
           </div>
 

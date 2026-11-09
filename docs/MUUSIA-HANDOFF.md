@@ -264,6 +264,42 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.170 — 2026-11-09 · Epson native font test lab
+
+Muusia's print panel and the Pi dashboard now expose Printer Lab with four
+bounded, server-generated native ESC/POS programs: Font A/B samples, a compact
+64-combination 1–8× scaling matrix for each font, typography styles/alignment,
+and PC437/PC850/PC865/PC858 character grids with Finnish glyphs. The character
+grid is 2× size and includes an `ESC R 5` Nordic ASCII diagnostic after the
+first paper check showed missing accented letters in the smaller grid. Each program
+has an approximate preview, exact `.bin` download and queued USB print action.
+The scaling matrix sets line spacing for its largest ROM glyphs. Native jobs
+use the existing print queue and `GS V 65 32` cutter feed; the API cannot
+accept arbitrary command streams from a browser.
+
+After Daniel confirmed the enlarged Nordic test printed, Printer Lab expanded
+to expose all 42 fixed TM-T88V single-byte character pages and all 18
+international sets. Both the Pi dashboard and Muusia panel provide a glyph
+byte picker covering `20–FF`, direct Unicode input when a matching codec is
+available, Font A/B and 1–8× scaling, style switches, estimated preview,
+`.bin` download and queued print. This includes Cyrillic PC866/WPC1251 and
+Icelandic PC861. Page 255 is user-defined and blank by default; special
+multibyte Asian glyphs depend on language-specific printer hardware. The
+technical guide specifies 180 dpi for TM-T88V, correcting the handout's
+203 dpi assumption.
+
+Five local Python tests, JavaScript syntax, catalog validation, the root
+build and 37,913 Learn checks passed. On the live Pi, all four native jobs
+reported `done` after writing to USB. Daniel said the first three looked good,
+but the original character page test was tiny and lacked accented letters;
+the revised 2× Nordic character test printed and Daniel confirmed it. The
+full-page glyph explorer was verified in the live Pi dashboard. Separate 2×
+PC866 Cyrillic and PC861 Icelandic receipts printed, and Daniel confirmed all
+characters looked correct. `done` alone cannot confirm glyph appearance or
+paper quality. The 2.169 release's later docs-only Pages run timed out while
+syncing files, despite a successful build. See `docs/MUUSIA-PRINT.md` for
+the test set and Epson command references.
+
 ### 2.169 — 2026-11-09 · Local Epson printing without a token
 
 Muusia's receipt panel and the Pi print dashboard no longer ask for a print

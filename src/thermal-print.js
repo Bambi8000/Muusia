@@ -71,24 +71,107 @@ export function renderReceipt(paths, widthMm, heightMm, frame = null) {
   return { width, height, data: btoa(binary) };
 }
 
-export async function sendReceipt(serverUrl, receipt, cut = true) {
+function localPrintBase(serverUrl) {
   const base = serverUrl.trim().replace(/\/+$/, "");
   if (!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(base)) {
     throw new Error("Use the local SSH tunnel URL, for example http://127.0.0.1:8633.");
   }
+  return base;
+}
+
+async function awaitPrintJob(base, id) {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const check = await fetch(`${base}/api/jobs/${id}`);
+    const job = await check.json().catch(() => ({}));
+    if (!check.ok) throw new Error(job.error || `Print status returned ${check.status}.`);
+    if (job.status === "done") return job;
+    if (job.status === "failed") throw new Error(job.error || "Printer failed.");
+  }
+  throw new Error(`Print job ${id} is still running. Check the server status.`);
+}
+
+export async function sendReceipt(serverUrl, receipt, cut = true) {
+  const base = localPrintBase(serverUrl);
   const headers = { "Content-Type": "application/json" };
   const response = await fetch(`${base}/api/jobs`, {
     method: "POST", headers, body: JSON.stringify({ ...receipt, cut }),
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || `Print server returned ${response.status}.`);
-  for (let attempt = 0; attempt < 60; attempt++) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const check = await fetch(`${base}/api/jobs/${result.id}`);
-    const job = await check.json().catch(() => ({}));
-    if (!check.ok) throw new Error(job.error || `Print status returned ${check.status}.`);
-    if (job.status === "done") return job;
-    if (job.status === "failed") throw new Error(job.error || "Printer failed.");
+  return awaitPrintJob(base, result.id);
+}
+
+export async function nativeFontTests(serverUrl) {
+  const response = await fetch(`${localPrintBase(serverUrl)}/api/native-tests`);
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || `Print server returned ${response.status}.`);
+  return result.tests;
+}
+
+export async function nativeFontTest(serverUrl, id) {
+  if (!/^[a-z0-9-]+$/.test(id)) throw new Error("Invalid font test.");
+  const response = await fetch(`${localPrintBase(serverUrl)}/api/native-tests/${id}`);
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || `Print server returned ${response.status}.`);
+  return result;
+}
+
+export async function nativeFontBinary(serverUrl, id) {
+  if (!/^[a-z0-9-]+$/.test(id)) throw new Error("Invalid font test.");
+  const response = await fetch(`${localPrintBase(serverUrl)}/api/native-tests/${id}/bin`);
+  if (!response.ok) throw new Error(`Font test download failed (${response.status}).`);
+  return response.blob();
+}
+
+export async function sendNativeFontTest(serverUrl, id) {
+  if (!/^[a-z0-9-]+$/.test(id)) throw new Error("Invalid font test.");
+  const base = localPrintBase(serverUrl);
+  const response = await fetch(`${base}/api/native-tests/${id}`, { method: "POST" });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || `Print server returned ${response.status}.`);
+  return awaitPrintJob(base, result.id);
+}
+
+export async function nativePageCatalog(serverUrl) {
+  const response = await fetch(`${localPrintBase(serverUrl)}/api/native-pages`);
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || `Print server returned ${response.status}.`);
+  return result;
+}
+
+export async function nativePageGlyphs(serverUrl, page) {
+  if (!Number.isInteger(page) || page < 0 || page > 255) throw new Error("Invalid character page.");
+  const response = await fetch(`${localPrintBase(serverUrl)}/api/native-pages/${page}`);
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || `Print server returned ${response.status}.`);
+  return result;
+}
+
+async function nativeCompositionRequest(serverUrl, path, settings) {
+  const base = localPrintBase(serverUrl);
+  const response = await fetch(`${base}/api/native-compose${path}`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(settings),
+  });
+  if (!response.ok) {
+    const result = await response.json().catch(() => ({}));
+    throw new Error(result.error || `Print server returned ${response.status}.`);
   }
-  throw new Error(`Print job ${result.id} is still running. Check the server status.`);
+  return { response, base };
+}
+
+export async function previewNativeComposition(serverUrl, settings) {
+  const { response } = await nativeCompositionRequest(serverUrl, "/preview", settings);
+  return response.json();
+}
+
+export async function nativeCompositionBinary(serverUrl, settings) {
+  const { response } = await nativeCompositionRequest(serverUrl, "/bin", settings);
+  return response.blob();
+}
+
+export async function sendNativeComposition(serverUrl, settings) {
+  const { response, base } = await nativeCompositionRequest(serverUrl, "", settings);
+  const result = await response.json();
+  return awaitPrintJob(base, result.id);
 }

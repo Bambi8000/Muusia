@@ -2,7 +2,7 @@
   'use strict';
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  const state = { source: 'receipt', receipts: [], selected: 0, health: null, jobs: [] };
+  const state = { source: 'receipt', receipts: [], selected: 0, health: null, jobs: [], nativeTests: [], nativeTest: null, pageDetail: null };
 
   async function api(path, options = {}) {
     const response = await fetch(path, options);
@@ -18,7 +18,7 @@
   function setView(view) {
     $$('.view').forEach(node => node.classList.toggle('hidden', node.id !== `${view}-view`));
     $$('.nav-item').forEach(node => node.classList.toggle('active', node.dataset.view === view));
-    $('#page-title').textContent = { dashboard: 'Dashboard', queue: 'Print queue', settings: 'Settings' }[view];
+    $('#page-title').textContent = { dashboard: 'Dashboard', queue: 'Print queue', lab: 'Printer Lab', settings: 'Settings' }[view];
   }
 
   function setSource(source) {
@@ -194,14 +194,135 @@
     finally { button.disabled = !state.health?.ready; }
   }
 
+  async function loadNativeTests() {
+    try {
+      const { tests } = await api('/api/native-tests');
+      state.nativeTests = tests;
+      const picker = $('#native-test-select'); picker.replaceChildren();
+      tests.forEach(test => picker.add(new Option(test.name, test.id)));
+      if (tests.length) await selectNativeTest(tests[0].id);
+    } catch (error) { $('#native-test-preview').textContent = error.message; }
+  }
+
+  async function selectNativeTest(id) {
+    try {
+      const test = await api(`/api/native-tests/${id}`);
+      state.nativeTest = test;
+      $('#native-test-select').value = id;
+      $('#native-test-summary').textContent = `${test.description} · ${test.bytes} ESC/POS bytes`;
+      $('#native-test-preview').textContent = test.preview.join('\n');
+      $('#native-test-preview').classList.toggle('large-glyphs', id === 'character-pages');
+      $('#native-test-note').textContent = test.previewNote;
+      $('#native-download').disabled = false;
+      $('#native-print').disabled = !state.health?.ready;
+      $('#native-message').textContent = '';
+    } catch (error) { $('#native-message').textContent = error.message; }
+  }
+
+  async function downloadNativeTest() {
+    const test = state.nativeTest; if (!test) return;
+    try {
+      const response = await fetch(`/api/native-tests/${test.id}/bin`);
+      if (!response.ok) throw new Error(`Download failed (${response.status}).`);
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a'); link.href = url; link.download = `muusia-${test.id}.bin`; link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) { $('#native-message').textContent = error.message; }
+  }
+
+  async function queueNativeTest() {
+    const test = state.nativeTest; if (!test || !state.health?.ready) return;
+    const button = $('#native-print'); button.disabled = true;
+    try {
+      await api(`/api/native-tests/${test.id}`, { method: 'POST' });
+      $('#native-message').textContent = `${test.name} added to the queue.`;
+      await refresh();
+    } catch (error) { $('#native-message').textContent = error.message; }
+    finally { button.disabled = !state.health?.ready; }
+  }
+
+  async function loadGlyphCatalog() {
+    try {
+      const catalog = await api('/api/native-pages');
+      const pages = $('#glyph-page'); pages.replaceChildren();
+      catalog.pages.forEach(page => pages.add(new Option(`${page.id} · ${page.name}`, String(page.id))));
+      const countries = $('#glyph-country'); countries.replaceChildren();
+      catalog.countries.forEach(country => countries.add(new Option(`${country.id} · ${country.name}`, String(country.id))));
+      for (const selector of ['#glyph-width', '#glyph-height']) {
+        const picker = $(selector); picker.replaceChildren();
+        for (let scale = 1; scale <= 8; scale++) picker.add(new Option(`${scale}×`, String(scale)));
+      }
+      await selectGlyphPage(0);
+    } catch (error) { $('#glyph-message').textContent = error.message; }
+  }
+
+  async function selectGlyphPage(page) {
+    try {
+      const detail = await api(`/api/native-pages/${page}`);
+      state.pageDetail = detail;
+      $('#glyph-page').value = String(page);
+      $('#glyph-page-note').textContent = `${detail.name}. ${detail.unicodeInput ? 'Unicode typing and exact byte selection available.' : 'Use exact byte selection for this page.'} ${detail.note}`;
+      $('#glyph-text').disabled = !detail.unicodeInput;
+      if (!detail.unicodeInput) $('#glyph-text').value = '';
+      const grid = $('#glyph-grid'); grid.replaceChildren();
+      detail.glyphs.forEach(glyph => {
+        const button = document.createElement('button'); button.type = 'button'; button.title = `Add byte ${glyph.hex}`;
+        const visible = document.createElement('span'); visible.textContent = glyph.char || '·';
+        const code = document.createElement('small'); code.textContent = glyph.hex;
+        button.append(visible, code);
+        button.addEventListener('click', () => { const input = $('#glyph-hex'); input.value = `${input.value.trim()} ${glyph.hex}`.trim(); });
+        grid.append(button);
+      });
+      $('#glyph-preview').textContent = 'Choose glyphs or enter text, then press Preview.';
+      $('#glyph-message').textContent = '';
+    } catch (error) { $('#glyph-message').textContent = error.message; }
+  }
+
+  function glyphRequest() {
+    return { page: Number($('#glyph-page').value), country: Number($('#glyph-country').value), font: $('#glyph-font').value,
+      width: Number($('#glyph-width').value), height: Number($('#glyph-height').value),
+      bold: $('#glyph-bold').checked, underline: $('#glyph-underline').checked, reverse: $('#glyph-reverse').checked,
+      cut: $('#glyph-cut').checked, text: $('#glyph-text').disabled ? '' : $('#glyph-text').value, hex: $('#glyph-hex').value };
+  }
+
+  async function previewGlyphs() {
+    try {
+      const value = await api('/api/native-compose/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(glyphRequest()) });
+      $('#glyph-preview').textContent = value.preview.join('\n');
+      $('#glyph-message').textContent = `${value.bytes} ESC/POS bytes. ${value.previewNote}`;
+    } catch (error) { $('#glyph-message').textContent = error.message; }
+  }
+
+  async function downloadGlyphs() {
+    try {
+      const response = await fetch('/api/native-compose/bin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(glyphRequest()) });
+      if (!response.ok) { const value = await response.json().catch(() => ({})); throw new Error(value.error || `Download failed (${response.status}).`); }
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a'); link.href = url; link.download = 'muusia-native-glyphs.bin'; link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      $('#glyph-message').textContent = 'ESC/POS binary saved.';
+    } catch (error) { $('#glyph-message').textContent = error.message; }
+  }
+
+  async function queueGlyphs() {
+    if (!state.health?.ready) return;
+    const button = $('#glyph-print'); button.disabled = true;
+    try {
+      await api('/api/native-compose', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(glyphRequest()) });
+      $('#glyph-message').textContent = 'Native glyphs added to the queue.';
+      await refresh();
+    } catch (error) { $('#glyph-message').textContent = error.message; }
+    finally { button.disabled = !state.health?.ready; }
+  }
+
   function jobElement(job) {
     const row = document.createElement('div'); row.className = 'job-row';
     const icon = document.createElement('span'); icon.className = 'job-icon'; icon.textContent = job.kind === 'cut' ? '✂' : '▤'; row.append(icon);
     const info = document.createElement('div'); const title = document.createElement('div'); title.className = 'job-name'; title.textContent = job.name || 'Receipt';
-    const meta = document.createElement('div'); meta.className = 'job-meta'; meta.textContent = `${job.kind === 'cut' ? 'Cutter command' : `${job.width || 512} × ${job.height} dots`} · ${new Date(job.createdAt * 1000).toLocaleTimeString()}${job.error ? ` · ${job.error}` : ''}`;
+    const meta = document.createElement('div'); meta.className = 'job-meta'; meta.textContent = `${job.kind === 'cut' ? 'Cutter command' : job.kind === 'native' ? 'Native ESC/POS font test' : `${job.width || 512} × ${job.height} dots`} · ${new Date(job.createdAt * 1000).toLocaleTimeString()}${job.error ? ` · ${job.error}` : ''}`;
     info.append(title, meta); row.append(info);
     const actions = document.createElement('div'); actions.className = 'job-actions'; const status = document.createElement('span'); status.className = `job-status ${job.status}`; status.textContent = job.status; actions.append(status);
-    if (job.kind !== 'cut') { const preview = document.createElement('button'); preview.textContent = 'Preview'; preview.addEventListener('click', async () => { try { const receipt = await api(`/api/jobs/${job.id}/receipt`); stage([{ ...receipt, name: job.name }], 'Loaded a previous job for preview.'); } catch (error) { message(error.message, true); setView('dashboard'); } }); actions.append(preview); }
+    if (job.kind === 'receipt') { const preview = document.createElement('button'); preview.textContent = 'Preview'; preview.addEventListener('click', async () => { try { const receipt = await api(`/api/jobs/${job.id}/receipt`); stage([{ ...receipt, name: job.name }], 'Loaded a previous job for preview.'); } catch (error) { message(error.message, true); setView('dashboard'); } }); actions.append(preview); }
     if (job.status === 'queued') { const cancel = document.createElement('button'); cancel.textContent = 'Cancel'; cancel.addEventListener('click', async () => { try { await api(`/api/jobs/${job.id}`, { method: 'DELETE' }); await refresh(); } catch (error) { message(error.message, true); setView('dashboard'); } }); actions.append(cancel); }
     row.append(actions); return row;
   }
@@ -234,6 +355,8 @@
       $('#queue-current').disabled = !state.receipts.length || !health.ready;
       $('#queue-all').disabled = !state.receipts.length || !health.ready;
       $('#cut-only').disabled = !health.ready;
+      $('#native-print').disabled = !health.ready || !state.nativeTest;
+      $('#glyph-print').disabled = !health.ready || !state.pageDetail;
     } catch (error) {
       state.health = null;
       $('#printer-state').textContent = 'Offline';
@@ -243,6 +366,8 @@
       $('#sidebar-dot').classList.remove('online'); $('#sidebar-status').textContent = 'Disconnected';
       $('#sidebar-subtitle').textContent = 'Check the local tunnel';
       $('#queue-current').disabled = true; $('#queue-all').disabled = true; $('#cut-only').disabled = true;
+      $('#native-print').disabled = true;
+      $('#glyph-print').disabled = true;
     }
   }
 
@@ -254,8 +379,17 @@
   $('#frame-select').addEventListener('change', event => { state.selected = Number(event.target.value); previewCurrent(); });
   $('#queue-current').addEventListener('click', () => addToQueue(false)); $('#queue-all').addEventListener('click', () => addToQueue(true));
   $('#cut-only').addEventListener('click', cutPaper);
+  $('#native-test-select').addEventListener('change', event => selectNativeTest(event.target.value));
+  $('#native-download').addEventListener('click', downloadNativeTest);
+  $('#native-print').addEventListener('click', queueNativeTest);
+  $('#glyph-page').addEventListener('change', event => selectGlyphPage(Number(event.target.value)));
+  $('#glyph-preview-button').addEventListener('click', previewGlyphs);
+  $('#glyph-download').addEventListener('click', downloadGlyphs);
+  $('#glyph-print').addEventListener('click', queueGlyphs);
   $('#refresh-jobs').addEventListener('click', refresh);
   $('#server-address').textContent = location.origin;
   refresh();
+  loadNativeTests();
+  loadGlyphCatalog();
   setInterval(() => { if (!document.hidden) refresh(); }, 3000);
 })();

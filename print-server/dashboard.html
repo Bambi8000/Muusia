@@ -15,6 +15,7 @@
       <nav aria-label="Main navigation">
         <button class="nav-item active" data-view="dashboard"><span>▦</span> Dashboard</button>
         <button class="nav-item" data-view="queue"><span>≡</span> Print queue <b id="nav-count">0</b></button>
+        <button class="nav-item" data-view="lab"><span>▤</span> Printer Lab</button>
         <button class="nav-item" data-view="settings"><span>⚙</span> Settings</button>
       </nav>
       <div class="sidebar-bottom"><div class="connection-dot" id="sidebar-dot"></div><div><strong id="sidebar-status">Checking…</strong><small id="sidebar-subtitle">Checking print server</small></div></div>
@@ -54,6 +55,36 @@
       </section>
 
       <section id="queue-view" class="view hidden"><div class="panel queue-page"><div class="panel-heading"><div><p class="eyebrow">PRINT ACTIVITY</p><h2>Queue and history</h2></div><button id="refresh-jobs" class="secondary">Refresh</button></div><p class="field-help">Queued jobs can be cancelled. A job marked done means its bytes reached the USB device or test output file.</p><div id="all-jobs" class="job-list"></div></div></section>
+
+      <section id="lab-view" class="view hidden">
+        <div class="panel queue-page">
+          <div class="panel-heading"><div><p class="eyebrow">EPSON TM-T88V</p><h2>Printer Lab · native fonts</h2></div></div>
+          <p class="field-help">The Epson renders these tests with its internal Font A and Font B. Choose a test, inspect the approximate preview, then queue it or save the exact ESC/POS bytes.</p>
+          <div class="lab-grid"><div>
+            <label class="lab-label" for="native-test-select">Test</label><select id="native-test-select" class="lab-select"></select>
+            <p id="native-test-summary" class="field-help"></p>
+            <div class="lab-actions"><button id="native-download" class="secondary" disabled>Download .bin</button><button id="native-print" class="primary" disabled>Add test to queue →</button></div>
+            <p id="native-message" class="message" role="status"></p>
+          </div><div><p class="eyebrow">APPROXIMATE PREVIEW</p><pre id="native-test-preview" class="lab-preview">Loading native font tests…</pre><p id="native-test-note" class="field-help"></p></div></div>
+        </div>
+        <div class="panel queue-page glyph-panel">
+          <div class="panel-heading"><div><p class="eyebrow">42 FIXED PAGES · 18 INTERNATIONAL SETS</p><h2>Native glyph explorer</h2></div></div>
+          <p class="field-help">Choose a page to see its byte positions. Click a cell to add its exact byte to the print sequence. Text is available where a matching Unicode converter exists; the bytes work on every fixed page.</p>
+          <div class="lab-grid"><div>
+            <label class="lab-label" for="glyph-page">Character page</label><select id="glyph-page" class="lab-select"></select>
+            <label class="lab-label" for="glyph-country">International set</label><select id="glyph-country" class="lab-select"></select>
+            <div class="glyph-options"><label>Font<select id="glyph-font"><option>A</option><option>B</option></select></label><label>Width<select id="glyph-width"></select></label><label>Height<select id="glyph-height"></select></label></div>
+            <div class="glyph-checks"><label><input id="glyph-bold" type="checkbox"> Bold</label><label><input id="glyph-underline" type="checkbox"> Underline</label><label><input id="glyph-reverse" type="checkbox"> Reverse</label><label><input id="glyph-cut" type="checkbox" checked> Cut</label></div>
+            <label class="lab-label" for="glyph-text">Text</label><textarea id="glyph-text" rows="3" placeholder="Type text supported by this page"></textarea>
+            <label class="lab-label" for="glyph-hex">Exact glyph bytes (hex)</label><textarea id="glyph-hex" rows="3" placeholder="Click glyphs on the right, or type e.g. 8E 84 99"></textarea>
+            <div class="lab-actions"><button id="glyph-preview-button" class="secondary">Preview</button><button id="glyph-download" class="secondary">Download .bin</button><button id="glyph-print" class="primary" disabled>Add to queue →</button></div>
+            <p id="glyph-message" class="message" role="status"></p>
+          </div><div>
+            <p class="eyebrow">BYTE ATLAS · 20–FF</p><p id="glyph-page-note" class="field-help"></p><div id="glyph-grid" class="glyph-grid"></div>
+            <p class="eyebrow glyph-preview-heading">APPROXIMATE PREVIEW</p><pre id="glyph-preview" class="lab-preview">Choose a page and enter text or glyph bytes.</pre>
+          </div></div>
+        </div>
+      </section>
 
       <section id="settings-view" class="view hidden"><div class="settings-grid"><article class="panel"><p class="eyebrow">CONNECTION</p><h2>Print server</h2><dl class="settings-list"><div><dt>Address</dt><dd id="server-address"></dd></div><div><dt>Output mode</dt><dd id="settings-mode">—</dd></div><div><dt>Device</dt><dd id="settings-device">—</dd></div></dl></article><article class="panel"><p class="eyebrow">HEADLESS SETUP</p><h2>Raspberry Pi and Epson</h2><p>The server can write ESC/POS data to a test file or to the connected USB printer. Print jobs and cutter commands use the same queue.</p><p>The dashboard and Muusia can both use this server through a local SSH tunnel. Nothing is uploaded to a cloud service.</p></article></div></section>
     </main>

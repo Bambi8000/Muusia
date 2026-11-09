@@ -11,19 +11,18 @@
     "status": "verified public Muusia 2.169 with local print URL 8633 and no token field; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.169",
+    "version": "2.170",
     "date": "2026-11-09",
-    "baseCommit": "732d352db7100a58fa8528025a6f060e9a4656d0",
-    "branch": "codex/pi-print-dashboard",
+    "baseCommit": "46f373b91b1d53e14c25629e9c3b7fbdcbc66754",
+    "branch": "codex/printer-lab-fonts",
     "worktree": "/private/tmp/muusia-pi-print",
-    "published": true,
-    "status": "Muusia 2.169 tokenless printing published and verified on GitHub Pages; Pi dashboard connected without login",
-    "snapshot": "/private/tmp/muusia-project-files-2.169-tokenless (clean committed snapshot, prepared locally; not uploaded)",
+    "published": false,
+    "status": "Native font lab and 42 fixed character pages verified locally and on Pi; publication pending",
+    "snapshot": "pending final release commit",
     "moduleCount": 357,
     "registryCount": 359,
-    "validation": "Three print server tests, JavaScript and shell syntax, catalog, root build and 37913 Learn checks passed. Pi health returned 200 without token, spoofed host returned 403; public Muusia v2.169 and local Pi dashboard verified. No new physical print was sent.",
-    "note": "Pi service remains bound to 127.0.0.1 and reached via the Mac SSH tunnel; unrelated primary checkout changes were preserved.",
-    "commit": "371f050b7605e530438eb24ba24cec200ee60eab"
+    "validation": "Five print server tests, JavaScript syntax, catalog, root build and 37913 Learn checks passed. Pi files match tested source; user confirmed 2x PC866 Cyrillic and PC861 Icelandic physical receipts.",
+    "note": "Pi service remains bound to 127.0.0.1 and reached via the Mac SSH tunnel; unrelated primary checkout changes were preserved."
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
