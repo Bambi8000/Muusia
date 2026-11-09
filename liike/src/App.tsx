@@ -137,7 +137,7 @@ export default function App() {
   }
 
   return <main>
-    <header><a className="wordmark" href="./">Liike<span>↗</span></a><span className="tagline">From paper to motion</span></header>
+    <header><a className="wordmark" href="./">Liike<span>↗</span></a><a className="secondary" href="#receipt">Receipt animation →</a></header>
     <ProjectBar state={{ name: projectName, settings, adjustments, sequence, exportOptions, resolution, stabilize }} photos={library.photos} disabled={library.busy || library.photos.some(p => p.detection?.status === 'running' || p.numberDetection?.status === 'running')} saveIssue={issues[0] ?? ''} setName={setProjectName} onBusy={setProjectBusy} onLoad={restore} loaded={projectRevision > 0} />
     <div inert={projectBusy} key={projectRevision}>
     <nav aria-label="Workflow"><ol className="steps">{['Sheet', 'Photos', 'Register', 'Adjust', 'Sequence', 'Export'].map((name, i) => <li key={name} aria-current={i === step ? 'step' : undefined}><button onClick={() => setStep(i)} disabled={library.busy || (i > 0 && !layout) || (i === 2 && !registrationPhoto) || (i === 3 && !selectedPhoto)}><span className="step-number">{i + 1}</span>{name}</button></li>)}</ol></nav>

@@ -898,7 +898,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.167"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.168"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);

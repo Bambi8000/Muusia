@@ -136,6 +136,21 @@ footer { display: flex; justify-content: space-between; gap: 16px; font-size: 11
 @media (max-width: 680px) { .stabilization-setting { display: block; }.stabilization-setting .hint { margin-top: 4px; } }
 
 /* Local project files */
+.receipt-tabs { display: flex; gap: 8px; margin: 0 0 25px; border-bottom: 1px solid #d2d4c6; padding-bottom: 14px; }
+.receipt-tabs button, .receipt-corner-buttons button { border: 1px solid #c7d0b9; border-radius: 7px; background: #f9f8f2; padding: 10px 14px; font-size: 12px; min-height: 42px; }
+.receipt-tabs .selected, .receipt-corner-buttons .selected { background: #53653e; border-color: #53653e; color: #fff; }
+.receipt-settings { display: grid; grid-template-columns: minmax(210px, 2fr) minmax(130px, 1fr) auto; gap: 14px; align-items: start; background: #f9f8f2; border: 1px solid #d9dccf; border-radius: 10px; padding: 20px; margin-bottom: 26px; }
+.receipt-settings fieldset { grid-column: 1 / 3; border: 0; margin: 0; padding: 0; }.receipt-settings fieldset legend { margin-bottom: 8px; }.receipt-settings fieldset .checkbox { min-height: 32px; }
+.receipt-settings > .secondary { margin-top: 19px; }.receipt-settings > .field:last-child { grid-column: 3; }
+.receipt-workspace { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 26px; }
+.receipt-list { display: grid; align-content: start; gap: 9px; }.receipt-list h2 { margin-bottom: 8px; }
+.receipt-list button { display: flex; text-align: left; gap: 12px; align-items: center; border: 1px solid #d4d9c9; border-radius: 8px; background: #f9f8f2; padding: 8px; min-width: 0; }.receipt-list button.selected { border-color: #53653e; box-shadow: 0 0 0 1px #53653e; }
+.receipt-list img { width: 55px; height: 68px; object-fit: contain; background: #e2e4d9; }.receipt-list span { min-width: 0; }.receipt-list small { display: block; overflow-wrap: anywhere; color: #68725c; margin-top: 4px; }
+.receipt-register { min-width: 0; }.receipt-register > svg { display: block; width: 100%; max-height: 700px; margin: 12px auto; background: #e2e4d9; border: 1px solid #cdd4bf; border-radius: 8px; cursor: crosshair; }
+.receipt-corner-buttons { display: flex; flex-wrap: wrap; gap: 7px; }.receipt-number { display: flex; align-items: end; gap: 12px; }.receipt-number .field { max-width: 220px; flex: 1; margin: 0; }
+.receipt-player { max-width: 850px; margin: auto; }.receipt-player > img { display: block; width: auto; max-width: 100%; height: auto; max-height: 660px; margin: auto; object-fit: contain; background: #e2e4d9; border: 1px solid #cdd4bf; border-radius: 8px; }.receipt-player .playback-controls { display: flex; justify-content: center; gap: 12px; margin: 18px 0; }.receipt-player > .field { margin-top: 14px; }
+@media (max-width: 800px) { .receipt-settings { grid-template-columns: 1fr 1fr; }.receipt-settings > .field:first-child { grid-column: 1 / -1; }.receipt-settings > .secondary { grid-column: 1 / -1; margin: 0; }.receipt-settings > .field:last-child { grid-column: 1 / -1; }.receipt-workspace { grid-template-columns: 1fr; }.receipt-list { display: flex; overflow-x: auto; }.receipt-list h2 { min-width: 100%; }.receipt-list button { min-width: 190px; } }
+@media (max-width: 560px) { .receipt-tabs button { flex: 1; padding: 7px 3px; font-size: 10px; }.receipt-settings { display: block; }.receipt-settings fieldset { margin: 16px 0; }.receipt-settings > .secondary { margin-bottom: 8px; }.receipt-player .playback-controls { gap: 6px; }.receipt-player .playback-controls button { padding-inline: 9px; } }
 .project-bar { padding: 18px 0; border-bottom: 1px solid #d2d4c6; }
 .project-controls { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
 .project-name { flex: 1; max-width: 340px; margin: 0; }

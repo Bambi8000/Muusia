@@ -264,6 +264,24 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.168 — 2026-11-09 · Liike thermal receipt animation
+
+Liike has a new Receipt animation workflow for photographs of Muusia's
+numbered thermal receipts. It detects four short crop ticks, reads `Fnn/total`
+labels (up to 99 frames, with manual correction), and sorts out-of-order photos
+by frame number. A user can place uncertain tick ends manually. Artwork only
+rectifies/crops to the marks. Full photo aligns the marked frame at the same
+center on a shared canvas while retaining each source photo and its changing
+surroundings; edge colors cover alignment gaps. Playback and existing GIF,
+video and PNG ZIP exports use the assembled sequence. No original photos are
+sent to a server.
+
+Focused tests cover receipt tick detection amid artwork and full-photo
+centering/edge coverage. Real local UI tests used three photos constructed
+from Muusia's actual 12-frame receipt ZIP, deliberately uploaded out of order:
+the app found all marks, read 3/1/2, previewed numeric 1/2/3 and exported a
+three-frame PNG ZIP. Physical Epson output remains untested.
+
 ### 2.167 — 2026-11-09 · Thermal receipt Test Card
 
 Test Card now has a Thermal receipt mode designed for the 72 × 100 mm, 512-dot
@@ -279,6 +297,8 @@ All 175 Help examples, catalog/recency, production build and 37,913 Learn checks
 across 90 English pages passed. The real local Muusia exported a 512 × 711-dot
 receipt, and LATU displayed the full card with distinguishable tone swatches,
 fine grids, curves, details and load bars. Epson hardware remains untested.
+Source commit `c9ce8e8a30e009ea79c4d20bfc308f187c0785ad` was published by
+Pages run `42599734642` (success); the public Muusia showed v2.167.
 
 ### 2.166 — 2026-11-09 · Receipt animation and LATU playback
 

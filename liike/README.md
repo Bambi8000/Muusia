@@ -7,6 +7,28 @@ use `liike`.
 
 GitHub Pages: [Open Liike](https://bambi8000.github.io/Muusia/liike/).
 
+## Muusia receipt photographs
+
+Choose **Receipt animation** in Liike's header. Add one JPEG, PNG or WebP
+photograph per numbered Muusia thermal receipt. Set **Printed total on labels**
+to the denominator printed on the receipts (for example, `12` in `F01/12`)
+before adding photos. Liike looks for the four short corner ticks and reads
+the small frame number for sequences of up to 99. It sorts the resulting
+animation by that number, even if the photos were added out of order. Inspect
+every photo. Unclear marks can be placed by tapping the four tick ends in
+top-left, top-right, bottom-right, bottom-left order; unclear numbers can be
+entered in **Frame number on receipt**. Duplicate or missing numbers stop the
+build until corrected.
+
+**Artwork only** rectifies and crops each image to the four marks. **Full photo**
+uses the marks to keep the receipt frame centered while retaining the whole
+photograph and its changing surroundings. The shared canvas covers all source
+photo corners; edge colors fill the small gaps caused by different positions.
+Choose output size, build, play the preview and export GIF, video or PNG ZIP.
+The source photos stay on the device. Printed receipts from an Epson have not
+yet been tested; the current image tests use Muusia's actual numbered receipt
+data placed into simulated photographs.
+
 ## Development
 
 Use Node 22.18+ (or Node 24+) for the TypeScript tests.
