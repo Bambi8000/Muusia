@@ -300,6 +300,10 @@ paper quality. The 2.169 release's later docs-only Pages run timed out while
 syncing files, despite a successful build. See `docs/MUUSIA-PRINT.md` for
 the test set and Epson command references.
 
+Release commit `22d1c5a8016767471d257e077f4274e27ca43b52` passed Pages run
+`42697805052`. Public Muusia 2.170 loaded in Mac Chrome; Printer Lab fetched
+the Pi catalog, listed 42 pages and 18 sets, and previewed PC861 Icelandic text.
+
 ### 2.169 — 2026-11-09 · Local Epson printing without a token
 
 Muusia's receipt panel and the Pi print dashboard no longer ask for a print

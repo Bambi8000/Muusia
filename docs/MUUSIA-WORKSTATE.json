@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.169",
+    "version": "2.170",
     "date": "2026-11-09",
-    "commit": "371f050b7605e530438eb24ba24cec200ee60eab",
-    "pagesRunId": 42691354128,
+    "commit": "22d1c5a8016767471d257e077f4274e27ca43b52",
+    "pagesRunId": 42697805052,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.169 with local print URL 8633 and no token field; exact Pages run succeeded"
+    "status": "verified public Muusia 2.170; exact Pages run succeeded; Mac Chrome loaded Pi font catalog and previewed PC861 Icelandic text"
   },
   "lastIntegration": {
     "version": "2.170",
@@ -16,13 +16,14 @@
     "baseCommit": "46f373b91b1d53e14c25629e9c3b7fbdcbc66754",
     "branch": "codex/printer-lab-fonts",
     "worktree": "/private/tmp/muusia-pi-print",
-    "published": false,
-    "status": "Native font lab and 42 fixed character pages verified locally and on Pi; publication pending",
-    "snapshot": "pending final release commit",
+    "published": true,
+    "status": "Muusia 2.170 native font lab published and verified on GitHub Pages; Pi dashboard and Mac Chrome connected",
+    "snapshot": "/private/tmp/muusia-project-files-2.170-native-fonts (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 357,
     "registryCount": 359,
     "validation": "Five print server tests, JavaScript syntax, catalog, root build and 37913 Learn checks passed. Pi files match tested source; user confirmed 2x PC866 Cyrillic and PC861 Icelandic physical receipts.",
-    "note": "Pi service remains bound to 127.0.0.1 and reached via the Mac SSH tunnel; unrelated primary checkout changes were preserved."
+    "note": "Pi service remains bound to 127.0.0.1 and reached via the Mac SSH tunnel; unrelated primary checkout changes were preserved.",
+    "commit": "22d1c5a8016767471d257e077f4274e27ca43b52"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
