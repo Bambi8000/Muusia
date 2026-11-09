@@ -910,6 +910,14 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Test Card · Thermal receipt",
+    desc: "A 72 × 100 mm Epson TM-T88V stress card: fine grids, arcs, tiny details and ordered-halftone swatches. Select Test Card, use DOWNLOAD RECEIPT FILE, and inspect the pixels in LATU before printing. The tones are black/white dots, not printer-native grayscale.",
+    canvas: { W: 72, H: 100 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "testcard", x: 30, y: 20, params: { ...defaults("testcard"), mode: "Thermal receipt" } },
+    ], edges: [] }),
+  },
+  {
     name: "Focal Point · Shared colour grid",
     desc: "Move Focal Point X %, Y % and Radius mm. Its value wires drive Adaptive Grid, so all of its refinement follows one focus. Cells then feed Colour Neighbours, which assigns four pens so touching cells differ. Try wiring the same X % and Y % outputs to Spiral Image Center X/Y or Portrait Focus X/Y; one pair of sliders can control several nodes.",
     canvas: { W: 297, H: 210 },

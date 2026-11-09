@@ -1576,9 +1576,9 @@ export const NODE_RECENCY = {
     "sha256": "4822d12751028b5b052d0ae019627dca885c486e385f8f18f5ceae8724ca258d"
   },
   "testcard": {
-    "date": "2026-10-15",
-    "order": 81,
-    "sha256": "e7fff40fc73980de3bed4d212bde164bb88362f38e52188510693ecbc64e7a64"
+    "date": "2026-11-09",
+    "order": 127,
+    "sha256": "ce0eb0def3b7046452dbf840cce23d0769b02992a04cc66ff309cb4db493590f"
   },
   "textpath": {
     "date": "2026-07-22",

@@ -12,6 +12,8 @@ Animaatiolle aseta **ANIMATE → Frames**, valitse tulostettava solmu ja paina *
 
 Latussa voit avata myös koko animaation ZIP-paketin kohdasta **Document → Open receipt preview…**. Esikatselussa on Play/Pause, edellinen/seuraava freimi ja aikajana. Toisto kiertää viimeisestä freimistä takaisin ensimmäiseen.
 
+Ensimmäistä Epsonin laitetestiä varten avaa valmis esimerkki **Help → Test Card · Thermal receipt** ja valitse sen **Test Card** -node. Vaihtoehtoisesti valitse **Size preset → Receipt · 72 × 100 mm**, lisää **Test Card** -node ja aseta **Card → Thermal receipt**. Tallenna valittu node painamalla **DOWNLOAD RECEIPT FILE**. Avaa tiedosto Latussa ennen tulostamista. Kuvio sisältää 1–4 pisteen pysty- ja ristikkotiheyksiä, tiukkoja kaaria, pieniä kirjaimia ja pisteitä, mustavalkoisella rasterilla tehtyjä 0/25/50/75/100 % harmaasävyruutuja sekä vuorottelevia tummia palkkeja. Kuittipalvelu ei saa erillisiä harmaatasoja: sävyt muodostuvat mustien pisteiden tiheydestä. Kun tulostin on käytössä, sama valittu node voidaan lähettää **PRINT RECEIPT** -painikkeella.
+
 ## Paperi ja tulostin
 
 - Epsonin mukaan 80 mm:n paperin todellinen leveys on 79,5 ± 0,5 mm, rullan suurin halkaisija 83 mm ja hylsyn sisähalkaisija 12 mm. Tulostettava alue on 512 pistettä eli noin 72 mm. Tarkista rullan hylsy ja lämpöherkkä puoli ennen hankintaa. [TM-T88V Technical Reference Guide](https://download4.epson.biz/sec_pubs/bs/pdf/TM-T88V_trg_en_revG.pdf)

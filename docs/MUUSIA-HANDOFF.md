@@ -264,6 +264,22 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.167 — 2026-11-09 · Thermal receipt Test Card
+
+Test Card now has a Thermal receipt mode designed for the 72 × 100 mm, 512-dot
+Epson TM-T88V receipt path. It combines 1–4-dot vertical/cross grids, circles,
+tight arcs, diagonal lines, small text and dots, ordered black/white halftone
+swatches at 0/25/50/75/100%, and alternating thermal-load bars. A built-in Help
+example opens the card with the right canvas. Existing Pen tests still produce
+the exact old output, including old patches without the new mode parameter.
+
+The focused validator checked deterministic finite geometry, canvas bounds,
+point budget, increasing halftone densities and the unchanged old-card hash.
+All 175 Help examples, catalog/recency, production build and 37,913 Learn checks
+across 90 English pages passed. The real local Muusia exported a 512 × 711-dot
+receipt, and LATU displayed the full card with distinguishable tone swatches,
+fine grids, curves, details and load bars. Epson hardware remains untested.
+
 ### 2.166 — 2026-11-09 · Receipt animation and LATU playback
 
 Muusia's ANIMATE panel exports one 512-dot receipt JSON per frame, with a tiny

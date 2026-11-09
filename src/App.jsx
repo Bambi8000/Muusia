@@ -532,7 +532,7 @@ const NODE_HELP = {
   symmetry: "mirror/radial kaleidoscope repetition.",
   tangle: "melts geometry into wandering tangle inside a zone, anchored at the zone edge (guide overlay).",
   tape_saturation: "parallel sinusoidal signal tracks hard-clipped at a saturation threshold, with low-frequency wow drift and fine flutter noise; clamped to the sheet, serpentine track order. Moir\u00e9-ribbon fields.",
-  testcard: "a pen-characterization sheet. Select any of eight tiles (checkbox list) laid out in a grid: *Line weight sweep* (1\\u00D7\\u20136\\u00D7 overdraw to see darkening and registration), *Line spacing* (converging lines to find where they merge / effective pen width), *Hatch density* (four fill densities + crosshatch), *Arcs & circles* (roundness and stepping), *Pen-lift dots* (an 8\\u00D78 grid of tiny cr",
+  testcard: "Calibration sheets for pen tests. Card → Thermal receipt makes a 72 × 100 mm Epson TM-T88V stress pattern with fine grids, arcs, small detail, ordered black/white halftone swatches and thermal-load bars. Use the Receipt size preset and DOWNLOAD RECEIPT FILE to inspect it in LATU before printing.",
   textpath: "single-stroke text laid along a wired spine (same font as Text): each glyph sits at its arc-length position rotated to the local tangent. Align Start/Center/End, start offset %, baseline offset along the normal, Flip side, Repeat-to-fill with gap, curve sampling. Open and closed spines; falls back to a horizontal line when unwired.",
   tiles: "grid of tiles, each a separate closed path. Shapes: parametric",
   tileshuffle: "the canvas is cut into a grid and tiles are permuted with optional flips/180s (bounds-safe). Cuts at tile borders are exact, so no ink is lost at the seams. Amount selects how many tiles join the shuffle.",
@@ -898,7 +898,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.166"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.167"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
