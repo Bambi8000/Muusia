@@ -3,7 +3,6 @@
 
 import base64
 import binascii
-import hmac
 import io
 import json
 import os
@@ -155,8 +154,11 @@ def print_worker():
 class Handler(BaseHTTPRequestHandler):
     def _origin(self):
         origin = self.headers.get("Origin")
-        same_host = "http://" + self.headers.get("Host", "")
-        if origin and origin != same_host and origin != "null" and origin != "https://bambi8000.github.io" and not re.fullmatch(r"http://(?:localhost|127\.0\.0\.1)(?::\d+)?", origin):
+        host = self.headers.get("Host", "")
+        if not re.fullmatch(r"(?:localhost|127\.0\.0\.1)(?::\d+)?", host):
+            return None
+        same_host = "http://" + host
+        if origin and origin != same_host and origin != "https://bambi8000.github.io" and not re.fullmatch(r"http://(?:localhost|127\.0\.0\.1)(?::\d+)?", origin):
             return None
         return origin or ""
 
@@ -181,16 +183,9 @@ class Handler(BaseHTTPRequestHandler):
         self._headers(status, len(data))
         self.wfile.write(data)
 
-    def _authorized(self):
-        token = os.environ.get("MUUSIA_PRINT_TOKEN", "")
-        if not token:
-            self._json(503, {"error": "MUUSIA_PRINT_TOKEN is not configured"})
-            return False
+    def _origin_allowed(self):
         if self._origin() is None:
             self._json(403, {"error": "Origin is not allowed"})
-            return False
-        if not hmac.compare_digest(self.headers.get("X-Muusia-Token", ""), token):
-            self._json(401, {"error": "Invalid print token"})
             return False
         return True
 
@@ -208,7 +203,7 @@ class Handler(BaseHTTPRequestHandler):
             self._headers(200, len(content), content_type)
             self.wfile.write(content)
             return
-        if not self._authorized():
+        if not self._origin_allowed():
             return
         if self.path == "/health":
             device = os.environ.get("MUUSIA_PRINT_DEVICE", "/dev/usb/lp0")
@@ -241,7 +236,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": "Not found"})
 
     def do_DELETE(self):
-        if not self._authorized():
+        if not self._origin_allowed():
             return
         if not re.fullmatch(r"/api/jobs/[a-f0-9]{32}", self.path):
             self._json(404, {"error": "Not found"})
@@ -257,7 +252,7 @@ class Handler(BaseHTTPRequestHandler):
         self._json(200 if snapshot else 409, snapshot or {"error": "Only queued jobs can be cancelled"})
 
     def do_POST(self):
-        if not self._authorized():
+        if not self._origin_allowed():
             return
         if self.path not in ("/api/jobs", "/api/inspect", "/api/cut"):
             self._json(404, {"error": "Not found"})
@@ -320,9 +315,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    if not os.environ.get("MUUSIA_PRINT_TOKEN"):
-        raise SystemExit("Set MUUSIA_PRINT_TOKEN before starting")
-    host = os.environ.get("MUUSIA_PRINT_HOST", "127.0.0.1")
+    # The API has no password: never expose it on the Pi network interfaces.
+    host = "127.0.0.1"
     port = int(os.environ.get("MUUSIA_PRINT_PORT", "8631"))
     threading.Thread(target=print_worker, daemon=True).start()
     server = ThreadingHTTPServer((host, port), Handler)

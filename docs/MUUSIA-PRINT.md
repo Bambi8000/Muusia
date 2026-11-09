@@ -22,7 +22,7 @@ Ensimmäistä Epsonin laitetestiä varten avaa valmis esimerkki **Help → Test 
 
 ## Raspberry Pi -asennus
 
-Pi:lle riittää Python 3:n vakiokirjasto. Tiedostot asennetaan `print`-käyttäjän kotihakemiston `muusia-print`-kansioon. Lisää käyttäjä ensin `lp`-ryhmään komennolla `sudo usermod -aG lp print` ja avaa uusi SSH-istunto. `setup-pi.sh` luo oman satunnaisen tunnuksen ja laittaa uuden asennuksen kirjoittamaan kuivatestissä `test-output.escpos`-tiedostoon. Tunnusta ei tallenneta Git-repositorioon. Palvelu kuuntelee Pi:n omassa `127.0.0.1:8631`-osoitteessa. Käyttäjäpalvelu käynnistää Pythonin `lp`-ryhmässä ilman koko käyttäjäistunnon katkaisua.
+Pi:lle riittää Python 3:n vakiokirjasto. Tiedostot asennetaan `print`-käyttäjän kotihakemiston `muusia-print`-kansioon. Lisää käyttäjä ensin `lp`-ryhmään komennolla `sudo usermod -aG lp print` ja avaa uusi SSH-istunto. `setup-pi.sh` laittaa uuden asennuksen kirjoittamaan kuivatestissä `test-output.escpos`-tiedostoon. Palvelu kuuntelee vain Pi:n omassa `127.0.0.1:8631`-osoitteessa; sitä ei voi avata suoraan lähiverkosta. Käyttäjäpalvelu käynnistää Pythonin `lp`-ryhmässä ilman koko käyttäjäistunnon katkaisua.
 
 ```sh
 cd ~/muusia-print
@@ -36,7 +36,7 @@ Viimeinen komento pitää käyttäjäpalvelun käynnissä uloskirjautumisen jäl
 ssh -N -L 8633:127.0.0.1:8631 print@print.local
 ```
 
-Avaa selaimessa `http://127.0.0.1:8633/`. Tämän Macin portti 8631 on varattu toiselle ohjelmalle, joten tunnelin paikallinen portti on 8633. Sivun pyytämä tunnus löytyy Pi:llä tiedostosta `~/.config/muusia-print.env` riviltä `MUUSIA_PRINT_TOKEN=...`. Muusian `PRINT RECEIPT` käyttää samaa Macin osoitetta ja tunnusta. Sivun tunnus säilyy selaimen tämän välilehden istunnossa. Tunnelin kautta tulostussivu ei avaudu muulle lähiverkolle.
+Avaa selaimessa `http://127.0.0.1:8633/`. Tämän Macin portti 8631 on varattu toiselle ohjelmalle, joten tunnelin paikallinen portti on 8633. Muusian **PRINT RECEIPT** käyttää samaa osoitetta oletuksena. Tunnusta ei enää tarvita kummassakaan käyttöliittymässä. SSH-tunneli ja Pi:n vain paikallinen kuuntelu rajaavat yhteyden tähän Maciin; palvelua ei ole avattu lähiverkkoon tai internetiin.
 
 ## Tulostussivu
 
@@ -53,7 +53,7 @@ Jono ja työhistoria ovat Pi:n muistissa: palvelun uudelleenkäynnistys tyhjent�
 
 Tällä Pi:llä Epson näkyy USB-tunnisteella `04b8:0202`, tuotteen nimi on `TM-T88V` ja laitepolku on `/dev/usb/lp0`. Palvelun ympäristötiedostossa `~/.config/muusia-print.env` on `MUUSIA_PRINT_DEVICE=/dev/usb/lp0`, eikä kuivatestin `MUUSIA_PRINT_OUTPUT_FILE` ole enää käytössä. Jos tulostin irrotetaan tai laitepolku vaihtuu, tarkista `lsusb`, `ls -l /dev/usb/lp*`, `systemctl --user status muusia-print.service` ja `journalctl --user -u muusia-print.service -n 50`. Uudella Pi-asennuksella vaihda ympäristötiedoston kuivatestirivi USB-laitepolkuun vasta, kun laite tunnistuu.
 
-Muusiassa valitse pieni viivapiirros ja jätä Mega Canvas pois. Tulostus skaalautuu 72 mm:n tulostusleveyteen. Enimmäispituus on noin 58 cm; aloita paljon lyhyemmällä kuvalla. Käytä tämän Macin palvelinosoitetta `http://127.0.0.1:8633` ja Pi:n tunnusta. Tulostussivun työt kulkevat saman palvelun kautta. `/health` ja `/api/jobs/<id>` vaativat saman tunnuksen.
+Muusiassa valitse pieni viivapiirros ja jätä Mega Canvas pois. Tulostus skaalautuu 72 mm:n tulostusleveyteen. Enimmäispituus on noin 58 cm; aloita paljon lyhyemmällä kuvalla. Käytä tämän Macin palvelinosoitetta `http://127.0.0.1:8633`. Tulostussivun työt kulkevat saman palvelun kautta. Yhteys tarvitsee käynnissä olevan SSH-tunnelin, mutta ei tulostustunnusta.
 
 ## Rajat ja seuraava vaihe
 

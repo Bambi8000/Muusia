@@ -2,10 +2,10 @@
   'use strict';
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  const state = { token: '', source: 'receipt', receipts: [], selected: 0, health: null, jobs: [] };
+  const state = { source: 'receipt', receipts: [], selected: 0, health: null, jobs: [] };
 
   async function api(path, options = {}) {
-    const response = await fetch(path, { ...options, headers: { 'X-Muusia-Token': state.token, ...(options.headers || {}) } });
+    const response = await fetch(path, options);
     const value = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(value.error || `Server returned ${response.status}`);
     return value;
@@ -215,7 +215,6 @@
   }
 
   async function refresh() {
-    if (!state.token) return;
     try {
       const [health, listing] = await Promise.all([api('/health'), api('/api/jobs')]);
       state.health = health; state.jobs = listing.jobs;
@@ -236,26 +235,19 @@
       $('#queue-all').disabled = !state.receipts.length || !health.ready;
       $('#cut-only').disabled = !health.ready;
     } catch (error) {
+      state.health = null;
+      $('#printer-state').textContent = 'Offline';
+      $('#printer-detail').textContent = 'Print server unavailable';
+      $('#mode-pill').textContent = 'SERVER OFFLINE';
+      $('#mode-pill').classList.remove('ready'); $('#mode-pill').classList.add('offline');
       $('#sidebar-dot').classList.remove('online'); $('#sidebar-status').textContent = 'Disconnected';
-      if (/Invalid print token|not configured/.test(error.message)) { $('#connect-screen').classList.remove('hidden'); $('#connect-error').textContent = error.message; }
+      $('#sidebar-subtitle').textContent = 'Check the local tunnel';
+      $('#queue-current').disabled = true; $('#queue-all').disabled = true; $('#cut-only').disabled = true;
     }
-  }
-
-  async function connect(event) {
-    event.preventDefault();
-    state.token = $('#token-input').value.trim(); $('#connect-error').textContent = '';
-    try {
-      await api('/health');
-      sessionStorage.setItem('muusia-print-token', state.token);
-      $('#connect-screen').classList.add('hidden'); $('#token-input').value = '';
-      await refresh();
-    } catch (error) { $('#connect-error').textContent = error.message; }
   }
 
   $$('.nav-item, .link-button[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
   $$('.source-tabs button').forEach(button => button.addEventListener('click', () => setSource(button.dataset.source)));
-  $('#connect-form').addEventListener('submit', connect);
-  $('#disconnect').addEventListener('click', () => { sessionStorage.removeItem('muusia-print-token'); state.token = ''; $('#connect-screen').classList.remove('hidden'); $('#sidebar-dot').classList.remove('online'); $('#sidebar-status').textContent = 'Disconnected'; });
   $('#receipt-file').addEventListener('change', event => { inspectReceipt(event.target.files[0]); event.target.value = ''; });
   $('#image-file').addEventListener('change', event => { inspectImage(event.target.files[0]); event.target.value = ''; });
   $('#make-text').addEventListener('click', makeText); $('#make-test').addEventListener('click', makeTest);
@@ -264,7 +256,6 @@
   $('#cut-only').addEventListener('click', cutPaper);
   $('#refresh-jobs').addEventListener('click', refresh);
   $('#server-address').textContent = location.origin;
-  try { state.token = sessionStorage.getItem('muusia-print-token') || ''; } catch { /* Private browsing can disable storage. */ }
-  if (state.token) { $('#connect-screen').classList.add('hidden'); refresh(); }
-  setInterval(() => { if (state.token && !document.hidden) refresh(); }, 3000);
+  refresh();
+  setInterval(() => { if (!document.hidden) refresh(); }, 3000);
 })();

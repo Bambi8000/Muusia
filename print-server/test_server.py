@@ -40,12 +40,10 @@ class PrintServerTests(unittest.TestCase):
         self.assertEqual(output[10 + 256 * 64:10 + 256 * 64 + 8], b"\x1dv0\x00\x40\x00\x01\x00")
         self.assertTrue(output.endswith(b"\x1dV\x41\x20"))
 
-    def test_http_queue_auth_and_file_output(self):
+    def test_http_queue_origin_and_file_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, "receipt.bin")
-            old_token = os.environ.get("MUUSIA_PRINT_TOKEN")
             old_output = os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")
-            os.environ["MUUSIA_PRINT_TOKEN"] = "test-token"
             os.environ["MUUSIA_PRINT_OUTPUT_FILE"] = output_path
             httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
             threading.Thread(target=httpd.serve_forever, daemon=True).start()
@@ -53,11 +51,7 @@ class PrintServerTests(unittest.TestCase):
             base = f"http://127.0.0.1:{httpd.server_port}"
             try:
                 payload = json.dumps({"width": 512, "height": 1, "data": base64.b64encode(bytes([0x80]) + bytes(63)).decode(), "cut": False}).encode()
-                with self.assertRaises(HTTPError) as denied:
-                    urlopen(Request(base + "/api/jobs", data=payload, headers={"Content-Type": "application/json"}), timeout=2)
-                self.assertEqual(denied.exception.code, 401)
-                denied.exception.close()
-                headers = {"Content-Type": "application/json", "X-Muusia-Token": "test-token", "Origin": "http://localhost:5173"}
+                headers = {"Content-Type": "application/json", "Origin": "http://localhost:5173"}
                 with urlopen(Request(base + "/api/jobs", data=payload, headers=headers), timeout=2) as response:
                     self.assertEqual(response.status, 202)
                     job_id = json.load(response)["id"]
@@ -96,39 +90,43 @@ class PrintServerTests(unittest.TestCase):
                     self.assertEqual(response.status, 204)
                     self.assertEqual(response.headers["Access-Control-Allow-Origin"], public_origin)
                     self.assertEqual(response.headers["Access-Control-Allow-Private-Network"], "true")
-                with urlopen(Request(base + "/health", headers={"X-Muusia-Token": "test-token", "Origin": public_origin}), timeout=2) as response:
+                with urlopen(Request(base + "/health", headers={"Origin": public_origin}), timeout=2) as response:
                     self.assertEqual(response.status, 200)
                     self.assertEqual(json.load(response)["mode"], "test file")
                 with urlopen(base + "/", timeout=2) as response:
                     self.assertIn(b"Muusia Print", response.read())
                     self.assertIn("default-src 'none'", response.headers["Content-Security-Policy"])
-                with urlopen(Request(base + "/api/jobs", headers={"X-Muusia-Token": "test-token"}), timeout=2) as response:
+                with urlopen(Request(base + "/api/jobs"), timeout=2) as response:
                     self.assertTrue(any(job["id"] == job_id for job in json.load(response)["jobs"]))
-                with urlopen(Request(base + "/api/jobs/" + job_id + "/receipt", headers={"X-Muusia-Token": "test-token"}), timeout=2) as response:
+                with urlopen(Request(base + "/api/jobs/" + job_id + "/receipt"), timeout=2) as response:
                     self.assertEqual(json.load(response)["data"], base64.b64encode(bytes([0x80]) + bytes(63)).decode())
                 waiting_id = "a" * 32
                 with server.jobs_lock:
                     server.jobs[waiting_id] = {"id": waiting_id, "status": "queued", "name": "Waiting", "height": 1,
                                                "width": 512, "cut": False, "createdAt": time.time()}
-                with urlopen(Request(base + "/api/jobs/" + waiting_id, method="DELETE", headers={"X-Muusia-Token": "test-token"}), timeout=2) as response:
+                with urlopen(Request(base + "/api/jobs/" + waiting_id, method="DELETE"), timeout=2) as response:
                     self.assertEqual(json.load(response)["status"], "cancelled")
                 with server.jobs_lock:
                     server.jobs.pop(waiting_id, None)
                 with urlopen(Request(base + "/api/inspect", data=json.dumps({"format": "muusia-receipt", "version": 1,
                          "width": 512, "height": 1, "data": base64.b64encode(bytes(64)).decode()}).encode(), headers={
-                             "X-Muusia-Token": "test-token", "X-Muusia-Filename": "test.muusia-receipt.json"}), timeout=2) as response:
+                             "X-Muusia-Filename": "test.muusia-receipt.json"}), timeout=2) as response:
                     self.assertEqual(len(json.load(response)["receipts"]), 1)
                 with self.assertRaises(HTTPError) as wrong_origin:
-                    urlopen(Request(base + "/health", headers={"X-Muusia-Token": "test-token", "Origin": "https://example.com"}), timeout=2)
+                    urlopen(Request(base + "/health", headers={"Origin": "https://example.com"}), timeout=2)
                 self.assertEqual(wrong_origin.exception.code, 403)
                 wrong_origin.exception.close()
+                with self.assertRaises(HTTPError) as opaque_origin:
+                    urlopen(Request(base + "/api/cut", data=b"", method="POST", headers={"Origin": "null"}), timeout=2)
+                self.assertEqual(opaque_origin.exception.code, 403)
+                opaque_origin.exception.close()
+                with self.assertRaises(HTTPError) as spoofed_host:
+                    urlopen(Request(base + "/health", headers={"Host": "untrusted.example", "Origin": "http://untrusted.example"}), timeout=2)
+                self.assertEqual(spoofed_host.exception.code, 403)
+                spoofed_host.exception.close()
             finally:
                 httpd.shutdown()
                 httpd.server_close()
-                if old_token is None:
-                    os.environ.pop("MUUSIA_PRINT_TOKEN", None)
-                else:
-                    os.environ["MUUSIA_PRINT_TOKEN"] = old_token
                 if old_output is None:
                     os.environ.pop("MUUSIA_PRINT_OUTPUT_FILE", None)
                 else:

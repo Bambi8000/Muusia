@@ -898,7 +898,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.168"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.169"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2639,8 +2639,7 @@ export default function App() {
 
   const [copied, setCopied] = useState(false);
   const [exportKind, setExportKind] = useState("gcode");
-  const [printUrl, setPrintUrl] = useState("http://127.0.0.1:8631");
-  const [printToken, setPrintToken] = useState("");
+  const [printUrl, setPrintUrl] = useState("http://127.0.0.1:8633");
   const [printCut, setPrintCut] = useState(true);
   const [printBusy, setPrintBusy] = useState(false);
   const [printStatus, setPrintStatus] = useState("");
@@ -2772,7 +2771,7 @@ export default function App() {
     try {
       const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH);
       setPrintStatus(`Sending ${Math.round(receipt.height / 180 * 25.4)} mm receipt…`);
-      const job = await sendReceipt(printUrl, printToken, receipt, printCut);
+      const job = await sendReceipt(printUrl, receipt, printCut);
       setPrintStatus(`Printed · job ${job.id.slice(0, 8)}`);
     } catch (err) {
       setPrintStatus(`Print failed: ${err.message || err}`);
@@ -4396,10 +4395,8 @@ export default function App() {
               <div style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, margin: "4px 0 7px" }}>
                 Selected node → black lines on 80 mm thermal paper. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / 180 * 25.4)} mm long.
               </div>
-              <input aria-label="Receipt server URL" value={printUrl} onChange={e => setPrintUrl(e.target.value)} placeholder="http://127.0.0.1:8631"
+              <input aria-label="Receipt server URL" value={printUrl} onChange={e => setPrintUrl(e.target.value)} placeholder="http://127.0.0.1:8633"
                 style={{ boxSizing: "border-box", width: "100%", background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, padding: "5px 7px", fontSize: 10, fontFamily: mono }} />
-              <input aria-label="Receipt server token" type="password" value={printToken} onChange={e => setPrintToken(e.target.value)} placeholder="Print server token"
-                style={{ boxSizing: "border-box", width: "100%", marginTop: 5, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, padding: "5px 7px", fontSize: 10, fontFamily: mono }} />
               <label style={{ display: "flex", gap: 5, alignItems: "center", fontSize: 10, marginTop: 6, color: T.text }}>
                 <input type="checkbox" checked={printCut} onChange={e => setPrintCut(e.target.checked)} /> Cut after print
               </label>

@@ -264,6 +264,22 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.169 — 2026-11-09 · Local Epson printing without a token
+
+Muusia's receipt panel and the Pi print dashboard no longer ask for a print
+token. Muusia defaults to this Mac's active SSH tunnel at
+`http://127.0.0.1:8633`. The print API accepts requests from the local
+dashboard and the published Muusia origin without a token. The Pi service
+always binds to `127.0.0.1:8631`, so it remains unavailable on the LAN or
+internet; SSH access to the Pi is still needed to make the Mac tunnel.
+Untrusted browser origins are rejected, including opaque `null` origins.
+The old Pi token was removed from its private environment file. Print jobs
+and cutter behavior are unchanged. Nine old job records were archived on the
+Pi before restarting its service. Three Python tests, JavaScript and shell
+syntax checks, catalog validation, the app build and 37,913 Learn checks
+passed. The live Pi dashboard displayed **Connected / USB printer ready**
+without a login form. See `docs/MUUSIA-PRINT.md` for access.
+
 ### W — 2026-11-09 · Epson TM-T88V USB printing and cutter
 
 The Raspberry Pi 3 now sees the Epson TM-T88V (`04b8:0202`) as `/dev/usb/lp0`.

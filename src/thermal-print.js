@@ -71,13 +71,12 @@ export function renderReceipt(paths, widthMm, heightMm, frame = null) {
   return { width, height, data: btoa(binary) };
 }
 
-export async function sendReceipt(serverUrl, token, receipt, cut = true) {
+export async function sendReceipt(serverUrl, receipt, cut = true) {
   const base = serverUrl.trim().replace(/\/+$/, "");
   if (!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(base)) {
-    throw new Error("Use the local SSH tunnel URL, for example http://127.0.0.1:8631.");
+    throw new Error("Use the local SSH tunnel URL, for example http://127.0.0.1:8633.");
   }
-  if (!token) throw new Error("Enter the print server token.");
-  const headers = { "Content-Type": "application/json", "X-Muusia-Token": token };
+  const headers = { "Content-Type": "application/json" };
   const response = await fetch(`${base}/api/jobs`, {
     method: "POST", headers, body: JSON.stringify({ ...receipt, cut }),
   });
@@ -85,7 +84,7 @@ export async function sendReceipt(serverUrl, token, receipt, cut = true) {
   if (!response.ok) throw new Error(result.error || `Print server returned ${response.status}.`);
   for (let attempt = 0; attempt < 60; attempt++) {
     await new Promise(resolve => setTimeout(resolve, 500));
-    const check = await fetch(`${base}/api/jobs/${result.id}`, { headers: { "X-Muusia-Token": token } });
+    const check = await fetch(`${base}/api/jobs/${result.id}`);
     const job = await check.json().catch(() => ({}));
     if (!check.ok) throw new Error(job.error || `Print status returned ${check.status}.`);
     if (job.status === "done") return job;
