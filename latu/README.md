@@ -11,6 +11,11 @@ containing the current TM-T88V raster, feed and cut commands. The preview is
 read-only because the raster has no editable vector strokes. Regular `.gcode`
 files continue to open in LATU's editor.
 
+Muusia's **ANIMATE → Receipt × N** downloads a ZIP of numbered receipt frames.
+Open that ZIP in the same receipt preview to play the frames in order, pause,
+step backward or forward, or scrub to a frame. The small frame number and crop
+marks are already in each receipt's pixels; playback does not change the files.
+
 LATU is Muusia's line-preserving G-code reader/editor sub-app. The M0 viewer
 provides Muusia servo/bed-Z parsing, canvas and text synchronization, file
 open/save, zoom/pan, event markers, and timing statistics. M1 adds multi-stroke

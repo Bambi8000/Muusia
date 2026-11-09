@@ -74,6 +74,10 @@ button.quiet { border-color: transparent; background: transparent; color: #a8b5c
 .receipt-head p { overflow-wrap: anywhere; }
 .receipt-head button { font-size: 18px; }
 .receipt-meta { margin-bottom: 10px; color: #b6c6d6; font: 11px var(--mono); }
+.receipt-playback { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; color: #d9e4ed; font: 11px var(--mono); }
+.receipt-playback button { min-width: 38px; padding: 5px 7px; border: 1px solid #546575; border-radius: 4px; background: #26323d; color: inherit; cursor: pointer; }
+.receipt-playback input { flex: 1; min-width: 50px; accent-color: #81c8e4; }
+.receipt-playback span { min-width: 42px; text-align: right; }
 .receipt-scroll { min-height: 0; overflow: auto; padding: 15px; border: 1px solid #3a4651; border-radius: 6px; background: #31363b; text-align: center; }
 .receipt-scroll canvas { display: block; width: min(100%, 512px); height: auto; margin: 0 auto; background: white; image-rendering: pixelated; box-shadow: 0 4px 18px #0008; }
 .receipt-note { margin: 10px 0 0 !important; line-height: 1.5; }

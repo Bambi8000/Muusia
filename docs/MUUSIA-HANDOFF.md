@@ -264,6 +264,22 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.166 — 2026-11-09 · Receipt animation and LATU playback
+
+Muusia's ANIMATE panel exports one 512-dot receipt JSON per frame, with a tiny
+frame number and short crop marks rasterized into 30 extra dot rows. Multiple
+frames download as one ZIP; a single frame downloads as JSON. The selected
+graph is evaluated afresh for every frame. Mega Canvas remains disabled for
+receipt export. LATU opens the ZIP as a read-only looping animation with Play,
+Pause, previous/next and a frame slider. Single receipt JSON and ESC/POS
+preview still work.
+
+In the local production UI, a three-frame 72 × 100 mm Grid export created three
+numbered 512 × 741-dot files. Each had top and bottom crop marks. LATU opened
+the ZIP, stepped between frames and played the numbered sequence. LATU's 75
+tests, catalog (359 keys), production builds and 37,913 Learn checks across 90
+English pages passed. Epson hardware remains untested.
+
 ### 2.165 — 2026-11-08 · Receipt export and LATU preview
 
 Muusia now offers 72 × 100 mm and 72 × 250 mm receipt canvas presets. Its Print

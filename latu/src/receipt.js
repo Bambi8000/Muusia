@@ -1,3 +1,5 @@
+import { strFromU8, unzipSync } from "fflate";
+
 const WIDTH = 512;
 const MAX_HEIGHT = 4096;
 
@@ -19,8 +21,35 @@ export function parseReceiptJson(text) {
   let decoded;
   try { decoded = atob(value.data); }
   catch { throw new Error("Receipt bitmap is not valid Base64."); }
+  const numbered = value.frame !== undefined || value.frameCount !== undefined;
+  if (numbered && (!Number.isInteger(value.frame) || !Number.isInteger(value.frameCount) || value.frame < 1 || value.frame > value.frameCount || value.frameCount > 999)) {
+    throw new Error("Receipt frame number is invalid.");
+  }
   const pixels = Uint8Array.from(decoded, char => char.charCodeAt(0));
-  return { ...validateReceipt(value.height, pixels), cut: value.cut === true, feedDots: value.cut === true ? 112 : 0, format: "Muusia receipt JSON" };
+  return { ...validateReceipt(value.height, pixels), cut: value.cut === true, feedDots: value.cut === true ? 112 : 0, format: "Muusia receipt JSON", frame: numbered ? value.frame : null, frameCount: numbered ? value.frameCount : null };
+}
+
+export function parseReceiptAnimationZip(buffer) {
+  const archive = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+  if (archive.length > 200_000_000) throw new Error("Receipt animation ZIP is too large.");
+  let count = 0, total = 0;
+  let entries;
+  try {
+    entries = unzipSync(archive, { filter: ({ name, originalSize }) => {
+      if (!/\.muusia-receipt\.json$/i.test(name)) return false;
+      count++;
+      total += originalSize;
+      if (count > 999 || originalSize > 400_000 || total > 200_000_000) throw new Error("Receipt animation ZIP is too large.");
+      return true;
+    } });
+  } catch (error) { throw new Error(error.message || "Receipt animation ZIP is invalid."); }
+  const frames = Object.entries(entries).map(([name, bytes]) => ({ name, receipt: parseReceiptJson(strFromU8(bytes)) }));
+  if (!frames.length) throw new Error("ZIP has no Muusia receipt frames.");
+  frames.sort((a, b) => (a.receipt.frame ?? 0) - (b.receipt.frame ?? 0));
+  if (frames.length !== frames[0].receipt.frameCount || frames.some((item, index) => item.receipt.frame !== index + 1 || item.receipt.frameCount !== frames.length)) {
+    throw new Error("Receipt animation frames are missing or out of sequence.");
+  }
+  return frames;
 }
 
 export function parseEscPos(buffer) {

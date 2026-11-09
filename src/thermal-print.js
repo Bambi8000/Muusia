@@ -2,13 +2,19 @@
 export const RECEIPT_WIDTH_DOTS = 512;
 export const RECEIPT_MAX_HEIGHT_DOTS = 4096;
 
-export function renderReceipt(paths, widthMm, heightMm) {
+export function renderReceipt(paths, widthMm, heightMm, frame = null) {
   if (!Number.isFinite(widthMm) || !Number.isFinite(heightMm) || widthMm <= 0 || heightMm <= 0) {
     throw new Error("Canvas dimensions must be positive.");
   }
   const width = RECEIPT_WIDTH_DOTS;
-  const height = Math.round(heightMm / widthMm * width);
-  if (height < 1 || height > RECEIPT_MAX_HEIGHT_DOTS) {
+  const artHeight = Math.round(heightMm / widthMm * width);
+  const numbered = frame !== null;
+  if (numbered && (!Number.isInteger(frame.number) || !Number.isInteger(frame.count) || frame.number < 1 || frame.number > frame.count || frame.count > 999)) {
+    throw new Error("Receipt frame number is invalid.");
+  }
+  const top = numbered ? 20 : 0;
+  const height = artHeight + (numbered ? 30 : 0);
+  if (artHeight < 1 || height > RECEIPT_MAX_HEIGHT_DOTS) {
     throw new Error("Receipt is too long. Use a shorter canvas or test crop (maximum about 58 cm).");
   }
   const canvas = document.createElement("canvas");
@@ -18,7 +24,9 @@ export function renderReceipt(paths, widthMm, heightMm) {
   if (!ctx) throw new Error("Canvas rendering is unavailable.");
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, width, height);
-  ctx.scale(width / widthMm, height / heightMm);
+  ctx.save();
+  ctx.translate(0, top);
+  ctx.scale(width / widthMm, artHeight / heightMm);
   ctx.strokeStyle = "black";
   // Keep wide source canvases legible after they are reduced to receipt width.
   ctx.lineWidth = Math.max(0.3, widthMm / width * 1.25);
@@ -31,6 +39,21 @@ export function renderReceipt(paths, widthMm, heightMm) {
     for (let i = 1; i < path.pts.length; i++) ctx.lineTo(path.pts[i][0], path.pts[i][1]);
     if (path.closed) ctx.closePath();
     ctx.stroke();
+  }
+  ctx.restore();
+  if (numbered) {
+    ctx.fillStyle = "black";
+    ctx.font = "8px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`F${String(frame.number).padStart(String(frame.count).length, "0")}/${frame.count}`, width / 2, 11);
+    for (const y of [top - 1, top + artHeight]) {
+      ctx.fillRect(0, y, 12, 1);
+      ctx.fillRect(width - 12, y, 12, 1);
+    }
+    ctx.fillRect(1, top - 6, 1, 5);
+    ctx.fillRect(width - 2, top - 6, 1, 5);
+    ctx.fillRect(1, top + artHeight + 1, 1, 5);
+    ctx.fillRect(width - 2, top + artHeight + 1, 1, 5);
   }
   const rgba = ctx.getImageData(0, 0, width, height).data;
   const bytes = new Uint8Array(width * height / 8);

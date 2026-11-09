@@ -15,7 +15,7 @@ import { ActionMenu, Icon, SelectionInspector } from "./editor-controls.jsx";
 import ResumePanel from "./resume-panel.jsx";
 import { buildContinuation, continuationFilename, continuationStartup, resumeLocation, resumeTargetForSelection } from "./resume.js";
 import ReceiptPreview from "./receipt-preview.jsx";
-import { parseEscPos, parseReceiptJson } from "./receipt.js";
+import { parseEscPos, parseReceiptAnimationZip, parseReceiptJson } from "./receipt.js";
 
 const EMPTY = `; LATU\n; Open a Muusia .gcode file to inspect its toolpath.\n`;
 
@@ -162,9 +162,15 @@ export default function App() {
   const loadFile = async (file, handle = null) => loadText(await file.text(), file.name, handle);
   const loadReceiptFile = async (file) => {
     try {
-      const receipt = /\.escpos$/i.test(file.name) ? parseEscPos(await file.arrayBuffer()) : parseReceiptJson(await file.text());
-      setReceiptFile({ name: file.name, receipt });
-      setMessage(`Opened receipt preview · ${receipt.height} rows`);
+      if (/\.zip$/i.test(file.name)) {
+        const frames = parseReceiptAnimationZip(await file.arrayBuffer());
+        setReceiptFile({ name: file.name, frames });
+        setMessage(`Opened receipt animation · ${frames.length} frames`);
+      } else {
+        const receipt = /\.escpos$/i.test(file.name) ? parseEscPos(await file.arrayBuffer()) : parseReceiptJson(await file.text());
+        setReceiptFile({ name: file.name, receipt });
+        setMessage(`Opened receipt preview · ${receipt.height} rows`);
+      }
     } catch (error) {
       setReceiptFile({ name: file.name, error: error.message || String(error) });
     }
@@ -358,7 +364,7 @@ export default function App() {
     return () => cancelAnimationFrame(frame);
   }, [playing, playbackSpeed, timeline.total]);
 
-  return <div className={`app${playbackOpen ? " playback-shown" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const files = event.dataTransfer.files; if (files.length > 1) combineFiles(files); else if (files[0]) { if (/\.(muusia-receipt\.json|escpos)$/i.test(files[0].name)) loadReceiptFile(files[0]); else loadFile(files[0]); } }}>
+  return <div className={`app${playbackOpen ? " playback-shown" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const files = event.dataTransfer.files; if (files.length > 1) combineFiles(files); else if (files[0]) { if (/\.(muusia-receipt\.json|escpos|zip)$/i.test(files[0].name)) loadReceiptFile(files[0]); else loadFile(files[0]); } }}>
     <header className="editor-header">
       <div className="document-bar">
         <div className="brand"><span className="brand-mark">L</span><div><strong>LATU</strong><small>G-code editor</small></div></div>
@@ -410,7 +416,7 @@ export default function App() {
         </div>
       </div>
       <input ref={inputRef} type="file" accept=".gcode,.gc,.nc,text/plain" hidden onChange={(event) => event.target.files[0] && loadFile(event.target.files[0])} />
-      <input ref={receiptInputRef} type="file" accept=".muusia-receipt.json,.escpos,application/json,application/octet-stream" hidden onChange={(event) => { if (event.target.files[0]) loadReceiptFile(event.target.files[0]); event.target.value = ""; }} />
+      <input ref={receiptInputRef} type="file" accept=".muusia-receipt.json,.escpos,.zip,application/json,application/octet-stream,application/zip" hidden onChange={(event) => { if (event.target.files[0]) loadReceiptFile(event.target.files[0]); event.target.value = ""; }} />
       <input ref={combineInputRef} type="file" accept=".gcode,.gc,.nc,text/plain" multiple hidden onChange={(event) => { if (event.target.files.length) combineFiles(event.target.files); event.target.value = ""; }} />
     </header>
     <main className={`workspace mode-${paneMode}`}>

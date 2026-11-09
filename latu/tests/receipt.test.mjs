@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { parseEscPos, parseReceiptJson, receiptImageData } from "../src/receipt.js";
+import { strToU8, zipSync } from "fflate";
+import { parseEscPos, parseReceiptAnimationZip, parseReceiptJson, receiptImageData } from "../src/receipt.js";
 
 const row = Uint8Array.from([0x80, ...Array(63).fill(0)]);
 const json = JSON.stringify({ format: "muusia-receipt", version: 1, width: 512, height: 1, data: Buffer.from(row).toString("base64"), cut: true });
@@ -25,4 +26,14 @@ test("ESC/POS raster stream reconstructs rows and cut state", () => {
 test("receipt reader rejects malformed dimensions and unknown commands", () => {
   assert.throws(() => parseReceiptJson(json.replace('"height":1', '"height":2')), /512 dots/);
   assert.throws(() => parseEscPos(Uint8Array.from([0x1B, 0x40, 0x1B, 0x70])), /Unsupported ESC\/POS/);
+});
+
+test("animation ZIP sorts numbered receipts and keeps each frame's pixels", () => {
+  const frame = (number, pixel) => strToU8(JSON.stringify({ format: "muusia-receipt", version: 1, width: 512, height: 1,
+    data: Buffer.from(Uint8Array.from([pixel, ...Array(63).fill(0)])).toString("base64"), frame: number, frameCount: 2, cut: false }));
+  const zip = zipSync({ "patch-f002.muusia-receipt.json": frame(2, 0x40), "patch-f001.muusia-receipt.json": frame(1, 0x80) }, { level: 0 });
+  const frames = parseReceiptAnimationZip(zip);
+  assert.deepEqual(frames.map(item => item.receipt.frame), [1, 2]);
+  assert.deepEqual(frames.map(item => item.receipt.pixels[0]), [0x80, 0x40]);
+  assert.throws(() => parseReceiptAnimationZip(zipSync({ "patch-f002.muusia-receipt.json": frame(2, 0x40) }, { level: 0 })), /missing or out of sequence/);
 });

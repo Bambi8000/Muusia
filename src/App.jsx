@@ -898,7 +898,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.165"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.166"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2980,6 +2980,54 @@ export default function App() {
     setAnimBusy(0.001);
     doOne();
   };
+  const exportReceiptFrames = () => {
+    if (!primaryNode || animBusy || megaOn) return;
+    const n = Math.max(1, frameCount);
+    let f = 0;
+    const files = [];
+    const doOne = () => {
+      try {
+        const ctxF = { W: canvasW, H: canvasH, frameIdx: f, frameCount: n, machine: machineCtx(prof) };
+        let level = root, res = evalLevel(root, ctxF, null);
+        for (const gid of stack) {
+          const g = level.nodes.find(nd => nd.id === gid);
+          if (!g || !g.data) break;
+          const gIns = g.data.bindings.map((b, k) => {
+            const e = level.edges.find(ed => ed.to === g.id && ed.toPort === k);
+            return e ? (res.out[e.from] || [])[e.fromPort || 0] : undefined;
+          });
+          level = g.data;
+          res = evalLevel(level, ctxF, gIns);
+        }
+        const out = res.out[primaryNode.id];
+        const ps = out && out[0] && out[0].paths ? out[0] : EMPTY;
+        const receipt = renderReceipt(ps.paths, canvasW, canvasH, { number: f + 1, count: n });
+        files.push({ name: `${projName || "patch"}-f${String(f + 1).padStart(3, "0")}.muusia-receipt.json`,
+          text: JSON.stringify({ format: "muusia-receipt", version: 1, ...receipt, cut: printCut, frame: f + 1, frameCount: n }) });
+        f++;
+        setAnimBusy(f < n ? f / n : 0);
+        if (f < n) { setTimeout(doOne, 8); return; }
+        const single = files.length === 1;
+        const blob = single
+          ? new Blob([files[0].text], { type: "application/json" })
+          : new Blob([buildZip(files)], { type: "application/zip" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = single ? files[0].name : `${projName || "patch"}-frames-receipt.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+      } catch (err) {
+        setAnimBusy(0);
+        setAnimExportError(`Receipt export failed: ${err.message || err}`);
+      }
+    };
+    setAnimPlay(false);
+    setAnimExportError("");
+    setAnimBusy(0.001);
+    doOne();
+  };
   const download = () => {
     if (megaOn) { downloadMega(exportKind); return; }
     try {
@@ -4036,8 +4084,13 @@ export default function App() {
                   DXF {"\u00D7"} {frameCount}
                 </button>
               </div>
+              <button onClick={exportReceiptFrames} disabled={animBusy > 0 || !primaryOut?.[0]?.paths || megaOn}
+                title={megaOn ? "Turn off Mega Canvas for receipt frames" : "One numbered receipt per frame, with small crop marks; downloads a ZIP when there are multiple frames"}
+                style={{ width: "100%", marginTop: 6, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryOut?.[0]?.paths && !megaOn ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
+                Receipt {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
+              </button>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
-                Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes.
+                Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes. Receipt always exports one numbered file per frame.
               </div>
             </div>
             <div data-machine-setup="true" onClick={() => setMchOpen((v) => !v)}

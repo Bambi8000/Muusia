@@ -8,6 +8,10 @@ Tila 8.11.2026: Muusian valitun solmun viivat voidaan rasteroida 512 pisteen lev
 
 Valitse yläpalkin **Size preset → Receipt · 72 × 100 mm** lyhyelle kuitille tai **Receipt strip · 72 × 250 mm** pidemmälle nauhalle. Voit myös asettaa Canvas-leveydeksi **72 mm** ja korkeudeksi haluamasi kuittipituuden. 80 mm:n rullassa tulostettava alue on noin 72 mm; Muusia skaalaa koko kankaan leveyden 512 pisteeseen. Valitse tulostettava solmu, pidä **Mega Canvas** pois päältä ja käytä **DOWNLOAD RECEIPT FILE** -painiketta Latu-esikatseluun. Tämä ei tarvitse Epsonia, Raspberry Pi:tä eikä tokenia.
 
+Animaatiolle aseta **ANIMATE → Frames**, valitse tulostettava solmu ja paina **Receipt × N**. Muusia laskee jokaisen freimin erikseen ja lataa ne yhtenä ZIP-pakettina (`*.muusia-receipt.json` per freimi; yhdestä freimistä tulee yksittäinen tiedosto). Jokaisen kuvan yläreunaan rasteroidaan pieni `F01/12`-tyyppinen numero ja kuvan alkuun ja loppuun lyhyet leikkausmerkit. Merkit lisäävät kuittiin 30 pisteriviä eli noin 4 mm. ZIP:n yksittäiset tiedostot avautuvat Latussa kuten tavallinen kuitti. Muusia ei lähetä koko animaatiota tulostusjonoon automaattisesti.
+
+Latussa voit avata myös koko animaation ZIP-paketin kohdasta **Document → Open receipt preview…**. Esikatselussa on Play/Pause, edellinen/seuraava freimi ja aikajana. Toisto kiertää viimeisestä freimistä takaisin ensimmäiseen.
+
 ## Paperi ja tulostin
 
 - Epsonin mukaan 80 mm:n paperin todellinen leveys on 79,5 ± 0,5 mm, rullan suurin halkaisija 83 mm ja hylsyn sisähalkaisija 12 mm. Tulostettava alue on 512 pistettä eli noin 72 mm. Tarkista rullan hylsy ja lämpöherkkä puoli ennen hankintaa. [TM-T88V Technical Reference Guide](https://download4.epson.biz/sec_pubs/bs/pdf/TM-T88V_trg_en_revG.pdf)
