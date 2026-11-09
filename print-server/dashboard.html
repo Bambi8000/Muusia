@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10151c">
-  <title>Muusia Print</title>
+  <title>Print</title>
   <link rel="stylesheet" href="/dashboard.css">
   <script src="/dashboard.js" defer></script>
 </head>
 <body>
   <div class="shell">
     <aside class="sidebar">
-      <div class="brand"><span class="brand-mark">M<span>↗</span></span><div><strong>MUUSIA</strong><small>PRINT CONTROL</small></div></div>
+      <div class="brand"><span class="brand-mark">P<span>↗</span></span><div><strong>PRINT</strong><small>EPSON CONTROL</small></div></div>
       <nav aria-label="Main navigation">
         <button class="nav-item active" data-view="dashboard"><span>▦</span> Dashboard</button>
         <button class="nav-item" data-view="queue"><span>≡</span> Print queue <b id="nav-count">0</b></button>
@@ -21,7 +21,7 @@
       <div class="sidebar-bottom"><div class="connection-dot" id="sidebar-dot"></div><div><strong id="sidebar-status">Checking…</strong><small id="sidebar-subtitle">Checking print server</small></div></div>
     </aside>
     <main class="main">
-      <header class="topbar"><div><p class="eyebrow">HEADLESS PRINT SERVER</p><h1 id="page-title">Dashboard</h1></div><div class="topbar-status"><span id="mode-pill" class="pill">Checking…</span><span id="queue-pill" class="pill">0 queued</span></div></header>
+      <header class="topbar"><div><p class="eyebrow">PRINT · RASPBERRY PI</p><h1 id="page-title">Dashboard</h1></div><div class="topbar-status"><span id="mode-pill" class="pill">Checking…</span><span id="queue-pill" class="pill">0 queued</span></div></header>
 
       <section id="dashboard-view" class="view">
         <div class="overview">
@@ -86,7 +86,7 @@
         </div>
       </section>
 
-      <section id="settings-view" class="view hidden"><div class="settings-grid"><article class="panel"><p class="eyebrow">CONNECTION</p><h2>Print server</h2><dl class="settings-list"><div><dt>Address</dt><dd id="server-address"></dd></div><div><dt>Output mode</dt><dd id="settings-mode">—</dd></div><div><dt>Device</dt><dd id="settings-device">—</dd></div></dl></article><article class="panel"><p class="eyebrow">HEADLESS SETUP</p><h2>Raspberry Pi and Epson</h2><p>The server can write ESC/POS data to a test file or to the connected USB printer. Print jobs and cutter commands use the same queue.</p><p>The dashboard and Muusia can both use this server through a local SSH tunnel. Nothing is uploaded to a cloud service.</p></article></div></section>
+      <section id="settings-view" class="view hidden"><div class="settings-grid"><article class="panel"><p class="eyebrow">CONNECTION</p><h2>Print</h2><dl class="settings-list"><div><dt>Address</dt><dd id="server-address"></dd></div><div><dt>Output mode</dt><dd id="settings-mode">—</dd></div><div><dt>Device</dt><dd id="settings-device">—</dd></div></dl></article><article class="panel"><p class="eyebrow">HEADLESS SETUP</p><h2>Raspberry Pi and Epson</h2><p>The server can write ESC/POS data to a test file or to the connected USB printer. Print jobs and cutter commands use the same queue.</p><p>Print and Muusia connect through a local SSH tunnel. Nothing is uploaded to a cloud service.</p></article></div></section>
     </main>
   </div>
 

@@ -264,6 +264,18 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### W — 2026-11-09 · Raspberry Pi print page renamed Print
+
+The Pi dashboard's browser title, sidebar identity, page heading, settings
+label, test-card artwork and native font test headers now use **Print**.
+Downloaded native ESC/POS binaries use `print-` filenames. The systemd unit
+description says Print. Its existing unit identifier, deployment directory,
+environment variable names and Muusia receipt format remain compatible with
+the running Pi and Muusia app. This is a Pi-only rename; Muusia's app version
+remains 2.170. Five print-server tests and JavaScript syntax passed. The updated
+Pi service reported active and USB ready, and Mac Chrome displayed the page as
+Print with no queued jobs. No physical print was sent for this naming change.
+
 ### 2.170 — 2026-11-09 · Epson native font test lab
 
 Muusia's print panel and the Pi dashboard now expose Printer Lab with four

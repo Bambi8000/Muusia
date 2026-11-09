@@ -236,7 +236,7 @@ class Handler(BaseHTTPRequestHandler):
             if not test:
                 self._json(404, {"error": "Native test not found"})
             else:
-                self._headers(200, len(test.data), "application/octet-stream", f"muusia-{test.id}.bin")
+                self._headers(200, len(test.data), "application/octet-stream", f"print-{test.id}.bin")
                 self.wfile.write(test.data)
         elif re.fullmatch(r"/api/native-tests/[a-z0-9-]+", self.path):
             test_id = self.path.rsplit("/", 1)[-1]
@@ -301,7 +301,7 @@ class Handler(BaseHTTPRequestHandler):
                                  "bytes": len(test.data), "preview": test.preview,
                                  "previewNote": "Approximation only: the Epson renders its own ROM glyphs."})
             elif self.path.endswith("/bin"):
-                self._headers(200, len(test.data), "application/octet-stream", "muusia-native-glyphs.bin")
+                self._headers(200, len(test.data), "application/octet-stream", "print-native-glyphs.bin")
                 self.wfile.write(test.data)
             else:
                 self._enqueue(test.name, 0, None, test.data.endswith(b"\x1dV\x41\x20"), "native", raw=test.data)
@@ -382,7 +382,7 @@ def main():
     port = int(os.environ.get("MUUSIA_PRINT_PORT", "8631"))
     threading.Thread(target=print_worker, daemon=True).start()
     server = ThreadingHTTPServer((host, port), Handler)
-    print(f"Muusia Print listening on {host}:{port}", flush=True)
+    print(f"Print listening on {host}:{port}", flush=True)
     server.serve_forever()
 
 

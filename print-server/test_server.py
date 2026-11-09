@@ -130,7 +130,7 @@ class PrintServerTests(unittest.TestCase):
                     self.assertEqual(json.load(response)["id"], native.id)
                 with urlopen(base + "/api/native-tests/font-sample/bin", timeout=2) as response:
                     self.assertEqual(response.read(), native.data)
-                    self.assertIn("muusia-font-sample.bin", response.headers["Content-Disposition"])
+                    self.assertIn("print-font-sample.bin", response.headers["Content-Disposition"])
                 before_native = os.path.getsize(output_path)
                 with urlopen(Request(base + "/api/native-tests/font-sample", data=b"", method="POST"), timeout=2) as response:
                     native_id = json.load(response)["id"]
@@ -185,7 +185,7 @@ class PrintServerTests(unittest.TestCase):
                     self.assertEqual(response.status, 200)
                     self.assertEqual(json.load(response)["mode"], "test file")
                 with urlopen(base + "/", timeout=2) as response:
-                    self.assertIn(b"Muusia Print", response.read())
+                    self.assertIn(b"<title>Print</title>", response.read())
                     self.assertIn("default-src 'none'", response.headers["Content-Security-Policy"])
                 with urlopen(Request(base + "/api/jobs"), timeout=2) as response:
                     self.assertTrue(any(job["id"] == job_id for job in json.load(response)["jobs"]))

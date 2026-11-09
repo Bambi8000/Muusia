@@ -157,7 +157,7 @@
   function makeTest() {
     const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 760;
     const c = canvas.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, 512, 760); c.fillStyle = '#000'; c.strokeStyle = '#000';
-    c.font = 'bold 22px monospace'; c.fillText('MUUSIA / EPSON TEST', 18, 34); c.font = '12px monospace'; c.fillText('512 DOT THERMAL / 1-BIT OUTPUT', 18, 53);
+    c.font = 'bold 22px monospace'; c.fillText('PRINT / EPSON TEST', 18, 34); c.font = '12px monospace'; c.fillText('512 DOT THERMAL / 1-BIT OUTPUT', 18, 53);
     for (let step = 1; step <= 4; step++) { const x0 = 20 + (step - 1) * 122; c.font = '11px monospace'; c.fillText(`${step} DOT`, x0, 85); for (let x = x0; x < x0 + 94; x += step + 1) c.fillRect(x, 98, step, 100); }
     for (let step = 2; step <= 5; step++) { const y0 = 224 + (step - 2) * 54; c.fillText(`${step} PX`, 20, y0 + 12); for (let x = 78; x < 494; x += step * 2) c.fillRect(x, y0, 1, 40); for (let y = y0; y < y0 + 40; y += step * 2) c.fillRect(78, y, 416, 1); }
     c.lineWidth = 1; for (let radius = 16; radius <= 94; radius += 8) { c.beginPath(); c.arc(128, 550, radius, Math.PI * 1.12, Math.PI * 1.88); c.stroke(); }
@@ -225,7 +225,7 @@
       const response = await fetch(`/api/native-tests/${test.id}/bin`);
       if (!response.ok) throw new Error(`Download failed (${response.status}).`);
       const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement('a'); link.href = url; link.download = `muusia-${test.id}.bin`; link.click();
+      const link = document.createElement('a'); link.href = url; link.download = `print-${test.id}.bin`; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) { $('#native-message').textContent = error.message; }
   }
@@ -298,7 +298,7 @@
       const response = await fetch('/api/native-compose/bin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(glyphRequest()) });
       if (!response.ok) { const value = await response.json().catch(() => ({})); throw new Error(value.error || `Download failed (${response.status}).`); }
       const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement('a'); link.href = url; link.download = 'muusia-native-glyphs.bin'; link.click();
+      const link = document.createElement('a'); link.href = url; link.download = 'print-native-glyphs.bin'; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       $('#glyph-message').textContent = 'ESC/POS binary saved.';
     } catch (error) { $('#glyph-message').textContent = error.message; }

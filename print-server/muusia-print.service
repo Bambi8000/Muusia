@@ -1,5 +1,5 @@
 [Unit]
-Description=Muusia thermal receipt print server
+Description=Print · Epson thermal receipt server
 
 [Service]
 Type=simple

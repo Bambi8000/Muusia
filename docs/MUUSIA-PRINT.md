@@ -1,6 +1,6 @@
-# Muusia Print: Raspberry Pi -tulostussivu
+# Print: Raspberry Pi -tulostussivu
 
-Tila 9.11.2026: Raspberry Pi 3:n Muusia Print -sivu tulostaa Epson TM-T88V:lle USB:n kautta. Sivulla voi esikatsella kuitteja, kuvia, tekstiä ja testikorttia sekä lisätä niitä tulostusjonoon. Kolme talteen otettua työtä — teksti, Epson-testikortti ja Muusia-kuitti — tulostettiin oikealle paperille. Käyttäjä vahvisti, että kuvat ja leikkaukset tulivat siististi. Erillinen täyden leikkauksen komento testattiin: laite jätti edelleen yhden reunakielekkeen, kuten TM-T88V:n osittaisleikkaukselta odotetaan. Pi ilmoittaa ajoittaista alijännitettä; käyttäjä pyysi jatkamaan tulostusta siitä huolimatta.
+Tila 9.11.2026: Raspberry Pi 3:n **Print**-sivu tulostaa Epson TM-T88V:lle USB:n kautta. Sivulla voi esikatsella kuitteja, kuvia, tekstiä ja testikorttia sekä lisätä niitä tulostusjonoon. Print-nimi näkyy Pi:n sivulla ja sen palvelukuvauksessa; sivu tarkistettiin Macin Chromessa, ja palvelu ilmoitti USB-tulostimen valmiiksi. Kolme talteen otettua työtä — teksti, Epson-testikortti ja Muusia-kuitti — tulostettiin oikealle paperille. Käyttäjä vahvisti, että kuvat ja leikkaukset tulivat siististi. Erillinen täyden leikkauksen komento testattiin: laite jätti edelleen yhden reunakielekkeen, kuten TM-T88V:n osittaisleikkaukselta odotetaan. Pi ilmoittaa ajoittaista alijännitettä; käyttäjä pyysi jatkamaan tulostusta siitä huolimatta.
 
 `DOWNLOAD RECEIPT FILE` tallentaa saman bittikuvan `*.muusia-receipt.json`-tiedostoksi ilman tulostinta. Tiedosto sisältää `format`, `version`, `width`, `height`, Base64-muotoisen 1-bittisen `data`-kentän ja `cut`-valinnan. Latu näyttää tiedoston kohdasta **Document → Open receipt preview…**. Latu voi myös avata tämän palvelimen tuottaman `.escpos`-tavuvirran esikatseluun; kumpaakaan muotoa ei tulkita G-codeksi tai muokattaviksi viivoiksi.
 
@@ -22,7 +22,7 @@ Ensimmäistä Epsonin laitetestiä varten avaa valmis esimerkki **Help → Test 
 
 ## Raspberry Pi -asennus
 
-Pi:lle riittää Python 3:n vakiokirjasto. Tiedostot asennetaan `print`-käyttäjän kotihakemiston `muusia-print`-kansioon. Lisää käyttäjä ensin `lp`-ryhmään komennolla `sudo usermod -aG lp print` ja avaa uusi SSH-istunto. `setup-pi.sh` laittaa uuden asennuksen kirjoittamaan kuivatestissä `test-output.escpos`-tiedostoon. Palvelu kuuntelee vain Pi:n omassa `127.0.0.1:8631`-osoitteessa; sitä ei voi avata suoraan lähiverkosta. Käyttäjäpalvelu käynnistää Pythonin `lp`-ryhmässä ilman koko käyttäjäistunnon katkaisua.
+Pi:lle riittää Python 3:n vakiokirjasto. Tiedostot asennetaan `print`-käyttäjän kotihakemiston `muusia-print`-kansioon. Lisää käyttäjä ensin `lp`-ryhmään komennolla `sudo usermod -aG lp print` ja avaa uusi SSH-istunto. `setup-pi.sh` laittaa uuden asennuksen kirjoittamaan kuivatestissä `test-output.escpos`-tiedostoon. Palvelu kuuntelee vain Pi:n omassa `127.0.0.1:8631`-osoitteessa; sitä ei voi avata suoraan lähiverkosta. Käyttäjäpalvelu käynnistää Pythonin `lp`-ryhmässä ilman koko käyttäjäistunnon katkaisua. Sivun nimi on **Print**; asennushakemisto, palveluyksikön tunnus ja Muusian kuittitiedoston muoto säilyvät yhteensopivuuden vuoksi ennallaan.
 
 ```sh
 cd ~/muusia-print

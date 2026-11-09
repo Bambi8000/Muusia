@@ -152,7 +152,7 @@ class Builder:
 
 def font_sample():
     b = Builder()
-    b.line("MUUSIA / NATIVE FONT TEST", bold=True)
+    b.line("PRINT / NATIVE FONT TEST", bold=True)
     for font in ("A", "B"):
         b.line(f"FONT {font} / ROM GLYPHS", font=font, bold=True)
         for row in ("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz",
@@ -280,7 +280,7 @@ def compose(body):
     if not 1 <= len(lines) <= 24:
         raise ValueError("Native text can use at most 24 printed lines at this size")
     b = Builder()
-    b.line(f"MUUSIA PAGE {page} / FONT {font}")
+    b.line(f"PRINT PAGE {page} / FONT {font}")
     for raw in lines:
         b.line(raw, font=font, width=width, height=height,
                bold=body.get("bold", False), underline=body.get("underline", False),
