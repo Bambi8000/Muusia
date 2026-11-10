@@ -1585,6 +1585,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "101be6056ae8936b1f3e55fb5d3cc65db74743c2d04421e4e97a367f94cfd4f8"
   },
+  "thermal_text": {
+    "date": "2026-11-10",
+    "order": 128,
+    "sha256": "45358ca610d49b9db7e8f8e4ccf2a7e4c6b406acac30d8fd5910361b0fbab304"
+  },
   "tiles": {
     "date": "2026-10-20",
     "order": 93,

@@ -264,6 +264,33 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.171 — 2026-11-10 · Thermal Text node and mixed receipts
+
+Thermal Text is a built-in path modifier in Pen & Output. It passes the wired
+image through and adds one Epson ROM text block before or after that image.
+An unwired input makes a text-only receipt. Controls: Font A/B, left/center/right,
+independent 1–8× width and height, bold, underline, reverse, 42 fixed code pages,
+18 international sets, and exact hex glyph bytes for pages without Unicode
+conversion. A `|` in the text field creates a line break. Multiple nodes can
+stack up to eight blocks. Only the selected Thermal Text node's receipt export
+uses the metadata; SVG/G-code and the drawing canvas contain paths only.
+
+`renderReceipt` carries `thermalText` into direct print, downloaded receipt
+files, and numbered animation frame exports. The Pi validates each block using
+the existing bounded `native_fonts` composer, then sends before-text, raster,
+after-text and one optional final cut as a single queued ESC/POS job. Imported
+and history receipts retain the text metadata. The dashboard labels their
+block count and requeues the same text. Latu currently previews the image part
+of a receipt file, not these Epson-native blocks.
+
+The built-in node validator, six Python print-server tests (including exact
+byte order and API round trip), catalog validation, production build and
+37,913 Learn checks passed. The real Muusia 2.171 UI exposed every requested
+control and exported a text-only receipt containing the selected settings.
+The matching Pi files were installed, the service reported USB ready, and a
+small before-text/image/after-text smoke job reported `done`. This confirms USB
+write; physical layout and cut placement await Daniel's paper check.
+
 ### W — 2026-11-09 · Raspberry Pi print page renamed Print
 
 The Pi dashboard's browser title, sidebar identity, page heading, settings

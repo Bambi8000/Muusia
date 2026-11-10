@@ -2,7 +2,7 @@
 
 Tila 9.11.2026: Raspberry Pi 3:n **Print**-sivu tulostaa Epson TM-T88V:lle USB:n kautta. Sivulla voi esikatsella kuitteja, kuvia, tekstiä ja testikorttia sekä lisätä niitä tulostusjonoon. Print-nimi näkyy Pi:n sivulla ja sen palvelukuvauksessa; sivu tarkistettiin Macin Chromessa, ja palvelu ilmoitti USB-tulostimen valmiiksi. Kolme talteen otettua työtä — teksti, Epson-testikortti ja Muusia-kuitti — tulostettiin oikealle paperille. Käyttäjä vahvisti, että kuvat ja leikkaukset tulivat siististi. Erillinen täyden leikkauksen komento testattiin: laite jätti edelleen yhden reunakielekkeen, kuten TM-T88V:n osittaisleikkaukselta odotetaan. Pi ilmoittaa ajoittaista alijännitettä; käyttäjä pyysi jatkamaan tulostusta siitä huolimatta.
 
-`DOWNLOAD RECEIPT FILE` tallentaa saman bittikuvan `*.muusia-receipt.json`-tiedostoksi ilman tulostinta. Tiedosto sisältää `format`, `version`, `width`, `height`, Base64-muotoisen 1-bittisen `data`-kentän ja `cut`-valinnan. Latu näyttää tiedoston kohdasta **Document → Open receipt preview…**. Latu voi myös avata tämän palvelimen tuottaman `.escpos`-tavuvirran esikatseluun; kumpaakaan muotoa ei tulkita G-codeksi tai muokattaviksi viivoiksi.
+`DOWNLOAD RECEIPT FILE` tallentaa saman bittikuvan `*.muusia-receipt.json`-tiedostoksi ilman tulostinta. Tiedosto sisältää `format`, `version`, `width`, `height`, Base64-muotoisen 1-bittisen `data`-kentän ja `cut`-valinnan. Thermal Text lisää tiedostoon `thermalText`-kentän, jonka Print-palvelu tulostaa Epsonin omilla fonteilla kuvan eteen tai perään. Latu näyttää tiedoston kohdasta **Document → Open receipt preview…**, mutta sen esikatselu näyttää nykyisin vain rasterikuvan, ei Epsonin omilla fonteilla tulostettavia tekstilohkoja. Latu voi myös avata tämän palvelimen tuottaman `.escpos`-tavuvirran esikatseluun; kumpaakaan muotoa ei tulkita G-codeksi tai muokattaviksi viivoiksi.
 
 ## Kuittikangas Muusiassa
 
@@ -48,6 +48,12 @@ Avaa selaimessa `http://127.0.0.1:8633/`. Tämän Macin portti 8631 on varattu t
 - **Cut paper** lisää jonoon vain `GS V 0` -leikkauskomennon. Se leikkaa nykyisestä kohdasta eikä syötä kuvaa pidemmälle paperista ulos. Täyden leikkauksen pyyntö jätti todellisessa testissä TM-T88V:n normaalin reunakielekkeen; sitä ei voi poistaa tällä komennolla.
 
 ## Printer Lab: Epsonin omat fontit
+
+### Thermal Text -node kuitissa
+
+Lisää **Thermal Text** kuvan jälkeen ja valitse sen sininen ulostulo tulostettavaksi. *Place → Before/After* määrää, tuleeko Epsonin oma teksti ennen kuvaa vai sen jälkeen. Vaihtoehdot ovat vasen/keski/oikea tasaus, Font A/B, leveys ja korkeus 1–8×, lihavointi, alleviivaus, käänteinen tulostus, kaikki 42 valmista merkistösivua ja 18 kansainvälistä asetusta. `|` tekstikentässä tekee rivinvaihdon; heksatavut antavat käyttöön myös sivut, joille Unicode-muunnosta ei ole. Ilman kuvayhteyttä node tuottaa pelkän tekstikuitin. Useita nodeja voi ketjuttaa enintään kahdeksaksi tekstilohkoksi. Teksti ja kuva lähetetään samassa työssä, ja mahdollinen leikkaus tulee vasta viimeisen lohkon jälkeen.
+
+Esimerkki: **Test Card** (*Card → Thermal receipt*) → **Thermal Text** (*Text: MUUSIA*, *Place: Before*, *Align: Center*, *Width/Height: 2*, *Bold: on*) → valitse Thermal Text → **PRINT RECEIPT**. Muusian kangas ja SVG/G-code sisältävät edelleen vain viivakuvan; Epson tekee tekstin vasta tulostushetkellä. Kuittitiedoston `thermalText` säilyy Print-sivun tuonnissa, uusintatulostuksessa ja työhistorian latauksessa. Fontin tarkka ulkoasu on varmistettava paperilta.
 
 Pi:n tulostussivun **Printer Lab** ja Muusian tulostuspaneelin **PRINTER LAB · NATIVE FONTS** käyttävät Epsonin sisäisiä Font A- ja Font B -bittikarttafontteja. Testit muodostetaan palvelimella rajatuista ESC/POS-komennoista; esikatselu on arvio, koska oikeat merkit piirretään tulostimen muistissa. Jokaisen kokeen voi jonottaa tai ladata täsmälleen samana `.bin`-komentovirtana.
 

@@ -533,6 +533,7 @@ const NODE_HELP = {
   tangle: "melts geometry into wandering tangle inside a zone, anchored at the zone edge (guide overlay).",
   tape_saturation: "parallel sinusoidal signal tracks hard-clipped at a saturation threshold, with low-frequency wow drift and fine flutter noise; clamped to the sheet, serpentine track order. Moir\u00e9-ribbon fields.",
   testcard: "Calibration sheets for pen tests. Card → Thermal receipt makes a 72 × 100 mm Epson TM-T88V stress pattern with fine grids, arcs, small detail, ordered black/white halftone swatches and thermal-load bars. Use the Receipt size preset and DOWNLOAD RECEIPT FILE to inspect it in LATU before printing.",
+  thermal_text: "Print Epson's own Font A or B before or after the image on the same receipt. Wire the image into Thermal Text and select its output for PRINT RECEIPT. For text only, leave the input unwired. Choose alignment, width and height (1–8×), bold, underline, reverse, character page and international set. Use | for a new line; enter hex bytes to use glyphs without Unicode conversion. The native text appears on paper, not in the canvas or SVG/G-code preview.",
   textpath: "single-stroke text laid along a wired spine (same font as Text): each glyph sits at its arc-length position rotated to the local tangent. Align Start/Center/End, start offset %, baseline offset along the normal, Flip side, Repeat-to-fill with gap, curve sampling. Open and closed spines; falls back to a horizontal line when unwired.",
   tiles: "grid of tiles, each a separate closed path. Shapes: parametric",
   tileshuffle: "the canvas is cut into a grid and tiles are permuted with optional flips/180s (bounds-safe). Cuts at tile borders are exact, so no ink is lost at the seams. Amount selects how many tiles join the shuffle.",
@@ -898,7 +899,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.170"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.171"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2545,6 +2546,7 @@ export default function App() {
   const primaryNode = lvl.nodes.find((n) => n.id === primary);
   const primaryOut = primary != null ? results[primary] : null;
   const primaryPS = primaryOut && primaryOut[0] && primaryOut[0].paths ? primaryOut[0] : EMPTY;
+  const hasReceiptContent = primaryPS.paths.length > 0 || (Array.isArray(primaryPS.thermalText) && primaryPS.thermalText.length > 0);
   const importEdit = primaryNode && (primaryNode.type === "svgimport" || primaryNode.type === "pdfimport") && primaryPS.paths.length
     && !testCrop.active && !measureOn && !jigPlace ? (() => {
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -2781,8 +2783,10 @@ export default function App() {
     setPrintBusy(true);
     setPrintStatus("Preparing 512-dot receipt…");
     try {
-      const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH);
-      setPrintStatus(`Sending ${Math.round(receipt.height / 180 * 25.4)} mm receipt…`);
+      const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH, null, primaryPS.thermalText);
+      setPrintStatus(receipt.thermalText?.length
+        ? `Sending receipt with ${receipt.thermalText.length} Epson text block${receipt.thermalText.length === 1 ? "" : "s"}…`
+        : `Sending ${Math.round(receipt.height / 180 * 25.4)} mm receipt…`);
       const job = await sendReceipt(printUrl, receipt, printCut);
       setPrintStatus(`Printed · job ${job.id.slice(0, 8)}`);
     } catch (err) {
@@ -2876,7 +2880,7 @@ export default function App() {
   };
   const downloadReceiptFile = () => {
     try {
-      const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH);
+      const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH, null, primaryPS.thermalText);
       const data = JSON.stringify({ format: "muusia-receipt", version: 1, ...receipt, cut: printCut });
       const blob = new Blob([data], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -2887,7 +2891,7 @@ export default function App() {
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
-      setPrintStatus(`Receipt file saved · ${receipt.width} × ${receipt.height} dots`);
+      setPrintStatus(`Receipt file saved · ${receipt.width} × ${receipt.height} dots${receipt.thermalText?.length ? ` · ${receipt.thermalText.length} Epson text block${receipt.thermalText.length === 1 ? "" : "s"}` : ""}`);
     } catch (err) {
       setPrintStatus(`Receipt export failed: ${err.message || err}`);
     }
@@ -3095,7 +3099,7 @@ export default function App() {
         }
         const out = res.out[primaryNode.id];
         const ps = out && out[0] && out[0].paths ? out[0] : EMPTY;
-        const receipt = renderReceipt(ps.paths, canvasW, canvasH, { number: f + 1, count: n });
+        const receipt = renderReceipt(ps.paths, canvasW, canvasH, { number: f + 1, count: n }, ps.thermalText);
         files.push({ name: `${projName || "patch"}-f${String(f + 1).padStart(3, "0")}.muusia-receipt.json`,
           text: JSON.stringify({ format: "muusia-receipt", version: 1, ...receipt, cut: printCut, frame: f + 1, frameCount: n }) });
         f++;
@@ -4178,9 +4182,9 @@ export default function App() {
                   DXF {"\u00D7"} {frameCount}
                 </button>
               </div>
-              <button onClick={exportReceiptFrames} disabled={animBusy > 0 || !primaryOut?.[0]?.paths || megaOn}
+              <button onClick={exportReceiptFrames} disabled={animBusy > 0 || !hasReceiptContent || megaOn}
                 title={megaOn ? "Turn off Mega Canvas for receipt frames" : "One numbered receipt per frame, with small crop marks; downloads a ZIP when there are multiple frames"}
-                style={{ width: "100%", marginTop: 6, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryOut?.[0]?.paths && !megaOn ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
+                style={{ width: "100%", marginTop: 6, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: hasReceiptContent && !megaOn ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                 Receipt {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
               </button>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
@@ -4488,21 +4492,21 @@ export default function App() {
             <div style={{ marginTop: 14, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
               <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", color: T.text }}>MUUSIA PRINT · TM-T88V</div>
               <div style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, margin: "4px 0 7px" }}>
-                Selected node → black lines on 80 mm thermal paper. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / 180 * 25.4)} mm long.
+                Selected node → black lines on 80 mm thermal paper. Thermal Text adds Epson font text before or after the image. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / 180 * 25.4)} mm of image.
               </div>
               <input aria-label="Receipt server URL" value={printUrl} onChange={e => setPrintUrl(e.target.value)} placeholder="http://127.0.0.1:8633"
                 style={{ boxSizing: "border-box", width: "100%", background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, padding: "5px 7px", fontSize: 10, fontFamily: mono }} />
               <label style={{ display: "flex", gap: 5, alignItems: "center", fontSize: 10, marginTop: 6, color: T.text }}>
                 <input type="checkbox" checked={printCut} onChange={e => setPrintCut(e.target.checked)} /> Cut after print
               </label>
-              <button onClick={downloadReceiptFile} disabled={!primaryPS.paths.length || megaOn}
-                title={megaOn ? "Turn off Mega Canvas for receipt export" : "Save a receipt file for LATU preview"}
-                style={{ width: "100%", marginTop: 6, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.line}`, background: "transparent", color: primaryPS.paths.length && !megaOn ? T.text : T.dim, fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: primaryPS.paths.length && !megaOn ? "pointer" : "default" }}>
+              <button onClick={downloadReceiptFile} disabled={!hasReceiptContent || megaOn}
+                title={megaOn ? "Turn off Mega Canvas for receipt export" : "Save a receipt file for Print; LATU currently previews the image only"}
+                style={{ width: "100%", marginTop: 6, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.line}`, background: "transparent", color: hasReceiptContent && !megaOn ? T.text : T.dim, fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: hasReceiptContent && !megaOn ? "pointer" : "default" }}>
                 DOWNLOAD RECEIPT FILE
               </button>
-              <button onClick={doReceiptPrint} disabled={!primaryPS.paths.length || megaOn || printBusy}
+              <button onClick={doReceiptPrint} disabled={!hasReceiptContent || megaOn || printBusy}
                 title={megaOn ? "Turn off Mega Canvas for the first receipt print" : "Send the selected node to the local Raspberry Pi print server"}
-                style={{ width: "100%", marginTop: 6, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.value}`, background: "transparent", color: primaryPS.paths.length && !megaOn && !printBusy ? T.value : T.dim, fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: primaryPS.paths.length && !megaOn && !printBusy ? "pointer" : "default" }}>
+                style={{ width: "100%", marginTop: 6, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.value}`, background: "transparent", color: hasReceiptContent && !megaOn && !printBusy ? T.value : T.dim, fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: hasReceiptContent && !megaOn && !printBusy ? "pointer" : "default" }}>
                 {printBusy ? "PRINTING…" : "PRINT RECEIPT"}
               </button>
               {printStatus && <div role="status" style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, marginTop: 5 }}>{printStatus}</div>}

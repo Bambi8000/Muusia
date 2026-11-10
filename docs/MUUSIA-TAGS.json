@@ -1784,6 +1784,10 @@
   "round",
   "structural"
  ],
+ "thermal_text": [
+  "text",
+  "machine"
+ ],
  "textpath": [
   "text"
  ],

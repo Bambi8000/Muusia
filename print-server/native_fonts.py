@@ -112,8 +112,8 @@ class NativeTest:
 
 
 class Builder:
-    def __init__(self):
-        self.data = bytearray(b"\x1b@")
+    def __init__(self, initialize=True):
+        self.data = bytearray(b"\x1b@" if initialize else b"")
         self.preview = []
 
     def line(self, value, *, font="A", width=1, height=1, bold=False,
@@ -233,7 +233,7 @@ def details(id):
             "previewNote": "Approximation only: the Epson prints its internal bitmap glyphs."}
 
 
-def compose(body):
+def compose(body, *, heading=True, initialize=True, cut_override=None):
     """Turn bounded text and/or explicit glyph bytes into native text commands."""
     if not isinstance(body, dict):
         raise ValueError("Expected a native text object")
@@ -279,10 +279,17 @@ def compose(body):
     lines.extend(raw_glyphs[offset:offset + max_chars] for offset in range(0, len(raw_glyphs), max_chars))
     if not 1 <= len(lines) <= 24:
         raise ValueError("Native text can use at most 24 printed lines at this size")
-    b = Builder()
-    b.line(f"PRINT PAGE {page} / FONT {font}")
+    b = Builder(initialize=initialize)
+    if heading:
+        b.line(f"PRINT PAGE {page} / FONT {font}")
     for raw in lines:
         b.line(raw, font=font, width=width, height=height,
                bold=body.get("bold", False), underline=body.get("underline", False),
                reverse=body.get("reverse", False), align=align, page=page, country=country)
-    return b.finish("native-glyphs", "Native glyphs", f"Page {page} · {CODE_PAGES[page][0]}", cut=body.get("cut", True))
+    return b.finish("native-glyphs", "Native glyphs", f"Page {page} · {CODE_PAGES[page][0]}",
+                    cut=body.get("cut", True) if cut_override is None else cut_override)
+
+
+def receipt_block(body):
+    """Validated native text for a mixed image/text receipt, with no init or cut."""
+    return compose(body, heading=False, initialize=False, cut_override=False).data

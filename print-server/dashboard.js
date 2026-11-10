@@ -75,7 +75,8 @@
     $('#frame-picker').classList.toggle('hidden', state.receipts.length < 2);
     if (!item) { $('#preview-title').textContent = 'Nothing selected'; $('#preview-size').textContent = '—'; return; }
     $('#preview-title').textContent = item.name || `Frame ${state.selected + 1}`;
-    $('#preview-size').textContent = `${item.width} × ${item.height} dots`;
+    const nativeCount = Array.isArray(item.thermalText) ? item.thermalText.length : 0;
+    $('#preview-size').textContent = `${item.width} × ${item.height} dots${nativeCount ? ` · ${nativeCount} native text block${nativeCount === 1 ? '' : 's'}` : ''}`;
     $('#frame-position').textContent = `${state.selected + 1} of ${state.receipts.length}`;
     $('#cut-after').checked = item.cut !== false;
     const picker = $('#frame-select'); picker.replaceChildren();
@@ -168,7 +169,7 @@
   }
 
   async function queueReceipt(item, cut) {
-    return api('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name || 'Receipt', width: item.width, height: item.height, data: item.data, cut }) });
+    return api('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name || 'Receipt', width: item.width, height: item.height, data: item.data, thermalText: item.thermalText || [], cut }) });
   }
 
   async function addToQueue(all) {

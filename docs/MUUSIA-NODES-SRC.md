@@ -1,4 +1,4 @@
-# MUUSIA v2.29 — Node Sources (357 files, generated)
+# MUUSIA v2.29 — Node Sources (358 files, generated)
 
 All built-in node definitions from `src/defs/nodes/`. Engine, UI and the
 `group`/`reititys` entries live in `src/App.jsx`; shared helpers in `src/defs/helpers.js`.
@@ -36751,14 +36751,14 @@ export default {
     { key: "filename", label: "PDF file", type: "file", def: "" },
     { key: "page", label: "Page", type: "number", min: 1, max: 100, step: 1, def: 1 },
     { key: "fit", label: "Fit", type: "select", options: ["Fit to canvas", "Scale %"], def: "Fit to canvas" },
-    { key: "scale", label: "Scale %", type: "slider", min: 1, max: 400, step: 1, def: 100 },
+    { key: "scale", label: "Scale %", type: "slider", min: 1, max: 400, step: 1, def: 100, showIf: p => p.fit === "Scale %" },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
     { key: "offx", label: "Offset X mm", type: "slider", min: -200, max: 200, step: 0.5, def: 0 },
     { key: "offy", label: "Offset Y mm", type: "slider", min: -200, max: 200, step: 0.5, def: 0 },
     { key: "editScale", label: "Size %", type: "slider", min: 1, max: 500, step: 1, def: 100 },
     { key: "rotation", label: "Rotation °", type: "slider", min: -180, max: 180, step: 1, def: 0 },
     { key: "colmode", label: "Colors", type: "select", options: ["From PDF colors", "Single pen"], def: "Single pen" },
-    { key: "layer", label: "Pen (if single)", type: "pen", def: 0 },
+    { key: "layer", label: "Pen (if single)", type: "pen", def: 0, showIf: p => p.colmode === "Single pen" },
   ],
   async onFile(dataUrl) {
     const { parsePdfDataUrl } = await import("../pdf-browser.js");
@@ -56623,26 +56623,121 @@ export default {
 ```js
 import { Pin, PENS, applyStyle, fontStrokes } from "../helpers.js";
 
+// 72 × 100 mm diagnostic card for the 512-dot receipt raster. Every tone is
+// ordered black/white dots, so the same geometry reaches the one-bit printer.
+function thermalReceipt(ins, p, ctx) {
+  const W = Number(ctx.W), H = Number(ctx.H);
+  if (!Number.isFinite(W) || !Number.isFinite(H) || W <= 0 || H <= 0) return applyStyle({ paths: [] }, ins[0]);
+  const scale = Math.min(W / 72, H / 100);
+  const ox = (W - 72 * scale) / 2;
+  const layer = Math.max(0, Math.min(11, Math.round(Number(p.layer) || 0)));
+  const paths = [];
+  const add = (pts, closed = false) => paths.push({ pts: pts.map(([x, y]) => [ox + x * scale, y * scale]), closed, layer });
+  const line = (x0, y0, x1, y1) => add([[x0, y0], [x1, y1]]);
+  const rect = (x, y, w, h) => add([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], true);
+  const label = (str, x, y, size, maxWidth = Infinity) => {
+    let font = fontStrokes(str, size, 1);
+    if (font.width > maxWidth) font = fontStrokes(str, size * maxWidth / font.width, 1);
+    for (const stroke of font.strokes) if (stroke.length >= 2) add(stroke.map(([sx, sy]) => [x + sx, y + sy]));
+  };
+  const arc = (cx, cy, radius, a0 = 0, a1 = Math.PI * 2) => {
+    const count = Math.max(48, Math.ceil(radius * 18));
+    const pts = [];
+    for (let i = 0; i <= count; i++) {
+      const a = a0 + (a1 - a0) * i / count;
+      pts.push([cx + radius * Math.cos(a), cy + radius * Math.sin(a)]);
+    }
+    add(pts);
+  };
+  const dotMm = 72 / 512;
+  const bayer = [
+    0, 48, 12, 60, 3, 51, 15, 63,
+    32, 16, 44, 28, 35, 19, 47, 31,
+    8, 56, 4, 52, 11, 59, 7, 55,
+    40, 24, 36, 20, 43, 27, 39, 23,
+    2, 50, 14, 62, 1, 49, 13, 61,
+    34, 18, 46, 30, 33, 17, 45, 29,
+    10, 58, 6, 54, 9, 57, 5, 53,
+    42, 26, 38, 22, 41, 25, 37, 21,
+  ];
+
+  rect(1.2, 1.2, 69.6, 97.6);
+  label("TM-T88V / 512 DOTS", 3.5, 2.8, 2.5, 65);
+  line(3, 8, 69, 8);
+
+  label("VERTICAL / CROSS GRID  1 2 3 4 DOT", 4, 9.4, 1.55, 64);
+  for (let i = 0; i < 4; i++) {
+    const x = 4 + i * 16, pitch = (i + 1) * dotMm;
+    for (const [y, cross] of [[13, false], [20.5, true]]) {
+      rect(x, y, 14.5, 5.5);
+      for (let xx = x + pitch; xx < x + 14.5 - 0.25; xx += pitch) line(xx, y + 0.35, xx, y + 5.15);
+      if (cross) for (let yy = y + pitch; yy < y + 5.5 - 0.25; yy += pitch) line(x + 0.35, yy, x + 14.15, yy);
+    }
+  }
+  line(3, 28, 69, 28);
+
+  label("CURVES / DIAGONALS", 4, 29.4, 1.7, 64);
+  for (const r of [1, 2, 3, 4, 5, 6, 7]) arc(18.5, 39, r);
+  for (const r of [1.4, 2.6, 3.8, 5, 6.2, 7.4]) arc(51, 39, r, -Math.PI * 0.85, Math.PI * 0.85);
+  for (let i = 0; i < 11; i++) line(32 + i * 0.65, 33.2, 39 + i * 0.65, 45.1);
+  line(3, 48.5, 69, 48.5);
+
+  label("ORDERED HALFTONE  0 / 25 / 50 / 75 / 100", 4, 49.7, 1.55, 64);
+  for (let swatch = 0; swatch < 5; swatch++) {
+    const x = 4 + swatch * 13, y = 53, pitch = 2 * dotMm;
+    const threshold = swatch * 16;
+    rect(x, y, 11, 12);
+    for (let row = 0, yy = y + pitch / 2; yy < y + 12 - pitch / 2; row++, yy += pitch) {
+      for (let col = 0, xx = x + pitch / 2; xx < x + 11 - pitch / 2; col++, xx += pitch) {
+        if (bayer[(row % 8) * 8 + (col % 8)] < threshold) line(xx, yy, xx + 0.04, yy);
+      }
+    }
+    label(String(swatch * 25), x + 1.2, 66, 1.8, 9);
+  }
+  line(3, 70.5, 69, 70.5);
+
+  label("SMALL DETAIL", 4, 71.7, 1.7, 64);
+  for (const [y, size] of [[74.5, 1.2], [78.4, 1.7], [82.8, 2.3]]) label("ABC 123 / 08", 4, y, size, 28);
+  label("DOTS", 35, 73.5, 1.5, 12);
+  for (let row = 0; row < 4; row++) for (let col = 0; col < 8; col++) {
+    const x = 35 + col * 1.35, y = 76.5 + row * 2.2;
+    line(x, y, x + [0.02, 0.08, 0.18, 0.35][row], y);
+  }
+  for (let i = 0; i < 14; i++) line(52 + i * 1.05, 75, 53.8 + i * 1.05, 85);
+  line(3, 87.5, 69, 87.5);
+
+  label("THERMAL LOAD / FEED", 4, 88.7, 1.55, 64);
+  for (let bar = 0; bar < 16; bar += 2) {
+    const x = 4 + bar * 4;
+    for (let y = 91; y <= 95.5; y += 0.22) line(x, y, x + 4, y);
+  }
+  line(4, 97, 68, 97);
+  for (let x = 4; x <= 68; x += 4) line(x, 96.4, x, 97.6);
+  return applyStyle({ paths }, ins[0]);
+}
+
 export default {
   key: "testcard",
   name: "Test Card",
   cat: "gen",
   group: "structural",
-  desc: "Calibration sheets for pen and machine: line weight sweep (repeat passes), converging line spacing, hatch density squares, arcs and tight circles, pen-lift dot grid, fill swatches, registration marks, a speed-ramp zigzag - and a Pen palette that draws one labelled swatch per pen (all 12) for ink checks. The three pen tests also come in (thick) variants with series chosen for 2 mm+ nibs (gaps 8 to 2 mm, hatch 8 to 2.5 mm, wider pass offsets) - set Pen to the thick pen and keep Label pen fine. The grid auto-shrinks its cells to fit the current canvas.",
+  desc: "Calibration sheets for pen and machine, plus a Thermal receipt mode for Epson TM-T88V print-quality testing on a 72 × 100 mm canvas: 1–4-dot grids, circles and arcs, ordered black/white halftone swatches, tiny lettering and dots, and thermal-load bars. The printed 'grays' are dithered dots, not multilevel ink. Pen tests retain their line weight, spacing, hatch, lift, fill, registration, speed and 12-pen palette tiles.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "tests", label: "Tests", type: "multi", options: ["Line weight sweep", "Line spacing", "Hatch density", "Line weight sweep (thick)", "Line spacing (thick)", "Hatch density (thick)", "Arcs & circles", "Pen-lift dots", "Fill swatches", "Registration", "Speed ramp", "Pen palette (12)"], def: ["Line weight sweep", "Line spacing", "Hatch density", "Arcs & circles", "Pen-lift dots", "Fill swatches"] },
-    { key: "cols", label: "Columns", type: "slider", min: 1, max: 4, step: 1, def: 2 },
-    { key: "cell", label: "Cell size mm", type: "slider", min: 30, max: 120, step: 1, def: 62 },
-    { key: "gap", label: "Cell gap mm", type: "slider", min: 4, max: 30, step: 1, def: 12 },
-    { key: "labels", label: "Labels", type: "check", def: true },
-    { key: "labelPen", label: "Label pen", type: "pen", def: 0 },
-    { key: "labelSize", label: "Label size mm", type: "slider", min: 1.5, max: 12, step: 0.5, def: 2.2, showIf: (p) => !!p.labels },
-    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
+    { key: "mode", label: "Card", type: "select", options: ["Pen tests", "Thermal receipt"], def: "Pen tests" },
+    { key: "tests", label: "Tests", type: "multi", options: ["Line weight sweep", "Line spacing", "Hatch density", "Line weight sweep (thick)", "Line spacing (thick)", "Hatch density (thick)", "Arcs & circles", "Pen-lift dots", "Fill swatches", "Registration", "Speed ramp", "Pen palette (12)"], def: ["Line weight sweep", "Line spacing", "Hatch density", "Arcs & circles", "Pen-lift dots", "Fill swatches"], showIf: (p) => p.mode !== "Thermal receipt" },
+    { key: "cols", label: "Columns", type: "slider", min: 1, max: 4, step: 1, def: 2, showIf: (p) => p.mode !== "Thermal receipt" },
+    { key: "cell", label: "Cell size mm", type: "slider", min: 30, max: 120, step: 1, def: 62, showIf: (p) => p.mode !== "Thermal receipt" },
+    { key: "gap", label: "Cell gap mm", type: "slider", min: 4, max: 30, step: 1, def: 12, showIf: (p) => p.mode !== "Thermal receipt" },
+    { key: "labels", label: "Labels", type: "check", def: true, showIf: (p) => p.mode !== "Thermal receipt" },
+    { key: "labelPen", label: "Label pen", type: "pen", def: 0, showIf: (p) => p.mode !== "Thermal receipt" },
+    { key: "labelSize", label: "Label size mm", type: "slider", min: 1.5, max: 12, step: 0.5, def: 2.2, showIf: (p) => p.mode !== "Thermal receipt" && !!p.labels },
+    { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12, showIf: (p) => p.mode !== "Thermal receipt" },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
   compute(ins, p, ctx) {
+    if (p.mode === "Thermal receipt") return thermalReceipt(ins, p, ctx);
     const { W, H } = ctx;
     const L = Math.round(p.layer);
     const AP = Math.round(p.labelPen);
@@ -57009,6 +57104,66 @@ export default {
       return applyStyle({ paths }, ins[1]);
     },
   
+};
+```
+
+## thermal_text.js
+
+```js
+import { Pin } from "../helpers.js";
+
+export default {
+  key: "thermal_text",
+  name: "Thermal Text",
+  cat: "mod",
+  group: "penout",
+  desc: "Add Epson TM-T88V ROM text before or after the wired image when printing a receipt. The blue output passes the drawing through. Choose Font A/B, character page, international set, alignment, 1–8× width and height, bold, underline and reverse. Use | for a new line. Exact hex bytes reach pages without a Unicode converter. This text is printed by the Epson, so it does not become SVG or G-code paths.",
+  ins: [Pin("paths", "Image")],
+  outs: [Pin("paths")],
+  params: [
+    { key: "text", label: "Text (| = new line)", type: "text", def: "HELLO WORLD" },
+    { key: "position", label: "Place", type: "select", options: ["Before", "After"], def: "Before" },
+    { key: "align", label: "Align", type: "select", options: ["Left", "Center", "Right"], def: "Left" },
+    { key: "font", label: "Epson font", type: "select", options: ["A", "B"], def: "A" },
+    { key: "width", label: "Width ×", type: "slider", min: 1, max: 8, step: 1, def: 1 },
+    { key: "height", label: "Height ×", type: "slider", min: 1, max: 8, step: 1, def: 1 },
+    { key: "bold", label: "Bold", type: "check", def: false },
+    { key: "underline", label: "Underline", type: "check", def: false },
+    { key: "reverse", label: "Reverse", type: "check", def: false },
+    { key: "page", label: "Character page", type: "select", options: [
+      "0 · PC437 USA", "1 · Katakana", "2 · PC850 Multilingual", "3 · PC860 Portuguese", "4 · PC863 Canadian French", "5 · PC865 Nordic",
+      "11 · PC851 Greek", "12 · PC853 Turkish", "13 · PC857 Turkish", "14 · PC737 Greek", "15 · ISO 8859-7 Greek", "16 · Windows 1252 Western",
+      "17 · PC866 Cyrillic", "18 · PC852 Central Europe", "19 · PC858 Euro", "20 · Thai 42", "21 · Thai 11", "26 · Thai 18",
+      "30 · TCVN-3 Vietnamese 1", "31 · TCVN-3 Vietnamese 2", "32 · PC720 Arabic", "33 · PC775 Baltic", "34 · PC855 Cyrillic", "35 · PC861 Icelandic",
+      "36 · PC862 Hebrew", "37 · PC864 Arabic", "38 · PC869 Greek", "39 · ISO 8859-2 Central Europe", "40 · ISO 8859-15 Euro",
+      "41 · PC1098 Farsi", "42 · PC1118 Lithuanian", "43 · PC1119 Lithuanian", "44 · PC1125 Ukrainian", "45 · Windows 1250 Central Europe",
+      "46 · Windows 1251 Cyrillic", "47 · Windows 1253 Greek", "48 · Windows 1254 Turkish", "49 · Windows 1255 Hebrew", "50 · Windows 1256 Arabic",
+      "51 · Windows 1257 Baltic", "52 · Windows 1258 Vietnamese", "53 · KZ-1048 Kazakhstan",
+    ], def: "0 · PC437 USA" },
+    { key: "country", label: "International set", type: "select", options: [
+      "0 · USA", "1 · France", "2 · Germany", "3 · UK", "4 · Denmark I", "5 · Sweden", "6 · Italy", "7 · Spain I", "8 · Japan",
+      "9 · Norway", "10 · Denmark II", "11 · Spain II", "12 · Latin America", "13 · Korea", "14 · Slovenia / Croatia", "15 · China", "16 · Vietnam", "17 · Arabia",
+    ], def: "0 · USA" },
+    { key: "hex", label: "Exact glyph bytes (hex)", type: "text", def: "" },
+  ],
+  compute(ins, p) {
+    const source = ins[0] && Array.isArray(ins[0].paths) ? ins[0] : { paths: [] };
+    const text = String(p.text || "").replaceAll("|", "\n");
+    const hex = String(p.hex || "");
+    if (!text.trim() && !hex.trim()) return source;
+    const block = {
+      position: p.position === "After" ? "after" : "before",
+      text, hex,
+      align: Math.max(0, ["Left", "Center", "Right"].indexOf(p.align)),
+      font: p.font === "B" ? "B" : "A",
+      width: Math.max(1, Math.min(8, Math.round(Number(p.width) || 1))),
+      height: Math.max(1, Math.min(8, Math.round(Number(p.height) || 1))),
+      bold: !!p.bold, underline: !!p.underline, reverse: !!p.reverse,
+      page: parseInt(String(p.page), 10) || 0,
+      country: parseInt(String(p.country), 10) || 0,
+    };
+    return { ...source, paths: source.paths, thermalText: [...(Array.isArray(source.thermalText) ? source.thermalText : []), block] };
+  },
 };
 ```
 

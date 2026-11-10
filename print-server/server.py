@@ -28,6 +28,7 @@ MAX_IMPORT_ITEMS = 64
 CHUNK_ROWS = 256
 jobs = {}
 job_images = {}
+job_native_texts = {}
 jobs_lock = threading.Lock()
 work = queue.Queue(maxsize=MAX_IMPORT_ITEMS)
 
@@ -46,7 +47,14 @@ def validate_receipt(body):
     pixels = base64.b64decode(encoded, validate=True)
     if len(pixels) != width * height // 8:
         raise ValueError("Bitmap byte count does not match dimensions")
-    return height, pixels, body.get("cut", True)
+    native_text = body.get("thermalText", [])
+    if not isinstance(native_text, list) or len(native_text) > 8:
+        raise ValueError("thermalText must contain at most 8 text blocks")
+    for block in native_text:
+        if not isinstance(block, dict) or block.get("position") not in ("before", "after"):
+            raise ValueError("Native text position must be before or after")
+        native_fonts.receipt_block(block)
+    return height, pixels, body.get("cut", True), native_text
 
 
 def inspect_file(name, data):
@@ -86,20 +94,21 @@ def inspect_file(name, data):
                 raise ValueError("Not a Muusia receipt file")
             if body.get("format") != "muusia-receipt" or body.get("version") != 1:
                 raise ValueError("Not a Muusia receipt file")
-            height, pixels, cut = validate_receipt(body)
+            height, pixels, cut, native_text = validate_receipt(body)
         except (UnicodeDecodeError, json.JSONDecodeError, TypeError, KeyError) as exc:
             raise ValueError(f"Invalid receipt: {filename}") from exc
         result.append({"name": filename, "width": WIDTH, "height": height,
-                       "data": base64.b64encode(pixels).decode("ascii"), "cut": cut})
+                       "data": base64.b64encode(pixels).decode("ascii"), "cut": cut,
+                       "thermalText": native_text})
     return result
 
 
-def escpos_image(width, height, pixels, cut=True):
+def escpos_image(width, height, pixels, cut=True, initialize=True):
     """Encode MSB-first 1-bit rows using GS v 0, then feed to the cutter."""
     if width != WIDTH or not 1 <= height <= MAX_HEIGHT or len(pixels) != width * height // 8:
         raise ValueError("Expected a 512-dot image of at most 4096 rows")
     stride = width // 8
-    out = bytearray(b"\x1b@")
+    out = bytearray(b"\x1b@" if initialize else b"")
     for row in range(0, height, CHUNK_ROWS):
         rows = min(CHUNK_ROWS, height - row)
         out.extend((0x1D, 0x76, 0x30, 0, stride & 255, stride >> 8, rows & 255, rows >> 8))
@@ -107,6 +116,23 @@ def escpos_image(width, height, pixels, cut=True):
     if cut:
         # TM-T88V GS V Function B advances to its cutter position, adds 32 dots
         # of white margin, then cuts. A fixed 112-dot feed cut into real output.
+        out.extend(b"\x1dV\x41\x20")
+    return bytes(out)
+
+
+def escpos_mixed_receipt(width, height, pixels, native_text, cut=True):
+    """Print native text around one raster image and cut only at the end."""
+    if not native_text:
+        return escpos_image(width, height, pixels, cut)
+    out = bytearray(b"\x1b@")
+    for block in native_text:
+        if block["position"] == "before":
+            out.extend(native_fonts.receipt_block(block))
+    out.extend(escpos_image(width, height, pixels, cut=False, initialize=False))
+    for block in native_text:
+        if block["position"] == "after":
+            out.extend(native_fonts.receipt_block(block))
+    if cut:
         out.extend(b"\x1dV\x41\x20")
     return bytes(out)
 
@@ -259,12 +285,13 @@ class Handler(BaseHTTPRequestHandler):
                 job = jobs.get(job_id)
                 pixels = job_images.get(job_id)
                 snapshot = dict(job) if job else None
+                native_text = job_native_texts.get(job_id, [])
             if not snapshot or pixels is None:
                 self._json(404, {"error": "Receipt not found"})
             else:
                 self._json(200, {"format": "muusia-receipt", "version": 1, "width": WIDTH,
                                  "height": snapshot["height"], "data": base64.b64encode(pixels).decode("ascii"),
-                                 "cut": snapshot["cut"]})
+                                 "cut": snapshot["cut"], "thermalText": native_text})
         else:
             self._json(404, {"error": "Not found"})
 
@@ -336,7 +363,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(200, {"receipts": result})
                 return
             body = json.loads(raw)
-            height, pixels, cut = validate_receipt(body)
+            height, pixels, cut, native_text = validate_receipt(body)
             name = body.get("name", "Receipt")
             if not isinstance(name, str) or not 1 <= len(name) <= 120:
                 raise ValueError("Invalid job name")
@@ -344,9 +371,10 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, TypeError, binascii.Error, json.JSONDecodeError) as exc:
             self._json(400, {"error": str(exc)})
             return
-        self._enqueue(name, height, pixels, cut, "receipt")
+        raw_print = escpos_mixed_receipt(WIDTH, height, pixels, native_text, cut) if native_text else None
+        self._enqueue(name, height, pixels, cut, "receipt", raw=raw_print, native_text=native_text)
 
-    def _enqueue(self, name, height, pixels, cut, kind, raw=None):
+    def _enqueue(self, name, height, pixels, cut, kind, raw=None, native_text=None):
         job_id = uuid.uuid4().hex
         queue_error = None
         with jobs_lock:
@@ -357,18 +385,22 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     del jobs[oldest]
                     job_images.pop(oldest, None)
+                    job_native_texts.pop(oldest, None)
             if queue_error is None:
                 jobs[job_id] = {"id": job_id, "status": "queued", "name": name, "height": height,
                                 "width": WIDTH if pixels is not None else 0, "cut": cut,
                                 "kind": kind, "createdAt": time.time()}
                 if pixels is not None:
                     job_images[job_id] = pixels
+                if native_text:
+                    job_native_texts[job_id] = native_text
                 try:
                     image = raw if raw is not None else (height, pixels) if pixels is not None else None
                     work.put_nowait((job_id, image, cut))
                 except queue.Full:
                     del jobs[job_id]
                     job_images.pop(job_id, None)
+                    job_native_texts.pop(job_id, None)
                     queue_error = "Print queue is full"
         if queue_error:
             self._json(503, {"error": queue_error})

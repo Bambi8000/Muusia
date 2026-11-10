@@ -2,12 +2,14 @@
 export const RECEIPT_WIDTH_DOTS = 512;
 export const RECEIPT_MAX_HEIGHT_DOTS = 4096;
 
-export function renderReceipt(paths, widthMm, heightMm, frame = null) {
+export function renderReceipt(paths, widthMm, heightMm, frame = null, thermalText = []) {
   if (!Number.isFinite(widthMm) || !Number.isFinite(heightMm) || widthMm <= 0 || heightMm <= 0) {
     throw new Error("Canvas dimensions must be positive.");
   }
   const width = RECEIPT_WIDTH_DOTS;
-  const artHeight = Math.round(heightMm / widthMm * width);
+  const nativeText = Array.isArray(thermalText) ? thermalText : [];
+  // A text-only Thermal Text node needs one blank raster row, not a full blank canvas.
+  const artHeight = !paths.length && nativeText.length ? 1 : Math.round(heightMm / widthMm * width);
   const numbered = frame !== null;
   if (numbered && (!Number.isInteger(frame.number) || !Number.isInteger(frame.count) || frame.number < 1 || frame.number > frame.count || frame.count > 999)) {
     throw new Error("Receipt frame number is invalid.");
@@ -68,7 +70,7 @@ export function renderReceipt(paths, widthMm, heightMm, frame = null) {
   for (let i = 0; i < bytes.length; i += 8192) {
     binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
   }
-  return { width, height, data: btoa(binary) };
+  return { width, height, data: btoa(binary), ...(nativeText.length ? { thermalText: nativeText } : {}) };
 }
 
 function localPrintBase(serverUrl) {

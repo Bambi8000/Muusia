@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 358 built-in nodes in the current Muusia source. Conventions used below:
+All 359 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -2511,7 +2511,22 @@ channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
 
-## Modifiers (91)
+## Modifiers (92)
+
+**Thermal Text** — adds text in the Epson TM-T88V's own Font A or Font B to a
+receipt. Wire an image into *Image*, select Thermal Text's output, then use
+**PRINT RECEIPT** or **DOWNLOAD RECEIPT FILE**. Leave the input unwired for a
+text-only receipt. *Place* chooses Before or After the image; *Align* chooses
+Left, Center or Right. Width and Height independently scale 1–8×. Bold,
+Underline and Reverse can be combined. Choose any of the printer's 42 fixed
+character pages and 18 international sets; enter exact glyph bytes in hex when
+a page lacks Unicode conversion. In *Text*, `|` starts a new line. Up to eight
+Thermal Text nodes can be chained for multiple blocks. Epson text prints on
+paper, so the Muusia canvas and SVG/G-code exports show only the image. Example:
+**Test Card** (*Card → Thermal receipt*) → **Thermal Text** (*Text → MUUSIA*,
+*Place → Before*, *Align → Center*, *Width/Height → 2×*, *Bold → On*) → select
+Thermal Text → **PRINT RECEIPT**. The image and text travel in one job and the
+paper cuts once at the end.
 
 **Colour Neighbours** — assigns a chosen palette of two to six pens to
 closed input shapes. Touch distance mm treats shared borders, corners,

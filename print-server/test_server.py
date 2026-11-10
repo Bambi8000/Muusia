@@ -83,6 +83,63 @@ class PrintServerTests(unittest.TestCase):
         self.assertEqual(output[10 + 256 * 64:10 + 256 * 64 + 8], b"\x1dv0\x00\x40\x00\x01\x00")
         self.assertTrue(output.endswith(b"\x1dV\x41\x20"))
 
+    def test_thermal_text_wraps_image_in_one_queued_receipt(self):
+        pixels = bytes([0x80]) + bytes(63)
+        before = {"position": "before", "page": 17, "text": "Привет", "font": "B",
+                  "width": 2, "height": 2, "align": 1, "bold": True}
+        after = {"position": "after", "page": 35, "text": "Þór", "align": 2,
+                 "underline": True, "reverse": True}
+        receipt = {"format": "muusia-receipt", "version": 1, "width": 512, "height": 1,
+                   "data": base64.b64encode(pixels).decode(), "thermalText": [before, after], "cut": True}
+        height, decoded, cut, blocks = server.validate_receipt(receipt)
+        self.assertEqual((height, decoded, cut, blocks), (1, pixels, True, [before, after]))
+        expected = (b"\x1b@" + native_fonts.receipt_block(before)
+                    + server.escpos_image(512, 1, pixels, cut=False, initialize=False)
+                    + native_fonts.receipt_block(after) + b"\x1dV\x41\x20")
+        self.assertEqual(server.escpos_mixed_receipt(512, 1, pixels, blocks), expected)
+        self.assertEqual(expected.count(b"\x1b@"), 1)
+        self.assertEqual(expected.count(b"\x1dV\x41\x20"), 1)
+        self.assertLess(expected.index("Привет".encode("cp866")), expected.index(b"\x1dv0"))
+        self.assertLess(expected.index(b"\x1dv0"), expected.index("Þór".encode("cp861")))
+        self.assertEqual(server.inspect_file("mixed.muusia-receipt.json", json.dumps(receipt).encode())[0]["thermalText"], blocks)
+        with self.assertRaisesRegex(ValueError, "before or after"):
+            server.validate_receipt({**receipt, "thermalText": [{**before, "position": "middle"}]})
+        with self.assertRaisesRegex(ValueError, "at most 8"):
+            server.validate_receipt({**receipt, "thermalText": [before] * 9})
+        with self.assertRaisesRegex(ValueError, "unavailable on page"):
+            server.validate_receipt({**receipt, "thermalText": [{**before, "page": 0}]})
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = os.path.join(tmp, "mixed.bin")
+            old_output = os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")
+            os.environ["MUUSIA_PRINT_OUTPUT_FILE"] = output_path
+            httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+            threading.Thread(target=httpd.serve_forever, daemon=True).start()
+            threading.Thread(target=server.print_worker, daemon=True).start()
+            base = f"http://127.0.0.1:{httpd.server_port}"
+            try:
+                request = Request(base + "/api/jobs", data=json.dumps(receipt).encode(),
+                                  headers={"Content-Type": "application/json"})
+                with urlopen(request, timeout=2) as response:
+                    job_id = json.load(response)["id"]
+                for _ in range(50):
+                    with urlopen(base + "/api/jobs/" + job_id, timeout=2) as response:
+                        status = json.load(response)["status"]
+                    if status == "done":
+                        break
+                    time.sleep(0.01)
+                self.assertEqual(status, "done")
+                with open(output_path, "rb") as result:
+                    self.assertEqual(result.read(), expected)
+                with urlopen(base + "/api/jobs/" + job_id + "/receipt", timeout=2) as response:
+                    self.assertEqual(json.load(response)["thermalText"], blocks)
+            finally:
+                httpd.shutdown()
+                httpd.server_close()
+                if old_output is None:
+                    os.environ.pop("MUUSIA_PRINT_OUTPUT_FILE", None)
+                else:
+                    os.environ["MUUSIA_PRINT_OUTPUT_FILE"] = old_output
+
     def test_http_queue_origin_and_file_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, "receipt.bin")
