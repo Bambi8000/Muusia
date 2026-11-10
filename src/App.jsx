@@ -899,7 +899,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.171"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.172"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -4183,12 +4183,12 @@ export default function App() {
                 </button>
               </div>
               <button onClick={exportReceiptFrames} disabled={animBusy > 0 || !hasReceiptContent || megaOn}
-                title={megaOn ? "Turn off Mega Canvas for receipt frames" : "One numbered receipt per frame, with small crop marks; downloads a ZIP when there are multiple frames"}
+                title={megaOn ? "Turn off Mega Canvas for receipt frames" : "One numbered receipt per frame, with large L marks and a machine-readable frame number; downloads a ZIP when there are multiple frames"}
                 style={{ width: "100%", marginTop: 6, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: hasReceiptContent && !megaOn ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                 Receipt {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
               </button>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
-                Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes. Receipt always exports one numbered file per frame.
+                Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes. Receipt exports one file per frame with large L marks and a readable number strip.
               </div>
             </div>
             <div data-machine-setup="true" onClick={() => setMchOpen((v) => !v)}

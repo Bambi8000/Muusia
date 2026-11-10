@@ -2,7 +2,71 @@
 export const RECEIPT_WIDTH_DOTS = 512;
 export const RECEIPT_MAX_HEIGHT_DOTS = 4096;
 
+export const ANIMATION_RECEIPT = Object.freeze({ x: 48, y: 112, width: 416, arm: 32, stroke: 5, codeX: 184, codeY: 65, codeCell: 9, codeHeight: 18 });
+
+const RECEIPT_GLYPHS = {
+  F: ['11111','10000','10000','11110','10000','10000','10000'],
+  '/': ['00001','00001','00010','00100','01000','10000','10000'],
+  0: ['01110','10001','10011','10101','11001','10001','01110'],
+  1: ['00100','01100','00100','00100','00100','00100','01110'],
+  2: ['01110','10001','00001','00010','00100','01000','11111'],
+  3: ['11110','00001','00001','01110','00001','00001','11110'],
+  4: ['00010','00110','01010','10010','11111','00010','00010'],
+  5: ['11111','10000','10000','11110','00001','00001','11110'],
+  6: ['01110','10000','10000','11110','10001','10001','01110'],
+  7: ['11111','00001','00010','00100','01000','01000','01000'],
+  8: ['01110','10001','10001','01110','10001','10001','01110'],
+  9: ['01110','10001','10001','01111','00001','00001','01110'],
+};
+
+export function animationReceiptBits(frame) {
+  if (!Number.isInteger(frame) || frame < 1 || frame > 999) throw new Error('Animation receipt frame number must be 1–999.');
+  const data = Array.from({ length: 10 }, (_, i) => (frame >> (9 - i)) & 1);
+  const check = (frame ^ (frame >> 4) ^ (frame >> 8) ^ 0b1010) & 15;
+  return [1, ...data, ...Array.from({ length: 4 }, (_, i) => (check >> (3 - i)) & 1), 1];
+}
+
+/** One 512-dot ESC/POS raster with large outward L marks and a readable frame ID. */
+export function renderAnimationReceipt(paths, widthMm, heightMm, frame, total, thermalText = []) {
+  if (!Number.isInteger(total) || total < 1 || total > 999 || frame > total) throw new Error('Animation receipts support 1–999 frames.');
+  const image = renderReceipt(paths, widthMm, heightMm);
+  const innerHeight = Math.max(1, Math.round(image.height * ANIMATION_RECEIPT.width / RECEIPT_WIDTH_DOTS));
+  const height = ANIMATION_RECEIPT.y + innerHeight + 48;
+  if (height > RECEIPT_MAX_HEIGHT_DOTS) throw new Error('This animation receipt is too long. Use a shorter canvas.');
+  const sourceBinary = atob(image.data), source = Uint8Array.from(sourceBinary, c => c.charCodeAt(0));
+  const pixels = new Uint8Array(RECEIPT_WIDTH_DOTS * height / 8), stride = RECEIPT_WIDTH_DOTS / 8;
+  const black = (x, y) => { if (x >= 0 && x < RECEIPT_WIDTH_DOTS && y >= 0 && y < height) pixels[y * stride + (x >> 3)] |= 0x80 >> (x & 7); };
+  const block = (x, y, w, h) => { for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) black(xx, yy); };
+  for (let y = 0; y < innerHeight; y++) {
+    const sy = Math.min(image.height - 1, Math.floor(y * image.height / innerHeight));
+    for (let x = 0; x < ANIMATION_RECEIPT.width; x++) {
+      const sx = Math.min(RECEIPT_WIDTH_DOTS - 1, Math.floor(x * RECEIPT_WIDTH_DOTS / ANIMATION_RECEIPT.width));
+      if (source[sy * stride + (sx >> 3)] & (0x80 >> (sx & 7))) black(ANIMATION_RECEIPT.x + x, ANIMATION_RECEIPT.y + y);
+    }
+  }
+  const { x: left, y: top, width, arm, stroke } = ANIMATION_RECEIPT;
+  const right = left + width, bottom = top + innerHeight;
+  const mark = (x, y, dx, dy) => {
+    block(dx < 0 ? x - arm : x, y - Math.floor(stroke / 2), arm + 1, stroke);
+    block(x - Math.floor(stroke / 2), dy < 0 ? y - arm : y, stroke, arm + 1);
+  };
+  mark(left, top, -1, -1); mark(right, top, 1, -1);
+  mark(right, bottom, 1, 1); mark(left, bottom, -1, 1);
+  const label = `F${String(frame).padStart(3, '0')}/${String(total).padStart(3, '0')}`;
+  const scale = 4, advance = 24, labelX = Math.round((RECEIPT_WIDTH_DOTS - label.length * advance) / 2);
+  for (let i = 0; i < label.length; i++) for (let row = 0; row < 7; row++) for (let col = 0; col < 5; col++) {
+    if (RECEIPT_GLYPHS[label[i]]?.[row]?.[col] === '1') block(labelX + i * advance + col * scale, 14 + row * scale, scale, scale);
+  }
+  const bits = animationReceiptBits(frame);
+  for (let i = 0; i < bits.length; i++) if (bits[i]) block(ANIMATION_RECEIPT.codeX + i * ANIMATION_RECEIPT.codeCell, ANIMATION_RECEIPT.codeY, ANIMATION_RECEIPT.codeCell, ANIMATION_RECEIPT.codeHeight);
+  let binary = '';
+  for (let i = 0; i < pixels.length; i += 8192) binary += String.fromCharCode(...pixels.subarray(i, i + 8192));
+  return { width: RECEIPT_WIDTH_DOTS, height, data: btoa(binary), ...(thermalText.length ? { thermalText } : {}) };
+}
+
+
 export function renderReceipt(paths, widthMm, heightMm, frame = null, thermalText = []) {
+  if (frame !== null) return renderAnimationReceipt(paths, widthMm, heightMm, frame.number, frame.count, Array.isArray(thermalText) ? thermalText : []);
   if (!Number.isFinite(widthMm) || !Number.isFinite(heightMm) || widthMm <= 0 || heightMm <= 0) {
     throw new Error("Canvas dimensions must be positive.");
   }

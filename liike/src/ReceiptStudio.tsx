@@ -4,6 +4,7 @@ import { loadPhoto, disposePhoto } from './photos';
 import type { Photo } from './photos';
 import type { Quad } from './homography';
 import { detectReceiptMarks, readReceiptNumber, receiptFullExtent, receiptHeight, receiptTransform, sampleReceipt } from './receipt-marks';
+import { detectLargeReceipt, readLargeReceiptNumber } from './receipt-detection';
 import type { ExtractedFrame } from './frames';
 import { releaseFrames } from './frames';
 import ExportStep from './ExportStep';
@@ -17,6 +18,16 @@ const labels = ['Top left', 'Top right', 'Bottom right', 'Bottom left'];
 const numberFromName = (name: string) => {
   const match = name.match(/(?:^|[\s_-])f(?:rame)?[\s_-]*0*([1-9]\d{0,2})(?=[\s_.-]|$)/i);
   return match ? Number(match[1]) : null;
+};
+const readPrintedNumber = (photo: Photo, points: Quad, total: number) => {
+  const modern = readLargeReceiptNumber(photo.working, points);
+  return modern.status === 'found' ? modern.value! : readReceiptNumber(photo.working, points, total);
+};
+const findReceipt = (raster: Photo['working'], total: number) => {
+  const modern = detectLargeReceipt(raster);
+  if (modern.status === 'found' && modern.points) return { points: modern.points, number: modern.number?.status === 'found' ? modern.number.value! : null, modern: true };
+  const points = detectReceiptMarks(raster);
+  return points ? { points, number: readReceiptNumber(raster, points, total), modern: false } : null;
 };
 
 export default function ReceiptStudio() {
@@ -60,10 +71,9 @@ export default function ReceiptStudio() {
       for (const file of images) {
         const photo = await loadPhoto(file);
         const working = photo.working;
-        const found = detectReceiptMarks(working);
-        const points = found?.map(p => ({ x: p.x * photo.width / working.width, y: p.y * photo.height / working.height })) as Quad | undefined;
-        const number = found ? readReceiptNumber(working, found, expected) : null;
-        loaded.push({ photo, points: points ?? null, placed: [Boolean(points), Boolean(points), Boolean(points), Boolean(points)], number: number ?? numberFromName(file.name), message: points ? 'Receipt marks found. Check all four corners.' : 'Marks were unclear. Place the four corners on the photo.' });
+        const found = findReceipt(working, expected);
+        const points = found?.points.map(p => ({ x: p.x * photo.width / working.width, y: p.y * photo.height / working.height })) as Quad | undefined;
+        loaded.push({ photo, points: points ?? null, placed: [Boolean(points), Boolean(points), Boolean(points), Boolean(points)], number: found?.number ?? numberFromName(file.name), message: points ? found?.modern ? `Large L marks found${found.number ? `; frame ${found.number} read` : ''}. Check all four corners and the number.` : 'Older receipt marks found. Check all four corners and the number.' : 'Marks were unclear. Place the four corners on the photo.' });
       }
       setPhotos(list => [...list, ...loaded]);
       setTotal(expected); setSelected(photosRef.current.length);
@@ -74,12 +84,12 @@ export default function ReceiptStudio() {
   }
   function detect(index: number) {
     const item = photos[index]; if (!item) return;
-    const found = detectReceiptMarks(item.photo.working);
-    const points = found?.map(p => ({ x: p.x * item.photo.width / item.photo.working.width, y: p.y * item.photo.height / item.photo.working.height })) as Quad | undefined;
-    const readingPoints = found ?? (item.points && item.placed.every(Boolean) ? item.points.map(p => ({ x: p.x * item.photo.working.width / item.photo.width, y: p.y * item.photo.working.height / item.photo.height })) as Quad : null);
+    const found = findReceipt(item.photo.working, total);
+    const points = found?.points.map(p => ({ x: p.x * item.photo.width / item.photo.working.width, y: p.y * item.photo.height / item.photo.working.height })) as Quad | undefined;
+    const readingPoints = found?.points ?? (item.points && item.placed.every(Boolean) ? item.points.map(p => ({ x: p.x * item.photo.working.width / item.photo.width, y: p.y * item.photo.working.height / item.photo.height })) as Quad : null);
     let number: number | null = null;
-    if (readingPoints) try { number = readReceiptNumber(item.photo.working, readingPoints, total); } catch { /* Keep manual coordinates and number. */ }
-    updatePhoto(index, { points: points ?? item.points, placed: points ? [true, true, true, true] : item.placed, number: number ?? item.number, message: points ? 'Receipt marks found. Check the corners.' : 'Automatic detection was uncertain. Place the four corners.' });
+    if (readingPoints) try { number = found?.number ?? readPrintedNumber(item.photo, readingPoints, total); } catch { /* Keep manual coordinates and number. */ }
+    updatePhoto(index, { points: points ?? item.points, placed: points ? [true, true, true, true] : item.placed, number: number ?? item.number, message: points ? found?.modern ? 'Large L marks found. Check the corners and number.' : 'Older receipt marks found. Check the corners and number.' : 'Automatic detection was uncertain. Place the four corners.' });
   }
   function place(event: MouseEvent<SVGSVGElement>) {
     if (!current) return;
@@ -91,7 +101,7 @@ export default function ReceiptStudio() {
     let number = current.number;
     if (placed.every(Boolean)) {
       const workingPoints = next.map(q => ({ x: q.x * current.photo.working.width / current.photo.width, y: q.y * current.photo.working.height / current.photo.height })) as Quad;
-      try { number = readReceiptNumber(current.photo.working, workingPoints, total) ?? number; } catch { /* Manual number entry remains available. */ }
+      try { number = readPrintedNumber(current.photo, workingPoints, total) ?? number; } catch { /* Manual number entry remains available. */ }
     }
     updatePhoto(selected, { points: next, placed, number, message: `${placed.filter(Boolean).length} of 4 corners placed. Check the outline before building.` });
     setCorner((corner + 1) % 4);
@@ -105,7 +115,7 @@ export default function ReceiptStudio() {
     if (!photos.length) { setError('Add at least one receipt photo.'); return; }
     if (photos.some(p => !p.points || !p.placed.every(Boolean))) { setError('Find or place all four marks on every receipt.'); return; }
     const numbers = photos.map(p => p.number);
-    if (numbers.some(n => n === null || !Number.isInteger(n) || n < 1 || n > 999) || new Set(numbers).size !== numbers.length) { setError('Give each receipt a unique frame number. Check the tiny printed labels and correct any unreadable numbers.'); return; }
+    if (numbers.some(n => n === null || !Number.isInteger(n) || n < 1 || n > 999) || new Set(numbers).size !== numbers.length) { setError('Give each receipt a unique frame number. Check the printed F labels and correct any unreadable numbers.'); return; }
     const heights = photos.map(p => receiptHeight(p.points!)).sort((a, b) => a - b), height = heights[Math.floor(heights.length / 2)]!;
     let rect = { x: 0, y: 0, w: 512, h: height };
     if (look === 'surroundings') {
@@ -147,20 +157,20 @@ export default function ReceiptStudio() {
 
   return <main className="receipt-studio">
     <header><a className="wordmark" href="#">Liike<span>↗</span></a><a className="secondary" href="#">← Sheet animation</a></header>
-    <section className="intro"><div><p className="eyebrow">Receipt animation</p><h1>From receipt <em>to motion.</em></h1><p>Photograph each printed Muusia frame. Liike finds the corner ticks, reads the small frame number and aligns the sequence. Your photos stay on this device.</p></div></section>
+    <section className="intro"><div><p className="eyebrow">Receipt animation</p><h1>From receipt <em>to motion.</em></h1><p>Photograph each printed Muusia frame. Liike reads the large L marks and frame number on new receipts, then aligns the sequence. Older receipts can still be checked and corrected by hand. Your photos stay on this device.</p></div></section>
     <div className="receipt-tabs"><button className={view === 'prepare' ? 'selected' : ''} onClick={() => setView('prepare')}>1 · Prepare photos</button><button className={view === 'preview' ? 'selected' : ''} disabled={!frames.length} onClick={() => setView('preview')}>2 · Preview</button><button className={view === 'export' ? 'selected' : ''} disabled={!frames.length} onClick={() => setView('export')}>3 · Export</button></div>
     {view === 'prepare' && <>
       <div className="receipt-settings">
         <label className="field"><span>Add receipt photographs</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy} onChange={e => { void add(e.target.files ?? []); e.target.value = ''; }} /></label>
         <label className="field"><span>Printed total on labels</span><input type="number" min={1} max={999} value={total} onChange={e => setTotal(Math.max(1, Math.min(999, Number(e.target.value) || 1)))} /></label>
         <button className="secondary" disabled={busy || !photos.length} onClick={() => photos.forEach((_, i) => detect(i))}>Read marks and numbers again</button>
-        <fieldset><legend>Animation image</legend><label className="checkbox"><input type="radio" name="receipt-look" checked={look === 'artwork'} onChange={() => setLook('artwork')} />Artwork only · crop to marks</label><label className="checkbox"><input type="radio" name="receipt-look" checked={look === 'surroundings'} onChange={() => setLook('surroundings')} />Full photo · center the marked frame</label><p className="hint">Full photo keeps the receipt and changing surroundings visible. The marked frame stays in the same place while the background moves. For more than 99 printed frames, enter numbers manually.</p></fieldset>
+        <fieldset><legend>Animation image</legend><label className="checkbox"><input type="radio" name="receipt-look" checked={look === 'artwork'} onChange={() => setLook('artwork')} />Artwork only · crop to marks</label><label className="checkbox"><input type="radio" name="receipt-look" checked={look === 'surroundings'} onChange={() => setLook('surroundings')} />Full photo · center the marked frame</label><p className="hint">Full photo keeps the receipt and changing surroundings visible. The marked frame stays in the same place while the background moves. New number strips support up to 999 frames; older tiny labels can be entered manually above 99.</p></fieldset>
         <label className="field"><span>Output size</span><select value={resolution} onChange={e => setResolution(Number(e.target.value))}><option value={480}>480 px</option><option value={720}>720 px</option><option value={1080}>1080 px</option><option value={2160}>2160 px</option></select></label>
       </div>
       {photos.length > 0 && <div className="receipt-workspace">
         <section className="receipt-list" aria-label="Receipt photos"><h2>{photos.length} receipt photos</h2>{photos.map((item, i) => <button key={item.photo.id} className={selected === i ? 'selected' : ''} onClick={() => setSelected(i)}><img src={item.photo.url} alt="" /><span><strong>Frame {item.number ?? '?'}</strong><small>{item.photo.name}</small><small>{item.placed.filter(Boolean).length} / 4 marks placed</small></span></button>)}</section>
         {current && <section className="receipt-register"><div className="preview-heading"><div><p className="eyebrow">Register receipt {selected + 1}</p><h2>Check the four marks</h2></div><button className="secondary" onClick={() => remove(selected)}>Remove photo</button></div>
-          <p className="hint">Select a corner, then tap the end of its short horizontal tick in the photo. The frame number can be corrected below.</p>
+          <p className="hint">Select a corner, then tap the inner intersection of its L mark in the photo. The frame number can be corrected below.</p>
           <div className="receipt-corner-buttons">{labels.map((label, i) => <button key={label} className={corner === i ? 'selected' : ''} onClick={() => setCorner(i)}>{label}</button>)}</div>
           <svg viewBox={`0 0 ${current.photo.width} ${current.photo.height}`} onClick={place} role="img" aria-label="Receipt photo. Tap to place selected corner marker"><image href={current.photo.url} width={current.photo.width} height={current.photo.height} />{current.points && <>{current.placed.every(Boolean) && <polygon points={current.points.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="#79e35b" strokeWidth={Math.max(2, current.photo.width / 350)} />}{current.points.map((p, i) => current.placed[i] && <g key={i}><circle cx={p.x} cy={p.y} r={Math.max(6, current.photo.width / 90)} fill="#fff" stroke="#3b6a28" strokeWidth={Math.max(2, current.photo.width / 400)} /><text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={Math.max(9, current.photo.width / 60)} fill="#243b1b">{i + 1}</text></g>)}</>}</svg>
           <p className="notice" role="status">{current.message}</p><div className="receipt-number"><label className="field"><span>Frame number on receipt</span><input type="number" min={1} max={999} value={current.number ?? ''} onChange={e => updatePhoto(selected, { number: e.target.value ? Number(e.target.value) : null })} /></label><button className="secondary" onClick={() => detect(selected)}>Detect again</button></div>

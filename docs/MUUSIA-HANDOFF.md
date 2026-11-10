@@ -264,6 +264,24 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.172 — 2026-11-10 · Larger receipt marks and automatic Liike alignment
+
+Numbered Muusia receipts now print 32-dot outward L marks around a 416-dot
+image area, a larger `F001/012` label, and a 16-cell number strip that encodes
+frames 1–999 with a check value. The larger marks replace the former tiny ticks
+only on newly exported animation receipts. Epson-native Thermal Text blocks remain
+attached to each frame. Liike detects these marks, reads the strip, and places
+the four inner corners automatically; the older receipt detector and manual
+corner/number controls remain available for existing paper.
+
+Nine focused detection tests covered rotations, shadowed paper, missing strips,
+mark geometry and native text. All 163 Liike tests, TypeScript check, catalog
+validation, production build and 37,913 Learn checks passed. A browser-exported
+receipt was recognized as frame 1. Liike also read frame 1 and all four marks
+from Daniel's photograph of the actual Epson test receipt; its Full photo preview
+was built in the browser. The other 11 printed frames still need a photographed
+12-frame sequence to verify ordering and motion on paper.
+
 ### 2.171 — 2026-11-10 · Thermal Text node and mixed receipts
 
 Thermal Text is a built-in path modifier in Pen & Output. It passes the wired
