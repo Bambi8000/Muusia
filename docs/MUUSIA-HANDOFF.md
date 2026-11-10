@@ -281,6 +281,8 @@ receipt was recognized as frame 1. Liike also read frame 1 and all four marks
 from Daniel's photograph of the actual Epson test receipt; its Full photo preview
 was built in the browser. The other 11 printed frames still need a photographed
 12-frame sequence to verify ordering and motion on paper.
+Release commit `7a245db8d854f4d7fb7a922c27361bf4e33c73ba` passed Pages run
+`42819537751`. Public Muusia showed v2.172; public Liike served the new detector.
 
 ### 2.171 — 2026-11-10 · Thermal Text node and mixed receipts
 

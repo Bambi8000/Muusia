@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.171",
+    "version": "2.172",
     "date": "2026-11-10",
-    "commit": "68078518ecb3c7baf99ae95a9838612ddc61cf54",
-    "pagesRunId": 42776545587,
+    "commit": "7a245db8d854f4d7fb7a922c27361bf4e33c73ba",
+    "pagesRunId": 42819537751,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.171 and Thermal Text node; exact Pages run succeeded; mixed Epson text/image receipt printed in correct order with final cut"
+    "status": "verified public Muusia 2.172 and Liike receipt detection; exact Pages run succeeded; real Epson frame 1 photo recognized"
   },
   "lastIntegration": {
-    "version": "2.171",
+    "version": "2.172",
     "date": "2026-11-10",
-    "baseCommit": "e96c027455ec069280be0ebbc34749f30dcbb7c5",
-    "branch": "codex/thermal-text",
-    "worktree": "/private/tmp/muusia-pi-print",
+    "baseCommit": "7842576c2adb997d6bf78a277ba80616d7bd18c4",
+    "branch": "codex/receipt-auto-detect",
+    "worktree": "/private/tmp/muusia-auto-receipt-20261110",
     "published": true,
-    "status": "Muusia 2.171 Thermal Text published and verified on GitHub Pages; Pi mixed text/image printing verified on paper",
-    "snapshot": "/private/tmp/muusia-project-files-2.171-thermal-text (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.172 larger receipt marks and Liike automatic recognition published and verified on GitHub Pages; real Epson frame 1 photo recognized",
+    "snapshot": "/private/tmp/muusia-project-files-2.172-auto-receipt (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 358,
     "registryCount": 360,
-    "validation": "Thermal Text validator, six print server tests, JavaScript syntax, catalog, root build and 37913 Learn checks passed. Real UI export preserved all font settings; Pi files match tested source; user confirmed physical before/image/after receipt and final cut.",
-    "note": "Pi service remains bound to 127.0.0.1 and reached via the Mac SSH tunnel; unrelated primary checkout changes were preserved. Latu currently previews only the raster portion of mixed receipt files.",
-    "commit": "68078518ecb3c7baf99ae95a9838612ddc61cf54"
+    "validation": "Nine focused new receipt tests, all 163 Liike tests, TypeScript check, catalog, root build and 37913 Learn checks passed. Browser-exported frame and real Epson photo both recognized as frame 1; browser Full photo preview built.",
+    "note": "The other 11 printed frames still need a photographed 12-frame sequence to verify ordering and motion on paper; unrelated primary checkout changes were preserved.",
+    "commit": "7a245db8d854f4d7fb7a922c27361bf4e33c73ba"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
