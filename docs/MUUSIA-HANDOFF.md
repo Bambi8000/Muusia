@@ -288,8 +288,13 @@ byte order and API round trip), catalog validation, production build and
 37,913 Learn checks passed. The real Muusia 2.171 UI exposed every requested
 control and exported a text-only receipt containing the selected settings.
 The matching Pi files were installed, the service reported USB ready, and a
-small before-text/image/after-text smoke job reported `done`. This confirms USB
-write; physical layout and cut placement await Daniel's paper check.
+small before-text/image/after-text smoke job reported `done`. Daniel confirmed
+that the physical receipt showed both text blocks in the correct order and the
+cut followed the lower text.
+
+Release commit `68078518ecb3c7baf99ae95a9838612ddc61cf54` passed Pages run
+`42776545587`. The public Muusia page showed v2.171 and Thermal Text in the
+node list after deployment.
 
 ### W — 2026-11-09 · Raspberry Pi print page renamed Print
 
