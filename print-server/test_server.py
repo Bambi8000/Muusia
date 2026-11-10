@@ -140,6 +140,65 @@ class PrintServerTests(unittest.TestCase):
                 else:
                     os.environ["MUUSIA_PRINT_OUTPUT_FILE"] = old_output
 
+    def test_clock_mode_runs_and_stops_without_cutting(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = os.path.join(tmp, "clock.bin")
+            old_output = os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")
+            os.environ["MUUSIA_PRINT_OUTPUT_FILE"] = output_path
+            httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+            threading.Thread(target=httpd.serve_forever, daemon=True).start()
+            threading.Thread(target=server.print_worker, daemon=True).start()
+            base = f"http://127.0.0.1:{httpd.server_port}"
+            def post(path, value=None):
+                body = json.dumps(value).encode() if value is not None else b""
+                with urlopen(Request(base + path, data=body, method="POST",
+                                     headers={"Content-Type": "application/json"}), timeout=2) as response:
+                    return json.load(response)
+            def finished_lines(count):
+                deadline = time.monotonic() + 4
+                while time.monotonic() < deadline:
+                    with urlopen(base + "/api/jobs", timeout=2) as response:
+                        lines = [job for job in json.load(response)["jobs"]
+                                 if job["kind"] == "clock" and job["status"] == "done"]
+                    if len(lines) >= count:
+                        return lines
+                    time.sleep(.03)
+                self.fail(f"Clock did not finish {count} lines")
+            try:
+                with urlopen(base + "/api/clock", timeout=2) as response:
+                    self.assertFalse(json.load(response)["running"])
+                self.assertTrue(post("/api/clock", {"interval": "second"})["running"])
+                lines = finished_lines(2)
+                self.assertEqual(len(lines[0]["name"].split()[-1]), 8)
+                self.assertTrue(all(not line["cut"] for line in lines))
+                stopped = post("/api/clock/stop")
+                self.assertFalse(stopped["running"])
+                before = len(finished_lines(2))
+                time.sleep(1.1)
+                self.assertEqual(len(finished_lines(2)), before)
+                self.assertTrue(post("/api/clock", {"interval": "minute"})["running"])
+                lines = finished_lines(3)
+                self.assertEqual(len(lines[0]["name"].split()[-1]), 5)
+                self.assertFalse(post("/api/clock/stop")["running"])
+                with open(output_path, "rb") as result:
+                    output = result.read()
+                self.assertEqual(output.count(b"\x1b@"), len(lines))
+                self.assertIn(b"\x1ba\x01", output)
+                self.assertIn(b"\x1d!\x11", output)
+                self.assertNotIn(b"\x1dV", output)
+                with self.assertRaises(HTTPError) as invalid:
+                    post("/api/clock", {"interval": "hour"})
+                self.assertEqual(invalid.exception.code, 400)
+                invalid.exception.close()
+            finally:
+                server.stop_clock()
+                httpd.shutdown()
+                httpd.server_close()
+                if old_output is None:
+                    os.environ.pop("MUUSIA_PRINT_OUTPUT_FILE", None)
+                else:
+                    os.environ["MUUSIA_PRINT_OUTPUT_FILE"] = old_output
+
     def test_http_queue_origin_and_file_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, "receipt.bin")

@@ -4,6 +4,18 @@ Tila 9.11.2026: Raspberry Pi 3:n **Print**-sivu tulostaa Epson TM-T88V:lle USB:n
 
 `DOWNLOAD RECEIPT FILE` tallentaa saman bittikuvan `*.muusia-receipt.json`-tiedostoksi ilman tulostinta. Tiedosto sisältää `format`, `version`, `width`, `height`, Base64-muotoisen 1-bittisen `data`-kentän ja `cut`-valinnan. Thermal Text lisää tiedostoon `thermalText`-kentän, jonka Print-palvelu tulostaa Epsonin omilla fonteilla kuvan eteen tai perään. Latu näyttää tiedoston kohdasta **Document → Open receipt preview…**, mutta sen esikatselu näyttää nykyisin vain rasterikuvan, ei Epsonin omilla fonteilla tulostettavia tekstilohkoja. Latu voi myös avata tämän palvelimen tuottaman `.escpos`-tavuvirran esikatseluun; kumpaakaan muotoa ei tulkita G-codeksi tai muokattaviksi viivoiksi.
 
+## Kellotila Print-sivulla
+
+**Clock**-välilehdellä valitaan **Every second** (`HH:MM:SS`) tai **Every minute**
+(`HH:MM`) ja painetaan **Start clock**. Aika tulee Raspberry Pi:n paikallisesta
+kellosta. Jokainen rivi käyttää Epsonin omaa Font A -fonttia, on keskitetty,
+lihavoitu ja kooltaan 2×2. **Stop clock** lopettaa ajastuksen; parhaillaan
+tulostuva rivi voi valmistua. Kellotila ei koskaan lähetä leikkauskomentoa.
+Ajastus jatkuu Pi:llä myös selaimen sulkemisen jälkeen, mutta palvelun
+uudelleenkäynnistys pysäyttää sen. Jos tulostin on varattu, kyseinen ajanhetki
+ohitetaan eikä rivejä kerätä jonoon. Pi:n `/api/clock` näyttää tilan ja
+`/api/clock/stop` pysäyttää sen myös ilman selainta.
+
 ## Kuittikangas Muusiassa
 
 Valitse yläpalkin **Size preset → Receipt · 72 × 100 mm** lyhyelle kuitille tai **Receipt strip · 72 × 250 mm** pidemmälle nauhalle. Voit myös asettaa Canvas-leveydeksi **72 mm** ja korkeudeksi haluamasi kuittipituuden. 80 mm:n rullassa tulostettava alue on noin 72 mm; Muusia skaalaa koko kankaan leveyden 512 pisteeseen. Valitse tulostettava solmu, pidä **Mega Canvas** pois päältä ja käytä **DOWNLOAD RECEIPT FILE** -painiketta Latu-esikatseluun. Tämä ei tarvitse Epsonia, Raspberry Pi:tä eikä tokenia.

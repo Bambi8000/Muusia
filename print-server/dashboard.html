@@ -15,6 +15,7 @@
       <nav aria-label="Main navigation">
         <button class="nav-item active" data-view="dashboard"><span>▦</span> Dashboard</button>
         <button class="nav-item" data-view="queue"><span>≡</span> Print queue <b id="nav-count">0</b></button>
+        <button class="nav-item" data-view="clock"><span>◷</span> Clock</button>
         <button class="nav-item" data-view="lab"><span>▤</span> Printer Lab</button>
         <button class="nav-item" data-view="settings"><span>⚙</span> Settings</button>
       </nav>
@@ -55,6 +56,20 @@
       </section>
 
       <section id="queue-view" class="view hidden"><div class="panel queue-page"><div class="panel-heading"><div><p class="eyebrow">PRINT ACTIVITY</p><h2>Queue and history</h2></div><button id="refresh-jobs" class="secondary">Refresh</button></div><p class="field-help">Queued jobs can be cancelled. A job marked done means its bytes reached the USB device or test output file.</p><div id="all-jobs" class="job-list"></div></div></section>
+
+      <section id="clock-view" class="view hidden">
+        <div class="clock-grid">
+          <section class="panel clock-control"><div class="panel-heading"><div><p class="eyebrow">CONTINUOUS PRINT</p><h2>Clock</h2></div><span id="clock-pill" class="pill">Stopped</span></div>
+            <p class="field-help">Print the Pi's current time as one centered Epson Font A headline, 2× wide and 2× high. The paper is never cut in this mode.</p>
+            <label class="lab-label" for="clock-interval">Print interval</label>
+            <select id="clock-interval" class="lab-select"><option value="second">Every second · HH:MM:SS</option><option value="minute">Every minute · HH:MM</option></select>
+            <div class="lab-actions"><button id="clock-start" class="primary" disabled>Start clock</button><button id="clock-stop" class="secondary" disabled>Stop clock</button></div>
+            <p id="clock-status" class="message" role="status">Checking clock…</p>
+            <p class="field-help">Printing continues on the Raspberry Pi if this page is closed. Stop it here before leaving the printer.</p>
+          </section>
+          <section class="panel clock-preview-panel"><p class="eyebrow">LAYOUT PREVIEW · HELSINKI TIME</p><div class="clock-paper"><strong id="clock-preview">--:--:--</strong></div><p class="field-help">Centered · Font A · bold · 2×2 · no cut. Busy printer ticks are skipped, not saved up.</p></section>
+        </div>
+      </section>
 
       <section id="lab-view" class="view hidden">
         <div class="panel queue-page">

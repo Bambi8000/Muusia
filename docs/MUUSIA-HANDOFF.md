@@ -264,6 +264,24 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### W — 2026-11-10 · Print clock mode on Raspberry Pi
+
+Print now has a Clock view with Start/Stop and every-second (`HH:MM:SS`) or
+every-minute (`HH:MM`) scheduling. The Pi, rather than the browser, queues one
+Epson Font A line at a time in centered, bold 2×2 type. Clock jobs never carry a
+cutter command. Busy-printer ticks are skipped; Stop cancels a queued clock line,
+while a line already printing may finish. The mode is off after a service restart.
+The dashboard shows the live setting, last line and a layout preview.
+
+Seven Python print-server tests passed, including real HTTP start/stop, both
+intervals and byte checks for alignment, size and absence of a cut. The browser
+controlled both modes against a test-file server; six test lines contained no
+cut byte sequence. The four changed Print files were installed on `print.local`
+with matching SHA-256s and a backup; the service came back active and USB ready.
+The real Epson queue completed three second lines and one minute line, all with
+`cut: false`. The clock was stopped afterward, and the live Print page showed
+**Stopped**. Physical paper appearance remains for Daniel to inspect.
+
 ### 2.172 — 2026-11-10 · Larger receipt marks and automatic Liike alignment
 
 Numbered Muusia receipts now print 32-dot outward L marks around a 416-dot

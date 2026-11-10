@@ -2,7 +2,7 @@
   'use strict';
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  const state = { source: 'receipt', receipts: [], selected: 0, health: null, jobs: [], nativeTests: [], nativeTest: null, pageDetail: null };
+  const state = { source: 'receipt', receipts: [], selected: 0, health: null, jobs: [], clock: null, nativeTests: [], nativeTest: null, pageDetail: null };
 
   async function api(path, options = {}) {
     const response = await fetch(path, options);
@@ -18,7 +18,7 @@
   function setView(view) {
     $$('.view').forEach(node => node.classList.toggle('hidden', node.id !== `${view}-view`));
     $$('.nav-item').forEach(node => node.classList.toggle('active', node.dataset.view === view));
-    $('#page-title').textContent = { dashboard: 'Dashboard', queue: 'Print queue', lab: 'Printer Lab', settings: 'Settings' }[view];
+    $('#page-title').textContent = { dashboard: 'Dashboard', queue: 'Print queue', clock: 'Clock', lab: 'Printer Lab', settings: 'Settings' }[view];
   }
 
   function setSource(source) {
@@ -316,11 +316,50 @@
     finally { button.disabled = !state.health?.ready; }
   }
 
+  function updateClockPreview() {
+    const second = $('#clock-interval').value === 'second';
+    $('#clock-preview').textContent = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Helsinki', hour: '2-digit', minute: '2-digit',
+      ...(second ? { second: '2-digit' } : {}), hourCycle: 'h23',
+    }).format(new Date());
+  }
+
+  function renderClock() {
+    const clock = state.clock, active = Boolean(clock?.running);
+    const selected = $('#clock-interval').value;
+    $('#clock-pill').textContent = active ? 'Printing' : 'Stopped';
+    $('#clock-pill').classList.toggle('ready', active);
+    $('#clock-start').textContent = active ? 'Change interval' : 'Start clock';
+    $('#clock-start').disabled = !state.health?.ready || (active && selected === clock.interval);
+    $('#clock-stop').disabled = !active;
+    const status = $('#clock-status');
+    status.textContent = active
+      ? `Printing ${clock.interval === 'second' ? 'every second' : 'every minute'} · last line ${clock.lastLine || 'waiting'} · no cut`
+      : clock?.error || 'Stopped. Press Start clock to begin printing.';
+    status.classList.toggle('error', Boolean(clock?.error));
+  }
+
+  async function startClock() {
+    const button = $('#clock-start'); button.disabled = true;
+    try {
+      state.clock = await api('/api/clock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interval: $('#clock-interval').value }) });
+      renderClock(); await refresh();
+    } catch (error) { $('#clock-status').textContent = error.message; $('#clock-status').classList.add('error'); button.disabled = !state.health?.ready; }
+  }
+
+  async function stopClock() {
+    const button = $('#clock-stop'); button.disabled = true;
+    try {
+      state.clock = await api('/api/clock/stop', { method: 'POST' });
+      renderClock(); await refresh();
+    } catch (error) { $('#clock-status').textContent = error.message; $('#clock-status').classList.add('error'); button.disabled = !state.clock?.running; }
+  }
+
   function jobElement(job) {
     const row = document.createElement('div'); row.className = 'job-row';
-    const icon = document.createElement('span'); icon.className = 'job-icon'; icon.textContent = job.kind === 'cut' ? '✂' : '▤'; row.append(icon);
+    const icon = document.createElement('span'); icon.className = 'job-icon'; icon.textContent = job.kind === 'cut' ? '✂' : job.kind === 'clock' ? '◷' : '▤'; row.append(icon);
     const info = document.createElement('div'); const title = document.createElement('div'); title.className = 'job-name'; title.textContent = job.name || 'Receipt';
-    const meta = document.createElement('div'); meta.className = 'job-meta'; meta.textContent = `${job.kind === 'cut' ? 'Cutter command' : job.kind === 'native' ? 'Native ESC/POS font test' : `${job.width || 512} × ${job.height} dots`} · ${new Date(job.createdAt * 1000).toLocaleTimeString()}${job.error ? ` · ${job.error}` : ''}`;
+    const meta = document.createElement('div'); meta.className = 'job-meta'; meta.textContent = `${job.kind === 'cut' ? 'Cutter command' : job.kind === 'clock' ? 'Centered Font A 2×2 · no cut' : job.kind === 'native' ? 'Native ESC/POS font test' : `${job.width || 512} × ${job.height} dots`} · ${new Date(job.createdAt * 1000).toLocaleTimeString()}${job.error ? ` · ${job.error}` : ''}`;
     info.append(title, meta); row.append(info);
     const actions = document.createElement('div'); actions.className = 'job-actions'; const status = document.createElement('span'); status.className = `job-status ${job.status}`; status.textContent = job.status; actions.append(status);
     if (job.kind === 'receipt') { const preview = document.createElement('button'); preview.textContent = 'Preview'; preview.addEventListener('click', async () => { try { const receipt = await api(`/api/jobs/${job.id}/receipt`); stage([{ ...receipt, name: job.name }], 'Loaded a previous job for preview.'); } catch (error) { message(error.message, true); setView('dashboard'); } }); actions.append(preview); }
@@ -338,8 +377,9 @@
 
   async function refresh() {
     try {
-      const [health, listing] = await Promise.all([api('/health'), api('/api/jobs')]);
-      state.health = health; state.jobs = listing.jobs;
+      const [health, listing, clock] = await Promise.all([api('/health'), api('/api/jobs'), api('/api/clock')]);
+      if (state.clock === null) $('#clock-interval').value = clock.interval;
+      state.health = health; state.jobs = listing.jobs; state.clock = clock;
       const queued = listing.jobs.filter(job => job.status === 'queued').length;
       const printing = listing.jobs.filter(job => job.status === 'printing').length;
       const done = listing.jobs.filter(job => job.status === 'done').length;
@@ -358,8 +398,9 @@
       $('#cut-only').disabled = !health.ready;
       $('#native-print').disabled = !health.ready || !state.nativeTest;
       $('#glyph-print').disabled = !health.ready || !state.pageDetail;
+      renderClock();
     } catch (error) {
-      state.health = null;
+      state.health = null; state.clock = null;
       $('#printer-state').textContent = 'Offline';
       $('#printer-detail').textContent = 'Print server unavailable';
       $('#mode-pill').textContent = 'SERVER OFFLINE';
@@ -369,6 +410,7 @@
       $('#queue-current').disabled = true; $('#queue-all').disabled = true; $('#cut-only').disabled = true;
       $('#native-print').disabled = true;
       $('#glyph-print').disabled = true;
+      renderClock();
     }
   }
 
@@ -387,10 +429,15 @@
   $('#glyph-preview-button').addEventListener('click', previewGlyphs);
   $('#glyph-download').addEventListener('click', downloadGlyphs);
   $('#glyph-print').addEventListener('click', queueGlyphs);
+  $('#clock-interval').addEventListener('change', () => { updateClockPreview(); renderClock(); });
+  $('#clock-start').addEventListener('click', startClock);
+  $('#clock-stop').addEventListener('click', stopClock);
   $('#refresh-jobs').addEventListener('click', refresh);
   $('#server-address').textContent = location.origin;
   refresh();
   loadNativeTests();
   loadGlyphCatalog();
+  updateClockPreview();
+  setInterval(updateClockPreview, 1000);
   setInterval(() => { if (!document.hidden) refresh(); }, 3000);
 })();

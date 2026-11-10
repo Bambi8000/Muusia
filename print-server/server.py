@@ -3,6 +3,7 @@
 
 import base64
 import binascii
+from datetime import datetime
 import io
 import json
 import os
@@ -31,6 +32,116 @@ job_images = {}
 job_native_texts = {}
 jobs_lock = threading.Lock()
 work = queue.Queue(maxsize=MAX_IMPORT_ITEMS)
+CLOCK_INTERVALS = {"second": 1, "minute": 60}
+clock_condition = threading.Condition()
+clock_thread = None
+clock_state = {"running": False, "interval": "second", "lastLine": None,
+               "lastQueuedAt": None, "error": None, "lastSlot": None, "generation": 0}
+
+
+def printer_ready():
+    return bool(os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")) or os.path.exists(
+        os.environ.get("MUUSIA_PRINT_DEVICE", "/dev/usb/lp0"))
+
+
+def clock_snapshot():
+    with clock_condition:
+        return {key: clock_state[key] for key in ("running", "interval", "lastLine", "lastQueuedAt", "error")}
+
+
+def clock_line(timestamp, interval):
+    """One centered, bold Font A 2x2 line in the Pi's local time, without a cut."""
+    if interval not in CLOCK_INTERVALS:
+        raise ValueError("Clock interval must be second or minute")
+    label = datetime.fromtimestamp(timestamp).strftime("%H:%M:%S" if interval == "second" else "%H:%M")
+    program = native_fonts.compose({"text": label, "font": "A", "width": 2, "height": 2,
+                                    "bold": True, "align": 1, "page": 0, "country": 0,
+                                    "cut": False}, heading=False)
+    return label, program.data
+
+
+def queue_clock_line(label, raw, timestamp):
+    """Skip a tick while another job is queued/printing; never build a backlog."""
+    with jobs_lock:
+        if any(job["status"] in ("queued", "printing") for job in jobs.values()) or work.full():
+            return False
+        if len(jobs) >= 100:
+            oldest = next((key for key, job in jobs.items() if job["status"] in ("done", "failed", "cancelled")), None)
+            if oldest is None:
+                return False
+            del jobs[oldest]
+            job_images.pop(oldest, None)
+            job_native_texts.pop(oldest, None)
+        job_id = uuid.uuid4().hex
+        jobs[job_id] = {"id": job_id, "status": "queued", "name": f"Clock {label}",
+                        "height": 0, "width": 0, "cut": False, "kind": "clock",
+                        "createdAt": timestamp}
+        work.put_nowait((job_id, raw, False))
+        return True
+
+
+def stop_clock(error=None, expected_generation=None):
+    with clock_condition:
+        if expected_generation is not None and clock_state["generation"] != expected_generation:
+            return {key: clock_state[key] for key in ("running", "interval", "lastLine", "lastQueuedAt", "error")}
+        clock_state["running"] = False
+        clock_state["error"] = error
+        clock_state["generation"] += 1
+        clock_condition.notify_all()
+    with jobs_lock:
+        for job in jobs.values():
+            if job["kind"] == "clock" and job["status"] == "queued":
+                job["status"] = "cancelled"
+                job["finishedAt"] = time.time()
+    return clock_snapshot()
+
+
+def clock_loop():
+    while True:
+        with clock_condition:
+            while not clock_state["running"]:
+                clock_condition.wait()
+            interval = clock_state["interval"]
+            period = CLOCK_INTERVALS[interval]
+            now = time.time()
+            slot = int(now // period)
+            if slot == clock_state["lastSlot"]:
+                clock_condition.wait(timeout=max(.02, (slot + 1) * period - now))
+                continue
+            clock_state["lastSlot"] = slot
+            generation = clock_state["generation"]
+        if not printer_ready():
+            stop_clock("Printer output is unavailable. Clock stopped.", generation)
+            continue
+        label, raw = clock_line(now, interval)
+        with clock_condition:
+            if clock_state["running"] and clock_state["generation"] == generation:
+                if queue_clock_line(label, raw, now):
+                    clock_state["lastLine"] = label
+                    clock_state["lastQueuedAt"] = now
+                elif clock_state["lastLine"] is None:
+                    # The first line after Start or an interval change waits for
+                    # a busy printer; later ticks are intentionally skipped.
+                    clock_state["lastSlot"] = None
+                    clock_condition.wait(timeout=.1)
+
+
+def start_clock(interval):
+    global clock_thread
+    if interval not in CLOCK_INTERVALS:
+        raise ValueError("Clock interval must be second or minute")
+    if not printer_ready():
+        raise ValueError("Printer output is unavailable")
+    with clock_condition:
+        if clock_thread is None or not clock_thread.is_alive():
+            clock_thread = threading.Thread(target=clock_loop, name="print-clock", daemon=True)
+            clock_thread.start()
+        if not clock_state["running"] or clock_state["interval"] != interval:
+            clock_state.update(running=True, interval=interval, lastSlot=None,
+                               lastLine=None, lastQueuedAt=None, error=None)
+            clock_state["generation"] += 1
+            clock_condition.notify_all()
+    return clock_snapshot()
 
 
 def validate_receipt(body):
@@ -155,6 +266,7 @@ def print_worker():
                 continue
             jobs[job_id]["status"] = "printing"
             jobs[job_id]["startedAt"] = time.time()
+            kind = jobs[job_id]["kind"]
         try:
             if image is None:
                 data = b"\x1dV\x00"
@@ -180,6 +292,8 @@ def print_worker():
         except Exception as exc:
             with jobs_lock:
                 jobs[job_id].update(status="failed", error=str(exc), finishedAt=time.time())
+            if kind == "clock":
+                stop_clock(f"Printer error: {exc}. Clock stopped.")
         finally:
             work.task_done()
 
@@ -242,10 +356,12 @@ class Handler(BaseHTTPRequestHandler):
             return
         if self.path == "/health":
             device = os.environ.get("MUUSIA_PRINT_DEVICE", "/dev/usb/lp0")
-            ready = bool(os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")) or os.path.exists(device)
+            ready = printer_ready()
             with jobs_lock:
                 queued = sum(j["status"] == "queued" for j in jobs.values())
             self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device})
+        elif self.path == "/api/clock":
+            self._json(200, clock_snapshot())
         elif self.path == "/api/native-pages":
             self._json(200, native_fonts.page_catalog())
         elif re.fullmatch(r"/api/native-pages/\d+", self.path):
@@ -313,6 +429,24 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if not self._origin_allowed():
+            return
+        if self.path == "/api/clock":
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= 128:
+                    raise ValueError("Clock request is too large or empty")
+                body = json.loads(self.rfile.read(length))
+                if not isinstance(body, dict):
+                    raise ValueError("Clock request must be an object")
+                self._json(200, start_clock(body.get("interval")))
+            except (ValueError, TypeError, json.JSONDecodeError) as exc:
+                self._json(400, {"error": str(exc)})
+            return
+        if self.path == "/api/clock/stop":
+            if self.headers.get("Content-Length", "0") != "0":
+                self._json(400, {"error": "Clock stop takes no body"})
+            else:
+                self._json(200, stop_clock())
             return
         if self.path in ("/api/native-compose", "/api/native-compose/preview", "/api/native-compose/bin"):
             try:
