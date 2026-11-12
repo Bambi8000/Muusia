@@ -1,6 +1,6 @@
 # MUUSIA Surface Composer arkkitehtuuri ja toteutussuunnitelma
 
-Päiväys: 12.11.2026. Vaihe 1 ja prototyypin geometriaydin ovat valmiit. Surface Composeria ei ole vielä kytketty käyttöliittymään.
+Päiväys: 12.11.2026. Arkkitehtuurikatselmus, geometriaydin ja sisällön yhteinen kohdistus ovat valmiit. Surface Composeria ei ole vielä kytketty käyttöliittymään.
 
 Surface Composer laajentaa Muusian nykyistä millimetripohjaista teospintaa. Mega Canvasin ja Roll Moden nykyiset arkit, vientimuodot ja projektit säilytetään. Uusi osa on fyysisten suikaleiden sijainti, rotaatio ja tulostusalue sekä yhteinen muunnos teospinnan ja suikaleen välillä. Sama muunnos ohjaa esikatselua ja vientiä.
 
@@ -30,6 +30,24 @@ Generoinnin muistiraja on 4096 suikaletta. Se ei ole fyysisen pituuden raja: tar
 Tulostimen mittakalibrointia varten lähetettiin yksi 512 × 660 pisteen kuitti nykyisen USB-palvelun kautta. Sen X- ja Y-mittavälit ovat kumpikin 400 pistettä, ristien keskipisteestä keskipisteeseen. Käyttäjä mittasi paperilta molemmille suunnille 56,6 mm. Laskennallinen mittakaava on siten noin 7,067 pistettä/mm eli 179,5 dpi molemmilla akseleilla; 512 pisteen alue vastaa noin 72,45 mm:ä. Tulos on lähellä 180 dpi:tä ja sulkee tämän laitteen nykyisillä asetuksilla pois 203 dpi:n oletuksen. Paperin koko leveys ja tulostusalueen reuna-offset odottavat erillistä mittausta. Kuitti ei kulkenut uuden Surface Composer -käyttöliittymän tai rasteriviennin kautta. Tulos tallennettiin tulostinkohtaiseksi kalibrointiaineistoksi; yleisiä materiaalioletuksia ei muutettu.
 
 Sivureunojen jatkokokeessa käyttäjä mittasi alkuperäisestä vedoksesta vasemmalle 4,6 mm ja oikealle 3 mm. Sen perusteella oikeaa rajaviivaa siirrettiin rasterisarakkeesta 510 sarakkeeseen 499 vasemman pysyessä sarakkeessa 1. Käyttäjä vahvisti uuden vedoksen molemmiksi sivumarginaaleiksi 4,6 mm. Tämä on nykyisen tulostuspolun fyysisesti tarkistettu symmetrinen rajaus; 4 mm:n vasenta reunaa ei ole vahvistettu. Paperin tarkka kokonaisleveys ja laitealueen alku pysyvät arvioina. Tulostimen asetuksia tai yleisiä materiaalioletuksia ei muutettu.
+
+## Sisällön kohdistuksen toteutus
+
+[surface-render.js](../src/surface-render.js) sijoittaa viiva- ja rasterilähteen yhteen globaaliin millimetrikoordinaatistoon. Suikaleen liike tai kierto muuttaa vain siitä poimittavaa aluetta, ei lähdekuvan sijoitusta. Lähteen kuvasuhde säilyy: `contain` näyttää koko lähteen ja `cover` peittää tavoitealueen siten, että teospinnan rajat leikkaavat ylimenevän sisällön.
+
+| Rajapinta | Käyttö |
+| --- | --- |
+| `createContentPlacement`, `contentTransform` | JSON-muodossa tallennettava lähteen sijoitus, yhtenäinen mittakaava, kierto ja molempiin suuntiin toimiva muunnos. Graafin viivoille lähdeyksikkö on millimetri ja kuvalle pikseli. |
+| `placePathsOnSurface` | Viivat rajataan lähteen alueeseen, muunnetaan ja rajataan teospintaan kerran. Tulos annetaan nykyiselle `clipPathsToStrip`-funktiolle kunkin suikaleen kohdalla. Kynäkerros, pisteiden syvyys ja huoltomerkinnät säilyvät. |
+| `createRasterSampler` | Alkuperäisen RGBA-kuvan näytteistys globaalista sijainnista: bilineaarinen tai lähimmän pikselin interpolointi, läpinäkyvyys valkoiselle. Kuvan ja teospinnan ulkopuoli jää valkoiseksi. |
+| `createStripRasterPlan` | Eksplisiittinen X/Y-pikselitiheys sekä koko paperin tai pelkän tulostusalueen rasterimitat. Pyöristetyn rasterin fyysinen ulottuvuus raportoidaan erikseen tavoitemitoista, eikä kuvan mittakaavaa muuteta pyöristyksen vuoksi. |
+| `createStripRasterizer` | Yksi muuttumaton suikaleen ja sijoituksen tilannekuva. `renderBlock(rowStart, rowCount)` palauttaa RGBA-rivejä aina absoluuttisista suikalekoordinaateista, joten lohkojen välille ei tule saumaa. Paperialueen viennissä myös tulostumattomat reunat säilyvät valkoisina. |
+
+Yhden lohkon raja on 1 048 576 pikseliä eli 4 MiB RGBA-dataa; rasterin leveysraja on 16 384 pikseliä. Nämä ovat muistirajoja, eivät tulostimen tai suikaleen fyysisiä pituusrajoja. Kutsuja aikatauluttaa lohkot ja voi keskeyttää työn niiden välissä. Alkuperäisen kuvan pikselitaulukko jaetaan vain lukuun, eikä kutsuja muuta sitä kesken rasterointityön.
+
+[validate-surface-render.mjs](../tools/validate-surface-render.mjs) sisältää 16 läpäissyttä tarkistusta. Ne kattavat viiva- ja rasterikohdistuksen samat globaalit pisteet, analyyttiset 45/90 asteen pikselit, peittävät ja läpinäkyvät pikselit, kuvan ulkopuolen, paperireunat, päällekkäisyyden, lohkojen tavutarkan yhtäläisyyden sekä virhetilanteet. Kahden metrin suikale käyttää mitattua tiheyttä `400 / 56.6` pistettä/mm ja muodostaa 512 × 14 135 pisteen rasterin lohkoissa. Tämä ei vielä laajenna nykyisen kuittipalvelun 4096 rivin työrajaa.
+
+Rasterituloksista muodostettiin erillinen diagnostinen havainnekuva: sama ympyrä, ruudukko ja diagonaali lähteenä sekä koottuna 12 kiertyvästä paperisuikaleesta. Havainne on laskentatuloksen tarkistus, ei kuvakaappaus vielä toteuttamattomasta editorista. Käyttöliittymä, alkuperäisen kuvatiedoston latauskytkentä, projektitallennus ja käyttäjän PNG-vientitoiminnot tulevat seuraavissa askelissa.
 
 ## Nykyiset osat ja niiden käyttö
 
@@ -107,7 +125,7 @@ Esimerkiksi 23 kappaletta 80 mm paperia ja niiden 22 kappaletta 8 mm rakoja viev
 | 3. Visuaalinen editori | Suuri esikatselu, Physical Width / Printable Width / Gap erikseen, valinta, siirto, kierto sekä numeeriset sijainti- ja pituuskentät. | Uusi `src/surface-composer.jsx` ja rajattu kytkentä uusimpaan `src/App.jsx`:ään. |
 | 4. Tallennus ja rasterivienti | Suikaleet säilyvät projektissa. Yksittäinen PNG ja kaikki PNG:t ZIP-pakettina sekä mitat ja järjestyksen sisältävä manifesti. | Uusi `src/surface-export.js`, `fflate` ja rajatut projektin save/load-muutokset. |
 
-Askel 1 on toteutettu ja tarkistettu muuttamatta nykyisiä Mega Canvas- tai Roll-viejiä. Seuraava kooditehtävä on askel 2: viiva- ja rasterilähteen yhteinen sijoitus teospinnalle sekä rasterin Image Mapping. Sen jälkeen kytketään graafin yhteinen teospinta ja visuaalinen editori.
+Askeleet 1 ja 2 on toteutettu ja tarkistettu muuttamatta nykyisiä Mega Canvas- tai Roll-viejiä. Seuraava kooditehtävä on askel 3: graafin yhteisen teospinnan ja visuaalisen editorin kytkentä sekä kuvalähteen valinta. Sen jälkeen lisätään projektitallennus ja käyttäjän PNG-vienti.
 
 Rasterivienti tehdään yksi suikale kerrallaan ja tarvittaessa riveittäin lohkoissa. Koko kahden metrin teosta ei rasteroida ensin täydellä tulostustarkkuudella yhdeksi valtavaksi kuvaksi. Esikatselun tarkkuus on erillinen viennin tarkkuudesta. PNG:n pikselitiheys ja fyysiset mitat kirjataan manifestiin; PNG:n tulostajan on käytettävä näitä mittoja, jotta oletusarvoinen sovitus sivulle ei muuta kokoa. Suuren työn vienti voidaan perua, ja resurssirajan ylittyminen ilmoitetaan muuttamatta fyysisiä mittoja.
 
@@ -133,4 +151,4 @@ Materiaalimäärä on valittujen suikaleiden fyysisten pituuksien summa. Tuotann
 
 Nykyiset `validate-mega-roll.mjs`, `validate-slicemega.mjs` ja `validate-preview-crop.mjs` ajettiin sekä paikalliselle koodille että haetun origin/mainin lähteistä eristetylle tilapäiskopiolle. Kaikki läpäisivät. Roll-tarkistus kattoi 14 tapausta, mukaan lukien 2000 mm jatkuvuuden, lyhyen viimeisen osan, Gap/Overlap-erot ja suljettujen polkujen leikkauksen. Nämä osoittavat nykyisen perustan; uusia suikaleominaisuuksia ne eivät vielä testaa.
 
-Alkuperäisessä arkkitehtuurikatselmuksessa ei muutettu sovelluskoodia. Geometriavaihe lisäsi erillisen moduulin ja sen tarkistukset; nykyistä käyttöliittymää, graafin arviointia tai viejiä ei muutettu eikä selainprototyyppiä vielä ole. Dokumentaatiolle tarkistetaan linkit, työtilatietojen JSON ja diffi. Sovellustoteutuksen integraatiossa ajetaan rajattujen tarkistusten jälkeen [MUUSIA-AGENTS.md](MUUSIA-AGENTS.md):n yhteinen portti. `sliceMega`, `sliceRoll`, viennit ja useat tilamuuttujat kuuluvat [Learn-vientitodennuksen](../learn/lib/export-provenance.mjs) seuraamiin lähdealueisiin: niiden muutos edellyttää aitoja uusia selainvientejä ja tarvittaessa lähdevalitsinten päivitystä samassa integraatiossa.
+Alkuperäisessä arkkitehtuurikatselmuksessa ei muutettu sovelluskoodia. Geometria- ja kohdistusvaiheet lisäsivät erilliset moduulit ja niiden tarkistukset; nykyistä käyttöliittymää, graafin arviointia tai viejiä ei muutettu eikä selainprototyyppiä vielä ole. Dokumentaatiolle tarkistetaan linkit, työtilatietojen JSON ja diffi. Sovellustoteutuksen integraatiossa ajetaan rajattujen tarkistusten jälkeen [MUUSIA-AGENTS.md](MUUSIA-AGENTS.md):n yhteinen portti. `sliceMega`, `sliceRoll`, viennit ja useat tilamuuttujat kuuluvat [Learn-vientitodennuksen](../learn/lib/export-provenance.mjs) seuraamiin lähdealueisiin: niiden muutos edellyttää aitoja uusia selainvientejä ja tarvittaessa lähdevalitsinten päivitystä samassa integraatiossa.

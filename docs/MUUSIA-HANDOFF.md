@@ -5894,3 +5894,26 @@ as 4.6 mm. Use this verified symmetric crop for the later Epson profile; do not
 assume a centred 512-dot area or promise a 4 mm left edge. No printer settings
 changed; exact paper width remains inferred and the 100 mm span was not separately
 reported. Calibration artifacts and shared work state contain the measurements.
+
+### W — 2026-11-12: Surface Composer content placement and raster mapping
+
+Plan steps 1 and 2 now complete on `codex/surface-composer`; new
+`src/surface-render.js` shares one aspect-preserving content placement between
+evaluated vector paths and original RGBA pixels. Source/global/strip coordinates
+stay separate. Reuses stripTransform and cropTestPiece; preserves path depth,
+pens and maintenance metadata. Contain/cover, source rotation, white outside the
+source/surface, alpha-over-white and nearest/bilinear sampling are explicit.
+Raster plans report requested physical size, actual pixel extent and X/Y density
+separately. Paper-area output retains blank unprintable margins; printable-only
+output starts at the strip's printable offset. Immutable geometry snapshots and
+absolute row coordinates yield identical pixels for arbitrary block partitions.
+Memory guard: 1,048,576 pixels per RGBA block, width at most 16,384 pixels; no A-size
+length cap. Two-metre test uses measured 400/56.6 dots/mm, 512x14135 raster rows.
+Existing receipt server is unchanged and still limited to 4096 rows per job.
+Focused validator has 16 passing tests; geometry's 18 tests and Preview Crop pass.
+Focused oxlint, catalog, production build and all 37,914 Learn checks pass.
+Actual raster diagnostic (not an editor screenshot) in local visualization
+artifacts `surface-mapping-proof`: source, 12 individual PNGs, composed comparison
+and parameters. No app UI, version bump, public release or additional printing.
+Next: plan step 3, visual editor and graph/image selection; then persistence/PNG
+export. Reuse this module rather than fitting a source independently per strip.

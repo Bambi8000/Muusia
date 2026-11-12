@@ -50,9 +50,9 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local geometry foundation complete; no UI or publication",
-    "validation": "18 focused tests (including 200 transform round trips); existing Preview Crop, Mega Canvas and Roll validators; focused oxlint; catalog; build; Learn 37914 checks passed.",
-    "nextStep": "Shared content placement and raster Image Mapping, followed by visual editor and project/PNG export.",
+    "status": "local geometry and shared content mapping complete; editor integration next; no publication",
+    "validation": "34 focused tests (18 geometry, 16 content/raster), Preview Crop, focused oxlint, catalog, production build and 37914 Learn checks passed.",
+    "nextStep": "Plan step 3: visual editor, graph evaluation on the shared surface, image selection and manipulation; then project persistence and PNG export.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
       "widthDots": 512,
@@ -118,6 +118,17 @@
       "userMeasuredLeftMm": 4.6,
       "userMeasuredRightMm": 4.6,
       "symmetricMarginsVerified": true
+    },
+    "contentMapping": {
+      "baseCommit": "4c908101ac963260a8c819ff6c521bba9eae14b9",
+      "module": "src/surface-render.js",
+      "validator": "tools/validate-surface-render.mjs",
+      "tests": 16,
+      "proof": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-mapping-proof",
+      "proofKind": "actual raster fixture output; not an editor screenshot",
+      "maxBlockPixels": 1048576,
+      "maxWidthPixels": 16384,
+      "longStripTest": "2000 mm at 400/56.6 dots per mm = 512 x 14135 pixels, rendered in bounded blocks"
     }
   }
 }
