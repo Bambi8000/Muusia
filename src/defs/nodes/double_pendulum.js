@@ -1,4 +1,5 @@
 import { Pin, PENS, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "double_pendulum",
@@ -9,6 +10,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "trace", label: "Trace", type: "select",
       options: ["Bob 2", "Bob 1", "Both", "Midpoint"], def: "Bob 2" },
     { key: "traces", label: "Traces", type: "slider", min: 1, max: 8, step: 1, def: 1 },
@@ -122,6 +124,6 @@ export default {
       }
       for (const r of runs) push(r, layer);
     }
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };

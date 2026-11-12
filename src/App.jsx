@@ -515,7 +515,7 @@ const NODE_HELP = {
   skyline: "horizon silhouettes in 1\u20134 receding layers. *Forest*: fBm hills with conifer-spike tops and optional trunk texture; *City*: stepped building skyline with height distribution, antennas and window dashes (some dark). Shares its Horizon Y convention with Water.",
   smooth: "Relax: arc-length moving average (Radius mm) that visibly smooths dense paths, endpoints pinned. Round corners: Chaikin corner-cutting for sparse polylines.",
   solar: "the whole system in one node: pick which planets to include (checkbox list), each on its orbit (tilted ellipse) at a phase angle, with major moons on their own sub-orbits \u2014 orbit paths, moons and moon-orbits each toggle independently. Even or log-ish spacing, view tilt, planet-size multiplier; Saturn/ Uranus get rings. Orbits and planets can go on separate pens.",
-  solids: "wireframe 3-D: Sphere (lat/lon rings; *Solid* hides the back hemisphere, *Transparent* shows all), Cube, Tetra/Octa/Icosa/Dodecahedron (edges derived from geometry). Rotate X/Y/Z, perspective 0\u20131, position. Rotations are value-drivable \u2014 the animation star.",
+  solids: "wireframe 3-D: Sphere (lat/lon rings; *Solid* hides the back hemisphere, *Transparent* shows all), Cube, Tetra/Octa/Icosa/Dodecahedron (edges derived from geometry). *Fit canvas* keeps the object visible and centered when paper size changes, including older patches; switch it off to use the exact Center X/Y millimetres. Rotate X/Y/Z and perspective are value-drivable.",
   spiro: "hypo/epitrochoid gear curves: ring/wheel teeth ratio and pen offset.",
   split: "separates paths into multiple outputs by rule (e.g. layer, index).",
   stamp: "repeats a motif (or built-in marks; Line + Perpendicular = railway sleepers) along paths, with per-path variation. Takes a Motif input.",
@@ -899,7 +899,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.175"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.176"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);

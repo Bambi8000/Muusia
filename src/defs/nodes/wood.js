@@ -1,4 +1,5 @@
 import { Pin, mulberry32, hash2, noise2, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "wood",
@@ -17,8 +18,9 @@ export default {
       { key: "cracks", label: "Cracks", type: "slider", min: 0, max: 8, step: 1, def: 3 },
       { key: "bark", label: "Bark", type: "check", def: true },
       { key: "flame", label: "Flame (grain mode)", type: "slider", min: 0.2, max: 3, step: 0.05, def: 1 },
-      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "seed", label: "Seed", type: "seed", def: 131 },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
@@ -147,7 +149,7 @@ export default {
           paths.push({ pts, closed: false, layer: L });
         }
       }
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.5 }) }, ins[0]);
     }
   
 };

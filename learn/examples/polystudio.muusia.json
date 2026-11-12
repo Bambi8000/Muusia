@@ -14,6 +14,7 @@
         "x": 30,
         "y": 30,
         "params": {
+          "fitCanvas": true,
           "shape": "Icosahedron",
           "sides": 6,
           "freq": 2,

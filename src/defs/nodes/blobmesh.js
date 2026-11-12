@@ -1,4 +1,5 @@
 import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
+import { fitCanvasPathSets } from "../canvas-fit.js";
 
 export default {
   /* Blob Mesh — a procedural 3D blob built to be sliced. Body = 1-5 metaballs
@@ -16,6 +17,7 @@ export default {
   ins: [Pin("paths", "Profile"), Pin("style", "Style")],
   outs: [Pin("paths", "Wireframe"), Pin("paths", "Silhouette"), Pin("mesh", "Mesh")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "balls", label: "Balls", type: "slider", min: 1, max: 5, step: 1, def: 3 },
     { key: "ballMode", label: "Ball placement", type: "select", options: ["Seeded", "Manual"], def: "Seeded", showIf: (p) => p.balls > 1 },
     { key: "spread", label: "Spread %", type: "slider", min: 0, max: 100, step: 1, def: 30, showIf: (p) => p.balls > 1 && p.ballMode !== "Manual" },
@@ -465,7 +467,8 @@ export default {
     }
 
     const st = ins && ins[1];
-    return [applyStyle({ paths: wire }, st), applyStyle({ paths: sil }, st), mesh];
+    const [fittedWire, fittedSil] = p.fitCanvas === false ? [wire, sil] : fitCanvasPathSets([wire, sil], ctx);
+    return [applyStyle({ paths: fittedWire }, st), applyStyle({ paths: fittedSil }, st), mesh];
   },
   overlay(p, ctx) {
     try {

@@ -1,4 +1,5 @@
 import { Pin, EMPTY, applyStyle } from "../helpers.js";
+import { fitCanvasPathSets } from "../canvas-fit.js";
 
 export default {
   key: "polystudio",
@@ -9,6 +10,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths", "Faces"), Pin("paths", "Silhouette"), Pin("mesh", "Mesh")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "shape", label: "Shape", type: "select", options: ["Tetrahedron", "Cube", "Octahedron", "Dodecahedron", "Icosahedron", "Truncated tetrahedron", "Truncated cube", "Truncated octahedron", "Truncated dodecahedron", "Truncated icosahedron", "Cuboctahedron", "Icosidodecahedron", "Rhombicuboctahedron", "Rhombicosidodecahedron", "Rhombic dodecahedron", "Rhombic triacontahedron", "Prism", "Antiprism", "Pyramid", "Bipyramid", "Geodesic sphere"], def: "Icosahedron" },
     { key: "sides", label: "Sides", type: "slider", min: 3, max: 16, step: 1, def: 6, showIf: (p) => p.shape === "Prism" || p.shape === "Antiprism" || p.shape === "Pyramid" || p.shape === "Bipyramid" },
     { key: "freq", label: "Frequency", type: "slider", min: 1, max: 4, step: 1, def: 2, showIf: (p) => p.shape === "Geodesic sphere" },
@@ -546,7 +548,7 @@ export default {
       }
     }
 
-    const styled = applyStyle({ paths }, ins[0]);
-    return [styled, applyStyle({ paths: silPaths }, ins[0]), mesh];
+    const [fittedFaces, fittedSilhouette] = p.fitCanvas === false ? [paths, silPaths] : fitCanvasPathSets([paths, silPaths], ctx);
+    return [applyStyle({ paths: fittedFaces }, ins[0]), applyStyle({ paths: fittedSilhouette }, ins[0]), mesh];
   },
 };

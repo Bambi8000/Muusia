@@ -2,7 +2,7 @@ import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} fro
 export const HERE=path.dirname(fileURLToPath(import.meta.url)),ROOT=path.resolve(HERE,'../..'),defs={};
 for(const k of new Set([...lessons.map(l=>l.key),'svgimport','lettering','type_studio','potato','move_scale','moire_disc','merge','reaction_patterns','container']))defs[k]=withParameterVisibility((await import('../../src/defs/nodes/'+k+'.js')).default);
 // Keep historical lesson patches byte-identical; the app supplies these new optional defaults when loading them.
-export const defaults=k=>Object.fromEntries(defs[k].params.filter(q=>k!=='svgimport'||!['editScale','rotation'].includes(q.key)).map(q=>[q.key,structuredClone(q.def)]));
+export const defaults=k=>Object.fromEntries(defs[k].params.filter(q=>q.key!=='fitCanvas'&&(k!=='svgimport'||!['editScale','rotation'].includes(q.key))).map(q=>[q.key,structuredClone(q.def)]));
 const app=fs.readFileSync(path.join(ROOT,'src/App.jsx'),'utf8');export const engineSource=app.slice(app.indexOf('function defIns(node)'),app.indexOf('/* ============================================================\n   G-CODE')),exporterSource=app.slice(app.indexOf('function toSVG(ps, ctx)'),app.indexOf('/* --- DXF R12 export'));
 const solid=JSON.parse(app.match(/const SOLID_STYLE = (\{[^;]+\});/)[1].replace(/(\w+):/g,'"$1":')),evalLevel=Function('DEFS','EMPTY','SOLID_STYLE',engineSource+';return evalLevel;')(defs,H.EMPTY,solid);export const evaluate=(p,i=0,N=12)=>evalLevel(p.root,{...p.canvas,frameIdx:i,frameCount:N}).out[p.root.outputId][0],toSVG=Function('PENS',exporterSource+';return toSVG;')(H.PENS);
 const rect=(x,y,w,h,layer=0,group)=>({pts:[[x,y],[x+w,y],[x+w,y+h],[x,y+h]],closed:true,layer,colorIdx:layer,...(group===undefined?{}:{group})});

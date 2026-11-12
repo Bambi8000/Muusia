@@ -147,7 +147,7 @@ export default {
     const placed = [];
     let guard = 0;
     while (placed.length < nC && guard++ < nC * 60) {
-      const w = Math.max(14, p.size * (1 - p.sizeVar * rng()));
+      const w = Math.max(14, Math.min(p.size * (1 - p.sizeVar * rng()), (W - 2 * m - 2) / 1.3));
       const h = w * 0.42;
       const we = w * 1.3; /* lobes + creases can poke past w/2, reserve room */
       if (W - 2 * m < we + 2) continue;

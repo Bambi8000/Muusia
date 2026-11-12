@@ -2906,6 +2906,7 @@ export default {
 
 ```js
 import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
+import { fitCanvasPathSets } from "../canvas-fit.js";
 
 export default {
   /* Blob Mesh — a procedural 3D blob built to be sliced. Body = 1-5 metaballs
@@ -2923,6 +2924,7 @@ export default {
   ins: [Pin("paths", "Profile"), Pin("style", "Style")],
   outs: [Pin("paths", "Wireframe"), Pin("paths", "Silhouette"), Pin("mesh", "Mesh")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "balls", label: "Balls", type: "slider", min: 1, max: 5, step: 1, def: 3 },
     { key: "ballMode", label: "Ball placement", type: "select", options: ["Seeded", "Manual"], def: "Seeded", showIf: (p) => p.balls > 1 },
     { key: "spread", label: "Spread %", type: "slider", min: 0, max: 100, step: 1, def: 30, showIf: (p) => p.balls > 1 && p.ballMode !== "Manual" },
@@ -3372,7 +3374,8 @@ export default {
     }
 
     const st = ins && ins[1];
-    return [applyStyle({ paths: wire }, st), applyStyle({ paths: sil }, st), mesh];
+    const [fittedWire, fittedSil] = p.fitCanvas === false ? [wire, sil] : fitCanvasPathSets([wire, sil], ctx);
+    return [applyStyle({ paths: fittedWire }, st), applyStyle({ paths: fittedSil }, st), mesh];
   },
   overlay(p, ctx) {
     try {
@@ -7995,6 +7998,7 @@ export default {
 
 ```js
 import { Pin, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "clockface",
@@ -8005,6 +8009,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "hours", label: "Hours", type: "slider", min: 2, max: 24, step: 1, def: 12 },
     { key: "diameter", label: "Diameter mm", type: "slider", min: 10, max: 400, step: 1, def: 120 },
     { key: "cx", label: "Center X %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
@@ -8109,7 +8114,7 @@ export default {
     }
     /* rim ring */
     if (p.rim) circle(X, Y, Math.max(0.5, (R * p.rimR) / 100), LH);
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };
 ```
@@ -8266,7 +8271,7 @@ export default {
     const placed = [];
     let guard = 0;
     while (placed.length < nC && guard++ < nC * 60) {
-      const w = Math.max(14, p.size * (1 - p.sizeVar * rng()));
+      const w = Math.max(14, Math.min(p.size * (1 - p.sizeVar * rng()), (W - 2 * m - 2) / 1.3));
       const h = w * 0.42;
       const we = w * 1.3; /* lobes + creases can poke past w/2, reserve room */
       if (W - 2 * m < we + 2) continue;
@@ -9386,7 +9391,8 @@ export default {
       const K = p.style === "Minimal" ? 1 : Math.round(p.tailLines);
       for (let i = 0; i < N; i++) {
         const r = (p.size / 2) * (0.6 + rng() * 0.6);
-        const tl = p.tailLen * (0.6 + rng() * 0.5);
+        const fitTail = Math.min(p.tailLen, Math.max(10, Math.min(x1 - x0, y1 - y0) * 0.45));
+        const tl = fitTail * (0.6 + rng() * 0.5);
         const ta = ((p.sunAng + 180) * Math.PI) / 180 + (rng() - 0.5) * 0.35; /* tail away from sun */
         /* keep ball + tail box inside margins */
         const pad = r * 2 + 2;
@@ -13250,6 +13256,7 @@ export default {
 
 ```js
 import { Pin, PENS, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "double_pendulum",
@@ -13260,6 +13267,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "trace", label: "Trace", type: "select",
       options: ["Bob 2", "Bob 1", "Both", "Midpoint"], def: "Bob 2" },
     { key: "traces", label: "Traces", type: "slider", min: 1, max: 8, step: 1, def: 1 },
@@ -13373,7 +13381,7 @@ export default {
       }
       for (const r of runs) push(r, layer);
     }
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };
 ```
@@ -20160,6 +20168,7 @@ export default {
 
 ```js
 import { Pin, mulberry32, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "growth",
@@ -20177,13 +20186,18 @@ export default {
       { key: "boundR", label: "Circle bound Ø mm", type: "slider", min: 20, max: 400, step: 1, def: 170 },
       { key: "rings", label: "History rings", type: "check", def: true },
       { key: "ringEvery", label: "Ring every N iters", type: "slider", min: 5, max: 100, step: 1, def: 24 },
-      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
       { key: "seed", label: "Seed", type: "seed", def: 149 },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
     overlay(p, ctx) {
+      if (p.fitCanvas !== false) {
+        const inset = Math.min(12, Math.min(ctx.W, ctx.H) * 0.06);
+        return [{ kind: "rect", x: inset, y: inset, w: ctx.W - 2 * inset, h: ctx.H - 2 * inset }];
+      }
       return p.bound === "Circle"
         ? [{ kind: "circle", cx: p.cx, cy: p.cy, r: p.boundR / 2 }]
         : [{ kind: "rect", x: p.margin, y: p.margin, w: ctx.W - 2 * p.margin, h: ctx.H - 2 * p.margin }];
@@ -20271,7 +20285,7 @@ export default {
         }
       }
       paths.push({ pts, closed: true, layer: L });
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.5 }) }, ins[0]);
     },
   
 };
@@ -22045,11 +22059,13 @@ export default {
 
 ```js
 import { Pin, applyStyle, SFONT } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "hersheytext",
     name: "Text", cat: "gen", group: "textimg", ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
       { key: "text", label: "Text (| = new line)", type: "text", def: "MUUSIA" },
       { key: "size", label: "Size mm (cap height)", type: "slider", min: 2, max: 80, step: 0.5, def: 20 },
       { key: "track", label: "Tracking %", type: "slider", min: 50, max: 250, step: 1, def: 100 },
@@ -22100,7 +22116,7 @@ export default {
           x += (g.w + 2) * sc * tr;
         }
       });
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
     },
   
 };
@@ -26753,6 +26769,7 @@ export default {
 
 ```js
 import { Pin, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "lathe",
@@ -26766,8 +26783,9 @@ export default {
       { key: "rings", label: "Rings", type: "slider", min: 10, max: 300, step: 2, def: 110 },
       { key: "tilt", label: "View tilt", type: "slider", min: 0.05, max: 1, step: 0.05, def: 0.32 },
       { key: "mode", label: "Render", type: "select", options: ["Rings", "Profile", "Both"], def: "Rings" },
-      { key: "px", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "py", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "px", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "py", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
     compute(ins, p, ctx) {
@@ -26812,7 +26830,7 @@ export default {
         paths.push({ pts: left, closed: false, layer: L });
         paths.push({ pts: right, closed: false, layer: L });
       }
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.5 }) }, ins[0]);
     },
   
 };
@@ -28933,6 +28951,21 @@ export default {
 ```js
 import { Pin, EMPTY, resample } from "../helpers.js";
 
+function pointInMask(mask, x, y) {
+  let inside = false;
+  for (const path of mask.paths || []) {
+    if (!path.closed || path.pts?.length < 3) continue;
+    const pts = path.pts;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const a = pts[i], b = pts[j];
+      if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) {
+        inside = !inside;
+      }
+    }
+  }
+  return inside;
+}
+
 export default {
   key: "mask",
     name: "Mask", cat: "duo", hidden: true,
@@ -30097,12 +30130,13 @@ export default {
       const rng = mulberry32(p.seed * 8837 + 5);
       const cx = W / 2, cy = H / 2;
       const rx = (x1 - x0) / 2 * p.spread, ry = (y1 - y0) / 2 * p.spread;
+      const blobSize = Math.min(Math.max(2, p.size), Math.min(x1 - x0, y1 - y0) * 0.22);
       const blobs = [];
       for (let i = 0; i < NB; i++) {
         blobs.push({
           x: cx + (rng() * 2 - 1) * rx,
           y: cy + (rng() * 2 - 1) * ry,
-          r: Math.max(2, p.size) * (0.55 + rng() * 0.9)
+          r: blobSize * (0.55 + rng() * 0.9)
         });
       }
       const field = (x, y) => {
@@ -30815,6 +30849,7 @@ export default {
 
 ```js
 import { Pin, mulberry32, hash2, noise2, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "moire_disc",
@@ -30825,6 +30860,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "x", label: "X %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
     { key: "y", label: "Y %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
     { key: "radius", label: "Radius mm", type: "slider", min: 5, max: 140, step: 0.5, def: 60 },
@@ -31071,7 +31107,7 @@ export default {
       }
     }
 
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };
 ```
@@ -31131,10 +31167,12 @@ export default {
     const frames = Math.max(1, Math.floor(num(ctx.frameCount, 1, 1, 100000)));
     const t = p.motion === "Manual" ? num(p.growth, 70, 0, 100) / 100 : frames > 1 ? num(ctx.frameIdx, 0, 0, frames - 1) / (frames - 1) : 1;
     // A visible germ on the first timeline frame; Manual 0 is truly empty.
-    const growth = p.motion === "Manual" ? t : 0.025 + 0.975 * t;
+    const radius = Math.min(num(p.spread, 70, 5, 300), Math.min(w, h) * 0.44);
+    const germ = Math.min(0.1, Math.max(0.025, 1.5 / Math.max(1, radius)));
+    const growth = p.motion === "Manual" ? t : germ + (1 - germ) * t;
     if (growth <= 0) return EMPTY;
     const seed = num(p.seed, 73, -2147483648, 2147483647) | 0, rng = mulberry32(seed);
-    const n = Math.round(num(p.colonies, 4, 1, 12)), radius = Math.min(num(p.spread, 70, 5, 300), Math.min(w, h) * 0.44);
+    const n = Math.round(num(p.colonies, 4, 1, 12));
     const sites = [];
     for (let i = 0; i < n; i++) {
       const u = rng(), v = rng(), r = radius * (0.8 + rng() * 0.2);
@@ -34266,6 +34304,7 @@ export default {
 
 ```js
 import { Pin, PENS, pathLength, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "nested_circles",
@@ -34276,6 +34315,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "count", label: "Discs", type: "slider", min: 2, max: 6, step: 1, def: 2 },
     { key: "radius", label: "Disc radius", type: "slider", min: 10, max: 90, step: 0.5, def: 45 },
     { key: "spread", label: "Spread", type: "slider", min: 0, max: 100, step: 0.5, def: 28 },
@@ -34425,7 +34465,7 @@ export default {
         }
       }
     }
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };
 ```
@@ -34679,6 +34719,7 @@ export default {
 
 ```js
 import { Pin, EMPTY, applyStyle, fontStrokes } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "numerals",
@@ -34689,6 +34730,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "value", label: "Value", type: "text", def: "2026" },
     { key: "system", label: "System", type: "select", options: ["Western", "Eastern Arabic", "Persian", "Devanagari", "Mongolian", "Chinese", "Roman", "Maya", "Cistercian", "Babylonian", "Counting rods", "Kaktovik", "Braille", "Dot matrix", "7-segment", "14-segment"], def: "Cistercian" },
     { key: "size", label: "Size mm", type: "slider", min: 4, max: 120, step: 1, def: 30 },
@@ -35088,7 +35130,7 @@ export default {
       }
       ly += lh + Math.max(0, p.lineGap);
     });
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { minFill: 0.3 }) }, ins[0]);
   },
 };
 ```
@@ -39145,6 +39187,7 @@ export default {
 
 ```js
 import { Pin, EMPTY, applyStyle } from "../helpers.js";
+import { fitCanvasPathSets } from "../canvas-fit.js";
 
 export default {
   key: "polystudio",
@@ -39155,6 +39198,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths", "Faces"), Pin("paths", "Silhouette"), Pin("mesh", "Mesh")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "shape", label: "Shape", type: "select", options: ["Tetrahedron", "Cube", "Octahedron", "Dodecahedron", "Icosahedron", "Truncated tetrahedron", "Truncated cube", "Truncated octahedron", "Truncated dodecahedron", "Truncated icosahedron", "Cuboctahedron", "Icosidodecahedron", "Rhombicuboctahedron", "Rhombicosidodecahedron", "Rhombic dodecahedron", "Rhombic triacontahedron", "Prism", "Antiprism", "Pyramid", "Bipyramid", "Geodesic sphere"], def: "Icosahedron" },
     { key: "sides", label: "Sides", type: "slider", min: 3, max: 16, step: 1, def: 6, showIf: (p) => p.shape === "Prism" || p.shape === "Antiprism" || p.shape === "Pyramid" || p.shape === "Bipyramid" },
     { key: "freq", label: "Frequency", type: "slider", min: 1, max: 4, step: 1, def: 2, showIf: (p) => p.shape === "Geodesic sphere" },
@@ -39692,8 +39736,8 @@ export default {
       }
     }
 
-    const styled = applyStyle({ paths }, ins[0]);
-    return [styled, applyStyle({ paths: silPaths }, ins[0]), mesh];
+    const [fittedFaces, fittedSilhouette] = p.fitCanvas === false ? [paths, silPaths] : fitCanvasPathSets([paths, silPaths], ctx);
+    return [applyStyle({ paths: fittedFaces }, ins[0]), applyStyle({ paths: fittedSilhouette }, ins[0]), mesh];
   },
 };
 ```
@@ -45759,6 +45803,7 @@ export default {
 
 ```js
 import { Pin, mulberry32, noise2, applyStyle, fontStrokes } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "scan",
@@ -45768,8 +45813,9 @@ export default {
       { key: "size", label: "Size mm", type: "slider", min: 30, max: 300, step: 1, def: 150 },
       { key: "detail", label: "Detail / density", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
       { key: "annotate", label: "Annotations (ticks, scale)", type: "check", def: true },
-      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "annPen", label: "Annotation pen", type: "pen", def: 0 },
       { key: "seed", label: "Seed", type: "seed", def: 157 },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
@@ -45852,7 +45898,7 @@ export default {
           label("1 S/DIV", x0, y0 + h + 13, 3.5, AP);
         }
 
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.55 }) }, ins[0]);
     },
   
 };
@@ -52636,6 +52682,7 @@ export default {
 
 ```js
 import { Pin, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "solids",
@@ -52650,8 +52697,9 @@ export default {
       { key: "lat", label: "Latitudes (sphere)", type: "slider", min: 3, max: 24, step: 1, def: 9 },
       { key: "lon", label: "Longitudes (sphere)", type: "slider", min: 4, max: 24, step: 1, def: 12 },
       { key: "sstyle", label: "Sphere style", type: "select", options: ["Solid (hide back)", "Transparent"], def: "Solid (hide back)" },
-      { key: "px", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "py", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "px", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "py", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
     compute(ins, p, ctx) {
@@ -52761,7 +52809,7 @@ export default {
           }
         }
       }
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.5 }) }, ins[0]);
     },
   
 };
@@ -56200,6 +56248,7 @@ export default {
 
 ```js
 import { Pin, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "sweep3d",
@@ -56210,6 +56259,7 @@ export default {
   ins: [Pin("paths", "Profile"), Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "profile", label: "Profile", type: "select", options: ["Circle", "Rectangle", "Polygon", "Star", "Line"], def: "Polygon" },
     { key: "pw", label: "Width mm", type: "slider", min: 2, max: 200, step: 0.5, def: 57 },
     { key: "ph", label: "Height mm", type: "slider", min: 1, max: 200, step: 0.5, def: 18 },
@@ -56405,7 +56455,7 @@ export default {
         if (pts.length > 1) paths.push({ pts, closed: sub.closed, layer: L });
       }
     }
-    return applyStyle({ paths }, ins[1]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[1]);
   },
 };
 ```
@@ -60561,6 +60611,7 @@ export default {
 
 ```js
 import { Pin, PENS, hash2, noise2, pathLength, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "volcano",
@@ -60571,6 +60622,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "render", label: "Render", type: "select",
       options: ["Rows", "Rings", "Spokes", "Mesh", "Dots"], def: "Rows" },
     { key: "size", label: "Base radius", type: "slider", min: 20, max: 140, step: 1, def: 70 },
@@ -60791,7 +60843,7 @@ export default {
       budget -= n;
       paths.push({ pts, closed: true, layer });
     }
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };
 ```
@@ -62155,6 +62207,7 @@ export default {
 
 ```js
 import { Pin, mulberry32, hash2, noise2, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "wood",
@@ -62173,8 +62226,9 @@ export default {
       { key: "cracks", label: "Cracks", type: "slider", min: 0, max: 8, step: 1, def: 3 },
       { key: "bark", label: "Bark", type: "check", def: true },
       { key: "flame", label: "Flame (grain mode)", type: "slider", min: 0.2, max: 3, step: 0.05, def: 1 },
-      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "seed", label: "Seed", type: "seed", def: 131 },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
@@ -62303,7 +62357,7 @@ export default {
           paths.push({ pts, closed: false, layer: L });
         }
       }
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.5 }) }, ins[0]);
     }
   
 };
@@ -62476,7 +62530,8 @@ export default {
   compute(ins, p, ctx) {
     const W = ctx.W, H = ctx.H;
     const S = Math.round(+p.seed || 0);
-    const G = Math.max(4, +p.grid || 20);
+    const G = Math.max(4, Math.min(+p.grid || 20,
+      (Math.min(W, H) - 2 * (+p.margin || 0) - 16) / 2.5));
     const steps = Math.max(4, Math.min(400, Math.round(+p.steps || 46)));
     const straight = Math.max(0, Math.min(1, +p.straight || 0));
     const pairs = Math.max(1, Math.min(12, Math.round(+p.pairs || 5)));

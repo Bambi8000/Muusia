@@ -2,7 +2,7 @@
    Uses the REAL src/defs/helpers.js. Auto-switches lab/baked.
    Also checks the mesh handshake with Mesh Slice when that node is baked. */
 import { readFileSync, existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import * as H from "../src/defs/helpers.js";
 
@@ -22,7 +22,7 @@ const evalNode = (src, baked) => {
 };
 
 let def, tag;
-if (existsSync(bakedPath)) { tag = "[baked]"; def = evalNode(readFileSync(bakedPath, "utf8"), true); }
+if (existsSync(bakedPath)) { tag = "[baked]"; def = (await import(pathToFileURL(bakedPath).href)).default; }
 else { tag = "[lab]"; def = evalNode(readFileSync(labPath, "utf8"), false); }
 console.log(tag + " blobmesh");
 

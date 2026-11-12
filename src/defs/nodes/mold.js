@@ -50,10 +50,12 @@ export default {
     const frames = Math.max(1, Math.floor(num(ctx.frameCount, 1, 1, 100000)));
     const t = p.motion === "Manual" ? num(p.growth, 70, 0, 100) / 100 : frames > 1 ? num(ctx.frameIdx, 0, 0, frames - 1) / (frames - 1) : 1;
     // A visible germ on the first timeline frame; Manual 0 is truly empty.
-    const growth = p.motion === "Manual" ? t : 0.025 + 0.975 * t;
+    const radius = Math.min(num(p.spread, 70, 5, 300), Math.min(w, h) * 0.44);
+    const germ = Math.min(0.1, Math.max(0.025, 1.5 / Math.max(1, radius)));
+    const growth = p.motion === "Manual" ? t : germ + (1 - germ) * t;
     if (growth <= 0) return EMPTY;
     const seed = num(p.seed, 73, -2147483648, 2147483647) | 0, rng = mulberry32(seed);
-    const n = Math.round(num(p.colonies, 4, 1, 12)), radius = Math.min(num(p.spread, 70, 5, 300), Math.min(w, h) * 0.44);
+    const n = Math.round(num(p.colonies, 4, 1, 12));
     const sites = [];
     for (let i = 0; i < n; i++) {
       const u = rng(), v = rng(), r = radius * (0.8 + rng() * 0.2);

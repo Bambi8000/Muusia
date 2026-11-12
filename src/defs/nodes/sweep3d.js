@@ -1,4 +1,5 @@
 import { Pin, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "sweep3d",
@@ -9,6 +10,7 @@ export default {
   ins: [Pin("paths", "Profile"), Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "profile", label: "Profile", type: "select", options: ["Circle", "Rectangle", "Polygon", "Star", "Line"], def: "Polygon" },
     { key: "pw", label: "Width mm", type: "slider", min: 2, max: 200, step: 0.5, def: 57 },
     { key: "ph", label: "Height mm", type: "slider", min: 1, max: 200, step: 0.5, def: 18 },
@@ -204,6 +206,6 @@ export default {
         if (pts.length > 1) paths.push({ pts, closed: sub.closed, layer: L });
       }
     }
-    return applyStyle({ paths }, ins[1]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[1]);
   },
 };

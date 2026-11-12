@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "2.175",
-  "sourceCommit": "4a880fd40197799f42abcd693907aed5853d7eb8",
+  "version": "2.176",
+  "sourceCommit": "46d8c46a41a54152f3e571b003b801e280bcc12e",
   "canvas": {
     "W": 297,
     "H": 210
@@ -126,7 +126,7 @@
       },
       {
         "path": "src/defs/nodes/polystudio.js",
-        "sha256": "2700a406ff06d701add97269582e080c44399b45060133e805c7be6acaa05080"
+        "sha256": "dc1088ee019f09097b0c0ec21c6a9770263bdcc1d95692058d4c09ede4c1f73c"
       },
       {
         "path": "src/defs/nodes/travelsort.js",
@@ -496,7 +496,7 @@
       },
       {
         "path": "examples/frame.muusia.json",
-        "sha256": "5e53fc0a05a3773ec6fc99a8632c6dad6d38b6f170c28cdbb266504252dee06b"
+        "sha256": "05c7d6c694b3243fc355840542e5ed2d089bb2ca5122fe9fe6c640305a2fd0d7"
       },
       {
         "path": "examples/image.muusia.json",
@@ -504,7 +504,7 @@
       },
       {
         "path": "examples/polystudio.muusia.json",
-        "sha256": "41dfcc0f238c71892eeb491980bb11691a3983b0fdf954478cd1e6604801cb33"
+        "sha256": "1344259fd45c2439aea05444d814bfee8ab108fce7530d9c287a00e2394a864a"
       },
       {
         "path": "examples/travelsort.muusia.json",
@@ -2384,6 +2384,7 @@
             "key": "polystudio",
             "name": "Polyhedron Studio",
             "params": {
+              "fitCanvas": true,
               "shape": "Cube",
               "sides": 6,
               "freq": 2,
@@ -3159,6 +3160,15 @@
       "groupKey": "space",
       "params": [
         {
+          "key": "fitCanvas",
+          "label": "Fit canvas",
+          "type": "check",
+          "def": true,
+          "default": true,
+          "conditional": false,
+          "visibleByDefault": true
+        },
+        {
           "key": "shape",
           "label": "Shape",
           "type": "select",
@@ -3518,6 +3528,7 @@
             "key": "polystudio",
             "name": "Polyhedron Studio",
             "params": {
+              "fitCanvas": true,
               "shape": "Icosahedron",
               "sides": 6,
               "freq": 2,
@@ -3548,6 +3559,7 @@
         "outputId": 9001
       },
       "exampleParams": {
+        "fitCanvas": true,
         "shape": "Icosahedron",
         "sides": 6,
         "freq": 2,

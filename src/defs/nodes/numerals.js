@@ -1,4 +1,5 @@
 import { Pin, EMPTY, applyStyle, fontStrokes } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "numerals",
@@ -9,6 +10,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "value", label: "Value", type: "text", def: "2026" },
     { key: "system", label: "System", type: "select", options: ["Western", "Eastern Arabic", "Persian", "Devanagari", "Mongolian", "Chinese", "Roman", "Maya", "Cistercian", "Babylonian", "Counting rods", "Kaktovik", "Braille", "Dot matrix", "7-segment", "14-segment"], def: "Cistercian" },
     { key: "size", label: "Size mm", type: "slider", min: 4, max: 120, step: 1, def: 30 },
@@ -408,6 +410,6 @@ export default {
       }
       ly += lh + Math.max(0, p.lineGap);
     });
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { minFill: 0.3 }) }, ins[0]);
   },
 };

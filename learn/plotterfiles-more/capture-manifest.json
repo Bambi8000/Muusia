@@ -4,7 +4,7 @@
   "basedOnCommit": "364852cf002de5e5e5d2615b6126a8302172e7fd",
   "date": "2026-10-20",
   "scope": "Actual local built-in node review: fourteen SVG downloads, nine unretouched Focus views, six complete G-code downloads, 36 animation frames and two paginated sheet frames. Actual eight-file ZIP and raster image intake with Save verified. Optimize route off, illustrative A Servo profile 330x240; no machine run or publication. SVG / G-code match the actual evaluator and exporter.",
-  "sourceRecapture": "2026-11-07, Muusia 2.164 local browser: loaded fragment-layout, continuous-fill and plot-preparation saved patches, selected each output and exported SVG with route optimization off. Complete SVG text matched each corresponding assets/*.svg byte for byte (1258, 62951 and 1155 characters). Historical captures and appVersion remain unchanged.",
+  "sourceRecapture": "2026-11-07, Muusia 2.164 local browser: loaded fragment-layout, continuous-fill and plot-preparation saved patches, selected each output and exported SVG with route optimization off. Complete SVG text matched each corresponding assets/*.svg byte for byte (1258, 62951 and 1155 characters). Historical captures and appVersion remain unchanged.\n2026-11-12, Muusia 2.176 local browser: loaded the unchanged curve-interference patch, selected Merge, exported SVG with route optimization off. Complete SVG matches assets/curve-interference.svg byte for byte (437865 characters; SHA-256 48d267ad9493d545c4c38f0373a78832a13eeae409c7c3c5e90f1ae0ea313ce2). Historical captures and appVersion remain unchanged.",
   "browserSvgs": 14,
   "actualBuiltInViews": 9,
   "engineSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
@@ -28,10 +28,11 @@
     "src/defs/nodes/type_studio.js": "cfdddcaa73d82ff9684cb099da89c4ed6dedcfc5f8f37a1ab83f4bf6c418d78b",
     "src/defs/nodes/potato.js": "f800a578995ec9c861e6b24493bd5299ec442aac346497a3b3f96a200c90252a",
     "src/defs/nodes/move_scale.js": "24e05802cad7793d1ff3e4b08f4951503af26072f7a5ceb8c054607289721021",
-    "src/defs/nodes/moire_disc.js": "6c072b96b5aef4d0003ce9b78853d821c353cc9e323e4e23b82d51758f4923e4",
+    "src/defs/nodes/moire_disc.js": "0866cdfbc5bdc45936eb6f03612da12faad0990e1dcd0aa1945e077ba685b9b1",
     "src/defs/plotter-utilities.js": "13f0ed2aa4f485bd4958ab2b4ae5450956f14bb3f75057130c7f321c6b8907cd",
     "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
-    "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684"
+    "src/defs/parameter-visibility.js": "709535e8d7c9222516483aade52f6e3c176481bae9255ab6ff2999298f2f9684",
+    "src/defs/canvas-fit.js": "de2af6f95db84e5be088dbb607939faf89804b5c0bccc3dc08f7b76c93ebc1f1"
   },
   "files": [
     {

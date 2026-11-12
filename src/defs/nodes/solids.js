@@ -1,4 +1,5 @@
 import { Pin, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "solids",
@@ -13,8 +14,9 @@ export default {
       { key: "lat", label: "Latitudes (sphere)", type: "slider", min: 3, max: 24, step: 1, def: 9 },
       { key: "lon", label: "Longitudes (sphere)", type: "slider", min: 4, max: 24, step: 1, def: 12 },
       { key: "sstyle", label: "Sphere style", type: "select", options: ["Solid (hide back)", "Transparent"], def: "Solid (hide back)" },
-      { key: "px", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "py", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "px", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "py", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
     compute(ins, p, ctx) {
@@ -124,7 +126,7 @@ export default {
           }
         }
       }
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.5 }) }, ins[0]);
     },
   
 };

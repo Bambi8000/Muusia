@@ -1,4 +1,5 @@
 import { Pin, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "lathe",
@@ -12,8 +13,9 @@ export default {
       { key: "rings", label: "Rings", type: "slider", min: 10, max: 300, step: 2, def: 110 },
       { key: "tilt", label: "View tilt", type: "slider", min: 0.05, max: 1, step: 0.05, def: 0.32 },
       { key: "mode", label: "Render", type: "select", options: ["Rings", "Profile", "Both"], def: "Rings" },
-      { key: "px", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "py", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "px", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "py", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
     compute(ins, p, ctx) {
@@ -58,7 +60,7 @@ export default {
         paths.push({ pts: left, closed: false, layer: L });
         paths.push({ pts: right, closed: false, layer: L });
       }
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.5 }) }, ins[0]);
     },
   
 };

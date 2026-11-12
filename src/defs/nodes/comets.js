@@ -52,7 +52,8 @@ export default {
       const K = p.style === "Minimal" ? 1 : Math.round(p.tailLines);
       for (let i = 0; i < N; i++) {
         const r = (p.size / 2) * (0.6 + rng() * 0.6);
-        const tl = p.tailLen * (0.6 + rng() * 0.5);
+        const fitTail = Math.min(p.tailLen, Math.max(10, Math.min(x1 - x0, y1 - y0) * 0.45));
+        const tl = fitTail * (0.6 + rng() * 0.5);
         const ta = ((p.sunAng + 180) * Math.PI) / 180 + (rng() - 0.5) * 0.35; /* tail away from sun */
         /* keep ball + tail box inside margins */
         const pad = r * 2 + 2;

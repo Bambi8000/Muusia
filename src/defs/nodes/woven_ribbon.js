@@ -34,7 +34,8 @@ export default {
   compute(ins, p, ctx) {
     const W = ctx.W, H = ctx.H;
     const S = Math.round(+p.seed || 0);
-    const G = Math.max(4, +p.grid || 20);
+    const G = Math.max(4, Math.min(+p.grid || 20,
+      (Math.min(W, H) - 2 * (+p.margin || 0) - 16) / 2.5));
     const steps = Math.max(4, Math.min(400, Math.round(+p.steps || 46)));
     const straight = Math.max(0, Math.min(1, +p.straight || 0));
     const pairs = Math.max(1, Math.min(12, Math.round(+p.pairs || 5)));

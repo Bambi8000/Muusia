@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import solids from '../src/defs/nodes/solids.js';
 
 const defaults=Object.fromEntries(solids.params.map(p=>[p.key,p.def]));
-const params={...defaults,size:76,rx:27,ry:87,rz:12,px:70,py:70};
+const params={...defaults,fitCanvas:false,size:76,rx:27,ry:87,rz:12,px:70,py:70};
 const compute=p=>solids.compute([],p,{W:140,H:140});
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const baselines={

@@ -27,12 +27,13 @@ export default {
       const rng = mulberry32(p.seed * 8837 + 5);
       const cx = W / 2, cy = H / 2;
       const rx = (x1 - x0) / 2 * p.spread, ry = (y1 - y0) / 2 * p.spread;
+      const blobSize = Math.min(Math.max(2, p.size), Math.min(x1 - x0, y1 - y0) * 0.22);
       const blobs = [];
       for (let i = 0; i < NB; i++) {
         blobs.push({
           x: cx + (rng() * 2 - 1) * rx,
           y: cy + (rng() * 2 - 1) * ry,
-          r: Math.max(2, p.size) * (0.55 + rng() * 0.9)
+          r: blobSize * (0.55 + rng() * 0.9)
         });
       }
       const field = (x, y) => {

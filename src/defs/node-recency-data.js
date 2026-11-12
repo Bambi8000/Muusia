@@ -91,9 +91,9 @@ export const NODE_RECENCY = {
     "sha256": "233e578726149c4377f2656230fe199ef2f320e70284120ac8137ac935aef64c"
   },
   "blobmesh": {
-    "date": "2026-08-16",
-    "order": 32,
-    "sha256": "480302321bc33e274b2aa4c764e57e860746e2a18cecbb91c13baf6753551e4c"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "95e37ef6590c9cf758aa44eaeaf5742a5d32c746edc1e434b83e307efb0aba39"
   },
   "blobrings": {
     "date": "2026-08-02",
@@ -211,14 +211,14 @@ export const NODE_RECENCY = {
     "sha256": "e09fb03828ee1bce377707d4b0d66f76f02cb5498f2ee1516277b73c2448ffb6"
   },
   "clockface": {
-    "date": "2026-08-09",
-    "order": 23,
-    "sha256": "6231b0af8e78f1c2393f096f227cb8ba9a86073d1f3ac5ab2cfd2d765a3f9e29"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "7039a81d742e0351e82603ee9f7b02371723cd7a7511c74e54c981502d516185"
   },
   "clouds": {
-    "date": "2026-07-22",
-    "order": 2,
-    "sha256": "735206e7264c2dff8ae43a8871d10ac538c5bd932276065a80137cc28de87e60"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "35d78a00f5d64b102e4d379a94aedb356d2b8d6202eb85487cb1f22e07548ded"
   },
   "cmyk_registration": {
     "date": "2026-08-16",
@@ -251,9 +251,9 @@ export const NODE_RECENCY = {
     "sha256": "788a649852b6387b0b16ff558fb98875f7593540b5dc115a183ea89fad4f80e5"
   },
   "comets": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "39a89fba2365c179abb1c71f72166cab94900b991b35d0d8529cd7af1a5fb730"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "40ad62afa42c9b57e2c205a78195068fc544328fe888fff802c020301138ef5e"
   },
   "concrete": {
     "date": "2026-10-05",
@@ -376,9 +376,9 @@ export const NODE_RECENCY = {
     "sha256": "8eaaa989e55c04a0dfafc32174b43782f024ca9faab2deb74b0db836ec685a34"
   },
   "double_pendulum": {
-    "date": "2026-07-31",
-    "order": 11,
-    "sha256": "46ddd47539c16703869e37ba04bcd610dfa1012d0551b9528b4cdf9f16e5f296"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "24646b13338507c25c6ded8ced098cc36cafca667b016efaeca61cdc13e10fc7"
   },
   "drape": {
     "date": "2026-10-19",
@@ -601,9 +601,9 @@ export const NODE_RECENCY = {
     "sha256": "2d687dd332b147f67054eaca3dc07f372ae078a07fa58436fdf5b5646c54bddc"
   },
   "growth": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "7e04172f63887981dcbb2f86eabd9836953f9c5dc3fae1428eefbdff1d7dae4f"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "45b7325cb5ce909841c35f72d64f1517f0b2d5299b9a582dc023db867c4dc3c6"
   },
   "gull_tracks": {
     "date": "2026-08-13",
@@ -656,9 +656,9 @@ export const NODE_RECENCY = {
     "sha256": "4f4a71a13d486458dcf981884c1fe43b44f3dd41da8aeaffba4745c9c83e6c28"
   },
   "hersheytext": {
-    "date": "2026-08-01",
-    "order": 15,
-    "sha256": "e2b669fb4405df3d56ee866c94f6c6fe35ceca2748f16f3f0a1302b94b62ec61"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "0123eac198ac8ac6ab9a7f86b87787b933eed27632a7fdbbfc1e781b609d1fb7"
   },
   "himmeli": {
     "date": "2026-07-22",
@@ -766,9 +766,9 @@ export const NODE_RECENCY = {
     "sha256": "84953fb39616101fe8bb048ed77902e25e88e7e80296036a1eb03a6a0a298447"
   },
   "lathe": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "96577f03600ab968490e3801702f507adb39ac8fefdf0d6b040d7e90759099f2"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "8ed349f6184af4195bf2a95bb2df7bb3c0c3ed39722f903cc72c27bc9f672ebd"
   },
   "lattice_type": {
     "date": "2026-10-14",
@@ -846,9 +846,9 @@ export const NODE_RECENCY = {
     "sha256": "1550aec846a03da9f72ec371cb663c41bf995828ff14382c340ed789dae04a5e"
   },
   "mask": {
-    "date": "2026-08-01",
-    "order": 14,
-    "sha256": "49720102b56b8a0503f976777159cb0cfb8d3fc480fbea0e25533d293f5b1c5c"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "fcd3c3b472323d9ffa680f01574a2ab1572d4f3dcb2fc7844854a1c9664cdb9c"
   },
   "matem": {
     "date": "2026-07-22",
@@ -881,9 +881,9 @@ export const NODE_RECENCY = {
     "sha256": "2da3034cd5890db139f62f901afdd84cefd21dd743b0725167282f843d5330fa"
   },
   "metaballs": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "cc6687d8c4d38448c23825be95de808b98bac77ad915d80ce18dd039d859e3e9"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "52a7b0933fa8dc8f28174b203bd6ec478343b6b1ea4a1aa628afa8ea64fc50c8"
   },
   "microbes": {
     "date": "2026-10-11",
@@ -911,14 +911,14 @@ export const NODE_RECENCY = {
     "sha256": "6b0e47fbb99670083fc2ba58bfef857cde9201ca5a2dc781210f62098418e5d0"
   },
   "moire_disc": {
-    "date": "2026-08-17",
-    "order": 33,
-    "sha256": "6c072b96b5aef4d0003ce9b78853d821c353cc9e323e4e23b82d51758f4923e4"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "0866cdfbc5bdc45936eb6f03612da12faad0990e1dcd0aa1945e077ba685b9b1"
   },
   "mold": {
-    "date": "2026-10-15",
-    "order": 83,
-    "sha256": "396a9689a5cec450f3ab7f86ffb9c78e7c4ca15bbd13076fa6c0403e55841e61"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "1b3c3c985b76b76ce9b48d8d24b6255edc2d6def37a6393e32da884e5c630dcc"
   },
   "mooncraters": {
     "date": "2026-07-22",
@@ -991,9 +991,9 @@ export const NODE_RECENCY = {
     "sha256": "cb706390c34faa6f6f1fb3ff57687a94f95aa21b8a50944a3e37875a96502bb3"
   },
   "nested_circles": {
-    "date": "2026-07-31",
-    "order": 11,
-    "sha256": "bcd47ac9933b6bf4913710558463a120af87f60e8e7b5c39995b98747070a065"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "9d507b00278c911ad294c431e32d84f7b0b4557cb84b2292e67d6381de1a04f3"
   },
   "net": {
     "date": "2026-07-22",
@@ -1006,9 +1006,9 @@ export const NODE_RECENCY = {
     "sha256": "d68a843aa4b9f57e473bbd4a5ad76c75f6187e16198691cd41f483ef76576e9a"
   },
   "numerals": {
-    "date": "2026-08-04",
-    "order": 18,
-    "sha256": "4fbb3c3fe62fda385ee0b2a46b2e0bfbcf63f51e6ccbbcc4caa6159408477c74"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "ad58718d6c4581a9386bf8792f28945ab896e8ae9bdbc92b8e47cdfdf3e35411"
   },
   "occlude": {
     "date": "2026-07-22",
@@ -1146,9 +1146,9 @@ export const NODE_RECENCY = {
     "sha256": "e5d0f93f7e82f1664e3d193fbf7c9dac523a025ff812fb93f65eaf96abb9a5dc"
   },
   "polystudio": {
-    "date": "2026-08-17",
-    "order": 33,
-    "sha256": "2700a406ff06d701add97269582e080c44399b45060133e805c7be6acaa05080"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "dc1088ee019f09097b0c0ec21c6a9770263bdcc1d95692058d4c09ede4c1f73c"
   },
   "portrait": {
     "date": "2026-10-05",
@@ -1311,9 +1311,9 @@ export const NODE_RECENCY = {
     "sha256": "7378a5d7e38b70cc24a085c18f08d0610f03834087206d11c6ce07b1532d40b6"
   },
   "scan": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "73dfaa2341be01a6aca78a31166ce5c59eca66fc802925be7c575a0ff238e836"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "5ae46845149101865a3456ef37762354230420475a65cf723ab539421786848b"
   },
   "scatter": {
     "date": "2026-07-22",
@@ -1431,9 +1431,9 @@ export const NODE_RECENCY = {
     "sha256": "44ac10d75df5688385b78beb86c76f96a7bdce3983ec92f3f7b73c83df58a94c"
   },
   "solids": {
-    "date": "2026-10-09",
-    "order": 72,
-    "sha256": "bd2ef1be2b57c15dcceb5080980842a89f39935dcccf0eceac7c30bbbea938ee"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "bc88ae10fd78f7e4d6b8907e34e123bcd5e819bf6ec2697cde53834d073b1aa8"
   },
   "soundline": {
     "date": "2026-08-09",
@@ -1551,9 +1551,9 @@ export const NODE_RECENCY = {
     "sha256": "59f3fa38db4c26c1c5370490f818994cf1d3778be7874ab32975c97fde03f91f"
   },
   "sweep3d": {
-    "date": "2026-08-09",
-    "order": 23,
-    "sha256": "d191bdd9532c098a45583887ee2cf229751292ec5fea777d39d58646264b5fbb"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "3e7ac006c05d2d6afc465f0d5f9c800e3a4937e165fc82f603e5a48ab7f3ea74"
   },
   "switch": {
     "date": "2026-07-22",
@@ -1711,9 +1711,9 @@ export const NODE_RECENCY = {
     "sha256": "63f8985e90a485bd35fb69a1fb7671ff03c379ab8b42dc14d755dbb758cebe1e"
   },
   "volcano": {
-    "date": "2026-07-31",
-    "order": 11,
-    "sha256": "13d41a5cee78ca04170aced59ee93e37ecba3fb562202e4926898f4127cd2918"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "dd2a92223af27508dd24cd1f164f0e4ab6d3d6a58d31a281f5607cd56bed1735"
   },
   "voronoi": {
     "date": "2026-07-22",
@@ -1756,9 +1756,9 @@ export const NODE_RECENCY = {
     "sha256": "d8306620e6199e1b4cb5c95d38fe87fd69e6e75ad90b8699d6869faadb4cb51a"
   },
   "wood": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "73cd075da9fda1bc6965836cebed8a6af9b3b8ee5e3b9de15ac6e20b4addeb83"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "73cfb673ac2992f60dcdf3ee4a02fd4acda4256311f7ea142b36f491d733db89"
   },
   "worm": {
     "date": "2026-07-22",
@@ -1766,9 +1766,9 @@ export const NODE_RECENCY = {
     "sha256": "026fdf8de87fa652b8cc3d2fee8ad95ee9a8340b8b437da11cd36945e8d5681d"
   },
   "woven_ribbon": {
-    "date": "2026-09-22",
-    "order": 59,
-    "sha256": "f434642c9ae89245d5fe100dfce8aa0e6abd985467bb4623ca3f052b0fc90be1"
+    "date": "2026-11-12",
+    "order": 132,
+    "sha256": "48e5a77dc7e49c5078af4bfcbabbfd102b7b044770eaeff399c4aeeba560e072"
   },
   "zen_garden": {
     "date": "2026-09-08",

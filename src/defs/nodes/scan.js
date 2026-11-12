@@ -1,4 +1,5 @@
 import { Pin, mulberry32, noise2, applyStyle, fontStrokes } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "scan",
@@ -8,8 +9,9 @@ export default {
       { key: "size", label: "Size mm", type: "slider", min: 30, max: 300, step: 1, def: 150 },
       { key: "detail", label: "Detail / density", type: "slider", min: 0, max: 1, step: 0.05, def: 0.6 },
       { key: "annotate", label: "Annotations (ticks, scale)", type: "check", def: true },
-      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "annPen", label: "Annotation pen", type: "pen", def: 0 },
       { key: "seed", label: "Seed", type: "seed", def: 157 },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
@@ -92,7 +94,7 @@ export default {
           label("1 S/DIV", x0, y0 + h + 13, 3.5, AP);
         }
 
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.55 }) }, ins[0]);
     },
   
 };

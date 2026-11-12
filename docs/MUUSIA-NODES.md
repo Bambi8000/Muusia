@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 359 built-in nodes in the current Muusia source. Conventions used below:
+All 360 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -18,6 +18,13 @@ Hidden settings retain their values when switching back. An inactive numeric
 input with a connected wire keeps a compact connection row so the wire can
 still be disconnected; it does not show an unused slider. Visibility follows
 live wired values as well as stored settings, including in Muusia Guide.
+
+*Fit canvas* on decorative generators centers fixed-position drawings, reduces
+oversized work to the selected paper and enlarges a few very small defaults on
+A2. Switch it off when a node's millimetre size or position must be exact.
+Single Marker, Card Sheet and Needle Test keep their physical dimensions:
+Single Marker can deliberately sit outside a changed canvas, and a Needle Test
+returns no punches when its specified calibration grid cannot fit.
 
 ---
 
@@ -1481,9 +1488,12 @@ a stark rhythm generator (feed it to Stretch).
 
 **Solids** — wireframe 3-D: Sphere (lat/lon rings; *Solid* hides the back
 hemisphere, *Transparent* shows all), Cube, Tetra/Octa/Icosa/Dodecahedron (edges
-derived from geometry). Rotate X/Y/Z, perspective 0–1, position. Rotations are
-value-drivable — the animation star. Visible sphere arcs remain continuous across
-each ring's sampling seam and are clipped at the back-visibility boundary.
+derived from geometry). *Fit canvas* keeps an existing sphere on a receipt even
+when its stored X/Y point to a larger sheet; on A2 it centers and enlarges a
+small default. Turn Fit canvas off to use exact Center X/Y millimetres.
+Rotate X/Y/Z and perspective remain value-drivable. Visible sphere arcs remain
+continuous across each ring's sampling seam and are clipped at the back-visibility
+boundary.
 
 **Mountains** — fBm heightfield rendered as ridge lines with true hidden-line removal
 (screen-space horizon buffer). Perspective (rows converge and compress with depth),

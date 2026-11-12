@@ -1,4 +1,5 @@
 import { Pin, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "clockface",
@@ -9,6 +10,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "hours", label: "Hours", type: "slider", min: 2, max: 24, step: 1, def: 12 },
     { key: "diameter", label: "Diameter mm", type: "slider", min: 10, max: 400, step: 1, def: 120 },
     { key: "cx", label: "Center X %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
@@ -113,6 +115,6 @@ export default {
     }
     /* rim ring */
     if (p.rim) circle(X, Y, Math.max(0.5, (R * p.rimR) / 100), LH);
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };

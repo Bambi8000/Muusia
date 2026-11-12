@@ -1,4 +1,5 @@
 import { Pin, mulberry32, hash2, noise2, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "moire_disc",
@@ -9,6 +10,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "x", label: "X %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
     { key: "y", label: "Y %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
     { key: "radius", label: "Radius mm", type: "slider", min: 5, max: 140, step: 0.5, def: 60 },
@@ -255,6 +257,6 @@ export default {
       }
     }
 
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };

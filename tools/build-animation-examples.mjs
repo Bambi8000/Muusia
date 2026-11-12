@@ -9,7 +9,8 @@ const dest = new URL('docs/animation-examples/', root);
 fs.mkdirSync(new URL('patches/', dest), {recursive:true});
 const keys = ['frame','matem','lfo','moire_disc','zigzag_path','grid','lens','merge','hersheytext','chop','explosion','concrete','blobmesh'];
 const defs = Object.fromEntries(await Promise.all(keys.map(async k=>[k,(await import(`../src/defs/nodes/${k}.js`)).default])));
-const defaults = k=>Object.fromEntries(defs[k].params.map(p=>[p.key,p.def]));
+const historicalOptional = { lens: new Set(['mode','twist','falloff','step']) };
+const defaults = k=>Object.fromEntries(defs[k].params.filter(p=>p.key!=='fitCanvas'&&!historicalOptional[k]?.has(p.key)).map(p=>[p.key,p.def]));
 const hash = x=>createHash('sha256').update(x).digest('hex');
 const app = fs.readFileSync(new URL('src/App.jsx',root),'utf8');
 const SOLID_STYLE = JSON.parse(app.match(/const SOLID_STYLE = (\{[^;]+\});/)[1].replace(/(\w+):/g,'"$1":'));
@@ -160,7 +161,7 @@ function svgSignature(paths){
   return {paths:strings.length,points:paths.reduce((s,p)=>s+p.pts.length,0),fnv:fnv.toString(16).padStart(8,'0'),sha256:hash(strings.join('|'))};
 }
 const report={schemaVersion:1,canvasMm:140,frames:[24,36,48],scope:'Real App graph evaluator with current nodes; geometry and virtual endpoint checks. No physical plot or printer timing validation.',
-  engineScopeSha256:hash(engine),exportScopeSha256:hash(exporter),sourceHashes:Object.fromEntries([...keys.map(k=>'src/defs/nodes/'+k+'.js'),'src/defs/helpers.js'].map(p=>[p,hash(fs.readFileSync(new URL(p,root)))])),examples:[]};
+  engineScopeSha256:hash(engine),exportScopeSha256:hash(exporter),sourceHashes:Object.fromEntries([...keys.map(k=>'src/defs/nodes/'+k+'.js'),'src/defs/helpers.js','src/defs/canvas-fit.js'].map(p=>[p,hash(fs.readFileSync(new URL(p,root)))])),examples:[]};
 const gallery=[];
 for(const example of examples){
   const {patch,...meta}=example;

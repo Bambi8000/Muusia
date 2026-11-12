@@ -1,4 +1,5 @@
 import { Pin, PENS, pathLength, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "nested_circles",
@@ -9,6 +10,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "count", label: "Discs", type: "slider", min: 2, max: 6, step: 1, def: 2 },
     { key: "radius", label: "Disc radius", type: "slider", min: 10, max: 90, step: 0.5, def: 45 },
     { key: "spread", label: "Spread", type: "slider", min: 0, max: 100, step: 0.5, def: 28 },
@@ -158,6 +160,6 @@ export default {
         }
       }
     }
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };

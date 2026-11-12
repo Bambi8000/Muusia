@@ -1,4 +1,5 @@
 import { Pin, PENS, hash2, noise2, pathLength, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "volcano",
@@ -9,6 +10,7 @@ export default {
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "render", label: "Render", type: "select",
       options: ["Rows", "Rings", "Spokes", "Mesh", "Dots"], def: "Rows" },
     { key: "size", label: "Base radius", type: "slider", min: 20, max: 140, step: 1, def: 70 },
@@ -229,6 +231,6 @@ export default {
       budget -= n;
       paths.push({ pts, closed: true, layer });
     }
-    return applyStyle({ paths }, ins[0]);
+    return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
   },
 };

@@ -22,12 +22,13 @@ defs.frame={...nativeFrame,compute(ins,p,ctx){
   // Only the virtual endpoint bypasses Frame's last-frame clamp.
   return ctx.virtualEnd?[1,ctx.frameCount,0,0,360]:nativeFrame.compute(ins,p,ctx);
 }};
+const historicalOptional = { array: new Set(['layout','columns','pitchX','pitchY','radius','turns','height','start','motifSize','follow','yaw','elevation','persp']) };
 
 let id=100;
 const nodes=[],edges=[];
 const add=(type,params,x,y)=>{
   // Preserve the historical empty Frame settings as optional controls grow.
-  const n={id:++id,type,x,y,params:type==='frame'?{...params}:{...Object.fromEntries(defs[type].params.map(p=>[p.key,p.def])),...params}};
+  const n={id:++id,type,x,y,params:type==='frame'?{...params}:{...Object.fromEntries(defs[type].params.filter(p=>p.key!=='fitCanvas'&&!historicalOptional[type]?.has(p.key)).map(p=>[p.key,p.def])),...params}};
   nodes.push(n);return n;
 };
 const wire=(from,to,toPort,fromPort=0)=>edges.push({id:'e'+(++id),from:from.id,fromPort,to:to.id,toPort});
@@ -95,7 +96,7 @@ function signature(paths){
 function length(paths){let n=0;for(const p of paths)for(let i=1;i<p.pts.length+(p.closed?1:0);i++)n+=Math.hypot(p.pts[i-1][0]-p.pts[i%p.pts.length][0],p.pts[i-1][1]-p.pts[i%p.pts.length][1]);return n;}
 const checks={schemaVersion:1,scope:'Actual App evaluator/exporter; stored frames use the built-in Frame node. Virtual phase 1 tests the loop endpoint. No hardware or batch-ZIP claim.',
   engineScopeSha256:hash(engine),exportScopeSha256:hash(exporter),patchSha256:hash(JSON.stringify(patch)),
-  sourceHashes:Object.fromEntries([...keys.map(k=>'src/defs/nodes/'+k+'.js'),'src/defs/helpers.js'].map(p=>[p,hash(fs.readFileSync(new URL(p,root)))])),runs:[]};
+  sourceHashes:Object.fromEntries([...keys.map(k=>'src/defs/nodes/'+k+'.js'),'src/defs/helpers.js','src/defs/canvas-fit.js'].map(p=>[p,hash(fs.readFileSync(new URL(p,root)))])),runs:[]};
 const data={frames:{},runs:[]};
 for(const N of [24,36,48]){
   const frames=Array.from({length:N},(_,i)=>frame(i,N));

@@ -264,6 +264,27 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.176 — 2026-11-12 · Canvas size adaptation
+
+Solids now fits its output on the selected canvas by default, including old
+patches whose stored 150 × 100 mm center lands beyond a 72 × 100 mm receipt.
+Fit canvas can be disabled to restore exact millimetre position and scale.
+The same opt-out fits Growth, Lathe, Wood Rings, Seismic, Clock Face, Double
+Pendulum, Text, Moire Disc, Nested Circles, Sweep 3D, Volcano, Blob Mesh,
+Poly Studio and Numerals. The shared fit preserves path order, pens and closure;
+multi-output 3D nodes fit face and silhouette paths together while their mesh
+payload stays in model coordinates. Clouds, Comets, Metaballs, Mold and Woven
+Ribbon now yield a visible default on receipts. The hidden legacy Mask also
+regains its missing point-in-mask function.
+
+`tools/audit-canvas-sizes.mjs` exercises 358 module definitions on receipt,
+receipt strip, A4 and both A2 orientations. External-file/input nodes are
+expected to be blank until supplied. Single Marker, Card Sheet and Needle Test
+retain exact physical dimensions and may intentionally be blank or off-sheet
+on a receipt. Focused validators cover Solids' six shapes, old saved params,
+exact-mm opt-out and the changed node families. Release gate and public Pages
+verification are recorded after deployment. No physical plot was made.
+
 ### 2.175 — 2026-11-12 · Inverted TV screen
 
 Patent TV adds Invert screen. In normal frames it converts the Program and/or

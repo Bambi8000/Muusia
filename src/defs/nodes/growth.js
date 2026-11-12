@@ -1,4 +1,5 @@
 import { Pin, mulberry32, applyStyle } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "growth",
@@ -16,13 +17,18 @@ export default {
       { key: "boundR", label: "Circle bound Ø mm", type: "slider", min: 20, max: 400, step: 1, def: 170 },
       { key: "rings", label: "History rings", type: "check", def: true },
       { key: "ringEvery", label: "Ring every N iters", type: "slider", min: 5, max: 100, step: 1, def: 24 },
-      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150 },
-      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100 },
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
+      { key: "cx", label: "Center X mm", type: "slider", min: 0, max: 400, step: 1, def: 150, showIf: p => p.fitCanvas === false },
+      { key: "cy", label: "Center Y mm", type: "slider", min: 0, max: 400, step: 1, def: 100, showIf: p => p.fitCanvas === false },
       { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
       { key: "seed", label: "Seed", type: "seed", def: 149 },
       { key: "layer", label: "Pen", type: "pen", def: 0 },
     ],
     overlay(p, ctx) {
+      if (p.fitCanvas !== false) {
+        const inset = Math.min(12, Math.min(ctx.W, ctx.H) * 0.06);
+        return [{ kind: "rect", x: inset, y: inset, w: ctx.W - 2 * inset, h: ctx.H - 2 * inset }];
+      }
       return p.bound === "Circle"
         ? [{ kind: "circle", cx: p.cx, cy: p.cy, r: p.boundR / 2 }]
         : [{ kind: "rect", x: p.margin, y: p.margin, w: ctx.W - 2 * p.margin, h: ctx.H - 2 * p.margin }];
@@ -110,7 +116,7 @@ export default {
         }
       }
       paths.push({ pts, closed: true, layer: L });
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx, { center: true, minFill: 0.5 }) }, ins[0]);
     },
   
 };

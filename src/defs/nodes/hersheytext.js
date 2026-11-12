@@ -1,9 +1,11 @@
 import { Pin, applyStyle, SFONT } from "../helpers.js";
+import { fitCanvasPaths } from "../canvas-fit.js";
 
 export default {
   key: "hersheytext",
     name: "Text", cat: "gen", group: "textimg", ins: [Pin("style", "Style")], outs: [Pin("paths")],
     params: [
+      { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
       { key: "text", label: "Text (| = new line)", type: "text", def: "MUUSIA" },
       { key: "size", label: "Size mm (cap height)", type: "slider", min: 2, max: 80, step: 0.5, def: 20 },
       { key: "track", label: "Tracking %", type: "slider", min: 50, max: 250, step: 1, def: 100 },
@@ -54,7 +56,7 @@ export default {
           x += (g.w + 2) * sc * tr;
         }
       });
-      return applyStyle({ paths }, ins[0]);
+      return applyStyle({ paths: p.fitCanvas === false ? paths : fitCanvasPaths(paths, ctx) }, ins[0]);
     },
   
 };
