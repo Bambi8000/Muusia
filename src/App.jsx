@@ -23,7 +23,7 @@ import { directionPassFiles } from "./direction-pass-export.js";
 import DirectionPassControls from "./direction-pass-controls.jsx";
 import MuusiaGuide from "./muusia-guide.jsx";
 import { renderReceipt, sendReceipt, nativeFontTests, nativeFontTest, nativeFontBinary, sendNativeFontTest, nativePageCatalog, nativePageGlyphs, previewNativeComposition, nativeCompositionBinary, sendNativeComposition, RECEIPT_MAX_HEIGHT_DOTS } from "./thermal-print.js";
-import { DEFAULT_NEEDLE_MACHINE, needleExportError, DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
+import { DEFAULT_NEEDLE_MACHINE, needleExportError, upgradeNeedleProfile, DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
 /* ============================================================
@@ -899,7 +899,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.176"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.177"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -4222,9 +4222,19 @@ export default function App() {
                   setMachines(ms => [...ms, { ...DEFAULT_NEEDLE_MACHINE, workW: prof.workW || DEFAULT_NEEDLE_MACHINE.workW, workH: prof.workH || DEFAULT_NEEDLE_MACHINE.workH, originX: prof.originX || 0, originY: prof.originY || 0, flipY: !!prof.flipY, id: nextId(ms) }]);
                   setMachineIdx(machines.length);
                 }}>Add Needle Z profile · max 2 mm</button>
-                {prof.toolMode === "needle" && <div style={{ fontSize: 11, color: T.text, lineHeight: 1.5, margin: "8px 0" }}>
-                  Needle: rigid holder, servo removed. Paper surface = Z0; maximum plunge 2 mm; lift 3 mm. About 4 mm of backing leaves about 2 mm clearance. Start with a 0.5 mm test. Connect Needle Punch LAST and use one pen. On Klipper run NEEDLE_MODE_ON, home, jog the tip to the paper surface, NEEDLE_ZERO_HERE, then lift before moving XY. Recalibrate after homing or changing the needle/material. Requires the needle macros in klipper/printer.cfg.
-                </div>}
+                {prof.toolMode === "needle" && <>
+                  <button style={toolBtn(true)} onClick={() => setProf(upgradeNeedleProfile)}>
+                    Update this needle profile · max 3 mm / lift 5 mm
+                  </button>
+                  <div style={{ fontSize: 11, color: T.text, lineHeight: 1.5, margin: "8px 0" }}>
+                    Needle: paper surface = Z0; maximum plunge {prof.needleMaxDepth ?? 2} mm; lift {prof.penUp} mm.
+                    Keep Contact Z at 0; set the punch depth in Needle Test or Needle Punch.
+                    Updating this profile preserves its work area, XY origin, Flip Y and speeds.
+                    Recalibrate the paper surface after changing the needle or material. For the 3 mm / 5 mm profile,
+                    update the Klipper needle calibration and lift macros too, including pause/cancel lifts.
+                    Start a new material at a shallow depth. Keep route optimization off to preserve test row order.
+                  </div>
+                </>}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <div style={{ fontSize: 10, color: T.dim, width: 110 }}>Machine name</div>
                   <input type="text" value={prof.name} onChange={(e) => setProf((pr) => ({ ...pr, name: e.target.value }))}

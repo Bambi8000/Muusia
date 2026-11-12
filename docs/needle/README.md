@@ -1,3 +1,28 @@
+# Neulaprofiilin päivitys: 3 mm:n syvyys ja 5 mm:n nosto
+
+Muusia 2.177 sisältää Machine Setupissa painikkeen **Update this needle profile ·
+max 3 mm / lift 5 mm**. Valitse olemassa oleva Needle Z -profiili ja paina sitä.
+Työalue, XY-origo, Flip Y, nopeudet ja oma nimi säilyvät. Contact Z pysyy 0:ssa.
+Pistosyvyys asetetaan Needle Testin Max depth -kentästä; Contact Z:tä ei lasketa
+−3:een, koska se lisäisi pistosyvyyden kahteen kertaan.
+
+Vanhojen profiilien 2 mm:n vientiraja säilyy, kunnes päivitys valitaan.
+Päivitetty profiili vaatii Muusian 2.177 tai uudemman. Tallenna myös projekti.
+Poista Optimize route käytöstä, jos haluat ajaa rivit järjestyksessä.
+
+Päivitä koneen NEEDLE_ZERO_HERE- ja NEEDLE_LIFT-makrot samalla: kalibroinnin
+pitää tarkistaa 3 mm alaspäin ja 5 mm ylöspäin; NEEDLE_LIFT nostaa Z5:een.
+Tämä koskee myös makroa käyttävää taukoa/peruutusta. Ohjelman tai profiilin
+muuttaminen ei itsestään päivitä koneen makroja. Koneen uudelleenkäynnistyksen
+jälkeen neulatila ja paperin pintakalibrointi tehdään uudelleen.
+
+Marraskuun 12. päivän koesarjassa 3 mm lävisti Bristol-paperin 5 mm:n pahvilla.
+Uusi A4-alusta on 4 mm neopreeni ja paperi paksua mustaa akvarellipaperia.
+Uusi paperi tarvitsee uuden pintakalibroinnin ja matalasta alkavan testin;
+Bristolin tulos ei vahvista uuden materiaalin sopivaa syvyyttä.
+
+Seuraava osio kuvaa aiempaa 2 mm / 3 mm -työnkulkua.
+
 # Neulapistot: paperi + noin 4 mm pahvi
 
 Muusia 2.133:n **D — Needle Z (max 2 mm)** -profiili tekee pistot Z-akselilla.

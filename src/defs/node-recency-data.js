@@ -981,9 +981,9 @@ export const NODE_RECENCY = {
     "sha256": "05488e3a8db9be93b75feab72fef8a734b2697730cffc2369645d90575b49773"
   },
   "needletest": {
-    "date": "2026-10-20",
-    "order": 87,
-    "sha256": "b000edc406ef0b6f4a7d0200b7f6a22e3062970dfdfba3d6749aa21585bf6979"
+    "date": "2026-11-12",
+    "order": 133,
+    "sha256": "10f1597fc555b0254c94da9f8981103609fb69a3efee93f7a96ce25c0f5c23d0"
   },
   "negspace": {
     "date": "2026-07-22",

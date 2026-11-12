@@ -36,7 +36,7 @@ for name in ['PEN_UP', 'PLOT_GO', 'NEEDLE_BEGIN']:
     text = render(name)
     assert 'NEEDLE_LIFT' in text
     assert 'SET_SERVO' not in text and 'G28' not in text and 'PLOT_START' not in text
-assert 'G1 Z3 F120' in render('NEEDLE_LIFT')
+assert 'G1 Z5 F120' in render('NEEDLE_LIFT')
 assert 'MOVE=1' not in render('NEEDLE_LIFT')
 assert 'SET_SERVO' not in render('PEN_RELEASE')
 assert 'PAUSE_BASE' in render('M0') and 'PLOT_START' not in render('M0')
@@ -61,7 +61,7 @@ assert 'SET_GCODE_OFFSET Z_ADJUST=1 MOVE=0' in text
 assert 'SET_KINEMATIC_POSITION' not in text
 # Offset adjustment changes work Z1 at machine Z21 into work Z0 at Z21.
 assert (21 - 1) + 1 == 21
-for z in [1.9, 72.1]:
+for z in [2.9, 70.1]:
     printer['gcode_move'].position.z = z
     fails('NEEDLE_ZERO_HERE')
 printer['gcode_move'].position.z = 21

@@ -54,7 +54,7 @@ export const DEFAULT_MACHINE_C = {
   endG: "GENTLE_OFF ; restore printer.cfg motion limits\nG0 X0 Y0 F3000",
 };
 
-export const NEEDLE_MAX_DEPTH = 2;
+export const NEEDLE_MAX_DEPTH = 3;
 export const DEFAULT_NEEDLE_MACHINE = {
   ...DEFAULT_MACHINE,
   name: "D — Needle Z (max 2 mm)", toolMode: "needle", zMode: "bed",
@@ -65,12 +65,23 @@ export const DEFAULT_NEEDLE_MACHINE = {
   endG: "M400 ; leave needle lifted at last punch",
 };
 
+/* Explicit opt-in for a previously calibrated needle profile. Keep its XY
+   placement, work area and speed settings, and leave paper contact at Z0. */
+export function upgradeNeedleProfile(prof) {
+  if (prof?.toolMode !== "needle") return prof;
+  return { ...prof, needleMaxDepth: 3, penDown: 0, penUp: 5, zHopOn: false,
+    name: prof.name === DEFAULT_NEEDLE_MACHINE.name ? "D — Needle Z (max 3 mm, lift 5 mm)" : prof.name };
+}
+
 /* Reject the entire job before emitting commands. Never silently shorten a
    requested punch. A needle job may contain only stationary, explicit plunges. */
 export function needleExportError(ps, prof) {
   if (prof.toolMode !== "needle") return "";
-  if (prof.zMode !== "bed" || prof.penDown !== 0 || prof.penUp !== 3 || prof.zHopOn)
-    return "Needle profile requires Bed Z, Contact Z 0, Lift Z 3 and Z-hop off.";
+  const maxDepth = prof.needleMaxDepth ?? 2;
+  if (!Number.isFinite(maxDepth) || maxDepth <= 0 || maxDepth > NEEDLE_MAX_DEPTH)
+    return "Needle maximum depth must be greater than 0 and at most 3 mm.";
+  if (prof.zMode !== "bed" || prof.penDown !== 0 || ![3, 5].includes(prof.penUp) || prof.zHopOn || (maxDepth > 2 && prof.penUp !== 5))
+    return "Needle profile requires Bed Z, Contact Z 0, Lift Z 3 or 5 and Z-hop off. Depths over 2 mm require Lift Z 5.";
   if (prof.rotOn || prof.dipOn || prof.maintOn || prof.canvasCheckOn)
     return "Disable rotation, dip, maintenance and canvas check for the needle.";
   // Custom code cannot bypass the depth guard with arbitrary moves or macros.
@@ -86,8 +97,8 @@ export function needleExportError(ps, prof) {
     for (const q of path.pts) {
       if (!Number.isFinite(q[0]) || !Number.isFinite(q[1]) || q[0] !== first[0] || q[1] !== first[1])
         return "Needle jobs must contain stationary punches only. Connect Needle Punch LAST.";
-      if (!Number.isFinite(q[2]) || q[2] <= 0 || q[2] > NEEDLE_MAX_DEPTH)
-        return `Needle depth must be greater than 0 and at most ${NEEDLE_MAX_DEPTH} mm below the paper. Reduce Needle Punch Depth.`;
+      if (!Number.isFinite(q[2]) || q[2] <= 0 || q[2] > maxDepth)
+        return `Needle depth must be greater than 0 and at most ${maxDepth} mm below the paper. Reduce Needle Punch Depth.`;
     }
     layers.add(path.layer);
   }
@@ -213,7 +224,7 @@ export function writeMachineFile(prof) {
   const { id, ...rest } = prof || {};
   const out = { app: "muusia-machine", v: MACHINE_FILE_VERSION, prof: rest };
   if (workflowOf(prof) === "svg-external") out.minApp = MACHINE_MIN_APP;
-  if (prof?.toolMode === "needle") out.minApp = "2.133";
+  if (prof?.toolMode === "needle") out.minApp = prof.needleMaxDepth != null || prof.penUp === 5 ? "2.177" : "2.133";
   return JSON.stringify(out, null, 1);
 }
 

@@ -6,7 +6,7 @@ const mm = v => `${+v.toFixed(3)} mm`;
 function layout(p, ctx) {
   // Invalid depth must never turn into an unintended plunge.
   if (!Number.isFinite(+p.maxDepth) || +p.maxDepth < .1) return null;
-  const maxDepth = Math.min(2, +p.maxDepth);
+  const maxDepth = Math.min(3, +p.maxDepth);
   const rows = Math.round(number(p.depthSteps, 5, 1, 10));
   const cols = Math.round(number(p.spacingSteps, 5, 1, 10));
   const dots = Math.round(number(p.dots, 20, 20, 200));
@@ -30,11 +30,11 @@ export default {
   name: "Needle Test",
   cat: "gen",
   group: "structural",
-  desc: "Needle puncture calibration in horizontal rows. Each row has one fixed depth and one fixed point spacing, with at least 20 punches at those settings. All combinations of Depth steps and Spacing steps are tested: spacing increases between rows, then the next depth begins. Depth ranges from Max depth / Depth steps to Max depth; one depth step uses Max depth. One spacing step uses Max spacing. Max depth defaults to 0.5 mm and is capped at 2 mm, including wired values. Reversed spacing limits are sorted. Punches per row is at least 20 even for old projects or wired values. Row gap separates rows vertically. Preview labels show each row's depth and spacing, and never export. If the complete sheet does not fit, no punches are emitted: enlarge the canvas or reduce steps, punches, spacing or margin. Distances are never rescaled. Connect directly to output, use the Needle Z profile and export G-code. No Needle Punch or downstream modifiers are needed. SVG/DXF do not preserve depth.",
+  desc: "Needle puncture calibration in horizontal rows. Each row has one fixed depth and one fixed point spacing, with at least 20 punches at those settings. All combinations of Depth steps and Spacing steps are tested: spacing increases between rows, then the next depth begins. Depth ranges from Max depth / Depth steps to Max depth; one depth step uses Max depth. One spacing step uses Max spacing. Max depth defaults to 0.5 mm and is capped at 3 mm, including wired values. Reversed spacing limits are sorted. Punches per row is at least 20 even for old projects or wired values. Row gap separates rows vertically. Preview labels show each row's depth and spacing, and never export. If the complete sheet does not fit, no punches are emitted: enlarge the canvas or reduce steps, punches, spacing or margin. Distances are never rescaled. Connect directly to output, use the Needle Z profile and export G-code. No Needle Punch or downstream modifiers are needed. SVG/DXF do not preserve depth.",
   ins: [],
   outs: [Pin("paths")],
   params: [
-    { key: "maxDepth", label: "Max depth (mm)", type: "slider", min: .1, max: 2, step: .1, def: .5 },
+    { key: "maxDepth", label: "Max depth (mm)", type: "slider", min: .1, max: 3, step: .1, def: .5 },
     { key: "depthSteps", label: "Depth steps", type: "slider", min: 1, max: 10, step: 1, def: 5 },
     { key: "minSpacing", label: "Min spacing (mm)", type: "slider", min: .1, max: 20, step: .1, def: .5 },
     { key: "maxSpacing", label: "Max spacing (mm)", type: "slider", min: .1, max: 20, step: .1, def: 3 },

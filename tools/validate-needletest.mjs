@@ -26,7 +26,7 @@ for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
   }
 }
 assert.equal(Math.max(...run().paths.map(p => p.pts[0][2])), .5);
-assert.equal(Math.max(...run({ maxDepth: 100 }).paths.map(p => p.pts[0][2])), 2);
+assert.equal(Math.max(...run({ maxDepth: 100 }).paths.map(p => p.pts[0][2])), 3);
 for (const maxDepth of [0, .001, -1, NaN, Infinity, undefined]) assert.equal(run({ maxDepth }).paths.length, 0);
 assert.equal(run({}, { W: 50, H: 50 }).paths.length, 0, 'An undersized canvas never scales or truncates tests');
 assert.ok(node.overlay(defaults, { W: 50, H: 50 })[0].text.includes('canvas'));

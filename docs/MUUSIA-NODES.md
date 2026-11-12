@@ -85,7 +85,7 @@ smoothing.
 uses one fixed depth and one fixed point spacing, with at least 20 punches.
 All combinations of Depth steps and Spacing steps appear on separate rows:
 spacing increases first, then the next depth begins. Depth ranges from
-Max depth / Depth steps to Max depth, default maximum 0.5 mm, capped at 2 mm
+Max depth / Depth steps to Max depth, default maximum 0.5 mm, capped at 3 mm
 including wired values. One depth step uses Max depth; one spacing step uses
 Max spacing. Reversed spacing limits are sorted. Punches per row defaults to
 20 and cannot go below 20, including old projects and wired values. Row gap
@@ -95,6 +95,8 @@ preview message: enlarge the canvas or reduce settings. Calibration distances
 are never scaled. Connect directly to output without Needle Punch or
 modifiers. Use the Needle Z profile and G-code to preserve depth; SVG/DXF cannot.
 Help includes Needle Test · Depth and spacing.
+The existing needle profile needs its explicit 3 mm / 5 mm update before
+exporting depths over 2 mm; old profiles retain their previous 2 mm limit.
 
 **SVG Batch Layout** — Place independent SVG documents on paginated sheets, preserving all paths and colour groups within each document. Source colour groups map to successive Muusia pens per file in encounter order; configure your palette accordingly. Load one SVG, a ZIP of SVGs (alphabetical path order), or a JSON array of {name,svg} entries. Imported geometry is frozen in the patch. Columns, Rows, Cell width / height, Gap and Margin define physical sheet slots. Fit cell scales each document uniformly to its slot; Original mm uses SVG width units and clips nothing, reporting overflow when a motif exceeds its slot or page. Labels and cut marks are optional pen strokes. Copies repeats each document before moving to the next. Page selects one sheet; Timeline advances through pages for SVG frame export. A page above 240k geometry points is empty with Overflow 1; reduce copies or slots. No file is silently dropped: intake rejects over 64 documents, 120k points or 12 MB unpacked data. SVG parser supports vector primitives, not embedded raster, CSS layout or text fonts: convert text to paths first. Tutorial: Weave, build and prepare.
 

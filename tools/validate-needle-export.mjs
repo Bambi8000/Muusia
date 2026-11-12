@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseAst } from 'rolldown/parseAst';
-import { DEFAULT_NEEDLE_MACHINE as profile, DEFAULT_MACHINE, DEFAULT_MACHINE_B, needleExportError, normalizeMachine, writeMachineFile, readMachineFile } from '../src/machine.js';
+import { DEFAULT_NEEDLE_MACHINE as profile, DEFAULT_MACHINE, DEFAULT_MACHINE_B, needleExportError, upgradeNeedleProfile, normalizeMachine, writeMachineFile, readMachineFile } from '../src/machine.js';
 import { PENS, pathLength } from '../src/defs/helpers.js';
 import node from '../src/defs/nodes/needlepunch.js';
 import needleTest from '../src/defs/nodes/needletest.js';
@@ -87,3 +87,41 @@ for (const line of gcode.split('\n')) {
 }
 assert.equal(sheetZ, 3);
 console.log('Needle Test export: all 500 punches retain their depth and lift.');
+
+// Opt-in 3 mm / 5 mm profile, preserving the operator's measured placement.
+const old = { ...profile, id: 'measured', name: 'My needle', workW: 793, workH: 813,
+  originX: 50, originY: 110, flipY: true, feedTravel: 600 };
+const upgraded = upgradeNeedleProfile(old);
+assert.equal(old.penUp, 3, 'Updating creates a new object');
+for (const key of ['id','name','workW','workH','originX','originY','flipY','feedTravel']) assert.equal(upgraded[key], old[key]);
+assert.equal(upgraded.penDown, 0);
+assert.equal(upgraded.penUp, 5);
+assert.equal(upgraded.needleMaxDepth, 3);
+assert.deepEqual(upgradeNeedleProfile(upgraded), upgraded);
+assert.equal(upgradeNeedleProfile(DEFAULT_MACHINE), DEFAULT_MACHINE);
+assert.equal(JSON.parse(writeMachineFile(upgraded)).minApp, '2.177');
+const { id: savedId, ...portable } = normalizeMachine(upgraded).prof;
+assert.equal(savedId, 'measured');
+assert.deepEqual(readMachineFile(JSON.parse(writeMachineFile(upgraded))).prof, portable);
+const newProfile = { ...upgraded, originX: 0, originY: 0, flipY: false };
+for (const depth of [.5, 2, 3]) assert.equal(needleExportError(ps(punch(depth)), newProfile), '');
+for (const changes of [{needleMaxDepth: 4}, {needleMaxDepth: NaN}, {needleMaxDepth: '3'}, {penUp:3}, {penDown:-3}])
+  assert.ok(needleExportError(ps(punch(3)), { ...newProfile, ...changes }));
+assert.ok(needleExportError(ps(punch(3.001)), newProfile));
+const full = needleTest.compute([], { ...testParams, maxDepth: 3 }, sheetCtx);
+const result = exportJob(full, sheetCtx, newProfile);
+assert.ok(!result.includes('export blocked'));
+assert.equal((result.match(/^G1 Z-3 F120/gm)||[]).length, 100);
+assert.ok(!/^G1 Z-6(?:\s|$)/m.test(result), 'Depth is applied once from paper Z0');
+let hx = 0, hy = 0, hz = 5, count = 0;
+for (const line of result.split('\n')) {
+ if (!/^G[01]\s/.test(line)) continue;
+ const word = k => { const m = line.match(new RegExp(`(?:^|\\s)${k}(-?[\\d.]+)`)); return m ? +m[1] : undefined; };
+ const nx=word('X')??hx,ny=word('Y')??hy,nz=word('Z')??hz;
+ if(nx!==hx||ny!==hy) assert.ok(hz===5&&nz===5, 'All calibrated sheet travel is lifted 5 mm');
+ if(nz<0&&hz>=0)count++;
+ assert.ok(nz>=-3&&nz<=5);
+ [hx,hy,hz]=[nx,ny,nz];
+}
+assert.equal(count,500); assert.equal(hz,5);
+console.log('Needle upgrade: preserves existing profile, legacy 2 mm limit, exact 3 mm depth, 5 mm travel and round-trip checks passed.');
