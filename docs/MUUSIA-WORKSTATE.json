@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.175",
+    "version": "2.176",
     "date": "2026-11-12",
-    "commit": "030a80ee31a205d547777fe0745aa6db00037158",
-    "pagesRunId": 43225074908,
+    "commit": "1ac1679ab6f58c17a9eea1142c8f925bdb1431d2",
+    "pagesRunId": 43232805965,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.175 with inverted TV screen and white interruption frames; exact Pages run succeeded"
+    "status": "verified public Muusia 2.176; Solids receipt fit and canvas-size adaptation deployed after successful exact Pages run"
   },
   "lastIntegration": {
-    "version": "2.175",
+    "version": "2.176",
     "date": "2026-11-12",
-    "baseCommit": "4a880fd40197799f42abcd693907aed5853d7eb8",
+    "baseCommit": "46d8c46a41a54152f3e571b003b801e280bcc12e",
     "branch": "codex/tvnoise-no-antennas",
     "worktree": "/private/tmp/muusia-tvnoise-release-20261112",
     "published": true,
-    "status": "Muusia 2.175 inverted television screen and white interruption frames published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.175 (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.176 canvas-size adaptation published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.176 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 358,
     "registryCount": 360,
-    "validation": "TV noise focused validator, all 178 Help examples, catalog, production build and 37913 Learn checks passed. Built app showed white bird drawings on a black television screen and a white interruption frame.",
-    "note": "No physical plot was made. The unrelated primary checkout changes were preserved.",
-    "commit": "030a80ee31a205d547777fe0745aa6db00037158"
+    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 × 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
+    "note": "Exact millimetre placement remains for Single Marker, Card Sheet and Needle Test. No physical plot was made. Unrelated primary checkout changes were preserved.",
+    "commit": "1ac1679ab6f58c17a9eea1142c8f925bdb1431d2"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

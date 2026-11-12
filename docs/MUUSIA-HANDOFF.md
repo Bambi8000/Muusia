@@ -282,8 +282,12 @@ receipt strip, A4 and both A2 orientations. External-file/input nodes are
 expected to be blank until supplied. Single Marker, Card Sheet and Needle Test
 retain exact physical dimensions and may intentionally be blank or off-sheet
 on a receipt. Focused validators cover Solids' six shapes, old saved params,
-exact-mm opt-out and the changed node families. Release gate and public Pages
-verification are recorded after deployment. No physical plot was made.
+exact-mm opt-out and the changed node families. The local browser showed 19
+Solids paths and 769 points on a 72 × 100 mm receipt. The changed Learn
+references were exported again in the actual app; all five 36-frame SVG ZIPs
+matched their prior bytes. Production build, 37,914 Learn checks and the
+canvas-size audit passed. Commit `1ac1679` deployed in successful Pages run
+`43232805965`; the public app showed `MUUSIA v2.176`. No physical plot was made.
 
 ### 2.175 — 2026-11-12 · Inverted TV screen
 
