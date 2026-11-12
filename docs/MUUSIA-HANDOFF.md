@@ -5886,3 +5886,11 @@ paper width and printable offset still unmeasured. This is NOT a new Surface UI
 export. Measurement saved per printer; generic material defaults unchanged.
 Next: shared content placement and raster mapping (plan step 2), then visual
 editor and project/PNG export. No publication or hardware configuration changes.
+
+Side calibration follow-up: original 100 mm reference test measured left 4.6 mm /
+right 3 mm. Balanced raster columns 1..499 (instead of 1..510) printed via existing
+USB service, job a8af9b342a3f4de0ba8c72b995aca72c. User confirmed BOTH margins
+as 4.6 mm. Use this verified symmetric crop for the later Epson profile; do not
+assume a centred 512-dot area or promise a 4 mm left edge. No printer settings
+changed; exact paper width remains inferred and the 100 mm span was not separately
+reported. Calibration artifacts and shared work state contain the measurements.

@@ -78,7 +78,46 @@
         "physicalWidthMm": null,
         "printableOffsetMm": null,
         "status": "XY scale measured; physical paper width and printable offset not yet measured; generic defaults unchanged"
+      },
+      "edgeCalibration": {
+        "userMeasuredLeftLineMarginMm": 4.6,
+        "userMeasuredRightLineMarginMm": 3,
+        "sourceLeftDotIndex": 1,
+        "sourceRightDotIndex": 510,
+        "estimatedPrintableOffsetMm": 4.38775,
+        "estimatedPaperWidthMm": 79.62349999999999,
+        "minimumLeftLineCentreMm": 4.4585,
+        "status": "User physically confirmed 4.6 mm on both sides. Paper width remains estimated; generic material defaults unchanged.",
+        "symmetricMarginsVerified": true,
+        "verifiedSymmetricMarginMm": 4.6,
+        "verifiedRasterColumns": {
+          "first": 1,
+          "last": 499
+        },
+        "verificationJobId": "a8af9b342a3f4de0ba8c72b995aca72c"
       }
+    },
+    "marginTest": {
+      "targetLengthMm": 100,
+      "targetSideMarginMm": 4,
+      "assumedPaperWidthMm": 80,
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-margin-test",
+      "note": "Measured line margins are asymmetric. Original 80 mm / centred-area assumption is superseded by recorded edge-calibration estimates.",
+      "jobId": "76fcd23055e64e73b9e4f983e994e2d1",
+      "serverStatus": "done",
+      "userMeasuredLeftMm": 4.6,
+      "userMeasuredRightMm": 3
+    },
+    "balancedMarginTest": {
+      "targetLengthMm": 100,
+      "targetSideMarginMm": 4.6,
+      "jobId": "a8af9b342a3f4de0ba8c72b995aca72c",
+      "serverStatus": "done",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-margin-balanced",
+      "physicalResult": "User confirmed both side margins as 4.6 mm; symmetric placement verified.",
+      "userMeasuredLeftMm": 4.6,
+      "userMeasuredRightMm": 4.6,
+      "symmetricMarginsVerified": true
     }
   }
 }

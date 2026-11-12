@@ -29,6 +29,8 @@ Generoinnin muistiraja on 4096 suikaletta. Se ei ole fyysisen pituuden raja: tar
 
 Tulostimen mittakalibrointia varten lähetettiin yksi 512 × 660 pisteen kuitti nykyisen USB-palvelun kautta. Sen X- ja Y-mittavälit ovat kumpikin 400 pistettä, ristien keskipisteestä keskipisteeseen. Käyttäjä mittasi paperilta molemmille suunnille 56,6 mm. Laskennallinen mittakaava on siten noin 7,067 pistettä/mm eli 179,5 dpi molemmilla akseleilla; 512 pisteen alue vastaa noin 72,45 mm:ä. Tulos on lähellä 180 dpi:tä ja sulkee tämän laitteen nykyisillä asetuksilla pois 203 dpi:n oletuksen. Paperin koko leveys ja tulostusalueen reuna-offset odottavat erillistä mittausta. Kuitti ei kulkenut uuden Surface Composer -käyttöliittymän tai rasteriviennin kautta. Tulos tallennettiin tulostinkohtaiseksi kalibrointiaineistoksi; yleisiä materiaalioletuksia ei muutettu.
 
+Sivureunojen jatkokokeessa käyttäjä mittasi alkuperäisestä vedoksesta vasemmalle 4,6 mm ja oikealle 3 mm. Sen perusteella oikeaa rajaviivaa siirrettiin rasterisarakkeesta 510 sarakkeeseen 499 vasemman pysyessä sarakkeessa 1. Käyttäjä vahvisti uuden vedoksen molemmiksi sivumarginaaleiksi 4,6 mm. Tämä on nykyisen tulostuspolun fyysisesti tarkistettu symmetrinen rajaus; 4 mm:n vasenta reunaa ei ole vahvistettu. Paperin tarkka kokonaisleveys ja laitealueen alku pysyvät arvioina. Tulostimen asetuksia tai yleisiä materiaalioletuksia ei muutettu.
+
 ## Nykyiset osat ja niiden käyttö
 
 | Osa | Toteutus | Surface Composerin ratkaisu |
