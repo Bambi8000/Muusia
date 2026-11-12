@@ -50,9 +50,9 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local Muusia 2.180 PNG and ZIP/manifest export complete; manual strip printing and live Print service retained; app not published",
-    "validation": "58 focused JS tests, focused lint, catalog, production build and 37914 Learn checks passed; actual browser PNG/ZIP downloads, 10 m/70672 rows, colour rotations, cancellation, resource limits, unchanged saved surface and independent PNG/ZIP checks verified.",
-    "nextStep": "Generative Fan, Radial, Progressive Rotation and seeded Random layouts using existing strip objects; then Independent Content and assembly map.",
+    "status": "local Muusia 2.181 unified Mega Canvas/Roll editor with independent freeform paper layouts complete; not published",
+    "validation": "66 focused JS tests, existing 14 Roll cases, portrait Mega and Preview Crop validators, focused lint, catalog, production build and 37914 Learn checks. Actual browser: legacy/new regular sheet SVGs byte-identical, freeform movement/rotation/width/generation Undo, SVG/DXF/G-code/PNG, exact three-session save/load. 5757 actual SVG vertices mapped to source grid and Roll boundaries verified; no physical output.",
+    "nextStep": "Generative Fan, Radial, Progressive Rotation and seeded Random layouts in the common paper model; Independent Content and assembly map. Freeform animation batches and magnet-jig files remain follow-ups.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
       "widthDots": 512,
@@ -192,6 +192,30 @@
       "all": "visible strips in print order, ZIP plus physical geometry/density manifest",
       "browserLongTest": "10000 mm -> 566 x 70672 PNG, no physical print",
       "publication": "local only"
+    },
+    "unifiedLayouts": {
+      "version": "2.181",
+      "baseCommit": "5b8a8d2bcdbb29258ebcc14ec751f3aae6feb768",
+      "modules": [
+        "src/surface-layouts.js",
+        "src/surface-vector-export.js"
+      ],
+      "validator": "tools/validate-surface-layouts.mjs",
+      "families": [
+        "Sheets",
+        "Roll",
+        "Strips"
+      ],
+      "projectField": "surfaceLayouts version 1, independent Sheets and Roll sessions; original surface retained",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-mega-roll",
+      "regularCompatibility": "actual four browser sheet SVGs byte-identical; actual legacy slicer geometry tests; existing export source provenance records unchanged",
+      "freeformRoll": "continuous physical paper; local machine pieces, short last piece; one physical strip at a time for Epson",
+      "limitations": [
+        "freeform animation batch export",
+        "freeform magnet-jig files",
+        "assembly map still pending"
+      ],
+      "publication": "local only; no new physical print/plot"
     }
   }
 }

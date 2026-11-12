@@ -25,10 +25,10 @@ export function surfaceExportPlan(input, { selectedOnly = false, dpi = DEFAULT_E
     if (plan.width * plan.height > MAX_STRIP_EXPORT_PIXELS || plan.height > 0x7fffffff) throw new Error("This strip exceeds the export budget. Choose a lower resolution.");
     pixels += plan.width * plan.height;
     if (pixels > MAX_EXPORT_PIXELS) throw new Error("This export exceeds the pixel budget. Choose a lower resolution or export strips individually.");
-    return { plan, filename: `${prefix}-strip-${String(ordered.indexOf(strip) + 1).padStart(4, "0")}-${safeName(strip.id)}.png` };
+    return { plan, filename: `${prefix}-${session.composition?.family === "Sheets" ? "sheet" : "strip"}-${String(ordered.indexOf(strip) + 1).padStart(4, "0")}-${safeName(strip.id)}.png` };
   });
   const manifest = {
-    format: "muusia-surface-strips", version: 1, units: "mm",
+    format: "muusia-surface-strips", version: 1, units: "mm", layoutFamily: session.composition?.family ?? "Strips",
     surface: { widthMm: session.widthMm, heightMm: session.heightMm, origin: "top-left", x: "right", y: "down", positiveRotation: "clockwise" },
     source: { kind: session.source.kind, fit: session.source.kind === "image" ? session.source.fit : null, image: session.source.kind === "image" && session.source.image ? { name: session.source.image.name, width: session.source.image.width, height: session.source.image.height } : null },
     raster: { dpi, dotsPerMmX: dpi / 25.4, dotsPerMmY: dpi / 25.4, area, colour: "RGB", background: "white", graphLineWidthMm: .3 },
@@ -40,7 +40,7 @@ export function surfaceExportPlan(input, { selectedOnly = false, dpi = DEFAULT_E
       raster: { width: plan.width, height: plan.height, localXmm: plan.localXmm, widthMm: plan.widthMm, heightMm: plan.heightMm, rasterWidthMm: plan.rasterWidthMm, rasterHeightMm: plan.rasterHeightMm },
     })),
   };
-  return { session, entries, manifest, pixels, filename: selectedOnly ? entries[0].filename : `${prefix}-surface-strips.zip` };
+  return { session, entries, manifest, pixels, filename: selectedOnly ? entries[0].filename : `${prefix}-surface-${session.composition?.family.toLowerCase() ?? "strips"}.zip` };
 }
 
 const crcTable = Uint32Array.from({ length: 256 }, (_, n) => {

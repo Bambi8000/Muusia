@@ -6044,3 +6044,58 @@ APP_VERSION and generated Learn manifest 2.180. Real UI screenshot, actual files
 saved projects and verification.json in local visualization surface-png-export.
 Dev app http://127.0.0.1:5192/. Next: generative Fan/Radial/Progressive/seeded Random
 layouts in existing strip model, then Independent Content and assembly map.
+
+### 2.181 — Unified Mega Canvas/Roll editor and freeform papers (local)
+
+Mega Canvas and Roll tabs now stay inside Surface Composer, reusing the SAME
+paper objects, global content mapping, editor controls/handles and zoom/pan.
+Freeform layout checkbox or any paper movement/rotation/resize enables manual
+geometry. Regular sheets/roll strips are starting layouts; Generate is explicit
+and undoable. Paper dimensions/count/seam are draft generator settings; generated
+settings are stored separately. Roll piece length affects exports without
+splitting physical paper objects. Blue screen-width dashed lines show piece
+boundaries through rotated papers. Full printable width follows edited paper
+width when originally full-width. Number fields commit the actual input value on
+blur/Enter, avoiding a stale value during rapid input/focus changes.
+New surface-layouts.js builds/validates legacy pitches and composition metadata.
+Projects add surfaceLayouts version 1 with independent Sheets/Roll sessions;
+original surface remains Strips. Missing field initializes on first open from
+old canvas/mega fields. Invalid slots reject before loading graph; inconsistent
+grid geometry becomes freeform, invalid generated geometry rejects. Tab changes
+preserve source, paper geometry and production records. Old mega fields retained
+for regular compatibility. Compact graph-panel launcher replaces duplicate UI.
+New surface-vector-export.js calls ACTUAL existing sliceMega/sliceRoll for regular
+output. Freeform uses shared clipPathsToStrip and cropTestPiece in paper-local
+coordinates, retaining pen/depth/maintenance; existing slicers supply production
+marks, fontStrokes supplies correct paper/piece labels. Existing SVG/DXF/G-code
+engines receive per-paper/per-piece W/H, no fitting or machine-axis rotation.
+Selected/all papers export as one file or current ZIP; 8192-piece/128 MiB guards.
+Image sources use shared PNG. Source SVG is full artwork, NOT an assembly map.
+PNG manifest adds layoutFamily; sheet PNG names and ZIP names identify family.
+Sheets display count, area and combined length; rolls keep metre/roll budget.
+Machine work-area overflow is shown. Direct Epson panel only Strips or nominal
+80 mm Roll; manual single-strip cooling workflow unchanged. No physical commands.
+Legacy selected-graph animation batches and magnet-jig exports remain available
+for matching regular layouts. Freeform/different-source layouts use their dedicated
+exports, and the regular jig controls are hidden, so stale regular-grid files
+cannot be downloaded. Freeform animation batches and magnet-jig files are future
+work. Existing tracked export functions/state/event attributes unchanged; source
+provenance records compared against 5b8a8d2 and equal; no capture hash bypass.
+Validation: 66 focused JS tests incl 8 new composition/export checks using actual
+App slicers, metadata/depth/rotation/continuity/short pieces/persistence/invalid
+inputs. Existing 14 Roll cases, portrait Mega and Preview Crop passed. Focused
+lint clean (App retains existing warnings); catalog -> build -> 37914 Learn pass.
+ACTUAL browser: old-project import, four regular sheet SVGs byte-identical to
+old UI, sheet drag/24-degree rotation and Undo/Redo; regular reset/Undo; Roll
+14-degree rotation, move and 1050 mm length, 400 mm parts with 250/150 mm ends;
+200 mm parts: 11 G-codes with 50/150 mm ends; selected Roll six DXFs; four sheet
+SVG/DXF/G-code files, both PNG ZIPs and original image-mapped sheet PNG.
+Independent artifact check mapped 5757 actual SVG vertices back to original
+source grid within SVG rounding tolerance and checked Roll boundary matches,
+G-code local bounds and DXF extents. Save/Load/Save retained all three complete
+sessions, original PNG bytes and root graph exactly; no browser warnings/errors.
+Actual screenshots, downloads, demo project and verification.json in local
+visualization surface-mega-roll. App 2.181 at http://127.0.0.1:5192/; not pushed or
+published. No printer-service/config changes or physical output in this phase.
+Next: Fan/Radial/Progressive/seeded Random layouts, Independent Content and
+assembly map. Freeform animation batch export is a separately bounded follow-up.

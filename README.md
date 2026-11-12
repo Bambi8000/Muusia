@@ -323,7 +323,8 @@ to return exactly.
   as the SVG. Millimetre-true; R12 carries no unit field, so answer "mm" if the
   importer asks. Point z (pen plunge) is dropped — laser output is 2D.
 
-**Mega Canvas (multi-sheet).** Compose on a virtual canvas of C x R sheets with
+**Mega Canvas (multi-sheet).** Open **Surface Composer → Mega Canvas**. Compose
+on a virtual canvas of C x R sheets with
 **Overlap** or **Gap** seams; export slices the work into per-sheet tiles with
 optional crop marks on a chosen pen and downloads everything as **one ZIP**
 (`name-tile-01-r1c1.gcode`, ...). The bed diagram and previews show the full mega
@@ -333,10 +334,11 @@ full SVG (composed proof)* saves the whole composed work as one SVG at full mega
 size — a proofing reference to compare against the preview; the numbered tiles
 remain the plottable output.
 
-**Mega Canvas Roll (wallpaper).** Switch the mega **Kind** from Sheets to
-**Roll** to compose onto adjacent wallpaper strips: set the **Roll width**
-(530 mm default), the number of **Strips**, the strip **Length** (e.g. wall
-height) and the **Piece** length one machine setup can plot. The seam +
+**Mega Canvas Roll (wallpaper).** Open **Surface Composer → Roll Mode**
+to compose onto adjacent wallpaper strips: set the **Roll width**
+(530 mm default), the **Strip count**, **Strip length** (e.g. wall height)
+and **Machine piece length** one machine setup can plot. **Generate roll strips**
+builds the regular layout. The seam +
 Overlap/Gap applies only between strips (Overlap = hang overlapped and
 double-cut; Gap = hang with spacing); along the roll there is **no seam** —
 pieces continue exactly, and registration ticks are drawn on both roll edges at
@@ -371,9 +373,28 @@ image colours and graph pen colours are preserved. PNG files embed density and
 geometry; the ZIP manifest also records position, angle, size and order. Export
 ignores the physical print cursor and never sends a printer job. Use **actual
 size / 100%**, with fit-to-page off. Long images stream in small blocks; Cancel
-stops the export without downloading a partial file. Mega Canvas and Roll Mode
-tabs open their existing controls; the main export panel continues to export the
-selected graph/Mega Canvas output.
+stops the export without downloading a partial file.
+
+**Unified Mega Canvas / Roll (local preview 2.181).** Both modes now use this
+same large editor, side panels, dimension fields, zoom/pan and paper handles.
+Choose **Freeform layout** or simply move/rotate/resize a paper. Sheet dimensions,
+rows/columns and seams are generator settings: **Generate sheets** or **Generate
+roll strips** replaces the arrangement, and Undo restores it. The Mega Canvas,
+Roll and Freeform Strips arrangements persist independently in the project;
+switching tabs keeps manual work. Sheets show count, area and combined length;
+rolls show total metres and the editable roll budget. Dashed blue lines show
+Roll machine-piece boundaries within the continuous physical paper.
+
+**Plotter / vector files** exports selected or all papers through the existing
+SVG/DXF/G-code engines. Regular layouts use the original slicers; freeform layouts
+transform the artwork into each paper's local coordinates first. Roll piece
+length applies along that local axis, with a short final piece and optional
+registration ticks. Changing paper angle never rotates the machine's coordinate
+system or fits the artwork again. PNG/ZIP works with both image and graph sources;
+vector output needs graph lines. Original selected-graph animation batches and magnet-jig exports
+remain available with regular layouts. Freeform layouts use the dedicated layout
+exports; animation batches and magnet-jig files for them are not implemented yet. No file export
+starts a physical print or plot.
 
 **Mini Canvas (production runs).** The inverse, as a node: *Auto grid* packs up to six
 wired compositions into a contact sheet; *Fixed size* replicates one mini size

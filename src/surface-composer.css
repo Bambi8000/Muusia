@@ -5,3 +5,7 @@
 .sc-paper-budget{display:flex;flex-direction:column;gap:6px;border:1px solid #466952;background:#213d36;border-radius:6px;padding:12px;margin:3px 0 10px}.sc-paper-budget>span:first-child{font-size:11px;color:#a7c9be}.sc-paper-budget strong{font-family:'Space Grotesk',sans-serif;font-size:29px;line-height:1.1;color:#d7f1df}.sc-paper-budget>span:last-child{font-size:10px;line-height:1.5;color:#a8d6bc}.sc-paper-budget.short{background:#51372a;border-color:#987253}.sc-paper-budget.short strong{color:#ffd0a2}.sc-paper-budget.short>span{color:#e8bd98}.sc-print-mode{font-size:11px;line-height:1.6;color:#f0c187;background:#39382d;padding:9px;border-radius:4px;margin:10px 0}.sc-print-status{font-size:11px;line-height:1.7;color:#a9d6c5;margin-top:12px!important;overflow-wrap:anywhere}.sc-overlay[data-busy=true] .sc-sidebar>section:not(.sc-export),.sc-overlay[data-busy=true] .sc-inspector>section:first-child,.sc-overlay[data-busy=true] .sc-strip-section{pointer-events:none;opacity:.6}
 
 .sc-export .sc-wide{font-size:10px}.sc-export .sc-print-status{font-size:10px}
+
+.sc-vector .sc-actions{gap:5px}.sc-vector .sc-actions button{font-size:10px;padding:6px}.sc-vector .sc-note{font-size:9px}
+
+.sc-work-warning{color:#f0c187!important}

@@ -1,4 +1,5 @@
 import { createStrip, generateStripTiling, surfaceSummary, MAX_GENERATED_STRIPS } from "./surface-composer.js";
+import { readComposition, regularCompositionMatches } from "./surface-layouts.js";
 import { productionSettings } from "./surface-production.js";
 
 export const SURFACE_VERSION = 1;
@@ -50,7 +51,22 @@ export function readSurfaceSession(input) {
     image = { src: img.src, width: img.width, height: img.height, name: typeof img.name === "string" ? img.name.slice(0, 300) : "Image" };
   }
   if (!Number.isSafeInteger(input.nextId) || input.nextId < 1) throw new Error("Invalid next strip ID.");
-  return { version: SURFACE_VERSION, mode: input.mode, widthMm, heightMm, layout, strips, selectedId: strips.some(s => s.id === input.selectedId) ? input.selectedId : null, nextId: input.nextId, production: productionSettings(input.production), source: { kind: source.kind, nodeId: source.nodeId, graphPath: [...source.graphPath], fit: source.fit, image } };
+  const composition = input.composition ? readComposition(input.composition) : null;
+  const result = { ...(composition ? { composition } : {}), version: SURFACE_VERSION, mode: input.mode, widthMm, heightMm, layout, strips, selectedId: strips.some(s => s.id === input.selectedId) ? input.selectedId : null, nextId: input.nextId, production: productionSettings(input.production), source: { kind: source.kind, nodeId: source.nodeId, graphPath: [...source.graphPath], fit: source.fit, image } };
+  if (composition && result.mode === "tiling" && !regularCompositionMatches(result)) result.mode = "freeform";
+  return result;
+}
+
+export function readSurfaceLayouts(input) {
+  if (input == null) return { version: 1, Sheets: null, Roll: null };
+  if (input.version !== 1) throw new Error("Unsupported paper layouts version.");
+  const out = { version: 1, Sheets: null, Roll: null };
+  for (const family of ["Sheets", "Roll"]) if (input[family] != null) {
+    const session = readSurfaceSession(input[family]);
+    if (session.composition?.family !== family) throw new Error("Paper layout family does not match its saved slot.");
+    out[family] = session;
+  }
+  return out;
 }
 
 export function regenerateSurface(session) {

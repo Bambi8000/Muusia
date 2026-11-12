@@ -17,7 +17,8 @@ import CatalogBrowser from "./catalog-browser.jsx";
 import { compareNodeRecency, nodeRecencyLabel } from "./node-recency.js";
 import StackView from "./stack-view.jsx";
 import SurfaceComposer from "./surface-composer.jsx";
-import { createSurfaceSession, readSurfaceSession, evaluateSurfaceGraph, surfaceGraphLevel } from "./surface-session.js";
+import { generateComposition } from "./surface-layouts.js";
+import { createSurfaceSession, readSurfaceSession, readSurfaceLayouts, evaluateSurfaceGraph, surfaceGraphLevel } from "./surface-session.js";
 import { splitFramePens, penFrameName, finishPenPasses } from "./frame-export.js";
 import { cropTestPiece, testCropRect, DEFAULT_TEST_MARGIN } from "./preview-crop.js";
 import PreviewCropControls from "./preview-crop-controls.jsx";
@@ -901,7 +902,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.180"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.181"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2272,6 +2273,8 @@ export default function App() {
   const loadExample = (ex) => {
     const data = ex.make(defaults);
     setSurfaceSession(createSurfaceSession());
+    setSurfaceLayouts(readSurfaceLayouts());
+    setSurfaceFamily("Strips");
     setSurfaceOpen(false);
     NEXT_ID = 9500;
     setStack([]);
@@ -2670,6 +2673,23 @@ export default function App() {
   const [stackOpen, setStackOpen] = useState(false); /* 3D layer stack overlay */
   const [surfaceOpen, setSurfaceOpen] = useState(false);
   const [surfaceSession, setSurfaceSession] = useState(createSurfaceSession);
+  const [surfaceLayouts, setSurfaceLayouts] = useState(() => readSurfaceLayouts());
+  const [surfaceFamily, setSurfaceFamily] = useState("Strips");
+  const activeSurfaceSession = surfaceFamily === "Strips" ? surfaceSession : surfaceLayouts[surfaceFamily];
+  const composedSurface = megaOn ? surfaceLayouts[megaKind] : null;
+  const customSurfaceOutput = !!composedSurface && (composedSurface.mode === "freeform" || composedSurface.source.kind !== "graph" || composedSurface.source.nodeId !== primary || JSON.stringify(composedSurface.source.graphPath) !== JSON.stringify(stack));
+  useEffect(() => {
+    const g = composedSurface?.composition?.generated;
+    if (!g) return;
+    setCanvasW(g.sheetWidthMm); setCanvasH(g.sheetHeightMm); setMegaC(g.columns); setMegaR(g.rows);
+    const current = composedSurface.composition.settings;
+    setMegaSeam(g.seamMm); setMegaMode(g.join); setMegaMarks(current.marks); setMegaMarkPen(current.markPen); setMegaLabels(current.labels);
+    setRollW(g.rollWidthMm); setRollLen(g.rollLengthMm); setRollStrips(g.rollCount); setRollSeg(current.pieceLengthMm);
+  }, [composedSurface?.composition]);
+  const changeActiveSurface = value => {
+    if (surfaceFamily === "Strips") setSurfaceSession(value);
+    else setSurfaceLayouts(old => ({ ...old, [surfaceFamily]: typeof value === "function" ? value(old[surfaceFamily]) : value }));
+  };
   const surfaceEvaluate = useMemo(() => (W, H, graphPath, nodeId) => {
     const { result } = evaluateSurfaceGraph(root, graphPath, { W, H, frameIdx, frameCount, machine: machineCtx(prof) }, evalLevel);
     const output = result.out[nodeId]?.[0];
@@ -2677,12 +2697,25 @@ export default function App() {
     return output;
   }, [root, frameIdx, frameCount, prof]);
   const surfaceCurrent = primaryNode && defOuts(primaryNode)[0]?.type === "paths" ? { id: primaryNode.id, path: stack } : null;
-  const openSurface = () => {
-    if (surfaceSession.source.kind === "graph" && !surfaceGraphLevel(root, surfaceSession.source.graphPath)?.nodes.some(n => n.id === surfaceSession.source.nodeId) && surfaceCurrent) {
-      setSurfaceSession(old => ({ ...old, source: { ...old.source, nodeId: surfaceCurrent.id, graphPath: [...surfaceCurrent.path] } }));
+  const switchSurfaceFamily = (family, mode) => {
+    if (family === "Strips") {
+      setMegaOn(false);
+      if (mode) setSurfaceSession(old => ({ ...old, mode }));
+      if (surfaceSession.source.kind === "graph" && !surfaceGraphLevel(root, surfaceSession.source.graphPath)?.nodes.some(n => n.id === surfaceSession.source.nodeId) && surfaceCurrent) setSurfaceSession(old => ({ ...old, source: { ...old.source, nodeId: surfaceCurrent.id, graphPath: [...surfaceCurrent.path] } }));
+    } else {
+      if (!surfaceLayouts[family]) {
+        const base = createSurfaceSession();
+        base.source = { ...base.source, nodeId: surfaceCurrent?.id ?? null, graphPath: [...stack] };
+        let created;
+        try { created = generateComposition(base, family, { sheetWidthMm: canvasW, sheetHeightMm: canvasH, columns: megaC, rows: megaR, rollWidthMm: rollW, rollLengthMm: rollLen, rollCount: rollStrips, pieceLengthMm: rollSeg, seamMm: megaSeam, join: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels }); }
+        catch (error) { alert(`Cannot open this paper layout: ${error.message} Check the paper size first.`); return; }
+        setSurfaceLayouts(old => old[family] ? old : { ...old, [family]: created });
+      }
+      setMegaKind(family); setMegaOn(true);
     }
-    setSurfaceOpen(true);
+    setSurfaceFamily(family); setSurfaceOpen(true); setGcode(null);
   };
+  const openSurface = () => switchSurfaceFamily(megaOn ? megaKind : "Strips");
   const [helpOpen, setHelpOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState({ geometric: true });
   const [flatAZ, setFlatAZ] = useState(false);
@@ -3165,7 +3198,7 @@ export default function App() {
   /* a generated file belongs to the profile that made it: switching profile or workflow clears the preview */
   useEffect(() => { setGcode(null); }, [machineIdx, prof.workflow]);
   const buildPatchJSON = () =>
-    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels, kind: megaKind, rollW, rollLen, rollStrips, rollSeg } : null, surface: surfaceSession, prof, machines, machineIdx, machineFormat: MACHINE_FILE_VERSION, customNodes, root }, null, 1);
+    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels, kind: megaKind, rollW, rollLen, rollStrips, rollSeg } : null, surface: surfaceSession, surfaceLayouts, prof, machines, machineIdx, machineFormat: MACHINE_FILE_VERSION, customNodes, root }, null, 1);
   const savePatch = () => {
     const data = buildPatchJSON();
     try {
@@ -3186,6 +3219,7 @@ export default function App() {
       const data = JSON.parse(text);
       if (!data || data.app !== "muusia" && data.app !== "plotter-patcher" || !data.root) throw new Error("bad file");
       const restoredSurface = readSurfaceSession(data.surface);
+      const restoredLayouts = readSurfaceLayouts(data.surfaceLayouts);
       /* rekisteroi custom nodet ennen graafin latausta */
       if (Array.isArray(data.customNodes)) {
         for (const c of data.customNodes) if (c && c.source) registerCustomNode(c.source, true);
@@ -3208,6 +3242,8 @@ export default function App() {
       setSelIds([]);
       setRoot(data.root);
       setSurfaceSession(restoredSurface);
+      setSurfaceLayouts(restoredLayouts);
+      setSurfaceFamily(data.mega?.kind === "Roll" ? "Roll" : data.mega ? "Sheets" : "Strips");
       setSurfaceOpen(false);
       if (data.canvas) { setCanvasW(data.canvas.W || 300); setCanvasH(data.canvas.H || 200); }
       if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); setMegaMarkPen(data.mega.markPen || 0); setMegaLabels(!!data.mega.labels); setMegaKind(data.mega.kind || "Sheets"); setRollW(data.mega.rollW || 530); setRollLen(data.mega.rollLen || 2400); setRollStrips(data.mega.rollStrips || 2); setRollSeg(data.mega.rollSeg || 800); } else { setMegaOn(false); }
@@ -4192,6 +4228,7 @@ export default function App() {
                 ZIP: all sheets for one pen, then the next. Reuse the same numbered sheets with a fixed paper stop. Keep markers on the base pen. No fitting or centering between passes. Empty passes are listed and skipped.
               </div>}
               {animExportError && <div role="alert" style={{ color: T.accent, fontSize: 10 }}>{animExportError}</div>}
+              <div hidden={customSurfaceOutput}>
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                 <button onClick={() => exportAllFrames("gcode")} disabled={animBusy > 0 || !primaryOut?.[0]?.paths || !gcodeProf} title={gcodeProf ? "" : "External SVG profile \u2014 use SVG"}
                   style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryOut?.[0]?.paths ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
@@ -4214,6 +4251,8 @@ export default function App() {
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
                 Noise, Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes. Receipt exports one file per frame with large L marks and a readable number strip.
               </div>
+              </div>
+              {customSurfaceOutput && <div style={{ color: T.dim, fontSize: 10 }}>Export this paper layout in Surface Composer. Animation batches use the selected graph with a regular layout.</div>}
             </div>
             <div data-machine-setup="true" onClick={() => setMchOpen((v) => !v)}
               style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", marginBottom: 8 }}>
@@ -4496,6 +4535,7 @@ export default function App() {
                 Preserve direction
               </label>
             </div>
+            {customSurfaceOutput ? <button onClick={openSurface} style={{ ...toolBtn(true), width: "100%", marginTop: 8 }}>Export layout in Surface Composer</button> : <>
             <button onClick={doExport} disabled={!primaryPS.paths.length || !gcodeProf}
               title={gcodeProf ? "" : "This machine profile uses the External SVG workflow \u2014 export SVG and open it in your plotter software"}
               style={{
@@ -4523,6 +4563,7 @@ export default function App() {
               }}>
               EXPORT DXF (laser cut, R12)
             </button>
+            </>}
             <div style={{ marginTop: 14, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
               <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", color: T.text }}>MUUSIA PRINT · TM-T88V</div>
               <div style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, margin: "4px 0 7px" }}>
@@ -4604,105 +4645,17 @@ export default function App() {
             </div>
           </div>
 
-          {/* ---------- Mega canvas ---------- */}
-          <div id="surface-legacy" />
-          <div style={{ padding: "10px 12px", borderTop: `1px solid ${T.line}` }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: megaOn ? T.text : T.dim, letterSpacing: "0.08em", cursor: "pointer", fontFamily: disp, fontWeight: 700 }}>
-              <input type="checkbox" checked={megaOn} onChange={(e) => setMegaOn(e.target.checked)} />
-              MEGA CANVAS
-              <span style={{ fontWeight: 500, color: T.dim, letterSpacing: 0 }}>multi-sheet work</span>
-            </label>
-            {megaOn && (
-              <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 7, fontSize: 11, color: T.text }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ color: T.dim }}>Kind</span>
-                  <select value={megaKind} onChange={(e) => setMegaKind(e.target.value)}
-                    style={{ background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }}>
-                    <option>Sheets</option>
-                    <option>Roll</option>
-                  </select>
-                  <span style={{ color: T.dim }}>{megaKind === "Roll" ? "wallpaper strips" : "grid of sheets"}</span>
-                </div>
-                {megaKind !== "Roll" && <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ color: T.dim }}>Sheets</span>
-                  <input type="number" value={megaC} min={1} max={6} onChange={(e) => setMegaC(Math.max(1, Math.min(6, Math.round(+e.target.value || 1))))}
-                    style={{ width: 40, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
-                  ×
-                  <input type="number" value={megaR} min={1} max={8} onChange={(e) => setMegaR(Math.max(1, Math.min(8, Math.round(+e.target.value || 1))))}
-                    style={{ width: 40, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
-                  <span style={{ color: T.dim }}>cols × rows</span>
-                </div>}
-                {megaKind === "Roll" && <>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ color: T.dim }}>Roll width</span>
-                    <input type="number" value={rollW} min={100} max={1200} step={1} onChange={(e) => setRollW(Math.max(100, Math.min(1200, +e.target.value || 100)))}
-                      style={{ width: 52, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
-                    <span style={{ color: T.dim }}>mm</span>
-                    <span style={{ color: T.dim }}>Strips</span>
-                    <input type="number" value={rollStrips} min={1} max={12} onChange={(e) => setRollStrips(Math.max(1, Math.min(12, Math.round(+e.target.value || 1))))}
-                      style={{ width: 40, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ color: T.dim }}>Length</span>
-                    <input type="number" value={rollLen} min={100} max={30000} step={10} onChange={(e) => setRollLen(Math.max(100, Math.min(30000, +e.target.value || 100)))}
-                      style={{ width: 52, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
-                    <span style={{ color: T.dim }}>mm</span>
-                    <span style={{ color: T.dim }}>Piece</span>
-                    <input type="number" value={rollSeg} min={50} max={2000} step={10} onChange={(e) => setRollSeg(Math.max(50, Math.min(2000, +e.target.value || 50)))}
-                      style={{ width: 52, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
-                    <span style={{ color: T.dim }}>mm</span>
-                  </div>
-                </>}
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ color: T.dim }}>Seam</span>
-                  <input type="number" value={megaSeam} min={0} max={40} step={0.5} onChange={(e) => setMegaSeam(Math.max(0, Math.min(40, +e.target.value || 0)))}
-                    style={{ width: 46, background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }} />
-                  mm
-                  <select value={megaMode} onChange={(e) => setMegaMode(e.target.value)}
-                    style={{ background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }}>
-                    <option>Overlap</option>
-                    <option>Gap</option>
-                  </select>
-                </div>
-                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: T.dim }}>
-                  <input type="checkbox" checked={megaLabels} onChange={(e) => setMegaLabels(e.target.checked)} />
-                  {megaKind === "Roll" ? "Piece labels (S strip P piece, mark pen)" : "Tile labels (number + row/col, mark pen)"}
-                </label>
-                <button onClick={downloadMegaFull}
-                  title="One SVG of the whole composed work at full mega size - proofing reference, not a plottable tile"
-                  style={{ padding: "5px 8px", borderRadius: 4, border: "1px solid " + T.line, background: "transparent", color: T.accent, fontFamily: disp, fontWeight: 700, fontSize: 10, cursor: "pointer", letterSpacing: "0.03em", alignSelf: "flex-start" }}>
-                  Download full SVG (composed proof)
-                </button>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: T.dim, flex: 1 }}>
-                    <input type="checkbox" checked={megaMarks} onChange={(e) => setMegaMarks(e.target.checked)} />
-                    {megaKind === "Roll" ? "Registration ticks (piece boundaries)" : "Crop marks"}
-                  </label>
-                  {megaMarks && (
-                    <select value={megaMarkPen} onChange={(e) => setMegaMarkPen(+e.target.value)}
-                      title="Pen for crop marks — e.g. a pencil or fine liner, so marks stay faint or erasable"
-                      style={{ background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 3, padding: "3px 5px", fontSize: 11, fontFamily: mono }}>
-                      {PENS.map((pn, i) => <option key={i} value={i}>{i}: {pn.name}</option>)}
-                    </select>
-                  )}
-                </div>
-                <div style={{ fontSize: 10, color: T.dim, lineHeight: 1.5 }}>
-                  {megaKind === "Roll" ? <>
-                    Total {megaW} × {megaH} mm · {rollStrips} strip(s) × {rollPieces} piece(s) of {rollW} × {rollSeg} mm (last piece {Math.round((rollLen - (rollPieces - 1) * rollSeg) * 10) / 10} mm).
-                    {megaMode === "Overlap" ? " Adjacent strips repeat the seam strip — overlap on the wall and double-cut." : " A seam-wide strip is skipped between strips — hang with spacing."}
-                    {" Pieces continue seamlessly along the roll: registration ticks mark every boundary — advance the roll, align the pen at y=0 with the plotted ticks."}
-                    {(rollW > prof.workW || rollSeg > prof.workH) ? " ⚠ Piece exceeds the machine work area." : ""}
-                  </> : <>
-                    Total {megaW} × {megaH} mm · {megaC * megaR} sheets of {canvasW} × {canvasH} mm.
-                    {megaMode === "Overlap" ? " Sheets repeat the seam strip — cut through it and butt-join." : " A seam-wide strip is skipped between sheets — mount with spacing."}
-                  </>}
-                  {" Export previews tile 1; Download saves all numbered tiles."}
-                </div>
-              </div>
-            )}
+          {/* ---------- Surface layout ---------- */}
+          <div id="surface-legacy" style={{ padding: "12px", borderTop: `1px solid ${T.line}` }}>
+            <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 11, color: T.text }}><input type="checkbox" checked={megaOn} onChange={e => setMegaOn(e.target.checked)} />Surface layout enabled</label>
+            <button onClick={openSurface} style={{ ...toolBtn(true), width: "100%", marginTop: 8 }}>Open Surface Composer</button>
+            <div style={{ display: "flex", gap: 6, marginTop: 6 }}><button style={toolBtn(true)} onClick={() => switchSurfaceFamily("Sheets")}>Mega Canvas</button><button style={toolBtn(true)} onClick={() => switchSurfaceFamily("Roll")}>Roll Mode</button></div>
+            {megaOn && <p style={{ fontSize: 10, color: T.dim, lineHeight: 1.6 }}>{composedSurface?.mode === "freeform" ? "Freeform" : "Regular"} {megaKind === "Roll" ? "roll" : "sheet"} layout · edit paper positions and export the layout in Surface Composer.</p>}
+            {!customSurfaceOutput && megaOn && <button onClick={downloadMegaFull} style={toolBtn(true)}>Download full SVG (composed proof)</button>}
           </div>
 
           {/* ---------- Magnet jig (laser) ---------- */}
+          <div hidden={customSurfaceOutput}>
           <div style={{ padding: "10px 12px", borderTop: `1px solid ${T.line}` }}>
             <div style={{ fontSize: 10, color: T.text, letterSpacing: "0.08em", fontFamily: disp, fontWeight: 700 }}>
               MAGNET JIG <span style={{ fontWeight: 500, color: T.dim, letterSpacing: 0 }}>laser-guided paper hold-down</span>
@@ -4775,7 +4728,10 @@ export default function App() {
           </div>
 
 
-          {gcode && (
+          </div>
+          {customSurfaceOutput && <div style={{ padding: 12, fontSize: 10, color: T.dim }}>Magnet jig files use the selected graph with a regular layout.</div>}
+
+          {gcode && !customSurfaceOutput && (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 12, minHeight: 200 }}>
               <div style={{ display: "flex", alignItems: "center", marginBottom: 6 }}>
                 <div style={{ fontSize: 10, color: T.dim, letterSpacing: "0.08em", flex: 1 }}>
@@ -4910,10 +4866,14 @@ export default function App() {
       )}
 
       {/* ---------- Stack View (3D layer stack) ---------- */}
-      {surfaceOpen && <SurfaceComposer session={surfaceSession} onChange={setSurfaceSession} onClose={() => setSurfaceOpen(false)}
+      {surfaceOpen && activeSurfaceSession && <SurfaceComposer key={surfaceFamily} session={activeSurfaceSession} onChange={changeActiveSurface} onClose={() => setSurfaceOpen(false)}
+        family={surfaceFamily} onFamilyChange={switchSurfaceFamily}
         onSave={savePatch} evaluateGraph={surfaceEvaluate} pens={PENS} projectName={projName} currentSelection={surfaceCurrent}
-        sourceNodes={(surfaceGraphLevel(root, surfaceSession.source.graphPath)?.nodes || []).filter(n => defOuts(n)[0]?.type === "paths").map(n => ({ id: n.id, label: n.label || DEFS[n.type]?.name || n.type }))}
-        onLegacyMode={kind => { setMegaKind(kind); setMegaOn(true); setSurfaceOpen(false); requestAnimationFrame(() => document.getElementById("surface-legacy")?.scrollIntoView({ block: "start", behavior: "smooth" })); }} />}
+        sourceNodes={(surfaceGraphLevel(root, activeSurfaceSession.source.graphPath)?.nodes || []).filter(n => defOuts(n)[0]?.type === "paths").map(n => ({ id: n.id, label: n.label || DEFS[n.type]?.name || n.type }))}
+        vectorServices={{ sliceMega, sliceRoll, fontStrokes, buildZip, gcodeEnabled: gcodeProf, machineName: prof.name, workW: prof.workW, workH: prof.workH,
+          preparePaths: ps => routeOpt ? routeOptimize(ps, preserveDir) : ps,
+          exportText: (kind, ps, W, H) => kind === "svg" ? toSVG(ps, { W, H, frameIdx, frameCount }) : kind === "dxf" ? toDXF(ps, { W, H, frameIdx, frameCount }) : toGcodeGated(ps, { W, H, frameIdx, frameCount }) }} />}
+
       {stackOpen && (
         <StackView PENS={PENS} T={T} mono={mono} disp={disp} W={canvasW} H={canvasH}
           frameCount={frameCount} primaryPS={primaryPS}

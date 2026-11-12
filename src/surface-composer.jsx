@@ -3,6 +3,8 @@ import { stripTransform, stripCorners, surfaceSummary } from "./surface-composer
 import { createContentPlacement, contentTransform, placePathsOnSurface } from "./surface-render.js";
 import { addSurfaceStrip, updateSurfaceStrip, updateSurfaceLayout, removeSurfaceStrip, regenerateSurface, MAX_SOURCE_PIXELS, MAX_SOURCE_URL_LENGTH } from "./surface-session.js";
 import "./surface-composer.css";
+import { generateComposition, updateComposition, compositionPieces } from "./surface-layouts.js";
+import { surfaceVectorFiles } from "./surface-vector-export.js";
 import { paperBudget, productionPlan, productionSettings, advanceProduction } from "./surface-production.js";
 import { DEFAULT_EXPORT_DPI, exportSurfacePngs, surfaceExportPlan } from "./surface-export.js";
 import { preparePrintSource, renderSurfaceReceipt, checkSurfacePrinter, submitSurfaceReceipt, surfacePrintStatus } from "./surface-print.js";
@@ -21,16 +23,16 @@ const mm = n => Math.round(n * 10) / 10;
 function NumberField({ label, value, onChange, min, max, step = .1, disabled = false }) {
   const [draft, setDraft] = useState(String(value));
   useEffect(() => setDraft(String(value)), [value]);
-  const commit = () => {
-    const n = Number(draft);
-    if (draft.trim() && Number.isFinite(n) && (min == null || n >= min) && (max == null || n <= max)) { if (n !== value && onChange(n) === null) setDraft(String(value)); }
+  const commit = event => {
+    const text = event?.currentTarget.value ?? draft, n = Number(text);
+    if (text.trim() && Number.isFinite(n) && (min == null || n >= min) && (max == null || n <= max)) { if (n !== value && onChange(n) === null) setDraft(String(value)); }
     else setDraft(String(value));
   };
   return <label className="sc-field"><span>{label}</span><input aria-label={label} type="number" value={draft} min={min} max={max} step={step} disabled={disabled}
     onChange={e => setDraft(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); if (e.key === "Escape") { e.stopPropagation(); setDraft(String(value)); } }} /></label>;
 }
 
-export default function SurfaceComposer({ session: inputSession, onChange, onClose, onSave, evaluateGraph, sourceNodes, currentSelection, onLegacyMode, pens, projectName }) {
+export default function SurfaceComposer({ session: inputSession, onChange, onClose, onSave, evaluateGraph, sourceNodes, currentSelection, onFamilyChange, pens, projectName, family = "Strips", vectorServices }) {
   const session = useMemo(() => inputSession.production ? inputSession : { ...inputSession, production: productionSettings() }, [inputSession]);
   const uid = useId().replace(/:/g, "");
   const svgRef = useRef(null), dialogRef = useRef(null), closeRef = useRef(null), fileRef = useRef(null);
@@ -51,13 +53,21 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   const [exportArea, setExportArea] = useState("paper");
   const [exportMessage, setExportMessage] = useState("");
   const cancelExport = useRef(false);
-  const busy = printBusy || exportBusy;
+  const [vectorBusy, setVectorBusy] = useState(false);
+  const [vectorSelected, setVectorSelected] = useState(false);
+  const [vectorMessage, setVectorMessage] = useState("");
+  const busy = printBusy || exportBusy || vectorBusy;
   const [printMessage, setPrintMessage] = useState("");
   const stopPrint = useRef(false);
   const recoveredPrint = useRef(false);
   const s = gesture || session;
   const selected = s.strips.find(strip => strip.id === s.selectedId);
+  const paperWord = family === "Sheets" ? "sheet" : "strip";
+  const settings = s.composition?.settings;
+  let selectedPieces = [], pieceError = "";
+  try { if (settings && selected) selectedPieces = compositionPieces(s, selected); } catch (e) { pieceError = e.message; }
   const summary = useMemo(() => surfaceSummary(s.strips), [s.strips]);
+  const sheetAreaM2 = s.strips.filter(p => p.visible).reduce((sum, p) => sum + p.physicalWidthMm * p.lengthMm / 1000000, 0);
   const budget = useMemo(() => paperBudget(s.strips, s.production), [s.strips, s.production]);
   const pendingJob = s.production.lastJob && ["queued", "printing", "unknown"].includes(s.production.lastJob.status);
   let printPlan = null, printPlanError = "";
@@ -76,7 +86,11 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   };
   const undo = () => { const h = history.current; if (!h.past.length) return; h.future.push(session); const restored = h.past.pop(); onChange({ ...restored, production: restored.selectedId === session.selectedId ? session.production : { ...session.production, fromMm: 0, toMm: null } }); setHistoryVersion(v => v + 1); };
   const redo = () => { const h = history.current; if (!h.future.length) return; h.past.push(session); const restored = h.future.pop(); onChange({ ...restored, production: restored.selectedId === session.selectedId ? session.production : { ...session.production, fromMm: 0, toMm: null } }); setHistoryVersion(v => v + 1); };
-  const changeStrip = (key, value) => commit(old => updateSurfaceStrip(old, old.selectedId, { [key]: value }));
+  const changeStrip = (key, value) => commit(old => {
+    const paper = old.strips.find(p => p.id === old.selectedId);
+    const patch = settings && key === "physicalWidthMm" && paper?.printableOffsetMm === 0 && paper.printableWidthMm === paper.physicalWidthMm ? { physicalWidthMm: value, printableWidthMm: value } : { [key]: value };
+    return updateSurfaceStrip(old, old.selectedId, patch);
+  });
   const changeLayout = (key, value) => commit(old => updateSurfaceLayout(old, { [key]: value }));
   const changeSource = patch => commit(old => ({ ...old, source: { ...old.source, ...patch } }));
   const changeProduction = (key, value) => commit(old => ({ ...old, production: productionSettings({ ...old.production, [key]: value }) }), false);
@@ -98,10 +112,28 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
       const url = URL.createObjectURL(result.blob), link = document.createElement("a");
       link.href = url; link.download = result.filename; document.body.appendChild(link); link.click(); link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
-      setExportMessage(`Saved ${result.manifest.strips.length} strip(s) · ${(result.blob.size / 1024 / 1024).toFixed(2)} MB. Print at actual size / 100%.`);
+      setExportMessage(`Saved ${result.manifest.strips.length} ${paperWord}(s) · ${(result.blob.size / 1024 / 1024).toFixed(2)} MB. Print at actual size / 100%.`);
     } catch (e) { if (alive.current) setExportMessage(e.message); }
     finally { if (alive.current) setExportBusy(false); }
   };
+
+  const exportVectors = async (kind, sourceOnly = false) => {
+    if (busy || !vectorServices) return;
+    cancelExport.current = false; setVectorBusy(true); setVectorMessage("Preparing vector files…");
+    try {
+      const result = await surfaceVectorFiles(sessionRef.current, kind, { selectedOnly: vectorSelected, sourceOnly, projectName }, { ...vectorServices, evaluateGraph, cancelled: () => cancelExport.current || !alive.current });
+      if (cancelExport.current || !alive.current) return;
+      const single = result.files.length === 1;
+      const blob = single ? new Blob([result.files[0].text], { type: kind === "svg" ? "image/svg+xml" : "text/plain" }) : new Blob([vectorServices.buildZip(result.files)], { type: "application/zip" });
+      const url = URL.createObjectURL(blob), link = document.createElement("a");
+      link.href = url; link.download = single ? result.files[0].name : `${(projectName || "surface").replace(/[^a-zA-Z0-9_-]+/g, "-")}-${family.toLowerCase()}-${kind}.zip`;
+      document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+      setVectorMessage(`Saved ${result.files.length} ${kind.toUpperCase()} file(s). Each file keeps its own physical dimensions.`);
+    } catch (e) { if (alive.current) setVectorMessage(e.message); }
+    finally { if (alive.current) setVectorBusy(false); }
+  };
+  const changeComposition = (key, value) => commit(old => updateComposition(old, { [key]: value }));
+  const generatePapers = () => { const next = commit(old => generateComposition(old)); if (next) setView(fitView(next)); };
 
   const recordJob = (job, removeId = null) => {
     try {
@@ -304,32 +336,43 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
     <header className="sc-header"><div><h1 id={`${uid}-title`}>Surface Composer</h1><span>Paper is part of the composition.</span></div><div className="sc-actions">
       <button onClick={undo} disabled={busy || !history.current.past.length} title="Undo (⌘/Ctrl Z)">Undo</button><button onClick={redo} disabled={busy || !history.current.future.length} title="Redo (⌘/Ctrl Shift Z)">Redo</button>
       <button onClick={onSave}>Save project</button><button className="sc-primary" ref={closeRef} disabled={busy} onClick={onClose}>Done</button></div></header>
-    <nav className="sc-tabs" aria-label="Surface modes"><button disabled={busy} onClick={() => onLegacyMode("Sheets")}>Mega Canvas ↗</button><button disabled={busy} onClick={() => onLegacyMode("Roll")}>Roll Mode ↗</button>
-      <button aria-pressed={s.mode === "tiling"} onClick={() => commit({ ...session, mode: "tiling" }, false)}>Strip Tiling</button><button aria-pressed={s.mode === "freeform"} onClick={() => commit({ ...session, mode: "freeform" }, false)}>Freeform Strips</button><span>All dimensions in mm</span></nav>
+    <nav className="sc-tabs" aria-label="Surface modes"><button aria-pressed={family === "Sheets"} disabled={busy} onClick={() => onFamilyChange("Sheets")}>Mega Canvas</button><button aria-pressed={family === "Roll"} disabled={busy} onClick={() => onFamilyChange("Roll")}>Roll Mode</button>
+      <button aria-pressed={family === "Strips" && s.mode === "tiling"} disabled={busy} onClick={() => family === "Strips" ? commit({ ...session, mode: "tiling" }, false) : onFamilyChange("Strips", "tiling")}>Strip Tiling</button><button aria-pressed={family === "Strips" && s.mode === "freeform"} disabled={busy} onClick={() => family === "Strips" ? commit({ ...session, mode: "freeform" }, false) : onFamilyChange("Strips", "freeform")}>Freeform Strips</button><span>All dimensions in mm</span></nav>
     {error && <div className="sc-error" role="alert">{error}<button aria-label="Dismiss error" onClick={() => setError("")}>×</button></div>}
     <div className="sc-body">
       <aside className="sc-sidebar"><section><h2>Content</h2><label className="sc-field"><span>Source</span><select aria-label="Content source" value={s.source.kind} onChange={e => changeSource({ kind: e.target.value })}><option value="graph">Graph output</option><option value="image">Image</option></select></label>
         {s.source.kind === "graph" ? <><label className="sc-field"><span>Node output</span><select aria-label="Graph output" value={s.source.nodeId ?? ""} onChange={e => { const node = sourceNodes.find(n => String(n.id) === e.target.value); changeSource({ nodeId: node?.id ?? null }); }}><option value="">Choose a node</option>{sourceNodes.map(n => <option key={n.id} value={n.id}>{n.label}</option>)}</select></label><button disabled={!currentSelection} onClick={() => changeSource({ nodeId: currentSelection.id, graphPath: currentSelection.path })}>Use selected node</button></> : <><button disabled={loadingImage} onClick={() => fileRef.current.click()}>{loadingImage ? "Reading image…" : "Choose image…"}</button><input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={e => { loadImage(e.target.files?.[0]); e.target.value = ""; }} /><p className="sc-note">{s.source.image ? `${s.source.image.name} · ${s.source.image.width} × ${s.source.image.height} px` : "PNG, JPEG or WebP · up to 8 MB"}</p>
         <label className="sc-field"><span>Image fit</span><select aria-label="Image fit" value={s.source.fit} onChange={e => changeSource({ fit: e.target.value })}><option value="contain">Contain · whole image</option><option value="cover">Cover · crop to surface</option></select></label></>}
       </section>
-      <section><h2>Surface & paper</h2><div className="sc-grid"><NumberField label="Surface width" value={s.widthMm} min={1} onChange={widthMm => commit({ ...session, widthMm })} /><NumberField label="Surface height" value={s.heightMm} min={1} onChange={heightMm => commit({ ...session, heightMm })} /></div>
+      <section><h2>Surface & paper</h2><div className="sc-grid"><NumberField label="Surface width" value={s.widthMm} min={1} onChange={widthMm => commit({ ...session, widthMm, mode: settings ? "freeform" : session.mode })} /><NumberField label="Surface height" value={s.heightMm} min={1} onChange={heightMm => commit({ ...session, heightMm, mode: settings ? "freeform" : session.mode })} /></div>
+        {family === "Sheets" ? <div className="sc-paper-budget fits" aria-live="polite"><span>Total paper · visible sheets</span><strong>{summary.stripCount} sheets</strong><span>{sheetAreaM2.toFixed(3)} m² paper · {summary.totalLengthM.toFixed(2)} m combined length</span></div> : <>
         <div className={`sc-paper-budget ${budget.fits ? "fits" : "short"}`} aria-live="polite"><span>Total paper · full layout</span><strong>{budget.totalM.toFixed(2)} m</strong><span>{budget.fits ? `Fits on this roll · ${(budget.availableM - budget.totalM).toFixed(2)} m spare` : `${budget.shortfallM.toFixed(2)} m more paper needed`}</span></div>
         <p className="sc-note">{budget.artworkM.toFixed(2)} m strips + {budget.allowanceM.toFixed(2)} m feed/cut allowance</p>
-        <div className="sc-grid"><NumberField label="Roll length (m)" value={s.production.rollLengthM} min={.1} onChange={v => changeProduction("rollLengthM", v)} /><NumberField label="Already used (m)" value={s.production.usedOnRollM} min={0} onChange={v => changeProduction("usedOnRollM", v)} /><NumberField label="Reserve (m)" value={s.production.reserveM} min={0} onChange={v => changeProduction("reserveM", v)} /><NumberField label="Allowance per strip" value={s.production.allowanceMm} min={0} onChange={v => changeProduction("allowanceMm", v)} /></div><p className="sc-note">Enter roll use manually. Feed/cut allowance is an estimate; hidden strips are excluded.</p>
+        <div className="sc-grid"><NumberField label="Roll length (m)" value={s.production.rollLengthM} min={.1} onChange={v => changeProduction("rollLengthM", v)} /><NumberField label="Already used (m)" value={s.production.usedOnRollM} min={0} onChange={v => changeProduction("usedOnRollM", v)} /><NumberField label="Reserve (m)" value={s.production.reserveM} min={0} onChange={v => changeProduction("reserveM", v)} /><NumberField label="Allowance per strip" value={s.production.allowanceMm} min={0} onChange={v => changeProduction("allowanceMm", v)} /></div><p className="sc-note">Enter roll use manually. Feed/cut allowance is an estimate; hidden strips are excluded.</p></>}
+
       </section>
-      <section><h2>Generate strips</h2><label className="sc-field"><span>Direction</span><select aria-label="Strip direction" value={s.layout.rotationDeg === 0 ? "vertical" : s.layout.rotationDeg === 90 ? "horizontal" : "diagonal"} onChange={e => changeLayout("rotationDeg", e.target.value === "vertical" ? 0 : e.target.value === "horizontal" ? 90 : 45)}><option value="vertical">Vertical</option><option value="horizontal">Horizontal</option><option value="diagonal">Diagonal</option></select></label>
+      {settings ? <section><h2>{family === "Sheets" ? "Sheet layout" : "Roll layout"}</h2>
+        <label className="sc-check"><input type="checkbox" checked={s.mode === "freeform"} onChange={e => e.target.checked ? commit({ ...session, mode: "freeform" }) : generatePapers()} />Freeform layout</label>
+        <p className="sc-note">Drag, rotate or resize any paper to make it freeform. Generate builds a regular layout; Undo restores your edits.</p>
+        {family === "Sheets" ? <div className="sc-grid"><NumberField label="Sheet width" value={settings.sheetWidthMm} min={1} onChange={v => changeComposition("sheetWidthMm", v)} /><NumberField label="Sheet height" value={settings.sheetHeightMm} min={1} onChange={v => changeComposition("sheetHeightMm", v)} /><NumberField label="Columns" value={settings.columns} min={1} max={6} step={1} onChange={v => changeComposition("columns", v)} /><NumberField label="Rows" value={settings.rows} min={1} max={8} step={1} onChange={v => changeComposition("rows", v)} /></div> : <div className="sc-grid"><NumberField label="Roll width" value={settings.rollWidthMm} min={1} max={1200} onChange={v => changeComposition("rollWidthMm", v)} /><NumberField label="Strip length" value={settings.rollLengthMm} min={1} max={30000} onChange={v => changeComposition("rollLengthMm", v)} /><NumberField label="Strip count" value={settings.rollCount} min={1} max={12} step={1} onChange={v => changeComposition("rollCount", v)} /><NumberField label="Machine piece length" value={settings.pieceLengthMm} min={1} max={30000} onChange={v => changeComposition("pieceLengthMm", v)} /></div>}
+        <NumberField label="Seam width" value={settings.seamMm} min={0} max={40} onChange={v => changeComposition("seamMm", v)} />
+        <label className="sc-field"><span>Joining</span><select aria-label="Paper joining" value={settings.join} onChange={e => changeComposition("join", e.target.value)}><option value="Overlap">Overlap · repeat seam</option><option value="Gap">Gap · leave space</option></select></label>
+        <button className="sc-primary sc-wide" onClick={generatePapers}>{family === "Sheets" ? "Generate sheets" : "Generate roll strips"}</button>
+        <p className="sc-note">Paper dimensions, count and seam apply when you Generate. {family === "Roll" ? "Machine piece length applies to file export; the paper remains one continuous strip." : "Each sheet keeps its own position, angle and size."}</p>
+      </section> : <>      <section><h2>Generate strips</h2><label className="sc-field"><span>Direction</span><select aria-label="Strip direction" value={s.layout.rotationDeg === 0 ? "vertical" : s.layout.rotationDeg === 90 ? "horizontal" : "diagonal"} onChange={e => changeLayout("rotationDeg", e.target.value === "vertical" ? 0 : e.target.value === "horizontal" ? 90 : 45)}><option value="vertical">Vertical</option><option value="horizontal">Horizontal</option><option value="diagonal">Diagonal</option></select></label>
         <div className="sc-grid"><NumberField label="Layout angle" value={s.layout.rotationDeg} onChange={v => changeLayout("rotationDeg", v)} /><NumberField label="Paper gap" value={s.layout.gapMm} min={0} onChange={v => changeLayout("gapMm", v)} /><NumberField label="Physical width" value={s.layout.physicalWidthMm} min={.1} onChange={v => changeLayout("physicalWidthMm", v)} /><NumberField label="Printable width" value={s.layout.printableWidthMm} min={.1} onChange={v => changeLayout("printableWidthMm", v)} /><NumberField label="Printable offset" value={s.layout.printableOffsetMm} min={0} onChange={v => changeLayout("printableOffsetMm", v)} /></div>
         <label className="sc-check"><input type="checkbox" checked={s.layout.count === null} onChange={e => changeLayout("count", e.target.checked ? null : Math.max(1, s.strips.length))} />Automatic count</label>{s.layout.count !== null && <NumberField label="Strip count" value={s.layout.count} min={1} max={4096} step={1} onChange={v => changeLayout("count", v)} />}
         <label className="sc-check"><input type="checkbox" checked={s.layout.lengthMm === null} onChange={e => changeLayout("lengthMm", e.target.checked ? null : s.heightMm)} />Automatic length</label>{s.layout.lengthMm !== null && <NumberField label="Strip length" value={s.layout.lengthMm} min={1} onChange={v => changeLayout("lengthMm", v)} />}
         <button className="sc-primary sc-wide" onClick={() => { const next = commit(old => regenerateSurface(old)); if (next) setView(fitView(next)); }}>Generate strips</button><p className="sc-note">Generate replaces the current layout. Undo restores manual edits. Paper width is nominal; the 4.6 mm side margins were checked on the Epson.</p>
-      </section>
+      </section></>}
+
       <section className="sc-export"><h2>Export PNG</h2>
         <label className="sc-field"><span>Resolution</span><select aria-label="PNG resolution" value={exportResolution} disabled={busy} onChange={e => setExportResolution(e.target.value)}><option value="epson">Epson · measured 179.5 dpi</option><option value="150">150 dpi</option><option value="300">300 dpi</option><option value="600">600 dpi</option></select></label>
         <label className="sc-field"><span>Image area</span><select aria-label="PNG image area" value={exportArea} disabled={busy} onChange={e => setExportArea(e.target.value)}><option value="paper">Full paper · white margins</option><option value="printable">Printable area only</option></select></label>
         {selectedExport && <p className="sc-note">Selected: {selectedExport.entries[0].plan.width} × {selectedExport.entries[0].plan.height} px</p>}
         <button className="sc-wide" disabled={busy || loadingImage || !selectedExport || !!content.empty} onClick={() => exportStrips(true)}>Export selected PNG</button>
         <button className="sc-wide" disabled={busy || loadingImage || !allExport || !!content.empty} onClick={() => exportStrips(false)}>Export all PNGs + manifest · ZIP</button>
-        <p className="sc-note">{allExport ? `${allExport.entries.length} visible strips in print order. ` : `${exportError} `}Whole strips; start/end print positions do not crop these files. Colours and physical size are preserved. Use actual size / 100% when printing.</p>
+        <p className="sc-note">{allExport ? `${allExport.entries.length} visible papers in print order. ` : `${exportError} `}Whole papers; start/end print positions do not crop these files. Colours and physical size are preserved. Use actual size / 100% when printing.</p>
         {exportBusy && <button className="sc-wide" onClick={() => { cancelExport.current = true; setExportMessage("Cancelling export…"); }}>Cancel export</button>}
         {exportMessage && <p className="sc-print-status" role="status">{exportMessage}</p>}
       </section></aside>
@@ -345,19 +388,34 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
           {sorted.filter(strip => strip.visible).map(strip => <g key={strip.id} data-strip-id={strip.id} onPointerDown={e => begin(e, e.button === 1 ? "pan" : "move", strip)} className="sc-paper">
             <polygon points={polygon(stripCorners(strip))} fill="#fffdf8" stroke={s.selectedId === strip.id ? "#edaa62" : "#acb5b8"} strokeWidth={view.w * (s.selectedId === strip.id ? .0018 : .0005)} />
             <use href={`#${uid}-art`} clipPath={`url(#${clipIds.get(strip.id)})`} pointerEvents="none" />
+            {family === "Roll" && settings && Math.ceil(strip.lengthMm / settings.pieceLengthMm) <= 8192 && <path d={Array.from({ length: Math.max(0, Math.ceil(strip.lengthMm / settings.pieceLengthMm) - 1) }, (_, i) => { const t = stripTransform(strip), a = t.toGlobal([0, (i + 1) * settings.pieceLengthMm]), b = t.toGlobal([strip.physicalWidthMm, (i + 1) * settings.pieceLengthMm]); return `M${a.join(",")}L${b.join(",")}`; }).join(" ")} fill="none" stroke="#79b6c4" strokeWidth={1} vectorEffect="non-scaling-stroke" strokeDasharray="5 4" pointerEvents="none" />}
           </g>)}
           {labels && sorted.filter(strip => strip.visible).map(strip => { const t = stripTransform(strip), p = t.toGlobal([strip.physicalWidthMm / 2, Math.min(strip.lengthMm / 2, radius * 3)]); return <g key={strip.id} pointerEvents="none"><circle cx={p[0]} cy={p[1]} r={radius * 1.4} fill={s.selectedId === strip.id ? "#edaa62" : "#263541"} /><text x={p[0]} y={p[1]} fill={s.selectedId === strip.id ? "#1a2025" : "#fff"} textAnchor="middle" dominantBaseline="central" fontSize={radius * 1.5}>{s.strips.indexOf(strip) + 1}</text></g>; })}
           {selected && <g><polygon points={polygon(stripCorners(selected))} fill="none" stroke="#edaa62" strokeWidth={view.w * .0018} strokeDasharray={selected.visible ? undefined : `${radius} ${radius}`} pointerEvents="none" /><line x1={controls.top[0]} y1={controls.top[1]} x2={controls.rotate[0]} y2={controls.rotate[1]} stroke="#edaa62" strokeWidth={radius * .25} pointerEvents="none" /><circle aria-label="Rotate selected strip" role="button" cx={controls.rotate[0]} cy={controls.rotate[1]} r={radius * 1.6} fill="#edaa62" stroke="#1d2630" strokeWidth={radius * .3} onPointerDown={e => begin(e, "rotate", selected)} className="sc-handle"><title>Drag to rotate · Shift snaps to 15°</title></circle><rect aria-label="Resize selected strip" role="button" x={controls.bottom[0] - radius * 1.5} y={controls.bottom[1] - radius * 1.5} width={radius * 3} height={radius * 3} fill="#79b6c4" stroke="#1d2630" strokeWidth={radius * .3} onPointerDown={e => begin(e, "length", selected)} className="sc-handle"><title>Drag to change length</title></rect></g>}
         </svg>{content.empty && <div className="sc-empty">{content.empty}</div>}</div>
         <div className="sc-stage-help">Drag paper to move · orange handle to rotate · blue handle to resize · wheel to zoom · background to pan</div>
-        <footer className="sc-summary"><strong>{budget.totalM.toFixed(2)} m total</strong><span>{summary.stripCount} visible strips</span><span>{budget.fits ? "Fits on roll" : `${budget.shortfallM.toFixed(2)} m short`}</span><span>Paper envelope {summary.bounds ? `${mm(summary.bounds.widthMm)} × ${mm(summary.bounds.heightMm)} mm` : "—"}</span><span>Surface {s.widthMm} × {s.heightMm} mm</span></footer>
+        <footer className="sc-summary"><strong>{family === "Sheets" ? `${summary.stripCount} sheets · ${sheetAreaM2.toFixed(3)} m²` : `${budget.totalM.toFixed(2)} m total`}</strong><span>{summary.stripCount} visible {family === "Sheets" ? "sheets" : "strips"}</span>{family !== "Sheets" && <span>{budget.fits ? "Fits on roll" : `${budget.shortfallM.toFixed(2)} m short`}</span>}<span>Paper envelope {summary.bounds ? `${mm(summary.bounds.widthMm)} × ${mm(summary.bounds.heightMm)} mm` : "—"}</span><span>Surface {s.widthMm} × {s.heightMm} mm</span></footer>
       </main>
 
-      <aside className="sc-inspector"><section><h2>{selected ? `Strip ${s.strips.indexOf(selected) + 1}` : "Select a strip"}</h2>{selected ? <>
+      <aside className="sc-inspector"><section><h2>{selected ? `${family === "Sheets" ? "Sheet" : "Strip"} ${s.strips.indexOf(selected) + 1}` : "Select a strip"}</h2>{selected ? <>
         <label className="sc-check"><input type="checkbox" checked={selected.visible} onChange={e => changeStrip("visible", e.target.checked)} />Visible · included in production</label>
-        <div className="sc-grid"><NumberField label="Centre X" value={mm(selected.centerXmm)} onChange={v => changeStrip("centerXmm", v)} /><NumberField label="Centre Y" value={mm(selected.centerYmm)} onChange={v => changeStrip("centerYmm", v)} /><NumberField label="Rotation" value={mm(selected.rotationDeg)} onChange={v => changeStrip("rotationDeg", v)} /><NumberField label="Length" value={mm(selected.lengthMm)} min={1} onChange={v => changeStrip("lengthMm", v)} /><NumberField label="Paper width" value={selected.physicalWidthMm} min={.1} onChange={v => changeStrip("physicalWidthMm", v)} /><NumberField label="Ink width" value={selected.printableWidthMm} min={.1} onChange={v => changeStrip("printableWidthMm", v)} /><NumberField label="Ink offset" value={selected.printableOffsetMm} min={0} onChange={v => changeStrip("printableOffsetMm", v)} /><NumberField label="Layer" value={selected.zIndex} step={1} onChange={v => changeStrip("zIndex", v)} /><NumberField label="Print order" value={selected.printOrder} min={1} step={1} onChange={v => changeStrip("printOrder", v)} /></div>
-        <div className="sc-actions"><button onClick={() => commit(old => addSurfaceStrip(old, old.selectedId))}>Duplicate strip</button><button onClick={() => commit(old => removeSurfaceStrip(old, old.selectedId))}>Remove</button></div></> : <p className="sc-note">Choose paper in the preview or in the list.</p>}</section>
-        <section className="sc-production"><h2>Print / continue</h2><label className="sc-field"><span>Start with strip</span><select aria-label="Print strip" value={s.selectedId ?? ""} disabled={busy} onChange={e => selectStrip(e.target.value)}><option value="">Select a strip</option>{[...s.strips].filter(x => x.visible).sort((a,b) => a.printOrder-b.printOrder).map(strip => <option key={strip.id} value={strip.id}>{s.strips.indexOf(strip)+1} · {mm(strip.lengthMm)} mm</option>)}</select></label>
+        <div className="sc-grid"><NumberField label="Centre X" value={mm(selected.centerXmm)} onChange={v => changeStrip("centerXmm", v)} /><NumberField label="Centre Y" value={mm(selected.centerYmm)} onChange={v => changeStrip("centerYmm", v)} /><NumberField label="Rotation" value={mm(selected.rotationDeg)} onChange={v => changeStrip("rotationDeg", v)} /><NumberField label={family === "Sheets" ? "Sheet height" : "Length"} value={mm(selected.lengthMm)} min={1} onChange={v => changeStrip("lengthMm", v)} /><NumberField label="Paper width" value={selected.physicalWidthMm} min={.1} onChange={v => changeStrip("physicalWidthMm", v)} /><NumberField label="Ink width" value={selected.printableWidthMm} min={.1} onChange={v => changeStrip("printableWidthMm", v)} /><NumberField label="Ink offset" value={selected.printableOffsetMm} min={0} onChange={v => changeStrip("printableOffsetMm", v)} /><NumberField label="Layer" value={selected.zIndex} step={1} onChange={v => changeStrip("zIndex", v)} /><NumberField label="Print order" value={selected.printOrder} min={1} step={1} onChange={v => changeStrip("printOrder", v)} /></div>
+        <div className="sc-actions"><button onClick={() => commit(old => addSurfaceStrip(old, old.selectedId))}>Duplicate {paperWord}</button><button onClick={() => commit(old => removeSurfaceStrip(old, old.selectedId))}>Remove</button></div></> : <p className="sc-note">Choose paper in the preview or in the list.</p>}</section>
+        {settings && <section className="sc-vector"><h2>Plotter / vector files</h2>
+          <label className="sc-check"><input type="checkbox" checked={settings.marks} disabled={busy} onChange={e => changeComposition("marks", e.target.checked)} />{family === "Roll" ? "Registration ticks at piece boundaries" : "Crop marks"}</label>
+          <label className="sc-check"><input type="checkbox" checked={settings.labels} disabled={busy} onChange={e => changeComposition("labels", e.target.checked)} />Paper / piece labels</label>
+          <label className="sc-field"><span>Mark pen</span><select aria-label="Layout mark pen" value={settings.markPen} disabled={busy} onChange={e => changeComposition("markPen", Number(e.target.value))}>{pens.map((p, i) => <option key={i} value={i}>{i}: {p.name}</option>)}</select></label>
+          {family === "Roll" && selected && <p className="sc-note">Selected strip: {pieceError || `${selectedPieces.length} machine piece(s); last ${mm(selectedPieces.at(-1)?.lengthMm ?? 0)} mm.`}</p>}
+          <label className="sc-check"><input type="checkbox" checked={vectorSelected} disabled={busy} onChange={e => setVectorSelected(e.target.checked)} />Selected {paperWord} only</label>
+          <div className="sc-actions"><button disabled={busy || s.source.kind !== "graph" || !!content.empty} onClick={() => exportVectors("svg")}>SVG files</button><button disabled={busy || s.source.kind !== "graph" || !!content.empty} onClick={() => exportVectors("dxf")}>DXF files</button><button disabled={busy || !vectorServices?.gcodeEnabled || s.source.kind !== "graph" || !!content.empty} onClick={() => exportVectors("gcode")}>G-code files</button></div>
+          <button className="sc-wide" disabled={busy || s.source.kind !== "graph" || !!content.empty} onClick={() => exportVectors("svg", true)}>Source SVG · full artwork</button>
+          <p className="sc-note">{s.source.kind === "image" ? "Use PNG for an image source. Vector files require a graph output." : "Multiple files download in a ZIP. Paper motion changes the sampled artwork; file coordinates stay local to each paper or roll piece."}</p>
+          {vectorServices && s.strips.some(p => p.visible && (p.physicalWidthMm > vectorServices.workW || Math.min(p.lengthMm, family === "Roll" ? settings.pieceLengthMm : p.lengthMm) > vectorServices.workH)) && <p className="sc-note sc-work-warning">Some papers or machine pieces exceed the work area. Adjust their dimensions before plotting.</p>}
+          {vectorServices && <p className="sc-note">{vectorServices.machineName} · work area {vectorServices.workW} × {vectorServices.workH} mm. Check each file fits before plotting.</p>}
+          {vectorBusy && <button className="sc-wide" onClick={() => { cancelExport.current = true; }}>Cancel vector export</button>}
+          {vectorMessage && <p className="sc-print-status" role="status">{vectorMessage}</p>}
+        </section>}
+        {(family === "Strips" || family === "Roll" && selected && selected.physicalWidthMm >= 78 && selected.physicalWidthMm <= 82) && <section className="sc-production"><h2>Print / continue</h2><label className="sc-field"><span>Start with strip</span><select aria-label="Print strip" value={s.selectedId ?? ""} disabled={busy} onChange={e => selectStrip(e.target.value)}><option value="">Select a strip</option>{[...s.strips].filter(x => x.visible).sort((a,b) => a.printOrder-b.printOrder).map(strip => <option key={strip.id} value={strip.id}>{s.strips.indexOf(strip)+1} · {mm(strip.lengthMm)} mm</option>)}</select></label>
           <NumberField label="Start at (mm)" value={s.production.fromMm} min={0} disabled={busy} onChange={v => changeProduction("fromMm", v)} />
           <label className="sc-check"><input type="checkbox" checked={s.production.toMm === null} disabled={busy || consecutive} onChange={e => changeProduction("toMm", e.target.checked ? null : selected?.lengthMm ?? 100)} />To end of strip</label>{s.production.toMm !== null && !consecutive && <NumberField label="End at (mm)" value={s.production.toMm} min={0} disabled={busy} onChange={v => changeProduction("toMm", v)} />}
           <div className="sc-print-mode">One strip at a time. The next waits for you to let the printer cool.</div>
@@ -370,8 +428,8 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
           {s.production.lastJob && <button className="sc-wide" disabled={busy} onClick={checkLastJob}>Check last job</button>}
           {pendingJob && !printBusy && <><p className="sc-note">If status cannot be recovered, check the paper and enter the actual restart position.</p><button className="sc-wide" disabled={busy} onClick={() => { recordJob(null); setPrintMessage("Print record cleared. Set the actual restart position before printing."); }}>Resume manually · clear record</button></>}
           {printMessage && <p className="sc-print-status" role="status">{printMessage}</p>}
-        </section>
-        <section className="sc-strip-section"><div className="sc-section-heading"><h2>All strips <span>{s.strips.length}</span></h2><button onClick={() => commit(old => addSurfaceStrip(old))}>+ Add</button></div><div className="sc-strip-list">{s.strips.map((strip, i) => <div key={strip.id} className={strip.id === s.selectedId ? "sc-strip-row is-selected" : "sc-strip-row"}><input aria-label={`Show strip ${i + 1}`} type="checkbox" checked={strip.visible} onChange={e => commit(old => updateSurfaceStrip(old, strip.id, { visible: e.target.checked }))} /><button aria-label={`Select strip ${i + 1}`} aria-pressed={strip.id === s.selectedId} onClick={() => selectStrip(strip.id)}><b>{String(i + 1).padStart(2, "0")}</b><span>{mm(strip.lengthMm)} mm</span><small>{mm(strip.rotationDeg)}°</small></button></div>)}</div></section>
+        </section>}
+        <section className="sc-strip-section"><div className="sc-section-heading"><h2>All {family === "Sheets" ? "sheets" : "strips"} <span>{s.strips.length}</span></h2><button onClick={() => commit(old => addSurfaceStrip(old))}>+ Add</button></div><div className="sc-strip-list">{s.strips.map((strip, i) => <div key={strip.id} className={strip.id === s.selectedId ? "sc-strip-row is-selected" : "sc-strip-row"}><input aria-label={`Show ${paperWord} ${i + 1}`} type="checkbox" checked={strip.visible} onChange={e => commit(old => updateSurfaceStrip(old, strip.id, { visible: e.target.checked }))} /><button aria-label={`Select ${paperWord} ${i + 1}`} aria-pressed={strip.id === s.selectedId} onClick={() => selectStrip(strip.id)}><b>{String(i + 1).padStart(2, "0")}</b><span>{mm(strip.lengthMm)} mm</span><small>{mm(strip.rotationDeg)}°</small></button></div>)}</div></section>
       </aside>
     </div><span hidden>{historyVersion}</span>
   </div>;
