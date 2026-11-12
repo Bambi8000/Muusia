@@ -544,7 +544,7 @@ const NODE_HELP = {
   trimext: "shortens or lengthens path ends.",
   truchet: "tiled quarter-circle patterns. *Tiles* mode draws arc tiles (lines/spread/gap per tile); *Loop* mode grows a spanning tree and emits **one single closed line** that fills the canvas \u2014 a maze you can plot without lifting the pen.",
   trunks: "birch trunks only, no branches: two wandering edge lines per trunk. Smoothness (edge waver), lean, upward taper, and *Artifacts*: horizontal bark dashes (some doubled), on their own pen if desired.",
-  tvnoise: "animated analog-TV snow. *Patent TV* draws an antenna-free CRT in patent-style lines. Wire a path node into the blue Program input to show it on the rounded screen; *Screen signal* selects program, snow or both. *Black frame chance* adds repeatable dark interruptions. Timeline follows ANIMATE, Manual picks a frame and Still freezes it.",
+  tvnoise: "animated analog-TV snow. *Patent TV* draws an antenna-free CRT in patent-style lines. Wire a path node into the blue Program input to show it on the rounded screen; *Screen signal* selects program, snow or both. *Invert screen* reverses black and white inside the glass, so black frames become white. *Black frame chance* adds repeatable interruptions. Timeline follows ANIMATE, Manual picks a frame and Still freezes it.",
   tyylita: "applies a Stroke style to existing paths.",
   viiva: "not geometry: produces a *style* (dash patterns etc.) for generators' Style inputs.",
   voronoi: "seeded sites carved into cells by half-plane clipping, with optional Lloyd relaxation (0-3) for even cell sizes. Shared edges are emitted exactly once, so no line is drawn twice. Optional site crosses.",
@@ -899,7 +899,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.174"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.175"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);

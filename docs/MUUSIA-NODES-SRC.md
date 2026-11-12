@@ -59061,6 +59061,54 @@ function drawBlackout(paths, screen, layer) {
   }
 }
 
+function drawInvertedScreen(paths, signal, screen, layer) {
+  // Plot the negative as tight scanlines, leaving the original strokes as paper.
+  const cols = Math.max(1, Math.ceil(screen.w / Math.max(0.28, screen.w / 600)));
+  const rows = Math.max(1, Math.ceil(screen.h / Math.max(0.24, screen.h / 420)));
+  const dx = screen.w / cols, dy = screen.h / rows;
+  const radius = Math.max(0.35, Math.max(dx, dy) * 0.7);
+  const occupied = new Uint8Array(cols * rows);
+  for (const stroke of signal) {
+    const pts = stroke.pts;
+    if (!Array.isArray(pts) || pts.length < 2) continue;
+    const count = stroke.closed ? pts.length : pts.length - 1;
+    for (let i = 0; i < count; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length];
+      if (![a?.[0], a?.[1], b?.[0], b?.[1]].every(Number.isFinite)) continue;
+      const vx = b[0] - a[0], vy = b[1] - a[1], length2 = vx * vx + vy * vy;
+      const c0 = Math.max(0, Math.floor((Math.min(a[0], b[0]) - radius - screen.x) / dx));
+      const c1 = Math.min(cols - 1, Math.floor((Math.max(a[0], b[0]) + radius - screen.x) / dx));
+      const r0 = Math.max(0, Math.floor((Math.min(a[1], b[1]) - radius - screen.y) / dy));
+      const r1 = Math.min(rows - 1, Math.floor((Math.max(a[1], b[1]) + radius - screen.y) / dy));
+      for (let r = r0; r <= r1; r++) {
+        const y = screen.y + (r + 0.5) * dy;
+        for (let c = c0; c <= c1; c++) {
+          const x = screen.x + (c + 0.5) * dx;
+          const t = length2 ? Math.max(0, Math.min(1, ((x - a[0]) * vx + (y - a[1]) * vy) / length2)) : 0;
+          if ((x - a[0] - t * vx) ** 2 + (y - a[1] - t * vy) ** 2 <= radius ** 2) {
+            occupied[r * cols + c] = 1;
+          }
+        }
+      }
+    }
+  }
+  for (let r = 0; r < rows; r++) {
+    const y = screen.y + (r + 0.5) * dy;
+    let start = -1;
+    for (let c = 0; c <= cols; c++) {
+      const x = screen.x + (c + 0.5) * dx;
+      const ink = c < cols && !occupied[r * cols + c] && insideRounded(x, y, screen);
+      if (ink && start < 0) start = c;
+      if (!ink && start >= 0) {
+        const x0 = screen.x + (start + 0.5) * dx;
+        const x1 = screen.x + (c - 0.5) * dx;
+        if (x1 > x0) paths.push(path([[x0, y], [x1, y]], layer));
+        start = -1;
+      }
+    }
+  }
+}
+
 function drawPatentTV(paths, W, H, margin, layer) {
   const s = Math.min((W - 2 * margin) / 240, (H - 2 * margin) / 180);
   if (!(s > 0)) return null;
@@ -59110,7 +59158,7 @@ export default {
   key: "tvnoise",
   name: "Noise",
   cat: "gen", group: "scientific",
-  desc: "Animated analog-TV snow. Patent TV draws an antenna-free CRT illustration. Wire paths to Program to place a drawing on its rounded screen; Screen signal can show the program, snow or both. Black frame chance interrupts the signal with dense ink. Timeline follows ANIMATE; Manual selects a frame; Still holds the seed.",
+  desc: "Animated analog-TV snow. Patent TV draws an antenna-free CRT illustration. Wire paths to Program to place a drawing on its rounded screen; Screen signal can show the program, snow or both. Invert reverses black and white inside the screen, including black frames. Timeline follows ANIMATE; Manual selects a frame; Still holds the seed.",
   ins: [Pin("style", "Style"), Pin("paths", "Program")],
   outs: [Pin("paths")],
   params: [
@@ -59119,6 +59167,7 @@ export default {
     { key: "manualFrame", label: "Frame #", type: "slider", min: 0, max: 999, step: 1, def: 0, showIf: p => p.motion === "Manual" },
     { key: "signal", label: "Screen signal", type: "select", options: ["Auto", "Snow", "Program", "Program + snow"], def: "Auto", showIf: p => p.mode === "Patent TV" },
     { key: "blackoutChance", label: "Black frame chance %", type: "slider", min: 0, max: 100, step: 1, def: 18, showIf: p => p.mode === "Patent TV" },
+    { key: "invert", label: "Invert screen", type: "check", def: false, showIf: p => p.mode === "Patent TV" },
     { key: "shape", label: "Pixel shape", type: "select", options: ["Square", "Circle", "Dash (scanline)"], def: "Square" },
     { key: "cell", label: "Cell size mm", type: "slider", min: 0.8, max: 15, step: 0.1, def: 3 },
     { key: "density", label: "Density", type: "slider", min: 0.02, max: 1, step: 0.02, def: 0.3 },
@@ -59137,6 +59186,11 @@ export default {
     const paths = [];
     const tv = p.mode === "Patent TV";
     const screen = tv ? drawPatentTV(paths, W, H, margin, layer) : null;
+    const cabinetCount = paths.length;
+    const finish = () => {
+      if (tv && p.invert) drawInvertedScreen(paths, paths.splice(cabinetCount), screen, layer);
+      return applyStyle({ paths }, ins[0]);
+    };
     const b = screen || { x: margin, y: margin, w: W - 2 * margin, h: H - 2 * margin };
     const frames = Math.floor(num(ctx?.frameCount, 1, 1, 100000));
     const frame = p.motion === "Still" ? 0 : p.motion === "Manual"
@@ -59148,7 +59202,7 @@ export default {
     const blackout = tv && (blackoutChance >= 1 || (frame > 0 && blackoutChance > 0
       && mulberry32((baseSeed ^ Math.imul(frame, 0x9e3779b9) ^ 0x5f3759df) | 0)() < blackoutChance));
     if (blackout) {
-      drawBlackout(paths, screen, layer);
+      if (!p.invert) drawBlackout(paths, screen, layer);
       return applyStyle({ paths }, ins[0]);
     }
     const program = ins[1];
@@ -59158,11 +59212,11 @@ export default {
       drawProgram(paths, program, W, H, screen, layer);
     }
     const showSnow = !tv || signal === "Snow" || signal === "Program + snow" || (signal === "Auto" && !hasProgram);
-    if (!showSnow) return applyStyle({ paths }, ins[0]);
+    if (!showSnow) return finish();
     const cell = num(p.cell, 3, 0.5, 15);
     const cols = Math.min(400, Math.floor(b.w / cell));
     const rows = Math.min(400, Math.floor(b.h / cell));
-    if (cols < 1 || rows < 1) return applyStyle({ paths }, ins[0]);
+    if (cols < 1 || rows < 1) return finish();
     const density = num(p.density, 0.3, 0, 1);
     const bands = num(p.bands, 0.3, 0, 1);
     const sizeVar = num(p.sizeVar, 0.5, 0, 1);
@@ -59200,7 +59254,7 @@ export default {
         budget--;
       }
     }
-    return applyStyle({ paths }, ins[0]);
+    return finish();
   },
 };
 ```

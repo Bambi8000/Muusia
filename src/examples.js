@@ -919,11 +919,20 @@ export const EXAMPLES = [
   },
   {
     name: "Noise · Program signal",
-    desc: "Murmuration feeds the blue Program input on Noise. The moving birds fit inside the rounded CRT screen, retaining their own pen. Select Noise; Screen signal Auto shows the program when wired, Snow shows only static, and Program + snow overlays interference. Black frame chance briefly covers either signal with dense ink. Set ANIMATE Frames to 24 and press Play.",
+    desc: "Murmuration feeds the blue Program input on Noise. The moving birds fit inside the rounded CRT screen, retaining their own pen. Select Noise; Screen signal Auto shows the program when wired, Snow shows only static, and Program + snow overlays interference. Invert screen reverses the image, including black frames. Set ANIMATE Frames to 24 and press Play.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [
       { id: 9001, type: "murmuration", x: 20, y: 20, params: { ...defaults("murmuration"), birds: 90, spread: 70, size: 2.4, travel: 0.5, seed: 29 } },
       { id: 9002, type: "tvnoise", x: 370, y: 20, params: { ...defaults("tvnoise"), mode: "Patent TV", signal: "Auto", blackoutChance: 18, seed: 107 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 1 }] }),
+  },
+  {
+    name: "Noise · Inverted broadcast",
+    desc: "Murmuration becomes white bird silhouettes against a densely inked black CRT screen. Select Noise and switch Invert screen off to compare. Black frame chance makes occasional white interruptions when Invert is on. Set ANIMATE Frames to 24 and press Play.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "murmuration", x: 20, y: 20, params: { ...defaults("murmuration"), birds: 70, spread: 70, size: 4.5, travel: 0.5, seed: 29 } },
+      { id: 9002, type: "tvnoise", x: 370, y: 20, params: { ...defaults("tvnoise"), mode: "Patent TV", signal: "Auto", invert: true, blackoutChance: 18, seed: 107 } },
     ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 1 }] }),
   },
   {

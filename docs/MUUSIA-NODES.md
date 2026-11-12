@@ -1647,15 +1647,18 @@ and center are value ports, so the dial can be driven.
 line illustration of an antenna-free vintage CRT set, with recessed screen, knobs,
 vents, numbered leader lines and FIG. 1 caption. Wire any path node to the blue
 *Program* input: its canvas is scaled into the screen and clipped to the rounded
-glass, with its pen colours retained. *Screen signal: Auto* shows the wired
+glass, with its pen colours retained in normal mode. *Screen signal: Auto* shows the wired
 program, or snow when nothing is wired; *Snow*, *Program* and *Program + snow*
 select the other combinations. *Black frame chance %* inserts seeded blackout
 frames into either signal, drawn as dense real pen strokes inside the screen.
+*Invert screen* reverses the screen's black and white by plotting dense monochrome
+scanlines around the original strokes, which become white gaps. This also makes
+a black interruption an empty white screen. The TV cabinet is unaffected.
 The first Timeline frame stays visible unless the chance is 100%. *Motion:
 Timeline* follows ANIMATE without wiring; *Manual* selects a frame number, and
 *Still* holds the seed. Scrubbing and export are repeatable. The cabinet stays
 fixed. Dense blackout frames take longer to plot. Help: Noise · Patent TV and
-Noise · Program signal.
+Noise · Program signal and Noise · Inverted broadcast.
 
 **Net** — netting with selectable mesh: Diamond (fishing net), Square, Triangle,
 Hexagon (chicken wire, drawn without doubled edges). Whole net sags like it hangs;

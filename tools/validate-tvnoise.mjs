@@ -14,6 +14,8 @@ assert.ok(cabinet.length > 30, "patent mode includes cabinet and annotations");
 assert.ok(frame0.length > cabinet.length, "snow appears inside the television");
 assert.equal(fingerprint(frame0), fingerprint(draw(tv, 0)), "scrubbing is deterministic");
 assert.notEqual(fingerprint(frame0), fingerprint(frame1), "timeline advances the snow");
+assert.equal(fingerprint(frame0), fingerprint(draw({ ...tv, invert: false }, 0)),
+  "the default non-inverted output is unchanged");
 assert.equal(fingerprint(frame0.slice(0, cabinet.length)), fingerprint(frame1.slice(0, cabinet.length)),
   "cabinet remains stationary across frames");
 assert.equal(fingerprint(draw({ ...tv, motion: "Still" }, 0)),
@@ -59,6 +61,27 @@ assert.equal(fingerprint(black), fingerprint(draw({ ...tv, blackoutChance: 18 },
   "the default chance selects a repeatable blackout frame");
 assert.equal(fingerprint(frame0), fingerprint(draw({ ...tv, blackoutChance: 18 }, 0)),
   "the first frame stays visible");
+
+const invertedBlack = draw({ ...tv, invert: true, blackoutChance: 100 }, 2, 24, 297, 210, program);
+assert.equal(fingerprint(invertedBlack), fingerprint(cabinet),
+  "a black frame becomes a white empty screen when inverted");
+const invertedBlank = draw({ ...tv, invert: true, signal: "Program" });
+const invertedProgram = draw({ ...tv, invert: true, signal: "Program" }, 0, 24, 297, 210, program);
+assert.ok(invertedBlank.length > cabinet.length + 100, "white screen becomes densely inked black");
+assert.ok(invertedProgram.length > cabinet.length + 100, "inverted program has a black background");
+assert.ok(invertedProgram.reduce((n, p) => n + (p.pts[1]?.[0] - p.pts[0]?.[0] || 0), 0)
+  < invertedBlank.reduce((n, p) => n + (p.pts[1]?.[0] - p.pts[0]?.[0] || 0), 0),
+"program strokes become white gaps in the black screen");
+assert.ok(invertedProgram.slice(cabinet.length).every(p => p.layer === defaults.layer && !p.closed),
+  "inverted screen is monochrome scanline geometry");
+assert.equal(fingerprint(invertedProgram), fingerprint(draw({ ...tv, invert: true, signal: "Program" }, 0, 24, 297, 210, program)),
+  "inverted frames are deterministic");
+for (const p of invertedProgram.slice(cabinet.length)) for (const [x, y] of p.pts) {
+  const cx = Math.max(screen.x + screen.r, Math.min(screen.x + screen.w - screen.r, x));
+  const cy = Math.max(screen.y + screen.r, Math.min(screen.y + screen.h - screen.r, y));
+  assert.ok((x - cx) ** 2 + (y - cy) ** 2 <= screen.r ** 2 + 1e-7,
+    "inverted ink stays inside the rounded screen");
+}
 
 for (const [W, H] of [[297, 210], [210, 297], [80, 80], [1200, 900]]) {
   const margin = 10;
