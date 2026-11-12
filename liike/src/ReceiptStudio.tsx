@@ -7,6 +7,7 @@ import { detectReceiptMarks, readReceiptNumber, receiptFullExtent, receiptHeight
 import { detectLargeReceipt, readLargeReceiptNumber } from './receipt-detection';
 import type { ExtractedFrame } from './frames';
 import { releaseFrames } from './frames';
+import CameraCapture from './CameraCapture';
 import ExportStep from './ExportStep';
 import { DEFAULT_EXPORT } from './export-plan';
 import { INITIAL_SEQUENCE, timelineFrames } from './sequence';
@@ -46,6 +47,7 @@ export default function ReceiptStudio() {
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(0);
   const current = photos[selected];
+  const previous = photos.at(-1);
   const photosRef = useRef(photos), framesRef = useRef(frames), generation = useRef(0);
   photosRef.current = photos; framesRef.current = frames;
   useEffect(() => () => { generation.current++; photosRef.current.forEach(p => disposePhoto(p.photo)); releaseFrames(framesRef.current); }, []);
@@ -167,6 +169,7 @@ export default function ReceiptStudio() {
         <fieldset><legend>Animation image</legend><label className="checkbox"><input type="radio" name="receipt-look" checked={look === 'artwork'} onChange={() => setLook('artwork')} />Artwork only · crop to marks</label><label className="checkbox"><input type="radio" name="receipt-look" checked={look === 'surroundings'} onChange={() => setLook('surroundings')} />Full photo · center the marked frame</label><p className="hint">Full photo keeps the receipt and changing surroundings visible. The marked frame stays in the same place while the background moves. New number strips support up to 999 frames; older tiny labels can be entered manually above 99.</p></fieldset>
         <label className="field"><span>Output size</span><select value={resolution} onChange={e => setResolution(Number(e.target.value))}><option value={480}>480 px</option><option value={720}>720 px</option><option value={1080}>1080 px</option><option value={2160}>2160 px</option></select></label>
       </div>
+      <CameraCapture previous={previous ? { name: previous.photo.name, url: previous.photo.url, width: previous.photo.width, height: previous.photo.height, points: previous.placed.every(Boolean) ? previous.points : null } : undefined} busy={busy} onCapture={file => add([file])} />
       {photos.length > 0 && <div className="receipt-workspace">
         <section className="receipt-list" aria-label="Receipt photos"><h2>{photos.length} receipt photos</h2>{photos.map((item, i) => <button key={item.photo.id} className={selected === i ? 'selected' : ''} onClick={() => setSelected(i)}><img src={item.photo.url} alt="" /><span><strong>Frame {item.number ?? '?'}</strong><small>{item.photo.name}</small><small>{item.placed.filter(Boolean).length} / 4 marks placed</small></span></button>)}</section>
         {current && <section className="receipt-register"><div className="preview-heading"><div><p className="eyebrow">Register receipt {selected + 1}</p><h2>Check the four marks</h2></div><button className="secondary" onClick={() => remove(selected)}>Remove photo</button></div>
