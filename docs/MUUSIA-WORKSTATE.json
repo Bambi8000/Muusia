@@ -60,8 +60,25 @@
       "spanDotsX": 400,
       "spanDotsY": 400,
       "serverStatus": "done",
-      "physicalResult": "awaiting user measurement; defaults unchanged",
-      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-calibration"
+      "physicalResult": "User confirmed X=56.6 mm and Y=56.6 mm for 400-dot spans; printed calibration measured successfully.",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-calibration",
+      "measurement": {
+        "date": "2026-11-12",
+        "source": "user measured printed cross centres",
+        "spanDotsX": 400,
+        "spanDotsY": 400,
+        "measuredHorizontalMm": 56.6,
+        "measuredVerticalMm": 56.6,
+        "dotsPerMmX": 7.067137809187279,
+        "dotsPerMmY": 7.067137809187279,
+        "derivedDpiX": 179.50530035335686,
+        "derivedDpiY": 179.50530035335686,
+        "printableWidthDots": 512,
+        "derivedPrintableWidthMm": 72.44800000000001,
+        "physicalWidthMm": null,
+        "printableOffsetMm": null,
+        "status": "XY scale measured; physical paper width and printable offset not yet measured; generic defaults unchanged"
+      }
     }
   }
 }

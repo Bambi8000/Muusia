@@ -5880,7 +5880,9 @@ used an older dependency tree missing pdfjs-dist; isolated npm ci fixed it witho
 changing package files. No App/UI/export/profile changes or version bump.
 User offered the online Epson: one 512x660-dot calibration receipt with 400-dot
 X/Y spans sent through existing Print service, job 6b696c5b77ab4fc8afef7c54495dde8f
-reported done. Await measured spans/paper width/offset; this is NOT a new Surface
-UI export or a verified physical measurement. No calibration assumptions changed.
+reported done. User measured both 400-dot spans as 56.6 mm: about 7.067 dots/mm
+(179.5 dpi), implying a 72.45 mm width for 512 dots. Scale measured on paper;
+paper width and printable offset still unmeasured. This is NOT a new Surface UI
+export. Measurement saved per printer; generic material defaults unchanged.
 Next: shared content placement and raster mapping (plan step 2), then visual
 editor and project/PNG export. No publication or hardware configuration changes.
