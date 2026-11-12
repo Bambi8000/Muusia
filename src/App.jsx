@@ -544,7 +544,7 @@ const NODE_HELP = {
   trimext: "shortens or lengthens path ends.",
   truchet: "tiled quarter-circle patterns. *Tiles* mode draws arc tiles (lines/spread/gap per tile); *Loop* mode grows a spanning tree and emits **one single closed line** that fills the canvas \u2014 a maze you can plot without lifting the pen.",
   trunks: "birch trunks only, no branches: two wandering edge lines per trunk. Smoothness (edge waver), lean, upward taper, and *Artifacts*: horizontal bark dashes (some doubled), on their own pen if desired.",
-  tvnoise: "analog-TV static: cells randomly filled with square/circle pixels or horizontal *scanline dashes*; size/position jitter and rolling *interference bands* that modulate density row-wise. Budget-capped.",
+  tvnoise: "animated analog-TV snow made from square/circle pixels or horizontal *scanline dashes*. *Patent TV* mode draws a vintage CRT as a numbered patent-style line illustration and keeps the snow inside its screen. *Timeline* changes the snow with ANIMATE; Manual selects a frame and Still freezes it.",
   tyylita: "applies a Stroke style to existing paths.",
   viiva: "not geometry: produces a *style* (dash patterns etc.) for generators' Style inputs.",
   voronoi: "seeded sites carved into cells by half-plane clipping, with optional Lloyd relaxation (0-3) for even cell sizes. Shared edges are emitted exactly once, so no line is drawn twice. Optional site crosses.",
@@ -899,7 +899,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.172"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.173"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -4188,7 +4188,7 @@ export default function App() {
                 Receipt {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
               </button>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
-                Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes. Receipt exports one file per frame with large L marks and a readable number strip.
+                Noise, Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes. Receipt exports one file per frame with large L marks and a readable number strip.
               </div>
             </div>
             <div data-machine-setup="true" onClick={() => setMchOpen((v) => !v)}
@@ -4843,7 +4843,7 @@ export default function App() {
                 "Set frame count in ANIMATE, add a Frame node (Math category), wire its outputs into any parameter.",
                 "t ramps 0\u21921 across frames; wave & ping-pong are seamless loops; frame # feeds Seeds for per-paper randomness.",
                 "\u25B6 previews the animation live. G-code / SVG / DXF \u00D7 N downloads one file per frame \u2014 plot each on its own paper, scan, assemble.",
-                "Timeline motion on Moving Lines, Move / Scale, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follows ANIMATE without a Frame wire. Other parameters need a frame-driven source to change. Add Reg Marks for scan alignment.",
+                "Timeline motion on Noise, Moving Lines, Move / Scale, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follows ANIMATE without a Frame wire. Other parameters need a frame-driven source to change. Add Reg Marks for scan alignment.",
               ]],
               ["CUSTOM NODES", [
                 "Node \u2913 imports a node definition file (.js). See MUUSIA-NODE-API.md \u2014 you can hand that spec to an AI and import the result.",

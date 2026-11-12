@@ -1661,9 +1661,9 @@ export const NODE_RECENCY = {
     "sha256": "26deedb405fb5166b82acff1f6bd3601e4e3307cbb838ea5271a62bb10aa2751"
   },
   "tvnoise": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "610854dea06b4101367e31711e742066787b9ecd2bbe7000f4896828d557eb3f"
+    "date": "2026-11-12",
+    "order": 129,
+    "sha256": "f3ba90e8a71b7a4bbc2391a3f00b0637e67f91f2f963ff1895ff5b309e518999"
   },
   "type_studio": {
     "date": "2026-10-11",

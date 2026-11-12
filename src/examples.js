@@ -910,6 +910,14 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Noise · Patent TV",
+    desc: "Select Noise, set ANIMATE Frames to 24 and press Play. The numbered CRT cabinet stays fixed while the snow changes within its curved screen. Motion Timeline needs no Frame wire; Manual chooses one frame and Still freezes the snow. Mode Full sheet restores the open field. Density, Cell size and Pixel shape control the signal texture.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "tvnoise", x: 40, y: 20, params: { ...defaults("tvnoise"), mode: "Patent TV", shape: "Dash (scanline)", cell: 2, density: 0.7, bands: 0.45, seed: 107 } },
+    ], edges: [] }),
+  },
+  {
     name: "Test Card · Thermal receipt",
     desc: "A 72 × 100 mm Epson TM-T88V stress card: fine grids, arcs, tiny details and ordered-halftone swatches. Select Test Card, use DOWNLOAD RECEIPT FILE, and inspect the pixels in LATU before printing. The tones are black/white dots, not printer-native grayscale.",
     canvas: { W: 72, H: 100 },

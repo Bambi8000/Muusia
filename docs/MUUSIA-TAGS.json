@@ -1874,7 +1874,9 @@
   "repeat"
  ],
  "tvnoise": [
+  "animation",
   "noise",
+  "retro",
   "round",
   "scientific"
  ],

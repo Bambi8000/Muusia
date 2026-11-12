@@ -264,6 +264,21 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.173 — 2026-11-12 · Animated TV snow and patent television
+
+Noise now follows the ANIMATE timeline without a wire. Motion can instead select
+a manual frame or hold one still. Mode Full sheet retains the original field;
+Patent TV adds a fixed vintage CRT line drawing with numbered patent leaders and
+confines changing scanline snow to its rounded screen. Help includes a one-node
+Patent TV example on A4 wide. The node source, catalog, tags, source bundle and
+recency record are regenerated for this release.
+
+The focused TV validator checked repeatable frames, stationary cabinet, changing
+snow and screen/page bounds on four sheet sizes. All Help examples, catalog,
+production build and 37,913 Learn checks passed. The built app loaded the Patent
+TV example, showed different frame counts while scrubbing, and generated the
+selected frame's complete SVG. No physical plot was made.
+
 ### W — 2026-11-10 · Print clock mode on Raspberry Pi
 
 Print now has a Clock view with Start/Stop and every-second (`HH:MM:SS`) or

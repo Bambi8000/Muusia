@@ -1641,9 +1641,15 @@ markers sitting on exact quarter fractions of the circle (12/3/6/9 on a
 twelve-hour dial). Outlines only — hatch downstream for solid batons. Diameter
 and center are value ports, so the dial can be driven.
 
-**Noise** — analog-TV static: cells randomly filled with square/circle pixels or
-horizontal *scanline dashes*; size/position jitter and rolling *interference bands*
-that modulate density row-wise. Budget-capped.
+**Noise** — animated analog-TV snow made from square/circle pixels or horizontal
+*scanline dashes*, with size/position jitter and rolling *interference bands*.
+*Mode: Full sheet* keeps the original open field. *Patent TV* draws a plotter-ready
+line illustration of a vintage CRT set, with rabbit-ear antenna, recessed screen,
+knobs, vents, numbered leader lines and FIG. 1 caption; the snow stays within the
+curved screen. *Motion: Timeline* changes the snow on each ANIMATE frame without
+wiring; *Manual* selects a frame number, and *Still* holds the seed. Scrubbing and
+exporting a given frame produce the same geometry. The cabinet stays fixed while
+the snow changes. Output is budget-capped. Help: Noise · Patent TV.
 
 **Net** — netting with selectable mesh: Diamond (fishing net), Square, Triangle,
 Hexagon (chicken wire, drawn without doubled edges). Whole net sags like it hangs;
