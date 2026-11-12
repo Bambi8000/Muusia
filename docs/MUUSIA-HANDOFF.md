@@ -5860,3 +5860,27 @@ Manual mode is now enforced in the installed pen manager; touchscreen Automatic 
 Full current manual-pen/UI hardware source remains in the older primary checkout and is not
 part of this app integration commit; do not overwrite live configs with older repository copies.
 Print server tests: all 7 passed; Learn gate: 37,914 checks passed.
+
+### W — 2026-11-12: Surface Composer geometry foundation
+
+Architecture and implementation plan: [MUUSIA-SURFACE-COMPOSER.md](MUUSIA-SURFACE-COMPOSER.md).
+Local branch `codex/surface-composer`, based on 73118d335153e76fb051fc75f99eee44866c2ac7,
+in `/private/tmp/muusia-surface-composer-20261112`; primary checkout preserved.
+New `src/surface-composer.js`: validated serializable metric strips, centre-based
+clockwise rotation, reversible local/global transforms, paper/printable corners,
+path Image Mapping via existing cropTestPiece with depth/path metadata preserved,
+parallel tiling at arbitrary angles, independent Z/print ordering, paper hit tests,
+physical bounds and material consumption. Physical/printable width, printable
+offset and paper gap are separate. No sheet-length cap; allocation guard 4096 strips.
+New validator: 18 tests pass, including 200 round trips, analytic diagonal clips,
+loop seams/depth/maintenance, stable IDs, actual paper gaps, hidden/overlapping
+paper and bad input. Existing Preview Crop, Mega Canvas and Roll validators pass;
+focused oxlint, catalog, build and 37,914 Learn checks pass. Initial build attempt
+used an older dependency tree missing pdfjs-dist; isolated npm ci fixed it without
+changing package files. No App/UI/export/profile changes or version bump.
+User offered the online Epson: one 512x660-dot calibration receipt with 400-dot
+X/Y spans sent through existing Print service, job 6b696c5b77ab4fc8afef7c54495dde8f
+reported done. Await measured spans/paper width/offset; this is NOT a new Surface
+UI export or a verified physical measurement. No calibration assumptions changed.
+Next: shared content placement and raster mapping (plan step 2), then visual
+editor and project/PNG export. No publication or hardware configuration changes.

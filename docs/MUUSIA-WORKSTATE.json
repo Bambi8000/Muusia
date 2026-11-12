@@ -44,5 +44,24 @@
     "touchscreenMacros": "home item third, run button above parameters, grids aligned at top",
     "offsetsPreserved": true,
     "installed": true
+  },
+  "lastSurfaceComposer": {
+    "date": "2026-11-12",
+    "branch": "codex/surface-composer",
+    "worktree": "/private/tmp/muusia-surface-composer-20261112",
+    "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
+    "status": "local geometry foundation complete; no UI or publication",
+    "validation": "18 focused tests (including 200 transform round trips); existing Preview Crop, Mega Canvas and Roll validators; focused oxlint; catalog; build; Learn 37914 checks passed.",
+    "nextStep": "Shared content placement and raster Image Mapping, followed by visual editor and project/PNG export.",
+    "calibration": {
+      "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
+      "widthDots": 512,
+      "heightDots": 660,
+      "spanDotsX": 400,
+      "spanDotsY": 400,
+      "serverStatus": "done",
+      "physicalResult": "awaiting user measurement; defaults unchanged",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-calibration"
+    }
   }
 }
