@@ -275,8 +275,12 @@ Help adds Noise · Inverted broadcast, with Murmuration wired to Program.
 
 The focused TV validator checks white inverted black frames, an inked inverse
 background, program-shaped white gaps, screen bounds, repeatability and the
-unchanged default path. The release gate and public Pages result are recorded
-after deployment. No physical plot was made.
+unchanged default path. All 178 Help examples, catalog, production build and
+37,913 Learn checks passed. The built app showed white bird drawings on the
+black screen and a white interruption frame. Release commit
+`030a80ee31a205d547777fe0745aa6db00037158` passed Pages run
+`43225074908`; the public page contained v2.175 and the Inverted broadcast
+example. No physical plot was made.
 
 ### 2.174 — 2026-11-12 · TV program input and black frames
 

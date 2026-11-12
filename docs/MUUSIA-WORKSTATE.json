@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.174",
+    "version": "2.175",
     "date": "2026-11-12",
-    "commit": "952c5977a6c6051d7b5b03d947884c28d4b9f38b",
-    "pagesRunId": 43222069489,
+    "commit": "030a80ee31a205d547777fe0745aa6db00037158",
+    "pagesRunId": 43225074908,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.174 with antenna-free Patent TV, Program input, black frames and Help example; exact Pages run succeeded"
+    "status": "verified public Muusia 2.175 with inverted TV screen and white interruption frames; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.174",
+    "version": "2.175",
     "date": "2026-11-12",
-    "baseCommit": "1a54cf27ea9addc2a0a6d366261606948764f6c4",
+    "baseCommit": "4a880fd40197799f42abcd693907aed5853d7eb8",
     "branch": "codex/tvnoise-no-antennas",
     "worktree": "/private/tmp/muusia-tvnoise-release-20261112",
     "published": true,
-    "status": "Muusia 2.174 antenna-free television, Program input and black frames published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.174 (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.175 inverted television screen and white interruption frames published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.175 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 358,
     "registryCount": 360,
-    "validation": "TV noise focused validator, all 177 Help examples, catalog, production build and 37913 Learn checks passed. Built app showed Murmuration clipped to the television screen.",
+    "validation": "TV noise focused validator, all 178 Help examples, catalog, production build and 37913 Learn checks passed. Built app showed white bird drawings on a black television screen and a white interruption frame.",
     "note": "No physical plot was made. The unrelated primary checkout changes were preserved.",
-    "commit": "952c5977a6c6051d7b5b03d947884c28d4b9f38b"
+    "commit": "030a80ee31a205d547777fe0745aa6db00037158"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
