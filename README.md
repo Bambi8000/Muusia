@@ -1,4 +1,4 @@
-# MUUSIA v2.163
+# MUUSIA v2.177
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -6,6 +6,10 @@ available with the extended L-System and shape/field tools. Learn includes
 [Open Learn](https://bambi8000.github.io/Muusia/learn/).
 
 **A node-graph editor for generative pen-plotter art.**
+
+Needle profiles can now be explicitly updated in Machine Setup to a 3 mm
+maximum plunge and 5 mm travel lift, preserving the existing XY placement
+and speeds. Keep Contact Z at 0; choose depth in Needle Punch or Needle Test.
 
 Version 2.163 gives **Image Compare** two independent image pickers. Image A
 appears in the left column and Image B in the right. Two panels compare one

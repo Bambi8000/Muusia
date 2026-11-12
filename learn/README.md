@@ -73,6 +73,13 @@ Use actual PNG encoding for `.png` files: some browser tools return JPEG bytes r
 
 ## Export provenance maintenance
 
+2026-11-12 needle profile update (v2.177): actual local-browser recaptures
+verified the physical SVG and both Stack Pens sheets byte for byte. The
+Design Minis fluid-strokes variation and Multicolour Grid colour-drift SVG
+also match the complete evaluator/reference output. All historical complete
+SVG/G-code fixtures remain valid. Their original PNG/G-code capture evidence
+is preserved; source refresh notes identify the new checks. No hardware ran.
+
 2026-10-20 needle release (v2.133): the physical-plot SVG and both SVG-workflow
 Stack Pens sheets were downloaded again through the actual app. All three SVGs
 are byte-identical to the references. Source records now include the needle
