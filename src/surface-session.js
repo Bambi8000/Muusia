@@ -1,5 +1,6 @@
 import { createStrip, generateStripTiling, surfaceSummary, MAX_GENERATED_STRIPS } from "./surface-composer.js";
 import { readComposition, regularCompositionMatches } from "./surface-layouts.js";
+import { readArrangement } from "./surface-arrangements.js";
 import { productionSettings } from "./surface-production.js";
 
 export const SURFACE_VERSION = 1;
@@ -52,7 +53,7 @@ export function readSurfaceSession(input) {
   }
   if (!Number.isSafeInteger(input.nextId) || input.nextId < 1) throw new Error("Invalid next strip ID.");
   const composition = input.composition ? readComposition(input.composition) : null;
-  const result = { ...(composition ? { composition } : {}), version: SURFACE_VERSION, mode: input.mode, widthMm, heightMm, layout, strips, selectedId: strips.some(s => s.id === input.selectedId) ? input.selectedId : null, nextId: input.nextId, production: productionSettings(input.production), source: { kind: source.kind, nodeId: source.nodeId, graphPath: [...source.graphPath], fit: source.fit, image } };
+  const result = { ...(input.arrangement == null ? {} : { arrangement: readArrangement(input.arrangement) }), ...(composition ? { composition } : {}), version: SURFACE_VERSION, mode: input.mode, widthMm, heightMm, layout, strips, selectedId: strips.some(s => s.id === input.selectedId) ? input.selectedId : null, nextId: input.nextId, production: productionSettings(input.production), source: { kind: source.kind, nodeId: source.nodeId, graphPath: [...source.graphPath], fit: source.fit, image } };
   if (composition && result.mode === "tiling" && !regularCompositionMatches(result)) result.mode = "freeform";
   return result;
 }

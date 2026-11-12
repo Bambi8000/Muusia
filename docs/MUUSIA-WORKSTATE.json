@@ -50,9 +50,9 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local Muusia 2.181 unified Mega Canvas/Roll editor with independent freeform paper layouts complete; not published",
-    "validation": "66 focused JS tests, existing 14 Roll cases, portrait Mega and Preview Crop validators, focused lint, catalog, production build and 37914 Learn checks. Actual browser: legacy/new regular sheet SVGs byte-identical, freeform movement/rotation/width/generation Undo, SVG/DXF/G-code/PNG, exact three-session save/load. 5757 actual SVG vertices mapped to source grid and Roll boundaries verified; no physical output.",
-    "nextStep": "Generative Fan, Radial, Progressive Rotation and seeded Random layouts in the common paper model; Independent Content and assembly map. Freeform animation batches and magnet-jig files remain follow-ups.",
+    "status": "local Muusia 2.182 Fan/Radial/Progressive/seeded Random arrangements complete in all paper families; not published",
+    "validation": "74 focused JS tests, focused lint, catalog, production build and 37914 Learn checks passed. Actual browser verified four patterns, Undo/Redo, Random seed repeat/variation/hidden-paper stability, independent family settings, exact save/load, real SVG/PNG exports. 6916 actual SVG vertices reprojected to source grid; no physical output.",
+    "nextStep": "Independent Content: per-paper graph evaluation with position/angle/index/distance context, then assembly map. Freeform animation batches and magnet-jig files remain follow-ups.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
       "widthDots": 512,
@@ -216,6 +216,28 @@
         "assembly map still pending"
       ],
       "publication": "local only; no new physical print/plot"
+    },
+    "arrangements": {
+      "version": "2.182",
+      "baseCommit": "db7af97bea78531b9234feaccd6a92f461aac003",
+      "module": "src/surface-arrangements.js",
+      "validator": "tools/validate-surface-arrangements.mjs",
+      "patterns": [
+        "Fan",
+        "Radial",
+        "Progressive Rotation",
+        "seeded Random"
+      ],
+      "families": [
+        "Sheets",
+        "Roll",
+        "Strips"
+      ],
+      "behaviour": "arranges visible existing papers in print order; preserves identity, widths, margins, source and hidden paper poses; optional absolute Random length variation",
+      "random": "existing mulberry32 with stable per-ID uint32 seed; repeated application does not accumulate length changes",
+      "persistence": "optional arrangement settings in each independent session; actual poses remain authoritative",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-arrangements",
+      "publication": "local only; no physical print/plot"
     }
   }
 }

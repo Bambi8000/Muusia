@@ -1,6 +1,6 @@
 # MUUSIA Surface Composer arkkitehtuuri ja toteutussuunnitelma
 
-Päiväys: 13.11.2026. Paikallinen versio 2.181 yhtenäistää Mega Canvasin ja Rollin Surface Composerin editoriin sekä lisää molempiin vapaan sijoittelun. Jokaisella on erikseen tallentuva sommitelma, yhteiset kahvat/mittakentät ja oikein kohdistuvat PNG-, SVG-, DXF- ja G-code-viennit. Yhden suikaleen tulostusoletus ja jäähtymistauot säilyvät. Sovellusversiota ei ole julkaistu. Seuraavana ovat vapaiden sommitelmien generaattorit.
+Päiväys: 13.11.2026. Paikallinen versio 2.182 lisää yhteiset Fan-, Radial-, Progressive Rotation- ja seeded Random -sommittelupohjat Mega Canvasille, Rollille ja Stripsille. Ne asettelevat näkyvät olemassa olevat paperit, säilyttävät tunnisteet ja muokattavuuden sekä tallentuvat projektin omiin perhekohtaisiin istuntoihin. Aiemmat mittatarkat viennit ja yhden suikaleen tulostusoletus säilyvät. Versiota ei ole julkaistu. Seuraavana on Independent Content.
 
 Surface Composer laajentaa Muusian nykyistä millimetripohjaista teospintaa. Mega Canvasin ja Roll Moden nykyiset arkit, vientimuodot ja projektit säilytetään. Uusi osa on fyysisten suikaleiden sijainti, rotaatio ja tulostusalue sekä yhteinen muunnos teospinnan ja suikaleen välillä. Sama muunnos ohjaa esikatselua ja vientiä.
 
@@ -121,6 +121,27 @@ Graafin nykyiset animaatiopakettiviennit säilyvät säännöllisille asetteluil
 
 Todellinen selain latasi vanhan Mega-projektin. Säännöllisen jaon neljä SVG:tä vastasivat vanhan käyttöliittymän vientiä tavulleen. Arkkia vedettiin ja kierrettiin 24°; Undo/Redo ja säännöllisen jaon palautus/Undo tarkistettiin. Rollin suikale kierrettiin 14°, siirrettiin ja pidennettiin 1050 mm:iin. 400 mm työosilla syntyi kuusi SVG:tä (viimeiset 250/150 mm); 200 mm työosilla syntyi yksitoista G-codea (viimeiset 50/150 mm). Valitun suikaleen DXF-vienti sisälsi kuusi osaa. Neljä arkkien DXF/G-codea, molempien tilojen PNG-paketit sekä alkuperäiskuvan arkkivienti tarkistettiin. 5757 varsinaista SVG-pistettä muunnettiin erillisessä tarkistuksessa takaisin teospinnalle: ne osuivat alkuperäiseen ruudukkoon SVG:n 0,01 mm pyöristyksen tarkkuudella, ja Rollin osarajojen jatkuvuus täsmäsi. G-code-koordinaatit ja DXF:n fyysiset rajat tarkistettiin. Save/Load/Save säilytti kaikki kolme istuntoa, alkuperäiskuvan ja graafin täsmälleen. Selaimen varoitus-/virheloki oli tyhjä. Tässä vaiheessa ei tulostettu tai piirretty fyysisesti.
 
+## Sommittelupohjat kaikille paperiperheille (2.182)
+
+**Arrange papers** toimii Mega Canvasissa, Rollissa ja Strip Tiling / Freeform Strips -sommitelmassa. Se käyttää näkyviä nykyisiä papereita tulostusjärjestyksessä. Paperimäärä ja perusmitat luodaan ensin entisillä Generate-ohjaimilla. Pelkkä pohjan valinta tai parametrin muutos ei siirrä paperia; **Arrange N visible papers** tekee asettelun yhtenä Undo-askeleena ja siirtyy freeformiin. Fit all sovittaa vain kameran. Paperien mittoja tai koko teoksen lähdettä ei soviteta uudelleen. Piilotetut paperit pysyvät paikoillaan.
+
+[surface-arrangements.js](../src/surface-arrangements.js) toteuttaa neljä puhdasta, validoitua asettelua yhteisille paperiobjekteille:
+
+- **Fan**: sama pivot ja säädettävä keskikulma sekä kulmaleveys. Etäisyys pivotista tarkoittaa paperin yläkeskikohdan etäisyyttä; nolla antaa yhteisen lähtöpisteen. Oletuspivot on teospinnan alareunassa ja keskikulma 180° (ylöspäin). Eri pituiset paperit säilyvät omissa mitoissaan.
+- **Radial**: pivot, aloituskulma, 0–360° kaari ja etäisyys paperin alkuun. Täysi kierros käyttää N eri kulmaa, joten ensimmäistä paperia ei kahdenneta 360° kohdalla. Osakaari sisältää molemmat päät, ja yhdellä paperilla käytetään annettua aloituskulmaa.
+- **Progressive Rotation**: vaakarivissä symmetrisesti asetetut keskipisteet, niiden väli, ensimmäisen paperin kulma ja kulma-askel. Keskipisteväli on eri asia kuin fyysinen paperirako; kiertyvät paperit saavat mennä päällekkäin.
+- **Random**: keskipistealueen leveys/korkeus, keskikulma, kulmavaihtelu ja 32-bittinen siemen. Aluerajat koskevat paperien keskipisteitä, eivät koko paperin kulmia. Valinnainen **Vary paper length** käyttää absoluuttista minimi-/maksimipituutta; ilman valintaa jokainen nykyinen pituus säilyy. Samalla siemenellä tehty uudelleenajo ei kerrytä pituusmuutoksia.
+
+Random käyttää nykyistä `mulberry32`-generaattoria ja vakaasta paperitunnisteesta johdettua siementä. Siksi muun paperin piilottaminen ei arvo näkyviä uudelleen. Myös sijainti-/kulmanäytteet pysyvät samoina, kun vain pituusvaihtelun kytkee päälle. **New variation · seed +1** vaihtaa siemenen ja asettelee yhdellä Undo-askeleella; 4294967295:n jälkeen siemen on 0.
+
+Asettelu säilyttää paperien ID:t, listajärjestyksen, print/Z-järjestykset, fyysisen leveyden, tulostusalueen ja lähteen. Vain Randomin nimenomaisesti valittu pituusvaihtelu muuttaa pituuksia. Tulostuksen alku-/loppukohta nollataan uudelle sommitelmalle, mutta työn tietue ja manuaalinen jatkokäytäntö säilyvät. Mitään ei tulosteta tai lähetetä automaattisesti.
+
+Istunnon valinnainen `arrangement` tallentaa pohjan nykyiset asetukset. Se säilyy sekä alkuperäisessä `surface`-kentässä että kummassakin `surfaceLayouts`-paikassa. Tallennetut paperipositiot ovat aina varsinaisen sommitelman totuus: käyttäjä voi muokata niitä pohjan jälkeen tai tallentaa vielä soveltamattomat asetukset. Vanha projekti ilman kenttää säilyy ennallaan ja saa ohjaimiin lasketut oletukset. Virheelliset uudet asetukset hylätään ennen graafin vaihtamista.
+
+**Tarkistus:** [validate-surface-arrangements.mjs](../tools/validate-surface-arrangements.mjs) lisää 8 testiä pivotin analyyttiselle sijainnille, täyden kierroksen yksikäsitteisyydelle, osakaarille, kulma-askeleille, per-ID-satunnaisuudelle ja rajoille, pituusvaihtelun toistettavuudelle, piilotetuille papereille, materiaali-/tuotantotiedoille, kolmen perheen projektitallennukselle, kiinteän globaalin viivan kohdistukselle ja 4096 paperin rajatapaukselle. Yhteensä 74 kohdennettua JS-testiä, lint, katalogi, tuotantokäännös ja Learnin 37 914 tarkistusta läpäisivät. Vanhoja vientitodisteita tai koneprofiileja ei muutettu.
+
+Todellinen selain tarkisti kaikki neljä pohjaa, Fanin Undo/Redon (24° → 135° → Undo 24° → Redo 135°), Randomin samansiemenisen uudelleenajon, uuden siemenen ja Undon sekä piilotetun paperin vaikutuksen. Kolmen perheen Save/Load/Save säilytti istunnot ja graafin täsmälleen. Fanin neljä, Randomin neljä sekä Progressiven Rollin yksitoista varsinaista SVG-tiedostoa tarkistettiin erikseen: 6916 SVG-pistettä palautui alkuperäiselle ruudukolle SVG:n 0,01 mm koordinaattipyöristyksen tarkkuudella. Radial Stripsin kolme PNG:tä ja Random-arkkien neljä PNG:tä vastasivat tallennettua geometriaa ja manifestia. Selaimen varoitus-/virheloki oli tyhjä. Paperille tai piirturille ei ajettu mitään tässä vaiheessa.
+
 ## Nykyiset osat ja niiden käyttö
 
 | Osa | Toteutus | Surface Composerin ratkaisu |
@@ -197,7 +218,7 @@ Esimerkiksi 23 kappaletta 80 mm paperia ja niiden 22 kappaletta 8 mm rakoja viev
 | 3. Visuaalinen editori | Suuri esikatselu, Physical Width / Printable Width / Gap erikseen, valinta, siirto, kierto sekä numeeriset sijainti- ja pituuskentät. | Uusi `src/surface-composer.jsx` ja rajattu kytkentä uusimpaan `src/App.jsx`:ään. |
 | 4. Tallennus ja rasterivienti | Suikaleet säilyvät projektissa. Yksittäinen PNG ja kaikki PNG:t ZIP-pakettina sekä mitat ja järjestyksen sisältävä manifesti. | Uusi `src/surface-export.js`, `fflate` ja rajatut projektin save/load-muutokset. |
 
-Askeleet 1–4 ovat valmiit paikallisessa versiossa 2.180. Myös kokonaismetrit, valitun suikaleen/jatkoviipaleen tulostus ja pitkän ESC/POS-työn palvelinpolku ovat käytössä. Kolmen erillisen metrin paperikoe ajettiin käsin käynnistetyin osin ja käyttäjän kuittaamin jäähtymistauoin; tarkat fyysiset mittaustulokset ovat vielä vahvistamatta. Seuraavaksi lisätään Fan-, Radial-, Progressive Rotation- ja seeded Random -sommittelut samaan suikaleiden tietomalliin.
+Askeleet 1–4 ovat valmiit paikallisessa versiossa 2.180. Myös kokonaismetrit, valitun suikaleen/jatkoviipaleen tulostus ja pitkän ESC/POS-työn palvelinpolku ovat käytössä. Kolmen erillisen metrin paperikoe ajettiin käsin käynnistetyin osin ja käyttäjän kuittaamin jäähtymistauoin; tarkat fyysiset mittaustulokset ovat vielä vahvistamatta. Fan-, Radial-, Progressive Rotation- ja seeded Random -pohjat lisättiin versioon 2.182 samaan paperimalliin. Seuraavana on Independent Content.
 
 Rasterivienti tehdään yksi suikale kerrallaan ja tarvittaessa riveittäin lohkoissa. Koko kahden metrin teosta ei rasteroida ensin täydellä tulostustarkkuudella yhdeksi valtavaksi kuvaksi. Esikatselun tarkkuus on erillinen viennin tarkkuudesta. PNG:n pikselitiheys ja fyysiset mitat kirjataan manifestiin; PNG:n tulostajan on käytettävä näitä mittoja, jotta oletusarvoinen sovitus sivulle ei muuta kokoa. Suuren työn vienti voidaan perua, ja resurssirajan ylittyminen ilmoitetaan muuttamatta fyysisiä mittoja.
 
@@ -213,7 +234,7 @@ Rasterivienti tehdään yksi suikale kerrallaan ja tarvittaessa riveittäin lohk
 
 ## Seuraavat vaiheet
 
-Geometrian, editorin ja rasteriviennin jälkeen lisätään Fan, Radial, Progressive Rotation ja seeded Random. Presetit tuottavat samoja muokattavia suikaleobjekteja. Independent Content arvioi sisältöä paikallisissa mitoissa suikaleen sijainnin, kulman ja tunnisteen perusteella; Image Mapping pysyy koko teoksen yhteisenä sisältönä.
+Fan, Radial, Progressive Rotation ja seeded Random ovat käytössä samojen muokattavien paperiobjektien asettelutoimintoina. Independent Content arvioi sisältöä paikallisissa mitoissa suikaleen sijainnin, kulman ja tunnisteen perusteella; Image Mapping pysyy koko teoksen yhteisenä sisältönä.
 
 Tuotannon jatkovaiheeseen kuuluu asennuskartta. Käyttäjän säädettävä tulostusjärjestys ja pitkien ESC/POS-töiden laajennus nykyiseen palvelimeen ovat jo käytössä. Nykyiset 256 rivin komentolohkot kulkevat yhtenä suikaletyönä. Leikkaus tehdään vasta fyysisen suikaleen lopussa, ei jokaisen rasterilohkon välissä. Asennuskartta käyttää täsmälleen samoja paperikulmia ja z-järjestystä kuin editori.
 

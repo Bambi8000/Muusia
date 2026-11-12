@@ -3,6 +3,7 @@ import { stripTransform, stripCorners, surfaceSummary } from "./surface-composer
 import { createContentPlacement, contentTransform, placePathsOnSurface } from "./surface-render.js";
 import { addSurfaceStrip, updateSurfaceStrip, updateSurfaceLayout, removeSurfaceStrip, regenerateSurface, MAX_SOURCE_PIXELS, MAX_SOURCE_URL_LENGTH } from "./surface-session.js";
 import "./surface-composer.css";
+import { arrangeSurface, defaultArrangement, updateArrangement } from "./surface-arrangements.js";
 import { generateComposition, updateComposition, compositionPieces } from "./surface-layouts.js";
 import { surfaceVectorFiles } from "./surface-vector-export.js";
 import { paperBudget, productionPlan, productionSettings, advanceProduction } from "./surface-production.js";
@@ -64,6 +65,7 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   const selected = s.strips.find(strip => strip.id === s.selectedId);
   const paperWord = family === "Sheets" ? "sheet" : "strip";
   const settings = s.composition?.settings;
+  const arrangement = s.arrangement ?? defaultArrangement(s);
   let selectedPieces = [], pieceError = "";
   try { if (settings && selected) selectedPieces = compositionPieces(s, selected); } catch (e) { pieceError = e.message; }
   const summary = useMemo(() => surfaceSummary(s.strips), [s.strips]);
@@ -134,6 +136,16 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   };
   const changeComposition = (key, value) => commit(old => updateComposition(old, { [key]: value }));
   const generatePapers = () => { const next = commit(old => generateComposition(old)); if (next) setView(fitView(next)); };
+
+  const changeArrangement = (key, value) => commit(old => updateArrangement(old, { [key]: value }));
+  const selectArrangement = pattern => commit(old => ({ ...old, arrangement: { ...defaultArrangement(old, pattern), seed: old.arrangement?.seed ?? 1 } }));
+  const applyArrangement = (newVariation = false) => {
+    const next = commit(old => {
+      const p = old.arrangement ?? defaultArrangement(old);
+      return arrangeSurface(old, newVariation ? { ...p, seed: (p.seed + 1) >>> 0 } : p);
+    });
+    if (next) setView(fitView(next));
+  };
 
   const recordJob = (job, removeId = null) => {
     try {
@@ -365,6 +377,20 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
         <label className="sc-check"><input type="checkbox" checked={s.layout.lengthMm === null} onChange={e => changeLayout("lengthMm", e.target.checked ? null : s.heightMm)} />Automatic length</label>{s.layout.lengthMm !== null && <NumberField label="Strip length" value={s.layout.lengthMm} min={1} onChange={v => changeLayout("lengthMm", v)} />}
         <button className="sc-primary sc-wide" onClick={() => { const next = commit(old => regenerateSurface(old)); if (next) setView(fitView(next)); }}>Generate strips</button><p className="sc-note">Generate replaces the current layout. Undo restores manual edits. Paper width is nominal; the 4.6 mm side margins were checked on the Epson.</p>
       </section></>}
+
+      <section className="sc-arrangements"><h2>Arrange papers</h2>
+        <label className="sc-field"><span>Pattern</span><select aria-label="Paper arrangement" value={arrangement.pattern} disabled={busy} onChange={e => selectArrangement(e.target.value)}><option value="fan">Fan · shared pivot</option><option value="radial">Radial · around a centre</option><option value="progressive">Progressive rotation</option><option value="random">Random · seeded</option></select></label>
+        <div className="sc-grid"><NumberField label={arrangement.pattern === "fan" || arrangement.pattern === "radial" ? "Pivot X" : "Centre X of layout"} value={arrangement.pivotXmm} onChange={v => changeArrangement("pivotXmm", v)} /><NumberField label={arrangement.pattern === "fan" || arrangement.pattern === "radial" ? "Pivot Y" : "Centre Y of layout"} value={arrangement.pivotYmm} onChange={v => changeArrangement("pivotYmm", v)} /></div>
+        <NumberField label={arrangement.pattern === "fan" || arrangement.pattern === "random" ? "Middle angle" : arrangement.pattern === "progressive" ? "First paper angle" : "Start angle"} value={arrangement.angleDeg} onChange={v => changeArrangement("angleDeg", v)} />
+        {arrangement.pattern === "fan" && <NumberField label="Fan spread" value={arrangement.fanSpreadDeg} min={0} max={360} onChange={v => changeArrangement("fanSpreadDeg", v)} />}
+        {arrangement.pattern === "radial" && <NumberField label="Radial sweep" value={arrangement.radialSweepDeg} min={0} max={360} onChange={v => changeArrangement("radialSweepDeg", v)} />}
+        {(arrangement.pattern === "fan" || arrangement.pattern === "radial") && <NumberField label="Distance from pivot" value={arrangement.radiusMm} min={0} onChange={v => changeArrangement("radiusMm", v)} />}
+        {arrangement.pattern === "progressive" && <div className="sc-grid"><NumberField label="Centre spacing" value={arrangement.spacingMm} min={0} onChange={v => changeArrangement("spacingMm", v)} /><NumberField label="Rotation step" value={arrangement.stepDeg} min={-360} max={360} onChange={v => changeArrangement("stepDeg", v)} /></div>}
+        {arrangement.pattern === "random" && <><div className="sc-grid"><NumberField label="Centre spread width" value={arrangement.spreadWidthMm} min={0} onChange={v => changeArrangement("spreadWidthMm", v)} /><NumberField label="Centre spread height" value={arrangement.spreadHeightMm} min={0} onChange={v => changeArrangement("spreadHeightMm", v)} /><NumberField label="Rotation range" value={arrangement.rotationRangeDeg} min={0} max={360} onChange={v => changeArrangement("rotationRangeDeg", v)} /><NumberField label="Random seed" value={arrangement.seed} min={0} max={4294967295} step={1} onChange={v => changeArrangement("seed", v)} /></div><label className="sc-check"><input type="checkbox" checked={arrangement.varyLength} disabled={busy} onChange={e => changeArrangement("varyLength", e.target.checked)} />Vary paper length</label>{arrangement.varyLength && <div className="sc-grid"><NumberField label="Minimum length" value={arrangement.minLengthMm} min={.1} onChange={v => changeArrangement("minLengthMm", v)} /><NumberField label="Maximum length" value={arrangement.maxLengthMm} min={.1} onChange={v => changeArrangement("maxLengthMm", v)} /></div>}</>}
+        <button className="sc-primary sc-wide" disabled={busy || !summary.stripCount} onClick={() => applyArrangement()}>Arrange {summary.stripCount} visible papers</button>
+        {arrangement.pattern === "random" && <button className="sc-wide" disabled={busy || !summary.stripCount} onClick={() => applyArrangement(true)}>New variation · seed +1</button>}
+        <p className="sc-note">Uses visible papers in print order; hidden papers stay put. Current sizes are kept unless length variation is on. Undo restores the previous layout. {arrangement.pattern === "random" ? "Spread bounds apply to paper centres." : "Papers can extend beyond the artwork; the source stays fixed."}</p>
+      </section>
 
       <section className="sc-export"><h2>Export PNG</h2>
         <label className="sc-field"><span>Resolution</span><select aria-label="PNG resolution" value={exportResolution} disabled={busy} onChange={e => setExportResolution(e.target.value)}><option value="epson">Epson · measured 179.5 dpi</option><option value="150">150 dpi</option><option value="300">300 dpi</option><option value="600">600 dpi</option></select></label>

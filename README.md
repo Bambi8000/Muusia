@@ -385,6 +385,20 @@ switching tabs keeps manual work. Sheets show count, area and combined length;
 rolls show total metres and the editable roll budget. Dashed blue lines show
 Roll machine-piece boundaries within the continuous physical paper.
 
+**Arrange papers (local preview 2.182).** Fan, Radial, Progressive Rotation and
+seeded Random arrange the existing **visible** papers in any of the three
+families. First generate the required paper count/sizes, then choose the pattern
+and press **Arrange N visible papers**. Changing settings alone keeps the current
+layout. Fan shares a pivot, Radial follows a full circle or partial sweep, and
+Progressive Rotation spaces centres in a row while incrementing the angle.
+Random exposes centre bounds, angle range and a saved seed; optional absolute
+minimum/maximum lengths vary paper length. **New variation · seed +1** applies the
+next seed. Reapplying a seed repeats the layout without cumulative length changes;
+hiding a different paper does not reshuffle Random. Stable IDs, widths, margins,
+print/Z order and hidden papers are preserved. Layouts remain manually editable;
+Undo restores the previous arrangement. The source stays fixed, and papers can
+extend outside the artwork. Pattern settings save separately in each family.
+
 **Plotter / vector files** exports selected or all papers through the existing
 SVG/DXF/G-code engines. Regular layouts use the original slicers; freeform layouts
 transform the artwork into each paper's local coordinates first. Roll piece

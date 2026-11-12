@@ -6099,3 +6099,43 @@ visualization surface-mega-roll. App 2.181 at http://127.0.0.1:5192/; not pushed
 published. No printer-service/config changes or physical output in this phase.
 Next: Fan/Radial/Progressive/seeded Random layouts, Independent Content and
 assembly map. Freeform animation batch export is a separately bounded follow-up.
+
+### 2.182 — Fan/Radial/Progressive/seeded Random arrangements (local)
+
+Arrange papers now works in all three existing paper families. Uses visible
+papers in print order, preserves stable ID/list/Z/print order, widths/printable
+margins and source. Settings alone are drafts; Arrange applies one undoable
+freeform pose change and fits the camera only. Existing Generate controls define
+paper count/sizes first. Hidden papers do not move. No source fit or physical
+resizing except explicit Random length variation. Manual editing remains intact.
+New surface-arrangements.js: Fan shared pivot with centred spread, Radial start/
+sweep without a duplicate full-circle endpoint, Progressive horizontal centre
+spacing + angle step, Random centre bounds + angle range + saved uint32 seed.
+Random uses existing mulberry32 with stable per-ID hash; hiding another paper
+cannot reshuffle the rest. Optional ABSOLUTE min/max paper lengths are sampled
+without cumulative reapply drift; position/angle draws independent of length
+checkbox. New variation advances seed modulo 2^32 and applies in one Undo step.
+Optional arrangement settings persist independently in surface and both
+surfaceLayouts sessions; old files retain geometry and receive UI defaults.
+Invalid settings reject before graph changes. Print range resets to 0/end on
+arrange; pending print record retained. No automatic print or continuation.
+APP_VERSION/generated Learn manifest 2.182. Existing graph/export helpers,
+machine profiles, server and tracked export source scopes unchanged.
+Validation: 74 focused JS checks incl 8 new arrangement tests: analytic fan top
+centres, full/partial radial angles, print order, progressive steps, seeded
+bounds/repeat/hidden-ID invariance/absolute lengths, immutable material/production,
+all-family roundtrip, fixed-source mapping, 4096 papers and invalid parameters.
+Focused lint, catalog -> build -> 37914 Learn checks passed. No provenance bypass.
+ACTUAL browser: all four presets on sheets; Fan Undo/Redo 24 ->135 ->24 ->135;
+Random repeat saves identical; seed +1 and Undo; hide paper 4 and arrange keeps
+others exact. Progressive Roll and Radial Strips keep independent per-family
+settings. Actual Save/Load/Save retained all three sessions and root exactly.
+Downloaded 4 Fan SVGs, 4 Random SVGs, 11 Progressive Roll SVGs, 3 Radial Strips
+PNGs and 4 Random sheet PNGs. Independent check reprojected 6916 actual SVG
+vertices onto original source grid within SVG rounding tolerance; PNG metadata/
+dimensions matched saved paper geometry. No console warnings/errors. No new
+physical print/plot, service changes, push or publication.
+Real screenshots, saved per-preset/all-family projects, actual downloads and
+verification.json in local visualization surface-arrangements. Dev app remains
+http://127.0.0.1:5192/. Next: Independent Content, then assembly map; freeform
+animation batches and magnet-jig files remain separately bounded follow-ups.
