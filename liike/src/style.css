@@ -272,3 +272,23 @@ input[type=file]::file-selector-button { margin-right: 12px; padding: 8px 10px; 
   .camera-heading { align-items: stretch; flex-direction: column; gap: 12px; }
   .camera-heading .secondary { align-self: flex-start; }
 }
+
+/* Receipt corner placement */
+.receipt-photo-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 16px; padding: 10px 0; border-top: 1px solid #7a4a27; border-bottom: 1px solid #7a4a27; }
+.receipt-photo-nav strong { color: #ffb26a; font-size: 12px; white-space: nowrap; }
+.receipt-mark-photo { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.receipt-drag-target circle { fill: #ff6a0033; stroke: #ff6a00; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.receipt-drag-target path { fill: none; stroke: #ff6a00; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.receipt-loupe { position: fixed; z-index: 100; width: 164px; padding: 2px; pointer-events: none; background: #080808; border: 2px solid #ff6a00; box-shadow: 0 8px 28px #000b; }
+.receipt-loupe svg { display: block; width: 156px; height: 156px; background: #080808; }
+.receipt-loupe-crosshair { position: absolute; left: 50%; top: 82px; width: 22px; height: 22px; transform: translate(-50%, -50%); border: 2px solid #ff6a00; border-radius: 50%; box-shadow: 0 0 0 1px #080808; }
+.receipt-loupe-crosshair::before, .receipt-loupe-crosshair::after { content: ''; position: absolute; background: #ff6a00; box-shadow: 0 0 0 1px #080808; }
+.receipt-loupe-crosshair::before { width: 2px; height: 32px; left: 8px; top: -7px; }
+.receipt-loupe-crosshair::after { width: 32px; height: 2px; left: -7px; top: 8px; }
+.receipt-loupe-label { display: block; padding: 5px 2px 2px; color: #ffb26a; font-size: 10px; line-height: 1.25; text-align: center; text-transform: uppercase; }
+.receipt-next-photo { display: block; width: 100%; margin-top: 18px; }
+@media (max-width: 600px) {
+  .receipt-photo-nav { display: grid; grid-template-columns: 1fr 1fr; }
+  .receipt-photo-nav strong { grid-column: 1 / -1; grid-row: 1; text-align: center; }
+  .receipt-photo-nav button { padding-inline: 6px; white-space: normal; }
+}

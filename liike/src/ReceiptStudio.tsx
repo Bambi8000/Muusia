@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import type { MouseEvent } from 'react';
+import type { PointerEvent } from 'react';
 import { loadPhoto, disposePhoto } from './photos';
 import type { Photo } from './photos';
-import type { Quad } from './homography';
+import type { Point, Quad } from './homography';
 import { detectReceiptMarks, readReceiptNumber, receiptFullExtent, receiptHeight, receiptTransform, sampleReceipt } from './receipt-marks';
 import { detectLargeReceipt, readLargeReceiptNumber } from './receipt-detection';
 import type { ExtractedFrame } from './frames';
@@ -14,6 +14,7 @@ import { INITIAL_SEQUENCE, timelineFrames } from './sequence';
 import type { SequenceSettings } from './sequence';
 
 type ReceiptPhoto = { photo: Photo; points: Quad | null; placed: [boolean, boolean, boolean, boolean]; number: number | null; message: string };
+type CornerDrag = Point & { pointerId: number; clientX: number; clientY: number };
 type Look = 'artwork' | 'surroundings';
 const labels = ['Top left', 'Top right', 'Bottom right', 'Bottom left'];
 const numberFromName = (name: string) => {
@@ -46,7 +47,10 @@ export default function ReceiptStudio() {
   const [busy, setBusy] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(0);
+  const [cornerDrag, setCornerDrag] = useState<CornerDrag | null>(null);
+  const activePointer = useRef<number | null>(null);
   const current = photos[selected];
+  const loupeRadius = current ? Math.max(24, Math.min(current.photo.width, current.photo.height) * .035) : 24;
   const previous = photos.at(-1);
   const photosRef = useRef(photos), framesRef = useRef(frames), generation = useRef(0);
   photosRef.current = photos; framesRef.current = frames;
@@ -93,12 +97,28 @@ export default function ReceiptStudio() {
     if (readingPoints) try { number = found?.number ?? readPrintedNumber(item.photo, readingPoints, total); } catch { /* Keep manual coordinates and number. */ }
     updatePhoto(index, { points: points ?? item.points, placed: points ? [true, true, true, true] : item.placed, number: number ?? item.number, message: points ? found?.modern ? 'Large L marks found. Check the corners and number.' : 'Older receipt marks found. Check the corners and number.' : 'Automatic detection was uncertain. Place the four corners.' });
   }
-  function place(event: MouseEvent<SVGSVGElement>) {
+  function selectPhoto(index: number) {
+    setSelected(index);
+    setCorner(0);
+    setCornerDrag(null);
+    activePointer.current = null;
+  }
+  function pointAt(event: PointerEvent<SVGSVGElement>): CornerDrag | null {
+    const matrix = event.currentTarget.getScreenCTM();
+    if (!matrix || !current) return null;
+    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    return {
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      x: Math.max(0, Math.min(current.photo.width, point.x)),
+      y: Math.max(0, Math.min(current.photo.height, point.y)),
+    };
+  }
+  function place(point: Point) {
     if (!current) return;
-    const svg = event.currentTarget, matrix = svg.getScreenCTM(); if (!matrix) return;
-    const p = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
     const old = current.points ?? [{ x: 0, y: 0 }, { x: current.photo.width, y: 0 }, { x: current.photo.width, y: current.photo.height }, { x: 0, y: current.photo.height }] as Quad;
-    const next = [...old] as Quad; next[corner] = { x: Math.max(0, Math.min(current.photo.width, p.x)), y: Math.max(0, Math.min(current.photo.height, p.y)) };
+    const next = [...old] as Quad; next[corner] = point;
     const placed = [...current.placed] as ReceiptPhoto['placed']; placed[corner] = true;
     let number = current.number;
     if (placed.every(Boolean)) {
@@ -107,6 +127,33 @@ export default function ReceiptStudio() {
     }
     updatePhoto(selected, { points: next, placed, number, message: `${placed.filter(Boolean).length} of 4 corners placed. Check the outline before building.` });
     setCorner((corner + 1) % 4);
+  }
+  function beginCornerDrag(event: PointerEvent<SVGSVGElement>) {
+    if (activePointer.current !== null) return;
+    const point = pointAt(event);
+    if (!point) return;
+    event.preventDefault();
+    activePointer.current = event.pointerId;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setCornerDrag(point);
+  }
+  function moveCornerDrag(event: PointerEvent<SVGSVGElement>) {
+    if (activePointer.current !== event.pointerId) return;
+    const point = pointAt(event);
+    if (point) setCornerDrag(point);
+  }
+  function endCornerDrag(event: PointerEvent<SVGSVGElement>) {
+    if (activePointer.current !== event.pointerId) return;
+    const point = pointAt(event);
+    activePointer.current = null;
+    setCornerDrag(null);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (point) place(point);
+  }
+  function cancelCornerDrag(event: PointerEvent<SVGSVGElement>) {
+    if (activePointer.current !== event.pointerId) return;
+    activePointer.current = null;
+    setCornerDrag(null);
   }
   function remove(index: number) {
     const item = photos[index]; if (!item) return;
@@ -171,12 +218,15 @@ export default function ReceiptStudio() {
       </div>
       <CameraCapture previous={previous ? { name: previous.photo.name, url: previous.photo.url, width: previous.photo.width, height: previous.photo.height, points: previous.placed.every(Boolean) ? previous.points : null } : undefined} busy={busy} onCapture={file => add([file])} />
       {photos.length > 0 && <div className="receipt-workspace">
-        <section className="receipt-list" aria-label="Receipt photos"><h2>{photos.length} receipt photos</h2>{photos.map((item, i) => <button key={item.photo.id} className={selected === i ? 'selected' : ''} onClick={() => setSelected(i)}><img src={item.photo.url} alt="" /><span><strong>Frame {item.number ?? '?'}</strong><small>{item.photo.name}</small><small>{item.placed.filter(Boolean).length} / 4 marks placed</small></span></button>)}</section>
+        <section className="receipt-list" aria-label="Receipt photos"><h2>{photos.length} receipt photos</h2>{photos.map((item, i) => <button key={item.photo.id} className={selected === i ? 'selected' : ''} onClick={() => selectPhoto(i)}><img src={item.photo.url} alt="" /><span><strong>Frame {item.number ?? '?'}</strong><small>{item.photo.name}</small><small>{item.placed.filter(Boolean).length} / 4 marks placed</small></span></button>)}</section>
         {current && <section className="receipt-register"><div className="preview-heading"><div><p className="eyebrow">Register receipt {selected + 1}</p><h2>Check the four marks</h2></div><button className="secondary" onClick={() => remove(selected)}>Remove photo</button></div>
-          <p className="hint">Select a corner, then tap the inner intersection of its L mark in the photo. The frame number can be corrected below.</p>
+          <nav className="receipt-photo-nav" aria-label="Photo navigation"><button className="secondary" disabled={selected === 0} onClick={() => selectPhoto(selected - 1)}>← Previous photo</button><strong>Photo {selected + 1} / {photos.length}</strong><button className="secondary" disabled={selected === photos.length - 1} onClick={() => selectPhoto(selected + 1)}>Next photo →</button></nav>
+          <p className="hint">Select a corner. Press and hold the photo to see a magnified view, drag the crosshair to the inner intersection of its L mark, then release to place it. You can also click with a mouse. Check the frame number below.</p>
           <div className="receipt-corner-buttons">{labels.map((label, i) => <button key={label} className={corner === i ? 'selected' : ''} onClick={() => setCorner(i)}>{label}</button>)}</div>
-          <svg viewBox={`0 0 ${current.photo.width} ${current.photo.height}`} onClick={place} role="img" aria-label="Receipt photo. Tap to place selected corner marker"><image href={current.photo.url} width={current.photo.width} height={current.photo.height} />{current.points && <>{current.placed.every(Boolean) && <polygon points={current.points.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="#ff6a00" strokeWidth={Math.max(2, current.photo.width / 350)} />}{current.points.map((p, i) => current.placed[i] && <g key={i}><circle cx={p.x} cy={p.y} r={Math.max(6, current.photo.width / 90)} fill="#ff8a26" stroke="#0e0d0b" strokeWidth={Math.max(2, current.photo.width / 400)} /><text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={Math.max(9, current.photo.width / 60)} fill="#0e0d0b">{i + 1}</text></g>)}</>}</svg>
+          <svg className="receipt-mark-photo" viewBox={`0 0 ${current.photo.width} ${current.photo.height}`} onPointerDown={beginCornerDrag} onPointerMove={moveCornerDrag} onPointerUp={endCornerDrag} onPointerCancel={cancelCornerDrag} onLostPointerCapture={cancelCornerDrag} role="img" aria-label="Receipt photo. Press, drag and release to place the selected corner marker"><image href={current.photo.url} width={current.photo.width} height={current.photo.height} />{current.points && <>{current.placed.every(Boolean) && <polygon points={current.points.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="#ff6a00" strokeWidth={Math.max(2, current.photo.width / 350)} />}{current.points.map((p, i) => current.placed[i] && <g key={i}><circle cx={p.x} cy={p.y} r={Math.max(6, current.photo.width / 90)} fill="#ff8a26" stroke="#0e0d0b" strokeWidth={Math.max(2, current.photo.width / 400)} /><text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={Math.max(9, current.photo.width / 60)} fill="#0e0d0b">{i + 1}</text></g>)}</>}{cornerDrag && <g className="receipt-drag-target" pointerEvents="none"><circle cx={cornerDrag.x} cy={cornerDrag.y} r={Math.max(7, current.photo.width / 100)} /><path d={`M${cornerDrag.x - current.photo.width / 55} ${cornerDrag.y}h${2 * current.photo.width / 55}M${cornerDrag.x} ${cornerDrag.y - current.photo.width / 55}v${2 * current.photo.width / 55}`} /></g>}</svg>
+          {cornerDrag && <div className="receipt-loupe" aria-hidden="true" style={{ left: Math.max(8, Math.min(window.innerWidth - 172, cornerDrag.clientX - 82)), top: cornerDrag.clientY > 204 ? cornerDrag.clientY - 198 : cornerDrag.clientY + 24 }}><svg viewBox={`${cornerDrag.x - loupeRadius} ${cornerDrag.y - loupeRadius} ${loupeRadius * 2} ${loupeRadius * 2}`}><image href={current.photo.url} width={current.photo.width} height={current.photo.height} /></svg><span className="receipt-loupe-crosshair" /><span className="receipt-loupe-label">{labels[corner]} · release to place</span></div>}
           <p className="notice" role="status">{current.message}</p><div className="receipt-number"><label className="field"><span>Frame number on receipt</span><input type="number" min={1} max={999} value={current.number ?? ''} onChange={e => updatePhoto(selected, { number: e.target.value ? Number(e.target.value) : null })} /></label><button className="secondary" onClick={() => detect(selected)}>Detect again</button></div>
+          {selected < photos.length - 1 && <button className="primary receipt-next-photo" onClick={() => selectPhoto(selected + 1)}>Next photo {selected + 2} / {photos.length} →</button>}
         </section>}
       </div>}
       {error && <p className="error" role="alert">{error}</p>}
