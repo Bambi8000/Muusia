@@ -1644,12 +1644,18 @@ and center are value ports, so the dial can be driven.
 **Noise** — animated analog-TV snow made from square/circle pixels or horizontal
 *scanline dashes*, with size/position jitter and rolling *interference bands*.
 *Mode: Full sheet* keeps the original open field. *Patent TV* draws a plotter-ready
-line illustration of a vintage CRT set, with rabbit-ear antenna, recessed screen,
-knobs, vents, numbered leader lines and FIG. 1 caption; the snow stays within the
-curved screen. *Motion: Timeline* changes the snow on each ANIMATE frame without
-wiring; *Manual* selects a frame number, and *Still* holds the seed. Scrubbing and
-exporting a given frame produce the same geometry. The cabinet stays fixed while
-the snow changes. Output is budget-capped. Help: Noise · Patent TV.
+line illustration of an antenna-free vintage CRT set, with recessed screen, knobs,
+vents, numbered leader lines and FIG. 1 caption. Wire any path node to the blue
+*Program* input: its canvas is scaled into the screen and clipped to the rounded
+glass, with its pen colours retained. *Screen signal: Auto* shows the wired
+program, or snow when nothing is wired; *Snow*, *Program* and *Program + snow*
+select the other combinations. *Black frame chance %* inserts seeded blackout
+frames into either signal, drawn as dense real pen strokes inside the screen.
+The first Timeline frame stays visible unless the chance is 100%. *Motion:
+Timeline* follows ANIMATE without wiring; *Manual* selects a frame number, and
+*Still* holds the seed. Scrubbing and export are repeatable. The cabinet stays
+fixed. Dense blackout frames take longer to plot. Help: Noise · Patent TV and
+Noise · Program signal.
 
 **Net** — netting with selectable mesh: Diamond (fishing net), Square, Triangle,
 Hexagon (chicken wire, drawn without doubled edges). Whole net sags like it hangs;

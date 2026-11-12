@@ -264,6 +264,23 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.174 — 2026-11-12 · TV program input and black frames
+
+Patent TV no longer has antennas. Noise adds a blue Program paths input and
+maps incoming drawing geometry into the rounded CRT screen, clipping strokes
+at its boundary while retaining the source pen. Screen signal Auto shows the
+program when connected and snow otherwise; Snow, Program and Program + snow
+give explicit choices. A seeded Black frame chance control inserts densely
+hatched screen frames in Timeline motion. The cabinet remains fixed. Help now
+includes a Murmuration → Noise program example, and the existing TV example
+explains the interruptions. Rotate remains available under Modifiers → Transform.
+
+The focused validator covers the missing antennas, clipped program geometry,
+pen and closed-path preservation, signal modes and deterministic black frames.
+All 177 Help examples, catalog, production build and 37,913 Learn checks passed.
+The built app loaded the program example and showed its output clipped inside
+the antenna-free cabinet. No physical plot was made.
+
 ### 2.173 — 2026-11-12 · Animated TV snow and patent television
 
 Noise now follows the ANIMATE timeline without a wire. Motion can instead select
