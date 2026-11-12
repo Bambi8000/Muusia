@@ -279,7 +279,10 @@ The focused validator covers the missing antennas, clipped program geometry,
 pen and closed-path preservation, signal modes and deterministic black frames.
 All 177 Help examples, catalog, production build and 37,913 Learn checks passed.
 The built app loaded the program example and showed its output clipped inside
-the antenna-free cabinet. No physical plot was made.
+the antenna-free cabinet. No physical plot was made. Release commit
+`952c5977a6c6051d7b5b03d947884c28d4b9f38b` passed Pages run
+`43222069489`; the public page contained v2.174, the blackout control and
+the Program signal Help example.
 
 ### 2.173 — 2026-11-12 · Animated TV snow and patent television
 

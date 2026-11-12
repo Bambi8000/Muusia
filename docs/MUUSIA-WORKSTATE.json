@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.173",
+    "version": "2.174",
     "date": "2026-11-12",
-    "commit": "bc55b8274f1d369129b7612a10849f84cbbc1c9f",
-    "pagesRunId": 43206297482,
+    "commit": "952c5977a6c6051d7b5b03d947884c28d4b9f38b",
+    "pagesRunId": 43222069489,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.173 with Patent TV mode and Noise Help example; exact Pages run succeeded"
+    "status": "verified public Muusia 2.174 with antenna-free Patent TV, Program input, black frames and Help example; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.173",
+    "version": "2.174",
     "date": "2026-11-12",
-    "baseCommit": "d42ef8c0d633f3bfe8fd40f2afa557868b8b693f",
-    "branch": "codex/tvnoise-release",
+    "baseCommit": "1a54cf27ea9addc2a0a6d366261606948764f6c4",
+    "branch": "codex/tvnoise-no-antennas",
     "worktree": "/private/tmp/muusia-tvnoise-release-20261112",
     "published": true,
-    "status": "Muusia 2.173 animated TV snow and patent television published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.173 (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.174 antenna-free television, Program input and black frames published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.174 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 358,
     "registryCount": 360,
-    "validation": "TV noise focused validator, all 176 Help examples, catalog, production build and 37913 Learn checks passed. Built app loaded Patent TV and generated a frame SVG.",
+    "validation": "TV noise focused validator, all 177 Help examples, catalog, production build and 37913 Learn checks passed. Built app showed Murmuration clipped to the television screen.",
     "note": "No physical plot was made. The unrelated primary checkout changes were preserved.",
-    "commit": "bc55b8274f1d369129b7612a10849f84cbbc1c9f"
+    "commit": "952c5977a6c6051d7b5b03d947884c28d4b9f38b"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
