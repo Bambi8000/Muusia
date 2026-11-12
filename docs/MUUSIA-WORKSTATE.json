@@ -21,7 +21,7 @@
     "snapshot": "/private/tmp/muusia-project-files-2.176 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 358,
     "registryCount": 360,
-    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 × 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
+    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 \u00d7 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
     "note": "Exact millimetre placement remains for Single Marker, Card Sheet and Needle Test. No physical plot was made. Unrelated primary checkout changes were preserved.",
     "commit": "1ac1679ab6f58c17a9eea1142c8f925bdb1431d2"
   },
@@ -32,5 +32,17 @@
     "directory": "/Users/daniel/.codex/visualizations/2026/10/12/01a12f65-627a-7b73-a1f8-0b1dbf4558f7/multicolour-cell-warp",
     "outcome": "Three built-in-node A3 multicolour examples with actual public-app SVG exports and screenshots. Shared Warp with Array and optional same-seed separate-branch registration drift. No source change or release.",
     "checks": "All three patches loaded and final output selected in public Muusia 2.134; actual SVG exports checked for 3/4 pen groups, path counts and A3 dimensions; deterministic shared-Warp geometry and paper bounds checked."
+  },
+  "lastHardwareUpdate": {
+    "date": "2026-11-12",
+    "needleDepthMm": 3,
+    "needleLiftMm": 5,
+    "needleLiftFeedMmMin": 300,
+    "needleAtStartup": true,
+    "calibrationRequiredAfterRestart": true,
+    "manualPens": true,
+    "touchscreenMacros": "home item third, run button above parameters, grids aligned at top",
+    "offsetsPreserved": true,
+    "installed": true
   }
 }

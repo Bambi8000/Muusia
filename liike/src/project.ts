@@ -1,6 +1,6 @@
 import { MAX_FRAME_NUMBER } from './frame-number.ts';
 import { validateSettings } from './layout.ts';
-import type { CaptureMode, SheetSettings } from './layout';
+import type { CaptureMode, ReceiptAspect, ReceiptView, SheetSettings } from './layout';
 import { validateAdjustments } from './adjustments.ts';
 import type { Adjustments } from './adjustments';
 import type { SequenceSettings } from './sequence';
@@ -37,8 +37,10 @@ export function parseProject(value: unknown): ProjectDocument {
     order: choice(s.order, 'frame order', ['Row-major', 'Column-major', 'Boustrophedon']), total: number(s.total, 'total frames', 1, Number.MAX_SAFE_INTEGER, true),
     crop: choice(s.crop, 'crop', ['Frame window', 'Full cell']), pad: number(s.pad, 'padding', 0, 100), paperTone: choice<'light' | 'dark'>(s.paperTone, 'paper color', ['light', 'dark']),
     markerStyle: s.markerStyle === undefined ? 'hatched' : choice<'hatched' | 'outline'>(s.markerStyle, 'marker style', ['hatched', 'outline']),
-    captureMode: legacy ? 'sheet' : choice<CaptureMode>(s.captureMode, 'capture mode', ['sheet', 'frames']),
+    captureMode: legacy ? 'sheet' : choice<CaptureMode>(s.captureMode, 'capture mode', ['sheet', 'frames', 'receipts']),
     clearance: legacy ? 0 : number(s.clearance, 'plot clearance', 0, 10), trim: legacy ? 0 : number(s.trim, 'border trim', 0, 10),
+    receiptView: s.receiptView === undefined ? (number(s.pad, 'padding', 0, 100) > 0 ? 'surround' : 'frame') : choice<ReceiptView>(s.receiptView, 'receipt image area', ['frame', 'surround', 'photo']),
+    receiptAspect: s.receiptAspect === undefined ? '3:4' : choice<ReceiptAspect>(s.receiptAspect, 'photo backdrop ratio', ['3:4', '9:16']),
   };
   const issues = validateSettings(settings); if (issues.length) fail(issues[0]!);
   const a = object(p.adjustments);
@@ -71,14 +73,14 @@ export function parseProject(value: unknown): ProjectDocument {
     // Incomplete or crossing assignments are valid editable work in progress.
     const sha256 = string(f.sha256, 'photo checksum', 64);
     if (!/^[a-f0-9]{64}$/.test(sha256)) fail('Invalid photo checksum in project.');
-    return { id, path, type, size, width, height, points, sha256, ...((p.version === 3 || p.version === 4) && f.frameNumber !== undefined ? { frameNumber: number(f.frameNumber, 'frame number', 1, MAX_FRAME_NUMBER, true) } : {}), registrationMode: legacy ? 'sheet' : choice(f.registrationMode, 'registration mode', ['sheet', 'frames']), name: string(f.name, 'photo name', 255), lastModified: number(f.lastModified, 'photo date', 0, Number.MAX_SAFE_INTEGER, true), settingsKey: string(f.settingsKey, 'marker settings', 200) };
+    return { id, path, type, size, width, height, points, sha256, ...((p.version === 3 || p.version === 4) && f.frameNumber !== undefined ? { frameNumber: number(f.frameNumber, 'frame number', 1, MAX_FRAME_NUMBER, true) } : {}), registrationMode: legacy ? 'sheet' : choice(f.registrationMode, 'registration mode', ['sheet', 'frames', 'receipts']), name: string(f.name, 'photo name', 255), lastModified: number(f.lastModified, 'photo date', 0, Number.MAX_SAFE_INTEGER, true), settingsKey: string(f.settingsKey, 'marker settings', 200) };
   });
   const q = object(p.sequence);
   const references = (value: unknown): string[] => {
     if (!Array.isArray(value) || value.length > MAX_PROJECT_PHOTOS * 36) fail('Invalid frame references in project.');
     const result = (value as unknown[]).map(v => {
       const id = string(v, 'frame reference', 85), split = id.lastIndexOf(':');
-      if (!ids.has(id.slice(0, split)) || !/^(0|[1-9][0-9]*)$/.test(id.slice(split + 1)) || Number(id.slice(split + 1)) >= (settings.captureMode === 'frames' ? 1 : settings.cols * settings.rows)) fail('A sequence frame refers to an unknown photo or cell.');
+      if (!ids.has(id.slice(0, split)) || !/^(0|[1-9][0-9]*)$/.test(id.slice(split + 1)) || Number(id.slice(split + 1)) >= (settings.captureMode === 'sheet' ? settings.cols * settings.rows : 1)) fail('A sequence frame refers to an unknown photo or cell.');
       return id;
     });
     if (new Set(result).size !== result.length) fail('Duplicate frame references in project.');
@@ -101,7 +103,7 @@ export function parseProject(value: unknown): ProjectDocument {
 
 /** Keep pending choices for extra photos, discard references to removed photos/cells. */
 export function currentSequence(sequence: SequenceSettings, settings: SheetSettings, photos: Pick<Photo, 'id'>[]): SequenceSettings {
-  const valid = new Set(photos.flatMap(p => Array.from({ length: settings.captureMode === 'frames' ? 1 : settings.cols * settings.rows }, (_, cell) => `${p.id}:${cell}`)));
+  const valid = new Set(photos.flatMap(p => Array.from({ length: settings.captureMode === 'sheet' ? settings.cols * settings.rows : 1 }, (_, cell) => `${p.id}:${cell}`)));
   const keep = (ids: string[]) => [...new Set(ids.filter(id => valid.has(id)))];
   return { ...sequence, manual: keep(sequence.manual), excluded: keep(sequence.excluded) };
 }

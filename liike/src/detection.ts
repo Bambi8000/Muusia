@@ -5,7 +5,7 @@ import { analysisLight } from './paper.ts';
 import type { PaperTone } from './paper';
 import type { NumberReading } from './number-detection';
 
-export type DetectionSettings = { W: number; H: number; markSize: number; markerStyle?: 'hatched' | 'outline'; paperTone?: PaperTone; captureMode?: 'sheet' | 'frames'; cols?: number; rows?: number; margin?: number; gap?: number };
+export type DetectionSettings = { W: number; H: number; markSize: number; markerStyle?: 'hatched' | 'outline'; paperTone?: PaperTone; captureMode?: 'sheet' | 'frames' | 'receipts'; cols?: number; rows?: number; margin?: number; gap?: number };
 export type DetectionResult = {
   status: 'found' | 'not-found' | 'ambiguous' | 'mirrored';
   points: Quad | null;

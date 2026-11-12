@@ -59,6 +59,20 @@ test('close-up projects preserve frame identity, capture geometry and original p
   assert.throws(()=>parseProject(invalid),/unknown photo or cell/);
 });
 
+test('receipt projects keep manual crop corners and printed numbers after save and load', async()=>{
+  const photos=[photo('one'),photo('two')].map((p,i)=>({...p,registrationMode:'receipts',frameNumber:[12,3][i]}));
+  const config=state(photos);
+  config.settings={...DEFAULTS,W:72,H:100,cols:1,rows:1,margin:0,gap:0,markSize:8,total:2,captureMode:'receipts',clearance:0,trim:0,crop:'Full cell',pad:0};
+  config.sequence={...INITIAL_SEQUENCE,order:'Frame number'};
+  const saved=await readProject(await saveProject(config,photos));
+  assert.equal(saved.project.settings.captureMode,'receipts');
+  assert.deepEqual(saved.project.photos.map(p=>p.registrationMode),['receipts','receipts']);
+  assert.deepEqual(saved.project.photos.map(p=>p.frameNumber),[12,3]);
+  assert.deepEqual(saved.project.photos.map(p=>p.points),photos.map(p=>p.points));
+  const frames=planFrames(saved.project.settings,photos,1080).flatMap(p=>p.frames);
+  assert.deepEqual(timelineFrames(frames,saved.project.sequence).map(f=>f.frameNumber),[3,12]);
+});
+
 test('a 24-frame series of 12 MP originals fits the project pixel budget',async()=>{
   const photos=Array.from({length:24},(_,i)=>({...photo(`frame${i}`),width:3024,height:4032,registrationMode:'frames'}));
   const config=state(); config.settings={...DEFAULTS,captureMode:'frames',total:24,clearance:3,trim:1,crop:'Full cell'};

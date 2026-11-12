@@ -7,7 +7,7 @@ import type { useFrames } from './useFrames';
 import type { Photo } from './photos';
 import FrameNumberField from './FrameNumberField';
 
-const sourceLabel = (frame: ExtractedFrame) => frame.captureMode === 'frames' && frame.frameNumber === undefined ? 'Number not set' : `${frame.captureMode === 'frames' ? 'Photo' : 'Sheet'} ${frame.sheet + 1}`;
+const sourceLabel = (frame: ExtractedFrame) => (frame.captureMode === 'frames' || frame.captureMode === 'receipts') && frame.frameNumber === undefined ? 'Number not set' : `${frame.captureMode === 'frames' || frame.captureMode === 'receipts' ? 'Photo' : 'Sheet'} ${frame.sheet + 1}`;
 
 function Player({ frames, fps, loop, issue }: { frames: ExtractedFrame[]; fps: number; loop: boolean; issue: string }) {
   const [index, setIndex] = useState(0);
@@ -53,20 +53,22 @@ function Player({ frames, fps, loop, issue }: { frames: ExtractedFrame[]; fps: n
 }
 
 type Props = {
-  closeup: boolean; photos: Photo[]; numberBusy: boolean; setFrameNumber: (id: string, value: number | undefined) => void; onReadNumber: (id: string) => void; onReadMissingNumbers: () => void;
+  closeup: boolean; receipt: boolean; photos: Photo[]; numberBusy: boolean; setFrameNumber: (id: string, value: number | undefined) => void; onReadNumber: (id: string) => void; onReadMissingNumbers: () => void;
   extraction: ReturnType<typeof useFrames>; resolution: number; setResolution: (n: number) => void;
   stabilize: boolean; setStabilize: (value: boolean) => void;
   total: number; readiness: string; sequence: SequenceSettings; setSequence: (settings: SequenceSettings) => void;
   onBack: () => void; onExport: () => void;
 };
 
-export default function SequenceStep({ closeup, photos, numberBusy, setFrameNumber, onReadNumber, onReadMissingNumbers, extraction, resolution, setResolution, stabilize, setStabilize, total, readiness, sequence, setSequence, onBack, onExport }: Props) {
+export default function SequenceStep({ closeup, receipt, photos, numberBusy, setFrameNumber, onReadNumber, onReadMissingNumbers, extraction, resolution, setResolution, stabilize, setStabilize, total, readiness, sequence, setSequence, onBack, onExport }: Props) {
   const [dragged, setDragged] = useState<string | null>(null);
   const [moveNotice, setMoveNotice] = useState('');
   const frames = extraction.completed ? extraction.frames : [];
   const orderIssue = sequenceOrderIssue(frames, sequence);
   const ordered = orderedFrames(frames, sequence), timeline = orderIssue ? [] : timelineFrames(frames, sequence);
   const timelineKey = timeline.map(f => f.id).join('|');
+  const warnings = [...new Set(frames.flatMap(frame => frame.warning ? [frame.warning] : []))];
+  const receiptPaperWarnings = warnings.filter(warning => /^Receipt \d+: not enough visible paper inside the L marks/.test(warning));
   function move(from: string, to: string) {
     const manual = moveFrame(ordered.map(f => f.id), from, to);
     setSequence({ ...sequence, order: 'Manual', manual });
@@ -79,11 +81,12 @@ export default function SequenceStep({ closeup, photos, numberBusy, setFrameNumb
       <label className="field"><span>Resolution · long side</span><select value={resolution} disabled={extraction.busy} onChange={e => setResolution(Number(e.target.value))}>{[480, 720, 1080, 2160].map(n => <option key={n} value={n}>{n} px</option>)}</select></label>
       {extraction.busy ? <button className="secondary" onClick={extraction.cancel}>Cancel extraction</button> : <button className="primary" disabled={Boolean(readiness)} onClick={() => { void extraction.extract(); }}>{extraction.completed ? 'Extract again' : 'Extract frames'}</button>}
     </div>
-    <div className="stabilization-setting"><label className="checkbox"><input type="checkbox" checked={stabilize} disabled={extraction.busy} onChange={e => setStabilize(e.target.checked)} />Stabilize position</label><p className="hint">Center one isolated drawing in every frame, keeping its size and rotation. Useful for a spinning object. Leave off when the drawing should travel across the frame. Changing this setting requires fresh extraction.</p></div>
+    <div className="stabilization-setting"><label className="checkbox"><input type="checkbox" checked={stabilize} disabled={receipt || extraction.busy} onChange={e => setStabilize(e.target.checked)} />Stabilize position</label><p className="hint">{receipt ? 'Receipt frames stay aligned to the four L marks, so the artwork and its surroundings keep their printed positions.' : 'Center one isolated drawing in every frame, keeping its size and rotation. Useful for a spinning object. Leave off when the drawing should travel across the frame. Changing this setting requires fresh extraction.'}</p></div>
     {readiness && <p className="warning" role="status">{readiness}</p>}
     {orderIssue && <p className="warning" role="status">{orderIssue} Read or correct the numbers below, exclude the affected frames, or explicitly choose Photo order.</p>}
     {extraction.error && <p className="error" role="alert">{extraction.error}</p>}
-    {[...new Set(frames.flatMap(f => f.warning ? [f.warning] : []))].map(warning => <p key={warning} className="warning" role="status">{warning}</p>)}
+    {receiptPaperWarnings.length > 0 && <p className="warning" role="status">Automatic paper correction was skipped for {receiptPaperWarnings.length} {receiptPaperWarnings.length === 1 ? 'receipt' : 'receipts'} because there was not enough visible paper inside the L marks. Shared tone controls still apply. Turn off Auto adjust in Adjust to hide this notice.</p>}
+    {warnings.filter(warning => !receiptPaperWarnings.includes(warning)).map(warning => <p key={warning} className="warning" role="status">{warning}</p>)}
     {extraction.busy && <div className="extraction-progress" role="status"><progress aria-label="Frame extraction" value={extraction.frames.length} max={total} /><span>{extraction.frames.length} / {total} frames</span></div>}
     {extraction.completed ? <>
       <div className="sequence-workspace">

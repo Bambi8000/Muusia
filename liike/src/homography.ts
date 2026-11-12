@@ -60,6 +60,17 @@ export function frameRegistration(W: number, H: number, points: Quad): Matrix {
   return registrationQuad([{ x: 0, y: 0 }, { x: W, y: 0 }, { x: W, y: H }, { x: 0, y: H }], points, W, H);
 }
 
+/** Align a receipt within a full photograph without perspective-stretching its surroundings. */
+export function affineFrameRegistration(W: number, H: number, points: Quad): Matrix {
+  frameRegistration(W, H, points);
+  const [tl, tr, br, bl] = points;
+  const dx = { x: (tr.x + br.x - tl.x - bl.x) / (2 * W), y: (tr.y + br.y - tl.y - bl.y) / (2 * W) };
+  const dy = { x: (bl.x + br.x - tl.x - tr.x) / (2 * H), y: (bl.y + br.y - tl.y - tr.y) / (2 * H) };
+  const center = { x: (tl.x + tr.x + br.x + bl.x) / 4, y: (tl.y + tr.y + br.y + bl.y) / 4 };
+  return [dx.x, dy.x, center.x - dx.x * W / 2 - dy.x * H / 2,
+    dx.y, dy.y, center.y - dx.y * W / 2 - dy.y * H / 2, 0, 0, 1];
+}
+
 function registrationQuad(source: Quad, points: Quad, W: number, H: number): Matrix {
   if (points.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) throw new Error('Check the marker coordinates.');
   const crosses = points.map((a, i) => {

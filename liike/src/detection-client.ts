@@ -3,7 +3,9 @@ import type { DetectionResult, DetectionSettings } from './detection';
 import type { Quad } from './homography';
 import type { Photo } from './photos';
 
-export const detectionSettingsKey = (settings: DetectionSettings) => settings.captureMode === 'frames'
+export const detectionSettingsKey = (settings: DetectionSettings) => settings.captureMode === 'receipts'
+  ? `receipts/v2/${settings.W}/${settings.H}/${settings.paperTone ?? 'light'}`
+  : settings.captureMode === 'frames'
   ? `frames/${settings.W}/${settings.H}/${settings.cols}/${settings.rows}/${settings.margin}/${settings.gap}/${settings.paperTone ?? 'light'}`
   : `${settings.W}/${settings.H}/${settings.markSize}/${settings.paperTone ?? 'light'}${settings.markerStyle === 'outline' ? '/outline' : ''}`;
 
@@ -28,7 +30,7 @@ export function startDetection(photo: Photo, settings: DetectionSettings, number
       worker.onerror = () => finish(fallback);
       timer = setTimeout(() => finish({ ...fallback, message: 'Detection took too long. Try a clearer photo or place the centers manually.' }), 15000);
       // Structured cloning preserves the full working raster for preview/sampling.
-      const points = numberOnly && photo.registrationMode === 'frames' && photo.points.every(Boolean)
+      const points = numberOnly && (photo.registrationMode === 'frames' || photo.registrationMode === 'receipts') && photo.points.every(Boolean)
         ? (photo.points as Quad).map(p => ({ x: p.x * photo.working.width / photo.width, y: p.y * photo.working.height / photo.height })) : undefined;
       worker.postMessage({ raster: { width: photo.working.width, height: photo.working.height, data: photo.working.data }, settings, numberOnly, points });
     } catch { finish(fallback); }

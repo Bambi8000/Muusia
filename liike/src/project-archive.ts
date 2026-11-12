@@ -96,7 +96,7 @@ export async function openProject(file: Blob, progress: ProjectProgress = () => 
       photo.points = saved.points;
       photo.registrationMode = saved.registrationMode;
       photo.frameNumber = saved.frameNumber;
-      photo.detection = { status: 'edited', settingsKey: saved.settingsKey, message: saved.registrationMode === 'frames' ? 'Restored frame corners. Check the crop before extracting.' : 'Restored marker positions. Check the frame windows before extracting.' };
+      photo.detection = { status: 'edited', settingsKey: saved.settingsKey, message: saved.registrationMode === 'sheet' ? 'Restored marker positions. Check the frame windows before extracting.' : 'Restored frame corners. Check the crop before extracting.' };
     }
     check(signal);
     return { project: { ...project, photos: project.photos.map(p => ({ ...p, id: ids.get(p.id)! })), sequence: remapSequence(project.sequence, ids) }, photos };

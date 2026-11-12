@@ -5836,3 +5836,27 @@ GitHub nodes library curation · surface compute errors on the node card
 (engine currently swallows compute exceptions silently) · built-in Truchet
 "Chain strokes" opt-in backport (def false to keep old patches byte-identical;
 see Truchet Multiscale).
+
+
+### W — 2026-11-12: pending Liike receipt capture integration
+
+Integrated primary-checkout receipt capture into the current public base aec4b74.
+Preserved the current black/orange UI and dedicated ReceiptStudio, Latu animation ZIP playback,
+and newer Print dashboard. Added sheet-project receipt capture, registered common
+3:4/9:16 photograph crops, receipt-aware numbering and adjustment sampling, and
+higher-quality video encoding. The older Latu and Print local copies contain no
+additional release changes and must not overwrite their newer public versions.
+Validation: Liike typecheck/lint and 170 tests, Latu 75 tests; both standalone builds.
+Browser verified the receipt capture and shared photo area selectors locally.
+Viivain touchscreen macros were separately installed from the primary checkout:
+Macros third in home menu, run button above parameters (72 px minimum), grids top-aligned.
+Initial touchscreen change restarted only KlipperScreen; startup logs confirm ready and macro panel loaded.
+Pen Setup and its saved offset file were initially preserved byte-for-byte.
+Follow-up hardware update: existing actual-machine config was backed up; only needle macros changed
+to 3 mm calibration clearance / 5 mm lift at F300, with needle active at startup.
+This suppresses the existing delayed PREPARE movement; after Klipper restart, print_time remains 0,
+needle active=true, calibrated=false, manual pen mode=0. Stored pen offsets checksum unchanged.
+Manual mode is now enforced in the installed pen manager; touchscreen Automatic choice removed.
+Full current manual-pen/UI hardware source remains in the older primary checkout and is not
+part of this app integration commit; do not overwrite live configs with older repository copies.
+Print server tests: all 7 passed; Learn gate: 37,914 checks passed.

@@ -4,6 +4,8 @@ import type { SheetSettings } from './layout';
 import { individualFrames, photoForMode } from './capture';
 import { frameNumberIssue, photoLabel } from './frame-number';
 import FrameNumberField from './FrameNumberField';
+import CameraCapture from './CameraCapture';
+import type { Quad } from './homography';
 
 type Props = { library: ReturnType<typeof usePhotos>; sheets: number; settings: SheetSettings; onBack: () => void; onRegister: (index: number) => void; onUsePhotos?: () => void; onSortNumbers?: () => void };
 export default function PhotosStep({ library, sheets, settings, onBack, onRegister, onUsePhotos, onSortNumbers }: Props) {
@@ -13,9 +15,10 @@ export default function PhotosStep({ library, sheets, settings, onBack, onRegist
   const { photos, busy, errors, add, remove, move } = library;
   const remaining = sheets - photos.length;
   const closeup = individualFrames(settings), noun = closeup ? 'Photo' : 'Sheet', feature = closeup ? 'corners' : 'markers';
+  const receipt = settings.captureMode === 'receipts';
   const visiblePhotos = photos.map(photo => photoForMode(photo, settings));
   return <>
-    <section className="intro"><div><p className="eyebrow">02 / Add your photographs</p><h1>Bring in <em>the ink.</em></h1><p>{closeup ? "Add one photo per frame. Keep the complete outline, its top-left circle and the number below it visible. Liike reads the numbers to put your frames in order." : "Add one photo per sheet, in sheet order. Keep all four markers visible."} Photos stay on your device.</p></div></section>
+    <section className="intro"><div><p className="eyebrow">02 / Add your photographs</p><h1>Bring in <em>the ink.</em></h1><p>{receipt ? 'Add one photo per printed receipt. Keep all four L marks and the F number strip visible. Liike reads the new large marks and number when it can; check each result.' : closeup ? "Add one photo per frame. Keep the complete outline, its top-left circle and the number below it visible. Liike reads the numbers to put your frames in order." : "Add one photo per sheet, in sheet order. Keep all four markers visible."} Photos stay on your device.</p></div></section>
     <input ref={input} className="sr-only" tabIndex={-1} type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" multiple={!replace.current} onChange={e => {
       const files = Array.from(e.target.files ?? []); const id = replace.current;
       e.target.value = ''; replace.current = undefined;
@@ -27,9 +30,10 @@ export default function PhotosStep({ library, sheets, settings, onBack, onRegist
       <span className="drop-symbol" aria-hidden="true">＋</span><h2>{closeup ? 'One frame, one photograph' : 'One sheet, one photograph'}</h2><p>Drop photos here, or choose them from your device.</p>
       <button className="primary" disabled={busy} onClick={() => { replace.current = undefined; if (input.current) { input.current.multiple = true; input.current.click(); } }}>{busy ? 'Processing photos…' : 'Choose photos'}</button><small>JPEG · PNG · WebP</small>
     </div>
+    {receipt && <CameraCapture previous={photos.at(-1) ? { ...photos.at(-1)!, points: photos.at(-1)!.points.every(Boolean) ? photos.at(-1)!.points as Quad : null } : undefined} busy={busy} onCapture={file => add([file], undefined, settings)} />}
     <div className="photo-count" role="status"><strong>{photos.length} / {sheets} photos</strong><span>{remaining > 0 ? `Add ${remaining} more ${remaining === 1 ? 'photo' : 'photos'} for the complete sequence. You can place ${feature} on the photos already added.` : remaining < 0 ? `You can place ${feature} on every photo. Only the first ${sheets === 1 ? 'photo is' : `${sheets} photos are`} used in the sequence. Increase Total frames in Sheet or reorder photos to include the others.` : `Every ${closeup ? 'frame' : 'sheet'} has a photo. Review or place its ${feature} manually.`}</span></div>
     {closeup && remaining !== 0 && photos.length > 0 && onUsePhotos && <button className="secondary" disabled={busy} onClick={onUsePhotos}>Use these {photos.length} frames</button>}
-    {closeup && <div className="frame-number-help"><button className="secondary" disabled={busy || !photos.some(p => p.frameNumber === undefined)} onClick={() => { void library.readMissingNumbers(settings); }}>Read missing numbers</button><p className="hint">Liike reads the printed number below each frame. Check the result and correct unclear numbers. Existing numbers are kept when reading missing ones. Photo numbers indicate upload order.</p>{photos.length > 1 && <><button className="secondary" disabled={busy || Boolean(frameNumberIssue(photos))} onClick={onSortNumbers}>Order by frame number</button><p className="hint" role="status">{frameNumberIssue(photos) || 'Arrange photos in ascending frame-number order. This also resets playback to that order.'}</p></>}</div>}
+    {closeup && <div className="frame-number-help"><button className="secondary" disabled={busy || !photos.some(p => p.frameNumber === undefined)} onClick={() => { void library.readMissingNumbers(settings); }}>Read missing numbers</button><p className="hint">{receipt ? 'Liike reads the new receipt number strip automatically. Check the printed F number and correct unclear results below. Older small-number receipts can still be entered manually.' : 'Liike reads the printed number below each frame. Check the result and correct unclear numbers. Existing numbers are kept when reading missing ones. Photo numbers indicate upload order.'}</p>{photos.length > 1 && <><button className="secondary" disabled={busy || Boolean(frameNumberIssue(photos))} onClick={onSortNumbers}>Order by frame number</button><p className="hint" role="status">{frameNumberIssue(photos) || 'Arrange photos in ascending frame-number order. This also resets playback to that order.'}</p></>}</div>}
     {errors.length > 0 && <div className="error" role="alert">{errors.map((error, i) => <p key={i}>{error}</p>)}</div>}
     <ol className="photo-list">{visiblePhotos.map((photo, i) => <li key={photo.id}>
       <img src={photo.url} alt={`${photoLabel(photo, i, settings.captureMode)}: ${photo.name}`} />

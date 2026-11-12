@@ -25,14 +25,14 @@ export function usePhotos() {
     const edit = numberEdits.current.get(id);
     const job = startDetection(photo, settings, numberOnly); jobs.current.set(id, job);
     commit(current.current.map(p => p.id === id ? { ...p,
-      ...(settings.captureMode === 'frames' ? { numberDetection: { status: 'running' as const, message: 'Reading the printed number…' } } : {}),
-      ...(!numberOnly ? { detection: { status: 'running' as const, message: `Finding ${settings.captureMode === 'frames' ? 'frame corners' : 'markers'}… You can still place them manually.`, settingsKey } } : {}),
+      ...(settings.captureMode === 'frames' || settings.captureMode === 'receipts' ? { numberDetection: { status: 'running' as const, message: 'Reading the printed number…' } } : {}),
+      ...(!numberOnly ? { detection: { status: 'running' as const, message: `Finding ${settings.captureMode === 'receipts' ? 'receipt L marks' : settings.captureMode === 'frames' ? 'frame corners' : 'markers'}… You can still place them manually.`, settingsKey } } : {}),
     } : p));
     const result = await job.promise;
     if (jobs.current.get(id) !== job) return;
     jobs.current.delete(id);
     const numberResult = result.number ?? { status: 'unreadable' as const, message: 'Could not read the number. Enter it manually or try again.' };
-    const numberPatch = (p: Photo) => settings.captureMode !== 'frames' || numberEdits.current.get(id) !== edit ? {} : {
+    const numberPatch = (p: Photo) => !['frames', 'receipts'].includes(settings.captureMode ?? 'sheet') || numberEdits.current.get(id) !== edit ? {} : {
       numberDetection: numberResult,
       frameNumber: numberResult.status === 'found' && (numberOnly || p.frameNumber === undefined) ? numberResult.value : p.frameNumber,
     };
@@ -96,7 +96,7 @@ export function usePhotos() {
   function sortNumbers() { commit(sortByFrameNumber(current.current)); }
   function setPoints(id: string, points: MarkerPoints, registrationMode?: CaptureMode) {
     stopDetection(id);
-    commit(current.current.map(p => p.id === id ? { ...p, points, numberDetection: undefined, registrationMode: registrationMode ?? p.registrationMode ?? 'sheet', previousPoints: undefined, detection: { status: 'edited', message: 'Manual corner positions. Run detection again whenever needed.', settingsKey: p.detection?.settingsKey ?? '' } } : p));
+    commit(current.current.map(p => p.id === id ? { ...p, points, numberDetection: undefined, registrationMode: registrationMode ?? p.registrationMode ?? 'sheet', previousPoints: undefined, detection: { status: 'edited', message: registrationMode === 'receipts' ? 'Manual receipt corners. Check the crop preview.' : 'Manual corner positions. Run detection again whenever needed.', settingsKey: p.detection?.settingsKey ?? '' } } : p));
   }
   function undoDetection(id: string) {
     const photo = current.current.find(p => p.id === id);

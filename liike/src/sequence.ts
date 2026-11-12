@@ -5,7 +5,7 @@ export type SequenceSettings = { order: SequenceOrder; manual: string[]; exclude
 export const INITIAL_SEQUENCE: SequenceSettings = { order: 'Original', manual: [], excluded: [], fps: 12, loop: true };
 
 type SequenceFrame = { id: string; frameNumber?: number; captureMode?: string };
-const usesNumbers = (frames: SequenceFrame[], settings: SequenceSettings) => settings.order === 'Frame number' || (frames.some(f => f.captureMode === 'frames') && ['Reverse', 'Ping-pong'].includes(settings.order));
+const usesNumbers = (frames: SequenceFrame[], settings: SequenceSettings) => settings.order === 'Frame number' || (frames.some(f => f.captureMode === 'frames' || f.captureMode === 'receipts') && ['Reverse', 'Ping-pong'].includes(settings.order));
 export function sequenceOrderIssue(frames: SequenceFrame[], settings: SequenceSettings) {
   return usesNumbers(frames, settings) ? frameNumberIssue(frames.filter(f => !settings.excluded.includes(f.id))) : '';
 }

@@ -30,12 +30,13 @@ self.onmessage = async (event: MessageEvent<{ bitmap: ImageBitmap; plan: SheetPl
         if (!crop) throw new Error(`Source frame ${spec.frame + 1}: could not safely center one isolated drawing. Turn off Stabilize position to keep the plotted motion, or check the crop and photograph.`);
         spec = { ...planned, crop, stabilized: true };
       }
-      // No downscaled or rectified sheet sits between the original and the crop.
-      const sampled = sampleRect(source, source, plan.h, spec.crop, spec.width, spec.height, paperBackground(settings.paperTone));
-      const raster = adjustRaster(sampled, spec.crop, model, adjustments);
       const canvas = new OffscreenCanvas(spec.width, spec.height);
       const context = canvas.getContext('2d');
       if (!context) throw new Error('Frame rendering is unavailable.');
+      // Every receipt in the series uses the same enlarged sheet-coordinate crop.
+      // Sampling the original once aligns the drawing and its surroundings together.
+      const sampled = sampleRect(source, source, plan.h, spec.crop, spec.width, spec.height, paperBackground(settings.paperTone));
+      const raster = adjustRaster(sampled, spec.crop, model, adjustments, settings.captureMode === 'receipts' && settings.receiptView === 'photo');
       const data = context.createImageData(spec.width, spec.height); data.data.set(raster.data);
       context.putImageData(data, 0, 0);
       const scale = Math.min(1, 240 / Math.max(spec.width, spec.height));
@@ -45,7 +46,7 @@ self.onmessage = async (event: MessageEvent<{ bitmap: ImageBitmap; plan: SheetPl
       thumbnailContext.drawImage(canvas, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
       const image = await canvas.convertToBlob({ type: 'image/png' });
       const thumbnail = await thumbnailCanvas.convertToBlob({ type: 'image/jpeg', quality: .9 });
-      const warning = !model.supported && (adjustments.flatten || adjustments.whiteBalance || adjustments.autoAdjust) ? `${settings.captureMode === 'frames' ? 'Frame' : 'Sheet'} ${spec.sheet + 1}: ${model.note}` : undefined;
+      const warning = !model.supported && (adjustments.flatten || adjustments.whiteBalance || adjustments.autoAdjust) ? settings.captureMode === 'receipts' ? `Receipt ${spec.sheet + 1}: not enough visible paper inside the L marks for automatic correction. Shared tone controls still apply.` : `${settings.captureMode === 'sheet' ? 'Sheet' : 'Frame'} ${spec.sheet + 1}: ${model.note}` : undefined;
       self.postMessage({ type: 'frame', spec, image, thumbnail, warning } satisfies ExtractionMessage);
       canvas.width = canvas.height = thumbnailCanvas.width = thumbnailCanvas.height = 1;
     }

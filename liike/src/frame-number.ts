@@ -6,12 +6,12 @@ export const validFrameNumber = (value: number) => Number.isInteger(value) && va
 
 /** A photo's position is not a number read from the paper. */
 export function photoLabel(photo: NumberedPhoto, index: number, mode?: CaptureMode) {
-  if (mode !== 'frames') return `Sheet ${index + 1}`;
+  if (mode !== 'frames' && mode !== 'receipts') return `Sheet ${index + 1}`;
   return photo.frameNumber === undefined ? `Photo ${index + 1} · number not set` : `Frame ${photo.frameNumber} · Photo ${index + 1}`;
 }
 
 export function frameLabel(frame: NumberedPhoto & { captureMode?: CaptureMode; sheet: number; frame: number }) {
-  if (frame.captureMode !== 'frames') return `Source frame ${frame.frame + 1}`;
+  if (frame.captureMode !== 'frames' && frame.captureMode !== 'receipts') return `Source frame ${frame.frame + 1}`;
   return frame.frameNumber === undefined ? `Photo ${frame.sheet + 1}` : `Frame ${frame.frameNumber}`;
 }
 

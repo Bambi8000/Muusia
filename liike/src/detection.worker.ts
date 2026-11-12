@@ -3,6 +3,7 @@ import { detectCloseup } from './closeup-detection';
 import type { DetectionSettings } from './detection';
 import type { Raster } from './sampling';
 import { detectFrameNumber } from './number-detection';
+import { detectLargeReceipt as detectReceipt, readLargeReceiptNumber as readReceiptNumber } from './receipt-detection';
 import type { Quad } from './homography';
 import type { DetectionResult } from './detection';
 
@@ -17,11 +18,15 @@ self.onmessage = (event: MessageEvent<{ raster: Raster; settings: DetectionSetti
     };
     const result: DetectionResult = event.data.numberOnly
       ? { status: 'found', points: event.data.points ?? null, candidates: 0, message: '' }
-      : settings.captureMode === 'frames' ? detectCloseup(raster, geometry) : detectMarkers(raster, settings);
+      : settings.captureMode === 'receipts' ? detectReceipt(raster, settings.W, settings.H) : settings.captureMode === 'frames' ? detectCloseup(raster, geometry) : detectMarkers(raster, settings);
     if (settings.captureMode === 'frames') {
       try {
         result.number = result.points ? detectFrameNumber(raster, result.points, geometry) : { status: 'unreadable', message: 'Place the frame corners before reading its printed number.' };
       } catch { result.number = { status: 'unreadable', message: 'Could not read the printed number. Check the corners or enter it manually.' }; }
+    }
+    if (settings.captureMode === 'receipts') {
+      try { result.number ??= result.points ? readReceiptNumber(raster, result.points, settings.W, settings.H) : { status: 'unreadable', message: 'Place the L corners before reading the receipt number.' }; }
+      catch { result.number = { status: 'unreadable', message: 'Could not read the receipt number. Enter it manually.' }; }
     }
     self.postMessage(result);
   }

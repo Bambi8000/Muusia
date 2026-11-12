@@ -41,7 +41,7 @@ export const gifDelay = (index: number, fps: number) => (Math.round((index + 1) 
 export const pngName = (index: number) => `frames/frame-${String(index + 1).padStart(6, '0')}.png`;
 export function exportManifest(plan: ExportPlan) {
   return { app: 'Liike', version: 1, timeUnit: 'microseconds', fps: plan.fps, loop: plan.loop, width: plan.width, height: plan.height, durationSeconds: plan.frames.length / plan.fps,
-    frames: plan.frames.map((frame, i) => ({ file: pngName(i), sourceFrame: frame.captureMode === 'frames' ? frame.frameNumber ?? null : frame.frame + 1, ...(frame.captureMode === 'frames' ? { captureMode: 'frames', sourcePhoto: frame.sheet + 1 } : { sheet: frame.sheet + 1 }), paperTone: frame.paperTone ?? 'light', stabilized: Boolean(frame.stabilized), ...frameTiming(i, plan.fps) })) };
+    frames: plan.frames.map((frame, i) => ({ file: pngName(i), sourceFrame: frame.captureMode === 'frames' || frame.captureMode === 'receipts' ? frame.frameNumber ?? null : frame.frame + 1, ...(frame.captureMode === 'frames' || frame.captureMode === 'receipts' ? { captureMode: frame.captureMode, sourcePhoto: frame.sheet + 1 } : { sheet: frame.sheet + 1 }), paperTone: frame.paperTone ?? 'light', stabilized: Boolean(frame.stabilized), ...frameTiming(i, plan.fps) })) };
 }
 
 export type VideoChoice = { format: 'mp4' | 'webm'; config: VideoEncoderConfig };
@@ -49,8 +49,9 @@ export async function chooseVideo(plan: Pick<ExportPlan, 'width' | 'height' | 'f
   const { width, height, fps, options } = plan;
   const blocks = Math.ceil(width / 16) * Math.ceil(height / 16);
   const level = blocks <= 3600 && blocks * fps <= 108000 ? '1f' : blocks <= 8192 && blocks * fps <= 245760 ? '28' : '33';
-  const bitrate = Math.round(Math.max(500000, Math.min(40000000, width * height * fps * (options.quality === 'High' ? .35 : .15))));
-  const common = { width, height, framerate: fps, bitrate, latencyMode: 'realtime' as const };
+  // Detailed photographed backgrounds need substantially more data than flat artwork.
+  const bitrate = Math.round(Math.max(500000, Math.min(40000000, width * height * fps * (options.quality === 'High' ? 1.5 : .35))));
+  const common = { width, height, framerate: fps, bitrate, latencyMode: options.quality === 'High' ? 'quality' as const : 'realtime' as const };
   const choices: VideoChoice[] = [
     ...(options.videoFormat === 'auto' ? [{ format: 'mp4' as const, config: { ...common, codec: `avc1.4200${level}`, avc: { format: 'avc' as const } } }] : []),
     { format: 'webm', config: { ...common, codec: Math.max(width, height) > 1920 ? 'vp09.00.51.08' : 'vp09.00.41.08' } },

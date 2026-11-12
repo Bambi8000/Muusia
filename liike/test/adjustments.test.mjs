@@ -145,3 +145,34 @@ test('unsupported paper skips auto adjustment; sharpening and final two-tone out
   assert.deepEqual(adjustRaster(sampled, crop, unsupported, { ...DEFAULT_ADJUSTMENTS, sharpenEnabled: true, sharpen: 0 }).data, sampled.data);
   assert.throws(() => adjustRaster(sampled, crop, unsupported, { ...DEFAULT_ADJUSTMENTS, sharpen: 101 }), /adjustment/);
 });
+
+test('receipt auto adjust uses paper inside the marked crop and rejects artwork and outside background', () => {
+  const receipt = { ...settings, W: 72, H: 100, cols: 1, rows: 1, margin: 0, gap: 0, total: 1,
+    captureMode: 'receipts', crop: 'Full cell', pad: 0, clearance: 0, trim: 0, paperTone: 'light' };
+  const transform = [4, 0, 36, 0, 4, 40, 0, 0, 1];
+  const makePhoto = outside => {
+    const raster = { width: 360, height: 480, data: new Uint8ClampedArray(360 * 480 * 4) };
+    for (let y = 0; y < raster.height; y++) for (let x = 0; x < raster.width; x++) {
+      const within = x >= 36 && x < 324 && y >= 40 && y < 440;
+      const ink = within && x >= 140 && x < 220 && y >= 160 && y < 330;
+      const paper = Math.round(190 + 30 * (x - 36) / 288 - 15 * (y - 40) / 400);
+      const value = ink ? [35, 35, 35] : within ? [paper, paper - 8, paper - 15] : outside;
+      raster.data.set([...value, 255], (y * raster.width + x) * 4);
+    }
+    return raster;
+  };
+  const source = makePhoto([45, 70, 90]), other = makePhoto([250, 10, 10]);
+  const model = estimatePaper(source, source, transform, receipt);
+  assert.ok(model.supported && model.samples >= 12, model.note);
+  assert.match(model.note, /inside the L marks/);
+  assert.deepEqual(model.paper, estimatePaper(other, other, transform, receipt).paper);
+  const rect = { x: 0, y: 0, w: 72, h: 100 };
+  const before = sampleRect(source, source, transform, rect, 144, 200);
+  const after = adjustRaster(before, rect, model, { ...DEFAULT_ADJUSTMENTS, flatten: false, whiteBalance: false, autoAdjust: true });
+  const at = (raster, x, y) => raster.data[(y * raster.width + x) * 4];
+  assert.ok(at(after, 10, 10) > at(before, 10, 10), 'dim paper was not lifted');
+  assert.ok(at(after, 60, 90) < 100, 'solid ink was mistaken for paper');
+  const noPaper = makePhoto([255, 255, 255]);
+  for (let y = 40; y < 440; y++) for (let x = 36; x < 324; x++) noPaper.data.set([40, 40, 40, 255], (y * noPaper.width + x) * 4);
+  assert.equal(estimatePaper(noPaper, noPaper, transform, receipt).supported, false);
+});

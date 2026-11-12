@@ -495,3 +495,12 @@ The original JPEG, SVG and settings screenshot are in `test/`, copied
 byte-for-byte from the user-supplied files. They are fixtures only and are not
 bundled into the app.
 See [test/README.md](./test/README.md) for confirmed values and validation results.
+
+### Receipt photos in saved sheet projects
+
+The Sheet workflow also accepts **Capture mode → Printed receipt frames**.
+Set the L-mark rectangle ratio and choose **Image area → Align whole photos by L marks**
+for a common 3:4 or 9:16 crop covered by every source photograph. This avoids
+blank alignment edges while keeping the drawing and surroundings in one image.
+The existing dedicated Receipt animation workflow remains available.
+High video quality uses a larger bitrate for detailed photographed backgrounds.

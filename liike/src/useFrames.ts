@@ -51,6 +51,6 @@ export function useFrames(photos: Photo[], settings: SheetSettings, resolution: 
     releaseFrames(owned.current); owned.current = [];
     setState({ key, frames: [], busy: false, error: 'Extraction cancelled. You can try again.', completed: false });
   }
-  const labeledFrames = useMemo(() => state.frames.map(frame => frame.captureMode === 'frames' ? { ...frame, frameNumber: photos.find(p => p.id === frame.photoId)?.frameNumber } : frame), [state.frames, photos]);
+  const labeledFrames = useMemo(() => state.frames.map(frame => frame.captureMode === 'frames' || frame.captureMode === 'receipts' ? { ...frame, frameNumber: photos.find(p => p.id === frame.photoId)?.frameNumber } : frame), [state.frames, photos]);
   return { ...(state.key === key ? { ...state, frames: labeledFrames } : { frames: [], busy: false, error: '', completed: false }), extract, cancel };
 }

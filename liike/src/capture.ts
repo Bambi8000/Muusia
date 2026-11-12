@@ -4,7 +4,7 @@ import { frameRegistration, registrationTransform } from './homography.ts';
 import type { Quad } from './homography';
 import type { Photo } from './photos';
 
-export const individualFrames = (settings: SheetSettings) => settings.captureMode === 'frames';
+export const individualFrames = (settings: SheetSettings) => settings.captureMode === 'frames' || settings.captureMode === 'receipts';
 export const requiredPhotos = (settings: SheetSettings) => individualFrames(settings) ? settings.total : buildLayout(settings).sheets;
 
 /** Close-up photos use cell-local millimeters; sheet photos retain sheet coordinates. */

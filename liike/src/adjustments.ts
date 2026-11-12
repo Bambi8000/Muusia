@@ -82,12 +82,16 @@ function inPhoto(h: Matrix, x: number, y: number, width: number, height: number)
   return px >= 0 && py >= 0 && px <= width && py <= height;
 }
 
-/** One model per photographed sheet, independent of crop, frame content and output size.
- * Only margins/gaps outside the full cells are paper references. Local paper
- * quantiles suppress labels and dirt; a smooth field avoids following drawn marks. */
+/** One model per photographed sheet, independent of output size.
+ * Sheets use margins/gaps and plotter close-ups use their clearance band.
+ * Receipts have no clearance band, so their light or dark paper is estimated
+ * from tiles strictly inside the L marks while rejecting ink-heavy tiles. */
 export function estimatePaper(source: Raster, original: { width: number; height: number }, h: Matrix, settings: SheetSettings): PaperModel {
-  const { W, H } = photoGeometry(settings), layout = buildLayout(settings), dark = settings.paperTone === 'dark', closeup = individualFrames(settings);
-  const blank = (x: number, y: number) => closeup
+  const geometry = photoGeometry(settings), { W, H } = geometry, layout = buildLayout(settings), dark = settings.paperTone === 'dark', closeup = individualFrames(settings), receipt = settings.captureMode === 'receipts';
+  const markedFrame = geometry.cells[0]?.cell;
+  const blank = (x: number, y: number) => receipt && markedFrame
+    ? x > markedFrame.x + .8 && y > markedFrame.y + .8 && x < markedFrame.x + markedFrame.w - .8 && y < markedFrame.y + markedFrame.h - .8
+    : closeup
     ? Math.min(x, y, W - x, H - y) > .7 && Math.min(x, y, W - x, H - y) < (settings.clearance ?? 0) - .4
     : !layout.cells.some(({ cell }) => x >= cell.x - 1 && y >= cell.y - 1 && x <= cell.x + cell.w + 1 && y <= cell.y + cell.h + 1);
   const usable = (x: number, y: number) => closeup ? x > .7 && y > .7 && x < W - .7 && y < H - .7 : x >= 4 && y >= 4 && x <= W - 4 && y <= H - 4 && !layout.markers.some(m => Math.abs(x - m.x) < settings.markSize / 2 + 2 && Math.abs(y - m.y) < settings.markSize / 2 + 2);
@@ -112,8 +116,15 @@ export function estimatePaper(source: Raster, original: { width: number; height:
     const bright = bin.slice(start, Math.max(end, start + 1));
     return { x: bright.reduce((sum, p) => sum + p.x, 0) / bright.length, y: bright.reduce((sum, p) => sum + p.y, 0) / bright.length, rgb: [0, 1, 2].map(c => median(bright.map(p => p.rgb[c]!))) };
   });
+  if (receipt && samples.length) {
+    const light = (sample: PaperSample) => .2126 * sample.rgb[0]! + .7152 * sample.rgb[1]! + .0722 * sample.rgb[2]!;
+    const levels = samples.map(light).sort((a, b) => a - b);
+    const reference = levels[Math.floor((levels.length - 1) * (dark ? .2 : .8))]!;
+    const limit = dark ? Math.min(135, reference + 45) : Math.max(120, reference - 45);
+    samples = samples.filter(sample => dark ? light(sample) <= limit : light(sample) >= limit);
+  }
   const supported = samples.length >= 12 && Math.max(...samples.map(s => s.x)) - Math.min(...samples.map(s => s.x)) > 1 && Math.max(...samples.map(s => s.y)) - Math.min(...samples.map(s => s.y)) > 1;
-  if (!supported) return { W, H, h, paperTone, photoWidth: original.width, photoHeight: original.height, paper: [background, background, background], coefficients: [0, 1, 2].map(() => [background, 0, 0, 0, 0, 0]), samples: samples.length, supported: false, note: closeup ? 'Not enough blank paper inside the frame. Check Clearance mm against the plot. Automatic paper corrections are skipped; shared tone controls still apply.' : 'Not enough blank paper is visible to estimate lighting. Automatic corrections are skipped for this sheet; global sliders still apply.' };
+  if (!supported) return { W, H, h, paperTone, photoWidth: original.width, photoHeight: original.height, paper: [background, background, background], coefficients: [0, 1, 2].map(() => [background, 0, 0, 0, 0, 0]), samples: samples.length, supported: false, note: receipt ? 'Not enough visible paper inside the L marks to estimate lighting. Automatic paper correction is skipped; shared tone controls still apply.' : closeup ? 'Not enough blank paper inside the frame. Check Clearance mm against the plot. Automatic paper corrections are skipped; shared tone controls still apply.' : 'Not enough blank paper is visible to estimate lighting. Automatic corrections are skipped for this sheet; global sliders still apply.' };
   let coefficients = [0, 1, 2].map(c => fit(samples, c));
   // Remove isolated contaminated reference tiles, keeping broad illumination changes.
   const residuals = samples.map(s => Math.abs(s.rgb[1]! - evaluate(coefficients[1]!, basis(s.x, s.y))));
@@ -122,10 +133,10 @@ export function estimatePaper(source: Raster, original: { width: number; height:
   if (clean.length >= samples.length * .75 && clean.length >= 12) { samples = clean; coefficients = [0, 1, 2].map(c => fit(samples, c)); }
   const model: PaperModel = { W, H, h, paperTone, photoWidth: original.width, photoHeight: original.height, paper: [0, 1, 2].map(c => median(samples.map(s => s.rgb[c]!))), coefficients, samples: samples.length, supported: true, note: dark ? 'Dark paper estimated across this sheet. Background glare is reduced while bright ink keeps its color; every frame shares the correction.' : 'Lighting estimated from blank paper across this sheet. The same correction is used for every frame.' };
   if (closeup) {
-    // The blank border corrects each photo's lighting. Never derive contrast
-    // from a single drawing's ink histogram: that would make the animation flicker.
+    // Each photo supplies its lighting estimate. Contrast remains shared so
+    // individual drawings cannot make the animation flicker.
     model.autoLevels = dark ? { black: 10, white: 255 } : { black: 0, white: 245 };
-    model.note = dark ? 'Lighting estimated from the blank band inside the frame. Bright ink keeps its color; contrast uses a shared setting.' : 'Lighting estimated from the blank band inside the frame. Contrast uses a shared setting to keep the animation consistent.';
+    model.note = receipt ? 'Lighting estimated only from paper inside the L marks. Contrast uses a shared setting to keep the animation consistent.' : dark ? 'Lighting estimated from the blank band inside the frame. Bright ink keeps its color; contrast uses a shared setting.' : 'Lighting estimated from the blank band inside the frame. Contrast uses a shared setting to keep the animation consistent.';
     return model;
   }
   // Analyze all physical cells together, independent of playback, crop, total
@@ -153,7 +164,7 @@ export function estimatePaper(source: Raster, original: { width: number; height:
 }
 
 /** Correct an already sampled crop in sheet coordinates, without modifying the source. */
-export function adjustRaster(source: Raster, rect: Rect, model: PaperModel, adjustments: Adjustments): Raster {
+export function adjustRaster(source: Raster, rect: Rect, model: PaperModel, adjustments: Adjustments, extendCorrections = false): Raster {
   validateAdjustments(adjustments);
   const a = adjustments, data = new Uint8ClampedArray(source.data.length);
   const background = paperBackground(model.paperTone);
@@ -164,7 +175,7 @@ export function adjustRaster(source: Raster, rect: Rect, model: PaperModel, adju
     const my = rect.y + (y + .5) * rect.h / source.height, ny = my / model.H * 2 - 1;
     for (let x = 0; x < source.width; x++) {
       const i = (y * source.width + x) * 4, mx = rect.x + (x + .5) * rect.w / source.width, nx = mx / model.W * 2 - 1;
-      const valid = mx >= 0 && my >= 0 && mx <= model.W && my <= model.H && inPhoto(model.h, mx, my, model.photoWidth, model.photoHeight);
+      const valid = (extendCorrections || (mx >= 0 && my >= 0 && mx <= model.W && my <= model.H)) && inPhoto(model.h, mx, my, model.photoWidth, model.photoHeight);
       const rgb = [0, 1, 2].map(c => {
         const alpha = source.data[i + 3]! / 255;
         let value = source.data[i + c]! * alpha + background * (1 - alpha);

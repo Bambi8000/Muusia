@@ -56,6 +56,9 @@ test('video support prefers H.264, falls back after unsupported or throwing chec
   const preferred = await chooseVideo(p, async c => { tested.push(c); return true; });
   assert.equal(preferred.format, 'mp4'); assert.equal(tested.length, 1);
   assert.equal(preferred.config.avc.format, 'avc'); assert.equal(preferred.config.height % 2, 0);
+  const standard = await chooseVideo(plan({}, { format: 'video', quality: 'Standard' }), async () => true);
+  assert.ok(preferred.config.bitrate > standard.config.bitrate);
+  assert.equal(preferred.config.latencyMode, 'quality');
   const fallback = await chooseVideo(p, async c => !c.codec.startsWith('avc'));
   assert.equal(fallback.format, 'webm');
   assert.equal((await chooseVideo(p, async c => { if (c.codec.startsWith('avc')) throw new Error('unsupported'); return true; })).format, 'webm');
