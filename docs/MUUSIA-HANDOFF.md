@@ -278,6 +278,9 @@ snow and screen/page bounds on four sheet sizes. All Help examples, catalog,
 production build and 37,913 Learn checks passed. The built app loaded the Patent
 TV example, showed different frame counts while scrubbing, and generated the
 selected frame's complete SVG. No physical plot was made.
+Release commit `bc55b8274f1d369129b7612a10849f84cbbc1c9f` passed
+Pages run `43206297482`; the public page contained v2.173, Patent TV and
+the Noise Help example.
 
 ### W — 2026-11-10 · Print clock mode on Raspberry Pi
 

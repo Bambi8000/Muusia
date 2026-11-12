@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.172",
-    "date": "2026-11-10",
-    "commit": "7a245db8d854f4d7fb7a922c27361bf4e33c73ba",
-    "pagesRunId": 42819537751,
+    "version": "2.173",
+    "date": "2026-11-12",
+    "commit": "bc55b8274f1d369129b7612a10849f84cbbc1c9f",
+    "pagesRunId": 43206297482,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.172 and Liike receipt detection; exact Pages run succeeded; real Epson frame 1 photo recognized"
+    "status": "verified public Muusia 2.173 with Patent TV mode and Noise Help example; exact Pages run succeeded"
   },
   "lastIntegration": {
-    "version": "2.172",
-    "date": "2026-11-10",
-    "baseCommit": "7842576c2adb997d6bf78a277ba80616d7bd18c4",
-    "branch": "codex/receipt-auto-detect",
-    "worktree": "/private/tmp/muusia-auto-receipt-20261110",
+    "version": "2.173",
+    "date": "2026-11-12",
+    "baseCommit": "d42ef8c0d633f3bfe8fd40f2afa557868b8b693f",
+    "branch": "codex/tvnoise-release",
+    "worktree": "/private/tmp/muusia-tvnoise-release-20261112",
     "published": true,
-    "status": "Muusia 2.172 larger receipt marks and Liike automatic recognition published and verified on GitHub Pages; real Epson frame 1 photo recognized",
-    "snapshot": "/private/tmp/muusia-project-files-2.172-auto-receipt (clean committed snapshot, prepared locally; not uploaded)",
+    "status": "Muusia 2.173 animated TV snow and patent television published and verified on GitHub Pages",
+    "snapshot": "/private/tmp/muusia-project-files-2.173 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 358,
     "registryCount": 360,
-    "validation": "Nine focused new receipt tests, all 163 Liike tests, TypeScript check, catalog, root build and 37913 Learn checks passed. Browser-exported frame and real Epson photo both recognized as frame 1; browser Full photo preview built.",
-    "note": "The other 11 printed frames still need a photographed 12-frame sequence to verify ordering and motion on paper; unrelated primary checkout changes were preserved.",
-    "commit": "7a245db8d854f4d7fb7a922c27361bf4e33c73ba"
+    "validation": "TV noise focused validator, all 176 Help examples, catalog, production build and 37913 Learn checks passed. Built app loaded Patent TV and generated a frame SVG.",
+    "note": "No physical plot was made. The unrelated primary checkout changes were preserved.",
+    "commit": "bc55b8274f1d369129b7612a10849f84cbbc1c9f"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
