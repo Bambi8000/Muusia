@@ -356,9 +356,17 @@ snaps to 15°); blue handle changes length. Wheel zooms and dragging the backgro
 pans. Undo/Redo restores edits and generated layouts. **Save project** includes
 the original image and every strip; old projects start with a fresh surface.
 The initial nominal 80 mm paper uses the Epson's checked 4.6 mm side margins.
-Mega Canvas and Roll Mode tabs open their existing controls. Strip PNG export
-and long-strip printing are the next development step; the main export panel
-continues to export the selected graph/Mega Canvas output.
+**Total paper** shows visible-strip metres plus an editable feed/cut allowance,
+compared against roll length minus manually entered used paper and reserve.
+**Print / continue** prints one selected strip or start/end range by default.
+After each strip, wait for cooling and start the next one yourself. Consecutive
+printing of the remaining strips is an explicit, unchecked option for short work;
+it is never restored from a project. Select any strip and millimetre offset to
+resume. Original image mapping stays fixed. The local Print service accepts a
+long strip as one job with one final cut, using the measured Epson scale.
+Mega Canvas and Roll Mode tabs open their existing controls. Strip PNG/ZIP export
+is the next development step; the main export panel continues to export the
+selected graph/Mega Canvas output.
 
 **Mini Canvas (production runs).** The inverse, as a node: *Auto grid* packs up to six
 wired compositions into a contact sheet; *Fixed size* replicates one mini size

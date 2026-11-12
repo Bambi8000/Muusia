@@ -5950,3 +5950,44 @@ Editor screenshot and 23-strip freeform demo saved in local visualization direct
 Local only, no push/publication or printer/config changes. Next: individual PNG
 and full PNG ZIP/manifest exports using existing block renderer. Run the shared
 gate and real browser download checks for that integration.
+
+### 2.179 — Surface Composer roll budget and selective printing (local app)
+
+Surface & paper shows total visible-strip metres plus editable per-strip feed/cut
+allowance, compared with roll length minus manually entered used paper and reserve.
+Defaults: 80 m roll, 1 m reserve, 20 mm allowance. No paper sensor or automatic
+used-roll accounting is implied. Sticky footer repeats total and fit/shortfall.
+Print / continue defaults to ONE chosen strip/range. Select any visible strip and
+start/end mm; original global artwork mapping stays fixed. A completed partial
+range advances its cursor; a completed strip selects the next, without sending it.
+User starts that next strip after cooling. Consecutive remaining-strip printing is
+an explicit transient checkbox for short work; never saved/restored. Stop after
+current cancels preparation or subsequent jobs, not a running physical strip.
+New surface-production.js owns budget/ranges/cursor/validated persisted settings;
+surface-print.js uses actual App evaluation or original image, calibrated scale
+400/56.6 dots/mm, safe columns 1..499 and bounded raster blocks. One 2 m strip is
+ONE job, never separate queue jobs per block. Nominal 80 mm profile; actual paper
+width remains unmeasured. Pending UUID stored before send, idempotent request,
+unknown network result retained; reload recovery checks only, never auto-resends.
+Layout Undo preserves production records; busy UI prevents edits during a run.
+Existing local server gains /api/strip-capabilities and /api/strip-jobs, raster
+512 x <=65535 rows, <=6 MB request, idle queue/Clock-off check and same USB worker.
+Initialise once, 256-row ESC/POS chunks, selected cut only at end. Normal receipt
+4096-row limit unchanged. Terminal image history bounded to 32 MiB.
+Print service installed on print.local with old SHA verified, empty active queue
+and Clock off, Python compile check, atomic replacement and user-service restart.
+Backup /home/print/muusia-print/server.py.before-surface-20261113-001303. New caps,
+USB ready and queue 0 verified. No physical print or printer/config/macro change.
+Validation: 51 focused JS tests (18 geometry/16 raster/10 session/7 production),
+9 Python tests incl HTTP idle/idempotence/Clock/cache and byte-exact 2 m/one-cut
+ESC/POS; focused lint, catalog, build and 37,914 Learn checks passed. No tracked
+export scope/provenance bypass. Actual browser dry-run: 2000 mm image -> 14135
+rows as one job, 450–550 mm range -> 707 rows and same-strip cursor 550, explicit
+two 100 mm graph strips -> two jobs; four jobs/four cuts, no extra default job.
+Budget shortfall/fit, save/load, and unchecked consecutive on reload verified;
+browser warnings/errors empty. New long-strip hardware output awaits paper test.
+App/screenshot/saved project at http://127.0.0.1:5192/ and local visualization
+surface-production directory. Live service deployment receipt there too.
+APP_VERSION and generated Learn manifest 2.179. Local app only, no push/publication.
+Next: individual PNG and full PNG ZIP/manifest exports using existing block
+renderer, then appropriate browser download checks and the ordered shared gate.

@@ -16,6 +16,74 @@ import native_fonts
 
 
 class PrintServerTests(unittest.TestCase):
+    def test_00_strip_jobs_are_single_idle_and_idempotent(self):
+        # No worker: inspect real HTTP queue operations without printing anything.
+        server.jobs.clear(); server.job_images.clear(); server.job_native_texts.clear()
+        httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True); thread.start()
+        base = f"http://127.0.0.1:{httpd.server_port}"
+        def post(body):
+            req = Request(base + "/api/strip-jobs", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+            with urlopen(req, timeout=3) as response:
+                return json.load(response)
+        payload = {"width": 512, "height": 5000, "data": base64.b64encode(bytes(64 * 5000)).decode(), "cut": True, "requestId": "a" * 32}
+        try:
+            with urlopen(base + "/api/strip-capabilities", timeout=3) as response:
+                self.assertEqual(json.load(response)["maxHeight"], 65535)
+            self.assertEqual(post(payload)["id"], "a" * 32)
+            self.assertEqual(post(payload)["id"], "a" * 32)
+            self.assertEqual(server.work.qsize(), 1, "Retry never prints the strip twice")
+            with self.assertRaises(HTTPError) as busy:
+                post({**payload, "requestId": "b" * 32})
+            self.assertEqual(busy.exception.code, 409); busy.exception.close()
+            queued = server.work.get_nowait(); server.work.task_done()
+            self.assertEqual(queued[0], "a" * 32)
+            self.assertEqual(queued[1][0], 5000)
+            server.jobs["a" * 32]["status"] = "done"
+            with server.clock_condition:
+                server.clock_state["running"] = True
+            with self.assertRaises(HTTPError) as clock:
+                post({**payload, "requestId": "b" * 32})
+            self.assertEqual(clock.exception.code, 409); clock.exception.close()
+            with server.clock_condition:
+                server.clock_state["running"] = False
+            # Terminal preview images are evicted, active work is retained.
+            for i in range(20):
+                key = f"old-{i}"
+                server.jobs[key] = {"status": "done"}
+                server.job_images[key] = bytes(2 * 1024 * 1024)
+            self.assertEqual(post({**payload, "requestId": "b" * 32})["id"], "b" * 32)
+            self.assertLessEqual(sum(len(b) for b in server.job_images.values()), server.MAX_IMAGE_HISTORY_BYTES)
+            self.assertIn("b" * 32, server.job_images)
+            server.work.get_nowait(); server.work.task_done()
+        finally:
+            httpd.shutdown(); httpd.server_close()
+            server.jobs.clear(); server.job_images.clear(); server.job_native_texts.clear()
+            with server.clock_condition:
+                server.clock_state["running"] = False
+
+    def test_long_strip_raster_is_continuous_and_cuts_only_at_the_end(self):
+        height = 14135
+        pixels = bytes([0xa5]) * (64 * height)
+        body = {"width": 512, "height": height, "data": base64.b64encode(pixels).decode()}
+        with self.assertRaises(ValueError):
+            server.validate_receipt(body)
+        self.assertEqual(server.validate_receipt(body, server.MAX_STRIP_HEIGHT, server.MAX_STRIP_BODY)[0], height)
+        with self.assertRaises(ValueError):
+            server.escpos_image(512, height, pixels)
+        encoded = server.escpos_image(512, height, pixels, max_height=server.MAX_STRIP_HEIGHT)
+        self.assertTrue(encoded.startswith(b"\x1b@")); self.assertTrue(encoded.endswith(b"\x1dV\x41\x20"))
+        self.assertEqual(encoded.count(b"\x1dV\x41\x20"), 1)
+        position = 2; rows = 0; reconstructed = bytearray()
+        while rows < height:
+            self.assertEqual(encoded[position:position+6], b"\x1dv0\x00\x40\x00")
+            count = encoded[position+6] + 256 * encoded[position+7]
+            self.assertLessEqual(count, 256)
+            reconstructed.extend(encoded[position+8:position+8+count*64])
+            position += 8 + count * 64; rows += count
+        self.assertEqual(bytes(reconstructed), pixels)
+        self.assertEqual(encoded[position:], b"\x1dV\x41\x20")
+
     def test_native_font_programs_are_bounded_and_use_rom_commands(self):
         self.assertEqual(set(native_fonts.TESTS), {"font-sample", "scaling-matrix", "typography-matrix", "character-pages"})
         for test in native_fonts.TESTS.values():

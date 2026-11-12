@@ -1,0 +1,107 @@
+import { clipPathsToStrip } from "./surface-composer.js";
+import { createContentPlacement, createStripRasterizer, placePathsOnSurface } from "./surface-render.js";
+
+// Measured 12 Nov 2026: 400 dots = 56.6 mm in X and Y; columns 1..499
+// physically verified with 4.6 mm side margins. No width-fitting is performed.
+export const EPSON_SURFACE = Object.freeze({ width: 512, dotsPerMm: 400 / 56.6, headOffsetMm: 4.38775, firstColumn: 1, lastColumn: 499, maxHeight: 65535 });
+const BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+const pause = () => new Promise(resolve => setTimeout(resolve, 0));
+
+export async function preparePrintSource(session, evaluateGraph) {
+  if (session.source.kind === "graph") {
+    const ps = evaluateGraph(session.widthMm, session.heightMm, session.source.graphPath, session.source.nodeId);
+    return { paths: placePathsOnSurface(ps, createContentPlacement({ sourceWidth: session.widthMm, sourceHeight: session.heightMm, widthMm: session.widthMm, heightMm: session.heightMm }), session) };
+  }
+  const source = session.source.image;
+  if (!source) throw new Error("Choose an image before printing.");
+  const blob = await (await fetch(source.src)).blob(), bitmap = await createImageBitmap(blob, { imageOrientation: "from-image" });
+  try {
+    if (bitmap.width !== source.width || bitmap.height !== source.height) throw new Error("The stored image dimensions do not match the source.");
+    const canvas = document.createElement("canvas"); canvas.width = bitmap.width; canvas.height = bitmap.height;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) throw new Error("Image rendering is unavailable.");
+    ctx.drawImage(bitmap, 0, 0);
+    return { image: ctx.getImageData(0, 0, canvas.width, canvas.height), placement: createContentPlacement({ sourceWidth: source.width, sourceHeight: source.height, widthMm: session.widthMm, heightMm: session.heightMm, fit: session.source.fit }) };
+  } finally { bitmap.close(); }
+}
+
+export function packSurfaceRows(rgba, target, rowStart, range, { dither = true } = {}) {
+  const d = EPSON_SURFACE.dotsPerMm, originalRow = Math.round(range.fromMm * d);
+  const left = range.strip.printableOffsetMm, right = left + range.strip.printableWidthMm;
+  for (let row = 0; row < rgba.height; row++) for (let x = EPSON_SURFACE.firstColumn; x <= EPSON_SURFACE.lastColumn; x++) {
+    const u = EPSON_SURFACE.headOffsetMm + (x + .5) / d;
+    if (u < left || u >= right) continue;
+    const i = (row * 512 + x) * 4, alpha = rgba.data[i + 3] / 255;
+    const gray = (rgba.data[i] * .299 + rgba.data[i + 1] * .587 + rgba.data[i + 2] * .114) * alpha + 255 * (1 - alpha);
+    const threshold = dither ? (BAYER[((rowStart + row + originalRow) % 4) * 4 + x % 4] + .5) * 16 : 160;
+    if (gray < threshold) target[(rowStart + row) * 64 + (x >> 3)] |= 0x80 >> (x & 7);
+  }
+}
+
+export async function renderSurfaceReceipt(session, range, source, { cancelled = () => false, onProgress = () => {}, dither = true } = {}) {
+  const profile = EPSON_SURFACE, strip = range.strip, d = profile.dotsPerMm;
+  if (strip.physicalWidthMm < 78 || strip.physicalWidthMm > 82) throw new Error("This print profile requires nominal 80 mm paper.");
+  const height = Math.max(1, Math.ceil(range.lengthMm * d - 1e-9));
+  if (height > profile.maxHeight) throw new Error(`Print a shorter range (maximum ${(profile.maxHeight / d / 1000).toFixed(2)} m per job).`);
+  const bytes = new Uint8Array(64 * height);
+  const renderStrip = { ...strip, printableOffsetMm: profile.headOffsetMm, printableWidthMm: 512 / d };
+  const rasterizer = source.image ? createStripRasterizer(source.image, source.placement, session, renderStrip, { dotsPerMmX: d }) : null;
+  const paths = source.paths ? clipPathsToStrip(source.paths, strip).paths : null;
+  const canvas = paths ? document.createElement("canvas") : null;
+  if (canvas) canvas.width = 512;
+  for (let rowStart = 0; rowStart < height; rowStart += 256) {
+    if (cancelled()) throw new Error("Print preparation stopped.");
+    const rows = Math.min(256, height - rowStart);
+    let rgba;
+    if (rasterizer) rgba = rasterizer.renderBlock(rowStart, rows);
+    else {
+      canvas.height = rows;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) throw new Error("Line rendering is unavailable.");
+      ctx.fillStyle = "white"; ctx.fillRect(0, 0, 512, rows);
+      ctx.scale(d, d); ctx.translate(-profile.headOffsetMm, -rowStart / d);
+      ctx.beginPath(); ctx.rect(strip.printableOffsetMm, 0, strip.printableWidthMm, strip.lengthMm); ctx.clip();
+      ctx.strokeStyle = "black"; ctx.lineWidth = .3; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      for (const path of paths) {
+        ctx.beginPath(); path.pts.forEach(([x, y], i) => { if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+        if (path.closed) ctx.closePath(); ctx.stroke();
+      }
+      rgba = ctx.getImageData(0, 0, 512, rows);
+    }
+    packSurfaceRows(rgba, bytes, rowStart, range, { dither });
+    onProgress((rowStart + rows) / height); await pause();
+  }
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+  return { width: 512, height, data: btoa(binary), cut: session.production.cut, name: `${range.originalId} · ${range.fromMm.toFixed(1)}–${range.toMm.toFixed(1)} mm` };
+}
+
+function baseUrl(url) {
+  if (!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/.test(url)) throw new Error("Use the local Print tunnel address.");
+  return url.replace(/\/$/, "");
+}
+async function jsonResponse(response) {
+  const value = await response.json().catch(() => ({}));
+  if (!response.ok) throw Object.assign(new Error(value.error || `Print service returned ${response.status}.`), { status: response.status });
+  return value;
+}
+export async function checkSurfacePrinter(url) {
+  const base = baseUrl(url), response = await fetch(`${base}/api/strip-capabilities`);
+  if (response.status === 404) throw new Error("Update the Print service for long single-strip jobs.");
+  const caps = await jsonResponse(response);
+  if (caps.width !== 512 || !caps.singleStripJob) throw new Error("Print service does not support this strip format.");
+  const health = await jsonResponse(await fetch(`${base}/health`));
+  if (!health.ready) throw new Error("The printer is offline.");
+  const jobs = await jsonResponse(await fetch(`${base}/api/jobs`));
+  if (jobs.jobs.some(job => ["queued", "printing"].includes(job.status))) throw new Error("Printer is busy. Wait for the current job.");
+  const clock = await jsonResponse(await fetch(`${base}/api/clock`));
+  if (clock.running) throw new Error("Stop Clock before printing a strip.");
+  return health;
+}
+export async function submitSurfaceReceipt(url, receipt) {
+  return jsonResponse(await fetch(`${baseUrl(url)}/api/strip-jobs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(receipt) }));
+}
+export async function surfacePrintStatus(url, id) {
+  if (!/^[a-f0-9]{32}$/.test(id)) throw new Error("Invalid print job ID.");
+  return jsonResponse(await fetch(`${baseUrl(url)}/api/jobs/${id}`));
+}

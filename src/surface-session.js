@@ -1,4 +1,5 @@
 import { createStrip, generateStripTiling, surfaceSummary, MAX_GENERATED_STRIPS } from "./surface-composer.js";
+import { productionSettings } from "./surface-production.js";
 
 export const SURFACE_VERSION = 1;
 export const MAX_SOURCE_PIXELS = 25000000;
@@ -23,7 +24,7 @@ function layoutSettings(input) {
 export function createSurfaceSession() {
   const layout = layoutSettings({ physicalWidthMm: 80, printableWidthMm: 70.8, printableOffsetMm: 4.6, rotationDeg: 0, gapMm: 8 });
   const strips = generateStripTiling({ widthMm: 2000, heightMm: 2000, ...layout, count: undefined, lengthMm: undefined });
-  return { version: SURFACE_VERSION, mode: "tiling", widthMm: 2000, heightMm: 2000, layout, strips, selectedId: strips[0].id, nextId: strips.length + 1, source: { kind: "graph", nodeId: null, graphPath: [], fit: "contain", image: null } };
+  return { version: SURFACE_VERSION, mode: "tiling", widthMm: 2000, heightMm: 2000, layout, strips, selectedId: strips[0].id, nextId: strips.length + 1, production: productionSettings(), source: { kind: "graph", nodeId: null, graphPath: [], fit: "contain", image: null } };
 }
 
 /** Missing field = old Muusia project, with a fresh surface session. Validate
@@ -49,12 +50,12 @@ export function readSurfaceSession(input) {
     image = { src: img.src, width: img.width, height: img.height, name: typeof img.name === "string" ? img.name.slice(0, 300) : "Image" };
   }
   if (!Number.isSafeInteger(input.nextId) || input.nextId < 1) throw new Error("Invalid next strip ID.");
-  return { version: SURFACE_VERSION, mode: input.mode, widthMm, heightMm, layout, strips, selectedId: strips.some(s => s.id === input.selectedId) ? input.selectedId : null, nextId: input.nextId, source: { kind: source.kind, nodeId: source.nodeId, graphPath: [...source.graphPath], fit: source.fit, image } };
+  return { version: SURFACE_VERSION, mode: input.mode, widthMm, heightMm, layout, strips, selectedId: strips.some(s => s.id === input.selectedId) ? input.selectedId : null, nextId: input.nextId, production: productionSettings(input.production), source: { kind: source.kind, nodeId: source.nodeId, graphPath: [...source.graphPath], fit: source.fit, image } };
 }
 
 export function regenerateSurface(session) {
   const strips = generateStripTiling({ widthMm: session.widthMm, heightMm: session.heightMm, ...session.layout, count: session.layout.count ?? undefined, lengthMm: session.layout.lengthMm ?? undefined });
-  return { ...session, strips, selectedId: strips[0].id, nextId: strips.length + 1, mode: "tiling" };
+  return { ...session, strips, selectedId: strips[0].id, nextId: strips.length + 1, mode: "tiling", production: { ...session.production, fromMm: 0, toMm: null } };
 }
 
 export function updateSurfaceLayout(session, patch) {

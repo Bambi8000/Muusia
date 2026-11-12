@@ -21,7 +21,7 @@
     "snapshot": "/private/tmp/muusia-project-files-2.176 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 358,
     "registryCount": 360,
-    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 \u00d7 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
+    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 × 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
     "note": "Exact millimetre placement remains for Single Marker, Card Sheet and Needle Test. No physical plot was made. Unrelated primary checkout changes were preserved.",
     "commit": "1ac1679ab6f58c17a9eea1142c8f925bdb1431d2"
   },
@@ -46,13 +46,13 @@
     "installed": true
   },
   "lastSurfaceComposer": {
-    "date": "2026-11-12",
+    "date": "2026-11-13",
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local Muusia 2.178 visual editor and project persistence complete; PNG exports next; not published",
-    "validation": "44 focused tests (18 geometry, 16 content/raster, 10 session with actual App evaluator and bound groups), focused oxlint, catalog, production build and 37914 Learn checks passed; real browser pointer/zoom/image/save-load/legacy checks passed.",
-    "nextStep": "Plan step 4 remaining: individual PNG and complete PNG ZIP/manifest export using bounded surface-render blocks. Preserve editor state and existing export semantics.",
+    "status": "local Muusia 2.179 roll budget and manual single-strip/range printing complete; live Print service updated; PNG exports next; app not published",
+    "validation": "51 focused JS tests, 9 Python print-service tests, focused lint, catalog, production build and 37914 Learn checks passed. Actual browser verified full 2 m image, mm range and explicit two-strip graph sequence via dry-run output, budget and save/load; no new physical print.",
+    "nextStep": "Plan step 4 remaining: individual PNG and complete PNG ZIP/manifest export using bounded surface-render blocks. Preserve single-strip default/manual cooling and existing export semantics.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
       "widthDots": 512,
@@ -138,6 +138,36 @@
       "demo": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-editor/surface-composer-demo.muusia.json",
       "browserValidation": "Graph source, image upload, generate diagonal, drag/zoom/rotate/resize, undo, visibility, duplicate/remove, invalid dimensions, legacy Roll, old project reset, exact 34-strip Save/Load/Save; original PNG and background graph byte-preserved. No warnings/errors.",
       "publication": "local only"
+    },
+    "production": {
+      "version": "2.179",
+      "baseCommit": "68348718c05d7058ba23b259d41e790722dc36e9",
+      "modules": [
+        "src/surface-production.js",
+        "src/surface-print.js"
+      ],
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-production",
+      "url": "http://127.0.0.1:5192/",
+      "default": "one selected strip/range; manual cooling before next; explicit transient opt-in consecutive",
+      "rollAccounting": "total visible strips plus editable allowance; used paper manually entered",
+      "liveService": {
+        "backup": "/home/print/muusia-print/server.py.before-surface-20261113-001303",
+        "caps": {
+          "width": 512,
+          "maxHeight": 65535,
+          "singleStripJob": true,
+          "requiresIdle": true
+        },
+        "health": {
+          "ready": true,
+          "queued": 0,
+          "mode": "USB",
+          "device": "/dev/usb/lp0"
+        },
+        "printed": false
+      },
+      "physicalLongStripTest": false,
+      "publication": "local app only; Print service updated; no push"
     }
   }
 }

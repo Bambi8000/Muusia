@@ -1,6 +1,6 @@
 # MUUSIA Surface Composer arkkitehtuuri ja toteutussuunnitelma
 
-Päiväys: 12.11.2026. Visuaalinen editori on kytketty Muusiaan paikallisessa versiossa 2.178. Geometria, sisällön kohdistus ja projektitallennus toimivat. Seuraavana on käyttäjän PNG-vienti; tätä versiota ei ole julkaistu.
+Päiväys: 13.11.2026. Paikallinen versio 2.179 sisältää visuaalisen editorin, projektitallennuksen, kokonaismetrit ja valitun suikaleen tai pituusvälin tulostuksen. Oletus on yksi suikale kerrallaan ja käsin käynnistettävä jatko jäähtymistauon jälkeen. Print-palvelu on päivitetty; sovellusversiota ei ole julkaistu. Seuraavana on käyttäjän PNG/ZIP-vienti.
 
 Surface Composer laajentaa Muusian nykyistä millimetripohjaista teospintaa. Mega Canvasin ja Roll Moden nykyiset arkit, vientimuodot ja projektit säilytetään. Uusi osa on fyysisten suikaleiden sijainti, rotaatio ja tulostusalue sekä yhteinen muunnos teospinnan ja suikaleen välillä. Sama muunnos ohjaa esikatselua ja vientiä.
 
@@ -45,9 +45,9 @@ Sivureunojen jatkokokeessa käyttäjä mittasi alkuperäisestä vedoksesta vasem
 
 Yhden lohkon raja on 1 048 576 pikseliä eli 4 MiB RGBA-dataa; rasterin leveysraja on 16 384 pikseliä. Nämä ovat muistirajoja, eivät tulostimen tai suikaleen fyysisiä pituusrajoja. Kutsuja aikatauluttaa lohkot ja voi keskeyttää työn niiden välissä. Alkuperäisen kuvan pikselitaulukko jaetaan vain lukuun, eikä kutsuja muuta sitä kesken rasterointityön.
 
-[validate-surface-render.mjs](../tools/validate-surface-render.mjs) sisältää 16 läpäissyttä tarkistusta. Ne kattavat viiva- ja rasterikohdistuksen samat globaalit pisteet, analyyttiset 45/90 asteen pikselit, peittävät ja läpinäkyvät pikselit, kuvan ulkopuolen, paperireunat, päällekkäisyyden, lohkojen tavutarkan yhtäläisyyden sekä virhetilanteet. Kahden metrin suikale käyttää mitattua tiheyttä `400 / 56.6` pistettä/mm ja muodostaa 512 × 14 135 pisteen rasterin lohkoissa. Tämä ei vielä laajenna nykyisen kuittipalvelun 4096 rivin työrajaa.
+[validate-surface-render.mjs](../tools/validate-surface-render.mjs) sisältää 16 läpäissyttä tarkistusta. Ne kattavat viiva- ja rasterikohdistuksen samat globaalit pisteet, analyyttiset 45/90 asteen pikselit, peittävät ja läpinäkyvät pikselit, kuvan ulkopuolen, paperireunat, päällekkäisyyden, lohkojen tavutarkan yhtäläisyyden sekä virhetilanteet. Kahden metrin suikale käyttää mitattua tiheyttä `400 / 56.6` pistettä/mm ja muodostaa 512 × 14 135 pisteen rasterin lohkoissa. Sisältölaskenta ei itsessään laajenna kuittipalvelun 4096 rivin työrajaa; version 2.179 erillinen suikalepolku kuvataan alla.
 
-Rasterituloksista muodostettiin erillinen diagnostinen havainnekuva: sama ympyrä, ruudukko ja diagonaali lähteenä sekä koottuna 12 kiertyvästä paperisuikaleesta. Havainne on laskentatuloksen tarkistus, ei kuvakaappaus vielä toteuttamattomasta editorista. Käyttöliittymä, alkuperäisen kuvatiedoston latauskytkentä, projektitallennus ja käyttäjän PNG-vientitoiminnot tulevat seuraavissa askelissa.
+Rasterituloksista muodostettiin erillinen diagnostinen havainnekuva: sama ympyrä, ruudukko ja diagonaali lähteenä sekä koottuna 12 kiertyvästä paperisuikaleesta. Havainne on laskentatuloksen tarkistus, ei kuvakaappaus vielä toteuttamattomasta editorista. Myöhemmät vaiheet toteuttivat käyttöliittymän, alkuperäisen kuvatiedoston latauksen ja projektitallennuksen. Käyttäjän PNG-vienti on vielä seuraava askel.
 
 ## Editorin käyttö ja tallennus
 
@@ -59,9 +59,27 @@ Paperia voi vetää, oranssista kahvasta kiertää ja sinisestä kahvasta muutta
 
 **Save project** tallentaa saman `.muusia.json`-projektin kuin Muusian Save. Mukana ovat suikaleet, mitat, valittu lähde/ryhmäpolku ja alkuperäinen kuvatiedosto ilman pienennystä. Tuetun kuvan raja on 8 MB / 25 megapikseliä. Vanha projekti ilman `surface`-kenttää sekä Help-esimerkin lataus alustavat Surface Composerin uudelleen. Virheellinen uusi kenttä hylätään ennen graafin vaihtamista. Selaimen oletusprojekti käyttää samaa tallennusta; suuri kuva voi ylittää selaimen paikallisen tallennuskiintiön, jolloin projektitiedoston Save on käytettävissä.
 
-Nimellinen paperileveys on editorin alussa 80 mm, tulostettava leveys 70,8 mm ja sivu-offset 4,6 mm. Leveys on käyttäjän muokattava nimellismitta; aiempi fyysinen koe vahvisti symmetrisen 4,6 mm rajauksen nykyisellä Epson-polulla, ei täsmälleen 80 mm paperileveyttä. Uusi editori ei vielä lähetä suikaleita tulostimeen. Mega Canvas- ja Roll Mode -välilehdet avaavat niiden aiemmat ohjaimet ja viennit.
+Nimellinen paperileveys on editorin alussa 80 mm, tulostettava leveys 70,8 mm ja sivu-offset 4,6 mm. Leveys on käyttäjän muokattava nimellismitta; aiempi fyysinen koe vahvisti symmetrisen 4,6 mm rajauksen nykyisellä Epson-polulla, ei täsmälleen 80 mm paperileveyttä. Mega Canvas- ja Roll Mode -välilehdet avaavat niiden aiemmat ohjaimet ja viennit.
 
 [validate-surface-session.mjs](../tools/validate-surface-session.mjs) lisää 10 testiä, myös todellisesta App-lähteestä luetun evalLevel-moottorin, Grid- ja Value-solmujen sekä sidotun ryhmän tarkistukset. Yhteensä 44 kohdennettua testiä, lint, katalogi, tuotantokäännös ja Learnin 37 914 tarkistusta läpäisivät. Selaimessa tarkistettiin graafilähde, diagonaalijako, veto ja veto zoomattuna, kahvojen kierto/pituus, numeeriset kentät, virheellisen mitan peruminen, näkyvyys, monistus/poisto, näppäimistön Undo, kuvalataus ja Roll Modeen siirtyminen. Oikea Save/Load/Save palautti 34 suikaleen sommitelman `surface`-kentän täsmälleen; alkuperäinen PNG tallentui tavu tavulta samana. Vanha Learn-projekti palautti uuden tilan oletuksiin. Selainkokeessa ei kirjautunut varoituksia tai virheitä.
+
+## Kokonaismetrit ja tulostuksen jatkaminen (2.179)
+
+[surface-production.js](../src/surface-production.js) laskee näkyvien suikaleiden kokonaispituuden sekä muokattavan syöttö-/leikkausvaran per suikale. **Surface & paper → Total paper** ja alareunan yhteenveto näyttävät metrit ja sen, mahtuuko teos annettuun rullaan. Oletusrulla on 80 m, varaus 1 m ja lisävara 20 mm/suikale. **Already used** annetaan käsin; se ei ole paperianturin lukema eikä päivity automaattisesti. Arvio riippuu annetuista rullan ja lisävaran arvoista. Piilotettu paperi ei kuulu budjettiin tai tulostussuunnitelmaan.
+
+**Print / continue** valitsee yhden näkyvän suikaleen ja sen **Start at / End at** -millimetrivälin. Tyhjä loppukohta tarkoittaa suikaleen loppua. Rajaus siirtää vain poimittavaa osaa samasta globaalista kuvasta; lähdettä ei soviteta uudelleen eikä aloiteta alusta. Valmistunut osaväli siirtää jatkokohdan samassa suikaleessa eteenpäin. Valmistunut kokonainen suikale valitsee seuraavan tulostusjärjestyksessä, mutta ei lähetä sitä.
+
+Oletus on aina **yksi suikale kerrallaan**. Käyttäjä odottaa tulostimen jäähtymistä ja käynnistää seuraavan käsin. **Print remaining consecutively** on erikseen rastitettava valinta lyhyille suikaleille: se tulostaa valitusta aloituskohdasta loppuun ja sitten jäljellä olevat näkyvät suikaleet järjestyksessä. Valintaa ei tallenneta projektiin eikä palauteta latauksessa. **Stop after current** pysäyttää jatkon seuraavien töiden välissä; käynnissä olevaa fyysistä suikaletta ei katkaista. Valmistelun voi keskeyttää ennen lähettämistä.
+
+[surface-print.js](../src/surface-print.js) käyttää alkuperäistä kuvaa tai Appin todellista graafiarviointia, yhteistä koordinaattimuunnosta ja 256 rivin rasterilohkoja. Epson-profiili käyttää mitattua tiheyttä `400 / 56.6` pistettä/mm molemmilla akseleilla ja fyysisesti tarkistettuja turvallisia rasterisarakkeita 1…499. Pään offset 4,38775 mm on mittauksista johdettu arvio. Profiili vaatii nimellisen 80 mm paperin; paperin kokonaisleveys on edelleen tarkasti mittaamatta. Värit muunnetaan mustavalkoiseksi pistekuvaksi.
+
+Sama paikallinen Print-palvelu hyväksyy `/api/strip-jobs`-reitillä yhden 512 × enintään 65 535 rivin suikaleen (noin 9,27 m). Tämä on nykyisen palvelupyynnön raja, ei teospinnan tai paperimallin enimmäispituus. Koko suikale on **yksi työ**: ESC/POS-lohkot eivät ole erillisiä jonotöitä, ja leikkaus tulee vain lopussa, jos se valitaan. Tavallinen `/api/jobs` säilyttää 4096 rivin rajansa. Suikaletyö edellyttää tyhjää aktiivijonoa ja pysäytettyä Clock-tilaa. Esikatselukuvien muistihistoria on rajattu 32 MiB:iin.
+
+Lähetystä ennen tallennetaan työn tunniste. Sama tunniste ei lisää palvelimeen toista työtä. Epäselvä verkkotulos säilyttää tietueen ja estää uuden lähetyksen, kunnes **Check last job** tai käyttäjän tietoinen kuittaus ratkaisee tilanteen. Pieni keskeneräisen työn tietue palautuu myös sivun latauksen jälkeen; mitään ei lähetetä automaattisesti uudelleen. Palvelimen `done` tarkoittaa tavujen kirjoitusta, ei tietoa fyysisen paperin loppumisesta tai jäähtymisestä.
+
+**Tarkistus:** yhteensä 51 kohdennettua JS-testiä (18 geometria, 16 sisältö/rasteri, 10 projekti, 7 tuotanto), 9 palvelintestiä, lint, katalogi, tuotantokäännös ja 37 914 Learn-tarkistusta läpäisivät. Todellinen selain lähetti kuivatestipalveluun yhden 2000 mm kuvasuikaleen (14 135 riviä), yhden 450–550 mm osavälin sekä kaksi erikseen valittua peräkkäistä 100 mm graafisuikaletta. Neljä työtä, neljä lopullista leikkausta; oletustilassa ei yhtään automaattista seuraavaa työtä. Metri-/rullavertailu ja projektin tallennus/lataus tarkistettiin. Uuden pitkän suikaleen fyysistä paperikoetta ei tehty.
+
+Print-palvelun päivitys asennettiin Pi:lle 13.11.2026 ja USB-valmius sekä uusi kyvykkyysrajapinta tarkistettiin ilman tulostusta. Palautusvarmuuskopio: `/home/print/muusia-print/server.py.before-surface-20261113-001303`. Tulostimen asetukset, firmware ja koneen makrot säilyivät.
 
 ## Nykyiset osat ja niiden käyttö
 
@@ -76,15 +94,15 @@ Nimellinen paperileveys on editorin alussa 80 mm, tulostettava leveys 70,8 mm ja
 | Pakkaus | App.jsx: `buildZip`; projektin `fflate`-riippuvuus | Nykyinen ZIP-rakentaja koodaa vain `file.text`-sisällön UTF-8:ksi. PNG-paketti tehdään jo mukana olevalla `fflate`-kirjastolla, jotta binääridata säilyy. Nykyistä ZIP-polkua ei tarvitse muuttaa prototyyppiä varten. |
 | Kuvan lataus | [analyze.js](../src/analyze.js): `intakeImage`; App.jsx:n kuvalataus | Käytä olemassa olevaa kuvan lukemista soveltuvin osin. Alkuperäinen lähdekuva säilytetään rasterivientiä varten; analyysiin pienennetty kuva ei yksin riitä suuren teoksen lähteeksi. |
 | Projektit | App.jsx: `buildPatchJSON`, `loadPatch`, autosave | Lisää versioitu `surface`-kenttä. Säilytä vanha `mega`-kenttä ja vanhojen projektien tulkinta. |
-| Kuittitulostus | [thermal-print.js](../src/thermal-print.js), [server.py](../print-server/server.py) | Käytä jatkossa nykyistä palvelinta ja jonon periaatetta. Pitkien töiden sopimus laajennetaan erikseen; nykyinen kuittivienti ei ole mittatarkka suikalevienti. |
+| Kuittitulostus | [thermal-print.js](../src/thermal-print.js), [server.py](../print-server/server.py) | Nykyinen kuittivienti säilyy. Uusi [surface-print.js](../src/surface-print.js) lähettää pitkän suikaleen yhtenä työnä saman palvelimen erilliselle suikalereitille. |
 
 `sliceMega`, `sliceRoll`, `buildZip`, `toSVG`, `toDXF` ja `ZoomBox` ovat katselmuksessa paikallisesti samat kuin haetussa origin/main-versiossa. `PathsSVG` ja kuittitulostuksen ympäristö ovat muuttuneet, joten niiden toteutuksessa käytetään uusinta lähdettä.
 
 Mega Canvasin ja Roll Moden leikkausfunktioissa on keskenään toistuvaa suorakulmioleikkausta. Niitä ei ensimmäisessä prototyypissä tarvitse purkaa tai korvata: uudelle suikaleelle riittää koordinaattimuunnos ja olemassa oleva `cropTestPiece`. Yhteinen leikkausydin voidaan myöhemmin irrottaa erillisessä muutoksessa, jos sille syntyy todellinen tarve. Vanhojen leikkainten nykyinen polkumetadatan käsittely ei myöskään ole uuden toiminnon malliksi yhtä kattava kuin `cropTestPiece`.
 
-## Tulostusmitat ja nykyiset rajat
+## Katselmuksen tulostusmitat ja alkuperäisen kuittipolun rajat
 
-Paperin fyysinen leveys, tulostusalue ja paperien välinen rako tallennetaan erikseen. Prototyypin sommitteluoletukset ovat 80 mm paperi, alustava 72 mm tulostusalue ja 8 mm fyysinen rako. Tulostusalueella on erillinen vasemman reunan offset; sitä ei oleteta kaikissa laitteissa keskelle.
+Seuraava osuus dokumentoi alkuperäisen katselmuksen; mitattu profiili ja nykyinen suikalepolku kuvataan yllä. Paperin fyysinen leveys, tulostusalue ja paperien välinen rako tallennetaan erikseen. Prototyypin sommitteluoletukset ovat 80 mm paperi, alustava 72 mm tulostusalue ja 8 mm fyysinen rako. Tulostusalueella on erillinen vasemman reunan offset; sitä ei oleteta kaikissa laitteissa keskelle.
 
 Ohjeen tulostinarvot eivät sellaisinaan muodosta yhtenäistä mittakaavaa:
 

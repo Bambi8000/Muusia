@@ -26,6 +26,18 @@ Latussa voit avata myös koko animaation ZIP-paketin kohdasta **Document → Ope
 
 Ensimmäistä Epsonin laitetestiä varten avaa valmis esimerkki **Help → Test Card · Thermal receipt** ja valitse sen **Test Card** -node. Vaihtoehtoisesti valitse **Size preset → Receipt · 72 × 100 mm**, lisää **Test Card** -node ja aseta **Card → Thermal receipt**. Tallenna valittu node painamalla **DOWNLOAD RECEIPT FILE**. Avaa tiedosto Latussa ennen tulostamista. Kuvio sisältää 1–4 pisteen pysty- ja ristikkotiheyksiä, tiukkoja kaaria, pieniä kirjaimia ja pisteitä, mustavalkoisella rasterilla tehtyjä 0/25/50/75/100 % harmaasävyruutuja sekä vuorottelevia tummia palkkeja. Kuittipalvelu ei saa erillisiä harmaatasoja: sävyt muodostuvat mustien pisteiden tiheydestä. Kun tulostin on käytössä, sama valittu node voidaan lähettää **PRINT RECEIPT** -painikkeella.
 
+## Surface Composer: yksi pitkä suikale kerrallaan
+
+Paikallinen Muusia 2.179 tarjoaa **Surface Composer → Print / continue** -paneelin. Valitse suikale ja tarvittaessa aloitus-/lopetuskohta millimetreinä. Oletus lähettää **vain yhden suikaleen tai osavälin**. Seuraavan suikaleen valinta valmistumisen jälkeen ei tulosta sitä: odota jäähtymistä ja käynnistä jatko käsin. Lyhyille töille voi erikseen rastittaa jäljellä olevien suikaleiden peräkkäistulostuksen. Rastitusta ei palauteta projektista. **Stop after current** lopettaa jatkon nykyisen työn jälkeen.
+
+**Total paper** näyttää näkyvien suikaleiden metrit lisävaroineen ja vertaa niitä annettuun rullaan. Rullan pituus, jo käytetty osuus, varaus ja syöttö-/leikkausvara annetaan käsin. Ne ovat kulutusarvio, eivät anturitietoa. Tallennettava jatkokohta on suikaleen alkuperäisessä kuvakohdistuksessa; osaväli ei skaalaa sisältöä uudelleen.
+
+Uusi `GET /api/strip-capabilities` ilmoittaa tuen, ja `POST /api/strip-jobs` ottaa yhden 512 × enintään 65 535 rivin rasterin (6 MB pyyntöraja). Koko suikale kulkee yhtenä työnä nykyisen USB-työntekijän läpi: 256 rivin ESC/POS-lohkot, alustus kerran ja valittu leikkaus vain lopussa. Tavallinen `/api/jobs` ja Print-sivun tavalliset kuvat säilyttävät 4096 rivin rajansa. Suikalereitti edellyttää tyhjää aktiivijonoa ja pysäytettyä Clock-tilaa. Työn `requestId` estää saman tunnisteen jonottamisen uudelleen palvelimen nykyisessä historiassa. Historiakuvien muistiraja on 32 MiB; vanha valmis esikatselu voi poistua.
+
+Mittakaava perustuu käyttäjän paperilta mittaamaan 400 pisteen = 56,6 mm X/Y-väliin. Turvalliset sarakkeet 1…499 perustuvat fyysisesti vahvistettuihin 4,6 mm sivureunoihin; paperin tarkka leveys on edelleen arvio. Noin 9,27 m työraja on palvelun nykyinen rasteriraja. Tulostin ei ilmoita sovellukselle paperin jäljellä olevia metrejä tai jäähtymistä.
+
+Palvelin päivitettiin Pi:lle 13.11.2026 aktiivijonon ollessa tyhjä ja Clock pysäytettynä. USB-valmius ja uusi rajapinta tarkistettiin. Varmuuskopio: `/home/print/muusia-print/server.py.before-surface-20261113-001303`. Tulostimen asetuksia ei muutettu. Uusi 2 m työ, osaväli ja erikseen valittu kahden lyhyen työn jatko tarkistettiin selaimessa **kuivatestitiedostoon**, eivät fyysiselle paperille. Palvelimen 9 testiä kattavat myös tavutarkan 2 m ESC/POS-virran, lopullisen leikkauksen, varatun jonon hylkäyksen ja toistetun tunnisteen.
+
 ## Paperi ja tulostin
 
 - Epsonin mukaan 80 mm:n paperin todellinen leveys on 79,5 ± 0,5 mm, rullan suurin halkaisija 83 mm ja hylsyn sisähalkaisija 12 mm. Tulostettava alue on 512 pistettä eli noin 72 mm. Tarkista rullan hylsy ja lämpöherkkä puoli ennen hankintaa. [TM-T88V Technical Reference Guide](https://download4.epson.biz/sec_pubs/bs/pdf/TM-T88V_trg_en_revG.pdf)
@@ -84,13 +96,13 @@ Ruudukon merkit ovat tietokoneen merkkikartan arvio; Epsonin sisäisen fontin to
 
 Pi:n kautta tulostettiin lisäksi 2× kokoiset PC866-kyrillinen ja PC861-islantilainen esimerkkikuitti. Käyttäjä vahvisti molempien merkkien näkyvän oikein paperilla. Muut merkistösivut ovat valittavissa, mutta niiden yksittäisten merkkien paperiasua ei ole vielä tarkistettu.
 
-Jono ja työhistoria ovat Pi:n muistissa: palvelun uudelleenkäynnistys tyhjentää ne. Yksittäinen kuva saa olla enintään 512 × 4096 pistettä. Jonoon mahtuu 64 odottavaa työtä ja historiaan 100 työtä. `done` tarkoittaa, että ESC/POS-tavut on kirjoitettu tiedostoon tai USB-laitteelle; se ei todista paperitulosteen laatua. Kuivatestitiedostoon kertyy kaikkien töiden tavut peräkkäin.
+Jono ja työhistoria ovat Pi:n muistissa: palvelun uudelleenkäynnistys tyhjentää ne. Tavallisen kuittireitin yksittäinen kuva saa olla enintään 512 × 4096 pistettä; Surface Composerin erillinen suikalereitti kuvataan yllä. Jonoon mahtuu 64 odottavaa työtä ja historiaan 100 työtä. `done` tarkoittaa, että ESC/POS-tavut on kirjoitettu tiedostoon tai USB-laitteelle; se ei todista paperitulosteen laatua. Kuivatestitiedostoon kertyy kaikkien töiden tavut peräkkäin.
 
 ## USB-tulostus
 
 Tällä Pi:llä Epson näkyy USB-tunnisteella `04b8:0202`, tuotteen nimi on `TM-T88V` ja laitepolku on `/dev/usb/lp0`. Palvelun ympäristötiedostossa `~/.config/muusia-print.env` on `MUUSIA_PRINT_DEVICE=/dev/usb/lp0`, eikä kuivatestin `MUUSIA_PRINT_OUTPUT_FILE` ole enää käytössä. Jos tulostin irrotetaan tai laitepolku vaihtuu, tarkista `lsusb`, `ls -l /dev/usb/lp*`, `systemctl --user status muusia-print.service` ja `journalctl --user -u muusia-print.service -n 50`. Uudella Pi-asennuksella vaihda ympäristötiedoston kuivatestirivi USB-laitepolkuun vasta, kun laite tunnistuu.
 
-Muusiassa valitse pieni viivapiirros ja jätä Mega Canvas pois. Tulostus skaalautuu 72 mm:n tulostusleveyteen. Enimmäispituus on noin 58 cm; aloita paljon lyhyemmällä kuvalla. Käytä tämän Macin palvelinosoitetta `http://127.0.0.1:8633`. Tulostussivun työt kulkevat saman palvelun kautta. Yhteys tarvitsee käynnissä olevan SSH-tunnelin, mutta ei tulostustunnusta.
+Muusiassa valitse pieni viivapiirros ja jätä Mega Canvas pois. Tulostus skaalautuu 72 mm:n tulostusleveyteen. Tämän tavallisen kuittipolun enimmäispituus on noin 58 cm; aloita paljon lyhyemmällä kuvalla. Käytä tämän Macin palvelinosoitetta `http://127.0.0.1:8633`. Tulostussivun työt kulkevat saman palvelun kautta. Yhteys tarvitsee käynnissä olevan SSH-tunnelin, mutta ei tulostustunnusta.
 
 ## Rajat ja seuraava vaihe
 

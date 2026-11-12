@@ -24,6 +24,9 @@ import native_fonts
 WIDTH = 512
 MAX_HEIGHT = 4096
 MAX_BODY = 400_000
+MAX_STRIP_HEIGHT = 65535
+MAX_STRIP_BODY = 6_000_000
+MAX_IMAGE_HISTORY_BYTES = 32 * 1024 * 1024
 MAX_IMPORT = 12_000_000
 MAX_IMPORT_ITEMS = 64
 CHUNK_ROWS = 256
@@ -144,16 +147,16 @@ def start_clock(interval):
     return clock_snapshot()
 
 
-def validate_receipt(body):
+def validate_receipt(body, max_height=MAX_HEIGHT, max_body=MAX_BODY):
     if not isinstance(body, dict):
         raise ValueError("Request must be a JSON object")
     width, height = body.get("width"), body.get("height")
-    if type(width) is not int or type(height) is not int or width != WIDTH or not 1 <= height <= MAX_HEIGHT:
-        raise ValueError("Expected width 512 and height 1–4096")
+    if type(width) is not int or type(height) is not int or width != WIDTH or not 1 <= height <= max_height:
+        raise ValueError(f"Expected width 512 and height 1–{max_height}")
     if type(body.get("cut", True)) is not bool:
         raise ValueError("cut must be a boolean")
     encoded = body.get("data", "")
-    if not isinstance(encoded, str) or len(encoded) > MAX_BODY:
+    if not isinstance(encoded, str) or len(encoded) > max_body:
         raise ValueError("Invalid receipt bitmap")
     pixels = base64.b64decode(encoded, validate=True)
     if len(pixels) != width * height // 8:
@@ -214,10 +217,10 @@ def inspect_file(name, data):
     return result
 
 
-def escpos_image(width, height, pixels, cut=True, initialize=True):
+def escpos_image(width, height, pixels, cut=True, initialize=True, max_height=MAX_HEIGHT):
     """Encode MSB-first 1-bit rows using GS v 0, then feed to the cutter."""
-    if width != WIDTH or not 1 <= height <= MAX_HEIGHT or len(pixels) != width * height // 8:
-        raise ValueError("Expected a 512-dot image of at most 4096 rows")
+    if width != WIDTH or not 1 <= height <= max_height or len(pixels) != width * height // 8:
+        raise ValueError(f"Expected a 512-dot image of at most {max_height} rows")
     stride = width // 8
     out = bytearray(b"\x1b@" if initialize else b"")
     for row in range(0, height, CHUNK_ROWS):
@@ -273,7 +276,7 @@ def print_worker():
             elif isinstance(image, bytes):
                 data = image
             else:
-                data = escpos_image(WIDTH, image[0], image[1], cut)
+                data = escpos_image(WIDTH, image[0], image[1], cut, max_height=MAX_STRIP_HEIGHT if kind == "strip" else MAX_HEIGHT)
             file_output = os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")
             if file_output:
                 fd = os.open(file_output, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
@@ -360,6 +363,8 @@ class Handler(BaseHTTPRequestHandler):
             with jobs_lock:
                 queued = sum(j["status"] == "queued" for j in jobs.values())
             self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device})
+        elif self.path == "/api/strip-capabilities":
+            self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "singleStripJob": True, "requiresIdle": True})
         elif self.path == "/api/clock":
             self._json(200, clock_snapshot())
         elif self.path == "/api/native-pages":
@@ -477,6 +482,30 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self._enqueue(test.name, 0, None, True, "native", raw=test.data)
             return
+        if self.path == "/api/strip-jobs":
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= MAX_STRIP_BODY:
+                    raise ValueError("Strip request is too large or empty")
+                body = json.loads(self.rfile.read(length))
+                height, pixels, cut, native = validate_receipt(body, MAX_STRIP_HEIGHT, MAX_STRIP_BODY)
+                if native:
+                    raise ValueError("Strip jobs contain raster graphics only")
+                name = body.get("name", "Surface strip")
+                if not isinstance(name, str) or not 1 <= len(name) <= 120:
+                    raise ValueError("Invalid strip job name")
+                name = re.sub(r"[\x00-\x1f\x7f]", "", name).strip() or "Surface strip"
+                request_id = body.get("requestId")
+                if request_id is not None and (not isinstance(request_id, str) or not re.fullmatch(r"[a-f0-9]{32}", request_id)):
+                    raise ValueError("Invalid strip request ID")
+            except (ValueError, TypeError, binascii.Error, json.JSONDecodeError) as exc:
+                self._json(400, {"error": str(exc)})
+                return
+            if clock_snapshot()["running"]:
+                self._json(409, {"error": "Stop Clock before printing a surface strip"})
+                return
+            self._enqueue(name, height, pixels, cut, "strip", require_idle=True, request_id=request_id)
+            return
         if self.path not in ("/api/jobs", "/api/inspect", "/api/cut"):
             self._json(404, {"error": "Not found"})
             return
@@ -508,10 +537,24 @@ class Handler(BaseHTTPRequestHandler):
         raw_print = escpos_mixed_receipt(WIDTH, height, pixels, native_text, cut) if native_text else None
         self._enqueue(name, height, pixels, cut, "receipt", raw=raw_print, native_text=native_text)
 
-    def _enqueue(self, name, height, pixels, cut, kind, raw=None, native_text=None):
-        job_id = uuid.uuid4().hex
+    def _enqueue(self, name, height, pixels, cut, kind, raw=None, native_text=None, require_idle=False, request_id=None):
+        job_id = request_id or uuid.uuid4().hex
         queue_error = None
         with jobs_lock:
+            if request_id and job_id in jobs:
+                self._json(202, {"id": job_id, "status": jobs[job_id]["status"]})
+                return
+            if require_idle and any(j["status"] in ("queued", "printing") for j in jobs.values()):
+                self._json(409, {"error": "Printer is busy. Wait for the current strip to finish."})
+                return
+            incoming = len(pixels) if pixels is not None else 0
+            while sum(len(data) for data in job_images.values()) + incoming > MAX_IMAGE_HISTORY_BYTES:
+                oldest_image = next((key for key in job_images if jobs.get(key, {}).get("status") in ("done", "failed", "cancelled")), None)
+                if oldest_image is None:
+                    self._json(503, {"error": "Print image memory budget is full"})
+                    return
+                job_images.pop(oldest_image, None)
+                job_native_texts.pop(oldest_image, None)
             if len(jobs) >= 100:
                 oldest = next((key for key, value in jobs.items() if value["status"] in ("done", "failed", "cancelled")), None)
                 if oldest is None:
