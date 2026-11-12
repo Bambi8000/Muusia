@@ -347,6 +347,19 @@ in plotting order, one strip at a time. The last piece is shorter when Length
 does not divide evenly; the summary warns if a piece exceeds the machine work
 area. Works with G-code, SVG and DXF downloads and with the magnet jig.
 
+**Surface Composer (local preview).** Open **Surface Composer** in the toolbar
+to compose a large physical surface from paper strips. Choose a graph output or
+an original PNG/JPEG/WebP image, generate vertical/horizontal/diagonal strips,
+then drag, rotate or resize individual papers. Numeric controls separate paper
+width, printable width/offset and physical gap. Orange handle rotates (Shift
+snaps to 15°); blue handle changes length. Wheel zooms and dragging the background
+pans. Undo/Redo restores edits and generated layouts. **Save project** includes
+the original image and every strip; old projects start with a fresh surface.
+The initial nominal 80 mm paper uses the Epson's checked 4.6 mm side margins.
+Mega Canvas and Roll Mode tabs open their existing controls. Strip PNG export
+and long-strip printing are the next development step; the main export panel
+continues to export the selected graph/Mega Canvas output.
+
 **Mini Canvas (production runs).** The inverse, as a node: *Auto grid* packs up to six
 wired compositions into a contact sheet; *Fixed size* replicates one mini size
 (postcard 148 x 105 etc.) N times across the sheet, cycling wired inputs, with

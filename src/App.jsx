@@ -16,6 +16,8 @@ import { makeAnalyzeButton, intakeImage } from "./analyze.js";
 import CatalogBrowser from "./catalog-browser.jsx";
 import { compareNodeRecency, nodeRecencyLabel } from "./node-recency.js";
 import StackView from "./stack-view.jsx";
+import SurfaceComposer from "./surface-composer.jsx";
+import { createSurfaceSession, readSurfaceSession, evaluateSurfaceGraph, surfaceGraphLevel } from "./surface-session.js";
 import { splitFramePens, penFrameName, finishPenPasses } from "./frame-export.js";
 import { cropTestPiece, testCropRect, DEFAULT_TEST_MARGIN } from "./preview-crop.js";
 import PreviewCropControls from "./preview-crop-controls.jsx";
@@ -899,7 +901,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.177"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.178"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2269,6 +2271,8 @@ export default function App() {
   /* --- aloittelijaesimerkit: src/examples.js; make(defaults) saa defaults-funktion tästä --- */
   const loadExample = (ex) => {
     const data = ex.make(defaults);
+    setSurfaceSession(createSurfaceSession());
+    setSurfaceOpen(false);
     NEXT_ID = 9500;
     setStack([]);
     setSelIds([]);
@@ -2493,6 +2497,7 @@ export default function App() {
   /* --- nappaimisto --- */
   useEffect(() => {
     const onKey = (e) => {
+      if (surfaceOpen) return; // Surface Composer owns its keyboard interaction.
       const tag = (e.target.tagName || "").toLowerCase();
       const ityp = tag === "input" ? (e.target.type || "").toLowerCase() : "";
       if (tag === "input" && ityp === "range") { const rk = e.key.toLowerCase(); const rArrow = focusOn && e.key.startsWith("Arrow"); if (rk !== " " && rk !== "f" && rk !== "l" && rk !== "escape" && !rArrow) return; }
@@ -2663,6 +2668,21 @@ export default function App() {
   const [quickAdd, setQuickAdd] = useState(null); /* {cat: null|'gen'|..., query, sel} */
   const [catalogOpen, setCatalogOpen] = useState(false); /* visual node catalog overlay */
   const [stackOpen, setStackOpen] = useState(false); /* 3D layer stack overlay */
+  const [surfaceOpen, setSurfaceOpen] = useState(false);
+  const [surfaceSession, setSurfaceSession] = useState(createSurfaceSession);
+  const surfaceEvaluate = useMemo(() => (W, H, graphPath, nodeId) => {
+    const { result } = evaluateSurfaceGraph(root, graphPath, { W, H, frameIdx, frameCount, machine: machineCtx(prof) }, evalLevel);
+    const output = result.out[nodeId]?.[0];
+    if (!output?.paths) throw new Error("Choose a node whose first output contains drawing paths.");
+    return output;
+  }, [root, frameIdx, frameCount, prof]);
+  const surfaceCurrent = primaryNode && defOuts(primaryNode)[0]?.type === "paths" ? { id: primaryNode.id, path: stack } : null;
+  const openSurface = () => {
+    if (surfaceSession.source.kind === "graph" && !surfaceGraphLevel(root, surfaceSession.source.graphPath)?.nodes.some(n => n.id === surfaceSession.source.nodeId) && surfaceCurrent) {
+      setSurfaceSession(old => ({ ...old, source: { ...old.source, nodeId: surfaceCurrent.id, graphPath: [...surfaceCurrent.path] } }));
+    }
+    setSurfaceOpen(true);
+  };
   const [helpOpen, setHelpOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState({ geometric: true });
   const [flatAZ, setFlatAZ] = useState(false);
@@ -3145,7 +3165,7 @@ export default function App() {
   /* a generated file belongs to the profile that made it: switching profile or workflow clears the preview */
   useEffect(() => { setGcode(null); }, [machineIdx, prof.workflow]);
   const buildPatchJSON = () =>
-    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels, kind: megaKind, rollW, rollLen, rollStrips, rollSeg } : null, prof, machines, machineIdx, machineFormat: MACHINE_FILE_VERSION, customNodes, root }, null, 1);
+    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels, kind: megaKind, rollW, rollLen, rollStrips, rollSeg } : null, surface: surfaceSession, prof, machines, machineIdx, machineFormat: MACHINE_FILE_VERSION, customNodes, root }, null, 1);
   const savePatch = () => {
     const data = buildPatchJSON();
     try {
@@ -3165,6 +3185,7 @@ export default function App() {
     try {
       const data = JSON.parse(text);
       if (!data || data.app !== "muusia" && data.app !== "plotter-patcher" || !data.root) throw new Error("bad file");
+      const restoredSurface = readSurfaceSession(data.surface);
       /* rekisteroi custom nodet ennen graafin latausta */
       if (Array.isArray(data.customNodes)) {
         for (const c of data.customNodes) if (c && c.source) registerCustomNode(c.source, true);
@@ -3186,6 +3207,8 @@ export default function App() {
       setStack([]);
       setSelIds([]);
       setRoot(data.root);
+      setSurfaceSession(restoredSurface);
+      setSurfaceOpen(false);
       if (data.canvas) { setCanvasW(data.canvas.W || 300); setCanvasH(data.canvas.H || 200); }
       if (data.mega) { setMegaOn(true); setMegaC(data.mega.C || 2); setMegaR(data.mega.R || 2); setMegaSeam(data.mega.seam ?? 5); setMegaMode(data.mega.mode || "Overlap"); setMegaMarks(!!data.mega.marks); setMegaMarkPen(data.mega.markPen || 0); setMegaLabels(!!data.mega.labels); setMegaKind(data.mega.kind || "Sheets"); setRollW(data.mega.rollW || 530); setRollLen(data.mega.rollLen || 2400); setRollStrips(data.mega.rollStrips || 2); setRollSeg(data.mega.rollSeg || 800); } else { setMegaOn(false); }
       {
@@ -3373,6 +3396,7 @@ export default function App() {
         <button style={toolBtn(true)} onClick={() => setQuickAdd({ cat: null, recent: true, query: "", sel: 0 })} title="Shift+N — all nodes, most recently updated first">Latest nodes</button>
         <button style={toolBtn(true)} onClick={() => setCatalogOpen(true)} title="B — browse every node as a live thumbnail: deep search, category + tag filters, Surprise me">Catalog</button>
         <button style={toolBtn(true)} onClick={() => setStackOpen(true)} title="S — 3D layer stack: preview frames or pens as stacked plexi/glass sheets">Stack</button>
+        <button style={toolBtn(true)} onClick={openSurface} title="Compose physical paper strips on a large surface">Surface Composer</button>
         <div style={{ width: 1, height: 18, background: T.line }} />
         <input type="text" value={projName} onChange={(e) => setProjName(e.target.value)}
           title="Project name (used for filenames)"
@@ -4581,6 +4605,7 @@ export default function App() {
           </div>
 
           {/* ---------- Mega canvas ---------- */}
+          <div id="surface-legacy" />
           <div style={{ padding: "10px 12px", borderTop: `1px solid ${T.line}` }}>
             <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: megaOn ? T.text : T.dim, letterSpacing: "0.08em", cursor: "pointer", fontFamily: disp, fontWeight: 700 }}>
               <input type="checkbox" checked={megaOn} onChange={(e) => setMegaOn(e.target.checked)} />
@@ -4885,6 +4910,10 @@ export default function App() {
       )}
 
       {/* ---------- Stack View (3D layer stack) ---------- */}
+      {surfaceOpen && <SurfaceComposer session={surfaceSession} onChange={setSurfaceSession} onClose={() => setSurfaceOpen(false)}
+        onSave={savePatch} evaluateGraph={surfaceEvaluate} pens={PENS} currentSelection={surfaceCurrent}
+        sourceNodes={(surfaceGraphLevel(root, surfaceSession.source.graphPath)?.nodes || []).filter(n => defOuts(n)[0]?.type === "paths").map(n => ({ id: n.id, label: n.label || DEFS[n.type]?.name || n.type }))}
+        onLegacyMode={kind => { setMegaKind(kind); setMegaOn(true); setSurfaceOpen(false); requestAnimationFrame(() => document.getElementById("surface-legacy")?.scrollIntoView({ block: "start", behavior: "smooth" })); }} />}
       {stackOpen && (
         <StackView PENS={PENS} T={T} mono={mono} disp={disp} W={canvasW} H={canvasH}
           frameCount={frameCount} primaryPS={primaryPS}

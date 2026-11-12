@@ -5917,3 +5917,36 @@ artifacts `surface-mapping-proof`: source, 12 individual PNGs, composed comparis
 and parameters. No app UI, version bump, public release or additional printing.
 Next: plan step 3, visual editor and graph/image selection; then persistence/PNG
 export. Reuse this module rather than fitting a source independently per strip.
+
+### 2.178 — Surface Composer visual editor and project persistence (local)
+
+Toolbar Surface Composer opens `src/surface-composer.jsx` / scoped CSS: graph
+output or original PNG/JPEG/WebP image, fixed metric surface, vertical/horizontal/
+diagonal generation, preserved manual layout, paper drag, orange rotation handle
+(Shift 15°), blue length handle (anchored start), numeric strip/material fields,
+independent Z/print order, visibility, add/duplicate/remove, labels/reference,
+zoom/pan/fit and local Undo/Redo. Drag drafts stay inside the component; graph
+evaluation memo depends on source and dimensions, never individual strip movement.
+Reuses existing evalLevel via `surface-session.js`, including nested group bindings.
+SVG content is defined once and clipped by the same physical/printable corner
+geometry; preview-only minimum line weight and optional dense-path thinning.
+Existing Mega Canvas / Roll controls are reachable from mode tabs and unchanged.
+Versioned surface session saves in normal project JSON, including original image
+(8 MB / 25 MP limit), source node/group path and edited strips. Missing surface
+resets on old project loads; Help examples also reset it. Invalid field is rejected
+before changing the graph. Default nominal 80 mm paper uses 4.6 mm side margins;
+exact paper width remains unmeasured. PNG/strip printing UI is not implemented yet.
+Validation: 44 focused tests (18 geometry, 16 raster, 10 session with ACTUAL App
+evaluator + Grid/Value/group bindings), focused oxlint, catalog, build, all 37,914
+Learn checks. Existing tracked evaluation/export scopes unchanged; no capture
+hashes bypassed/updated. Build-generated Learn manifest bumped to 2.178.
+Actual browser: graph and original-image sources, diagonal layout, pointer move,
+move zoomed, rotation/length handles, numeric values, invalid material recovery,
+visibility, duplicate/remove and keyboard Undo, legacy Roll transition, old-project
+reset. Save/Load/Save preserved complete 34-strip surface exactly; source PNG
+byte-identical; underlying graph unchanged. Browser warning/error log empty.
+Editor screenshot and 23-strip freeform demo saved in local visualization directory
+`surface-editor`. Dev app runs at http://127.0.0.1:5192/; browser marked deliverable.
+Local only, no push/publication or printer/config changes. Next: individual PNG
+and full PNG ZIP/manifest exports using existing block renderer. Run the shared
+gate and real browser download checks for that integration.

@@ -50,9 +50,9 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local geometry and shared content mapping complete; editor integration next; no publication",
-    "validation": "34 focused tests (18 geometry, 16 content/raster), Preview Crop, focused oxlint, catalog, production build and 37914 Learn checks passed.",
-    "nextStep": "Plan step 3: visual editor, graph evaluation on the shared surface, image selection and manipulation; then project persistence and PNG export.",
+    "status": "local Muusia 2.178 visual editor and project persistence complete; PNG exports next; not published",
+    "validation": "44 focused tests (18 geometry, 16 content/raster, 10 session with actual App evaluator and bound groups), focused oxlint, catalog, production build and 37914 Learn checks passed; real browser pointer/zoom/image/save-load/legacy checks passed.",
+    "nextStep": "Plan step 4 remaining: individual PNG and complete PNG ZIP/manifest export using bounded surface-render blocks. Preserve editor state and existing export semantics.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
       "widthDots": 512,
@@ -129,6 +129,15 @@
       "maxBlockPixels": 1048576,
       "maxWidthPixels": 16384,
       "longStripTest": "2000 mm at 400/56.6 dots per mm = 512 x 14135 pixels, rendered in bounded blocks"
+    },
+    "editor": {
+      "version": "2.178",
+      "baseCommit": "557745f4de8a65ab8b69f65b9c0022817b1a1743",
+      "url": "http://127.0.0.1:5192/",
+      "screenshot": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-editor/editor.jpg",
+      "demo": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-editor/surface-composer-demo.muusia.json",
+      "browserValidation": "Graph source, image upload, generate diagonal, drag/zoom/rotate/resize, undo, visibility, duplicate/remove, invalid dimensions, legacy Roll, old project reset, exact 34-strip Save/Load/Save; original PNG and background graph byte-preserved. No warnings/errors.",
+      "publication": "local only"
     }
   }
 }
