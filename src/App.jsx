@@ -901,7 +901,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.179"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.180"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -4911,7 +4911,7 @@ export default function App() {
 
       {/* ---------- Stack View (3D layer stack) ---------- */}
       {surfaceOpen && <SurfaceComposer session={surfaceSession} onChange={setSurfaceSession} onClose={() => setSurfaceOpen(false)}
-        onSave={savePatch} evaluateGraph={surfaceEvaluate} pens={PENS} currentSelection={surfaceCurrent}
+        onSave={savePatch} evaluateGraph={surfaceEvaluate} pens={PENS} projectName={projName} currentSelection={surfaceCurrent}
         sourceNodes={(surfaceGraphLevel(root, surfaceSession.source.graphPath)?.nodes || []).filter(n => defOuts(n)[0]?.type === "paths").map(n => ({ id: n.id, label: n.label || DEFS[n.type]?.name || n.type }))}
         onLegacyMode={kind => { setMegaKind(kind); setMegaOn(true); setSurfaceOpen(false); requestAnimationFrame(() => document.getElementById("surface-legacy")?.scrollIntoView({ block: "start", behavior: "smooth" })); }} />}
       {stackOpen && (

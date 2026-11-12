@@ -364,8 +364,15 @@ printing of the remaining strips is an explicit, unchecked option for short work
 it is never restored from a project. Select any strip and millimetre offset to
 resume. Original image mapping stays fixed. The local Print service accepts a
 long strip as one job with one final cut, using the measured Epson scale.
-Mega Canvas and Roll Mode tabs open their existing controls. Strip PNG/ZIP export
-is the next development step; the main export panel continues to export the
+**Export PNG** saves the selected whole strip, or all visible strips in print
+order as a ZIP with `manifest.json`. Choose full paper with white margins or the
+printable area only, at the measured Epson density or 150/300/600 dpi. Original
+image colours and graph pen colours are preserved. PNG files embed density and
+geometry; the ZIP manifest also records position, angle, size and order. Export
+ignores the physical print cursor and never sends a printer job. Use **actual
+size / 100%**, with fit-to-page off. Long images stream in small blocks; Cancel
+stops the export without downloading a partial file. Mega Canvas and Roll Mode
+tabs open their existing controls; the main export panel continues to export the
 selected graph/Mega Canvas output.
 
 **Mini Canvas (production runs).** The inverse, as a node: *Auto grid* packs up to six

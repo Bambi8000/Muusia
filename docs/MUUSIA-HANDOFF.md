@@ -5991,3 +5991,56 @@ surface-production directory. Live service deployment receipt there too.
 APP_VERSION and generated Learn manifest 2.179. Local app only, no push/publication.
 Next: individual PNG and full PNG ZIP/manifest exports using existing block
 renderer, then appropriate browser download checks and the ordered shared gate.
+
+### W — 2026-11-13: Surface Composer 3 m physical test
+
+At Daniel's request, loaded a prepared 80 x 3000 mm image-mapping project in
+local 2.179 with three end-to-end 1000 mm strips. Continuous wave/diagonal,
+10/100 mm ruler, part numbers, crosshairs and eight-tone patches; wide reference
+lines at 10/990 mm per part (980 mm span). Each strip sent individually through
+the ACTUAL Surface Composer UI to live USB service. Three 512 x 7068-row jobs,
+cut after each, all server done. User explicitly confirmed cooling readiness
+before parts 2 and 3. No automatic next job; final cursor 1000 disables resend.
+Jobs: f139efc8a83847cfa10d363930c439ae, 9a5e19ef16f645329f23f66918c7b52f,
+698a979715664e4abfd13e362b29514f. User's final paper-quality and dimensional
+measurements still pending; server done alone does not establish those.
+Reproducible original PNG, initial and actual browser-saved after-print project,
+job receipt and real UI screenshot in local visualization surface-3m-test.
+No source change, version bump or publication.
+
+### 2.180 — Surface Composer PNG and ZIP/manifest export (local)
+
+Export PNG saves one selected WHOLE visible strip or all visible strips in print
+order as a ZIP with manifest.json. Full physical paper with white margins or
+printable-only crop; measured Epson density default, optional 150/300/600 dpi.
+Preserves original image colours, graph pen colours and fixed global mapping;
+0.3 mm graph strokes. Physical print start/end cursor and job records unchanged;
+no printer API call. Manual single-strip cooling default remains unchanged.
+New surface-export.js reuses existing geometry/raster plans; streams bounded RGB
+scanlines through fflate zlib into CRC-checked PNG chunks, then optional ZIP.
+No full-height canvas. New surface-source.js is exact extraction of existing
+print source preparation, shared by both paths; print module re-exports old name.
+PNG pHYs density plus UTF-8 iTXt exact geometry; ZIP manifest includes stable IDs,
+visible numbers, independent print/Z order, positions/angles/corners/material
+widths, filenames, pixels, density, physical target and rounded raster extents.
+PNG paper metres exclude production feed/cut allowances. Print at actual size,
+fit-to-page off. Resource budgets: 100 MP/strip, 250 MP/run, 128 MiB output,
+existing 16384 px width/1048576 px RGBA block limits. Oversize fails explicitly;
+Cancel checked between blocks, no partial file. Busy UI prevents geometry edits,
+physical prints and close during export; Cancel remains available.
+Validation: 58 focused JS tests incl 7 PNG/ZIP tests with independent CRC/inflate
+reader, colour/alpha/margins/density/UTF8, ordering/hidden/overlap/rotation,
+100000-row streaming, cancellation and bounds. Focused lint, catalog -> build ->
+37914 Learn checks passed; no existing export provenance hash/capture changes.
+ACTUAL browser downloads: 1 m full PNG 566x7068; three-part ZIP matching standalone
+PNG byte-for-byte; printable-only 501x7068; 10 m PNG 566x70672; red Grid 0/45/137
+angle ZIP (three 566x1838, hidden fourth excluded). Independent reader verified
+all chunks/ZIP CRCs/headers/manifest; >23000 red pixels per graph PNG, blank side
+margins. Opened actual 45-degree output for visual inspection. Browser cancellation
+and oversize 600 dpi rejection passed. Actual browser Save after export preserved
+surface exactly incl image source, hidden paper, cursor and job record. No console
+warnings/errors. No paper printed, service/config changes, push or publication.
+APP_VERSION and generated Learn manifest 2.180. Real UI screenshot, actual files,
+saved projects and verification.json in local visualization surface-png-export.
+Dev app http://127.0.0.1:5192/. Next: generative Fan/Radial/Progressive/seeded Random
+layouts in existing strip model, then Independent Content and assembly map.

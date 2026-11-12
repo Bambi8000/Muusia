@@ -50,9 +50,9 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local Muusia 2.179 roll budget and manual single-strip/range printing complete; live Print service updated; PNG exports next; app not published",
-    "validation": "51 focused JS tests, 9 Python print-service tests, focused lint, catalog, production build and 37914 Learn checks passed. Actual browser verified full 2 m image, mm range and explicit two-strip graph sequence via dry-run output, budget and save/load; no new physical print.",
-    "nextStep": "Plan step 4 remaining: individual PNG and complete PNG ZIP/manifest export using bounded surface-render blocks. Preserve single-strip default/manual cooling and existing export semantics.",
+    "status": "local Muusia 2.180 PNG and ZIP/manifest export complete; manual strip printing and live Print service retained; app not published",
+    "validation": "58 focused JS tests, focused lint, catalog, production build and 37914 Learn checks passed; actual browser PNG/ZIP downloads, 10 m/70672 rows, colour rotations, cancellation, resource limits, unchanged saved surface and independent PNG/ZIP checks verified.",
+    "nextStep": "Generative Fan, Radial, Progressive Rotation and seeded Random layouts using existing strip objects; then Independent Content and assembly map.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
       "widthDots": 512,
@@ -166,8 +166,32 @@
         },
         "printed": false
       },
-      "physicalLongStripTest": false,
+      "physicalLongStripTest": {
+        "nominalTotalMm": 3000,
+        "parts": 3,
+        "partLengthMm": 1000,
+        "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-3m-test",
+        "jobIds": [
+          "f139efc8a83847cfa10d363930c439ae",
+          "9a5e19ef16f645329f23f66918c7b52f",
+          "698a979715664e4abfd13e362b29514f"
+        ],
+        "serverStatus": "all done, USB",
+        "mode": "three manual sends; user cooling readiness between parts",
+        "physicalQuality": "awaiting user measurement/inspection"
+      },
       "publication": "local app only; Print service updated; no push"
+    },
+    "pngExport": {
+      "version": "2.180",
+      "baseCommit": "eca08e316660b32b796a93c8de46e11ec87725d3",
+      "module": "src/surface-export.js",
+      "validator": "tools/validate-surface-export.mjs",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-png-export",
+      "selected": "one complete visible strip, independent of physical print cursor",
+      "all": "visible strips in print order, ZIP plus physical geometry/density manifest",
+      "browserLongTest": "10000 mm -> 566 x 70672 PNG, no physical print",
+      "publication": "local only"
     }
   }
 }

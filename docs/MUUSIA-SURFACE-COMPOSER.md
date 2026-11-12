@@ -1,6 +1,6 @@
 # MUUSIA Surface Composer arkkitehtuuri ja toteutussuunnitelma
 
-Päiväys: 13.11.2026. Paikallinen versio 2.179 sisältää visuaalisen editorin, projektitallennuksen, kokonaismetrit ja valitun suikaleen tai pituusvälin tulostuksen. Oletus on yksi suikale kerrallaan ja käsin käynnistettävä jatko jäähtymistauon jälkeen. Print-palvelu on päivitetty; sovellusversiota ei ole julkaistu. Seuraavana on käyttäjän PNG/ZIP-vienti.
+Päiväys: 13.11.2026. Paikallinen versio 2.180 sisältää visuaalisen editorin, projektitallennuksen, kokonaismetrit, valitun suikaleen/pituusvälin tulostuksen sekä yksittäisen PNG:n ja kaikkien suikaleiden PNG/ZIP-viennin. Tulostuksen oletus on yksi suikale kerrallaan ja käsin käynnistettävä jatko jäähtymistauon jälkeen. Print-palvelu on päivitetty; sovellusversiota ei ole julkaistu. Seuraavana ovat vapaiden sommitelmien generaattorit.
 
 Surface Composer laajentaa Muusian nykyistä millimetripohjaista teospintaa. Mega Canvasin ja Roll Moden nykyiset arkit, vientimuodot ja projektit säilytetään. Uusi osa on fyysisten suikaleiden sijainti, rotaatio ja tulostusalue sekä yhteinen muunnos teospinnan ja suikaleen välillä. Sama muunnos ohjaa esikatselua ja vientiä.
 
@@ -47,7 +47,7 @@ Yhden lohkon raja on 1 048 576 pikseliä eli 4 MiB RGBA-dataa; rasterin leveysra
 
 [validate-surface-render.mjs](../tools/validate-surface-render.mjs) sisältää 16 läpäissyttä tarkistusta. Ne kattavat viiva- ja rasterikohdistuksen samat globaalit pisteet, analyyttiset 45/90 asteen pikselit, peittävät ja läpinäkyvät pikselit, kuvan ulkopuolen, paperireunat, päällekkäisyyden, lohkojen tavutarkan yhtäläisyyden sekä virhetilanteet. Kahden metrin suikale käyttää mitattua tiheyttä `400 / 56.6` pistettä/mm ja muodostaa 512 × 14 135 pisteen rasterin lohkoissa. Sisältölaskenta ei itsessään laajenna kuittipalvelun 4096 rivin työrajaa; version 2.179 erillinen suikalepolku kuvataan alla.
 
-Rasterituloksista muodostettiin erillinen diagnostinen havainnekuva: sama ympyrä, ruudukko ja diagonaali lähteenä sekä koottuna 12 kiertyvästä paperisuikaleesta. Havainne on laskentatuloksen tarkistus, ei kuvakaappaus vielä toteuttamattomasta editorista. Myöhemmät vaiheet toteuttivat käyttöliittymän, alkuperäisen kuvatiedoston latauksen ja projektitallennuksen. Käyttäjän PNG-vienti on vielä seuraava askel.
+Rasterituloksista muodostettiin erillinen diagnostinen havainnekuva: sama ympyrä, ruudukko ja diagonaali lähteenä sekä koottuna 12 kiertyvästä paperisuikaleesta. Havainne on laskentatuloksen tarkistus, ei kuvakaappaus vielä toteuttamattomasta editorista. Myöhemmät vaiheet toteuttivat käyttöliittymän, alkuperäisen kuvatiedoston latauksen ja projektitallennuksen. Käyttäjän PNG-vienti toteutettiin versioon 2.180 alla kuvatulla tavalla.
 
 ## Editorin käyttö ja tallennus
 
@@ -80,6 +80,24 @@ Lähetystä ennen tallennetaan työn tunniste. Sama tunniste ei lisää palvelim
 **Tarkistus:** yhteensä 51 kohdennettua JS-testiä (18 geometria, 16 sisältö/rasteri, 10 projekti, 7 tuotanto), 9 palvelintestiä, lint, katalogi, tuotantokäännös ja 37 914 Learn-tarkistusta läpäisivät. Todellinen selain lähetti kuivatestipalveluun yhden 2000 mm kuvasuikaleen (14 135 riviä), yhden 450–550 mm osavälin sekä kaksi erikseen valittua peräkkäistä 100 mm graafisuikaletta. Neljä työtä, neljä lopullista leikkausta; oletustilassa ei yhtään automaattista seuraavaa työtä. Metri-/rullavertailu ja projektin tallennus/lataus tarkistettiin. Uuden pitkän suikaleen fyysistä paperikoetta ei tehty.
 
 Print-palvelun päivitys asennettiin Pi:lle 13.11.2026 ja USB-valmius sekä uusi kyvykkyysrajapinta tarkistettiin ilman tulostusta. Palautusvarmuuskopio: `/home/print/muusia-print/server.py.before-surface-20261113-001303`. Tulostimen asetukset, firmware ja koneen makrot säilyivät.
+
+## PNG- ja ZIP-vienti (2.180)
+
+Editorin vasemman laidan **Export PNG** tallentaa **Export selected PNG** -painikkeella valitun näkyvän suikaleen kokonaisena. **Export all PNGs + manifest · ZIP** vie kaikki näkyvät suikaleet tulostusjärjestyksessä ja lisää `manifest.json`-luettelon. Tulostuksen **Start at / End at** -kohdat eivät rajaa vientitiedostoja, eikä vienti muuta tulostuksen jatkokohtaa tai lähetä tulostustyötä.
+
+Oletustarkkuus on Epsonin mitattu `400 / 56.6` pistettä/mm eli noin 179,5 dpi. Vaihtoehdot ovat 150, 300 ja 600 dpi. Koko paperin vienti säilyttää valkoiset tulostumattomat reunat; **Printable area only** alkaa tulostusalueen offsetista ja kertoo tämän myös metatiedoissa. Alkuperäisen kuvan värit ja graafin kynävärit säilyvät. Graafiviivan leveys on 0,3 mm; esikatselun näyttöpikseleihin sidottu viivavahvistus ei kuulu vientiin. Tulostettaessa valitaan **actual size / 100%** ja poistetaan sovitus sivulle.
+
+[surface-export.js](../src/surface-export.js) käyttää yhteistä `createStripRasterPlan`-/`createStripRasterizer`-kohdistusta. [surface-source.js](../src/surface-source.js) jakaa alkuperäisen kuvan lukemisen ja todellisen graafiarvioinnin PNG- ja kuittipoluille. Kuittipolun lähteenvalmistelun toiminta säilyi samana. Värilliset viivat rajataan samoilla `clipPathsToStrip`-koordinaateilla kuin tulostuksessa.
+
+PNG kootaan suoratoistona enintään 256 rivin ja olemassa olevan 1 048 576 pikselin lohkorajan sisällä: RGB-rivit, zlib, PNG-lohkot ja CRC. Kokonaista pitkää kuvaa ei piirretä selaincanvakseen, eikä selaincanvaksen korkeustoleranssi rajoita PNG:n pituutta. `pHYs` kertoo kokonaislukupisteinä/metri pyöristetyn tiheyden; UTF-8 `iTXt` sisältää suikaleen tarkan millimetrigeometrian ja laskennallisen tiheyden. PNG:n ja manifestin tavoitemitat sekä pikseleiksi pyöristetyt ulottuvuudet raportoidaan erikseen, eikä lähdettä skaalata pyöristettyyn leveyteen.
+
+ZIP saa PNG-lohkot yksi suikale kerrallaan nykyisen `fflate`-kirjaston kautta. Manifestissa ovat vakaa ID, näkyvä numero, tulostusjärjestys, kerros, keskipiste, kierto, pituus, fyysinen/tulostettava leveys ja offset, kulmapisteet sekä tiedostonimi, pikselimitat ja tiheys. Tiedostonimien järjestysnumero seuraa näkyvien suikaleiden tulostusjärjestystä; tekstiosa puhdistetaan tiedostopolkua varten. Alkuperäinen ID säilyy metatiedoissa. Paperimetrit eivät tässä sisällä syöttö-/leikkausvaraa, koska PNG ei syötä paperia.
+
+Resurssirajat: 100 miljoonaa pikseliä/suikale, 250 miljoonaa pikseliä/vienti ja 128 MiB säilytettävää tulostiedostoa, sekä rasterimoduulin 16 384 pikselin leveysraja. Nämä ovat selainresurssien rajoja; mittoja ei pienennetä automaattisesti. Rajan ylittyessä valitaan pienempi tarkkuus tai viedään suikaleet erikseen. **Cancel export** peruu työn lohkojen välissä; osittaista PNG:tä tai ZIP:iä ei ladata. Sommittelun ja tulostuksen ohjaimet odottavat viennin valmistumista.
+
+**Tarkistus:** [validate-surface-export.mjs](../tools/validate-surface-export.mjs) lisää 7 testiä: itsenäinen PNG-lukija tarkistaa jokaisen CRC:n ja koko IDAT-virran, värit ja läpinäkyvyyden, valkoiset reunat, `pHYs`/UTF-8-metatiedot, ZIP:n järjestyksen ja ID:t, 0/45/90/137 asteen näytteet sekä 100 000 rivin suoratoiston, keskeytyksen ja kokorajojen hylkäyksen. Yhteensä 58 kohdennettua JS-testiä, lint, katalogi, tuotantokäännös ja Learnin 37 914 tarkistusta läpäisivät.
+
+Todellisesta selaimesta ladattiin alkuperäiskuvan 1 m PNG (566 × 7068), vastaava kolmen suikaleen ZIP, pelkkä tulostusalue (501 × 7068), 10 m PNG (566 × 70 672) sekä punaisen Grid-graafin 0/45/137 asteen kolme suikaletta (566 × 1838). Piilotettu neljäs suikale ei kuulu ZIP:iin. Ladatut tiedostot purettiin ja tarkistettiin erillisellä PNG/ZIP-lukijalla; myös reunat ja punaiset pikselit tarkistettiin. Yksittäinen kolmas PNG vastasi ZIP:n kolmatta PNG:tä tavulleen. Keskeytys ja 600 dpi:n liian suuren työn hylkäys tarkistettiin selaimessa. Viennin jälkeinen todellinen projektitallennus säilytti `surface`-kentän täsmälleen, myös alkuperäiskuvan, piilotetun paperin ja tulostuksen jatkokohdan. Selaimessa ei kirjautunut varoituksia tai virheitä. Tässä vientivaiheessa ei tulostettu paperille.
 
 ## Nykyiset osat ja niiden käyttö
 
@@ -157,7 +175,7 @@ Esimerkiksi 23 kappaletta 80 mm paperia ja niiden 22 kappaletta 8 mm rakoja viev
 | 3. Visuaalinen editori | Suuri esikatselu, Physical Width / Printable Width / Gap erikseen, valinta, siirto, kierto sekä numeeriset sijainti- ja pituuskentät. | Uusi `src/surface-composer.jsx` ja rajattu kytkentä uusimpaan `src/App.jsx`:ään. |
 | 4. Tallennus ja rasterivienti | Suikaleet säilyvät projektissa. Yksittäinen PNG ja kaikki PNG:t ZIP-pakettina sekä mitat ja järjestyksen sisältävä manifesti. | Uusi `src/surface-export.js`, `fflate` ja rajatut projektin save/load-muutokset. |
 
-Askeleet 1–3 sekä askeleen 4 projektitallennus ovat valmiit. Seuraavaksi tehdään käyttäjän yksittäinen PNG-vienti ja kaikkien suikaleiden PNG ZIP -paketti fyysiset mitat ja pikselitiheyden sisältävällä manifestilla. Vientiin käytetään olemassa olevaa `surface-render.js`-lohkorasterointia. Pitkien ESC/POS-töiden palvelinrajan laajennus tulee tuotantovaiheessa.
+Askeleet 1–4 ovat valmiit paikallisessa versiossa 2.180. Myös kokonaismetrit, valitun suikaleen/jatkoviipaleen tulostus ja pitkän ESC/POS-työn palvelinpolku ovat käytössä. Kolmen erillisen metrin paperikoe ajettiin käsin käynnistetyin osin ja käyttäjän kuittaamin jäähtymistauoin; tarkat fyysiset mittaustulokset ovat vielä vahvistamatta. Seuraavaksi lisätään Fan-, Radial-, Progressive Rotation- ja seeded Random -sommittelut samaan suikaleiden tietomalliin.
 
 Rasterivienti tehdään yksi suikale kerrallaan ja tarvittaessa riveittäin lohkoissa. Koko kahden metrin teosta ei rasteroida ensin täydellä tulostustarkkuudella yhdeksi valtavaksi kuvaksi. Esikatselun tarkkuus on erillinen viennin tarkkuudesta. PNG:n pikselitiheys ja fyysiset mitat kirjataan manifestiin; PNG:n tulostajan on käytettävä näitä mittoja, jotta oletusarvoinen sovitus sivulle ei muuta kokoa. Suuren työn vienti voidaan perua, ja resurssirajan ylittyminen ilmoitetaan muuttamatta fyysisiä mittoja.
 
@@ -175,7 +193,7 @@ Rasterivienti tehdään yksi suikale kerrallaan ja tarvittaessa riveittäin lohk
 
 Geometrian, editorin ja rasteriviennin jälkeen lisätään Fan, Radial, Progressive Rotation ja seeded Random. Presetit tuottavat samoja muokattavia suikaleobjekteja. Independent Content arvioi sisältöä paikallisissa mitoissa suikaleen sijainnin, kulman ja tunnisteen perusteella; Image Mapping pysyy koko teoksen yhteisenä sisältönä.
 
-Tuotantovaiheessa lisätään asennuskartta, käyttäjän säädettävä tulostusjärjestys, laitekohtainen pituusraja sekä pitkien ESC/POS-töiden laajennus nykyiseen palvelimeen. Nykyisiä 256 rivin komentolohkoja voidaan hyödyntää, mutta työraja, tiedonsiirto, jonotus ja keskeytys suunnitellaan koko pitkälle suikaleelle. Leikkaus tehdään vasta fyysisen suikaleen lopussa, ei jokaisen rasterilohkon välissä. Asennuskartta käyttää täsmälleen samoja paperikulmia ja z-järjestystä kuin editori.
+Tuotannon jatkovaiheeseen kuuluu asennuskartta. Käyttäjän säädettävä tulostusjärjestys ja pitkien ESC/POS-töiden laajennus nykyiseen palvelimeen ovat jo käytössä. Nykyiset 256 rivin komentolohkot kulkevat yhtenä suikaletyönä. Leikkaus tehdään vasta fyysisen suikaleen lopussa, ei jokaisen rasterilohkon välissä. Asennuskartta käyttää täsmälleen samoja paperikulmia ja z-järjestystä kuin editori.
 
 Materiaalimäärä on valittujen suikaleiden fyysisten pituuksien summa. Tuotannon tunniste-, syöttö- ja leikkuuvarat lisätään erikseen. Tulostusaika näytetään vasta, kun laiteprofiilissa on perusteltu nopeusarvio; grafiikka ja lämpö vaikuttavat siihen. G-code sallitaan vain viivasisällölle sopivalla koneprofiililla ja työalueella; pitkä lämpöpaperisuikale ei yksin tarkoita, että piirturi voi ajaa sen yhdessä osassa.
 
