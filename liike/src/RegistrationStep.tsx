@@ -13,7 +13,7 @@ import { photoLabel } from './frame-number';
 import FrameNumberField from './FrameNumberField';
 
 const SHORT = ['TL', 'TR', 'BR', 'BL'];
-const COLORS = ['#d47527', '#447bc3', '#945aa1', '#478567'];
+const COLORS = ['#ff6a00', '#ff9d44', '#ce5100', '#ffbd7c'];
 type Props = { photo: Photo; settings: SheetSettings; sheet: number; setPoints: (id: string, points: MarkerPoints) => void; detect: (id: string, settings: SheetSettings, numberOnly?: boolean) => Promise<void>; undoDetection: (id: string) => void; setFrameNumber?: (id: string, number: number | undefined) => void };
 
 export default function RegistrationStep({ photo, settings, sheet, setPoints, detect, undoDetection, setFrameNumber }: Props) {
@@ -115,7 +115,7 @@ export default function RegistrationStep({ photo, settings, sheet, setPoints, de
             <circle cx={p.x} cy={p.y} r={radius * 3.5 / zoom} fill="transparent" />
             <circle cx={p.x} cy={p.y} r={radius / zoom} fill={COLORS[i]} stroke="#fff" strokeWidth={radius * .17 / zoom} />
             <path d={`M${p.x - radius * 1.7 / zoom},${p.y}h${radius * 3.4 / zoom}M${p.x},${p.y - radius * 1.7 / zoom}v${radius * 3.4 / zoom}`} stroke="#fff" strokeWidth={radius * .1 / zoom} pointerEvents="none" />
-            <text x={p.x + radius * 1.8 / zoom} y={p.y - radius * 1.2 / zoom} fontSize={radius * 1.5 / zoom} fill="#fff" stroke="#29362b" paintOrder="stroke" strokeWidth={radius * .12 / zoom}>{i + 1} {SHORT[i]}</text>
+            <text x={p.x + radius * 1.8 / zoom} y={p.y - radius * 1.2 / zoom} fontSize={radius * 1.5 / zoom} fill="#fff" stroke="#0e0d0b" paintOrder="stroke" strokeWidth={radius * .12 / zoom}>{i + 1} {SHORT[i]}</text>
           </g>)}
         </svg></div>
         <div className="fine-tune">
@@ -131,7 +131,7 @@ export default function RegistrationStep({ photo, settings, sheet, setPoints, de
         <div className="preview-heading"><div><p className="eyebrow">Straightened {closeup ? 'frame' : 'sheet'}</p><h2>{closeup ? 'Check the crop' : 'Check every frame'}</h2></div><label className="checkbox"><input type="checkbox" checked={showGuides} onChange={e => setShowGuides(e.target.checked)} />Show guides</label></div>
         {closeup && <><p className="hint">Liike reads the number below the frame after finding its outline. Check the result; use Read number to try again or correct it here.</p>{setFrameNumber && <FrameNumberField photo={photo} setNumber={setFrameNumber} readNumber={id => { void detect(id, settings, true); }} />}</>}
         {registration.error || renderError ? <p className="error" role="alert">{registration.error || renderError}</p> : currentPreview && registration.h ? <div className="rectified-stage"><svg viewBox={`0 0 ${geometry.W} ${geometry.H}`} className="rectified-sheet" role="img" aria-label={`Rectified ${photoLabel(photo, sheet, settings.captureMode)} with ${frames.length} frame windows`}><image href={currentPreview} width={geometry.W} height={geometry.H} />
-          {showGuides && <>{geometry.cells.map(({ index, cell }) => <rect key={index} {...rProps(cell)} className="cell-guide" />)}{frames.map(f => <g key={f.frame}><rect {...rProps(closeup ? f.crop : f.window)} className="photo-window" />{(settings.crop === 'Full cell' || settings.pad > 0) && <rect {...rProps(f.crop)} className="crop-guide" />}{(!closeup || photo.frameNumber !== undefined) && <text x={f.window.x + 1.5} y={f.window.y + 5} fontSize={4} fill="#365b26" stroke="#fff" paintOrder="stroke" strokeWidth={.7}>{closeup ? photo.frameNumber : f.frame + 1}</text>}</g>)}</>}
+          {showGuides && <>{geometry.cells.map(({ index, cell }) => <rect key={index} {...rProps(cell)} className="cell-guide" />)}{frames.map(f => <g key={f.frame}><rect {...rProps(closeup ? f.crop : f.window)} className="photo-window" />{(settings.crop === 'Full cell' || settings.pad > 0) && <rect {...rProps(f.crop)} className="crop-guide" />}{(!closeup || photo.frameNumber !== undefined) && <text x={f.window.x + 1.5} y={f.window.y + 5} fontSize={4} fill="#b94c00" stroke="#fff" paintOrder="stroke" strokeWidth={.7}>{closeup ? photo.frameNumber : f.frame + 1}</text>}</g>)}</>}
         </svg></div> : <div className="preview-placeholder" role="status"><span aria-hidden="true">⌗</span><h2>{count === 4 ? 'Updating preview…' : `${count} of 4 ${closeup ? 'corners' : 'markers'} placed`}</h2><p>{closeup ? 'The straightened frame appears once all four corners are placed.' : 'The straightened sheet appears once all four centers are placed.'}</p></div>}
         <p className="hint preview-note">{frames.length ? (closeup ? 'The green outline is the selected crop. Keep every stroke inside it. Full cell with a small border trim preserves drawings outside the canvas window.' : 'Check that every drawing sits inside its green frame window. Dashed lines show full cells. The photo supplies the artwork; the sheet settings supply the geometry.') : 'This extra photo has no frame windows yet. Increase Total frames in Sheet or reorder the photos to include it in the sequence.'}</p>
         {registration.h && <p className="hint">{closeup ? 'TL belongs beside the small circle outside the frame. Use Rotate corner labels if the orientation is wrong.' : `The ${settings.markerStyle === 'outline' ? 'X' : 'hole'} should be at the top-left here. If the orientation is wrong, check which marker you labeled TL.`}</p>}

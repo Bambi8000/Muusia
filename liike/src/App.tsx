@@ -36,15 +36,15 @@ function SheetPreview({ settings, sheet, guides }: { settings: SheetSettings; sh
   const frames = framesOnSheet(settings, sheet);
   const byCell = new Map(frames.map(f => [f.index, f.frame + 1]));
   const fontSize = Math.min(l.cw, l.ch) * 0.22;
-  const dark = settings.paperTone === 'dark', paperColor = dark ? '#161e24' : '#fffef9', inkColor = dark ? '#d7f69f' : '#454b3d';
+  const dark = settings.paperTone === 'dark', paperColor = dark ? '#0e0d0b' : '#fffaf2', inkColor = dark ? '#ff8a26' : '#24201c';
   return <svg className="sheet" viewBox={`0 0 ${settings.W} ${settings.H}`} role="img" aria-label={`Sheet ${sheet + 1}: ${frames.length} frames in ${settings.cols} columns and ${settings.rows} rows`}>
     <defs><pattern id="marker-hatch" width="1" height="0.6" patternUnits="userSpaceOnUse"><path d="M0 .3H1" stroke={inkColor} strokeWidth=".3" /></pattern></defs>
     <rect width={settings.W} height={settings.H} fill={paperColor} />
     {l.cells.map(({ index, cell, window, crop }) => <g key={index} className={byCell.has(index) ? 'occupied' : 'empty'}>
       {guides && <rect {...rectProps(cell)} className="cell-guide" />}
-      <rect {...rectProps(individualFrames(settings) ? crop : window)} className="frame-window" style={dark ? { fill: '#29392e', stroke: '#789d61' } : undefined} />
+      <rect {...rectProps(individualFrames(settings) ? crop : window)} className="frame-window" style={dark ? { fill: '#24180f', stroke: '#ff6a00' } : undefined} />
       {byCell.has(index) && (settings.crop === 'Full cell' || settings.pad > 0) && <rect {...rectProps(crop)} className="crop-guide" />}
-      <text x={window.x + window.w / 2} y={window.y + window.h / 2} fontSize={fontSize} textAnchor="middle" dominantBaseline="central" fill={dark ? '#d7f69f' : byCell.has(index) ? '#526638' : '#92978b'}>{byCell.get(index) ?? '—'}</text>
+      <text x={window.x + window.w / 2} y={window.y + window.h / 2} fontSize={fontSize} textAnchor="middle" dominantBaseline="central" fill={dark ? '#ff8a26' : byCell.has(index) ? '#b94c00' : '#8b7868'}>{byCell.get(index) ?? '—'}</text>
     </g>)}
     {individualFrames(settings) ? l.cells.map(({ index, cell }) => <g key={index}><rect {...rectProps(cell)} fill="none" stroke={inkColor} strokeWidth=".3" /><circle cx={cell.x - 2.5} cy={cell.y - 2.5} r={1.5} fill="none" stroke={inkColor} strokeWidth=".3" /></g>) : l.markers.map((m, i) => <g key={i}>
       <rect x={m.x - settings.markSize / 2} y={m.y - settings.markSize / 2} width={settings.markSize} height={settings.markSize} fill={settings.markerStyle === 'outline' ? 'none' : 'url(#marker-hatch)'} stroke={inkColor} strokeWidth=".3" />
