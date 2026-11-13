@@ -6385,3 +6385,19 @@ Pi service updated with expected-source hashes, queue idle, Clock off; backup
 /home/print/muusia-print/before-trim-marks-20261113-115657. Artifact directory:
 surface-trim-marks in this thread. App 2.187 prepared for authorized publication;
 verify exact Pages run and public UI. Primary unrelated work preserved.
+
+
+### 2.187 — Public trim marks verified
+
+Source `6829e20356ed0be785d8ce7b4b52ea54aeec3980`, successful exact Pages run
+43405608667: https://github.com/Bambi8000/Muusia/actions/runs/43405608667
+Actual public browser shows v2.187 and default-on Epson trim checkbox. Three
+papers with shaded preview guards are present; actual PUBLIC 3 x 200 mm Print ZIP validates
+22-row guards per end and correct tear cuts for all three papers. Live Print
+imports the 100 mm marked packet with the inner-edge instruction, USB ready,
+zero active jobs and no automatic send. No physical print from this task.
+Public index SHA256 87abb21782dcef1da55fbdff11f14c10b030168817026ddb61305e875ac8c35b
+matches local production. Public screenshot, exported ZIP, on/off packets,
+actual decoded thermal PNG and verification.json are in surface-trim-marks.
+Refresh clean snapshot after this documentation commit; local snapshot is not
+a verified upload into another assistant's project.

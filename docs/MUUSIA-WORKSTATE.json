@@ -2,30 +2,30 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.186",
+    "version": "2.187",
     "date": "2026-11-13",
-    "commit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
-    "pagesRunId": 43402236176,
+    "commit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
+    "pagesRunId": 43405608667,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.186; prominent direct Surface print access and calibrated Print packages",
-    "publicAppSha256": "7328922383677a06c5f92ab6e48b6e2c695584a6c3b052fb364bdeab6cee9ec5"
+    "status": "verified public Muusia 2.187; removable thermal trim marks and updated Print service",
+    "publicAppSha256": "87abb21782dcef1da55fbdff11f14c10b030168817026ddb61305e875ac8c35b"
   },
   "lastIntegration": {
-    "version": "2.186",
+    "version": "2.187",
     "date": "2026-11-13",
-    "baseCommit": "5f4ec588289641971973aa070750ecfa4be74309",
-    "implementationCommit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
+    "baseCommit": "2a8e01f6e08699d8d452a4aa39facb9869ad0677",
+    "implementationCommit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "published": true,
-    "status": "Muusia 2.186 published and verified; live Print package import installed",
+    "status": "Muusia 2.187 published and verified; trim marks supported by live Print",
     "moduleCount": 359,
     "registryCount": 361,
-    "validation": "98 Surface JS, 15 Python Print, lint, catalog, build, 37914 Learn checks; exact Pages success; public v2.186 UI and real Print ZIP export verified; public index equals local production.",
+    "validation": "101 Surface JS, 16 Python Print, lint, catalog, build, 37914 Learn checks; exact Pages success; real public marked ZIP validated; public bytes match local; direct native and exported raster match.",
     "note": "No new physical print. Primary checkout unrelated changes preserved.",
-    "commit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
-    "pagesRunId": 43402236176,
+    "commit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
+    "pagesRunId": 43405608667,
     "snapshot": "/private/tmp/muusia-surface-composer-snapshot-20261112 (refresh after final documentation commit; local only)"
   },
   "lastArtifact": {
@@ -53,7 +53,7 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "public Muusia 2.186 deployed and verified",
+    "status": "public Muusia 2.187 deployed and verified",
     "validation": "94 focused JS tests, lint, catalog, production build and 37914 Learn checks passed. Actual UI and saved project verified 17 mm extra feed; user photo supplies 23/2/18 mm measurements. No new print.",
     "nextStep": "Freeform animation batches and magnet-jig files remain optional follow-ups.",
     "calibration": {
@@ -393,11 +393,11 @@
       "physicalOutput": "none"
     },
     "publishedRelease": {
-      "version": "2.186",
-      "commit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
-      "pagesRunId": 43402236176,
+      "version": "2.187",
+      "commit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
+      "pagesRunId": 43405608667,
       "url": "https://bambi8000.github.io/Muusia/",
-      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-print-transfer",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-trim-marks",
       "publicAppMatchesLocal": true,
       "physicalPrintSentDuringVerification": false
     },
@@ -416,7 +416,7 @@
     "trimMarks": {
       "version": "2.187",
       "baseCommit": "2a8e01f6e08699d8d452a4aa39facb9869ad0677",
-      "status": "implemented and tested; live Print installed; public publication pending",
+      "status": "published and verified; live Print installed",
       "tests": "101 Surface JS; 16 Python Print; lint; catalog; build; 37914 Learn checks",
       "defaultOn": true,
       "guardRowsPerEnd": 22,
@@ -428,7 +428,9 @@
       "manualCoolingDefault": true,
       "physicalPrintSent": false,
       "serviceBackup": "/home/print/muusia-print/before-trim-marks-20261113-115657",
-      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-trim-marks"
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-trim-marks",
+      "commit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
+      "pagesRunId": 43405608667
     }
   }
 }
