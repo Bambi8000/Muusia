@@ -6193,3 +6193,14 @@ contains actual assembly.pdf, rendered pages, real browser projects/exports,
 composer.jpg, validation.json and physical/service records. APP_VERSION and Learn
 manifest 2.183. Follow-up: physical inspection; optional freeform animation batches
 and freeform magnet jigs.
+
+
+### 2026-11-13 — End-label left bridge physically confirmed
+
+Daniel inspected the short USB test `34ce718bdd2740b8b2c6395bfdc9f558`
+and confirmed: “Lappu jäi vasemmalta kiinni” (the label remained attached at
+the left edge). This verifies the intended left attachment for the tested
+body/label partial-cut sequence. Bridge width and the blank gap from cut to
+first text were not measured. Keep the editable extra cutter feed at its
+20 mm estimate; no scale, margins or cutter settings changed. No additional
+print was sent. Implementation remains local 2.183 at `a4a324e`.

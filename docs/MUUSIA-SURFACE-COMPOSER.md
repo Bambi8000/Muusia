@@ -1,6 +1,6 @@
 # MUUSIA Surface Composer arkkitehtuuri ja toteutussuunnitelma
 
-Päiväys: 13.11.2026. Paikallinen versio 2.183 lisää Independent Content -tilan kaikille paperiperheille, Surface Context -solmun, kokoamis-PDF:n sekä valinnaiset päätylaput pienellä vasemman reunan kiinnikkeellä. Mittatarkat viennit ja yhden suikaleen tulostusoletus säilyvät. Versiota ei ole julkaistu. Lyhyt päätylapputesti on lähetetty USB-tulostimelle; fyysinen kiinnike ja lisäsyöttö odottavat käyttäjän tarkistusta.
+Päiväys: 13.11.2026. Paikallinen versio 2.183 lisää Independent Content -tilan kaikille paperiperheille, Surface Context -solmun, kokoamis-PDF:n sekä valinnaiset päätylaput pienellä vasemman reunan kiinnikkeellä. Mittatarkat viennit ja yhden suikaleen tulostusoletus säilyvät. Versiota ei ole julkaistu. Käyttäjä vahvisti lyhyen USB-testin päätylapun jääneen vasemmalta kiinni. Leikkauksen jälkeistä tyhjää väliä ei vielä mitattu; lisäsyöttö pysyy arviona.
 
 Surface Composer laajentaa Muusian nykyistä millimetripohjaista teospintaa. Mega Canvasin ja Roll Moden nykyiset arkit, vientimuodot ja projektit säilytetään. Uusi osa on fyysisten suikaleiden sijainti, rotaatio ja tulostusalue sekä yhteinen muunnos teospinnan ja suikaleen välillä. Sama muunnos ohjaa esikatselua ja vientiä.
 

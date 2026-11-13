@@ -21,7 +21,7 @@
     "snapshot": "/private/tmp/muusia-project-files-2.176 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 358,
     "registryCount": 360,
-    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 \u00d7 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
+    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 × 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
     "note": "Exact millimetre placement remains for Single Marker, Card Sheet and Needle Test. No physical plot was made. Unrelated primary checkout changes were preserved.",
     "commit": "1ac1679ab6f58c17a9eea1142c8f925bdb1431d2"
   },
@@ -51,8 +51,8 @@
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
     "status": "local Muusia 2.183 Independent Content, assembly PDF and optional end labels complete; not published",
-    "validation": "86 focused JS tests plus Surface Context prototype/built-in contract, 10 Print service tests, focused lint, catalog, production build and 37914 Learn checks passed. Actual browser graph/image PDFs, PNG/SVG/DXF/G-code, mixed modes/Undo and exact Save/Load/Save verified. One short 100 mm body + 32 mm label sent to USB; physical bridge/feed awaiting user inspection.",
-    "nextStep": "Await physical end-label inspection/measurement. Freeform animation batches and magnet-jig files remain optional follow-ups.",
+    "validation": "86 focused JS tests plus Surface Context prototype/built-in contract, 10 Print service tests, focused lint, catalog, production build and 37914 Learn checks passed. Actual browser graph/image PDFs, PNG/SVG/DXF/G-code, mixed modes/Undo and exact Save/Load/Save verified. One short 100 mm body + 32 mm label sent to USB; user confirmed left-edge attachment; blank cutter-feed gap remains unmeasured.",
+    "nextStep": "Optional blank cutter-feed gap measurement. Freeform animation batches and magnet-jig files remain optional follow-ups.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
       "widthDots": 512,
@@ -282,7 +282,14 @@
         "width": 512,
         "tearAtRow": 707,
         "singleStrip": true,
-        "physicalBridge": "Awaiting user inspection; no second print sent."
+        "physicalBridge": "User confirmed the label remained attached at the left edge.",
+        "physicalBridgeVerified": true,
+        "confirmationDate": "2026-11-13",
+        "confirmationSource": "User inspection of the printed test",
+        "userResponse": "Lappu jäi vasemmalta kiinni",
+        "cutterFeedMeasuredMm": null,
+        "cutterFeedStatus": "Not measured; 20 mm remains an editable allowance estimate.",
+        "secondJobSent": false
       },
       "publication": "local only; no push"
     }
