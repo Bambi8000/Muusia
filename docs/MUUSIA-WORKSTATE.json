@@ -1,47 +1,6 @@
 {
   "schemaVersion": 1,
-  "active": [
-    {
-      "id": "receipt-50m-seam-test-20261113",
-      "owner": "Astra",
-      "role": "long receipt limits and physical test",
-      "baseCommit": "578ce192b8249eddb1e2661874ea9ff76b0ea2e5",
-      "worktree": "/private/tmp/muusia-receipt-50m-20261113",
-      "files": [
-        "src/receipt-format.js",
-        "src/receipt-raster.js",
-        "src/thermal-print.js",
-        "src/App.jsx",
-        "src/surface-print.js",
-        "src/surface-print-package.js",
-        "latu/src/receipt-preview.jsx",
-        "latu/src/receipt.js",
-        "latu/tests/receipt.test.mjs",
-        "print-server/server.py",
-        "print-server/receipt_limits.py",
-        "print-server/print_package.py",
-        "print-server/dashboard.js",
-        "print-server/test_server.py",
-        "print-server/test_print_package.py",
-        "tools/validate-surface-print-package.mjs",
-        "tools/validate-receipt-browser.html",
-        "tools/validate-receipt-50m.mjs",
-        "tools/make-receipt-seam-test.mjs",
-        "tools/receipt-seam-preview.html",
-        "docs/MUUSIA-HANDOFF.md",
-        "docs/MUUSIA-WORKSTATE.json",
-        "docs/MUUSIA-PRINT.md",
-        "README.md",
-        "latu/README.md",
-        "public/latu/index.html",
-        "learn/generated/manifest.json",
-        "print-server/usb_transport.py",
-        "print-server/test_usb_transport.py"
-      ],
-      "status": "in_progress",
-      "outcome": "50 m app published; 4.53 mm seams confirmed from 32-row completion waits. Continuous bounded duplex transport implemented/tested/installed with service stopped; 500 mm physical check prepared but not submitted."
-    }
-  ],
+  "active": [],
   "lastPublished": {
     "version": "2.189",
     "date": "2026-11-13",
@@ -502,7 +461,7 @@
   "validation": {
     "receipt50m": {
       "baseCommit": "578ce192b8249eddb1e2661874ea9ff76b0ea2e5",
-      "status": "10 m continuous test completed across old limit; 500 mm seam-free confirmed; final 10 m physical inspection pending",
+      "status": "complete: 50 m software limit published; continuous 10 m physical seam test passed",
       "rasterMaxRows": 353357,
       "maxLengthMm": 50000,
       "pythonTests": 25,
@@ -523,7 +482,7 @@
       "retry10mPhysicalResult": "Horizontal banding; user requested stop before completion",
       "service": "running",
       "former65535RowLimitCrossed": true,
-      "nextStep": "Record user physical inspection of full 10 m; commit/publish continuous USB fix and refresh clean source snapshot.",
+      "nextStep": "No required work remains. A full 50 m physical endurance test has not been performed.",
       "measuredStripeSpacingMm": 4.53,
       "stripeSource": "User caliper measurement and IMG_3539.jpeg",
       "seamCause": "32-row completion waits; interval 4.528 mm matches measured 4.53 mm",
@@ -535,7 +494,7 @@
         "coalescedIdSupport": true,
         "sha256": "eae6631653e0ea33c93dffd39790002b87da4d4656e2f68cae4126bf8462ff57",
         "backup": "/home/print/muusia-print/before-continuous-usb-20261113-213705",
-        "physicalTest": "not performed",
+        "physicalTest": "500 mm and full 10 m seam-free, confirmed by user",
         "service": "stopped"
       },
       "continuousShortTest": {
@@ -552,10 +511,75 @@
         "confirmedRows": 70672,
         "durationSeconds": 86.308,
         "former65535RowLimitCrossed": true,
-        "physicalResult": "pending"
+        "physicalResult": "User confirmed entire 10 m Ribbon and reference lines intact and continuous, past OLD 65535 to END 10M"
       },
       "piReady": true,
-      "queuedJobs": 0
+      "queuedJobs": 0,
+      "continuousCommit": "4b179d4413f13fc76ca4f5688b7686ebe05ced0a",
+      "continuousPagesRunId": 43495038418,
+      "continuousPublication": "pushed; successful Pages build/deploy"
+    },
+    "receipt50mEndurance": {
+      "requestId": "8066c3f264b64fa198b39f315d0fe7b8",
+      "state": "interrupted-paper-out",
+      "lengthMm": 50000,
+      "width": 512,
+      "height": 353357,
+      "bytes": 30153682,
+      "rasterSha256": "61533124e21cbe3cf3fe0801d9ba832958b7d338246db219444abab41a27bd4b",
+      "referenceLines": [
+        {
+          "xMm": 9,
+          "missingRows": 0
+        },
+        {
+          "xMm": 71,
+          "missingRows": 0
+        }
+      ],
+      "cutOnlyAtEnd": true,
+      "physicalPrintsRequested": 1,
+      "userApproved": true,
+      "preparedAt": 1794599484.4938204,
+      "preflight": {
+        "health": {
+          "ready": true,
+          "queued": 0,
+          "mode": "USB",
+          "device": "/dev/usb/lp0",
+          "error": null
+        },
+        "capabilities": {
+          "width": 512,
+          "maxHeight": 353357,
+          "maxLengthMm": 50000,
+          "singleStripJob": true,
+          "requiresIdle": true,
+          "partialCutEndLabel": true,
+          "endLabelBridge": "fixed-left",
+          "printPackageVersion": 1,
+          "trimMarksVersion": 1
+        }
+      },
+      "accepted": {
+        "id": "8066c3f264b64fa198b39f315d0fe7b8",
+        "status": "queued"
+      },
+      "submittedAt": 1794599489.3813217,
+      "status": "test recorded: good physical quality through ~44.71 m; roll ended before full 50 m",
+      "generatorCompatibility": "Default 10 m SVG, drawing, session and range byte/exact-equal",
+      "renderer": "Real browser renderSurfaceReceipt, full 353357 rows, 30153682-byte packet",
+      "physicalResult": "User confirmed print quality stayed good through paper end; final visible R315392; full 50 m not completed",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/13/01a1d45d-5dba-77c2-a4e6-f7be7ec6c664/receipt-50m-seam-test/endurance-50m",
+      "lastConfirmedRows": 315968,
+      "lastConfirmedMm": 44709.472,
+      "remainingRows": 37389,
+      "remainingMm": 5290.5435,
+      "service": "stopped",
+      "nextStep": "No automatic continuation or further test queued. Any full 50 m retry needs sufficient paper, printer power cycle and a new user instruction.",
+      "lastVisibleMarker": "R315392",
+      "lastVisibleMarkerMm": 44627.968,
+      "jobDurationSeconds": 406.512
     }
   }
 }

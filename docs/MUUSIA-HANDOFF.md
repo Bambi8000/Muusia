@@ -6625,3 +6625,97 @@ Continuous USB implementation changes only print-server/usb_transport.py
 and its focused tests. No app UI or receipt file format changed; app version
 remains 2.190. Full ordered app gate already passed for the unchanged app.
 This server-only follow-up passed 25 Python tests and diff/JSON checks.
+
+
+### W — 10 m continuous-print physical test confirmed; task complete
+
+Daniel confirmed the entire 10 m Ribbon and reference lines were intact and
+continuous through END 10M, including beyond OLD 65535, without horizontal
+gaps. Job de9b6dcdfde24aa5b32f11b39f3bbbad completed 70672 raster rows and
+final cut in 86.308 s. The 500 mm physical check had also passed.
+The measured 4.53 mm gaps from per-band completion waits are resolved by
+continuous duplex transfer with a bounded 16-band window.
+
+Implementation commit 4b179d4413f13fc76ca4f5688b7686ebe05ced0a is on
+origin/main; exact Pages run 43495038418 passed build/Learn/deploy.
+25 focused Python Print tests pass. The app remains 2.190 (server-only fix);
+the earlier app gate passed 37914 Learn checks. Live USB helper SHA256 is
+eae6631653e0ea33c93dffd39790002b87da4d4656e2f68cae4126bf8462ff57.
+USB ready, no queued jobs, Clock off. No new physical job is requested.
+
+The calibrated software ceiling remains 50 m / 353357 rows including
+labels/trim guards. Actual physical validation covers 10 m, not a full
+50 m endurance print. Pi undervoltage warnings were observed previously;
+their connection to the earlier character corruption was not established.
+Remove the completed receipt-50m-seam-test-20261113 claim. Refresh the
+clean source snapshot after this final documentation commit; not uploaded.
+Artifacts: receipt-50m-seam-test/ribbon-continuous-10m-record.json contains
+the exact raster checksum, server result and Daniel's physical confirmation.
+
+
+### W — User requested actual 50 m endurance test
+
+After confirming the complete 10 m print as intact and continuous, Daniel
+explicitly requested a 50 m print. New claim receipt-50m-endurance-20261113
+owns the test helper tools, hardware test and documentation. The scene
+generator now accepts whole-metre lengths 1–50; default 10 m SVG, drawing,
+session and range remain exactly identical to the tested original.
+The preview helper accepts ?m=50. Actual browser renderSurfaceReceipt produced
+a calibrated 512 x 353357 raster for 80 x 50000 mm, guards/labels off, one
+final cut. The continuous Ribbon is newly generated across the whole 50 m,
+with metre/row markers and END 50M. Scene: 6003 paths, 307171 points.
+
+RequestId 8066c3f264b64fa198b39f315d0fe7b8; packet 30153682 bytes;
+raster SHA256 61533124e21cbe3cf3fe0801d9ba832958b7d338246db219444abab41a27bd4b.
+Packed reference lines at x9 and x71 have zero missing rows from 35–49975 mm.
+Submitted once after matching live continuous USB helper SHA, idle queue,
+Clock off, USB ready/no fault, max 353357 rows / 50000 mm capabilities, and
+prior 10 m job confirmed done. Do not automatically retry on a lost reply.
+Artifacts under receipt-50m-seam-test/endurance-50m in this chat's directory;
+remote packet/record under /home/print/muusia-print/ribbon-continuous-50m*.
+Next: monitor full 50 m progress, stop on any reported corruption/banding,
+record final acknowledged rows/cut separately from user physical inspection.
+
+
+### W — 50 m test interrupted by paper running out
+
+Daniel reported paper ran out. Final acknowledged position was 315968 rows
+=44709.472 mm (about 44.71 m); requested full 353357 rows / 50 m was NOT completed.
+The job failed on its expected missing-acknowledgement timeout after output
+stopped. No further USB data was sent after its bounded window.
+muusia-print.service was explicitly stopped and confirmed inactive.
+Final cut was not acknowledged. No automatic continuation onto a new roll.
+
+353357-315968=37389 rows remain, nominal 5290.5435 mm, but the bounded pending
+window means this is an acknowledgement-based resume estimate, not a precisely
+measured physical tear point. Paper output may extend slightly past the last
+acknowledged position. Ask user for next-step preference before printing again;
+clear printer buffer via power cycle before any newly approved job.
+Full source raster/packet and exact remote record remain preserved under
+receipt-50m-seam-test/endurance-50m. Do not call this a completed 50 m test.
+
+
+### W — Long-roll paper quality confirmed through approximately 44.7 m
+
+Daniel confirmed print quality stayed good to the end of the available roll.
+Last visible marker R315392 corresponds to 44627.968 mm; the final printer
+confirmation was row 315968 = 44709.472 mm. This is a successful physical
+quality observation through about 44.7 m, NOT a completed 50 m print.
+The requested 353357-row / 50 m packet was accepted in full (30153682 bytes),
+but paper ran out and the final cut was not acknowledged. The service
+stays stopped. No automatic continuation or new physical test is queued.
+
+Test helper now supports 1–50 whole metres; its default 10 m SVG, drawing,
+session and range remain exactly identical to the prior test. Focused oxlint
+and diff/JSON checks passed, and the actual browser renderer prepared all
+353357 rows with continuous reference lines and one final cut. No app UI or
+printer runtime code changed in this follow-up. The continuous USB fix is
+still 4b179d4, verified by exact successful Pages run 43495038418 and matching
+public app/LATU plus published USB-helper SHA256. App stays 2.190.
+
+Close the current experiment claim after preserving its interrupted result.
+A future full 50 m trial requires sufficient paper and a newly approved test,
+with the printer power-cycled first to clear the interrupted command buffer.
+Artifacts: receipt-50m-seam-test/endurance-50m/record.json includes exact
+server data, paper-out reason and Daniel's physical quality confirmation.
+Refresh the clean 93-file source snapshot after committing this record.

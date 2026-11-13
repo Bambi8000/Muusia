@@ -259,5 +259,16 @@ uuden 10 m:n kokeen vanhan pituusrajan yli.
 
 
 10 m:n jatkuva koe valmistui 86,308 sekunnissa: kaikki 70 672 riviä ja
-loppuleikkaus kuitattiin, vanha 65 535 rivin raja ylitettiin. Koko 10 m:n
-paperijäljen tarkistus on vielä kesken. Fyysistä 50 m:n koetta ei tehty.
+loppuleikkaus kuitattiin, vanha 65 535 rivin raja ylitettiin. Käyttäjä vahvisti koko 10 m:n
+paperijäljen ehjäksi ja yhtenäiseksi loppuun saakka myös OLD 65535 -merkin
+jälkeen: vaakakatkoksia ei enää ollut. Fyysistä 50 m:n koetta ei tehty.
+
+
+### Noin 44,7 m:n fyysinen laitekoe
+
+50 m:n Ribbon-tiedosto (353357 riviä, 30,15 MB) hyväksyttiin palvelimella.
+Paperi loppui ennen loppua. Viimeinen käyttäjän näkemä merkki R315392 vastaa
+noin 44,63 metriä; viimeinen tulostimen kuittaama rivi 315968 vastaa
+noin 44,71 metriä mitatulla kalibroinnilla. Käyttäjä vahvisti laadun pysyneen
+hyvänä paperin loppuun asti. Täyttä 50 m:n tulostetta ja loppuleikkausta
+ei tässä kokeessa vahvistettu. Palvelu jätettiin pysäytetyksi.
