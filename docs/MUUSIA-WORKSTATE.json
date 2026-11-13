@@ -50,9 +50,9 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local Muusia 2.184 visible edge-angle arcs/degrees in Assembly PDF and preview; not published",
-    "validation": "93 focused JS tests, lint, catalog, production build and 37914 Learn checks passed. Actual browser degree arcs, toggle-off PDF, rotation/Undo and exact Save/Load/Save verified; all 7 actual PDF pages rendered and inspected. No new physical output.",
-    "nextStep": "Optional blank cutter-feed gap measurement. Freeform animation batches and magnet-jig files remain optional follow-ups.",
+    "status": "local Muusia 2.185 measured Epson end-label feed allowance about 17 mm; not published",
+    "validation": "94 focused JS tests, lint, catalog, production build and 37914 Learn checks passed. Actual UI and saved project verified 17 mm extra feed; user photo supplies 23/2/18 mm measurements. No new print.",
+    "nextStep": "Freeform animation batches and magnet-jig files remain optional follow-ups.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
       "widthDots": 512,
@@ -287,9 +287,19 @@
         "confirmationDate": "2026-11-13",
         "confirmationSource": "User inspection of the printed test",
         "userResponse": "Lappu jäi vasemmalta kiinni",
-        "cutterFeedMeasuredMm": null,
-        "cutterFeedStatus": "Not measured; 20 mm remains an editable allowance estimate.",
-        "secondJobSent": false
+        "cutterFeedMeasuredMm": 18,
+        "cutterFeedStatus": "User supplied annotated photo: 18 mm cut-to-text minus 3 mm text inset, plus 2 mm raster-to-cut tail, yields about 17 mm extra material per internal cut.",
+        "secondJobSent": false,
+        "measurementDate": "2026-11-13",
+        "measurementsMm": {
+          "paperStartToArtworkLineStart": 23,
+          "artworkLineEndToPartialCut": 2,
+          "partialCutToLabelTextTop": 18
+        },
+        "cutterFeedMeasurementMeaning": "Partial cut to first label text top, including 3 mm label text inset.",
+        "derivedBlankBeforeLabelMm": 15,
+        "internalCutAllowanceMm": 17,
+        "measurementPhoto": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-end-label-measurement/measurement.jpeg"
       },
       "publication": "local only; no push"
     },
@@ -337,6 +347,47 @@
       "module": "src/surface-angles.js",
       "validator": "tools/validate-surface-angles.mjs",
       "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-angles"
+    },
+    "endLabelFeedMeasurement": {
+      "version": "2.185",
+      "baseCommit": "5097233b1aa88af4c0df08dd79d28dfe6b89db74",
+      "record": {
+        "date": "2026-11-13",
+        "printer": "Epson TM-T88V / user-tested device",
+        "jobId": "34ce718bdd2740b8b2c6395bfdc9f558",
+        "source": "User annotated photo IMG_3525.jpeg and explicit green-gap measurement",
+        "observedMm": {
+          "paperStartToArtworkLineStart": 23,
+          "artworkLineEndToPartialCut": 2,
+          "partialCutToLabelTextTop": 18
+        },
+        "knownLayoutMm": {
+          "artworkLineStart": 8,
+          "labelFirstTextTop": 3
+        },
+        "derivedMm": {
+          "leadingBlank": 15,
+          "labelLeadingBlank": 15,
+          "extraPerInternalCut": 17
+        },
+        "derivation": [
+          "23 - 8 = 15 mm leading blank before the image",
+          "18 - 3 = 15 mm blank before label raster",
+          "2 + 15 = 17 mm additional material for the internal body/label cut"
+        ],
+        "precision": "Approximate, based on user millimetre measurements; stroke width and dot rounding are not a new scale calibration.",
+        "appliesTo": "Additional material budget for a tear-off end label on the tested Epson; does not include label length or the existing per-strip start/final-cut allowance.",
+        "notMeasured": [
+          "exact bridge width",
+          "total physical paper length",
+          "new X/Y dot scale"
+        ],
+        "explicitSavedAllowancePreserved": true
+      },
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-end-label-measurement",
+      "profileDefaultMm": 17,
+      "explicitSavedSettingsPreserved": true,
+      "physicalOutput": "none"
     }
   }
 }

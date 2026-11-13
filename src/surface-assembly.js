@@ -1,7 +1,10 @@
 import { createStrip, stripTransform, stripCorners, stripsInPrintOrder } from "./surface-composer.js";
 import { fontStrokes } from "./defs/helpers.js";
 
-export const DEFAULT_ASSEMBLY = Object.freeze({ numbers: true, registration: true, edgeAngles: true, dimensions: true, relations: true, artwork: true, labelMode: "off", labelLengthMm: 32, bridgeMm: 1.5, cutterFeedMm: 20 });
+// Measured TM-T88V, 13 Nov 2026: 2 mm after body raster +
+// (18 mm cut-to-text - 3 mm label text inset) = about 17 mm extra per internal cut.
+// Source: docs/MUUSIA-EPSON-END-LABEL-CALIBRATION.json. Saved overrides remain explicit.
+export const DEFAULT_ASSEMBLY = Object.freeze({ numbers: true, registration: true, edgeAngles: true, dimensions: true, relations: true, artwork: true, labelMode: "off", labelLengthMm: 32, bridgeMm: 1.5, cutterFeedMm: 17 });
 export function assemblySettings(input = {}) {
   const p = { ...DEFAULT_ASSEMBLY, ...input };
   for (const key of ["numbers", "registration", "edgeAngles", "dimensions", "relations", "artwork"]) if (typeof p[key] !== "boolean") throw new Error("Invalid assembly option.");

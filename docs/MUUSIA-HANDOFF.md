@@ -6241,3 +6241,33 @@ Artifacts: `/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91
 contains assembly-angles.pdf, page PNGs, the real composer screenshot, toggle-off
 PDF, project round-trip files and validation.json. Physical left end-label bridge
 remains confirmed by Daniel's prior test; blank feed gap remains unmeasured.
+
+
+### 2.185 — Measured Epson end-label feed allowance (local)
+
+Base: `5097233b1aa88af4c0df08dd79d28dfe6b89db74`, same feature worktree.
+Daniel supplied annotated IMG_3525.jpeg for physical USB test
+`34ce718bdd2740b8b2c6395bfdc9f558`: paper start -> artwork line 23 mm;
+artwork line end -> partial cut 2 mm (explicit green-gap measurement);
+partial cut -> label text top 18 mm. The test graph starts its line at local
+8 mm and the label number starts at local 3 mm. Thus both start measurements
+indicate about 15 mm of blank feed before the raster. Additional material for
+one internal body/label cut is about 2 + (18 - 3) = 17 mm. This is a derived
+allowance, not an X/Y scale measurement or exact total paper-length measurement.
+
+Machine-readable provenance: docs/MUUSIA-EPSON-END-LABEL-CALIBRATION.json.
+New assembly defaults use cutterFeedMm 17 instead of the previous 20 mm estimate.
+Explicit saved values remain intact; the active Strips test project's value was
+updated to 17 through the actual UI and saved. Existing ordinary per-strip
+start/final-cut allowance stays 20 mm; label length is still counted separately.
+The body raster, source scale, clipping, cut commands and server are unchanged.
+Mechanical blank start/tail material lies outside the artwork body coordinates;
+trim feed material to body dimensions when assembling. No new print was sent.
+
+Validation: 94 focused JS tests, focused lint, catalog, production build and
+37914 Learn checks passed. The new budget test verifies a 3 mm saving per internal
+cut relative to the former estimate, no duplicate accounting, saved overrides, and
+unchanged label geometry. Real UI verified 17 mm and preserved the 100 mm resume
+cursor; the saved project and measurement photo are local artifacts under
+`/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-end-label-measurement/`.
+APP_VERSION/generated Learn manifest 2.185. Local only; no push or service update.

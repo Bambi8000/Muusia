@@ -58,3 +58,13 @@ test('nearest edge gap distinguishes separated rotated rectangles, touching and 
  const r=paperRelation(a,paper({id:'b',centerXmm:0,centerYmm:2000,rotationDeg:90}));
  assert.equal(r.edgeGapMm,1460);assert.equal(r.overlap,false);
 });
+test('measured internal-cut allowance includes body tail and label blank once, preserving explicit saved overrides',()=>{
+ const s=session();s.assembly=assemblySettings({labelMode:'tear'});
+ assert.equal(s.assembly.cutterFeedMm,17);
+ const plan=productionPlan(s);assert.equal(plan.ranges.length,1);assert.equal(plan.totalM,1.069);
+ const old={...s,assembly:{...s.assembly,cutterFeedMm:20}};
+ assert.equal(readSurfaceSession(old).assembly.cutterFeedMm,20);
+ assert.ok(Math.abs(productionPlan(old).totalM-plan.totalM-.003)<1e-9);
+ assert.deepEqual(endLabelPaths(s,s.strips[0]),endLabelPaths(old,old.strips[0]));
+ assert.equal(paperBudget(s.strips,s.production,s.assembly).allowanceM,.074);
+});

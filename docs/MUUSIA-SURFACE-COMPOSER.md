@@ -1,6 +1,6 @@
 # MUUSIA Surface Composer arkkitehtuuri ja toteutussuunnitelma
 
-Päiväys: 13.11.2026. Paikallinen versio 2.184 lisää paperien reunakohtiin kulmakaaret ja asteet esikatselussa ja kokoamis-PDF:ssä. Aiempi 2.183 lisäsi Independent Content -tilan kaikille paperiperheille, Surface Context -solmun, kokoamis-PDF:n sekä valinnaiset päätylaput pienellä vasemman reunan kiinnikkeellä. Mittatarkat viennit ja yhden suikaleen tulostusoletus säilyvät. Versiota ei ole julkaistu. Käyttäjä vahvisti lyhyen USB-testin päätylapun jääneen vasemmalta kiinni. Leikkauksen jälkeistä tyhjää väliä ei vielä mitattu; lisäsyöttö pysyy arviona.
+Päiväys: 13.11.2026. Paikallinen versio 2.185 tarkentaa mitattujen alku- ja katkaisuvarojen perusteella Epsonin päätylapun lisävaraksi noin 17 mm. Aiempi 2.184 lisäsi paperien reunakohtiin kulmakaaret ja asteet esikatselussa ja kokoamis-PDF:ssä. Aiempi 2.183 lisäsi Independent Content -tilan kaikille paperiperheille, Surface Context -solmun, kokoamis-PDF:n sekä valinnaiset päätylaput pienellä vasemman reunan kiinnikkeellä. Mittatarkat viennit ja yhden suikaleen tulostusoletus säilyvät. Versiota ei ole julkaistu. Käyttäjä vahvisti lyhyen USB-testin päätylapun jääneen vasemmalta kiinni. Lapun leikkauksen jälkeinen 18 mm:n tekstiväli ja kuvan jälkeinen 2 mm:n loppuvara on nyt mitattu.
 
 Surface Composer laajentaa Muusian nykyistä millimetripohjaista teospintaa. Mega Canvasin ja Roll Moden nykyiset arkit, vientimuodot ja projektit säilytetään. Uusi osa on fyysisten suikaleiden sijainti, rotaatio ja tulostusalue sekä yhteinen muunnos teospinnan ja suikaleen välillä. Sama muunnos ohjaa esikatselua ja vientiä.
 
@@ -269,3 +269,11 @@ Kulmakaari mittaa kaaren osoittamien kahden paperireunan välistä näkyvää av
 Geometria huomioi näkyvyyden ja kerrosjärjestyksen: päällimmäinen paperi peittää taakse jäävät reunat, alempi taustapaperi ei peitä näkyviä saumoja. Erillisten tai yhdensuuntaisten paperien väliin ei keksitä leikkauspistettä, eikä tasaiselle 180 asteen reunalle piirretä kulmaa. Merkinnät päivittyvät muokkauksen päätyttyä. PDF:n kulmalapuissa on johtoviivat ja törmäyksiä välttävä sijoittelu; yli kuusi kohtaa saa lisäksi täydellisen kulmapistetaulukon. Fyysiset tulostus-/vektoritiedostot säilyvät merkinnöistä riippumattomina.
 
 Uusi laskentatiedosto: `src/surface-angles.js`. Kuusi kohdennettua testiä sekä runsaan kulmamäärän PDF-testi sisältyvät 93 läpäisseen testin kokonaisuuteen. Oikeassa selaimessa tarkistettiin kulmien poiskytkentä, rotaation vaikutus, Undo ja täsmällinen projektin Save/Load/Save. Päivitetyn PDF:n kaikki seitsemän sivua renderöitiin ja tarkistettiin.
+
+## Mitattu päätylapun lisäsyöttö (2.185)
+
+Käyttäjän 13.11.2026 toimittamassa IMG_3525.jpeg-kuvassa alun paperireunasta viivan alkuun on 23 mm, viivan lopusta osakatkaisuun 2 mm (vihreä väli), ja osakatkaisusta lapun ensimmäisen tekstin yläreunaan 18 mm. Koetulosteen viiva alkaa asettelussa 8 mm:n kohdalta ja lapun teksti 3 mm:n kohdalta. Molemmat havainnot antavat siksi noin 15 mm tyhjää syöttöä ennen seuraavan rasterin alkua.
+
+Sisäisen repäisykatkaisun lisäpaperiksi saadaan noin **2 + (18 − 3) = 17 mm**. Uusi Extra cutter feed -oletus on 17 mm. Se on kuvasta johdettu arvio kyseiselle Epsonille; lapun pituus ja tavallinen suikalekohtainen 20 mm:n alku-/loppukatkaisuvara lasketaan erikseen. Tallennetun projektin omaa arvoa ei ohiteta automaattisesti. Aktiivisen Strips-koeprojektin arvoksi asetettiin käyttöliittymässä 17 mm. Mittaustiedot ja laskut ovat tiedostossa `docs/MUUSIA-EPSON-END-LABEL-CALIBRATION.json`.
+
+Fyysinen alkuvara (noin 15 mm) ja kuvan jälkeinen 2 mm:n katkaisuvara jäävät varsinaisen teosrasterin mittojen ulkopuolelle. Kokoamisessa ylimääräinen syöttöpaperi siistitään teoksen mittoihin. Graafin, kuvan tai kokoamiskulmien mittakaavaa ei muutettu. Päätylapun vasemman reunan kiinnike on aiemmin vahvistettu; kiinnikkeen tarkkaa leveyttä tai koko paperipalan kokonaispituutta ei tästä mitattu.

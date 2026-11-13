@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-13",
+  "printer": "Epson TM-T88V / user-tested device",
+  "jobId": "34ce718bdd2740b8b2c6395bfdc9f558",
+  "source": "User annotated photo IMG_3525.jpeg and explicit green-gap measurement",
+  "observedMm": {
+    "paperStartToArtworkLineStart": 23,
+    "artworkLineEndToPartialCut": 2,
+    "partialCutToLabelTextTop": 18
+  },
+  "knownLayoutMm": {
+    "artworkLineStart": 8,
+    "labelFirstTextTop": 3
+  },
+  "derivedMm": {
+    "leadingBlank": 15,
+    "labelLeadingBlank": 15,
+    "extraPerInternalCut": 17
+  },
+  "derivation": [
+    "23 - 8 = 15 mm leading blank before the image",
+    "18 - 3 = 15 mm blank before label raster",
+    "2 + 15 = 17 mm additional material for the internal body/label cut"
+  ],
+  "precision": "Approximate, based on user millimetre measurements; stroke width and dot rounding are not a new scale calibration.",
+  "appliesTo": "Additional material budget for a tear-off end label on the tested Epson; does not include label length or the existing per-strip start/final-cut allowance.",
+  "notMeasured": [
+    "exact bridge width",
+    "total physical paper length",
+    "new X/Y dot scale"
+  ],
+  "explicitSavedAllowancePreserved": true
+}
