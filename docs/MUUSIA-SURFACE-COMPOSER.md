@@ -281,3 +281,15 @@ Fyysinen alkuvara (noin 15 mm) ja kuvan jälkeinen 2 mm:n katkaisuvara jäävät
 ## Julkinen julkaisu 13.11.2026
 
 Versio 2.185 on käytössä osoitteessa https://bambi8000.github.io/Muusia/ . Lähdecommit `9d5624e4146c330a21fc24b2e9e12ebee462ae22`, onnistunut Pages-ajo `43397200074`. Julkisesta sovelluksesta kokeiltiin kaikkia kolmea paperiperhettä, paperikohtaista sisältöä, kuutta kulmamerkintää, 17 mm:n lisäsyöttöasetusta ja oletusta tulostaa vain yksi suikale. Oikeat kokoamis-PDF- ja PNG-viennit tarkistettiin. Julkisen sovelluksen sisältö vastaa tavulleen paikallista tarkistettua tuotantoversiota. Uutta fyysistä tulostetta ei lähetetty.
+
+
+## Print access and portable jobs (2.186)
+
+The header **Print…** opens the direct Epson controls in every paper family.
+Nominal 80 mm paper is required; incompatible widths get an explanation rather
+than being silently fitted. Manual single-strip/range printing and cooling are
+the default. Direct output and **Export Print package · ZIP** use exactly the
+same calibrated raster and optional internal label cut. ZIP means all complete
+visible papers in print order; **Export selected range · Print file** means the
+current production millimetre range. Import into Print only previews/validates.
+PNG remains a separate image export. See MUUSIA-PRINT.md for limits and format.

@@ -6312,3 +6312,31 @@ GitHub's own build and Learn gate also passed. Public screenshot, actual PDF/PNG
 fixture and release.json: surface-publication in the thread artifact directory.
 Primary checkout's unrelated work remains intact. Completed publication claim
 removed. Source snapshot must be refreshed after this final documentation commit.
+
+
+### 2.186 — Direct Surface print access and calibrated Print packages
+
+Fixes the reported Surface PNG ZIP / Print import mismatch. A prominent header
+Print… button opens direct Epson printing in all Surface Composer families;
+nominal 80 mm guard prevents silently cropping wider papers. New Print package
+ZIP and selected-range Print file carry exact existing thermal bytes, geometry,
+order, measured profile and internal label cut. PNG is explicitly an image export.
+Pi validates the new format; Print previews bounded windows of long strips,
+prints one strip then selects the next without sending it, and requires an
+explicit opt-in for consecutive remaining strips. Unknown submissions retain
+a local pending request record; legacy receipt import/printing is preserved.
+
+Validation: 98 focused Surface JS tests including Surface Context, 15 Python
+Print tests, focused lint, catalog, build and 37914 Learn checks passed. Actual
+browser exported 3 x 1 m with tear labels, imported into Print, and sent one
+strip to FILE output; a separate direct Surface send produced byte-identical
+467122-byte ESC/POS output including the internal cut. Preview window reaches
+the label, next strip waits, consecutive is off/hidden by default; selected
+500–1000 mm export retains original paper 2 and 3534 body rows. No paper printed.
+
+Live Print service updated with hash guards, idle queue and Clock off; backup
+/home/print/muusia-print/before-print-package-20261113-113049. New print_package.py
+must be included with server/dashboard updates. Browser artifacts:
+surface-print-transfer in this thread's artifact directory. App 2.186 prepared
+for authorized publication; verify the exact Pages commit and actual public UI.
+Primary checkout unrelated dirty work remains untouched.

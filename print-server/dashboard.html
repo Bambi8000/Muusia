@@ -33,12 +33,12 @@
         <div class="dashboard-grid">
           <section class="panel source-panel"><div class="panel-heading"><div><p class="eyebrow">NEW PRINT</p><h2>Choose a source</h2></div></div>
             <div class="source-tabs" role="tablist" aria-label="Print source">
-              <button role="tab" aria-selected="true" data-source="receipt">Receipt file</button>
+              <button role="tab" aria-selected="true" data-source="receipt">Muusia file</button>
               <button role="tab" aria-selected="false" data-source="image">Image</button>
               <button role="tab" aria-selected="false" data-source="text">Text</button>
               <button role="tab" aria-selected="false" data-source="test">Test card</button>
             </div>
-            <div class="source-form" data-form="receipt"><label class="upload-box"> <span>⇧</span><strong>Open Muusia receipt or animation ZIP</strong><small>*.muusia-receipt.json or *.zip, up to 64 frames</small><input id="receipt-file" type="file" accept=".muusia-receipt.json,.json,.zip,application/json,application/zip"></label><p class="field-help">The file is checked locally by this Pi before any job is queued.</p></div>
+            <div class="source-form" data-form="receipt"><label class="upload-box"> <span>⇧</span><strong>Open Muusia Print package or receipt ZIP</strong><small>*.muusia-strip.json, *.muusia-receipt.json or *.zip · up to 64 items</small><input id="receipt-file" type="file" accept=".muusia-strip.json,.muusia-receipt.json,.json,.zip,application/json,application/zip"></label><p class="field-help">The file is checked locally by this Pi before any job is queued.</p></div>
             <div class="source-form hidden" data-form="image"><label class="upload-box"><span>▧</span><strong>Choose an image</strong><small>PNG, JPEG or WebP. Fitted to 512 thermal dots.</small><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp"></label><label class="check-row"><input id="image-dither" type="checkbox" checked> Dither shades into black and white dots</label></div>
             <div class="source-form hidden" data-form="text"><label>Title<input id="text-title" type="text" maxlength="80" placeholder="A short heading"></label><label>Text<textarea id="text-body" rows="8" maxlength="8000" placeholder="Type something to print…"></textarea></label><button id="make-text" class="secondary">Preview text receipt</button></div>
             <div class="source-form hidden" data-form="test"><div class="test-card-copy"><strong>Thermal stress card</strong><p>Fine lines, dense grids, arcs, halftone swatches and dark load bars for the first Epson test.</p></div><button id="make-test" class="secondary">Preview test card</button></div>
@@ -47,6 +47,9 @@
           <section class="panel preview-panel"><div class="panel-heading"><div><p class="eyebrow">LIVE PREVIEW</p><h2 id="preview-title">Nothing selected</h2></div><span id="preview-size" class="muted">—</span></div>
             <div class="paper-well"><canvas id="preview-canvas" width="512" height="320" aria-label="Receipt preview"></canvas><div id="preview-empty" class="preview-empty">Choose a receipt, image, text or test card to inspect it here.</div></div>
             <div id="frame-picker" class="frame-picker hidden"><label>Frame <select id="frame-select"></select></label><span id="frame-position"></span></div>
+            <div id="strip-window" class="hidden"><label>Preview window <input id="strip-preview-start" aria-label="Strip preview start" type="range" min="0" max="0" value="0" step="1"></label><span id="strip-window-position" class="field-help"></span></div>
+            <div id="strip-options" class="hidden"><p class="field-help">Calibrated 80 mm strip. One strip at a time; let the printer cool before starting the next.</p><label class="check-row"><input id="strip-consecutive" type="checkbox"> Print remaining consecutively · short strips only</label></div>
+            <div id="strip-pending" class="hidden"><p class="field-help">Check the last strip before sending another. An uncertain response must not print the same strip twice.</p><button id="check-strip" class="secondary">Check last strip</button><button id="clear-strip" class="secondary">Clear record after checking paper</button></div>
             <div class="preview-actions"><label class="check-row"><input id="cut-after" type="checkbox" checked> Cut after print</label><div><button id="cut-only" class="secondary" title="Cut at the current position without feeding paper" disabled>✂ Cut paper</button><button id="queue-all" class="secondary hidden" disabled>Queue all frames</button><button id="queue-current" class="primary" disabled>Add to queue →</button></div></div>
             <p class="field-help">Cut paper does not feed. TM-T88V leaves a small edge tab.</p>
             <p id="preview-message" class="message" role="status"></p>

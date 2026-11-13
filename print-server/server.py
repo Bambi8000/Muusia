@@ -19,6 +19,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 import native_fonts
+import print_package
 
 
 WIDTH = 512
@@ -179,6 +180,16 @@ def inspect_file(name, data):
         try:
             archive = zipfile.ZipFile(io.BytesIO(data))
             members = [m for m in archive.infolist() if not m.is_dir()]
+            manifest_member = next((m for m in members if m.filename == "manifest.json"), None)
+            if manifest_member:
+                if manifest_member.file_size > 512000:
+                    raise ValueError("Print package manifest is too large")
+                with archive.open(manifest_member) as stream:
+                    manifest = json.loads(stream.read(512001))
+                if isinstance(manifest,dict) and manifest.get("format") == "muusia-print-package":
+                    return print_package.inspect_package(archive,members,manifest,validate_receipt)
+                if isinstance(manifest,dict) and manifest.get("format") == "muusia-surface-strips":
+                    raise ValueError(print_package.PNG_ZIP_MESSAGE)
             if not 1 <= len(members) <= MAX_IMPORT_ITEMS:
                 raise ValueError("ZIP must contain 1–64 receipt files")
             if any(m.file_size > MAX_BODY or m.file_size < 1 or not m.filename.lower().endswith(".muusia-receipt.json") for m in members):
@@ -194,12 +205,18 @@ def inspect_file(name, data):
                 sources.append((Path(member.filename).name, raw))
         except (zipfile.BadZipFile, zipfile.LargeZipFile, RuntimeError, OSError, EOFError, NotImplementedError) as exc:
             raise ValueError("Could not open receipt ZIP") from exc
+    elif name.lower().endswith(".muusia-strip.json"):
+        if len(data) > MAX_STRIP_BODY:
+            raise ValueError("Print strip file is too large")
+        return [print_package.validate_strip_packet(json.loads(data),validate_receipt)]
+    elif name.lower().endswith(".png"):
+        raise ValueError(print_package.PNG_ZIP_MESSAGE)
     elif name.lower().endswith(".muusia-receipt.json") or name.lower().endswith(".json"):
         if len(data) > MAX_BODY:
             raise ValueError("Receipt file is too large")
         sources = [(Path(name).name, data)]
     else:
-        raise ValueError("Choose a Muusia receipt JSON or receipt ZIP")
+        raise ValueError("Choose a Muusia Print package, strip file or receipt ZIP")
     result = []
     for filename, raw in sources:
         try:
@@ -381,7 +398,7 @@ class Handler(BaseHTTPRequestHandler):
                 queued = sum(j["status"] == "queued" for j in jobs.values())
             self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device})
         elif self.path == "/api/strip-capabilities":
-            self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left"})
+            self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left", "printPackageVersion": 1})
         elif self.path == "/api/clock":
             self._json(200, clock_snapshot())
         elif self.path == "/api/native-pages":
@@ -511,6 +528,8 @@ class Handler(BaseHTTPRequestHandler):
                 tear_at_row = body.get("tearAtRow")
                 if tear_at_row is not None and (isinstance(tear_at_row, bool) or not isinstance(tear_at_row, int) or not 1 <= tear_at_row < height):
                     raise ValueError("End label cut must be between the body and label rows")
+                if body.get("format") == "muusia-surface-strip":
+                    print_package.validate_strip_packet(body,validate_receipt)
                 name = body.get("name", "Surface strip")
                 if not isinstance(name, str) or not 1 <= len(name) <= 120:
                     raise ValueError("Invalid strip job name")

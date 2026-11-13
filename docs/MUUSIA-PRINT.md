@@ -28,7 +28,7 @@ Ensimmäistä Epsonin laitetestiä varten avaa valmis esimerkki **Help → Test 
 
 ## Surface Composer: yksi pitkä suikale kerrallaan
 
-Paikallinen Muusia 2.179 tarjoaa **Surface Composer → Print / continue** -paneelin. Valitse suikale ja tarvittaessa aloitus-/lopetuskohta millimetreinä. Oletus lähettää **vain yhden suikaleen tai osavälin**. Seuraavan suikaleen valinta valmistumisen jälkeen ei tulosta sitä: odota jäähtymistä ja käynnistä jatko käsin. Lyhyille töille voi erikseen rastittaa jäljellä olevien suikaleiden peräkkäistulostuksen. Rastitusta ei palauteta projektista. **Stop after current** lopettaa jatkon nykyisen työn jälkeen.
+Muusia tarjoaa **Surface Composer → Print… → Print / continue** -paneelin. Valitse suikale ja tarvittaessa aloitus-/lopetuskohta millimetreinä. Oletus lähettää **vain yhden suikaleen tai osavälin**. Seuraavan suikaleen valinta valmistumisen jälkeen ei tulosta sitä: odota jäähtymistä ja käynnistä jatko käsin. Lyhyille töille voi erikseen rastittaa jäljellä olevien suikaleiden peräkkäistulostuksen. Rastitusta ei palauteta projektista. **Stop after current** lopettaa jatkon nykyisen työn jälkeen.
 
 **Total paper** näyttää näkyvien suikaleiden metrit lisävaroineen ja vertaa niitä annettuun rullaan. Rullan pituus, jo käytetty osuus, varaus ja syöttö-/leikkausvara annetaan käsin. Ne ovat kulutusarvio, eivät anturitietoa. Tallennettava jatkokohta on suikaleen alkuperäisessä kuvakohdistuksessa; osaväli ei skaalaa sisältöä uudelleen.
 
@@ -107,3 +107,44 @@ Muusiassa valitse pieni viivapiirros ja jätä Mega Canvas pois. Tulostus skaala
 ## Rajat ja seuraava vaihe
 
 Muusian oma tulostuspolku käsittelee viivat mustina riippumatta kynäväristä. Dashboardin kuvat muunnetaan mustavalkoisiksi selaimessa. Palvelun `done` kertoo, että tavut menivät USB-laitteelle; Epsonin oma tila ja paperin loppuminen eivät vielä palaudu sivulle. Pi on raportoinut arvon `throttled=0x50005` eli ajoittaista alijännitettä ja hidastumista. [Raspberry Pi:n virtalähdesuositus Pi 3:lle](https://www.raspberrypi.com/documentation/computers/getting-started.html)
+
+
+## Surface Composer → Print: kalibroitu siirto (2.186)
+
+Surface Composerin yläpalkin **Print…** avaa suoran tulostuksen säädöt kaikissa
+paperiperheissä. Epsonille valitaan nimellinen 80 mm paperi. **Print selected
+range** lähettää valitun suikaleen tai millimetrivälin suoraan Print-palveluun;
+PNG-tiedostoa ei tarvita. Oletus on yksi suikale ja käsin aloitettava jatko
+jäähtymisen jälkeen. Rullalaskuri ja alkuperäinen kuvakohdistus säilyvät.
+
+Jos haluat siirtää työn tiedostona, käytä **Export Print package · ZIP**.
+Paketti sisältää kokonaiset näkyvät suikaleet tulostusjärjestyksessä.
+**Export selected range · Print file** sisältää vain valitun aloitus-/lopetusvälin.
+Print-sivun **Muusia file** avaa molemmat. Avaaminen tarkistaa tiedoston ja
+näyttää esikatselun; mitään ei tulosteta automaattisesti. Valitse suikale ja paina
+**Print selected strip →**. Seuraava odottaa aina käsin käynnistämistä, ellei
+**Print remaining consecutively · short strips only** ole erikseen valittu.
+Pitkän suikaleen esikatselu näyttää 2048 riviä kerrallaan; liukusäätimellä voi
+katsoa myös loppupään ja numerolapun. Epävarma verkkotulos säilyttää työn
+paikallisen tunnisteen: tarkista työ ja paperi ennen uuden lähettämistä.
+
+`muusia-print-package` v1 ZIP sisältää `manifest.json`-tiedoston ja
+`*.muusia-strip.json`-tiedostot. Jokaisessa on `muusia-surface-strip` v1,
+512 pisteen valmiiksi pakattu 1-bittinen rasteri, mitattu 400/56,6 pistettä/mm
+-profiili, alkuperäinen suikale/väli, fyysiset mitat ja mahdollinen päätylapun
+osittaisleikkausrivi. Sama renderöijä tuottaa suoran tulostuksen ja paketin:
+Print ei skaalaa eikä rasteroi kuvaa uudelleen. `/api/strip-capabilities` ilmoittaa
+`printPackageVersion: 1`. Paketti: enintään 64 suikaletta, 12 MB ZIP,
+32 MiB purettua rasteridataa; yksittäinen työ enintään 65535 riviä / 6 MB.
+Print tarkistaa mitat, kalibroinnin, turvalliset sivusarakkeet ja leikkausrivin.
+Perinteisten kuittien rajat säilyvät ennallaan.
+
+**Export all PNGs + manifest · ZIP** on kuvavienti muihin käyttötarkoituksiin.
+Sen tuonti Muusia-tiedostona kertoo nyt oikean vaihtoehdon eikä virheellisesti
+pelkästään liian suuresta tiedostosta. Vapaa Image-tuonti säilyy tavallisille
+lyhyille kuville, mutta se ei säilytä Surface-työn fyysistä geometriaa.
+
+Pi:n päivitysvarmuuskopio 13.11.2026:
+`/home/print/muusia-print/before-print-package-20261113-113049`.
+Päivitykseen kuuluu myös uusi `print_package.py`; kopioi se palvelimen ja
+kolmen dashboard-tiedoston mukana. Pythonin vakiokirjasto riittää edelleen.

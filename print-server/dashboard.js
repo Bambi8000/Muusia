@@ -2,12 +2,12 @@
   'use strict';
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  const state = { source: 'receipt', receipts: [], selected: 0, health: null, jobs: [], clock: null, nativeTests: [], nativeTest: null, pageDetail: null };
+  const state = { source: 'receipt', receipts: [], selected: 0, health: null, jobs: [], clock: null, nativeTests: [], nativeTest: null, pageDetail: null, stripBusy: false, pendingStrip: null, previewStart: 0 };
 
   async function api(path, options = {}) {
     const response = await fetch(path, options);
     const value = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(value.error || `Server returned ${response.status}`);
+    if (!response.ok) throw Object.assign(new Error(value.error || `Server returned ${response.status}`), { status: response.status });
     return value;
   }
 
@@ -67,26 +67,34 @@
 
   function previewCurrent() {
     const item = state.receipts[state.selected], canvas = $('#preview-canvas'), empty = $('#preview-empty');
-    const selected = Boolean(item);
+    const selected = Boolean(item), strip = item?.kind === 'strip';
     canvas.classList.toggle('visible', selected); empty.classList.toggle('hidden', selected);
-    $('#queue-current').disabled = !selected || !state.health?.ready;
-    $('#queue-all').classList.toggle('hidden', state.receipts.length < 2);
-    $('#queue-all').disabled = !selected || !state.health?.ready;
+    updateControls();
+    $('#queue-current').textContent = strip ? 'Print selected strip →' : 'Add to queue →';
+    $('#queue-all').textContent = strip ? 'Print remaining consecutively' : 'Queue all frames';
+    $('#queue-all').classList.toggle('hidden', state.receipts.length < 2 || strip && !$('#strip-consecutive').checked);
+    $('#strip-options').classList.toggle('hidden', !strip);
     $('#frame-picker').classList.toggle('hidden', state.receipts.length < 2);
     if (!item) { $('#preview-title').textContent = 'Nothing selected'; $('#preview-size').textContent = '—'; return; }
     $('#preview-title').textContent = item.name || `Frame ${state.selected + 1}`;
     const nativeCount = Array.isArray(item.thermalText) ? item.thermalText.length : 0;
-    $('#preview-size').textContent = `${item.width} × ${item.height} dots${nativeCount ? ` · ${nativeCount} native text block${nativeCount === 1 ? '' : 's'}` : ''}`;
+    $('#preview-size').textContent = `${strip ? `${item.geometry?.bodyLengthMm.toFixed(1)} mm body · ` : ''}${item.width} × ${item.height} dots${nativeCount ? ` · ${nativeCount} native text block${nativeCount === 1 ? '' : 's'}` : ''}`;
     $('#frame-position').textContent = `${state.selected + 1} of ${state.receipts.length}`;
     $('#cut-after').checked = item.cut !== false;
     const picker = $('#frame-select'); picker.replaceChildren();
     state.receipts.forEach((receipt, i) => { const option = new Option(receipt.name || `Frame ${i + 1}`, String(i)); picker.add(option); });
     picker.value = String(state.selected);
     const pixels = decode(item.data);
-    canvas.width = item.width; canvas.height = item.height;
-    const context = canvas.getContext('2d'); const image = context.createImageData(item.width, item.height);
-    for (let y = 0; y < item.height; y++) for (let x = 0; x < item.width; x++) {
-      const bit = pixels[y * 64 + (x >> 3)] & (0x80 >> (x & 7));
+    const windowed = strip && item.height > 4096, rows = windowed ? 2048 : item.height;
+    state.previewStart = Math.max(0, Math.min(state.previewStart, item.height-rows));
+    $('#strip-window').classList.toggle('hidden', !windowed);
+    $('#strip-preview-start').max = String(Math.max(0,item.height-rows)); $('#strip-preview-start').value = String(state.previewStart);
+    const density = item.profile?.dotsPerMm || 400/56.6;
+    $('#strip-window-position').textContent = `${(state.previewStart/density).toFixed(1)}–${((state.previewStart+rows)/density).toFixed(1)} mm of ${(item.height/density).toFixed(1)} mm`;
+    canvas.width = item.width; canvas.height = rows;
+    const context = canvas.getContext('2d'); const image = context.createImageData(item.width, rows);
+    for (let y = 0; y < rows; y++) for (let x = 0; x < item.width; x++) {
+      const bit = pixels[(y + state.previewStart) * 64 + (x >> 3)] & (0x80 >> (x & 7));
       const offset = (y * item.width + x) * 4, level = bit ? 0 : 255;
       image.data[offset] = image.data[offset + 1] = image.data[offset + 2] = level;
       image.data[offset + 3] = 255;
@@ -95,6 +103,8 @@
   }
 
   function stage(receipts, note) {
+    if (state.stripBusy || state.pendingStrip) { message('Check the last strip before loading another file.',true);return; }
+    $('#strip-consecutive').checked = false; state.previewStart = 0;
     state.receipts = receipts; state.selected = 0;
     previewCurrent(); message(note || `${receipts.length} receipt${receipts.length === 1 ? '' : 's'} ready to inspect.`);
     setView('dashboard');
@@ -103,9 +113,10 @@
   async function inspectReceipt(file) {
     if (!file) return;
     try {
-      message('Reading receipt file…');
+      if (file.size > 12000000) throw new Error('File exceeds 12 MB. Export fewer Print strips.');
+      message('Reading Muusia file…');
       const value = await api('/api/inspect', { method: 'POST', body: await file.arrayBuffer(), headers: { 'Content-Type': 'application/octet-stream', 'X-Muusia-Filename': encodeURIComponent(file.name) } });
-      stage(value.receipts, `${value.receipts.length} receipt${value.receipts.length === 1 ? '' : 's'} checked. Preview before queuing.`);
+      stage(value.receipts, value.receipts[0]?.kind === 'strip' ? `${value.receipts.length} calibrated strip(s) checked. Nothing printed. Start one strip when ready.` : `${value.receipts.length} receipt${value.receipts.length === 1 ? '' : 's'} checked. Preview before queuing.`);
     } catch (error) { message(error.message, true); }
   }
 
@@ -168,11 +179,63 @@
     stage([receiptFromCanvas(canvas, 'Epson thermal test card')], 'Test card ready. Printing will use test file mode until the Epson is connected.');
   }
 
+  function updateControls() {
+    const strip = state.receipts[state.selected]?.kind === 'strip', pending = Boolean(state.pendingStrip);
+    const blocked = state.stripBusy || pending || strip && (state.clock?.running || state.jobs.some(j => ['queued','printing'].includes(j.status)));
+    $('#queue-current').disabled = !state.receipts.length || !state.health?.ready || blocked;
+    $('#queue-all').disabled = !state.receipts.length || !state.health?.ready || blocked;
+    $('#frame-select').disabled = state.stripBusy || pending;
+    $('#receipt-file').disabled = $('#image-file').disabled = state.stripBusy || pending;
+    $('#strip-consecutive').disabled = state.stripBusy || pending;
+    $('#strip-pending').classList.toggle('hidden', !pending || state.stripBusy);
+    $('#cut-only').disabled = !state.health?.ready || state.stripBusy || pending;
+  }
+  function pendingStrip(value) {
+    state.pendingStrip=value;
+    try { if(value)localStorage.setItem('muusia-print-pending-strip',JSON.stringify(value));else localStorage.removeItem('muusia-print-pending-strip'); } catch { /* Memory state still prevents a duplicate while this tab is open. */ }
+    updateControls();
+  }
+  async function checkPendingStrip() {
+    const job=state.pendingStrip;if(!job)return;
+    try {
+      const value=await api(`/api/jobs/${job.id}`);
+      if(['done','failed','cancelled'].includes(value.status)){pendingStrip(null);message(value.status==='done'?'Last strip was sent. Check the paper, allow cooling, then choose the next strip.':`Last strip ${value.status}. Check the paper before choosing where to resume.`);}
+      else message(`Last strip is ${value.status}. Wait before printing another.`);
+    }catch(error){message(`Status is uncertain. Check the paper before clearing the record. ${error.message}`,true);}
+  }
+  async function printStripRun(all) {
+    if(state.stripBusy||state.pendingStrip)return;
+    if(all&&!$('#strip-consecutive').checked)return;
+    const items=all?state.receipts.slice(state.selected):[state.receipts[state.selected]],cut=$('#cut-after').checked;
+    state.stripBusy=true;updateControls();
+    try {
+      for(const item of items){
+        const job={id:crypto.randomUUID().replaceAll('-',''),name:item.name};pendingStrip(job);
+        let submitted;
+        try {submitted=await api('/api/strip-jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...item,cut,requestId:job.id})});}
+        catch(error){if(error.status)pendingStrip(null);throw error;}
+        message(`Printing ${item.name}…`);
+        for(;;){
+          const status=await api(`/api/jobs/${submitted.id}`);
+          if(['done','failed','cancelled'].includes(status.status)){
+            pendingStrip(null);
+            if(status.status!=='done')throw new Error(status.error||`Strip ${status.status}. Check the paper and resume position.`);
+            break;
+          }
+          await new Promise(resolve=>setTimeout(resolve,1000));
+        }
+        state.selected=Math.min(state.receipts.length-1,state.receipts.indexOf(item)+1);state.previewStart=0;
+      }
+      previewCurrent();message(state.health?.mode==='test file'?'Dry run saved. No paper printed; the next strip waits.':'Sent. Let the printer cool; the next strip waits for you.');
+    }catch(error){message(`${error.message}${state.pendingStrip?' Check last strip before retrying.':''}`,true);}
+    finally {state.stripBusy=false;await refresh();updateControls();}
+  }
   async function queueReceipt(item, cut) {
     return api('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: item.name || 'Receipt', width: item.width, height: item.height, data: item.data, thermalText: item.thermalText || [], cut }) });
   }
 
   async function addToQueue(all) {
+    if(state.receipts[state.selected]?.kind === 'strip')return printStripRun(all);
     if (!state.health?.ready) { message('Printer output is unavailable. Enable test file mode or connect the Epson.', true); return; }
     const items = all ? state.receipts : [state.receipts[state.selected]]; if (!items.length || !items[0]) return;
     const cut = $('#cut-after').checked; let added = 0;
@@ -393,13 +456,12 @@
       $('#sidebar-dot').classList.add('online'); $('#sidebar-status').textContent = 'Connected'; $('#sidebar-subtitle').textContent = health.mode === 'test file' ? 'Test output active' : health.ready ? 'USB printer ready' : 'Printer offline';
       $('#settings-mode').textContent = health.mode; $('#settings-device').textContent = health.mode === 'test file' ? 'Local test output file' : health.device;
       renderJobs();
-      $('#queue-current').disabled = !state.receipts.length || !health.ready;
-      $('#queue-all').disabled = !state.receipts.length || !health.ready;
-      $('#cut-only').disabled = !health.ready;
+      updateControls();
+      $('#cut-only').disabled = !health.ready || state.stripBusy || Boolean(state.pendingStrip);
       $('#native-print').disabled = !health.ready || !state.nativeTest;
       $('#glyph-print').disabled = !health.ready || !state.pageDetail;
       renderClock();
-    } catch (error) {
+    } catch {
       state.health = null; state.clock = null;
       $('#printer-state').textContent = 'Offline';
       $('#printer-detail').textContent = 'Print server unavailable';
@@ -419,9 +481,15 @@
   $('#receipt-file').addEventListener('change', event => { inspectReceipt(event.target.files[0]); event.target.value = ''; });
   $('#image-file').addEventListener('change', event => { inspectImage(event.target.files[0]); event.target.value = ''; });
   $('#make-text').addEventListener('click', makeText); $('#make-test').addEventListener('click', makeTest);
-  $('#frame-select').addEventListener('change', event => { state.selected = Number(event.target.value); previewCurrent(); });
+  $('#frame-select').addEventListener('change', event => { state.selected = Number(event.target.value); state.previewStart=0; previewCurrent(); });
   $('#queue-current').addEventListener('click', () => addToQueue(false)); $('#queue-all').addEventListener('click', () => addToQueue(true));
   $('#cut-only').addEventListener('click', cutPaper);
+  $('#strip-consecutive').addEventListener('change',previewCurrent);
+  $('#strip-preview-start').addEventListener('input',event=>{state.previewStart=Number(event.target.value);previewCurrent();});
+  $('#check-strip').addEventListener('click',checkPendingStrip);
+  $('#clear-strip').addEventListener('click',()=>{pendingStrip(null);message('Record cleared. Choose the actual next strip after checking the paper.');});
+  try { const record=JSON.parse(localStorage.getItem('muusia-print-pending-strip')||'null');if(record&&/^[a-f0-9]{32}$/.test(record.id)){state.pendingStrip=record;message('Check last strip before printing again.',true);} } catch { /* Ignore malformed recovery data. */ }
+
   $('#native-test-select').addEventListener('change', event => selectNativeTest(event.target.value));
   $('#native-download').addEventListener('click', downloadNativeTest);
   $('#native-print').addEventListener('click', queueNativeTest);

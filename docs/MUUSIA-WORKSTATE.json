@@ -400,6 +400,16 @@
       "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-publication",
       "publicAppMatchesLocal": true,
       "physicalPrintSentDuringVerification": false
+    },
+    "printTransfer": {
+      "version": "2.186",
+      "baseCommit": "5f4ec588289641971973aa070750ecfa4be74309",
+      "status": "implemented and validated; live Print installed; public app publication pending",
+      "tests": "98 Surface JS, 15 Python Print, focused lint, catalog, build, 37914 Learn checks",
+      "browser": "3 x 1 m Print ZIP, import no auto-send, one manual dry job, one direct dry job; exact ESC/POS equality; selected 500–1000 mm retains geometry; live import USB ready/empty queue",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-print-transfer",
+      "serviceBackup": "/home/print/muusia-print/before-print-package-20261113-113049",
+      "physicalPrintSent": false
     }
   }
 }

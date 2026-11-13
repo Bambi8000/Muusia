@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import { exportSurfacePrintPackage, surfacePrintPackagePlan } from "./surface-print-package.js";
 import { surfaceEdgeAngles, edgeAngleArc, formatEdgeAngle } from "./surface-angles.js";
 import { assemblySettings, labelExtraMm, endLabelPaths, extendedPaper, labelCutSvg } from "./surface-assembly.js";
 import { exportAssemblyPdf } from "./surface-assembly-pdf.js";
@@ -40,6 +41,7 @@ function NumberField({ label, value, onChange, min, max, step = .1, disabled = f
 export default function SurfaceComposer({ session: inputSession, onChange, onClose, onSave, evaluateGraph, sourceNodes, currentSelection, onFamilyChange, pens, projectName, family = "Strips", vectorServices }) {
   const session = useMemo(() => inputSession.production ? inputSession : { ...inputSession, production: productionSettings() }, [inputSession]);
   const uid = useId().replace(/:/g, "");
+  const printPanelRef = useRef(null);
   const svgRef = useRef(null), dialogRef = useRef(null), closeRef = useRef(null), fileRef = useRef(null);
   const dragRef = useRef(null), history = useRef({ past: [], future: [] });
   const sessionRef = useRef(session), alive = useRef(true);
@@ -63,7 +65,9 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   const [vectorBusy, setVectorBusy] = useState(false);
   const [vectorSelected, setVectorSelected] = useState(false);
   const [vectorMessage, setVectorMessage] = useState("");
-  const busy = printBusy || exportBusy || vectorBusy || pdfBusy;
+  const [packageBusy,setPackageBusy] = useState(false);
+  const [packageMessage,setPackageMessage] = useState("");
+  const busy = printBusy || exportBusy || vectorBusy || pdfBusy || packageBusy;
   const [printMessage, setPrintMessage] = useState("");
   const stopPrint = useRef(false);
   const recoveredPrint = useRef(false);
@@ -135,6 +139,20 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   };
   const selectStrip = stripId => { if (!busy) onChange(old => ({ ...old, selectedId: stripId, production: { ...old.production, fromMm: 0, toMm: null } })); };
 
+  const epsonPaper = selected && selected.physicalWidthMm >= 78 && selected.physicalWidthMm <= 82;
+  let selectedPackage=null,allPackage=null,packageError="";
+  try {selectedPackage=surfacePrintPackagePlan(s,{selectedOnly:true});}catch(e){packageError=e.message;}
+  try {allPackage=surfacePrintPackagePlan(s);}catch(e){packageError=e.message;}
+  const exportPrintPackage = async selectedOnly => {
+    if(busy)return;cancelExport.current=false;setPackageBusy(true);setPackageMessage("Preparing Print package…");
+    try {
+      const result=await exportSurfacePrintPackage(sessionRef.current,{selectedOnly,projectName},{evaluateGraph,cancelled:()=>cancelExport.current||!alive.current,onProgress:message=>{if(alive.current)setPackageMessage(message);}});
+      if(!alive.current||cancelExport.current)return;
+      download(result.blob,result.filename);setPackageMessage(`Saved ${result.count} calibrated strip(s). Open this file in Print; nothing has been printed.`);
+    }catch(e){if(alive.current)setPackageMessage(e.message);}
+    finally{if(alive.current)setPackageBusy(false);}
+  };
+  const openPrintPanel = () => {printPanelRef.current?.scrollIntoView({block:"start",behavior:"smooth"});printPanelRef.current?.querySelector('select')?.focus({preventScroll:true});};
   const exportOptions = { dpi: exportResolution === "epson" ? DEFAULT_EXPORT_DPI : Number(exportResolution), area: exportArea, projectName };
   let selectedExport = null, allExport = null, exportError = "";
   try { selectedExport = surfaceExportPlan(s, { ...exportOptions, selectedOnly: true }); } catch { /* A selection is optional for the complete ZIP. */ }
@@ -222,6 +240,7 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
     try {
       const plan = productionPlan(snapshot, { consecutive });
       if (plan.totalM > paperBudget(snapshot.strips, snapshot.production, snapshot.assembly).availableM + 1e-9) throw new Error("This print run exceeds the available roll. Adjust the range or roll settings.");
+      if(plan.ranges.some(r=>r.strip.physicalWidthMm<78||r.strip.physicalWidthMm>82))throw new Error("Direct Epson printing requires 80 mm paper for every selected strip.");
       const printer = await checkSurfacePrinter(snapshot.production.serverUrl);
       if (snapshot.assembly?.labelMode === "tear" && !printer.capabilities.partialCutEndLabel) throw new Error("Update Print service for tear-off end labels, or choose Attached panel.");
       dryRun = printer.mode === "test file";
@@ -389,7 +408,7 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   return <div className="sc-overlay" data-busy={busy} role="dialog" aria-modal="true" aria-labelledby={`${uid}-title`} ref={dialogRef} onKeyDown={keyDown}>
     <header className="sc-header"><div><h1 id={`${uid}-title`}>Surface Composer</h1><span>Paper is part of the composition.</span></div><div className="sc-actions">
       <button onClick={undo} disabled={busy || !history.current.past.length} title="Undo (⌘/Ctrl Z)">Undo</button><button onClick={redo} disabled={busy || !history.current.future.length} title="Redo (⌘/Ctrl Shift Z)">Redo</button>
-      <button onClick={onSave}>Save project</button><button className="sc-primary" ref={closeRef} disabled={busy} onClick={onClose}>Done</button></div></header>
+      <button className="sc-primary" disabled={busy} onClick={openPrintPanel}>Print…</button><button onClick={onSave}>Save project</button><button className="sc-primary" ref={closeRef} disabled={busy} onClick={onClose}>Done</button></div></header>
     <nav className="sc-tabs" aria-label="Surface modes"><button aria-pressed={family === "Sheets"} disabled={busy} onClick={() => onFamilyChange("Sheets")}>Mega Canvas</button><button aria-pressed={family === "Roll"} disabled={busy} onClick={() => onFamilyChange("Roll")}>Roll Mode</button>
       <button aria-pressed={family === "Strips" && s.mode === "tiling"} disabled={busy} onClick={() => family === "Strips" ? commit({ ...session, mode: "tiling" }, false) : onFamilyChange("Strips", "tiling")}>Strip Tiling</button><button aria-pressed={family === "Strips" && s.mode === "freeform"} disabled={busy} onClick={() => family === "Strips" ? commit({ ...session, mode: "freeform" }, false) : onFamilyChange("Strips", "freeform")}>Freeform Strips</button><span>All dimensions in mm</span></nav>
     {error && <div className="sc-error" role="alert">{error}<button aria-label="Dismiss error" onClick={() => setError("")}>×</button></div>}
@@ -434,7 +453,7 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
         <p className="sc-note">Uses visible papers in print order; hidden papers stay put. Current sizes are kept unless length variation is on. Undo restores the previous layout. {arrangement.pattern === "random" ? "Spread bounds apply to paper centres." : "Papers can extend beyond the artwork; the source stays fixed."}</p>
       </section>
 
-      <section className="sc-export"><h2>Export PNG</h2>
+      <section className="sc-export"><h2>Export PNG images</h2><p className="sc-note">For image files and other printers. To use the Epson, choose Print… or export a Print package.</p>
         <label className="sc-field"><span>Resolution</span><select aria-label="PNG resolution" value={exportResolution} disabled={busy} onChange={e => setExportResolution(e.target.value)}><option value="epson">Epson · measured 179.5 dpi</option><option value="150">150 dpi</option><option value="300">300 dpi</option><option value="600">600 dpi</option></select></label>
         <label className="sc-field"><span>Image area</span><select aria-label="PNG image area" value={exportArea} disabled={busy} onChange={e => setExportArea(e.target.value)}><option value="paper">Full paper · white margins</option><option value="printable">Printable area only</option></select></label>
         {selectedExport && <p className="sc-note">Selected: {selectedExport.entries[0].plan.width} × {selectedExport.entries[0].plan.height} px</p>}
@@ -507,7 +526,7 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
           {vectorBusy && <button className="sc-wide" onClick={() => { cancelExport.current = true; }}>Cancel vector export</button>}
           {vectorMessage && <p className="sc-print-status" role="status">{vectorMessage}</p>}
         </section>}
-        {(family === "Strips" || family === "Roll" && selected && selected.physicalWidthMm >= 78 && selected.physicalWidthMm <= 82) && <section className="sc-production"><h2>Print / continue</h2><label className="sc-field"><span>Start with strip</span><select aria-label="Print strip" value={s.selectedId ?? ""} disabled={busy} onChange={e => selectStrip(e.target.value)}><option value="">Select a strip</option>{[...s.strips].filter(x => x.visible).sort((a,b) => a.printOrder-b.printOrder).map(strip => <option key={strip.id} value={strip.id}>{s.strips.indexOf(strip)+1} · {mm(strip.lengthMm)} mm</option>)}</select></label>
+        <section className="sc-production" ref={printPanelRef}><h2>Print / continue</h2><p className="sc-note">Direct to Epson · nominal 80 mm paper. PNG is an image export; use Print packages to transfer jobs to the Print page.</p>{selected && !epsonPaper && <p className="sc-note sc-work-warning">This paper is {mm(selected.physicalWidthMm)} mm wide. Choose 80 mm paper to print on the Epson at its original size.</p>}<label className="sc-field"><span>Start with strip</span><select aria-label="Print strip" value={s.selectedId ?? ""} disabled={busy} onChange={e => selectStrip(e.target.value)}><option value="">Select a strip</option>{[...s.strips].filter(x => x.visible).sort((a,b) => a.printOrder-b.printOrder).map(strip => <option key={strip.id} value={strip.id}>{s.strips.indexOf(strip)+1} · {mm(strip.lengthMm)} mm</option>)}</select></label>
           <NumberField label="Start at (mm)" value={s.production.fromMm} min={0} disabled={busy} onChange={v => changeProduction("fromMm", v)} />
           <label className="sc-check"><input type="checkbox" checked={s.production.toMm === null} disabled={busy || consecutive} onChange={e => changeProduction("toMm", e.target.checked ? null : selected?.lengthMm ?? 100)} />To end of strip</label>{s.production.toMm !== null && !consecutive && <NumberField label="End at (mm)" value={s.production.toMm} min={0} disabled={busy} onChange={v => changeProduction("toMm", v)} />}
           <div className="sc-print-mode">One strip at a time. The next waits for you to let the printer cool.</div>
@@ -515,12 +534,19 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
           <label className="sc-check"><input type="checkbox" checked={s.production.cut} disabled={busy} onChange={e => changeProduction("cut", e.target.checked)} />Cut after each strip</label>
           <label className="sc-field"><span>Print service</span><input aria-label="Surface print service" defaultValue={s.production.serverUrl} key={s.production.serverUrl} disabled={busy} onBlur={e => { if (changeProduction("serverUrl", e.target.value) === null) e.target.value = s.production.serverUrl; }} onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} /></label>
           <p className="sc-note">{printPlan ? `${printPlan.ranges.length} strip(s) · ${printPlan.totalM.toFixed(2)} m incl. allowance` : printPlanError}</p>
-          <button className="sc-primary sc-wide" disabled={busy || loadingImage || pendingJob || !printPlan || !!content.empty || printPlan.totalM > budget.availableM + 1e-9} onClick={printStrips}>{consecutive ? "Print remaining consecutively" : "Print selected range"}</button>
+          <button className="sc-primary sc-wide" disabled={busy || !epsonPaper || loadingImage || pendingJob || !printPlan || !!content.empty || printPlan.totalM > budget.availableM + 1e-9} onClick={printStrips}>{consecutive ? "Print remaining consecutively" : "Print selected range"}</button>
           {printBusy && <button className="sc-wide" onClick={() => { stopPrint.current = true; setPrintMessage("Stopping after the current strip; no next strip will start."); }}>Stop after this strip</button>}
           {s.production.lastJob && <button className="sc-wide" disabled={busy} onClick={checkLastJob}>Check last job</button>}
           {pendingJob && !printBusy && <><p className="sc-note">If status cannot be recovered, check the paper and enter the actual restart position.</p><button className="sc-wide" disabled={busy} onClick={() => { recordJob(null); setPrintMessage("Print record cleared. Set the actual restart position before printing."); }}>Resume manually · clear record</button></>}
           {printMessage && <p className="sc-print-status" role="status">{printMessage}</p>}
-        </section>}
+          <h2>Transfer to Print</h2><p className="sc-note"><a href={s.production.serverUrl} target="_blank" rel="noreferrer">Open Print page</a></p>
+          <button className="sc-wide" disabled={busy || loadingImage || !selectedPackage || !!content.empty} onClick={()=>exportPrintPackage(true)}>Export selected range · Print file</button>
+          <button className="sc-wide" disabled={busy || loadingImage || !allPackage || !!content.empty} onClick={()=>exportPrintPackage(false)}>Export Print package · ZIP</button>
+          <p className="sc-note">Selected file uses the start/end range above. ZIP contains whole visible strips in print order, with fixed scale and label cuts. Print previews each strip and waits for you before the next.</p>
+          {packageError && <p className="sc-note">{packageError}</p>}
+          {packageBusy && <button onClick={()=>{cancelExport.current=true;}}>Cancel Print export</button>}
+          {packageMessage && <p className="sc-print-status" role="status">{packageMessage}</p>}
+        </section>
         <section className="sc-strip-section"><div className="sc-section-heading"><h2>All {family === "Sheets" ? "sheets" : "strips"} <span>{s.strips.length}</span></h2><button onClick={() => commit(old => addSurfaceStrip(old))}>+ Add</button></div><div className="sc-strip-list">{s.strips.map((strip, i) => <div key={strip.id} className={strip.id === s.selectedId ? "sc-strip-row is-selected" : "sc-strip-row"}><input aria-label={`Show ${paperWord} ${i + 1}`} type="checkbox" checked={strip.visible} onChange={e => commit(old => updateSurfaceStrip(old, strip.id, { visible: e.target.checked }))} /><button aria-label={`Select ${paperWord} ${i + 1}`} aria-pressed={strip.id === s.selectedId} onClick={() => selectStrip(strip.id)}><b>{String(i + 1).padStart(2, "0")}</b><span>{mm(strip.lengthMm)} mm</span><small>{mm(strip.rotationDeg)}°</small></button></div>)}</div></section>
       </aside>
     </div><span hidden>{historyVersion}</span>
