@@ -6288,3 +6288,27 @@ Pre-publication checks repeated: 94 focused JS tests, Surface Context contract,
 checks passed. Public release workflow is deploy.yml on main; publication must
 be verified against its exact commit/run and the actual public app. No additional
 physical output. Primary checkout's unrelated dirty work stays untouched.
+
+
+### 2.185 — Surface Composer published and publicly verified
+
+Published release source: `9d5624e4146c330a21fc24b2e9e12ebee462ae22`.
+Exact GitHub Pages run `43397200074` completed successfully (build and deploy):
+https://github.com/Bambi8000/Muusia/actions/runs/43397200074
+Public app: https://bambi8000.github.io/Muusia/
+
+Actual public browser displayed v2.185 and Surface Context. Loaded the portable
+public smoke project, opened all three paper families and verified independent
+content, all six degree-labelled edge arcs, the 17 mm feed allowance and
+consecutive printing Off. Exported a seven-page Assembly PDF from the PUBLIC app;
+all six angle values and edge identities were verified in its contents. Exported
+a 707 x 1188 PNG with the expected single red body line and appended label.
+No physical print was sent during release verification.
+
+Public index.html SHA256 is byte-identical to the locally tested production app.
+Public Learn returns HTTP 200. Preflight: 94 focused JS tests, Surface Context
+contract, 10 Python Print tests, catalog, build and 37914 Learn checks passed;
+GitHub's own build and Learn gate also passed. Public screenshot, actual PDF/PNG,
+fixture and release.json: surface-publication in the thread artifact directory.
+Primary checkout's unrelated work remains intact. Completed publication claim
+removed. Source snapshot must be refreshed after this final documentation commit.

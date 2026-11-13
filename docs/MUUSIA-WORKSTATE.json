@@ -1,30 +1,15 @@
 {
   "schemaVersion": 1,
-  "active": [
-    {
-      "id": "surface-composer-publication",
-      "owner": "Astra",
-      "role": "release integration and publication",
-      "baseCommit": "4f7b2cf80c0d2554b9bfd19d017ec3e147346159",
-      "worktree": "/private/tmp/muusia-surface-composer-20261112",
-      "scope": [
-        "docs/MUUSIA-WORKSTATE.json",
-        "docs/MUUSIA-HANDOFF.md",
-        "docs/MUUSIA-SURFACE-COMPOSER.md",
-        "learn/generated/manifest.json"
-      ],
-      "status": "ready",
-      "outcome": "Publish authorized Surface Composer 2.185 release to origin/main, verify the exact Pages run and public UI/exports, then record publication."
-    }
-  ],
+  "active": [],
   "lastPublished": {
-    "version": "2.176",
-    "date": "2026-11-12",
-    "commit": "1ac1679ab6f58c17a9eea1142c8f925bdb1431d2",
-    "pagesRunId": 43232805965,
+    "version": "2.185",
+    "date": "2026-11-13",
+    "commit": "9d5624e4146c330a21fc24b2e9e12ebee462ae22",
+    "pagesRunId": 43397200074,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.176; Solids receipt fit and canvas-size adaptation deployed after successful exact Pages run"
+    "status": "verified public Muusia 2.185; unified Surface Composer, independent content, Assembly PDF with edge angles, optional end labels and calibrated 17 mm extra feed",
+    "publicAppSha256": "326e96b80578f72b5479e32315cdcfd46a078bcd83f20fe6897b47d2d766f2fc"
   },
   "lastIntegration": {
     "version": "2.185",
@@ -33,12 +18,15 @@
     "implementationCommit": "4f7b2cf80c0d2554b9bfd19d017ec3e147346159",
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
-    "published": false,
-    "status": "authorized release ready; exact Pages deployment and public verification pending",
+    "published": true,
+    "status": "Muusia 2.185 published and verified on GitHub Pages",
     "moduleCount": 359,
     "registryCount": 361,
-    "validation": "94 focused JS tests, Surface Context contract, 10 Python Print tests, catalog, production build and 37914 Learn checks passed.",
-    "note": "No new physical print. Primary checkout unrelated changes preserved."
+    "validation": "94 JS tests, Surface Context contract, 10 Print tests, catalog, build and 37914 Learn checks; exact successful Pages run; actual public app PDF/PNG and all family controls verified; public app matches local production SHA256.",
+    "note": "No new physical print. Primary checkout unrelated changes preserved.",
+    "commit": "9d5624e4146c330a21fc24b2e9e12ebee462ae22",
+    "pagesRunId": 43397200074,
+    "snapshot": "/private/tmp/muusia-surface-composer-snapshot-20261112 (refresh after final documentation commit; local only)"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
@@ -65,7 +53,7 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "Muusia 2.185 publication authorized; deployment pending",
+    "status": "public Muusia 2.185 deployed and verified",
     "validation": "94 focused JS tests, lint, catalog, production build and 37914 Learn checks passed. Actual UI and saved project verified 17 mm extra feed; user photo supplies 23/2/18 mm measurements. No new print.",
     "nextStep": "Freeform animation batches and magnet-jig files remain optional follow-ups.",
     "calibration": {
@@ -403,6 +391,15 @@
       "profileDefaultMm": 17,
       "explicitSavedSettingsPreserved": true,
       "physicalOutput": "none"
+    },
+    "publishedRelease": {
+      "version": "2.185",
+      "commit": "9d5624e4146c330a21fc24b2e9e12ebee462ae22",
+      "pagesRunId": 43397200074,
+      "url": "https://bambi8000.github.io/Muusia/",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-publication",
+      "publicAppMatchesLocal": true,
+      "physicalPrintSentDuringVerification": false
     }
   }
 }
