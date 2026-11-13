@@ -6483,3 +6483,23 @@ build -> check:learn passes all 37914 Learn checks; no capture/provenance bypass
 Main/LATU production builds pass. Verify the exact release commit's Pages run
 and public 2.189/Help/preset before reporting publication, then refresh the clean
 source snapshot. Local browser checker is tools/validate-receipt-browser.html.
+
+
+### 2.189 publication verified
+
+Implementation commit 73d7cef153bf61362b6fa233553bf3681b03f048 was pushed to
+origin/main. Exact Pages run 43411850913 succeeded (build, 37914 Learn checks and
+deploy). Public Muusia displays 2.189; Size preset sets 80 x 1000, both new Ribbon
+and Kaisla Help examples load. Public Ribbon Long produces 32 paths / 26432
+points; public Kaisla three-metre cattails produces 137 paths / 39851 points.
+Actual public DOWNLOAD RECEIPT FILE yields 512 x 19200 rows. Browser console has
+no warnings/errors. No physical print or Pi service install occurred.
+
+Public app SHA256 7543b18bdfe1ccbe27d3551c7e4048d255197f1e667596119f5fa8c33df5011d
+and public LATU SHA256 86b1956e75939b598af1baed461f5486b984330557bdc4622938dfa63d80fe91
+match the local tested production files exactly. Public Learn returns HTTP 200.
+Screenshot, actual public receipt and release.json are under the chat artifact
+directory long-rolls-publication. Clean local source snapshot at
+/private/tmp/muusia-long-rolls-snapshot-20261113: 93 files checked against their
+manifest SHA256s; refresh it after this documentation commit. It is not uploaded.
+The original primary checkout remains dirty and older; its other work is intact.

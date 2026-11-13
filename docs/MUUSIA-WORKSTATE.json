@@ -2,14 +2,16 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.188",
+    "version": "2.189",
     "date": "2026-11-13",
-    "commit": "200a150ef4c2bec948860a9c887b66ad0ccd8193",
-    "pagesRunId": 43408064698,
+    "commit": "73d7cef153bf61362b6fa233553bf3681b03f048",
+    "pagesRunId": 43411850913,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.188; default-on paper bezel compensation",
-    "publicAppSha256": "b02b8ff7c500b9ff12ae9109da2620c0bc5cb95b0ebefb6585684be09018c911"
+    "status": "verified public Muusia 2.189; Long Ribbon, Kaisla, one-metre preset and long receipt export",
+    "publicAppSha256": "7543b18bdfe1ccbe27d3551c7e4048d255197f1e667596119f5fa8c33df5011d",
+    "verifiedDeploymentCommit": "73d7cef153bf61362b6fa233553bf3681b03f048",
+    "verifiedDeploymentRunId": 43411850913
   },
   "lastIntegration": {
     "version": "2.189",
@@ -17,12 +19,16 @@
     "baseCommit": "e3ed42a8eea8ad320fe7d68f9e7a08b0d2b2aa78",
     "branch": "codex/long-rolls-release",
     "worktree": "/private/tmp/muusia-long-rolls-release-20261113",
-    "published": false,
-    "status": "tested; ready for exact-commit Pages verification",
+    "published": true,
+    "status": "Muusia 2.189 published and verified",
     "moduleCount": 360,
     "registryCount": 362,
     "validation": "62 long-roll cases, 1545 Organic Ribbon checks, 106 Surface tests, 79 LATU tests, 17 Print server tests, 11 actual-browser raster checks, 182 Help graphs, focused lint, ordered catalog/build/Learn (37914).",
-    "note": "Ported from primary dirty checkout onto current public 2.188. Existing Surface Composer, native text, animation ZIP and cutter behavior retained. No Pi deployment or physical print."
+    "note": "Ported from primary dirty checkout onto current public 2.188. Existing Surface Composer, native text, animation ZIP and cutter behavior retained. No Pi deployment or physical print.",
+    "implementationCommit": "73d7cef153bf61362b6fa233553bf3681b03f048",
+    "commit": "73d7cef153bf61362b6fa233553bf3681b03f048",
+    "pagesRunId": 43411850913,
+    "snapshot": "/private/tmp/muusia-long-rolls-snapshot-20261113 (refresh after documentation commit; local only)"
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
