@@ -1,10 +1,10 @@
 import { createStrip, stripTransform, stripCorners, stripsInPrintOrder } from "./surface-composer.js";
 import { fontStrokes } from "./defs/helpers.js";
 
-export const DEFAULT_ASSEMBLY = Object.freeze({ numbers: true, registration: true, dimensions: true, relations: true, artwork: true, labelMode: "off", labelLengthMm: 32, bridgeMm: 1.5, cutterFeedMm: 20 });
+export const DEFAULT_ASSEMBLY = Object.freeze({ numbers: true, registration: true, edgeAngles: true, dimensions: true, relations: true, artwork: true, labelMode: "off", labelLengthMm: 32, bridgeMm: 1.5, cutterFeedMm: 20 });
 export function assemblySettings(input = {}) {
   const p = { ...DEFAULT_ASSEMBLY, ...input };
-  for (const key of ["numbers", "registration", "dimensions", "relations", "artwork"]) if (typeof p[key] !== "boolean") throw new Error("Invalid assembly option.");
+  for (const key of ["numbers", "registration", "edgeAngles", "dimensions", "relations", "artwork"]) if (typeof p[key] !== "boolean") throw new Error("Invalid assembly option.");
   if (!["off", "attached", "tear"].includes(p.labelMode)) throw new Error("Invalid end label mode.");
   if (!Number.isFinite(p.labelLengthMm) || p.labelLengthMm < 24 || p.labelLengthMm > 100) throw new Error("End labels must be 24–100 mm long.");
   if (!Number.isFinite(p.bridgeMm) || p.bridgeMm < .2 || p.bridgeMm > 10) throw new Error("Bridge must be 0.2–10 mm wide.");

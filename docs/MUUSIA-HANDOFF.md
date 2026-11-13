@@ -6204,3 +6204,40 @@ body/label partial-cut sequence. Bridge width and the blank gap from cut to
 first text were not measured. Keep the editable extra cutter feed at its
 20 mm estimate; no scale, margins or cutter settings changed. No additional
 print was sent. Implementation remains local 2.183 at `a4a324e`.
+
+
+### 2.184 — Visible edge-angle arcs and degrees (local)
+
+Base: `38fb61b9c3812cf29b390432f5447579e41c34cc`, branch `codex/surface-composer`.
+Daniel requested angle arcs at the paper-edge junctions in the Assembly overview,
+using the supplied annotated screenshot. `src/surface-angles.js` finds physical
+edge intersections and measures the visible opening sector between identified
+paper edges (AB/BC/CD/DA), respecting layer order and hidden papers. A lower
+background paper does not erase visible seams; upper papers hide covered edges.
+These openings differ from the signed paper rotation delta in the existing table.
+Parallel/disjoint edges have no invented intersection, and flat 180-degree
+boundaries do not acquire an angle arc. The user's layout has six visible openings:
+87.4, 97.1, 28.9, 92.6, 61.1 and 144.0 degrees.
+
+Shared settings add optional `assembly.edgeAngles` (default true, validated boolean).
+The preview shows magenta arcs and degrees; they pause during pointer gestures and
+recompute on release. `Edge angle arcs + degrees · preview / PDF` toggles the marks,
+independently of dimension and relation tables, and persists in project files.
+The PDF draws arcs, extension/leader lines, degree labels and paper-pair/J IDs at
+the real junctions. A legend identifies both measured edges. More than six junctions
+adds a complete junction table with angles and vertex coordinates. PDF labels use
+one decimal degree; the existing two-decimal rotation/distance tables remain.
+No artwork, paper pose, output raster or print service changes. No physical print.
+
+Validation: 93 focused JS tests (six new analytic geometry/occlusion/rotation/
+parallel/persistence tests and a dense-junction PDF appendix test); focused lint,
+catalog, production build and 37914 Learn checks passed. Existing tracked export
+source records unchanged. Actual browser verified toggle off/on, rotation/Undo,
+and exact Save/Load/Save equality. Actual seven-page browser PDF rendered and
+visually inspected; all six labels and edge identities extracted from the PDF.
+App and generated Learn manifest 2.184; local only, no push/publication.
+
+Artifacts: `/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-angles/`
+contains assembly-angles.pdf, page PNGs, the real composer screenshot, toggle-off
+PDF, project round-trip files and validation.json. Physical left end-label bridge
+remains confirmed by Daniel's prior test; blank feed gap remains unmeasured.

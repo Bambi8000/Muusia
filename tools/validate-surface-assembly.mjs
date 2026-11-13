@@ -23,3 +23,8 @@ test('empty/excessive/cancelled and excessive machine-piece PDFs fail explicitly
  await assert.rejects(()=>exportAssemblyPdf(session(),{...services,cancelled:()=>true}),/cancelled/);
  const s=session();s.composition={family:'Roll',settings:{pieceLengthMm:.01}};assert.throws(()=>assemblyPieces(s,s.strips[0]),/Too many/);
 });
+test('more than six visible junctions get a complete edge-angle appendix, independently switchable',async()=>{
+ const s=session();s.strips=[0,200].flatMap((x,k)=>[0,45].map((angle,j)=>createStrip({id:`p${k}-${j}`,centerXmm:x,centerYmm:0,physicalWidthMm:20,printableWidthMm:20,printableOffsetMm:0,lengthMm:100,rotationDeg:angle,printOrder:k*2+j+1,zIndex:j})));
+ const all=await exportAssemblyPdf(s,services);assert.equal(all.pages,8);
+ s.assembly=assemblySettings({edgeAngles:false});const off=await exportAssemblyPdf(s,services);assert.equal(off.pages,7);
+});

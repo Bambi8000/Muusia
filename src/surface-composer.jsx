@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import { surfaceEdgeAngles, edgeAngleArc, formatEdgeAngle } from "./surface-angles.js";
 import { assemblySettings, labelExtraMm, endLabelPaths, extendedPaper, labelCutSvg } from "./surface-assembly.js";
 import { exportAssemblyPdf } from "./surface-assembly-pdf.js";
 import { evaluatePaperContent } from "./surface-content.js";
@@ -102,6 +103,12 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   const changeSource = patch => commit(old => ({ ...old, source: { ...old.source, ...patch } }));
   const changeProduction = (key, value) => commit(old => ({ ...old, production: productionSettings({ ...old.production, [key]: value }) }), false);
   const assembly = assemblySettings(s.assembly);
+  const anglePapers = gesture ? null : session.strips;
+  const angleMarks = useMemo(() => {
+    if (!assembly.edgeAngles || !anglePapers) return { angles:[] };
+    try { return { angles: surfaceEdgeAngles(anglePapers) }; }
+    catch (e) { return { angles:[],error:e.message }; }
+  }, [anglePapers,assembly.edgeAngles]);
   const changeAssembly = (key, value) => commit(old => ({ ...old, assembly: assemblySettings({ ...old.assembly, [key]: value }) }));
   const download = (blob, filename) => {
     const url = URL.createObjectURL(blob), link = document.createElement("a");
@@ -451,6 +458,10 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
             {assembly.labelMode !== "off" && <g pointerEvents="none"><polygon points={polygon(stripCorners(extendedPaper(strip,assembly)))} fill="none" stroke="#79b6c4" strokeWidth={.5} vectorEffect="non-scaling-stroke" /><g transform={`translate(${strip.centerXmm} ${strip.centerYmm}) rotate(${strip.rotationDeg}) translate(${-strip.physicalWidthMm/2} ${-strip.lengthMm/2})`}>{endLabelPaths(s,strip).paths.map((p,i)=><path key={i} d={`M${p.pts.map(q=>q.join(",")).join("L")}`} fill="none" stroke="#79b6c4" strokeWidth={.6} vectorEffect="non-scaling-stroke" />)}{assembly.labelMode === "tear" && <path d={`M${Math.min(assembly.bridgeMm,strip.physicalWidthMm)},${strip.lengthMm}H${strip.physicalWidthMm}`} fill="none" stroke="#f47f8c" strokeDasharray="3 2" vectorEffect="non-scaling-stroke" />}</g></g>}
             {family === "Roll" && settings && Math.ceil(strip.lengthMm / settings.pieceLengthMm) <= 8192 && <path d={Array.from({ length: Math.max(0, Math.ceil(strip.lengthMm / settings.pieceLengthMm) - 1) }, (_, i) => { const t = stripTransform(strip), a = t.toGlobal([0, (i + 1) * settings.pieceLengthMm]), b = t.toGlobal([strip.physicalWidthMm, (i + 1) * settings.pieceLengthMm]); return `M${a.join(",")}L${b.join(",")}`; }).join(" ")} fill="none" stroke="#79b6c4" strokeWidth={1} vectorEffect="non-scaling-stroke" strokeDasharray="5 4" pointerEvents="none" />}
           </g>)}
+          {angleMarks.angles.map(a => {
+            const r=view.w*.009, arc=edgeAngleArc(a,a.vertex,r),mid=a.startRad+a.sweepRad/2,tx=a.vertex[0]+r*2.9*Math.cos(mid),ty=a.vertex[1]+r*2.9*Math.sin(mid);
+            return <g key={a.id} className="sc-edge-angle" pointerEvents="none"><title>{`${a.id}: P${a.from.number}.${a.from.edge} / P${a.to.number}.${a.to.edge} = ${formatEdgeAngle(a.angleDeg)}`}</title><path d={`M${arc.map(q=>q.join(",")).join("L")}`} fill="none" stroke="#ca4cae" strokeWidth={1.5} vectorEffect="non-scaling-stroke" /><line x1={arc[Math.floor(arc.length/2)][0]} y1={arc[Math.floor(arc.length/2)][1]} x2={tx} y2={ty} stroke="#ca4cae" vectorEffect="non-scaling-stroke" /><text x={tx} y={ty} textAnchor="middle" dominantBaseline="central" fontSize={view.w*.022} fontWeight="bold" fill="#bb329c" stroke="#fffdf8" strokeWidth={view.w*.003} paintOrder="stroke">{formatEdgeAngle(a.angleDeg)}</text></g>;
+          })}
           {labels && sorted.filter(strip => strip.visible).map(strip => { const t = stripTransform(strip), p = t.toGlobal([strip.physicalWidthMm / 2, Math.min(strip.lengthMm / 2, radius * 3)]); return <g key={strip.id} pointerEvents="none"><circle cx={p[0]} cy={p[1]} r={radius * 1.4} fill={s.selectedId === strip.id ? "#edaa62" : "#263541"} /><text x={p[0]} y={p[1]} fill={s.selectedId === strip.id ? "#1a2025" : "#fff"} textAnchor="middle" dominantBaseline="central" fontSize={radius * 1.5}>{s.strips.indexOf(strip) + 1}</text></g>; })}
           {selected && <g><polygon points={polygon(stripCorners(selected))} fill="none" stroke="#edaa62" strokeWidth={view.w * .0018} strokeDasharray={selected.visible ? undefined : `${radius} ${radius}`} pointerEvents="none" /><line x1={controls.top[0]} y1={controls.top[1]} x2={controls.rotate[0]} y2={controls.rotate[1]} stroke="#edaa62" strokeWidth={radius * .25} pointerEvents="none" /><circle aria-label="Rotate selected strip" role="button" cx={controls.rotate[0]} cy={controls.rotate[1]} r={radius * 1.6} fill="#edaa62" stroke="#1d2630" strokeWidth={radius * .3} onPointerDown={e => begin(e, "rotate", selected)} className="sc-handle"><title>Drag to rotate · Shift snaps to 15°</title></circle><rect aria-label="Resize selected strip" role="button" x={controls.bottom[0] - radius * 1.5} y={controls.bottom[1] - radius * 1.5} width={radius * 3} height={radius * 3} fill="#79b6c4" stroke="#1d2630" strokeWidth={radius * .3} onPointerDown={e => begin(e, "length", selected)} className="sc-handle"><title>Drag to change length</title></rect></g>}
         </svg>{content.empty && <div className="sc-empty">{content.empty}</div>}</div>
@@ -470,6 +481,9 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
           {assembly.labelMode === "tear" && <><NumberField label="Cut guide bridge" value={assembly.bridgeMm} min={.2} max={10} disabled={busy} onChange={v => changeAssembly("bridgeMm",v)} /><NumberField label="Extra cutter feed (mm)" value={assembly.cutterFeedMm} min={0} max={100} disabled={busy} onChange={v => changeAssembly("cutterFeedMm",v)} /><p className="sc-note">The SVG cut guide leaves this width at the left edge. Epson uses its fixed left bridge and feeds blank paper before printing the label. Extra feed is an estimate.</p></>}
           <label className="sc-check"><input type="checkbox" checked={assembly.numbers} disabled={busy} onChange={e => changeAssembly("numbers",e.target.checked)} />Paper numbers on labels / PDF map</label>
           <label className="sc-check"><input type="checkbox" checked={assembly.registration} disabled={busy} onChange={e => changeAssembly("registration",e.target.checked)} />Registration on labels / PDF map</label>
+          <label className="sc-check"><input type="checkbox" checked={assembly.edgeAngles} disabled={busy} onChange={e => changeAssembly("edgeAngles",e.target.checked)} />Edge angle arcs + degrees · preview / PDF</label>
+          <p className="sc-note">Arcs measure the visible opening between paper edges. The pair table lists the signed rotation difference.</p>
+          {angleMarks.error && <p className="sc-note">{angleMarks.error}</p>}
           <label className="sc-check"><input type="checkbox" checked={assembly.dimensions} disabled={busy} onChange={e => changeAssembly("dimensions",e.target.checked)} />Positions, sizes and angles</label>
           <label className="sc-check"><input type="checkbox" checked={assembly.relations} disabled={busy} onChange={e => changeAssembly("relations",e.target.checked)} />Every paper pair · distance / angle table</label>
           <label className="sc-check"><input type="checkbox" checked={assembly.artwork} disabled={busy} onChange={e => changeAssembly("artwork",e.target.checked)} />Artwork in PDF overview</label>

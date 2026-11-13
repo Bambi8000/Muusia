@@ -1,3 +1,4 @@
+import { surfaceEdgeAngles, edgeAngleArc, formatEdgeAngle } from "./surface-angles.js";
 import { assemblyModel, assemblyPieces, paperRelation, endLabelPaths, labelExtraMm } from "./surface-assembly.js";
 import { stripTransform } from "./surface-composer.js";
 import { paperBudget } from "./surface-production.js";
@@ -6,7 +7,7 @@ import { paperLocalPaths, resolveSurfaceContent } from "./surface-content.js";
 import { createStripRasterizer } from "./surface-render.js";
 
 const f = n => Number(n.toFixed(2)).toString();
-const safe = s => String(s).normalize("NFKD").replace(/[^\x20-\x7e]/g, "");
+const safe = s => String(s).normalize("NFKD").replace(/[^\x20-\x7e\u00b0]/g, "");
 const pause = () => new Promise(r => setTimeout(r, 0));
 
 /** Assembly overview is scaled; coordinate tables remain exact millimetres.
@@ -42,6 +43,7 @@ export async function exportAssemblyPdf(session, { evaluateGraph, pens = [], pro
     const commands = points.map((q,i) => `${i ? "L" : "M"}${q[0]*M} ${q[1]*M}`).join(" ") + (closed ? " Z" : "");
     p.drawSvgPath(commands, {x:0,y:p.getHeight(),borderColor:color,borderWidth:width*M});
   }
+  const edgeAngles = options.edgeAngles ? surfaceEdgeAngles(session.strips) : [];
   const source = options.artwork ? await prepareSurfaceSource(session,evaluateGraph) : null;
   const overview = page(420,297,"Assembly overview");
   const points = model.papers.flatMap(p=>p.corners), minX = Math.min(0,...points.map(p=>p[0])), minY = Math.min(0,...points.map(p=>p[1])), maxX = Math.max(session.widthMm,...points.map(p=>p[0])), maxY = Math.max(session.heightMm,...points.map(p=>p[1]));
@@ -51,7 +53,7 @@ export async function exportAssemblyPdf(session, { evaluateGraph, pens = [], pro
   stroke(overview,frame.map(map),true,muted,.25);
   text(overview,`Surface ${f(session.widthMm)} x ${f(session.heightMm)} mm | diagram scale 1:${f(1/scale)}`,12,33,9,muted);
   let vertices = 0;
-  for (const paper of [...model.papers].sort((a,b)=>a.zIndex-b.zIndex)) {
+  for (const paper of [...model.papers].sort((a,b)=>a.zIndex-b.zIndex || session.strips.findIndex(p=>p.id===a.id)-session.strips.findIndex(p=>p.id===b.id))) {
     check(); const corners=paper.corners.map(map), t=stripTransform(paper), localMap=q=>map(t.toGlobal(q));
     const d=corners.map((q,i)=>`${i?'L':'M'}${q[0]*M} ${q[1]*M}`).join(' ')+' Z';
     overview.drawSvgPath(d,{x:0,y:overview.getHeight(),color:rgb(1,1,.99),borderColor:muted,borderWidth:.3});
@@ -82,6 +84,35 @@ export async function exportAssemblyPdf(session, { evaluateGraph, pens = [], pro
     if(options.registration){cross(overview,corners[0]);cross(overview,corners[1]);text(overview,'A',corners[0][0]+1.8,corners[0][1]-1.8,6,blue);text(overview,'B',corners[1][0]+1.8,corners[1][1]-1.8,6,blue);}
     if(options.numbers){const c=map([paper.centerXmm,paper.centerYmm]);overview.drawCircle({x:c[0]*M,y:overview.getHeight()-c[1]*M,size:3*M,color:accent});text(overview,paper.number,c[0],c[1]-1.1,9,rgb(1,1,1),bold,'center');}
   }
+  if (options.edgeAngles) {
+    const purple=rgb(.68,.08,.57), boxes=[];
+    for (const angle of edgeAngles) {
+      const centre=map(angle.vertex), radius=4, arc=edgeAngleArc(angle,centre,radius), mid=angle.startRad+angle.sweepRad/2;
+      stroke(overview,arc,false,purple,.35);
+      for(const a of [angle.startRad,angle.startRad+angle.sweepRad])line(overview,centre,[centre[0]+6*Math.cos(a),centre[1]+6*Math.sin(a)],purple,.18);
+      const title=formatEdgeAngle(angle.angleDeg), caption=`${angle.id}  P${angle.from.number}/P${angle.to.number}`;
+      const width=Math.max(bold.widthOfTextAtSize(title,10),font.widthOfTextAtSize(caption,7))/M+2.4,height=8;
+      let chosen=null,best=-Infinity;
+      for(const distance of [10,14,18,23])for(const offset of [0,.25,-.25,.5,-.5]) {
+        const x=centre[0]+distance*Math.cos(mid+offset),y=centre[1]+distance*Math.sin(mid+offset),box={x:x-width/2,y:y-height/2,w:width,h:height};
+        const collisions=boxes.filter(b=>box.x<b.x+b.w+1&&box.x+box.w+1>b.x&&box.y<b.y+b.h+1&&box.y+box.h+1>b.y).length;
+        const outside=box.x<10||box.x+box.w>303||box.y<39||box.y+box.h>275;
+        const score=-collisions*1000-(outside?10000:0)-distance-Math.abs(offset)*4;
+        if(score>best){best=score;chosen={x,y,box};}
+      }
+      boxes.push(chosen.box);
+      const arcMiddle=arc[Math.floor(arc.length/2)];
+      line(overview,arcMiddle,[chosen.x,chosen.y],purple,.15);
+      rect(overview,chosen.box.x,chosen.box.y,chosen.box.w,chosen.box.h,rgb(1,1,1));
+      text(overview,title,chosen.x,chosen.y-1.4,10,purple,bold,'center');
+      text(overview,caption,chosen.x,chosen.y+2,7,purple,font,'center');
+    }
+    text(overview,'Edge angles / measured opening',314,231,11,purple,bold);
+    text(overview,'Arc identifies the two physical edges.',314,238,8,muted);
+    edgeAngles.slice(0,6).forEach((a,i)=>text(overview,`${a.id}  P${a.from.number}.${a.from.edge} / P${a.to.number}.${a.to.edge}  ${formatEdgeAngle(a.angleDeg)}`,314,245+i*5,8,purple));
+    if(!edgeAngles.length)text(overview,'No visible edge junctions; see rotation table.',314,245,8,muted);
+    if(edgeAngles.length>6)text(overview,`${edgeAngles.length} junctions; full list follows.`,314,278,8,muted);
+  }
   const isSheets = session.composition?.family === "Sheets";
   const budget=paperBudget(session.strips,session.production,session.assembly);
   if (isSheets) { budget.allowanceM = 0; budget.totalM = budget.artworkM + budget.labelsM; }
@@ -96,6 +127,12 @@ export async function exportAssemblyPdf(session, { evaluateGraph, pens = [], pro
   text(overview,'Roll piece index is listed on each paper page.',314,219,8.5,muted);
   cross(overview,map([0,0]),2);text(overview,'0,0',map([0,0])[0]+3,map([0,0])[1]+3,7,blue);
 
+  if(edgeAngles.length>6)for(let start=0;start<edgeAngles.length;start+=24){
+    const p=page(297,210,'Edge junction angles / measured openings');
+    text(p,'J marks match the overview. These are edge openings; paper rotation differences remain in the pair table.',12,34,8.5,muted);
+    [[12,'Junction'],[38,'Physical edges'],[118,'Opening'],[163,'Vertex X mm'],[225,'Vertex Y mm']].forEach(([x,v])=>text(p,v,x,43,9,blue,bold));
+    edgeAngles.slice(start,start+24).forEach((a,i)=>{const y=51+i*5.7;if(i%2===0)rect(p,10,y-1.5,277,5.6);[[12,a.id],[38,`P${a.from.number}.${a.from.edge} / P${a.to.number}.${a.to.edge}`],[118,formatEdgeAngle(a.angleDeg)],[163,f(a.vertex[0])],[225,f(a.vertex[1])]].forEach(([x,v])=>text(p,v,x,y,8));});
+  }
   if(options.dimensions) for(let start=0;start<model.papers.length;start+=20){
     const p=page(297,210,'Paper positions / millimetres');
     [[12,'Paper'],[28,'Order'],[43,'Body W x L'],[87,'Centre X / Y'],[139,'Angle'],[170,'Start A X / Y'],[231,'Start B X / Y']].forEach(([x,v])=>text(p,v,x,36,9,blue,bold));

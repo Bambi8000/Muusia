@@ -50,8 +50,8 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local Muusia 2.183 Independent Content, assembly PDF and optional end labels complete; not published",
-    "validation": "86 focused JS tests plus Surface Context prototype/built-in contract, 10 Print service tests, focused lint, catalog, production build and 37914 Learn checks passed. Actual browser graph/image PDFs, PNG/SVG/DXF/G-code, mixed modes/Undo and exact Save/Load/Save verified. One short 100 mm body + 32 mm label sent to USB; user confirmed left-edge attachment; blank cutter-feed gap remains unmeasured.",
+    "status": "local Muusia 2.184 visible edge-angle arcs/degrees in Assembly PDF and preview; not published",
+    "validation": "93 focused JS tests, lint, catalog, production build and 37914 Learn checks passed. Actual browser degree arcs, toggle-off PDF, rotation/Undo and exact Save/Load/Save verified; all 7 actual PDF pages rendered and inspected. No new physical output.",
     "nextStep": "Optional blank cutter-feed gap measurement. Freeform animation batches and magnet-jig files remain optional follow-ups.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
@@ -292,6 +292,51 @@
         "secondJobSent": false
       },
       "publication": "local only; no push"
+    },
+    "visualEdgeAngles": {
+      "version": "2.184",
+      "baseCommit": "38fb61b9c3812cf29b390432f5447579e41c34cc",
+      "tests": 93,
+      "newAngleTests": 6,
+      "lint": "passed",
+      "catalog": "359 modules / 361 registered nodes; passed",
+      "build": "passed",
+      "learnChecks": 37914,
+      "trackedExportSources": "svg-workflow and physical-plot unchanged",
+      "actualBrowser": [
+        "6 degree-labelled edge arcs",
+        "off removes all preview marks and PDF angle section",
+        "rotation changes angles; Undo restores",
+        "Save/Load/Save exact equality with edgeAngles option"
+      ],
+      "pdf": {
+        "path": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-angles/assembly-angles.pdf",
+        "pages": 7,
+        "renderedAndInspected": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "labelledJunctions": 6,
+        "degreeValues": [
+          87.4,
+          97.1,
+          28.9,
+          92.6,
+          61.1,
+          144.0
+        ],
+        "units": "degrees; visible opening between the indicated physical edges"
+      },
+      "physicalOutput": "none",
+      "publication": "local only",
+      "module": "src/surface-angles.js",
+      "validator": "tools/validate-surface-angles.mjs",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-angles"
     }
   }
 }

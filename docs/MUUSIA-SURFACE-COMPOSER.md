@@ -1,6 +1,6 @@
 # MUUSIA Surface Composer arkkitehtuuri ja toteutussuunnitelma
 
-Päiväys: 13.11.2026. Paikallinen versio 2.183 lisää Independent Content -tilan kaikille paperiperheille, Surface Context -solmun, kokoamis-PDF:n sekä valinnaiset päätylaput pienellä vasemman reunan kiinnikkeellä. Mittatarkat viennit ja yhden suikaleen tulostusoletus säilyvät. Versiota ei ole julkaistu. Käyttäjä vahvisti lyhyen USB-testin päätylapun jääneen vasemmalta kiinni. Leikkauksen jälkeistä tyhjää väliä ei vielä mitattu; lisäsyöttö pysyy arviona.
+Päiväys: 13.11.2026. Paikallinen versio 2.184 lisää paperien reunakohtiin kulmakaaret ja asteet esikatselussa ja kokoamis-PDF:ssä. Aiempi 2.183 lisäsi Independent Content -tilan kaikille paperiperheille, Surface Context -solmun, kokoamis-PDF:n sekä valinnaiset päätylaput pienellä vasemman reunan kiinnikkeellä. Mittatarkat viennit ja yhden suikaleen tulostusoletus säilyvät. Versiota ei ole julkaistu. Käyttäjä vahvisti lyhyen USB-testin päätylapun jääneen vasemmalta kiinni. Leikkauksen jälkeistä tyhjää väliä ei vielä mitattu; lisäsyöttö pysyy arviona.
 
 Surface Composer laajentaa Muusian nykyistä millimetripohjaista teospintaa. Mega Canvasin ja Roll Moden nykyiset arkit, vientimuodot ja projektit säilytetään. Uusi osa on fyysisten suikaleiden sijainti, rotaatio ja tulostusalue sekä yhteinen muunnos teospinnan ja suikaleen välillä. Sama muunnos ohjaa esikatselua ja vientiä.
 
@@ -259,3 +259,13 @@ TM-T88V:n osittainen katkaisu jättää valmistajan mukaan yhden kiinnikkeen vas
 Valmistajan lähteet: [TM-T88V Technical Reference Guide](https://download4.epson.biz/sec_pubs/bs/pdf/TM-T88V_trg_en_revG.pdf) ja [GS V -komento](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/gs_cv.html).
 
 Toistettava esimerkki: [surface-context-assembly.muusia.json](examples/surface-context-assembly.muusia.json). Surface Contextin Paper # ohjaa Gridin pystyviivoja: neljä paperia tuottavat 1/2/3/4 viivaa. Uudet tarkistukset: validate-surface-context, validate-surface-content ja validate-surface-assembly; myös ryhmien oikea moottorikonteksti sekä leikkurijonon virhetilanteet tarkistetaan.
+
+## Reunojen väliset kulmamerkinnät (2.184)
+
+Kokoamis-PDF:n yleiskuvaan sekä editorin esikatseluun on lisätty kulmakaaret ja asteet suoraan paperien näkyviin reunakohtaamisiin. Valinta on **Edge angle arcs + degrees · preview / PDF**. Se tallentuu projektiin, on oletuksena käytössä ja toimii yhteisessä editorissa kaikille paperiperheille.
+
+Kulmakaari mittaa kaaren osoittamien kahden paperireunan välistä näkyvää avautumiskulmaa. Se voi olla eri kuin paperien rotaatioiden erotus, sillä kohtaamisessa voi olla pitkittäinen ja poikittainen reuna. J-tunniste sekä paperinumerot yhdistävät kaaren selitteen reunatunnuksiin AB/BC/CD/DA. Kuvakaappauksen asettelussa merkinnät ovat 87,4°, 97,1°, 28,9°, 92,6°, 61,1° ja 144°. Paperien rotaatioiden etumerkillinen erotus on edelleen paritaulukossa.
+
+Geometria huomioi näkyvyyden ja kerrosjärjestyksen: päällimmäinen paperi peittää taakse jäävät reunat, alempi taustapaperi ei peitä näkyviä saumoja. Erillisten tai yhdensuuntaisten paperien väliin ei keksitä leikkauspistettä, eikä tasaiselle 180 asteen reunalle piirretä kulmaa. Merkinnät päivittyvät muokkauksen päätyttyä. PDF:n kulmalapuissa on johtoviivat ja törmäyksiä välttävä sijoittelu; yli kuusi kohtaa saa lisäksi täydellisen kulmapistetaulukon. Fyysiset tulostus-/vektoritiedostot säilyvät merkinnöistä riippumattomina.
+
+Uusi laskentatiedosto: `src/surface-angles.js`. Kuusi kohdennettua testiä sekä runsaan kulmamäärän PDF-testi sisältyvät 93 läpäisseen testin kokonaisuuteen. Oikeassa selaimessa tarkistettiin kulmien poiskytkentä, rotaation vaikutus, Undo ja täsmällinen projektin Save/Load/Save. Päivitetyn PDF:n kaikki seitsemän sivua renderöitiin ja tarkistettiin.
