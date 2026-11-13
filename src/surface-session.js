@@ -27,7 +27,7 @@ function layoutSettings(input) {
 export function createSurfaceSession() {
   const layout = layoutSettings({ physicalWidthMm: 80, printableWidthMm: 70.8, printableOffsetMm: 4.6, rotationDeg: 0, gapMm: 8 });
   const strips = generateStripTiling({ widthMm: 2000, heightMm: 2000, ...layout, count: undefined, lengthMm: undefined });
-  return { version: SURFACE_VERSION, mode: "tiling", widthMm: 2000, heightMm: 2000, layout, strips, selectedId: strips[0].id, nextId: strips.length + 1, production: productionSettings(), source: { kind: "graph", nodeId: null, graphPath: [], fit: "contain", image: null } };
+  return { version: SURFACE_VERSION, accountForBezels: true, mode: "tiling", widthMm: 2000, heightMm: 2000, layout, strips, selectedId: strips[0].id, nextId: strips.length + 1, production: productionSettings(), source: { kind: "graph", nodeId: null, graphPath: [], fit: "contain", image: null } };
 }
 
 /** Missing field = old Muusia project, with a fresh surface session. Validate
@@ -39,6 +39,8 @@ export function readSurfaceSession(input) {
   const widthMm = positive(input.widthMm, "Surface width"), heightMm = positive(input.heightMm, "Surface height");
   const layout = layoutSettings(input.layout || {});
   if (!Array.isArray(input.strips) || input.strips.length > MAX_GENERATED_STRIPS) throw new Error("Invalid surface strip array.");
+  const accountForBezels = input.accountForBezels ?? true;
+  if (typeof accountForBezels !== "boolean") throw new Error("Invalid paper bezel option.");
   const strips = input.strips.map(createStrip);
   surfaceSummary(strips, { includeHidden: true }); // Includes stable-ID checks.
   const source = input.source;
@@ -56,7 +58,7 @@ export function readSurfaceSession(input) {
   const contentSeed = input.contentSeed ?? 1;
   if (!Number.isInteger(contentSeed) || contentSeed < 0 || contentSeed > 4294967295) throw new Error("Invalid content seed.");
   const composition = input.composition ? readComposition(input.composition) : null;
-  const result = { ...(input.assembly == null ? {} : { assembly: assemblySettings(input.assembly) }), ...(input.contentSeed == null ? {} : { contentSeed }), ...(input.arrangement == null ? {} : { arrangement: readArrangement(input.arrangement) }), ...(composition ? { composition } : {}), version: SURFACE_VERSION, mode: input.mode, widthMm, heightMm, layout, strips, selectedId: strips.some(s => s.id === input.selectedId) ? input.selectedId : null, nextId: input.nextId, production: productionSettings(input.production), source: { kind: source.kind, nodeId: source.nodeId, graphPath: [...source.graphPath], fit: source.fit, image } };
+  const result = { ...(input.assembly == null ? {} : { assembly: assemblySettings(input.assembly) }), ...(input.contentSeed == null ? {} : { contentSeed }), ...(input.arrangement == null ? {} : { arrangement: readArrangement(input.arrangement) }), ...(composition ? { composition } : {}), version: SURFACE_VERSION, accountForBezels, mode: input.mode, widthMm, heightMm, layout, strips, selectedId: strips.some(s => s.id === input.selectedId) ? input.selectedId : null, nextId: input.nextId, production: productionSettings(input.production), source: { kind: source.kind, nodeId: source.nodeId, graphPath: [...source.graphPath], fit: source.fit, image } };
   if (composition && result.mode === "tiling" && !regularCompositionMatches(result)) result.mode = "freeform";
   return result;
 }

@@ -108,7 +108,7 @@ export function stripCorners(input, area = "paper") {
 /** Image Mapping for paths. The result stays in FULL PAPER local coordinates,
  *  including the unprintable left margin. It is never fitted or resized.
  *  Raster/thermal-text payloads are deliberately not copied to the path result. */
-export function clipPathsToStrip(ps, input) {
+export function clipPathsToStrip(ps, input, { accountForBezels = true } = {}) {
   if (!ps || !Array.isArray(ps.paths)) throw new Error("A path set is required.");
   const transform = stripTransform(input), strip = transform.strip;
   const local = {
@@ -117,6 +117,7 @@ export function clipPathsToStrip(ps, input) {
       return { ...path, pts: path.pts.map(transform.toLocal) };
     }),
   };
+  if (!accountForBezels) for (const path of local.paths) path.pts = path.pts.map(([x,y,...rest]) => [strip.printableOffsetMm + x * strip.printableWidthMm / strip.physicalWidthMm,y,...rest]);
   const clipped = cropTestPiece(local, {
     x: strip.printableOffsetMm, y: 0,
     w: strip.printableWidthMm, h: strip.lengthMm, margin: 0,
@@ -217,4 +218,15 @@ export function surfaceSummary(inputs, options = {}) {
     bounds: boundsFor(strips),
     strips: strips.map(({ id, lengthMm, printOrder }) => ({ id, lengthMm, printOrder })),
   };
+}
+
+
+/** World-space counterpart of fitting paper-local X into the ink width.
+ * Physical paper/placement and length remain fixed. Used by the SVG preview. */
+export function paperBezelMatrix(paper, accountForBezels = true) {
+  if (accountForBezels) return [1,0,0,1,0,0];
+  const t=stripTransform(paper),o=t.toGlobal([0,0]),x=t.toGlobal([1,0]);
+  const c=x[0]-o[0],s=x[1]-o[1],k=paper.printableWidthMm/paper.physicalWidthMm;
+  const a=k*c*c+s*s,b=(k-1)*c*s,d=k*s*s+c*c;
+  return [a,b,b,d,o[0]+c*paper.printableOffsetMm-a*o[0]-b*o[1],o[1]+s*paper.printableOffsetMm-b*o[0]-d*o[1]];
 }

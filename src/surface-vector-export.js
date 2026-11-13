@@ -12,7 +12,7 @@ export function surfaceVectorTiles(session, globalPaths, { sliceMega, sliceRoll,
   const family = session.composition?.family;
   if (!family) throw new Error("Choose Mega Canvas or Roll Mode for vector layout export.");
   const p = session.composition.settings, regular = regularCompositionMatches(session);
-  if (regular && !labelExtraMm(session.assembly)) {
+  if (regular && !labelExtraMm(session.assembly) && (session.accountForBezels !== false || session.strips.every(p=>p.printableOffsetMm===0 && p.printableWidthMm===p.physicalWidthMm))) {
     const g = session.composition.generated;
     if (family === "Roll" && Math.ceil(g.rollLengthMm / p.pieceLengthMm) * g.rollCount > 8192) throw new Error("Too many export pieces; increase the piece length.");
     const tiles = family === "Sheets"
@@ -27,7 +27,7 @@ export function surfaceVectorTiles(session, globalPaths, { sliceMega, sliceRoll,
   }
   const papers = stripsInPrintOrder(session.strips).filter(s => !selectedOnly || s.id === session.selectedId), result = [];
   for (const paper of papers) {
-    const local = source ? paperLocalPaths(source, session, paper) : clipPathsToStrip(globalPaths, paper), number = session.strips.findIndex(s => s.id === paper.id) + 1;
+    const local = source ? paperLocalPaths(source, session, paper) : clipPathsToStrip(globalPaths, paper, {accountForBezels:session.accountForBezels ?? true}), number = session.strips.findIndex(s => s.id === paper.id) + 1;
     const label = endLabelPaths(session, paper);
     const combined = { ...local, paths: [...local.paths, ...label.paths] };
     const outputPaper = { ...paper, lengthMm: paper.lengthMm + label.lengthMm };

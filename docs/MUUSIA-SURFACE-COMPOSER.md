@@ -304,3 +304,34 @@ Preview has shaded guards/dashed body boundaries; total metres count 6.226 mm
 per strip once. Hardware's approximately 15 mm starting blank remains additional
 waste, explained beside the option. Direct printing and native packages share the
 same bytes. PNG/vector/Assembly PDF stay at finished dimensions. See MUUSIA-PRINT.md.
+
+
+## Paper bezels: default-on compensation (2.188)
+
+**Surface Composer → left pane → Paper bezels → Account for paper bezels**
+is the saved per-layout switch. It defaults to **On**, including old files with
+no setting. The selected paper's right inspector provides **Paper width**,
+**Ink width** and **Ink offset**. Epson defaults remain 80 / 70.8 / 4.6 mm,
+i.e. nominal 4.6 mm unprinted side margins. The generator's **Paper gap** is a
+separate physical distance between papers.
+
+- On: keep original physical scale/coordinates and clip artwork behind the
+  unprinted white margins. This is the existing image-mapping behavior, unchanged.
+- Off: fit that paper's complete image width into its ink width. In local mm,
+  `xOut = inkOffset + xSource * inkWidth / paperWidth`; Y/length are unchanged.
+  Width is compressed; this intentionally changes horizontal scale rather than
+  pretending the printer can print into its white margins.
+
+The same rule is used by SVG preview, graph and image sources, mapped and
+independent papers, PNG export, thermal direct/package output, freeform vector
+files and Assembly PDF artwork. It resolves the full original paper before
+cropping a production range, so resume does not restart/refit the content.
+Paper position, size, layers, gaps, trim guards, labels and cutter geometry stay
+physical. Source SVG remains the original unsliced artwork. Full-ink regular
+layouts retain the existing slicer path. PDF records On/Off in the overview and
+includes trim guards in its feed/cut/trim consumption line.
+
+Persisted field: optional session `accountForBezels` boolean, default true.
+Each of Strips, Sheets and Roll stores its own choice; Undo/Redo restores it.
+PNG manifest and native Print geometry also record the choice for inspection.
+Thermal bytes remain calibrated; the Print service needs no new code/version.

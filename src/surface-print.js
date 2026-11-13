@@ -38,11 +38,11 @@ export async function renderSurfaceReceipt(session, range, source, { cancelled =
   source = resolved.source;
   const samplingStrip = resolved.strip;
   const renderStrip = { ...samplingStrip, printableOffsetMm: profile.headOffsetMm, printableWidthMm: 512 / d };
-  const rasterizer = source.image ? createStripRasterizer(source.image, source.placement, resolved.frame, renderStrip, { dotsPerMmX: d }) : null;
+  const rasterizer = source.image ? createStripRasterizer(source.image, source.placement, resolved.frame, renderStrip, { dotsPerMmX: d, bezelPaper: samplingStrip }) : null;
   const label = endLabelPaths(session, original, range);
   // Dot-aligned label origin follows the rounded body, preserving art pitch.
   const labelPaths = label.paths.map(p => ({ ...p, pts: p.pts.map(([x,y]) => [x, y + trim.rows / d - range.lengthMm]) }));
-  const bodyPaths = source.paths ? clipPathsToStrip(source.paths, samplingStrip).paths.map(p => ({...p, pts:p.pts.map(([x,y,...rest])=>[x,y+trim.bodyStartRow/d,...rest])})) : [];
+  const bodyPaths = source.paths ? clipPathsToStrip(source.paths, samplingStrip, {accountForBezels:session.accountForBezels ?? true}).paths.map(p => ({...p, pts:p.pts.map(([x,y,...rest])=>[x,y+trim.bodyStartRow/d,...rest])})) : [];
   const groups = [{paths:bodyPaths,from:trim.bodyStartRow/d,to:trim.bodyEndRow/d},{paths:labelPaths,from:trim.rows/d,to:height/d}];
   const canvas = document.createElement("canvas");
   if (canvas) canvas.width = 512;

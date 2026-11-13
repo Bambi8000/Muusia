@@ -25,11 +25,11 @@ export function resolveSurfaceContent(source, session, paper, fromMm = 0, toMm =
     if (!source.forPaper) throw new Error("Independent Content must be evaluated for this paper.");
     const local = createStrip({ ...paper, contentMode: "image-mapping", rotationDeg: 0, centerXmm: paper.physicalWidthMm / 2, centerYmm: paper.lengthMm / 2 });
     const strip = stripPrintRange(local, fromMm, toMm).strip;
-    return { source: source.forPaper(paper), frame: { widthMm: paper.physicalWidthMm, heightMm: paper.lengthMm }, strip };
+    return { source: source.forPaper(paper), frame: { widthMm: paper.physicalWidthMm, heightMm: paper.lengthMm, accountForBezels: session.accountForBezels ?? true }, strip };
   }
   return { source, frame: session, strip: stripPrintRange(paper, fromMm, toMm).strip };
 }
 export function paperLocalPaths(source, session, paper, fromMm = 0, toMm = null) {
   const resolved = resolveSurfaceContent(source, session, paper, fromMm, toMm);
-  return clipPathsToStrip(resolved.source.paths, resolved.strip);
+  return clipPathsToStrip(resolved.source.paths, resolved.strip, {accountForBezels:session.accountForBezels ?? true});
 }

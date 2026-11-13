@@ -6401,3 +6401,30 @@ matches local production. Public screenshot, exported ZIP, on/off packets,
 actual decoded thermal PNG and verification.json are in surface-trim-marks.
 Refresh clean snapshot after this documentation commit; local snapshot is not
 a verified upload into another assistant's project.
+
+
+### 2.188 — Default-on paper bezel switch
+
+Daniel confirmed bezels mean unprinted paper side margins. Added left-pane
+Paper bezels → Account for paper bezels, default On in every family and old
+projects. On preserves existing physical image mapping; Off horizontally fits
+the whole paper image into its ink width. Preview matrix, vector clipping and
+inverse raster sampling share this rule, including rotated/asymmetric papers,
+independent content and resumed ranges. Physical margins remain white. Paper
+geometry, Y scale, labels/trim/cuts and manual one-strip cooling are unchanged.
+PNG/native metadata and Assembly PDF overview record the choice; PDF consumption
+breakdown now also counts the existing trim guard budget.
+
+Validation: 106 Surface JS tests (5 new bezel invariants), focused lint, catalog,
+build and 37914 Learn checks passed. Existing tracked SVG/G-code reference scopes
+are unchanged. Actual browser: new/legacy default On, saved image-source Off
+reloads false, Mega/Roll defaults On with independent saved choices, Undo/Redo.
+Actual graph PNG/native line centres match On 8/40/72 mm vs Off 11.68/40/68.32 mm
+within one thermal dot; actual image-source PNG/native bars likewise agree.
+Direct FILE output is byte-identical to exported Off packet; On raster is
+byte-identical to the previously published 2.187 packet. Both six-page actual
+Assembly PDFs have correct state/consumption text; changed overview pages were
+rendered and visually inspected. No physical print or Print-service update.
+Artifacts: surface-bezels in this thread's artifact directory. App 2.188 prepared
+for authorized publication; verify exact Pages run and actual public UI.
+Primary checkout's unrelated dirty changes preserved.

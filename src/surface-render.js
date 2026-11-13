@@ -176,9 +176,12 @@ export function createStripRasterizer(image, placement, surface, strip, options 
   const plan = createStripRasterPlan(strip, options);
   const sampler = rasterSampler(image, placement, surface, options.interpolation ?? "bilinear");
   const transform = stripTransform(plan.strip);
-  const start = transform.toGlobal([plan.localXmm, 0]);
-  const xStep = transform.toGlobal([plan.localXmm + 1, 0]);
-  const yStep = transform.toGlobal([plan.localXmm, 1]);
+  const bezelPaper = options.bezelPaper ?? plan.strip;
+  const compensate = surface.accountForBezels !== false;
+  const localX = u => compensate ? u : (u-bezelPaper.printableOffsetMm)*bezelPaper.physicalWidthMm/bezelPaper.printableWidthMm;
+  const start = transform.toGlobal([localX(plan.localXmm), 0]);
+  const xStep = transform.toGlobal([localX(plan.localXmm + 1), 0]);
+  const yStep = transform.toGlobal([localX(plan.localXmm), 1]);
   const xx = xStep[0] - start[0], xy = yStep[0] - start[0];
   const yx = xStep[1] - start[1], yy = yStep[1] - start[1];
   const left = plan.strip.printableOffsetMm, right = left + plan.strip.printableWidthMm;

@@ -30,7 +30,7 @@ export function surfaceExportPlan(input, { selectedOnly = false, dpi = DEFAULT_E
     return { plan, filename: `${prefix}-${session.composition?.family === "Sheets" ? "sheet" : "strip"}-${String(ordered.indexOf(strip) + 1).padStart(4, "0")}-${safeName(strip.id)}.png` };
   });
   const manifest = {
-    format: "muusia-surface-strips", version: 1, units: "mm", layoutFamily: session.composition?.family ?? "Strips",
+    format: "muusia-surface-strips", version: 1, units: "mm", accountForBezels: session.accountForBezels ?? true, layoutFamily: session.composition?.family ?? "Strips",
     surface: { widthMm: session.widthMm, heightMm: session.heightMm, origin: "top-left", x: "right", y: "down", positiveRotation: "clockwise" },
     source: { kind: session.source.kind, fit: session.source.kind === "image" ? session.source.fit : null, image: session.source.kind === "image" && session.source.image ? { name: session.source.image.name, width: session.source.image.width, height: session.source.image.height } : null },
     raster: { dpi, dotsPerMmX: dpi / 25.4, dotsPerMmY: dpi / 25.4, area, colour: "RGB", background: "white", graphLineWidthMm: .3 },
@@ -100,7 +100,7 @@ export function createExportRenderer(source, session, plan, pens = []) {
   const samplingStrip = resolved.strip;
   const rasterizer = source.image ? createStripRasterizer(source.image, source.placement, session, samplingStrip, { dotsPerMmX: plan.dotsPerMmX, dotsPerMmY: plan.dotsPerMmY, area: plan.area }) : null;
   if (rasterizer && !label.lengthMm) return rasterizer;
-  const paths = [...(source.paths ? clipPathsToStrip(source.paths, samplingStrip).paths : []), ...label.paths];
+  const paths = [...(source.paths ? clipPathsToStrip(source.paths, samplingStrip, {accountForBezels:session.accountForBezels ?? true}).paths : []), ...label.paths];
   const canvas = document.createElement("canvas"); canvas.width = plan.width;
   return {
     plan,

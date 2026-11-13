@@ -431,6 +431,27 @@
       "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-trim-marks",
       "commit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
       "pagesRunId": 43405608667
+    },
+    "paperBezels": {
+      "version": "2.188",
+      "baseCommit": "d14c5133f52d18a8dc5063d789a56c9b987b65d5",
+      "status": "implemented and validated; publication pending",
+      "defaultOn": true,
+      "perLayout": true,
+      "tests": "106 JS, focused lint, catalog, build, 37914 Learn checks",
+      "actualBrowser": [
+        "legacy default On",
+        "saved Off reload",
+        "Mega/Roll default On and independent retention",
+        "Undo/Redo",
+        "graph and image PNG/native analytic positions",
+        "direct FILE equals exported packet",
+        "On native bytes match published 2.187",
+        "six-page PDFs with reviewed overview and On/Off legend"
+      ],
+      "physicalPrintSent": false,
+      "serviceUpdateRequired": false,
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-bezels"
     }
   }
 }
