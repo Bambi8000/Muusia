@@ -6,7 +6,7 @@ import { stripTransform } from "../src/surface-composer.js";
 import { packSurfaceRows, EPSON_SURFACE } from "../src/surface-print.js";
 
 test("total metres include visible strips and explicit feed/cut allowance", () => {
-  const s = createSurfaceSession(), b = paperBudget(s.strips, s.production);
+  const s = createSurfaceSession(); s.production.trimMarks=false; const b = paperBudget(s.strips, s.production);
   assert.equal(b.artworkM, 46); assert.equal(b.allowanceM, .46); assert.equal(b.totalM, 46.46);
   assert.equal(b.availableM, 79); assert.equal(b.fits, true);
   const hidden = s.strips.map((strip,i) => ({ ...strip, visible: i !== 0 }));

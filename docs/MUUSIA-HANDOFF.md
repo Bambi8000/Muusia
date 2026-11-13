@@ -6357,3 +6357,31 @@ Surface PNG ZIP now gives the actionable Print package / Print… explanation.
 No physical raster print sent by this task. Evidence and screenshot:
 `surface-print-transfer/verification.json` and `public-surface-print.png` in the
 thread artifact directory. Snapshot refresh follows final documentation commit.
+
+
+### 2.187 — Removable thermal trim marks at body/range boundaries
+
+Daniel's photo exposed the difference between an assembled paper rectangle and
+Epson's approximately 15 mm leading mechanical blank. Added default-on, saved
+Trim marks in Surface Composer Print…: 22-row removable guards before/after body,
+two pixel-aligned outward L marks at each boundary. Cut across their inner edges.
+Art coordinates and the full original body stay intact. Preview shows shaded
+guards/dashed boundaries and explains hardware feed. Total paper and selected
+run budgets include guards once. PNG/vector/PDF stay at finished dimensions.
+
+Native Print packages carry optional validated geometry.trim; bodyRows remains
+unchanged, tear cut moves after the trailing guard, label rendering/dither phases
+stay fixed relative to original content. Old packets still import. Direct
+printing requires trimMarksVersion:1 for marked jobs. Print preview gives the
+inner-edge instruction. Existing one-strip/manual cooling default is preserved.
+
+Validation: 101 Surface JS tests, 16 Python Print tests, focused lint, catalog,
+build and 37914 Learn checks passed. Actual browser exported on/off 123–223 mm
+range; 707 body rows and 227 label rows match byte for byte, marks wholly outside
+body, marked height 978, tearAtRow 751. Direct FILE output exactly matches the
+exported marked packet's ESC/POS stream. Checkbox removes/restores all three
+preview guides and saves true in a real project. No physical print sent.
+Pi service updated with expected-source hashes, queue idle, Clock off; backup
+/home/print/muusia-print/before-trim-marks-20261113-115657. Artifact directory:
+surface-trim-marks in this thread. App 2.187 prepared for authorized publication;
+verify exact Pages run and public UI. Primary unrelated work preserved.

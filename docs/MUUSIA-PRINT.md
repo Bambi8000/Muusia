@@ -148,3 +148,36 @@ Pi:n päivitysvarmuuskopio 13.11.2026:
 `/home/print/muusia-print/before-print-package-20261113-113049`.
 Päivitykseen kuuluu myös uusi `print_package.py`; kopioi se palvelimen ja
 kolmen dashboard-tiedoston mukana. Pythonin vakiokirjasto riittää edelleen.
+
+
+## Trimming thermal paper ends (2.187)
+
+**Surface Composer → Print… → Trim marks · Epson print / Print package** is
+on by default and saved per layout. Turn it off to omit the marks. Both direct
+printing and Print files put two L marks at each end of the requested body/range.
+Use a ruler to cut across the **inner edges of the horizontal marks**. Remove
+the marks and waste; retain the body between them, including intentional white
+artwork margins. Do not simply cut all white paper away.
+
+Marks live in dedicated 22-row guards on both ends: about 3.1 mm each at the
+measured density, 6.226 mm extra per strip. They never paint over body pixels.
+Body sampling and dithering keep original coordinates, including resumed ranges.
+The label follows the trailing guard; tear mode partial-cuts after that guard,
+keeping the entire body/guards/label in one atomic job. The body is clipped before
+the label so line caps cannot spill across the boundary. Total metres include
+the guard allowance once, in addition to existing mechanical feed allowances.
+
+The actual printer also leaves approximately 15 mm of blank material before the
+first printed guard, as documented by the user's measurement and Epson's manual.
+The preview shows the assembled body plus shaded removable 3.1 mm guards and
+explains this extra feed; it does not promise edge-to-edge thermal printing.
+PNG, SVG and Assembly PDF keep their finished body coordinates and dimensions;
+these thermal trim guards are only in direct Epson output and Print packets.
+
+Print packet v1 extends `geometry` with optional
+`trim: { leadingRows: 22, trailingRows: 22 }`; `bodyRows` remains the original
+body height. Total raster height includes guards; `tearAtRow` follows both guards
+and body. Old packets without trim remain valid. The service advertises
+`trimMarksVersion: 1`; marked direct printing checks this capability. The updated
+Print preview says to cut along the inner edges. Pi backup:
+`/home/print/muusia-print/before-trim-marks-20261113-115657`.

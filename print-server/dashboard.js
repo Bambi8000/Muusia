@@ -78,7 +78,7 @@
     if (!item) { $('#preview-title').textContent = 'Nothing selected'; $('#preview-size').textContent = '—'; return; }
     $('#preview-title').textContent = item.name || `Frame ${state.selected + 1}`;
     const nativeCount = Array.isArray(item.thermalText) ? item.thermalText.length : 0;
-    $('#preview-size').textContent = `${strip ? `${item.geometry?.bodyLengthMm.toFixed(1)} mm body · ` : ''}${item.width} × ${item.height} dots${nativeCount ? ` · ${nativeCount} native text block${nativeCount === 1 ? '' : 's'}` : ''}`;
+    $('#preview-size').textContent = `${strip ? `${item.geometry?.bodyLengthMm.toFixed(1)} mm body${item.geometry?.trim ? ' · trim marks: cut along inner edges' : ''} · ` : ''}${item.width} × ${item.height} dots${nativeCount ? ` · ${nativeCount} native text block${nativeCount === 1 ? '' : 's'}` : ''}`;
     $('#frame-position').textContent = `${state.selected + 1} of ${state.receipts.length}`;
     $('#cut-after').checked = item.cut !== false;
     const picker = $('#frame-select'); picker.replaceChildren();

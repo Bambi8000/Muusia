@@ -42,10 +42,15 @@ def validate_strip_packet(body, validate_receipt):
     if abs(end - start - length) > 1e-6:
         raise ValueError("Print range does not match its body length")
     rows = math.ceil(length * DOTS_PER_MM - 1e-9)
-    if type(geometry.get("bodyRows")) is not int or geometry["bodyRows"] != rows or height != rows + math.ceil(label * DOTS_PER_MM - 1e-9):
+    trim = geometry.get("trim")
+    guard_rows = math.ceil(3 * DOTS_PER_MM) if trim is not None else 0
+    if trim is not None and (not isinstance(trim, dict) or set(trim) != {"leadingRows", "trailingRows"} or any(type(trim[k]) is not int or trim[k] != guard_rows for k in trim)):
+        raise ValueError("Invalid trim guards")
+    body_end = rows + 2 * guard_rows
+    if type(geometry.get("bodyRows")) is not int or geometry["bodyRows"] != rows or height != body_end + math.ceil(label * DOTS_PER_MM - 1e-9):
         raise ValueError("Print raster dimensions do not match millimetre geometry")
     tear = body.get("tearAtRow")
-    if tear is not None and (type(tear) is not int or tear != rows or not 1 <= tear < height):
+    if tear is not None and (type(tear) is not int or tear != body_end or not 1 <= tear < height):
         raise ValueError("Invalid end-label cut row")
     name = body.get("name", "Surface strip")
     if not isinstance(name, str) or not 1 <= len(name) <= 120:

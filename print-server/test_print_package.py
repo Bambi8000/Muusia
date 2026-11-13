@@ -53,6 +53,17 @@ class PrintPackageTests(unittest.TestCase):
         for q in variants:
             with self.assertRaises(ValueError):print_package.validate_strip_packet(q,server.validate_receipt)
 
+    def test_trim_guards_preserve_body_geometry_and_move_label_cut_after_guards(self):
+        p=packet(100);rows=p['geometry']['bodyRows'];p['geometry']['trim']={'leadingRows':22,'trailingRows':22}
+        p['height']+=44;p['tearAtRow']+=44;p['data']=base64.b64encode(bytes(p['height']*64)).decode()
+        out=server.inspect_file('trim.muusia-strip.json',json.dumps(p).encode())[0]
+        self.assertEqual(out['geometry']['bodyRows'],rows);self.assertEqual(out['tearAtRow'],rows+44)
+        for trim in [{'leadingRows':21,'trailingRows':22},{'leadingRows':True,'trailingRows':22},None]:
+            q={**p,'geometry':{**p['geometry'],'trim':trim}}
+            with self.assertRaises(ValueError):print_package.validate_strip_packet(q,server.validate_receipt)
+        q={**p,'tearAtRow':rows}
+        with self.assertRaises(ValueError):print_package.validate_strip_packet(q,server.validate_receipt)
+
     def test_legacy_receipt_zip_is_unchanged(self):
         p={'format':'muusia-receipt','version':1,'width':512,'height':1,'data':base64.b64encode(bytes(64)).decode(),'cut':True}
         stream=io.BytesIO()

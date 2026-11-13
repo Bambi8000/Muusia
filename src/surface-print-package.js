@@ -1,3 +1,4 @@
+import { thermalTrimLayout } from "./surface-trim.js";
 import { zipSync, strToU8 } from "fflate";
 import { readSurfaceSession } from "./surface-session.js";
 import { stripsInPrintOrder } from "./surface-composer.js";
@@ -16,7 +17,7 @@ export function surfacePrintPackagePlan(input, { selectedOnly=false }={}) {
   let bytes=0;
   for(const r of ranges){
     if(r.strip.physicalWidthMm<78||r.strip.physicalWidthMm>82)throw new Error("The Epson Print package requires nominal 80 mm paper. Choose 80 mm strips or export PNG for another printer.");
-    const height=Math.ceil(r.lengthMm*EPSON_SURFACE.dotsPerMm-1e-9)+Math.ceil(labelExtraMm(session.assembly)*EPSON_SURFACE.dotsPerMm-1e-9);
+    const height=thermalTrimLayout(r.lengthMm,session.production.trimMarks).rows+Math.ceil(labelExtraMm(session.assembly)*EPSON_SURFACE.dotsPerMm-1e-9);
     if(height>EPSON_SURFACE.maxHeight)throw new Error("This strip is too long for one Print job. Export a selected range of at most 9.2 m.");
     bytes+=height*64;
   }
@@ -25,7 +26,7 @@ export function surfacePrintPackagePlan(input, { selectedOnly=false }={}) {
 }
 export function stripPacket(session,range,receipt) {
   const paper=session.strips.find(p=>p.id===range.originalId);
-  return {format:"muusia-surface-strip",version:1,...receipt,profile:SURFACE_PRINT_PROFILE,geometry:{stripId:paper.id,number:session.strips.findIndex(p=>p.id===paper.id)+1,printOrder:paper.printOrder,physicalWidthMm:paper.physicalWidthMm,printableOffsetMm:paper.printableOffsetMm,printableWidthMm:paper.printableWidthMm,originalLengthMm:paper.lengthMm,fromMm:range.fromMm,toMm:range.toMm,bodyLengthMm:range.lengthMm,labelLengthMm:labelExtraMm(session.assembly),bodyRows:Math.ceil(range.lengthMm*EPSON_SURFACE.dotsPerMm-1e-9)}};
+  return {format:"muusia-surface-strip",version:1,...receipt,profile:SURFACE_PRINT_PROFILE,geometry:{stripId:paper.id,number:session.strips.findIndex(p=>p.id===paper.id)+1,printOrder:paper.printOrder,physicalWidthMm:paper.physicalWidthMm,printableOffsetMm:paper.printableOffsetMm,printableWidthMm:paper.printableWidthMm,originalLengthMm:paper.lengthMm,fromMm:range.fromMm,toMm:range.toMm,bodyLengthMm:range.lengthMm,labelLengthMm:labelExtraMm(session.assembly),bodyRows:thermalTrimLayout(range.lengthMm,session.production.trimMarks).bodyRows,...(session.production.trimMarks?{trim:{leadingRows:thermalTrimLayout(range.lengthMm,true).leadingRows,trailingRows:thermalTrimLayout(range.lengthMm,true).trailingRows}}:{})}};
 }
 export async function exportSurfacePrintPackage(input,options={},services={}) {
   const job=surfacePrintPackagePlan(input,options),files={},entries=[];

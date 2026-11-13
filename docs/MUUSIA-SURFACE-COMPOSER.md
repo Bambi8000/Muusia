@@ -293,3 +293,14 @@ same calibrated raster and optional internal label cut. ZIP means all complete
 visible papers in print order; **Export selected range · Print file** means the
 current production millimetre range. Import into Print only previews/validates.
 PNG remains a separate image export. See MUUSIA-PRINT.md for limits and format.
+
+
+## Thermal trim marks (2.187)
+
+Print… exposes a saved, default-on **Trim marks · Epson print / Print package**
+option. Two outward-facing L marks per end sit wholly in removable 22-row guards.
+Cut along their inner edges to obtain the original body or requested range.
+Preview has shaded guards/dashed body boundaries; total metres count 6.226 mm
+per strip once. Hardware's approximately 15 mm starting blank remains additional
+waste, explained beside the option. Direct printing and native packages share the
+same bytes. PNG/vector/Assembly PDF stay at finished dimensions. See MUUSIA-PRINT.md.

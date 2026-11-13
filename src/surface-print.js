@@ -1,3 +1,4 @@
+import { thermalTrimLayout, addThermalTrimMarks } from "./surface-trim.js";
 import { endLabelPaths, labelExtraMm } from "./surface-assembly.js";
 import { resolveSurfaceContent } from "./surface-content.js";
 import { clipPathsToStrip } from "./surface-composer.js";
@@ -11,7 +12,7 @@ const pause = () => new Promise(resolve => setTimeout(resolve, 0));
 
 export { prepareSurfaceSource as preparePrintSource } from "./surface-source.js";
 
-export function packSurfaceRows(rgba, target, rowStart, range, { dither = true } = {}) {
+export function packSurfaceRows(rgba, target, rowStart, range, { dither = true, phaseOffsetRows = 0, phaseChangeRow = Infinity, phaseAfterRows = phaseOffsetRows } = {}) {
   const d = EPSON_SURFACE.dotsPerMm, originalRow = Math.round(range.fromMm * d);
   const left = range.strip.printableOffsetMm, right = left + range.strip.printableWidthMm;
   for (let row = 0; row < rgba.height; row++) for (let x = EPSON_SURFACE.firstColumn; x <= EPSON_SURFACE.lastColumn; x++) {
@@ -19,7 +20,7 @@ export function packSurfaceRows(rgba, target, rowStart, range, { dither = true }
     if (u < left || u >= right) continue;
     const i = (row * 512 + x) * 4, alpha = rgba.data[i + 3] / 255;
     const gray = (rgba.data[i] * .299 + rgba.data[i + 1] * .587 + rgba.data[i + 2] * .114) * alpha + 255 * (1 - alpha);
-    const threshold = dither ? (BAYER[((rowStart + row + originalRow) % 4) * 4 + x % 4] + .5) * 16 : 160;
+    const threshold = dither ? (BAYER[(((rowStart + row + originalRow + (rowStart + row >= phaseChangeRow ? phaseAfterRows : phaseOffsetRows)) % 4 + 4) % 4) * 4 + x % 4] + .5) * 16 : 160;
     if (gray < threshold) target[(rowStart + row) * 64 + (x >> 3)] |= 0x80 >> (x & 7);
   }
 }
@@ -27,9 +28,9 @@ export function packSurfaceRows(rgba, target, rowStart, range, { dither = true }
 export async function renderSurfaceReceipt(session, range, source, { cancelled = () => false, onProgress = () => {}, dither = true } = {}) {
   const profile = EPSON_SURFACE, strip = range.strip, d = profile.dotsPerMm;
   if (strip.physicalWidthMm < 78 || strip.physicalWidthMm > 82) throw new Error("This print profile requires nominal 80 mm paper.");
-  const bodyHeight = Math.max(1, Math.ceil(range.lengthMm * d - 1e-9));
+  const trim = thermalTrimLayout(range.lengthMm, session.production.trimMarks);
   const labelHeight = Math.ceil(labelExtraMm(session.assembly) * d - 1e-9);
-  const height = bodyHeight + labelHeight;
+  const height = trim.rows + labelHeight;
   if (height > profile.maxHeight) throw new Error(`Print a shorter range (maximum ${(profile.maxHeight / d / 1000).toFixed(2)} m per job).`);
   const bytes = new Uint8Array(64 * height);
   const original = session.strips.find(p => p.id === range.originalId);
@@ -40,8 +41,9 @@ export async function renderSurfaceReceipt(session, range, source, { cancelled =
   const rasterizer = source.image ? createStripRasterizer(source.image, source.placement, resolved.frame, renderStrip, { dotsPerMmX: d }) : null;
   const label = endLabelPaths(session, original, range);
   // Dot-aligned label origin follows the rounded body, preserving art pitch.
-  const labelPaths = label.paths.map(p => ({ ...p, pts: p.pts.map(([x,y]) => [x, y + bodyHeight / d - range.lengthMm]) }));
-  const paths = [...(source.paths ? clipPathsToStrip(source.paths, samplingStrip).paths : []), ...labelPaths];
+  const labelPaths = label.paths.map(p => ({ ...p, pts: p.pts.map(([x,y]) => [x, y + trim.rows / d - range.lengthMm]) }));
+  const bodyPaths = source.paths ? clipPathsToStrip(source.paths, samplingStrip).paths.map(p => ({...p, pts:p.pts.map(([x,y,...rest])=>[x,y+trim.bodyStartRow/d,...rest])})) : [];
+  const groups = [{paths:bodyPaths,from:trim.bodyStartRow/d,to:trim.bodyEndRow/d},{paths:labelPaths,from:trim.rows/d,to:height/d}];
   const canvas = document.createElement("canvas");
   if (canvas) canvas.width = 512;
   for (let rowStart = 0; rowStart < height; rowStart += 256) {
@@ -52,24 +54,30 @@ export async function renderSurfaceReceipt(session, range, source, { cancelled =
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) throw new Error("Line rendering is unavailable.");
     ctx.fillStyle = "white"; ctx.fillRect(0, 0, 512, rows);
-    if (rasterizer && rowStart < bodyHeight) {
-      const block = rasterizer.renderBlock(rowStart, Math.min(rows, bodyHeight - rowStart));
-      ctx.putImageData(new ImageData(block.data, block.width, block.height), 0, 0);
+    const from = Math.max(rowStart, trim.bodyStartRow), to = Math.min(rowStart + rows, trim.bodyEndRow);
+    if (rasterizer && from < to) {
+      const block = rasterizer.renderBlock(from-trim.bodyStartRow, to-from);
+      ctx.putImageData(new ImageData(block.data, block.width, block.height), 0, from-rowStart);
     }
     ctx.scale(d, d); ctx.translate(-profile.headOffsetMm, -rowStart / d);
     ctx.beginPath(); ctx.rect(strip.printableOffsetMm, 0, strip.printableWidthMm, height / d); ctx.clip();
     ctx.strokeStyle = "black"; ctx.lineWidth = .3; ctx.lineCap = "round"; ctx.lineJoin = "round";
-    for (const path of paths) {
-      ctx.beginPath(); path.pts.forEach(([x, y], i) => { if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
-      if (path.closed) ctx.closePath(); ctx.stroke();
+    for (const group of groups) {
+      ctx.save(); ctx.beginPath(); ctx.rect(strip.printableOffsetMm,group.from,strip.printableWidthMm,group.to-group.from); ctx.clip();
+      for (const path of group.paths) {
+        ctx.beginPath(); path.pts.forEach(([x,y],i)=>{if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);});
+        if(path.closed)ctx.closePath(); ctx.stroke();
+      }
+      ctx.restore();
     }
     rgba = ctx.getImageData(0, 0, 512, rows);
-    packSurfaceRows(rgba, bytes, rowStart, range, { dither });
+    packSurfaceRows(rgba, bytes, rowStart, range, { dither, phaseOffsetRows: -trim.bodyStartRow, phaseChangeRow: trim.rows, phaseAfterRows: -trim.leadingRows-trim.trailingRows });
     onProgress((rowStart + rows) / height); await pause();
   }
+  addThermalTrimMarks(bytes, trim, strip, profile);
   let binary = "";
   for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
-  return { ...(session.assembly?.labelMode === "tear" ? { tearAtRow: bodyHeight } : {}), width: 512, height, data: btoa(binary), cut: session.production.cut, name: `${range.originalId} · ${range.fromMm.toFixed(1)}–${range.toMm.toFixed(1)} mm` };
+  return { ...(session.assembly?.labelMode === "tear" ? { tearAtRow: trim.rows } : {}), width: 512, height, data: btoa(binary), cut: session.production.cut, name: `${range.originalId} · ${range.fromMm.toFixed(1)}–${range.toMm.toFixed(1)} mm` };
 }
 
 function baseUrl(url) {

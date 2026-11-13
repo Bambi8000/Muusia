@@ -27,7 +27,7 @@ test('mapped papers keep global pose while independent papers ignore placement e
  const r=resolveSurfaceContent(source,s,s.strips[1],100,200);assert.equal(r.frame,s);assert.equal(r.strip.rotationDeg,80);assert.deepEqual(stripTransform(r.strip).toGlobal([0,0]),stripTransform(s.strips[1]).toGlobal([0,100]));
 });
 test('labels extend the tail without shifting body corners, length budget includes labels and mechanical allowance',()=>{
- const s=session();s.assembly=assemblySettings({labelMode:'tear',labelLengthMm:32,cutterFeedMm:20});
+ const s=session();s.production.trimMarks=false;s.assembly=assemblySettings({labelMode:'tear',labelLengthMm:32,cutterFeedMm:20});
  const original=stripTransform(s.strips[0]),extended=stripTransform(extendedPaper(s.strips[0],s.assembly));
  for(const pt of [[0,0],[80,0],[80,1000],[0,1000]]) original.toGlobal(pt).forEach((v,i)=>assert.ok(Math.abs(v-extended.toGlobal(pt)[i])<1e-9));
  const b=paperBudget(s.strips,s.production,s.assembly);assert.equal(b.artworkM,2);assert.equal(b.labelsM,.064);assert.equal(b.allowanceM,.08);assert.equal(b.totalM,2.144);
@@ -59,7 +59,7 @@ test('nearest edge gap distinguishes separated rotated rectangles, touching and 
  assert.equal(r.edgeGapMm,1460);assert.equal(r.overlap,false);
 });
 test('measured internal-cut allowance includes body tail and label blank once, preserving explicit saved overrides',()=>{
- const s=session();s.assembly=assemblySettings({labelMode:'tear'});
+ const s=session();s.production.trimMarks=false;s.assembly=assemblySettings({labelMode:'tear'});
  assert.equal(s.assembly.cutterFeedMm,17);
  const plan=productionPlan(s);assert.equal(plan.ranges.length,1);assert.equal(plan.totalM,1.069);
  const old={...s,assembly:{...s.assembly,cutterFeedMm:20}};

@@ -412,6 +412,23 @@
       "physicalPrintSent": false,
       "commit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
       "pagesRunId": 43402236176
+    },
+    "trimMarks": {
+      "version": "2.187",
+      "baseCommit": "2a8e01f6e08699d8d452a4aa39facb9869ad0677",
+      "status": "implemented and tested; live Print installed; public publication pending",
+      "tests": "101 Surface JS; 16 Python Print; lint; catalog; build; 37914 Learn checks",
+      "defaultOn": true,
+      "guardRowsPerEnd": 22,
+      "bodyRowsInActualTest": 707,
+      "actualHeight": 978,
+      "tearAtRow": 751,
+      "bodyAndLabelBytesIdentical": true,
+      "directMatchesExport": true,
+      "manualCoolingDefault": true,
+      "physicalPrintSent": false,
+      "serviceBackup": "/home/print/muusia-print/before-trim-marks-20261113-115657",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-trim-marks"
     }
   }
 }

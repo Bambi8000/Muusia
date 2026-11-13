@@ -398,7 +398,7 @@ class Handler(BaseHTTPRequestHandler):
                 queued = sum(j["status"] == "queued" for j in jobs.values())
             self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device})
         elif self.path == "/api/strip-capabilities":
-            self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left", "printPackageVersion": 1})
+            self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left", "printPackageVersion": 1, "trimMarksVersion": 1})
         elif self.path == "/api/clock":
             self._json(200, clock_snapshot())
         elif self.path == "/api/native-pages":
