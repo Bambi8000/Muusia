@@ -2,30 +2,30 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.187",
+    "version": "2.188",
     "date": "2026-11-13",
-    "commit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
-    "pagesRunId": 43405608667,
+    "commit": "200a150ef4c2bec948860a9c887b66ad0ccd8193",
+    "pagesRunId": 43408064698,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.187; removable thermal trim marks and updated Print service",
-    "publicAppSha256": "87abb21782dcef1da55fbdff11f14c10b030168817026ddb61305e875ac8c35b"
+    "status": "verified public Muusia 2.188; default-on paper bezel compensation",
+    "publicAppSha256": "b02b8ff7c500b9ff12ae9109da2620c0bc5cb95b0ebefb6585684be09018c911"
   },
   "lastIntegration": {
-    "version": "2.187",
+    "version": "2.188",
     "date": "2026-11-13",
-    "baseCommit": "2a8e01f6e08699d8d452a4aa39facb9869ad0677",
-    "implementationCommit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
+    "baseCommit": "d14c5133f52d18a8dc5063d789a56c9b987b65d5",
+    "implementationCommit": "200a150ef4c2bec948860a9c887b66ad0ccd8193",
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "published": true,
-    "status": "Muusia 2.187 published and verified; trim marks supported by live Print",
+    "status": "Muusia 2.188 published and verified",
     "moduleCount": 359,
     "registryCount": 361,
-    "validation": "101 Surface JS, 16 Python Print, lint, catalog, build, 37914 Learn checks; exact Pages success; real public marked ZIP validated; public bytes match local; direct native and exported raster match.",
+    "validation": "106 Surface JS, focused lint, catalog, build, 37914 Learn checks; real graph/image PNG and native measurements, 6-page Assembly PDFs, save/load/families/undo, exact successful Pages run and public native export matches local.",
     "note": "No new physical print. Primary checkout unrelated changes preserved.",
-    "commit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
-    "pagesRunId": 43405608667,
+    "commit": "200a150ef4c2bec948860a9c887b66ad0ccd8193",
+    "pagesRunId": 43408064698,
     "snapshot": "/private/tmp/muusia-surface-composer-snapshot-20261112 (refresh after final documentation commit; local only)"
   },
   "lastArtifact": {
@@ -53,7 +53,7 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "public Muusia 2.187 deployed and verified",
+    "status": "public Muusia 2.188 deployed and verified",
     "validation": "94 focused JS tests, lint, catalog, production build and 37914 Learn checks passed. Actual UI and saved project verified 17 mm extra feed; user photo supplies 23/2/18 mm measurements. No new print.",
     "nextStep": "Freeform animation batches and magnet-jig files remain optional follow-ups.",
     "calibration": {
@@ -393,11 +393,11 @@
       "physicalOutput": "none"
     },
     "publishedRelease": {
-      "version": "2.187",
-      "commit": "6829e20356ed0be785d8ce7b4b52ea54aeec3980",
-      "pagesRunId": 43405608667,
+      "version": "2.188",
+      "commit": "200a150ef4c2bec948860a9c887b66ad0ccd8193",
+      "pagesRunId": 43408064698,
       "url": "https://bambi8000.github.io/Muusia/",
-      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-trim-marks",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-bezels",
       "publicAppMatchesLocal": true,
       "physicalPrintSentDuringVerification": false
     },
@@ -435,7 +435,7 @@
     "paperBezels": {
       "version": "2.188",
       "baseCommit": "d14c5133f52d18a8dc5063d789a56c9b987b65d5",
-      "status": "implemented and validated; publication pending",
+      "status": "published and verified",
       "defaultOn": true,
       "perLayout": true,
       "tests": "106 JS, focused lint, catalog, build, 37914 Learn checks",
@@ -451,7 +451,9 @@
       ],
       "physicalPrintSent": false,
       "serviceUpdateRequired": false,
-      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-bezels"
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-bezels",
+      "commit": "200a150ef4c2bec948860a9c887b66ad0ccd8193",
+      "pagesRunId": 43408064698
     }
   }
 }

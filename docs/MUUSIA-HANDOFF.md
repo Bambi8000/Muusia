@@ -6428,3 +6428,18 @@ rendered and visually inspected. No physical print or Print-service update.
 Artifacts: surface-bezels in this thread's artifact directory. App 2.188 prepared
 for authorized publication; verify exact Pages run and actual public UI.
 Primary checkout's unrelated dirty changes preserved.
+
+
+### 2.188 — Public bezel control verified
+
+Source `200a150ef4c2bec948860a9c887b66ad0ccd8193`; successful exact Pages run
+43408064698: https://github.com/Bambi8000/Muusia/actions/runs/43408064698
+Actual public browser shows v2.188 and default-checked Account for paper bezels.
+Saved screenshot exposes both the left control and right Paper width / Ink width /
+Ink offset. Actual public default-On native export matches the tested local
+packet bytes. Public app SHA256 b02b8ff7c500b9ff12ae9109da2620c0bc5cb95b0ebefb6585684be09018c911
+matches local production. No physical print and no Print service change.
+Documentation follow-up clarifies the clipper's default/optional width fitting;
+106 tests and the ordered catalog/build/37914 Learn gate passed again with that
+comment-only source clarification. Refresh clean source snapshot after final
+commit. Evidence: surface-bezels in the thread artifact directory.

@@ -106,7 +106,8 @@ export function stripCorners(input, area = "paper") {
 }
 
 /** Image Mapping for paths. The result stays in FULL PAPER local coordinates,
- *  including the unprintable left margin. It is never fitted or resized.
+ *  including the unprintable left margin. Default compensation preserves scale;
+ *  explicit Off fits the full paper-local width into the printable width.
  *  Raster/thermal-text payloads are deliberately not copied to the path result. */
 export function clipPathsToStrip(ps, input, { accountForBezels = true } = {}) {
   if (!ps || !Array.isArray(ps.paths)) throw new Error("A path set is required.");
