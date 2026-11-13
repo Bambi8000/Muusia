@@ -2,30 +2,30 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.185",
+    "version": "2.186",
     "date": "2026-11-13",
-    "commit": "9d5624e4146c330a21fc24b2e9e12ebee462ae22",
-    "pagesRunId": 43397200074,
+    "commit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
+    "pagesRunId": 43402236176,
     "url": "https://bambi8000.github.io/Muusia/",
     "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.185; unified Surface Composer, independent content, Assembly PDF with edge angles, optional end labels and calibrated 17 mm extra feed",
-    "publicAppSha256": "326e96b80578f72b5479e32315cdcfd46a078bcd83f20fe6897b47d2d766f2fc"
+    "status": "verified public Muusia 2.186; prominent direct Surface print access and calibrated Print packages",
+    "publicAppSha256": "7328922383677a06c5f92ab6e48b6e2c695584a6c3b052fb364bdeab6cee9ec5"
   },
   "lastIntegration": {
-    "version": "2.185",
+    "version": "2.186",
     "date": "2026-11-13",
-    "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "implementationCommit": "4f7b2cf80c0d2554b9bfd19d017ec3e147346159",
+    "baseCommit": "5f4ec588289641971973aa070750ecfa4be74309",
+    "implementationCommit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "published": true,
-    "status": "Muusia 2.185 published and verified on GitHub Pages",
+    "status": "Muusia 2.186 published and verified; live Print package import installed",
     "moduleCount": 359,
     "registryCount": 361,
-    "validation": "94 JS tests, Surface Context contract, 10 Print tests, catalog, build and 37914 Learn checks; exact successful Pages run; actual public app PDF/PNG and all family controls verified; public app matches local production SHA256.",
+    "validation": "98 Surface JS, 15 Python Print, lint, catalog, build, 37914 Learn checks; exact Pages success; public v2.186 UI and real Print ZIP export verified; public index equals local production.",
     "note": "No new physical print. Primary checkout unrelated changes preserved.",
-    "commit": "9d5624e4146c330a21fc24b2e9e12ebee462ae22",
-    "pagesRunId": 43397200074,
+    "commit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
+    "pagesRunId": 43402236176,
     "snapshot": "/private/tmp/muusia-surface-composer-snapshot-20261112 (refresh after final documentation commit; local only)"
   },
   "lastArtifact": {
@@ -53,7 +53,7 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "public Muusia 2.185 deployed and verified",
+    "status": "public Muusia 2.186 deployed and verified",
     "validation": "94 focused JS tests, lint, catalog, production build and 37914 Learn checks passed. Actual UI and saved project verified 17 mm extra feed; user photo supplies 23/2/18 mm measurements. No new print.",
     "nextStep": "Freeform animation batches and magnet-jig files remain optional follow-ups.",
     "calibration": {
@@ -393,23 +393,25 @@
       "physicalOutput": "none"
     },
     "publishedRelease": {
-      "version": "2.185",
-      "commit": "9d5624e4146c330a21fc24b2e9e12ebee462ae22",
-      "pagesRunId": 43397200074,
+      "version": "2.186",
+      "commit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
+      "pagesRunId": 43402236176,
       "url": "https://bambi8000.github.io/Muusia/",
-      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-publication",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-print-transfer",
       "publicAppMatchesLocal": true,
       "physicalPrintSentDuringVerification": false
     },
     "printTransfer": {
       "version": "2.186",
       "baseCommit": "5f4ec588289641971973aa070750ecfa4be74309",
-      "status": "implemented and validated; live Print installed; public app publication pending",
+      "status": "published and verified; Print service installed",
       "tests": "98 Surface JS, 15 Python Print, focused lint, catalog, build, 37914 Learn checks",
       "browser": "3 x 1 m Print ZIP, import no auto-send, one manual dry job, one direct dry job; exact ESC/POS equality; selected 500–1000 mm retains geometry; live import USB ready/empty queue",
       "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-print-transfer",
       "serviceBackup": "/home/print/muusia-print/before-print-package-20261113-113049",
-      "physicalPrintSent": false
+      "physicalPrintSent": false,
+      "commit": "98326ea68c3ae88f9c8c2ce867056121c43cb691",
+      "pagesRunId": 43402236176
     }
   }
 }

@@ -6340,3 +6340,20 @@ must be included with server/dashboard updates. Browser artifacts:
 surface-print-transfer in this thread's artifact directory. App 2.186 prepared
 for authorized publication; verify the exact Pages commit and actual public UI.
 Primary checkout unrelated dirty work remains untouched.
+
+
+### 2.186 — Public print transfer verified
+
+Source commit: `98326ea68c3ae88f9c8c2ce867056121c43cb691`.
+Exact Pages run `43402236176` completed successfully:
+https://github.com/Bambi8000/Muusia/actions/runs/43402236176
+Actual public app shows v2.186. Header Print… opens direct controls; manual
+single-strip mode stays default. Exported the 3 x 1 m test package from PUBLIC
+Muusia and revalidated all three calibrated native packets. Public index SHA256
+7328922383677a06c5f92ab6e48b6e2c695584a6c3b052fb364bdeab6cee9ec5
+matches local production byte for byte. Live Print imported the full package and
+a selected 500–1000 mm packet with USB ready, without sending a strip. Actual
+Surface PNG ZIP now gives the actionable Print package / Print… explanation.
+No physical raster print sent by this task. Evidence and screenshot:
+`surface-print-transfer/verification.json` and `public-surface-print.png` in the
+thread artifact directory. Snapshot refresh follows final documentation commit.
