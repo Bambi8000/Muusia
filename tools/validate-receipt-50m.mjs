@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {RECEIPT_MAX_HEIGHT_DOTS as max,RECEIPT_DOTS_PER_MM as d,RECEIPT_MAX_JSON_BYTES} from '../src/receipt-format.js';
+import {EPSON_SURFACE} from '../src/surface-print.js';
+import {surfacePrintPackagePlan} from '../src/surface-print-package.js';
+import {createSurfaceSession} from '../src/surface-session.js';
+import {createStrip} from '../src/surface-composer.js';
+assert.equal(max,353357);
+assert.ok(Math.abs(max/d-50000)<1/d);
+assert.equal(EPSON_SURFACE.maxHeight,max);
+const session=length=>({...createSurfaceSession(),mode:'freeform',strips:[createStrip({id:'long',lengthMm:length})],production:{...createSurfaceSession().production,trimMarks:false},assembly:{labelMode:'off'}});
+assert.equal(surfacePrintPackagePlan(session(50000)).ranges[0].lengthMm,50000);
+assert.ok(surfacePrintPackagePlan(session(50000)).bytes<32*1024*1024);
+assert.throws(()=>surfacePrintPackagePlan(session(50001)),/50 m/);
+assert.throws(()=>surfacePrintPackagePlan({...session(50000),production:{...session(50000).production,trimMarks:true}}),/50 m/);
+const py=JSON.parse(execFileSync('python3',['-c','import sys,json;sys.path.insert(0,"print-server");import receipt_limits as r;print(json.dumps({"height":r.MAX_HEIGHT,"body":r.MAX_BODY,"length":r.MAX_LENGTH_MM}))'],{encoding:'utf8'}));
+assert.equal(py.height,max);assert.equal(py.length,50000);assert.ok(py.body>RECEIPT_MAX_JSON_BYTES);
+console.log(`50 m limits pass: ${max} rows; calibrated length, labels/guards, package budget and JS/Python parity.`);

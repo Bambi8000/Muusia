@@ -20,15 +20,14 @@ from urllib.parse import unquote
 
 import native_fonts
 import print_package
+import usb_transport
+from receipt_limits import MAX_HEIGHT, MAX_BODY, MAX_IMPORT, MAX_LENGTH_MM
 
 
 WIDTH = 512
-MAX_HEIGHT = 65535
-MAX_BODY = 6_000_000
-MAX_STRIP_HEIGHT = 65535
-MAX_STRIP_BODY = 6_000_000
+MAX_STRIP_HEIGHT = MAX_HEIGHT
+MAX_STRIP_BODY = MAX_BODY
 MAX_IMAGE_HISTORY_BYTES = 32 * 1024 * 1024
-MAX_IMPORT = 12_000_000
 MAX_IMPORT_ITEMS = 64
 CHUNK_ROWS = 256
 jobs = {}
@@ -44,7 +43,7 @@ clock_state = {"running": False, "interval": "second", "lastLine": None,
 
 
 def printer_ready():
-    return bool(os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")) or os.path.exists(
+    return bool(os.environ.get("MUUSIA_PRINT_OUTPUT_FILE")) or not usb_transport.failure and os.path.exists(
         os.environ.get("MUUSIA_PRINT_DEVICE", "/dev/usb/lp0"))
 
 
@@ -315,18 +314,30 @@ def print_worker():
             if file_output:
                 fd = os.open(file_output, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
             else:
+                if usb_transport.failure:
+                    raise OSError(usb_transport.failure)
+                parts = usb_transport.segments(data)
                 device = os.environ.get("MUUSIA_PRINT_DEVICE", "/dev/usb/lp0")
                 if not stat.S_ISCHR(os.stat(device).st_mode):
                     raise OSError(f"Printer path is not a character device: {device}")
-                fd = os.open(device, os.O_WRONLY)
+                fd = os.open(device, os.O_RDWR | os.O_NONBLOCK)
             try:
-                write_all(fd, data)
+                if file_output:
+                    write_all(fd, data)
+                else:
+                    def progress(rows):
+                        with jobs_lock:
+                            jobs[job_id]["confirmedRows"] = rows
+                    usb_transport.print_program(fd, parts, progress)
             finally:
                 os.close(fd)
             with jobs_lock:
                 jobs[job_id]["status"] = "done"
                 jobs[job_id]["finishedAt"] = time.time()
         except Exception as exc:
+            if not os.environ.get("MUUSIA_PRINT_OUTPUT_FILE"):
+                usb_transport.failure = f"USB transfer stopped: {exc}. Power-cycle printer and restart Print before retrying."
+                stop_clock(usb_transport.failure)
             with jobs_lock:
                 jobs[job_id].update(status="failed", error=str(exc), finishedAt=time.time())
             if kind == "clock":
@@ -396,9 +407,9 @@ class Handler(BaseHTTPRequestHandler):
             ready = printer_ready()
             with jobs_lock:
                 queued = sum(j["status"] == "queued" for j in jobs.values())
-            self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device})
+            self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device, "error": usb_transport.failure})
         elif self.path == "/api/strip-capabilities":
-            self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left", "printPackageVersion": 1, "trimMarksVersion": 1})
+            self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "maxLengthMm": MAX_LENGTH_MM, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left", "printPackageVersion": 1, "trimMarksVersion": 1})
         elif self.path == "/api/clock":
             self._json(200, clock_snapshot())
         elif self.path == "/api/native-pages":
@@ -582,6 +593,9 @@ class Handler(BaseHTTPRequestHandler):
         with jobs_lock:
             if request_id and job_id in jobs:
                 self._json(202, {"id": job_id, "status": jobs[job_id]["status"]})
+                return
+            if usb_transport.failure and not os.environ.get("MUUSIA_PRINT_OUTPUT_FILE"):
+                self._json(503, {"error": usb_transport.failure})
                 return
             if require_idle and any(j["status"] in ("queued", "printing") for j in jobs.values()):
                 self._json(409, {"error": "Printer is busy. Wait for the current strip to finish."})

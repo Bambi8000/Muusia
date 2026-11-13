@@ -1,4 +1,4 @@
-import { RECEIPT_WIDTH_DOTS, RECEIPT_MAX_HEIGHT_DOTS, RECEIPT_RENDER_ROWS } from "./receipt-format.js";
+import { RECEIPT_WIDTH_DOTS, RECEIPT_MAX_HEIGHT_DOTS, RECEIPT_RENDER_ROWS, RECEIPT_MAX_LENGTH_MM } from "./receipt-format.js";
 
 export function renderReceiptRaster(paths, widthMm, heightMm) {
   if (!Number.isFinite(widthMm) || !Number.isFinite(heightMm) || widthMm <= 0 || heightMm <= 0) {
@@ -7,7 +7,7 @@ export function renderReceiptRaster(paths, widthMm, heightMm) {
   const width = RECEIPT_WIDTH_DOTS;
   const height = Math.round(heightMm / widthMm * width);
   if (height < 1 || height > RECEIPT_MAX_HEIGHT_DOTS) {
-    throw new Error(`Receipt is too long. Use a shorter canvas or test crop (maximum ${RECEIPT_MAX_HEIGHT_DOTS} dots, about ${Math.floor(RECEIPT_MAX_HEIGHT_DOTS / 180 * 25.4 / 100) / 10} m of paper).`);
+    throw new Error(`Receipt is too long. Use a shorter canvas or test crop (maximum ${RECEIPT_MAX_LENGTH_MM / 1000} m of raster image).`);
   }
   const canvas = document.createElement("canvas");
   // Keep existing short-receipt pixels identical. Browsers can quantize

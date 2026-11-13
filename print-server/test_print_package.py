@@ -24,6 +24,15 @@ def archive(body, extra=None, manifest_patch=None):
 
 
 class PrintPackageTests(unittest.TestCase):
+    def test_fifty_metre_strip_is_one_packet_and_longer_body_is_rejected(self):
+        p = packet(50000, 0)
+        result = print_package.validate_strip_packet(p, server.validate_receipt)
+        self.assertEqual(result["height"], server.MAX_STRIP_HEIGHT)
+        self.assertEqual(result["geometry"]["bodyLengthMm"], 50000)
+        self.assertEqual(result["data"], p["data"])
+        with self.assertRaises(ValueError):
+            print_package.validate_strip_packet(packet(50001, 0), server.validate_receipt)
+
     def test_long_strip_zip_and_selected_file_preserve_scale_pixels_and_internal_cut(self):
         p=packet();out=server.inspect_file('demo-print.zip',archive(p));self.assertEqual(len(out),1)
         self.assertEqual(out[0]['kind'],'strip');self.assertEqual(out[0]['height'],7295);self.assertEqual(out[0]['tearAtRow'],7068);self.assertEqual(out[0]['data'],p['data']);self.assertEqual(out[0]['geometry'],p['geometry'])

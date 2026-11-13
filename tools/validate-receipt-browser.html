@@ -40,9 +40,9 @@ for(const H of [300,1000,3000])test(`Strip rendering preserves one-piece coverag
   // all old short-receipt pixels must remain identical.
   ok(H===300 ? differences===0 : differences<512*(H*6.4)*.0002,`too many changed edge pixels: ${differences}`);
 });
-for(const H of [1000,3000,10000])test(`Full-length line survives every strip and the final row (${H} mm)`,()=>{
+for(const H of [1000,3000,10000,RECEIPT_MAX_HEIGHT_DOTS/6.4])test(`Full-length line survives every strip and the final row (${Math.round(H)} canvas mm)`,()=>{
   const image=renderReceipt([{pts:[[40,0],[40,H]],closed:false}],80,H),bytes=decode(image);
-  ok(image.height===H*6.4,'full output height');
+  ok(image.height===Math.round(H*6.4),'full output height');
   for(let y=0;y<image.height;y++)ok((bytes[y*64+32]&0x80)!==0,`missing line at row ${y}`);
   const receipt=parseReceiptJson(JSON.stringify({format:'muusia-receipt',version:1,...image,cut:true}));
   ok(receipt.height===image.height,'LATU dimensions');

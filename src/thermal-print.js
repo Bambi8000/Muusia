@@ -1,7 +1,7 @@
 // First Muusia Print path: render the selected vector output as 1-bit TM-T88V data.
 import { RECEIPT_WIDTH_DOTS, RECEIPT_MAX_HEIGHT_DOTS } from "./receipt-format.js";
 import { renderReceiptRaster } from "./receipt-raster.js";
-export { RECEIPT_WIDTH_DOTS, RECEIPT_MAX_HEIGHT_DOTS } from "./receipt-format.js";
+export { RECEIPT_WIDTH_DOTS, RECEIPT_MAX_HEIGHT_DOTS, RECEIPT_DOTS_PER_MM } from "./receipt-format.js";
 
 export const ANIMATION_RECEIPT = Object.freeze({ x: 48, y: 112, width: 416, arm: 32, stroke: 5, codeX: 184, codeY: 65, codeCell: 9, codeHeight: 18 });
 
@@ -84,8 +84,9 @@ function localPrintBase(serverUrl) {
   return base;
 }
 
-async function awaitPrintJob(base, id) {
-  for (let attempt = 0; attempt < 60; attempt++) {
+async function awaitPrintJob(base, id, timeoutMs = 30000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
     await new Promise(resolve => setTimeout(resolve, 500));
     const check = await fetch(`${base}/api/jobs/${id}`);
     const job = await check.json().catch(() => ({}));
@@ -104,7 +105,7 @@ export async function sendReceipt(serverUrl, receipt, cut = true) {
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || `Print server returned ${response.status}.`);
-  return awaitPrintJob(base, result.id);
+  return awaitPrintJob(base, result.id, receipt.height > 4096 ? 30 * 60 * 1000 : 30000);
 }
 
 export async function nativeFontTests(serverUrl) {

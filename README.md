@@ -1,4 +1,4 @@
-# MUUSIA v2.189
+# MUUSIA v2.190
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -143,7 +143,8 @@ Ribbon's **Shape → Long** adds Line, Pleated and Channels forms with repetitio
 distances in millimetres. **Kaisla** draws long tapered reeds with leaves, joints
 and feathery or cattail heads. Help includes two one-metre Ribbon examples,
 one-metre reeds and three-metre cattails. Receipt export and LATU preview support
-up to 65,535 raster rows; the print-server update is required for direct printing.
+up to 353,357 raster rows (about 50 m at the measured dot scale). Direct USB
+printing uses small acknowledged bands; the print-server update is required.
 The receipt route fits the artwork to 512 dots, so nominal canvas millimetres
 are not a calibrated physical print size.
 

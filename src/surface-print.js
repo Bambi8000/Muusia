@@ -3,10 +3,11 @@ import { endLabelPaths, labelExtraMm } from "./surface-assembly.js";
 import { resolveSurfaceContent } from "./surface-content.js";
 import { clipPathsToStrip } from "./surface-composer.js";
 import { createStripRasterizer } from "./surface-render.js";
+import { RECEIPT_DOTS_PER_MM, RECEIPT_MAX_HEIGHT_DOTS } from "./receipt-format.js";
 
 // Measured 12 Nov 2026: 400 dots = 56.6 mm in X and Y; columns 1..499
 // physically verified with 4.6 mm side margins. No width-fitting is performed.
-export const EPSON_SURFACE = Object.freeze({ width: 512, dotsPerMm: 400 / 56.6, headOffsetMm: 4.38775, firstColumn: 1, lastColumn: 499, maxHeight: 65535 });
+export const EPSON_SURFACE = Object.freeze({ width: 512, dotsPerMm: RECEIPT_DOTS_PER_MM, headOffsetMm: 4.38775, firstColumn: 1, lastColumn: 499, maxHeight: RECEIPT_MAX_HEIGHT_DOTS });
 const BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
 const pause = () => new Promise(resolve => setTimeout(resolve, 0));
 

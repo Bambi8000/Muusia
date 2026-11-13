@@ -3,10 +3,11 @@ import base64
 import json
 import math
 import re
+from receipt_limits import MAX_HEIGHT, MAX_BODY
 
 PROFILE_ID = "epson-tmt88v-measured-20261112"
 DOTS_PER_MM = 400 / 56.6
-MAX_FILE = 6_000_000
+MAX_FILE = MAX_BODY
 MAX_PIXELS_BYTES = 32 * 1024 * 1024
 MAX_UNPACKED = 48 * 1024 * 1024
 PNG_ZIP_MESSAGE = "This is a Surface PNG image export. In Surface Composer use Export Print package, or Print… for direct printing. PNG export is for image files and other printers."
@@ -25,7 +26,7 @@ def validate_strip_packet(body, validate_receipt):
     profile = body.get("profile", {})
     if not isinstance(profile, dict) or profile.get("id") != PROFILE_ID or profile.get("width") != 512 or abs(number(profile, "dotsPerMm", 1, 100) - DOTS_PER_MM) > 1e-9:
         raise ValueError("Print file uses a different printer calibration")
-    height, pixels, cut, native = validate_receipt(body, 65535, MAX_FILE)
+    height, pixels, cut, native = validate_receipt(body, MAX_HEIGHT, MAX_FILE)
     if native:
         raise ValueError("Print strip files contain calibrated raster graphics only")
     geometry = body.get("geometry")

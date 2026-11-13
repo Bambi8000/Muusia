@@ -16,11 +16,11 @@ Open that ZIP in the same receipt preview to play the frames in order, pause,
 step backward or forward, or scrub to a frame. The small frame number and crop
 marks are already in each receipt's pixels; playback does not change the files.
 
-Long receipts support up to 65,535 rows (including the 80 × 1000 mm preset and
-multi-metre canvases). JSON and ESC/POS imports keep every raster row; the viewer
-uses consecutive 1024-row canvases so long rolls do not hit browser canvas-height
-limits. Physical length is approximate at 180 dpi, and regular receipt export
-fits the source canvas to the 512-dot print width.
+Long receipts support up to 353,357 rows (about 50 m at the measured
+400 dots = 56.6 mm scale). JSON and ESC/POS imports keep every raster row. Above
+8192 rows, the viewer shows a movable 4096-row window using four 1024-row
+canvases, keeping browser memory bounded. Regular receipt export fits the source
+canvas to the 512-dot print width; Surface Composer retains calibrated size.
 
 LATU is Muusia's line-preserving G-code reader/editor sub-app. The M0 viewer
 provides Muusia servo/bed-Z parsing, canvas and text synchronization, file

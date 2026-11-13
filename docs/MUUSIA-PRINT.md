@@ -32,9 +32,9 @@ Muusia tarjoaa **Surface Composer → Print… → Print / continue** -paneelin.
 
 **Total paper** näyttää näkyvien suikaleiden metrit lisävaroineen ja vertaa niitä annettuun rullaan. Rullan pituus, jo käytetty osuus, varaus ja syöttö-/leikkausvara annetaan käsin. Ne ovat kulutusarvio, eivät anturitietoa. Tallennettava jatkokohta on suikaleen alkuperäisessä kuvakohdistuksessa; osaväli ei skaalaa sisältöä uudelleen.
 
-Uusi `GET /api/strip-capabilities` ilmoittaa tuen, ja `POST /api/strip-jobs` ottaa yhden 512 × enintään 65 535 rivin rasterin (6 MB pyyntöraja). Koko suikale kulkee yhtenä työnä nykyisen USB-työntekijän läpi: 256 rivin ESC/POS-lohkot, alustus kerran ja valittu leikkaus vain lopussa. Versiosta 2.189 alkaen myös tavallinen `/api/jobs` hyväksyy 65 535 riviä; Print-sivun omien kuva- ja tekstieditorien erillinen 4096 rivin raja säilyy. Suikalereitti edellyttää tyhjää aktiivijonoa ja pysäytettyä Clock-tilaa. Työn `requestId` estää saman tunnisteen jonottamisen uudelleen palvelimen nykyisessä historiassa. Historiakuvien muistiraja on 32 MiB; vanha valmis esikatselu voi poistua.
+Uusi `GET /api/strip-capabilities` ilmoittaa tuen, ja `POST /api/strip-jobs` ottaa yhden 512 × enintään 353 357 rivin rasterin (32 MB pyyntöraja). Koko suikale kulkee yhtenä työnä nykyisen USB-työntekijän läpi: enintään 32 rivin kuitattavat USB-lohkot, alustus kerran ja valittu leikkaus vain lopussa. Versiosta 2.190 alkaen myös tavallinen `/api/jobs` hyväksyy 353 357 riviä; Print-sivun omien kuva- ja tekstieditorien erillinen 4096 rivin raja säilyy. Suikalereitti edellyttää tyhjää aktiivijonoa ja pysäytettyä Clock-tilaa. Työn `requestId` estää saman tunnisteen jonottamisen uudelleen palvelimen nykyisessä historiassa. Historiakuvien muistiraja on 32 MiB; vanha valmis esikatselu voi poistua.
 
-Mittakaava perustuu käyttäjän paperilta mittaamaan 400 pisteen = 56,6 mm X/Y-väliin. Turvalliset sarakkeet 1…499 perustuvat fyysisesti vahvistettuihin 4,6 mm sivureunoihin; paperin tarkka leveys on edelleen arvio. Noin 9,27 m työraja on palvelun nykyinen rasteriraja. Tulostin ei ilmoita sovellukselle paperin jäljellä olevia metrejä tai jäähtymistä.
+Mittakaava perustuu käyttäjän paperilta mittaamaan 400 pisteen = 56,6 mm X/Y-väliin. Turvalliset sarakkeet 1…499 perustuvat fyysisesti vahvistettuihin 4,6 mm sivureunoihin; paperin tarkka leveys on edelleen arvio. Työraja on noin 50 m paperia, mukaan lukien rasteriin kuuluvat päätylaput ja kohdistusmerkit. Tulostin ei ilmoita sovellukselle paperin jäljellä olevia metrejä tai jäähtymistä.
 
 Palvelin päivitettiin Pi:lle 13.11.2026 aktiivijonon ollessa tyhjä ja Clock pysäytettynä. USB-valmius ja uusi rajapinta tarkistettiin. Varmuuskopio: `/home/print/muusia-print/server.py.before-surface-20261113-001303`. Tulostimen asetuksia ei muutettu. Uusi 2 m työ, osaväli ja erikseen valittu kahden lyhyen työn jatko tarkistettiin selaimessa **kuivatestitiedostoon**, eivät fyysiselle paperille. Palvelimen 9 testiä kattavat myös tavutarkan 2 m ESC/POS-virran, lopullisen leikkauksen, varatun jonon hylkäyksen ja toistetun tunnisteen.
 
@@ -96,7 +96,7 @@ Ruudukon merkit ovat tietokoneen merkkikartan arvio; Epsonin sisäisen fontin to
 
 Pi:n kautta tulostettiin lisäksi 2× kokoiset PC866-kyrillinen ja PC861-islantilainen esimerkkikuitti. Käyttäjä vahvisti molempien merkkien näkyvän oikein paperilla. Muut merkistösivut ovat valittavissa, mutta niiden yksittäisten merkkien paperiasua ei ole vielä tarkistettu.
 
-Jono ja työhistoria ovat Pi:n muistissa: palvelun uudelleenkäynnistys tyhjentää ne. Tavallisen kuittireitin yksittäinen kuva saa olla enintään 512 × 65 535 pistettä; Surface Composerin erillinen suikalereitti kuvataan yllä. Jonoon mahtuu 64 odottavaa työtä ja historiaan 100 työtä. `done` tarkoittaa, että ESC/POS-tavut on kirjoitettu tiedostoon tai USB-laitteelle; se ei todista paperitulosteen laatua. Kuivatestitiedostoon kertyy kaikkien töiden tavut peräkkäin.
+Jono ja työhistoria ovat Pi:n muistissa: palvelun uudelleenkäynnistys tyhjentää ne. Tavallisen kuittireitin yksittäinen kuva saa olla enintään 512 × 353 357 pistettä; Surface Composerin erillinen suikalereitti kuvataan yllä. Jonoon mahtuu 64 odottavaa työtä ja historiaan 100 työtä. `done` tarkoittaa kuivatestissä tiedostoon kirjoitettuja tavuja, USB-tilassa tulostimen kuittaamaa viimeistä komentoa. Se ei todista paperitulosteen laatua. Kuivatestitiedostoon kertyy kaikkien töiden tavut peräkkäin.
 
 ## Pitkät nauhat ja kaislat — 2.189
 
@@ -105,8 +105,10 @@ Ribbonin **Shape → Long** käyttää millimetreissä säädettäviä mutkien, 
 laskosten ja taskujen välejä. **Kaisla** piirtää pitkiä kapenevia korsia lehtineen,
 nivelineen ja valinnaisine tähkineen. Help sisältää neljä 1–3 metrin esimerkkiä.
 
-Muusian tavallinen kuittivienti ja LATU tukevat nyt enintään 65 535 rasteririviä.
-Pitkä kuva rasteroidaan ja esikatsellaan 1024 rivin kaistoina, mutta tulostetaan
+Versiosta 2.190 Muusian kuittivienti ja LATU tukevat enintään 353 357
+rasteririviä eli noin 50 metriä mitatulla pistetiheydellä. Pitkä kuva
+rasteroidaan 1024 rivin kaistoina. LATU näyttää yli 8192 rivin kuvat siirrettävänä
+4096 rivin ikkunana. Kuva tulostetaan
 yhtenä työnä ja leikataan valinnan mukaan vasta lopussa. Lyhyiden kuittien
 rasterointi ja Thermal Textin ennen/jälkeen-tekstit säilyvät. LATUn animaatio-ZIP
 säilyttää freimien numeroinnin ja sallii myös pitkät kuvat.
@@ -114,7 +116,7 @@ säilyttää freimien numeroinnin ja sallii myös pitkät kuvat.
 Tämä tavallinen kuittireitti sovittaa piirtoalueen leveyden 512 pisteeseen:
 80 × 1000 mm tuottaa 6400 riviä eli noin 903 mm paperia 180 dpi:n arviolla.
 Mittatarkka suikalevienti kulkee edelleen kalibroidun Surface Composerin kautta.
-65 535 rivin raja vastaa noin 9,2 metriä paperia. Päivitetty normaali reitti
+Vanha 65 535 rivin raja vastasi noin 9,27 metriä paperia. Päivitetty normaali reitti
 vaatii myös tämän version Print-palvelimen; sovelluksen Pages-julkaisu ei
 asenna Pi-palvelinta. Surface Composerin suikalereitti tukee pitkiä töitä jo
 ennestään. Julkaisun yhteydessä ei lähetetä fyysistä tulostustyötä.
@@ -123,7 +125,7 @@ ennestään. Julkaisun yhteydessä ei lähetetä fyysistä tulostustyötä.
 
 Tällä Pi:llä Epson näkyy USB-tunnisteella `04b8:0202`, tuotteen nimi on `TM-T88V` ja laitepolku on `/dev/usb/lp0`. Palvelun ympäristötiedostossa `~/.config/muusia-print.env` on `MUUSIA_PRINT_DEVICE=/dev/usb/lp0`, eikä kuivatestin `MUUSIA_PRINT_OUTPUT_FILE` ole enää käytössä. Jos tulostin irrotetaan tai laitepolku vaihtuu, tarkista `lsusb`, `ls -l /dev/usb/lp*`, `systemctl --user status muusia-print.service` ja `journalctl --user -u muusia-print.service -n 50`. Uudella Pi-asennuksella vaihda ympäristötiedoston kuivatestirivi USB-laitepolkuun vasta, kun laite tunnistuu.
 
-Muusiassa valitse pieni viivapiirros ja jätä Mega Canvas pois. Tulostus skaalautuu 72 mm:n tulostusleveyteen. Tämän tavallisen kuittipolun enimmäispituus on noin 58 cm; aloita paljon lyhyemmällä kuvalla. Käytä tämän Macin palvelinosoitetta `http://127.0.0.1:8633`. Tulostussivun työt kulkevat saman palvelun kautta. Yhteys tarvitsee käynnissä olevan SSH-tunnelin, mutta ei tulostustunnusta.
+Muusiassa valitse pieni viivapiirros ja jätä Mega Canvas pois. Tulostus skaalautuu 72 mm:n tulostusleveyteen. Tämän kuittipolun raja on noin 50 m päivitetyn palvelun kanssa; aloita lyhyellä tarkistuksella. Käytä tämän Macin palvelinosoitetta `http://127.0.0.1:8633`. Tulostussivun työt kulkevat saman palvelun kautta. Yhteys tarvitsee käynnissä olevan SSH-tunnelin, mutta ei tulostustunnusta.
 
 ## Rajat ja seuraava vaihe
 
@@ -155,10 +157,10 @@ paikallisen tunnisteen: tarkista työ ja paperi ennen uuden lähettämistä.
 -profiili, alkuperäinen suikale/väli, fyysiset mitat ja mahdollinen päätylapun
 osittaisleikkausrivi. Sama renderöijä tuottaa suoran tulostuksen ja paketin:
 Print ei skaalaa eikä rasteroi kuvaa uudelleen. `/api/strip-capabilities` ilmoittaa
-`printPackageVersion: 1`. Paketti: enintään 64 suikaletta, 12 MB ZIP,
-32 MiB purettua rasteridataa; yksittäinen työ enintään 65535 riviä / 6 MB.
+`printPackageVersion: 1`. Paketti: enintään 64 suikaletta, 64 MB ZIP,
+32 MiB purettua rasteridataa; yksittäinen työ enintään 353357 riviä / 32 MB.
 Print tarkistaa mitat, kalibroinnin, turvalliset sivusarakkeet ja leikkausrivin.
-Perinteisten kuittien rajat säilyvät ennallaan.
+Sama 353357 rivin raja koskee tavallisia kuittitiedostoja.
 
 **Export all PNGs + manifest · ZIP** on kuvavienti muihin käyttötarkoituksiin.
 Sen tuonti Muusia-tiedostona kertoo nyt oikean vaihtoehdon eikä virheellisesti
@@ -202,3 +204,28 @@ and body. Old packets without trim remain valid. The service advertises
 `trimMarksVersion: 1`; marked direct printing checks this capability. The updated
 Print preview says to cut along the inner edges. Pi backup:
 `/home/print/muusia-print/before-trim-marks-20261113-115657`.
+
+
+## Pitkän USB-siirron varmistus — 2.190
+
+Live-USB avataan kaksisuuntaisena. Palvelu jakaa kuvarasterin enintään
+32 rivin (2056 tavun) paloihin ja odottaa jokaisen jälkeen yksilöllisen
+`GS ( H` function 48 -prosessitunnuksen vastauksen. Datan ja osittaisleikkausten
+järjestys sekä kaikki kuvarivit säilyvät; väliin ei lisätä paperinsyöttöä.
+Ensimmäinen kuittaus tarkistetaan ennen kuvadatan lähettämistä.
+Jos kuittausta ei tule 30 sekunnissa tai USB katkeaa, työ epäonnistuu ja
+palvelu estää seuraavat USB-työt uudelleenkäynnistykseen asti. Sammuta ja
+käynnistä myös tulostin ennen uutta yritystä: sen puskuri voi sisältää
+kesken jääneen kuvakomennon. Älä lähetä samaa pitkää työtä automaattisesti uudelleen.
+
+Tämä hidastaa datan lähettämistä tulostimen käsittelyn mukaan. Tulostimen
+mekaanista nopeusasetusta ei muuteta. Pelkkä paperinopeuden lasku ei hallitse
+saapuvan datan määrää. [Epson GS ( H function 48](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/gs_lparen_ch_fn48.html).
+
+Ensimmäinen 10 m Ribbon-koe (09c079ecee9f446fb10b181122cfed39)
+keskeytettiin: käyttäjän viimeinen luettava merkki oli R9216 (1304,064 mm),
+jonka jälkeen kuvatavuja tulostui merkkeinä (IMG_3536.jpeg).
+Pi ilmoitti lisäksi toistuvasta alijännitteestä; syy-yhteyttä kuvan
+rikkoutumiseen ei ole osoitettu. Virransyöttö on tarkistettava, jos varoitus jatkuu.
+Kuittauksellinen 2 m uusintakoe ja lopullinen 10 m saumojen tarkistus
+kirjataan handoffiin niiden tulosten valmistuttua.

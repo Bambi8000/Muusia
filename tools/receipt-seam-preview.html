@@ -1,0 +1,26 @@
+<!doctype html><html lang="fi"><meta charset="utf-8"><title>10 m Ribbon — saumakoe</title>
+<style>body{font:15px/1.5 system-ui;background:#ebe8e1;margin:24px;color:#24242b}h1{font:32px Georgia}button,a{font:inherit;color:inherit;margin-right:14px}main{display:flex;gap:24px;align-items:start}article{background:white;padding:16px}article svg{display:block;width:240px;height:450px;border:1px solid #ddd}p{max-width:1000px}#result{font:14px monospace}</style>
+<h1>10 m Ribbon ja saumakoe</h1><p>Yksi 10 metrin työ, lopuksi yksi leikkaus. Lyhyet merkit: 256 rasteririviä. R-merkityt pitkät merkit: 1024 riviä. Nuolet: vanha 65 535 rivin raja. Vertailuviivat ja Ribbon jatkuvat saumojen yli.</p>
+<p><button id="render">Valmistele tulostustiedosto</button><a id="download" hidden download="ribbon-seam-10m.muusia-strip.json">Lataa 10 m koe</a><a href="../output/receipt-seam-10m/ribbon-seam-10m.muusia.json" download>Muokattava Muusia-projekti</a></p>
+<p id="result">Ladataan piirtoa…</p><main id="samples"></main>
+<script type="module">
+import {renderSurfaceReceipt} from '../src/surface-print.js';
+import {stripPacket} from '../src/surface-print-package.js';
+const scene=await(await fetch('../output/receipt-seam-10m/scene.json')).json();
+const source=await(await fetch('../output/receipt-seam-10m/ribbon-seam-10m.svg')).text();
+const root=new DOMParser().parseFromString(source,'image/svg+xml').documentElement;
+for(const [title,y,h]of [['Alku ja ensimmäiset saumat',0,150],['Raja 1024',1024/scene.manifest.measuredDotsPerMm-50,150],['Vanhan rajan ylitys',scene.manifest.formerLimitMm-50,150]]){
+ const article=document.createElement('article'),heading=document.createElement('h2');heading.textContent=title;article.append(heading);
+ const svg=root.cloneNode(true);svg.setAttribute('viewBox',`0 ${y} 80 ${h}`);svg.removeAttribute('width');svg.removeAttribute('height');article.append(svg);document.querySelector('#samples').append(article);
+}
+document.querySelector('#result').textContent=`${scene.manifest.heightDots} riviä · ${scene.manifest.paths} polkua · ei tulostusta ennen erillistä lähetystä`;
+document.querySelector('#render').onclick=async()=>{
+ const button=document.querySelector('#render'),status=document.querySelector('#result');button.disabled=true;
+ try{
+  const receipt=await renderSurfaceReceipt(scene.session,scene.range,{paths:scene.drawing},{dither:false,onProgress:p=>status.textContent=`Valmistellaan ${Math.round(p*100)} %`});
+  const packet=stripPacket(scene.session,scene.range,receipt);packet.name='10 m Ribbon and seam test';
+  const blob=new Blob([JSON.stringify(packet)],{type:'application/json'}),link=document.querySelector('#download');
+  link.href=URL.createObjectURL(blob);link.hidden=false;status.textContent=`Valmis · ${receipt.width} × ${receipt.height} pistettä · ${(blob.size/1e6).toFixed(2)} MB · yksi työ, yksi loppuleikkaus`;
+ }catch(error){status.textContent=error.message;}finally{button.disabled=false;}
+};
+</script></html>

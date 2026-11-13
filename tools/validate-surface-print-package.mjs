@@ -18,7 +18,7 @@ test('selected Print file uses the original production range, while full ZIP alw
 });
 test('wrong width, excessive length/count/bytes and cancellation fail before printing or partial download',async()=>{
  const input=s();input.strips[0]={...input.strips[0],physicalWidthMm:100};assert.throws(()=>surfacePrintPackagePlan(input),/80 mm/);
- assert.throws(()=>surfacePrintPackagePlan({...s(),strips:[createStrip({id:'long',lengthMm:10000})]}),/too long/);
+ assert.throws(()=>surfacePrintPackagePlan({...s(),strips:[createStrip({id:'long',lengthMm:50001})]}),/too long/);
  assert.throws(()=>surfacePrintPackagePlan({...s(),strips:Array.from({length:65},(_,i)=>createStrip({id:String(i),lengthMm:100}))}),/64/);
  assert.throws(()=>surfacePrintPackagePlan({...s(),strips:Array.from({length:10},(_,i)=>createStrip({id:String(i),lengthMm:9000}))}),/32 MiB/);
  await assert.rejects(()=>exportSurfacePrintPackage(s(),{}, {...services,cancelled:()=>true}),/cancelled/);

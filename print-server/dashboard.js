@@ -89,7 +89,7 @@
     state.previewStart = Math.max(0, Math.min(state.previewStart, item.height-rows));
     $('#strip-window').classList.toggle('hidden', !windowed);
     $('#strip-preview-start').max = String(Math.max(0,item.height-rows)); $('#strip-preview-start').value = String(state.previewStart);
-    const density = item.profile?.dotsPerMm || (strip ? 400/56.6 : 180/25.4);
+    const density = item.profile?.dotsPerMm || 400/56.6;
     $('#strip-window-position').textContent = `${(state.previewStart/density).toFixed(1)}–${((state.previewStart+rows)/density).toFixed(1)} mm of ${(item.height/density).toFixed(1)} mm`;
     canvas.width = item.width; canvas.height = rows;
     const context = canvas.getContext('2d'); const image = context.createImageData(item.width, rows);
@@ -113,7 +113,7 @@
   async function inspectReceipt(file) {
     if (!file) return;
     try {
-      if (file.size > 12000000) throw new Error('File exceeds 12 MB. Export fewer Print strips.');
+      if (file.size > 64000000) throw new Error('File exceeds 64 MB. Export fewer Print strips.');
       message('Reading Muusia file…');
       const value = await api('/api/inspect', { method: 'POST', body: await file.arrayBuffer(), headers: { 'Content-Type': 'application/octet-stream', 'X-Muusia-Filename': encodeURIComponent(file.name) } });
       stage(value.receipts, value.receipts[0]?.kind === 'strip' ? `${value.receipts.length} calibrated strip(s) checked. Nothing printed. Start one strip when ready.` : `${value.receipts.length} receipt${value.receipts.length === 1 ? '' : 's'} checked. Preview before queuing.`);
@@ -447,7 +447,7 @@
       const printing = listing.jobs.filter(job => job.status === 'printing').length;
       const done = listing.jobs.filter(job => job.status === 'done').length;
       $('#printer-state').textContent = health.ready ? health.mode === 'test file' ? 'Test mode' : 'Ready' : 'Offline';
-      $('#printer-detail').textContent = health.mode === 'test file' ? 'ESC/POS written to a file' : health.device;
+      $('#printer-detail').textContent = health.error || (health.mode === 'test file' ? 'ESC/POS written to a file' : health.device);
       $('#queue-state').textContent = `${queued + printing} job${queued + printing === 1 ? '' : 's'}`;
       $('#done-state').textContent = `${done} job${done === 1 ? '' : 's'}`;
       $('#mode-pill').textContent = health.mode === 'test file' ? 'TEST FILE MODE' : health.ready ? 'USB READY' : 'USB OFFLINE';

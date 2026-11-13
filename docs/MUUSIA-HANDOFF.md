@@ -6503,3 +6503,58 @@ directory long-rolls-publication. Clean local source snapshot at
 /private/tmp/muusia-long-rolls-snapshot-20261113: 93 files checked against their
 manifest SHA256s; refresh it after this documentation commit. It is not uploaded.
 The original primary checkout remains dirty and older; its other work is intact.
+
+
+### 2.190 — 50 m receipt limits and acknowledged USB transport (in progress)
+
+Base: 578ce192b8249eddb1e2661874ea9ff76b0ea2e5; isolated worktree
+/private/tmp/muusia-receipt-50 m-20261113, branch codex/receipt-50 m.
+Daniel requested 50 m support and a physical 10 m Ribbon seam test.
+Shared JS/Python limits now use ceil(50000 * 400/56.6) = 353357 rows,
+32 MB request / 64 MB import, preserving the 32 MiB image-history/package budget.
+Surface labels and trim guards count towards that total. Normal width-fit
+receipts retain their existing scale. Long receipt polling allows 30 minutes.
+LATU preserves all packed pixels but displays at most four 1024-row canvases
+above 8192 rows, with a position slider through the complete image.
+
+First physical test: 09c079ecee9f446fb10b181122cfed39, 70672 rows,
+10 m calibrated body, continuous Ribbon and reference lines, row marks every
+256 and labels every 1024, old 65535-row boundary marked, final cut only.
+Raster SHA256 2e67b01e8e3448d1f7b2fa3d610ff44089ca4f5e0c149175c33c1539d3852ede.
+Offline byte reconstruction passed, but physical output FAILED: Daniel reported
+R9216 as the last readable marker, followed by garbage characters. IMG_3536.jpeg
+confirms an abrupt transition from continuous lines to text. The service was
+stopped before completion. R9216 corresponds to 1304.064 mm. Pi reported
+repeated undervoltage; causality is unproven. Do not report this test as a pass.
+Daniel power-cycled the printer before recovery.
+
+Live USB now reframes raster bands to at most 32 rows / 2056 bytes (no extra feed),
+opens the printer bidirectionally/nonblocking, probes before image data,
+then waits for an exact per-band GS(H function48 process-ID response.
+Unrelated/stale replies cannot confirm a band. USB zero-length IN packets
+are not stream EOF; ENODEV/EIO remain errors. Timeout/USB failure latches
+a service fault, stops Clock and prevents later jobs from writing more data.
+Recovery requires printer power cycle and service restart; never blind retry.
+File-output mode retains original ESC/POS bytes and existing native fonts/cuts.
+
+Pi backups: before-50 m-20261113-135242 and before-usb-ack-20261113-140258
+under /home/print/muusia-print. Installed server.py SHA256
+9aa73da85e1fa1c5a8958b19b903ccbe3f3cff879b762f5a130591eae1d606f4;
+usb_transport.py SHA256 2cf81ad1edb151eef946869cacfbc847746b6a50486aed9d1189758fe9e656c3.
+First recovery request 8e4edba89f544a529b03001915b5c137 stopped during
+initial paperless probe, no image bytes sent (empty-IN handling corrected).
+Four subsequent paperless process-ID probes passed.
+Recovery print 7093f36e855048db90a1638186dcc3b0 is a 2 m prefix of the same
+Ribbon (14135 rows). All 14135 rows and final cut were acknowledged in
+57.14 s; physical inspection is pending.
+
+Validation so far: 24 Python Print tests; 106 Surface tests; 79 LATU tests;
+50 m JS/Python limit parity and full bounded rendering;12 real-browser
+raster/native-text cases passed. Actual LATU 50 m fixture loaded 353357 rows,
+End slider displays 49420–50000 mm with four canvases. Focused lint passed.
+Final ordered catalog → production build → check:learn gate passed
+all 37914 Learn checks; release publication pending.
+Artifact directory: /Users/daniel/.codex/visualizations/2026/11/13/01a1d45d-5dba-77c2-a4e6-f7be7ec6c664/receipt-50 m-seam-test.
+App changes remain local; public app is 2.189 until verified publication.
+Next: inspect 2 m paper, finish 10 m test if sound, record confirmed rows/physical
+seams separately, publish exact release and refresh clean source snapshot.

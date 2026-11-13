@@ -48,7 +48,7 @@ class PrintServerTests(unittest.TestCase):
         payload = {"width": 512, "height": 5000, "data": base64.b64encode(bytes(64 * 5000)).decode(), "cut": True, "requestId": "a" * 32}
         try:
             with urlopen(base + "/api/strip-capabilities", timeout=3) as response:
-                self.assertEqual(json.load(response)["maxHeight"], 65535)
+                self.assertEqual(json.load(response)["maxHeight"], server.MAX_STRIP_HEIGHT)
             self.assertEqual(post(payload)["id"], "a" * 32)
             self.assertEqual(post(payload)["id"], "a" * 32)
             self.assertEqual(server.work.qsize(), 1, "Retry never prints the strip twice")

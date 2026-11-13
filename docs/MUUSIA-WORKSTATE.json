@@ -1,6 +1,47 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+    {
+      "id": "receipt-50m-seam-test-20261113",
+      "owner": "Astra",
+      "role": "long receipt limits and physical test",
+      "baseCommit": "578ce192b8249eddb1e2661874ea9ff76b0ea2e5",
+      "worktree": "/private/tmp/muusia-receipt-50m-20261113",
+      "files": [
+        "src/receipt-format.js",
+        "src/receipt-raster.js",
+        "src/thermal-print.js",
+        "src/App.jsx",
+        "src/surface-print.js",
+        "src/surface-print-package.js",
+        "latu/src/receipt-preview.jsx",
+        "latu/src/receipt.js",
+        "latu/tests/receipt.test.mjs",
+        "print-server/server.py",
+        "print-server/receipt_limits.py",
+        "print-server/print_package.py",
+        "print-server/dashboard.js",
+        "print-server/test_server.py",
+        "print-server/test_print_package.py",
+        "tools/validate-surface-print-package.mjs",
+        "tools/validate-receipt-browser.html",
+        "tools/validate-receipt-50m.mjs",
+        "tools/make-receipt-seam-test.mjs",
+        "tools/receipt-seam-preview.html",
+        "docs/MUUSIA-HANDOFF.md",
+        "docs/MUUSIA-WORKSTATE.json",
+        "docs/MUUSIA-PRINT.md",
+        "README.md",
+        "latu/README.md",
+        "public/latu/index.html",
+        "learn/generated/manifest.json",
+        "print-server/usb_transport.py",
+        "print-server/test_usb_transport.py"
+      ],
+      "status": "in_progress",
+      "outcome": "Raise calibrated raster limit to 50 m; diagnose failed 10 m test after R9216, add bounded acknowledged USB transport, then retry and publish verified changes."
+    }
+  ],
   "lastPublished": {
     "version": "2.189",
     "date": "2026-11-13",
@@ -456,6 +497,24 @@
       "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-bezels",
       "commit": "200a150ef4c2bec948860a9c887b66ad0ccd8193",
       "pagesRunId": 43408064698
+    }
+  },
+  "validation": {
+    "receipt50m": {
+      "baseCommit": "578ce192b8249eddb1e2661874ea9ff76b0ea2e5",
+      "status": "2m acknowledged USB recovery completed; physical inspection pending",
+      "rasterMaxRows": 353357,
+      "maxLengthMm": 50000,
+      "pythonTests": 24,
+      "first10mJob": "09c079ecee9f446fb10b181122cfed39",
+      "first10mPhysicalResult": "Failed after R9216; garbage characters; service stopped and printer power-cycled by user",
+      "recoveryJob": "7093f36e855048db90a1638186dcc3b0",
+      "recoveryConfirmedRows": 14135,
+      "recoveryDurationSeconds": 57.14,
+      "recoveryPhysicalResult": "pending",
+      "piUndervoltage": "active 0x50005; causal connection unproven",
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/13/01a1d45d-5dba-77c2-a4e6-f7be7ec6c664/receipt-50m-seam-test",
+      "publication": "local app2.190; live Print updated; public app2.189"
     }
   }
 }

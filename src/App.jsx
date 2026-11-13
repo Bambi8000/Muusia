@@ -25,7 +25,7 @@ import PreviewCropControls from "./preview-crop-controls.jsx";
 import { directionPassFiles } from "./direction-pass-export.js";
 import DirectionPassControls from "./direction-pass-controls.jsx";
 import MuusiaGuide from "./muusia-guide.jsx";
-import { renderReceipt, sendReceipt, nativeFontTests, nativeFontTest, nativeFontBinary, sendNativeFontTest, nativePageCatalog, nativePageGlyphs, previewNativeComposition, nativeCompositionBinary, sendNativeComposition, RECEIPT_MAX_HEIGHT_DOTS } from "./thermal-print.js";
+import { renderReceipt, sendReceipt, nativeFontTests, nativeFontTest, nativeFontBinary, sendNativeFontTest, nativePageCatalog, nativePageGlyphs, previewNativeComposition, nativeCompositionBinary, sendNativeComposition, RECEIPT_MAX_HEIGHT_DOTS, RECEIPT_DOTS_PER_MM } from "./thermal-print.js";
 import { DEFAULT_NEEDLE_MACHINE, needleExportError, upgradeNeedleProfile, DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
 
@@ -902,7 +902,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.189"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.190"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2839,7 +2839,7 @@ export default function App() {
       const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH, null, primaryPS.thermalText);
       setPrintStatus(receipt.thermalText?.length
         ? `Sending receipt with ${receipt.thermalText.length} Epson text block${receipt.thermalText.length === 1 ? "" : "s"}…`
-        : `Sending ${Math.round(receipt.height / 180 * 25.4)} mm receipt…`);
+        : `Sending ${Math.round(receipt.height / RECEIPT_DOTS_PER_MM)} mm receipt…`);
       const job = await sendReceipt(printUrl, receipt, printCut);
       setPrintStatus(`Printed · job ${job.id.slice(0, 8)}`);
     } catch (err) {
@@ -4568,7 +4568,7 @@ export default function App() {
             <div style={{ marginTop: 14, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
               <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", color: T.text }}>MUUSIA PRINT · TM-T88V</div>
               <div style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, margin: "4px 0 7px" }}>
-                Selected node → black lines on 80 mm thermal paper. Thermal Text adds Epson font text before or after the image. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / 180 * 25.4)} mm of image.
+                Selected node → black lines on 80 mm thermal paper. Thermal Text adds Epson font text before or after the image. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / RECEIPT_DOTS_PER_MM)} mm of image.
               </div>
               <input aria-label="Receipt server URL" value={printUrl} onChange={e => setPrintUrl(e.target.value)} placeholder="http://127.0.0.1:8633"
                 style={{ boxSizing: "border-box", width: "100%", background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, padding: "5px 7px", fontSize: 10, fontFamily: mono }} />
