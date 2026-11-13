@@ -1,6 +1,22 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+    {
+      "id": "surface-composer-publication",
+      "owner": "Astra",
+      "role": "release integration and publication",
+      "baseCommit": "4f7b2cf80c0d2554b9bfd19d017ec3e147346159",
+      "worktree": "/private/tmp/muusia-surface-composer-20261112",
+      "scope": [
+        "docs/MUUSIA-WORKSTATE.json",
+        "docs/MUUSIA-HANDOFF.md",
+        "docs/MUUSIA-SURFACE-COMPOSER.md",
+        "learn/generated/manifest.json"
+      ],
+      "status": "ready",
+      "outcome": "Publish authorized Surface Composer 2.185 release to origin/main, verify the exact Pages run and public UI/exports, then record publication."
+    }
+  ],
   "lastPublished": {
     "version": "2.176",
     "date": "2026-11-12",
@@ -11,19 +27,18 @@
     "status": "verified public Muusia 2.176; Solids receipt fit and canvas-size adaptation deployed after successful exact Pages run"
   },
   "lastIntegration": {
-    "version": "2.176",
-    "date": "2026-11-12",
-    "baseCommit": "46d8c46a41a54152f3e571b003b801e280bcc12e",
-    "branch": "codex/tvnoise-no-antennas",
-    "worktree": "/private/tmp/muusia-tvnoise-release-20261112",
-    "published": true,
-    "status": "Muusia 2.176 canvas-size adaptation published and verified on GitHub Pages",
-    "snapshot": "/private/tmp/muusia-project-files-2.176 (clean committed snapshot, prepared locally; not uploaded)",
-    "moduleCount": 358,
-    "registryCount": 360,
-    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 × 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
-    "note": "Exact millimetre placement remains for Single Marker, Card Sheet and Needle Test. No physical plot was made. Unrelated primary checkout changes were preserved.",
-    "commit": "1ac1679ab6f58c17a9eea1142c8f925bdb1431d2"
+    "version": "2.185",
+    "date": "2026-11-13",
+    "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
+    "implementationCommit": "4f7b2cf80c0d2554b9bfd19d017ec3e147346159",
+    "branch": "codex/surface-composer",
+    "worktree": "/private/tmp/muusia-surface-composer-20261112",
+    "published": false,
+    "status": "authorized release ready; exact Pages deployment and public verification pending",
+    "moduleCount": 359,
+    "registryCount": 361,
+    "validation": "94 focused JS tests, Surface Context contract, 10 Python Print tests, catalog, production build and 37914 Learn checks passed.",
+    "note": "No new physical print. Primary checkout unrelated changes preserved."
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
@@ -50,7 +65,7 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local Muusia 2.185 measured Epson end-label feed allowance about 17 mm; not published",
+    "status": "Muusia 2.185 publication authorized; deployment pending",
     "validation": "94 focused JS tests, lint, catalog, production build and 37914 Learn checks passed. Actual UI and saved project verified 17 mm extra feed; user photo supplies 23/2/18 mm measurements. No new print.",
     "nextStep": "Freeform animation batches and magnet-jig files remain optional follow-ups.",
     "calibration": {

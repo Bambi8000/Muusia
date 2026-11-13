@@ -6271,3 +6271,20 @@ unchanged label geometry. Real UI verified 17 mm and preserved the 100 mm resume
 cursor; the saved project and measurement photo are local artifacts under
 `/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-end-label-measurement/`.
 APP_VERSION/generated Learn manifest 2.185. Local only; no push or service update.
+
+
+### 2026-11-13 — Surface Composer 2.185 publication authorized
+
+Daniel explicitly requested publication. origin/main is
+`73118d335153e76fb051fc75f99eee44866c2ac7` and is an ancestor of the tested
+feature implementation `4f7b2cf80c0d2554b9bfd19d017ec3e147346159`; no source
+merge is needed. Release includes unified Mega Canvas/Roll/Strips, generative
+arrangements, independent per-paper content, long single-strip printing with
+manual cooling, PNG/vector exports, Assembly PDF with visible edge-angle arcs,
+and the measured Epson end-label allowance.
+
+Pre-publication checks repeated: 94 focused JS tests, Surface Context contract,
+10 Python Print service tests, focused catalog, production build and 37914 Learn
+checks passed. Public release workflow is deploy.yml on main; publication must
+be verified against its exact commit/run and the actual public app. No additional
+physical output. Primary checkout's unrelated dirty work stays untouched.
