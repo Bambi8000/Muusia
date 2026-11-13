@@ -227,5 +227,37 @@ keskeytettiin: käyttäjän viimeinen luettava merkki oli R9216 (1304,064 mm),
 jonka jälkeen kuvatavuja tulostui merkkeinä (IMG_3536.jpeg).
 Pi ilmoitti lisäksi toistuvasta alijännitteestä; syy-yhteyttä kuvan
 rikkoutumiseen ei ole osoitettu. Virransyöttö on tarkistettava, jos varoitus jatkuu.
-Kuittauksellinen 2 m uusintakoe ja lopullinen 10 m saumojen tarkistus
-kirjataan handoffiin niiden tulosten valmistuttua.
+Kuittauksellinen 2 m uusintakoe valmistui 57,14 sekunnissa; kaikki
+14 135 riviä ja loppuleikkaus kuitattiin. Käyttäjä vahvisti Ribbonin ja
+reunaviivojen jatkuvan ehjinä loppuun asti myös R9216:n jälkeen.
+Tämän jälkeen käynnistetty 10 m uusintakoe keskeytettiin käyttäjän pyynnöstä:
+molemmissa tulosteissa näkyi vaakaraidoitusta. Viimeinen seurannassa kuitattu
+kohta oli noin 4,9 m. Lohkokohtaiset pysähdykset ovat epäilty syy; nykyinen
+32 rivin kuittausväli vastaa 4,528 mm paperia. Palvelu jätettiin pysäytetyksi
+eikä uutta koetta lähetetä ennen jatkopäätöstä.
+
+
+### 4,53 mm saumojen korjausehdokas
+
+Käyttäjän työntömittamittaus 4,53 mm ja IMG_3539.jpeg vahvistivat, että
+32 rivin välein tehty valmistumisen odotus aiheutti valkoiset saumat.
+Uusi palvelinkorjaus pitää rajatun määrän kuvapaloja edellä ja lukee
+kuittaukset samanaikaisesti. Yksittäistä palaa ei odoteta valmiiksi ennen
+seuraavan lähettämistä. Jono on enintään 16 palaa eli 512 riviä; kadonneet
+vastaukset katkaisevat siirron ja viimeinen kuittaus vaaditaan ennen valmistumista.
+
+25 ohjelmallista testiä läpäisty. Korjausehdokas on asennettu pysäytettyyn
+palveluun; paperijälkeä ei ole vielä testattu. Uusi 50 cm Ribbon-koe on
+valmisteltu. Tulostin on käynnistettävä uudelleen kesken jääneen kuvadatan
+poistamiseksi ennen käyttäjän hyväksymää koetta.
+
+
+50 cm:n paperikoe valmistui 4,786 sekunnissa. Kaikki 3534 riviä ja
+loppuleikkaus kuitattiin, ja käyttäjä vahvisti Ribbonin sekä reunaviivat
+yhtenäisiksi: 4,53 mm:n katkokset poistuivat. Käyttäjä hyväksyi tämän jälkeen
+uuden 10 m:n kokeen vanhan pituusrajan yli.
+
+
+10 m:n jatkuva koe valmistui 86,308 sekunnissa: kaikki 70 672 riviä ja
+loppuleikkaus kuitattiin, vanha 65 535 rivin raja ylitettiin. Koko 10 m:n
+paperijäljen tarkistus on vielä kesken. Fyysistä 50 m:n koetta ei tehty.

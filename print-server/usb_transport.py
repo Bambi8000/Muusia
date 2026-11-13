@@ -1,4 +1,4 @@
-"""Bounded, acknowledged Epson USB transfers; no blind retry after lost framing.
+"""Continuous, bounded Epson USB transfers; no blind retry after lost framing.
 
 GS ( H function 48 replies after preceding print data completes:
 https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/gs_lparen_ch_fn48.html
@@ -9,8 +9,10 @@ import os
 import select
 import time
 import uuid
+from collections import deque
 
 BAND_ROWS = 32  # 2056 bytes including GS v 0 header, below the 4 KiB RX buffer.
+WINDOW_BANDS = 16  # Keep data ahead of the head, without an unbounded backlog.
 TIMEOUT = 30
 failure = None  # A failed live transfer requires a service restart after recovery.
 
@@ -90,18 +92,82 @@ def acknowledge(fd, token, timeout=TIMEOUT):
         del received[:-len(expected)]
 
 
-def print_program(fd, parts, progress=None):
+def print_program(fd, parts, progress=None, timeout=TIMEOUT):
     sequence = int(uuid.uuid4().hex[:4], 16)
-    def ack():
+    def token():
         nonlocal sequence
         sequence = (sequence + 1) % 65536
-        acknowledge(fd, f'{sequence:04X}'.encode('ascii'))
+        return f'{sequence:04X}'.encode('ascii')
     # Probe before sending image bytes. No fallback to unacknowledged writes.
-    ack()
-    rows_done = 0
-    for data, rows in parts:
-        write_usb(fd, data)
-        ack()
-        rows_done += rows
-        if progress:
-            progress(rows_done)
+    acknowledge(fd, token(), timeout)
+    pending, received = deque(), bytearray()
+    source = iter(parts)
+    current, exhausted, rows_sent = None, False, 0
+    while current is not None or pending or not exhausted:
+        if current is None and not exhausted and len(pending) < WINDOW_BANDS:
+            try:
+                data, rows = next(source)
+            except StopIteration:
+                exhausted = True
+            else:
+                marker = token()
+                current = [memoryview(data + b'\x1d(H\x06\x0000' + marker),
+                           marker, rows, time.monotonic() + timeout]
+        if current is None and not pending:
+            continue
+        deadlines = [pending[0][2]] if pending else []
+        if current:
+            deadlines.append(current[3])
+        deadline = min(deadlines)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError('Printer acknowledgement missing or USB stalled; power-cycle printer and restart Print before retrying')
+        readable, writable, _ = select.select([fd], [fd] if current else [], [], remaining)
+        if not readable and not writable:
+            continue
+        empty_read = False
+        if readable:
+            try:
+                part = os.read(fd, 1024)
+            except (BlockingIOError, InterruptedError):
+                part = None
+            if part:
+                received.extend(part)
+                while True:
+                    start = received.find(b'7"')
+                    if start < 0:
+                        del received[:-1]
+                        break
+                    del received[:start]
+                    if len(received) < 7:
+                        break
+                    if received[6] != 0:
+                        del received[:1]
+                        continue
+                    marker = bytes(received[2:6])
+                    del received[:7]
+                    # Epson may coalesce unsent IDs: an exact later ID also
+                    # confirms preceding commands, in their original order.
+                    index = next((i for i, item in enumerate(pending) if item[0] == marker), None)
+                    if index is not None:
+                        for _ in range(index + 1):
+                            _, confirmed_rows, _ = pending.popleft()
+                        if progress:
+                            progress(confirmed_rows)
+            elif part == b'':
+                empty_read = True  # A usblp zero-length USB IN completion.
+        if writable:
+            try:
+                written = os.write(fd, current[0][:1024])
+            except (BlockingIOError, InterruptedError):
+                written = None
+            if written is not None:
+                if written <= 0:
+                    raise OSError('USB printer stopped accepting data')
+                current[0] = current[0][written:]
+                if not current[0]:
+                    rows_sent += current[2]
+                    pending.append((current[1], rows_sent, current[3]))
+                    current = None
+        elif empty_read:
+            time.sleep(0.01)

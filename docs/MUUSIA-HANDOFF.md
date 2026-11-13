@@ -6505,10 +6505,10 @@ manifest SHA256s; refresh it after this documentation commit. It is not uploaded
 The original primary checkout remains dirty and older; its other work is intact.
 
 
-### 2.190 — 50 m receipt limits and acknowledged USB transport (in progress)
+### 2.190 — 50 m receipt limits and acknowledged USB transport
 
 Base: 578ce192b8249eddb1e2661874ea9ff76b0ea2e5; isolated worktree
-/private/tmp/muusia-receipt-50 m-20261113, branch codex/receipt-50 m.
+/private/tmp/muusia-receipt-50m-20261113, branch codex/receipt-50m.
 Daniel requested 50 m support and a physical 10 m Ribbon seam test.
 Shared JS/Python limits now use ceil(50000 * 400/56.6) = 353357 rows,
 32 MB request / 64 MB import, preserving the 32 MiB image-history/package budget.
@@ -6537,7 +6537,7 @@ a service fault, stops Clock and prevents later jobs from writing more data.
 Recovery requires printer power cycle and service restart; never blind retry.
 File-output mode retains original ESC/POS bytes and existing native fonts/cuts.
 
-Pi backups: before-50 m-20261113-135242 and before-usb-ack-20261113-140258
+Pi backups: before-50m-20261113-135242 and before-usb-ack-20261113-140258
 under /home/print/muusia-print. Installed server.py SHA256
 9aa73da85e1fa1c5a8958b19b903ccbe3f3cff879b762f5a130591eae1d606f4;
 usb_transport.py SHA256 2cf81ad1edb151eef946869cacfbc847746b6a50486aed9d1189758fe9e656c3.
@@ -6546,15 +6546,82 @@ initial paperless probe, no image bytes sent (empty-IN handling corrected).
 Four subsequent paperless process-ID probes passed.
 Recovery print 7093f36e855048db90a1638186dcc3b0 is a 2 m prefix of the same
 Ribbon (14135 rows). All 14135 rows and final cut were acknowledged in
-57.14 s; physical inspection is pending.
+57.14 s. Daniel confirmed the complete 2 m paper was intact, including
+Ribbon and reference lines after R9216. The acknowledged 10 m retry
+13f48f8bdb3d40c6aa32c1734bf17cfd was then submitted once and stopped
+at Daniel's request after he saw horizontal banding in both the 2 m and
+10 m prints. Last sampled confirmed position: 34720 rows / 4912.88 mm.
+The former 65535-row limit was NOT crossed. Service is stopped, no retry.
 
 Validation so far: 24 Python Print tests; 106 Surface tests; 79 LATU tests;
-50 m JS/Python limit parity and full bounded rendering;12 real-browser
+50 m JS/Python limit parity and full bounded rendering; 12 real-browser
 raster/native-text cases passed. Actual LATU 50 m fixture loaded 353357 rows,
 End slider displays 49420–50000 mm with four canvases. Focused lint passed.
 Final ordered catalog → production build → check:learn gate passed
-all 37914 Learn checks; release publication pending.
-Artifact directory: /Users/daniel/.codex/visualizations/2026/11/13/01a1d45d-5dba-77c2-a4e6-f7be7ec6c664/receipt-50 m-seam-test.
-App changes remain local; public app is 2.189 until verified publication.
-Next: inspect 2 m paper, finish 10 m test if sound, record confirmed rows/physical
-seams separately, publish exact release and refresh clean source snapshot.
+all 37914 Learn checks. Implementation commit
+730e6c26abf9eb8baf483fb3a90d8c45c8b05c17 was published successfully by
+exact Pages run 43422962847. Public app SHA256
+253e88008b55379efa308f2dc89c02407f584f9b10028dd3429f84bf208049a3
+and LATU SHA256 197b13671c2f80aba698509d6d162e68d2c87aa884d064a64ed7ca73e14060a9
+match the tested local production files exactly; Learn returns HTTP 200.
+Artifact directory: /Users/daniel/.codex/visualizations/2026/11/13/01a1d45d-5dba-77c2-a4e6-f7be7ec6c664/receipt-50m-seam-test.
+Public app is 2.190. Clean local snapshot
+/private/tmp/muusia-receipt-50m-snapshot-20261113 has 93 verified source
+checksums; refresh after final test documentation. It is not uploaded.
+The subsequent IMG_3539.jpeg and measured 4.53 mm spacing confirmed the
+32-row completion waits as the cause. See the continuous USB candidate below.
+
+
+### W — Measured 4.53 mm seams; continuous USB candidate
+
+Daniel's caliper measurement and IMG_3539.jpeg confirm horizontal white seams
+at 4.53 mm intervals, matching 32 rows = 4.528 mm. The packed reference
+lines have no missing rows. Completion waits added in 2.190 caused stop/start
+seams; 2 m and interrupted 10 m prints must not be reported seam-free.
+
+Candidate usb_transport.py now performs a single paperless initial probe,
+then concurrently writes USB data and reads process-ID replies using select.
+Up to 16 bands / 512 rows / 72.448 mm may be in flight. It does not wait for
+each individual band's completion before feeding the next band. Exact later
+IDs confirm preceding commands, supporting Epson's coalesced replies.
+The last ID, including final cut, must still be confirmed before done.
+Unrelated/stale IDs, missing replies, partial writes, zero-length IN packets
+and fault latching remain handled. Exported raster bytes/cuts are unchanged.
+
+25 Python tests pass, including a simulated printer withholding all replies
+until a full 16-band window arrives: this would deadlock with per-band waits.
+A separate dropped-reply case proves no more than the window is sent.
+At this stage only software was validated; see the actual paper test below.
+Candidate installed with service left stopped and backup preserved.
+Installed USB SHA256 eae6631653e0ea33c93dffd39790002b87da4d4656e2f68cae4126bf8462ff57;
+backup /home/print/muusia-print/before-continuous-usb-20261113-213705.
+No new physical print or paperless USB command was sent for this installation.
+
+Prepared candidate seam packet: ribbon-continuous-500mm.muusia-strip.json,
+3534 rows, requestId 3d5e972b938844a29c96426ee7fdd2fe, final cut only.
+Do not send until Daniel power-cycles printer and agrees to the short check;
+previous interrupted USB image may remain in its buffer. All artifacts are
+under this chat's receipt-50m-seam-test directory. Public app stays 2.190;
+continuous transport candidate is not pushed yet. No app UI code changed.
+
+
+The approved 500 mm candidate test (3d5e972b938844a29c96426ee7fdd2fe)
+completed all 3534 rows and final cut in 4.786 s. Daniel confirmed the
+Ribbon and reference lines are continuous and the 4.53 mm gaps have gone.
+He then explicitly approved a fresh full 10 m test with continuous USB;
+that final test is now running. No automatic repeat after a failed job.
+
+
+Final continuous 10 m job de9b6dcdfde24aa5b32f11b39f3bbbad completed
+all 70672 rows and final cut in 86.308 s. It passed the former 65535-row
+limit at 9273.2025 mm and ended at the calibrated 10 m body end (10000.088 mm
+after row rounding). No transfer errors; USB ready, queue 0, Clock off.
+Full 10 m paper inspection remains pending; 500 mm seam-free physical pass
+is confirmed. No 50 m physical job was sent: 50 m is the validated software
+limit, not a completed hardware endurance test. Exact result and original
+raster checksum are stored in ribbon-continuous-10m-record.json.
+
+Continuous USB implementation changes only print-server/usb_transport.py
+and its focused tests. No app UI or receipt file format changed; app version
+remains 2.190. Full ordered app gate already passed for the unchanged app.
+This server-only follow-up passed 25 Python tests and diff/JSON checks.

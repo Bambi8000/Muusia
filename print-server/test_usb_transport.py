@@ -26,10 +26,10 @@ class UsbTransportTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 usb.segments(invalid)
 
-    def test_real_bidirectional_transfer_waits_and_preserves_partial_writes(self):
+    def test_continuous_transfer_fills_window_before_waiting_and_preserves_partial_writes(self):
         host, printer = socket.socketpair()
         host.setblocking(False)
-        program = server.escpos_image(512, 65, bytes([0xa5]) * 65 * 64)
+        program = server.escpos_image(512, 1000, bytes([0xa5]) * 1000 * 64)
         parts = usb.segments(program)
         received, errors = [], []
         def take(n):
@@ -42,12 +42,17 @@ class UsbTransportTests(unittest.TestCase):
             return bytes(out)
         def emulate():
             try:
-                for payload in [b''] + [p for p, _ in parts]:
-                    received.append(take(len(payload)))
-                    request = take(11)
-                    self.assertEqual(request[:7], b'\x1d(H\x06\x0000')
-                    # Require an exact process ID: stale/real-time replies cannot
-                    # unlock the next band. Also exercise split USB IN packets.
+                printer.settimeout(2)
+                request = take(11)  # Initial paperless probe.
+                printer.sendall(b'7"' + request[7:] + b'\x00')
+                for start in range(0, len(parts), usb.WINDOW_BANDS):
+                    # Deliberately withhold every response until a complete
+                    # window has arrived. Waiting after one band deadlocks.
+                    for payload, _ in parts[start:start + usb.WINDOW_BANDS]:
+                        received.append(take(len(payload)))
+                        request = take(11)
+                        self.assertEqual(request[:7], b'\x1d(H\x06\x0000')
+                    # A coalesced latest ID confirms the complete window.
                     printer.sendall(b'\x12' + b'7"OLD!\x00' + b'7"' + request[7:9])
                     printer.sendall(request[9:] + b'\x00')
             except Exception as exc:
@@ -57,12 +62,14 @@ class UsbTransportTests(unittest.TestCase):
         progress = []
         try:
             with patch.object(usb.os, 'write', side_effect=lambda fd, data: actual_write(fd, data[:37])):
-                usb.print_program(host.fileno(), parts, progress.append)
+                usb.print_program(host.fileno(), parts, progress.append, timeout=3)
             thread.join(2)
             self.assertFalse(thread.is_alive())
             self.assertEqual(errors, [])
             self.assertEqual(b''.join(received), b''.join(p for p, _ in parts))
-            self.assertEqual(progress, [0, 32, 64, 65, 65])
+            self.assertEqual(progress[-1], 1000)
+            self.assertEqual(progress, sorted(progress))
+            self.assertEqual(len(progress), 3)
         finally:
             host.close(); printer.close()
 
@@ -103,3 +110,38 @@ class UsbTransportTests(unittest.TestCase):
             self.assertFalse(server.printer_ready())
             handler._enqueue('After failure', 1, bytes(64), False, 'receipt')
         self.assertEqual(replies, [(503, {'error': 'Transfer stopped; recover printer'})])
+
+    def test_missing_pipeline_response_limits_backlog_and_sends_no_more_bands(self):
+        host, printer = socket.socketpair(); host.setblocking(False)
+        parts = usb.segments(server.escpos_image(512, 4096, bytes(4096 * 64)))
+        received, errors = [], []
+        def take(n):
+            out = bytearray()
+            while len(out) < n:
+                piece = printer.recv(n - len(out))
+                if not piece:
+                    raise RuntimeError('Unexpected end')
+                out.extend(piece)
+            return bytes(out)
+        def emulate():
+            try:
+                printer.settimeout(2)
+                probe = take(11); printer.sendall(b'7"' + probe[7:] + b'\x00')
+                for payload, _ in parts[:usb.WINDOW_BANDS]:
+                    self.assertEqual(take(len(payload)), payload)
+                    take(11); received.append(payload)
+                # Never acknowledge: the next data must remain unsent.
+                printer.settimeout(0.2)
+                with self.assertRaises(socket.timeout):
+                    printer.recv(1)
+            except Exception as exc:
+                errors.append(exc)
+        thread = threading.Thread(target=emulate); thread.start()
+        try:
+            with self.assertRaisesRegex(TimeoutError, 'acknowledgement missing'):
+                usb.print_program(host.fileno(), parts, timeout=0.1)
+            thread.join(3)
+            self.assertFalse(thread.is_alive()); self.assertEqual(errors, [])
+            self.assertEqual(len(received), usb.WINDOW_BANDS)
+        finally:
+            host.close(); printer.close()

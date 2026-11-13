@@ -39,7 +39,7 @@
         "print-server/test_usb_transport.py"
       ],
       "status": "in_progress",
-      "outcome": "Raise calibrated raster limit to 50 m; diagnose failed 10 m test after R9216, add bounded acknowledged USB transport, then retry and publish verified changes."
+      "outcome": "50 m app published; 4.53 mm seams confirmed from 32-row completion waits. Continuous bounded duplex transport implemented/tested/installed with service stopped; 500 mm physical check prepared but not submitted."
     }
   ],
   "lastPublished": {
@@ -502,19 +502,60 @@
   "validation": {
     "receipt50m": {
       "baseCommit": "578ce192b8249eddb1e2661874ea9ff76b0ea2e5",
-      "status": "2m acknowledged USB recovery completed; physical inspection pending",
+      "status": "10 m continuous test completed across old limit; 500 mm seam-free confirmed; final 10 m physical inspection pending",
       "rasterMaxRows": 353357,
       "maxLengthMm": 50000,
-      "pythonTests": 24,
+      "pythonTests": 25,
       "first10mJob": "09c079ecee9f446fb10b181122cfed39",
       "first10mPhysicalResult": "Failed after R9216; garbage characters; service stopped and printer power-cycled by user",
       "recoveryJob": "7093f36e855048db90a1638186dcc3b0",
       "recoveryConfirmedRows": 14135,
       "recoveryDurationSeconds": 57.14,
-      "recoveryPhysicalResult": "pending",
+      "recoveryPhysicalResult": "Image/data remains intact beyond R9216; user subsequently reported horizontal banding",
       "piUndervoltage": "active 0x50005; causal connection unproven",
       "artifacts": "/Users/daniel/.codex/visualizations/2026/11/13/01a1d45d-5dba-77c2-a4e6-f7be7ec6c664/receipt-50m-seam-test",
-      "publication": "local app2.190; live Print updated; public app2.189"
+      "publication": "Muusia 2.190 published and verified; live Print updated",
+      "retry10mJob": "13f48f8bdb3d40c6aa32c1734bf17cfd",
+      "commit": "730e6c26abf9eb8baf483fb3a90d8c45c8b05c17",
+      "pagesRunId": 43422962847,
+      "retry10mLastConfirmedRows": 34720,
+      "retry10mLastConfirmedMm": 4912.88,
+      "retry10mPhysicalResult": "Horizontal banding; user requested stop before completion",
+      "service": "running",
+      "former65535RowLimitCrossed": true,
+      "nextStep": "Record user physical inspection of full 10 m; commit/publish continuous USB fix and refresh clean source snapshot.",
+      "measuredStripeSpacingMm": 4.53,
+      "stripeSource": "User caliper measurement and IMG_3539.jpeg",
+      "seamCause": "32-row completion waits; interval 4.528 mm matches measured 4.53 mm",
+      "continuousTransport": {
+        "bandsAhead": 16,
+        "rowsPerBand": 32,
+        "maxAheadRows": 512,
+        "perBandBlockingWait": false,
+        "coalescedIdSupport": true,
+        "sha256": "eae6631653e0ea33c93dffd39790002b87da4d4656e2f68cae4126bf8462ff57",
+        "backup": "/home/print/muusia-print/before-continuous-usb-20261113-213705",
+        "physicalTest": "not performed",
+        "service": "stopped"
+      },
+      "continuousShortTest": {
+        "jobId": "3d5e972b938844a29c96426ee7fdd2fe",
+        "height": 3534,
+        "durationSeconds": 4.786,
+        "serverStatus": "done",
+        "physicalResult": "User confirmed continuous Ribbon and reference lines without 4.53 mm gaps"
+      },
+      "continuousLongTest": {
+        "jobId": "de9b6dcdfde24aa5b32f11b39f3bbbad",
+        "height": 70672,
+        "serverStatus": "done",
+        "confirmedRows": 70672,
+        "durationSeconds": 86.308,
+        "former65535RowLimitCrossed": true,
+        "physicalResult": "pending"
+      },
+      "piReady": true,
+      "queuedJobs": 0
     }
   }
 }
