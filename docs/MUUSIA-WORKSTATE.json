@@ -12,21 +12,17 @@
     "publicAppSha256": "b02b8ff7c500b9ff12ae9109da2620c0bc5cb95b0ebefb6585684be09018c911"
   },
   "lastIntegration": {
-    "version": "2.188",
+    "version": "2.189",
     "date": "2026-11-13",
-    "baseCommit": "d14c5133f52d18a8dc5063d789a56c9b987b65d5",
-    "implementationCommit": "200a150ef4c2bec948860a9c887b66ad0ccd8193",
-    "branch": "codex/surface-composer",
-    "worktree": "/private/tmp/muusia-surface-composer-20261112",
-    "published": true,
-    "status": "Muusia 2.188 published and verified",
-    "moduleCount": 359,
-    "registryCount": 361,
-    "validation": "106 Surface JS, focused lint, catalog, build, 37914 Learn checks; real graph/image PNG and native measurements, 6-page Assembly PDFs, save/load/families/undo, exact successful Pages run and public native export matches local.",
-    "note": "No new physical print. Primary checkout unrelated changes preserved.",
-    "commit": "200a150ef4c2bec948860a9c887b66ad0ccd8193",
-    "pagesRunId": 43408064698,
-    "snapshot": "/private/tmp/muusia-surface-composer-snapshot-20261112 (refresh after final documentation commit; local only)"
+    "baseCommit": "e3ed42a8eea8ad320fe7d68f9e7a08b0d2b2aa78",
+    "branch": "codex/long-rolls-release",
+    "worktree": "/private/tmp/muusia-long-rolls-release-20261113",
+    "published": false,
+    "status": "tested; ready for exact-commit Pages verification",
+    "moduleCount": 360,
+    "registryCount": 362,
+    "validation": "62 long-roll cases, 1545 Organic Ribbon checks, 106 Surface tests, 79 LATU tests, 17 Print server tests, 11 actual-browser raster checks, 182 Help graphs, focused lint, ordered catalog/build/Learn (37914).",
+    "note": "Ported from primary dirty checkout onto current public 2.188. Existing Surface Composer, native text, animation ZIP and cutter behavior retained. No Pi deployment or physical print."
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",

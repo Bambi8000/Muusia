@@ -740,6 +740,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "f8443b203aa6d6d76909719372c5b87cf5955026fd450db81c03c54663a14069"
   },
+  "kaisla": {
+    "date": "2026-11-13",
+    "order": 135,
+    "sha256": "015e9d80ac9eb2bdf6f3e8f394615e68752bef3b78a9fcb234c6e571f3b8901c"
+  },
   "kaleidoscope": {
     "date": "2026-07-22",
     "order": 1,
@@ -1241,9 +1246,9 @@ export const NODE_RECENCY = {
     "sha256": "a47d9d939e1a954688bbd2264b553892035c1549dcaa28775df2365ae3df283b"
   },
   "ribbon": {
-    "date": "2026-10-07",
-    "order": 72,
-    "sha256": "62289d9ffd6417651b1c2b5b73188798173cb99d598093a25d4f9d3a764f8005"
+    "date": "2026-11-13",
+    "order": 135,
+    "sha256": "2fa36988d30e7fee663e2a5b3c949d273f969151c588e7360b7a98dfffd49dc9"
   },
   "ribbontype": {
     "date": "2026-09-29",

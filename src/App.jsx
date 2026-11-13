@@ -902,7 +902,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.188"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.189"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -3511,6 +3511,7 @@ export default function App() {
             <option value="420x594">A2 tall</option>
             <option value="841x594">A1 wide</option>
             <option value="594x841">A1 tall</option>
+            <option value="80x1000">Receipt 80 mm × 1 m</option>
           </select>
           Canvas
           <NumBox value={canvasW} onChange={(v) => setCanvasW(Math.max(10, v))} min={10} width={56} />

@@ -1,25 +1,33 @@
 import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
+import { longRibbon } from "../ribbon-long.js";
 
 export default {
   key: "ribbon",
   name: "Ribbon",
   cat: "gen",
   group: "geometric",
-  desc: "A band of parallel filament lines following a noise-wandering spine, pinching and swelling with Width variation. Shape Line runs the spine left to right across the sheet; Shape Ring closes it into a loop around the canvas center (Ring radius sets the base size, Wander makes the loop breathe) with seamless periodic noise, every filament a closed pen stroke. Angular adds long straight spans and sharp offset corners: Free folds makes a seeded crossing path, Zigzag alternates across the sheet, and Star closes a polygonal star. No crossings grows an open seeded route with mixed left/right turns while checking the whole band and Clearance mm between separate spans; Turns is a maximum, so wide bands may make fewer turns. Clearance scales with width when fitting the page. Sharp joins use mitres, shortened to bevels past Corner limit. Crossings overprint; use Woven Ribbon for over/under gaps. Angular Fill Lines draws individual filaments; Stripes fills 1–6 pen bands with parallel strokes at Pen pitch. Stripe gap leaves white space between bands. Colours also assigns bands to Line and Ring filaments. Angular fits the whole band into Margin, shrinking width and pitch together only when necessary. Dense settings increase pitch to stay within the point budget. Use a pen matching the final pitch for solid-looking stripes; preview colours are opaque and real ink mixing depends on the pens and paper. Organic adds flowing Pleated sheets with edge-on fold seams, or Channels whose filaments bend around pockets. Bends steers the spine, Flares places broad swells, Width variation pinches the bundle, Fine tails narrows its ends and Edge ripple adds a shared waviness. Fold turns twists Pleated sheets; their crossings overprint. Channels leaves pockets Open, outlines them or shades them with real hatching at Pocket pitch. Width is the maximum band width before shrink-only page fitting. Organic fits inside Margin and uses the same 1–6 selected pens. Existing Line, Ring and Angular geometry is unchanged.",
+  desc: "A band of parallel filament lines following a noise-wandering spine, pinching and swelling with Width variation. Shape Line runs the spine left to right across the sheet; Shape Ring closes it into a loop around the canvas center (Ring radius sets the base size, Wander makes the loop breathe) with seamless periodic noise, every filament a closed pen stroke. Angular adds long straight spans and sharp offset corners: Free folds makes a seeded crossing path, Zigzag alternates across the sheet, and Star closes a polygonal star. No crossings grows an open seeded route with mixed left/right turns while checking the whole band and Clearance mm between separate spans; Turns is a maximum, so wide bands may make fewer turns. Clearance scales with width when fitting the page. Sharp joins use mitres, shortened to bevels past Corner limit. Crossings overprint; use Woven Ribbon for over/under gaps. Angular Fill Lines draws individual filaments; Stripes fills 1–6 pen bands with parallel strokes at Pen pitch. Stripe gap leaves white space between bands. Colours also assigns bands to Line and Ring filaments. Angular fits the whole band into Margin, shrinking width and pitch together only when necessary. Dense settings increase pitch to stay within the point budget. Use a pen matching the final pitch for solid-looking stripes; preview colours are opaque and real ink mixing depends on the pens and paper. Organic adds flowing Pleated sheets with edge-on fold seams, or Channels whose filaments bend around pockets. Bends steers the spine, Flares places broad swells, Width variation pinches the bundle, Fine tails narrows its ends and Edge ripple adds a shared waviness. Fold turns twists Pleated sheets; their crossings overprint. Channels leaves pockets Open, outlines them or shades them with real hatching at Pocket pitch. Width is the maximum band width before shrink-only page fitting. Organic fits inside Margin and uses the same 1–6 selected pens. Existing Line, Ring and Angular geometry is unchanged. Shape Long adds roll-paper Line, Pleated and Channels forms in either Orientation. Bend, Swell, Fold and Pocket repeat are physical millimetres; longer canvases add repeated detail. Tail length sets the physical taper distance. Width, Wander and ripple fit the available paper width without shortening the spine. Each filament spans the complete length between margins, with adaptive sampling and evenly coarsened detail under extreme density. Try Help: Ribbon · One metre pleats or One metre channels.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
-    { key: "shape", label: "Shape", type: "select", options: ["Line", "Ring", "Angular", "Organic"], def: "Line" },
+    { key: "shape", label: "Shape", type: "select", options: ["Line", "Ring", "Angular", "Organic", "Long"], def: "Line" },
+    { key: "longForm", label: "Long form", type: "select", options: ["Line", "Pleated", "Channels"], def: "Pleated", showIf: p => p.shape === "Long" },
+    { key: "orientation", label: "Orientation", type: "select", options: ["Vertical", "Horizontal"], def: "Vertical", showIf: p => p.shape === "Long" },
+    { key: "bendLength", label: "Bend repeat mm", type: "slider", min: 20, max: 3000, step: 10, def: 700, showIf: p => p.shape === "Long" && p.wander > 0 },
+    { key: "swellLength", label: "Swell repeat mm", type: "slider", min: 20, max: 3000, step: 10, def: 420, showIf: p => p.shape === "Long" && p.widthVar > 0 },
+    { key: "foldLength", label: "Fold repeat mm", type: "slider", min: 20, max: 3000, step: 10, def: 600, showIf: p => p.shape === "Long" && p.longForm === "Pleated" },
+    { key: "tailLength", label: "Tail length mm", type: "slider", min: 1, max: 1000, step: 1, def: 120, showIf: p => p.shape === "Long" && p.taper > 0 },
+    { key: "pocketSpacing", label: "Pocket repeat mm", type: "slider", min: 20, max: 3000, step: 10, def: 500, showIf: p => p.shape === "Long" && p.longForm === "Channels" },
     { key: "organicForm", label: "Organic form", type: "select", options: ["Pleated", "Channels"], def: "Pleated", showIf: p => p.shape === "Organic" },
     { key: "bends", label: "Bends", type: "slider", min: 1, max: 6, step: 0.25, def: 3, showIf: p => p.shape === "Organic" },
     { key: "flares", label: "Flares", type: "slider", min: 1, max: 7, step: 1, def: 3, showIf: p => p.shape === "Organic" },
     { key: "twist", label: "Fold turns", type: "slider", min: 0, max: 3, step: 0.05, def: 1.1, showIf: p => p.shape === "Organic" && p.organicForm !== "Channels" },
-    { key: "taper", label: "Fine tails", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8, showIf: p => p.shape === "Organic" },
-    { key: "ripple", label: "Edge ripple mm", type: "slider", min: 0, max: 4, step: 0.1, def: 0.6, showIf: p => p.shape === "Organic" },
+    { key: "taper", label: "Fine tails", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8, showIf: p => ["Organic", "Long"].includes(p.shape) },
+    { key: "ripple", label: "Edge ripple mm", type: "slider", min: 0, max: 4, step: 0.1, def: 0.6, showIf: p => ["Organic", "Long"].includes(p.shape) },
     { key: "pockets", label: "Pockets", type: "slider", min: 0, max: 7, step: 1, def: 3, showIf: p => p.shape === "Organic" && p.organicForm === "Channels" },
-    { key: "pocketSize", label: "Pocket size", type: "slider", min: 0.1, max: 0.9, step: 0.05, def: 0.65, showIf: p => p.shape === "Organic" && p.organicForm === "Channels" && p.pockets > 0 },
-    { key: "pocketFill", label: "Pocket fill", type: "select", options: ["Open", "Outline", "Hatch"], def: "Open", showIf: p => p.shape === "Organic" && p.organicForm === "Channels" && p.pockets > 0 },
-    { key: "pocketPitch", label: "Pocket pitch mm", type: "slider", min: 0.15, max: 2, step: 0.05, def: 0.3, showIf: p => p.shape === "Organic" && p.organicForm === "Channels" && p.pockets > 0 && p.pocketFill === "Hatch" },
+    { key: "pocketSize", label: "Pocket size", type: "slider", min: 0.1, max: 0.9, step: 0.05, def: 0.65, showIf: p => p.shape === "Long" && p.longForm === "Channels" || p.shape === "Organic" && p.organicForm === "Channels" && p.pockets > 0 },
+    { key: "pocketFill", label: "Pocket fill", type: "select", options: ["Open", "Outline", "Hatch"], def: "Open", showIf: p => p.shape === "Long" && p.longForm === "Channels" || p.shape === "Organic" && p.organicForm === "Channels" && p.pockets > 0 },
+    { key: "pocketPitch", label: "Pocket pitch mm", type: "slider", min: 0.15, max: 2, step: 0.05, def: 0.3, showIf: p => p.pocketFill === "Hatch" && (p.shape === "Long" && p.longForm === "Channels" || p.shape === "Organic" && p.organicForm === "Channels" && p.pockets > 0) },
     { key: "angularLayout", label: "Angular layout", type: "select", options: ["Free folds", "No crossings", "Zigzag", "Star"], def: "Free folds", showIf: p => p.shape === "Angular" },
     { key: "turns", label: "Turns", type: "slider", min: 1, max: 40, step: 1, def: 9, showIf: p => p.shape === "Angular" && p.angularLayout !== "Star" },
     { key: "clearance", label: "Clearance mm", type: "slider", min: 0, max: 40, step: 0.5, def: 6, showIf: p => p.shape === "Angular" && p.angularLayout === "No crossings" },
@@ -32,7 +40,7 @@ export default {
     { key: "rotate", label: "Rotate °", type: "slider", min: -180, max: 180, step: 1, def: 0, showIf: p => ["Angular", "Organic"].includes(p.shape) },
     { key: "ringR", label: "Ring radius %", type: "slider", min: 20, max: 100, step: 1, def: 70, showIf: p => p.shape === "Ring" },
     { key: "wander", label: "Wander mm", type: "slider", min: 0, max: 120, step: 1, def: 45, showIf: p => p.shape !== "Angular" },
-    { key: "wscale", label: "Wander scale", type: "slider", min: 0.2, max: 4, step: 0.1, def: 1, showIf: p => !["Angular", "Organic"].includes(p.shape) },
+    { key: "wscale", label: "Wander scale", type: "slider", min: 0.2, max: 4, step: 0.1, def: 1, showIf: p => !["Angular", "Organic", "Long"].includes(p.shape) },
     { key: "width", label: "Width mm", type: "slider", min: 2, max: 160, step: 0.5, def: 28 },
     { key: "widthVar", label: "Width variation", type: "slider", min: 0, max: 1, step: 0.05, def: 0.8, showIf: p => p.shape !== "Angular" },
     { key: "lines", label: "Lines", type: "slider", min: 1, max: 60, step: 1, def: 24, showIf: p => p.shape !== "Angular" || p.angularFill === "Lines" },
@@ -51,7 +59,7 @@ export default {
     return [p.layer,p.pen2,p.pen3,p.pen4,p.pen5,p.pen6].slice(0,n).map((v,i)=>Math.round(Math.max(0,Math.min(11,Number.isFinite(+v)?+v:i))));
   },
   overlay(p, ctx) {
-    if(!["Angular","Organic"].includes(p.shape))return [];
+    if(!["Angular","Organic","Long"].includes(p.shape))return [];
     const W=Number.isFinite(+ctx.W)?Math.max(1,+ctx.W):210,H=Number.isFinite(+ctx.H)?Math.max(1,+ctx.H):297;
     const m=Math.max(0,Math.min(Number.isFinite(+p.margin)?+p.margin:12,Math.min(W,H)/2));
     return [{kind:"rect",x:m,y:m,w:W-2*m,h:H-2*m}];
@@ -302,6 +310,7 @@ export default {
     return {paths};
   },
   compute(ins, p, ctx) {
+    if (p.shape === "Long") return applyStyle(longRibbon(p, ctx, this._pens(p)), ins[0]);
     if (p.shape === "Organic") return applyStyle(this._organic(p, ctx), ins[0]);
     if (p.shape === "Angular") return applyStyle(this._angular(p, ctx), ins[0]);
     const { W, H } = ctx;

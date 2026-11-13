@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Receipt raster checks</title>
+<style>body{font:16px/1.6 system-ui;margin:40px;max-width:1000px}.pass{color:#167041}.fail{color:#b22}</style>
+<h1>Receipt raster checks</h1><p id="summary" data-status="running">Running real browser canvas tests…</p><ol id="results"></ol>
+<script type="module">
+import { renderReceipt, renderAnimationReceipt } from '../src/thermal-print.js';
+import { RECEIPT_MAX_HEIGHT_DOTS, RECEIPT_RENDER_ROWS } from '../src/receipt-format.js';
+import { parseReceiptJson, receiptImageData } from '../latu/src/receipt.js';
+import ribbon from '../src/defs/nodes/ribbon.js';
+import kaisla from '../src/defs/nodes/kaisla.js';
+const ok = (value, message) => { if (!value) throw new Error(message); };
+let passed = 0, failed = 0;
+function test(name, fn) {
+  const li = document.createElement('li');
+  try { fn(); passed++; li.className = 'pass'; li.textContent = `PASS — ${name}`; }
+  catch (error) { failed++; li.className = 'fail'; li.textContent = `FAIL — ${name}: ${error.message}`; }
+  document.querySelector('#results').append(li);
+}
+function reference(paths, widthMm, heightMm) {
+  const canvas = document.createElement('canvas'), width = 512, height = Math.round(heightMm / widthMm * width);
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d',{willReadFrequently:true}); ctx.fillStyle = 'white'; ctx.fillRect(0,0,width,height);ctx.scale(width/widthMm,height/heightMm);
+  ctx.strokeStyle='black';ctx.lineWidth=Math.max(.3,widthMm/width*1.25);ctx.lineCap='round';ctx.lineJoin='round';
+  for(const path of paths){ctx.beginPath();ctx.moveTo(...path.pts[0]);for(const q of path.pts.slice(1))ctx.lineTo(...q);if(path.closed)ctx.closePath();ctx.stroke();}
+  const rgba=ctx.getImageData(0,0,width,height).data,bytes=new Uint8Array(width*height/8);
+  for(let i=0;i<width*height;i++)if(rgba[i*4]<160)bytes[i>>3]|=0x80>>(i&7);
+  return {bytes,rgba};
+}
+const decode = image => Uint8Array.from(atob(image.data), c=>c.charCodeAt(0));
+for(const H of [300,1000,3000])test(`Strip rendering preserves one-piece coverage (${H} mm)`,()=>{
+  const paths=[{pts:[[3,0],[20,H*.33],[70,H*.66],[40,H]],closed:false},{pts:[[1,100],[77,150],[39,190]],closed:true}];
+  const actual=decode(renderReceipt(paths,80,H)),{bytes:expected,rgba}=reference(paths,80,H);
+  ok(actual.length===expected.length,'byte count');
+  let differences=0;
+  for(let i=0;i<actual.length;i++)for(let bit=0;bit<8;bit++)if((actual[i]^expected[i])&(0x80>>bit)){
+    differences++;const red=rgba[(i*8+bit)*4];ok(red>64&&red<224,'a solid interior or blank pixel changed');
+  }
+  // Small edge-coverage rounding differences are expected when the browser
+  // clips diagonal polygons against different canvas bounds. Interiors and
+  // all old short-receipt pixels must remain identical.
+  ok(H===300 ? differences===0 : differences<512*(H*6.4)*.0002,`too many changed edge pixels: ${differences}`);
+});
+for(const H of [1000,3000,10000])test(`Full-length line survives every strip and the final row (${H} mm)`,()=>{
+  const image=renderReceipt([{pts:[[40,0],[40,H]],closed:false}],80,H),bytes=decode(image);
+  ok(image.height===H*6.4,'full output height');
+  for(let y=0;y<image.height;y++)ok((bytes[y*64+32]&0x80)!==0,`missing line at row ${y}`);
+  const receipt=parseReceiptJson(JSON.stringify({format:'muusia-receipt',version:1,...image,cut:true}));
+  ok(receipt.height===image.height,'LATU dimensions');
+  ok(receiptImageData(receipt,image.height-1,1)[256*4]===0,'LATU final row');
+});
+for(const n of [ribbon,kaisla])test(`${n.name} exports actual three-metre geometry to LATU`,()=>{
+  const p={...Object.fromEntries(n.params.map(p=>[p.key,p.def])),shape:'Long',margin:5};
+  const output=n.compute([],p,{W:80,H:3000}),image=renderReceipt(output.paths,80,3000);
+  const receipt=parseReceiptJson(JSON.stringify({format:'muusia-receipt',version:1,...image}));
+  ok(receipt.height===19200,'metre-length export');ok(receipt.pixels.some(v=>v!==0),'nonempty raster');
+});
+test('Maximum supported height and oversized rejection',()=>{
+  const image=renderReceipt([{pts:[[40,0],[40,RECEIPT_MAX_HEIGHT_DOTS/6.4]],closed:false}],80,RECEIPT_MAX_HEIGHT_DOTS/6.4);
+  ok(image.height===RECEIPT_MAX_HEIGHT_DOTS,'maximum height');
+  let rejected=false;try{renderReceipt([],80,(RECEIPT_MAX_HEIGHT_DOTS+1)/6.4);}catch{rejected=true;}ok(rejected,'oversized export must reject');
+  ok(RECEIPT_RENDER_ROWS<=1024,'bounded canvas memory');
+});
+test('Long animation receipts keep their markers and content',()=>{
+  const image=renderAnimationReceipt([{pts:[[40,0],[40,1000]],closed:false}],80,1000,7,12);
+  ok(image.height>4096,'long animation accepted');ok(decode(image).some(v=>v!==0),'markers and image present');
+});
+test('Native text remains attached to long jobs and text-only jobs stay one row',()=>{
+  const text=[{position:'after',text:'LONG ROLL'}];
+  const image=renderReceipt([{pts:[[40,0],[40,3000]],closed:false}],80,3000,null,text);
+  ok(image.height===19200,'long native-text image');ok(image.thermalText===text,'text metadata retained');
+  const only=renderReceipt([],80,10000,null,text);
+  ok(only.height===1,'text-only raster row');ok(only.thermalText===text,'text-only metadata');
+  const numbered=renderReceipt([{pts:[[40,0],[40,1000]],closed:false}],80,1000,{number:2,count:12},text);
+  ok(numbered.height>4096&&numbered.thermalText===text,'long numbered job retains native text');
+});
+const summary=document.querySelector('#summary');summary.textContent=`${passed} passed, ${failed} failed.`;summary.dataset.status=failed?'failed':'passed';
+</script></html>

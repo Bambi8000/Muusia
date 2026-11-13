@@ -16,6 +16,25 @@ import native_fonts
 
 
 class PrintServerTests(unittest.TestCase):
+    def test_long_receipt_preserves_every_row_and_cuts_only_at_end(self):
+        for height in (6400, 19200, 64000, server.MAX_HEIGHT):
+            pixels = bytes(range(256)) * (height * 64 // 256) + bytes(range(height * 64 % 256))
+            output = server.escpos_image(512, height, pixels)
+            self.assertEqual(output[:2], b"\x1b@")
+            position, restored = 2, bytearray()
+            while len(restored) < len(pixels):
+                self.assertEqual(output[position:position + 6], b"\x1dv0\x00\x40\x00")
+                rows = output[position + 6] + 256 * output[position + 7]
+                self.assertTrue(1 <= rows <= 256)
+                position += 8
+                restored.extend(output[position:position + rows * 64])
+                position += rows * 64
+            self.assertEqual(restored, pixels)
+            self.assertEqual(output[position:], b"\x1dV\x41\x20")
+            self.assertEqual(server.escpos_image(512, height, pixels, False), output[:position])
+        with self.assertRaises(ValueError):
+            server.escpos_image(512, server.MAX_HEIGHT + 1, b"")
+
     def test_00_strip_jobs_are_single_idle_and_idempotent(self):
         # No worker: inspect real HTTP queue operations without printing anything.
         server.jobs.clear(); server.job_images.clear(); server.job_native_texts.clear()
@@ -91,11 +110,11 @@ class PrintServerTests(unittest.TestCase):
         height = 14135
         pixels = bytes([0xa5]) * (64 * height)
         body = {"width": 512, "height": height, "data": base64.b64encode(pixels).decode()}
+        self.assertEqual(server.validate_receipt(body)[:2], (height, pixels))
         with self.assertRaises(ValueError):
-            server.validate_receipt(body)
+            server.validate_receipt({**body, "height": server.MAX_HEIGHT + 1})
         self.assertEqual(server.validate_receipt(body, server.MAX_STRIP_HEIGHT, server.MAX_STRIP_BODY)[0], height)
-        with self.assertRaises(ValueError):
-            server.escpos_image(512, height, pixels)
+        self.assertEqual(server.escpos_image(512, height, pixels), server.escpos_image(512, height, pixels, max_height=server.MAX_STRIP_HEIGHT))
         encoded = server.escpos_image(512, height, pixels, max_height=server.MAX_STRIP_HEIGHT)
         self.assertTrue(encoded.startswith(b"\x1b@")); self.assertTrue(encoded.endswith(b"\x1dV\x41\x20"))
         self.assertEqual(encoded.count(b"\x1dV\x41\x20"), 1)
@@ -302,7 +321,9 @@ class PrintServerTests(unittest.TestCase):
             threading.Thread(target=server.print_worker, daemon=True).start()
             base = f"http://127.0.0.1:{httpd.server_port}"
             try:
-                payload = json.dumps({"width": 512, "height": 1, "data": base64.b64encode(bytes([0x80]) + bytes(63)).decode(), "cut": False}).encode()
+                height = 7000
+                pixels = bytes([0x80]) + bytes(height * 64 - 2) + bytes([0x01])
+                payload = json.dumps({"width": 512, "height": height, "data": base64.b64encode(pixels).decode(), "cut": False}).encode()
                 headers = {"Content-Type": "application/json", "Origin": "http://localhost:5173"}
                 with urlopen(Request(base + "/api/jobs", data=payload, headers=headers), timeout=2) as response:
                     self.assertEqual(response.status, 202)
@@ -316,7 +337,7 @@ class PrintServerTests(unittest.TestCase):
                     time.sleep(0.01)
                 self.assertEqual(status, "done")
                 with open(output_path, "rb") as result:
-                    self.assertEqual(result.read(), server.escpos_image(512, 1, bytes([0x80]) + bytes(63), False))
+                    self.assertEqual(result.read(), server.escpos_image(512, height, pixels, False))
                 before_cut = os.path.getsize(output_path)
                 with urlopen(Request(base + "/api/cut", data=b"", method="POST", headers=headers), timeout=2) as response:
                     self.assertEqual(response.status, 202)
@@ -399,7 +420,7 @@ class PrintServerTests(unittest.TestCase):
                 with urlopen(Request(base + "/api/jobs"), timeout=2) as response:
                     self.assertTrue(any(job["id"] == job_id for job in json.load(response)["jobs"]))
                 with urlopen(Request(base + "/api/jobs/" + job_id + "/receipt"), timeout=2) as response:
-                    self.assertEqual(json.load(response)["data"], base64.b64encode(bytes([0x80]) + bytes(63)).decode())
+                    self.assertEqual(json.load(response)["data"], base64.b64encode(pixels).decode())
                 waiting_id = "a" * 32
                 with server.jobs_lock:
                     server.jobs[waiting_id] = {"id": waiting_id, "status": "queued", "name": "Waiting", "height": 1,

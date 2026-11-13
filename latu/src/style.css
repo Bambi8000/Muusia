@@ -79,6 +79,7 @@ button.quiet { border-color: transparent; background: transparent; color: #a8b5c
 .receipt-playback input { flex: 1; min-width: 50px; accent-color: #81c8e4; }
 .receipt-playback span { min-width: 42px; text-align: right; }
 .receipt-scroll { min-height: 0; overflow: auto; padding: 15px; border: 1px solid #3a4651; border-radius: 6px; background: #31363b; text-align: center; }
-.receipt-scroll canvas { display: block; width: min(100%, 512px); height: auto; margin: 0 auto; background: white; image-rendering: pixelated; box-shadow: 0 4px 18px #0008; }
+.receipt-paper { width: min(100%, 512px); margin: 0 auto; background: white; box-shadow: 0 4px 18px #0008; }
+.receipt-scroll canvas { display: block; width: 100%; height: auto; background: white; image-rendering: pixelated; }
 .receipt-note { margin: 10px 0 0 !important; line-height: 1.5; }
 .receipt-error { padding: 12px; border: 1px solid #7d4f4f; border-radius: 5px; background: #301e20; color: #f6bcbc; font-size: 12px; }

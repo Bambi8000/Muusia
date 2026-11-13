@@ -85,11 +85,11 @@
     state.receipts.forEach((receipt, i) => { const option = new Option(receipt.name || `Frame ${i + 1}`, String(i)); picker.add(option); });
     picker.value = String(state.selected);
     const pixels = decode(item.data);
-    const windowed = strip && item.height > 4096, rows = windowed ? 2048 : item.height;
+    const windowed = item.height > 4096, rows = windowed ? 2048 : item.height;
     state.previewStart = Math.max(0, Math.min(state.previewStart, item.height-rows));
     $('#strip-window').classList.toggle('hidden', !windowed);
     $('#strip-preview-start').max = String(Math.max(0,item.height-rows)); $('#strip-preview-start').value = String(state.previewStart);
-    const density = item.profile?.dotsPerMm || 400/56.6;
+    const density = item.profile?.dotsPerMm || (strip ? 400/56.6 : 180/25.4);
     $('#strip-window-position').textContent = `${(state.previewStart/density).toFixed(1)}–${((state.previewStart+rows)/density).toFixed(1)} mm of ${(item.height/density).toFixed(1)} mm`;
     canvas.width = item.width; canvas.height = rows;
     const context = canvas.getContext('2d'); const image = context.createImageData(item.width, rows);

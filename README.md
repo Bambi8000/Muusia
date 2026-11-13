@@ -1,4 +1,4 @@
-# MUUSIA v2.177
+# MUUSIA v2.189
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -133,10 +133,19 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **349 built-in node modules** across Generators,
+HTML file you can double-click. The current source has **360 built-in node modules** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
+
+**Long receipt artwork.** Choose **Receipt 80 mm × 1 m** in Size preset.
+Ribbon's **Shape → Long** adds Line, Pleated and Channels forms with repetition
+distances in millimetres. **Kaisla** draws long tapered reeds with leaves, joints
+and feathery or cattail heads. Help includes two one-metre Ribbon examples,
+one-metre reeds and three-metre cattails. Receipt export and LATU preview support
+up to 65,535 raster rows; the print-server update is required for direct printing.
+The receipt route fits the artwork to 512 dots, so nominal canvas millimetres
+are not a calibrated physical print size.
 
 The **Mold** generator animates spreading mold colonies or branching mycelium.
 Choose Motion → Timeline and press Play in ANIMATE; Manual exposes Growth %.

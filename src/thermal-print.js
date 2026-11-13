@@ -1,6 +1,7 @@
 // First Muusia Print path: render the selected vector output as 1-bit TM-T88V data.
-export const RECEIPT_WIDTH_DOTS = 512;
-export const RECEIPT_MAX_HEIGHT_DOTS = 4096;
+import { RECEIPT_WIDTH_DOTS, RECEIPT_MAX_HEIGHT_DOTS } from "./receipt-format.js";
+import { renderReceiptRaster } from "./receipt-raster.js";
+export { RECEIPT_WIDTH_DOTS, RECEIPT_MAX_HEIGHT_DOTS } from "./receipt-format.js";
 
 export const ANIMATION_RECEIPT = Object.freeze({ x: 48, y: 112, width: 416, arm: 32, stroke: 5, codeX: 184, codeY: 65, codeCell: 9, codeHeight: 18 });
 
@@ -67,74 +68,12 @@ export function renderAnimationReceipt(paths, widthMm, heightMm, frame, total, t
 
 export function renderReceipt(paths, widthMm, heightMm, frame = null, thermalText = []) {
   if (frame !== null) return renderAnimationReceipt(paths, widthMm, heightMm, frame.number, frame.count, Array.isArray(thermalText) ? thermalText : []);
-  if (!Number.isFinite(widthMm) || !Number.isFinite(heightMm) || widthMm <= 0 || heightMm <= 0) {
-    throw new Error("Canvas dimensions must be positive.");
-  }
-  const width = RECEIPT_WIDTH_DOTS;
+  if (!Number.isFinite(widthMm) || !Number.isFinite(heightMm) || widthMm <= 0 || heightMm <= 0) throw new Error("Canvas dimensions must be positive.");
   const nativeText = Array.isArray(thermalText) ? thermalText : [];
-  // A text-only Thermal Text node needs one blank raster row, not a full blank canvas.
-  const artHeight = !paths.length && nativeText.length ? 1 : Math.round(heightMm / widthMm * width);
-  const numbered = frame !== null;
-  if (numbered && (!Number.isInteger(frame.number) || !Number.isInteger(frame.count) || frame.number < 1 || frame.number > frame.count || frame.count > 999)) {
-    throw new Error("Receipt frame number is invalid.");
-  }
-  const top = numbered ? 20 : 0;
-  const height = artHeight + (numbered ? 30 : 0);
-  if (artHeight < 1 || height > RECEIPT_MAX_HEIGHT_DOTS) {
-    throw new Error("Receipt is too long. Use a shorter canvas or test crop (maximum about 58 cm).");
-  }
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) throw new Error("Canvas rendering is unavailable.");
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, width, height);
-  ctx.save();
-  ctx.translate(0, top);
-  ctx.scale(width / widthMm, artHeight / heightMm);
-  ctx.strokeStyle = "black";
-  // Keep wide source canvases legible after they are reduced to receipt width.
-  ctx.lineWidth = Math.max(0.3, widthMm / width * 1.25);
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  for (const path of paths) {
-    if (!path.pts || path.pts.length < 2) continue;
-    ctx.beginPath();
-    ctx.moveTo(path.pts[0][0], path.pts[0][1]);
-    for (let i = 1; i < path.pts.length; i++) ctx.lineTo(path.pts[i][0], path.pts[i][1]);
-    if (path.closed) ctx.closePath();
-    ctx.stroke();
-  }
-  ctx.restore();
-  if (numbered) {
-    ctx.fillStyle = "black";
-    ctx.font = "8px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(`F${String(frame.number).padStart(String(frame.count).length, "0")}/${frame.count}`, width / 2, 11);
-    for (const y of [top - 1, top + artHeight]) {
-      ctx.fillRect(0, y, 12, 1);
-      ctx.fillRect(width - 12, y, 12, 1);
-    }
-    ctx.fillRect(1, top - 6, 1, 5);
-    ctx.fillRect(width - 2, top - 6, 1, 5);
-    ctx.fillRect(1, top + artHeight + 1, 1, 5);
-    ctx.fillRect(width - 2, top + artHeight + 1, 1, 5);
-  }
-  const rgba = ctx.getImageData(0, 0, width, height).data;
-  const bytes = new Uint8Array(width * height / 8);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const i = (y * width + x) * 4;
-      // Antialiased edge pixels are converted to a single thermal dot.
-      if (rgba[i] < 160) bytes[y * width / 8 + (x >> 3)] |= 0x80 >> (x & 7);
-    }
-  }
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 8192) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
-  }
-  return { width, height, data: btoa(binary), ...(nativeText.length ? { thermalText: nativeText } : {}) };
+  // Text-only native jobs retain their one blank raster row. Native composition,
+  // numbered animation markers and transport remain owned by their current API.
+  const raster = renderReceiptRaster(paths, widthMm, !paths.length && nativeText.length ? widthMm / RECEIPT_WIDTH_DOTS : heightMm);
+  return { ...raster, ...(nativeText.length ? { thermalText: nativeText } : {}) };
 }
 
 function localPrintBase(serverUrl) {

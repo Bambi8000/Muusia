@@ -1,23 +1,23 @@
 import { strFromU8, unzipSync } from "fflate";
 
-const WIDTH = 512;
-const MAX_HEIGHT = 4096;
+import { RECEIPT_WIDTH_DOTS as WIDTH, RECEIPT_MAX_HEIGHT_DOTS as MAX_HEIGHT, RECEIPT_MAX_JSON_BYTES, RECEIPT_MAX_ESCPOS_BYTES } from "../../src/receipt-format.js";
 
 function validateReceipt(height, pixels) {
   if (!Number.isInteger(height) || height < 1 || height > MAX_HEIGHT || pixels.length !== WIDTH * height / 8) {
-    throw new Error("Receipt must be 512 dots wide and 1–4096 rows high.");
+    throw new Error(`Receipt must be 512 dots wide and 1–${MAX_HEIGHT} rows high.`);
   }
   return { width: WIDTH, height, pixels };
 }
 
 export function parseReceiptJson(text) {
-  if (text.length > 400_000) throw new Error("Receipt file is too large.");
+  if (text.length > RECEIPT_MAX_JSON_BYTES) throw new Error("Receipt file is too large.");
   let value;
   try { value = JSON.parse(text); }
   catch { throw new Error("Receipt JSON is not valid."); }
-  if (!value || value.format !== "muusia-receipt" || value.version !== 1 || value.width !== WIDTH || typeof value.data !== "string" || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value.data)) {
+  if (!value || value.format !== "muusia-receipt" || value.version !== 1 || value.width !== WIDTH || typeof value.data !== "string" || (value.data.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(value.data))) {
     throw new Error("This is not a Muusia receipt v1 file.");
   }
+  if (!Number.isInteger(value.height) || value.height < 1 || value.height > MAX_HEIGHT) throw new Error(`Receipt must be 512 dots wide and 1–${MAX_HEIGHT} rows high.`);
   let decoded;
   try { decoded = atob(value.data); }
   catch { throw new Error("Receipt bitmap is not valid Base64."); }
@@ -39,7 +39,7 @@ export function parseReceiptAnimationZip(buffer) {
       if (!/\.muusia-receipt\.json$/i.test(name)) return false;
       count++;
       total += originalSize;
-      if (count > 999 || originalSize > 400_000 || total > 200_000_000) throw new Error("Receipt animation ZIP is too large.");
+      if (count > 999 || originalSize > RECEIPT_MAX_JSON_BYTES || total > 200_000_000) throw new Error("Receipt animation ZIP is too large.");
       return true;
     } });
   } catch (error) { throw new Error(error.message || "Receipt animation ZIP is invalid."); }
@@ -54,7 +54,7 @@ export function parseReceiptAnimationZip(buffer) {
 
 export function parseEscPos(buffer) {
   const data = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-  if (data.length > 300_000) throw new Error("ESC/POS file is too large.");
+  if (data.length > RECEIPT_MAX_ESCPOS_BYTES) throw new Error("ESC/POS file is too large.");
   const rows = [];
   let offset = 0, cut = false, feedDots = 0;
   if (data[0] === 0x1B && data[1] === 0x40) offset = 2;
@@ -85,11 +85,12 @@ export function parseEscPos(buffer) {
   return { ...validateReceipt(height, pixels), cut, feedDots, format: "ESC/POS raster" };
 }
 
-export function receiptImageData(receipt) {
-  const rgba = new Uint8ClampedArray(receipt.width * receipt.height * 4);
-  for (let y = 0; y < receipt.height; y++) {
+export function receiptImageData(receipt, startRow = 0, rowCount = receipt.height - startRow) {
+  if (!Number.isInteger(startRow) || !Number.isInteger(rowCount) || startRow < 0 || rowCount < 1 || startRow + rowCount > receipt.height) throw new Error("Invalid receipt preview rows.");
+  const rgba = new Uint8ClampedArray(receipt.width * rowCount * 4);
+  for (let y = 0; y < rowCount; y++) {
     for (let x = 0; x < receipt.width; x++) {
-      const black = !!(receipt.pixels[y * receipt.width / 8 + (x >> 3)] & (0x80 >> (x & 7)));
+      const black = !!(receipt.pixels[(startRow + y) * receipt.width / 8 + (x >> 3)] & (0x80 >> (x & 7)));
       const at = (y * receipt.width + x) * 4;
       rgba[at] = rgba[at + 1] = rgba[at + 2] = black ? 0 : 255;
       rgba[at + 3] = 255;

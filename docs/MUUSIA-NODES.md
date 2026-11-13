@@ -498,6 +498,21 @@ bar-to-slot ratio, *Markers* dots data points, *Sort* reorders categories by
 the first series. Series take one pen each from *Series pen* when *Cycle pens*
 is on; the frame draws on *Frame pen*.
 
+**Kaisla** — long reeds (ruoko / kaisla / rushes) for narrow receipt rolls.
+*Stalk length %* follows the canvas length; *Length variation* scatters the tips.
+*Sway mm* and *Lean mm* bend across the available width without shortening the
+stalks at the side edges. *Sway repeat mm*, *Joint spacing mm* and *Leaf spacing
+mm* preserve physical detail as the roll gets longer. *Stem width mm*, *Pen pitch
+mm* and *Taper* create real parallel strokes thinning toward the tips. *Leaves*
+adds pointed outlines, with optional *Leaf veins*. *Seed head* selects None,
+Feathery or Cattail; the latter uses parallel pen rails. *Leaf / head pen* changes
+only detail colour. *Orientation* rotates the growth horizontally. Every path
+stays inside *Margin*. Base geometry stays below 120k points before Style;
+extreme settings coarsen sampling and feature spacing evenly, retaining all
+stems and their tips. Help: **Kaisla · One metre reeds** (80 × 1000 mm) and
+**Kaisla · Three metre cattails** (80 × 3000 mm). The toolbar's **Receipt 80 mm ×
+1 m** size preset sets an 80 × 1000 mm canvas.
+
 **Reeds in Snow** — a charcoal sketch of winter reeds on blank paper. *Stalks*
 rise from a shallow ground band (*Ground*, *Ground depth*) to heights
 scattered by *Height* / *Height variation*, curving with *Bend*, leaning with
@@ -1751,6 +1766,20 @@ recolour the geometry without moving any stroke. Dense settings reduce sampling
 and may widen pocket hatch pitch to keep base output below 110k points before
 Style. Margin shows the fitting box. Existing Line, Ring and Angular results,
 including old patches without the new fields, are unchanged.
+
+*Long* is the roll-paper mode, with *Long form* Line, Pleated or Channels and
+*Orientation* Vertical / Horizontal. *Bend repeat mm*, *Swell repeat mm*, *Fold
+repeat mm* and *Pocket repeat mm* set physical repetition, so increasing the
+canvas length adds detail rather than stretching one small picture. *Tail length
+mm* sets the end taper distance; *Fine tails* controls its strength. *Width mm*
+is capped to the drawable width; Wander and ripple use the remaining lateral
+room. The entire spine retains the canvas length between margins, without
+shrinking the whole drawing to fit. Each filament is continuous from end to end.
+Channels shares Pocket size / fill / pitch with Organic, including real hatching.
+The base budget is below 100k points before Style; extreme requests coarsen
+sampling, repetition and hatch pitch evenly along the entire roll. Existing
+Line, Ring, Angular and Organic outputs are unchanged. Help: **Ribbon · One metre
+pleats** and **Ribbon · One metre channels**, both on 80 × 1000 mm paper.
 
 Help examples: **Ribbon · Organic pleats**, **Ribbon · Open channels**,
 **Ribbon · Ink pockets**, **Ribbon · Six ink pleats**, **Ribbon · No crossings**,

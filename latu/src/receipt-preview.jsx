@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { receiptImageData } from "./receipt.js";
+import { RECEIPT_RENDER_ROWS } from "../../src/receipt-format.js";
 
 export default function ReceiptPreview({ file, onClose }) {
-  const canvasRef = useRef(null);
+  const canvasRefs = useRef([]);
   const [frameIndex, setFrameIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const frames = file.frames;
@@ -13,12 +14,17 @@ export default function ReceiptPreview({ file, onClose }) {
     return () => clearInterval(timer);
   }, [playing, frames]);
   useEffect(() => {
-    if (!receipt || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    canvas.width = receipt.width;
-    canvas.height = receipt.height;
-    const context = canvas.getContext("2d");
-    context.putImageData(new ImageData(receiptImageData(receipt), receipt.width, receipt.height), 0, 0);
+    if (!receipt) return;
+    for (let i = 0; i < canvasRefs.current.length; i++) {
+      const canvas = canvasRefs.current[i];
+      if (!canvas) continue;
+      const row = i * RECEIPT_RENDER_ROWS, rows = Math.min(RECEIPT_RENDER_ROWS, receipt.height - row);
+      if (rows < 1) continue;
+      canvas.width = receipt.width;
+      canvas.height = rows;
+      const context = canvas.getContext("2d");
+      context.putImageData(new ImageData(receiptImageData(receipt, row, rows), receipt.width, rows), 0, 0);
+    }
   }, [receipt]);
   return <div className="modal-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}>
     <div className="dialog receipt-dialog" role="dialog" aria-modal="true" aria-label="Receipt preview">
@@ -32,7 +38,9 @@ export default function ReceiptPreview({ file, onClose }) {
           <input type="range" min="0" max={frames.length - 1} value={frameIndex} onChange={event => { setPlaying(false); setFrameIndex(Number(event.target.value)); }} aria-label="Receipt animation frame" />
           <span>{frameIndex + 1} / {frames.length}</span>
         </div>}
-        <div className="receipt-scroll"><canvas ref={canvasRef} aria-label="Black and white receipt image" /></div>
+        <div className="receipt-scroll"><div className="receipt-paper" role="img" aria-label="Black and white receipt image">
+          {Array.from({ length: Math.ceil(receipt.height / RECEIPT_RENDER_ROWS) }, (_, i) => <canvas key={i} ref={element => { canvasRefs.current[i] = element; }} aria-hidden="true" style={{ display: "block" }} />)}
+        </div></div>
         <p className="receipt-note">Preview only. Receipt pixels cannot be edited as LATU G-code strokes.</p>
       </>}
       <div className="dialog-actions"><button className="primary" onClick={onClose}>Close</button></div>

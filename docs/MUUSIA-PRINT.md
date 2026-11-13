@@ -32,7 +32,7 @@ Muusia tarjoaa **Surface Composer → Print… → Print / continue** -paneelin.
 
 **Total paper** näyttää näkyvien suikaleiden metrit lisävaroineen ja vertaa niitä annettuun rullaan. Rullan pituus, jo käytetty osuus, varaus ja syöttö-/leikkausvara annetaan käsin. Ne ovat kulutusarvio, eivät anturitietoa. Tallennettava jatkokohta on suikaleen alkuperäisessä kuvakohdistuksessa; osaväli ei skaalaa sisältöä uudelleen.
 
-Uusi `GET /api/strip-capabilities` ilmoittaa tuen, ja `POST /api/strip-jobs` ottaa yhden 512 × enintään 65 535 rivin rasterin (6 MB pyyntöraja). Koko suikale kulkee yhtenä työnä nykyisen USB-työntekijän läpi: 256 rivin ESC/POS-lohkot, alustus kerran ja valittu leikkaus vain lopussa. Tavallinen `/api/jobs` ja Print-sivun tavalliset kuvat säilyttävät 4096 rivin rajansa. Suikalereitti edellyttää tyhjää aktiivijonoa ja pysäytettyä Clock-tilaa. Työn `requestId` estää saman tunnisteen jonottamisen uudelleen palvelimen nykyisessä historiassa. Historiakuvien muistiraja on 32 MiB; vanha valmis esikatselu voi poistua.
+Uusi `GET /api/strip-capabilities` ilmoittaa tuen, ja `POST /api/strip-jobs` ottaa yhden 512 × enintään 65 535 rivin rasterin (6 MB pyyntöraja). Koko suikale kulkee yhtenä työnä nykyisen USB-työntekijän läpi: 256 rivin ESC/POS-lohkot, alustus kerran ja valittu leikkaus vain lopussa. Versiosta 2.189 alkaen myös tavallinen `/api/jobs` hyväksyy 65 535 riviä; Print-sivun omien kuva- ja tekstieditorien erillinen 4096 rivin raja säilyy. Suikalereitti edellyttää tyhjää aktiivijonoa ja pysäytettyä Clock-tilaa. Työn `requestId` estää saman tunnisteen jonottamisen uudelleen palvelimen nykyisessä historiassa. Historiakuvien muistiraja on 32 MiB; vanha valmis esikatselu voi poistua.
 
 Mittakaava perustuu käyttäjän paperilta mittaamaan 400 pisteen = 56,6 mm X/Y-väliin. Turvalliset sarakkeet 1…499 perustuvat fyysisesti vahvistettuihin 4,6 mm sivureunoihin; paperin tarkka leveys on edelleen arvio. Noin 9,27 m työraja on palvelun nykyinen rasteriraja. Tulostin ei ilmoita sovellukselle paperin jäljellä olevia metrejä tai jäähtymistä.
 
@@ -96,7 +96,28 @@ Ruudukon merkit ovat tietokoneen merkkikartan arvio; Epsonin sisäisen fontin to
 
 Pi:n kautta tulostettiin lisäksi 2× kokoiset PC866-kyrillinen ja PC861-islantilainen esimerkkikuitti. Käyttäjä vahvisti molempien merkkien näkyvän oikein paperilla. Muut merkistösivut ovat valittavissa, mutta niiden yksittäisten merkkien paperiasua ei ole vielä tarkistettu.
 
-Jono ja työhistoria ovat Pi:n muistissa: palvelun uudelleenkäynnistys tyhjentää ne. Tavallisen kuittireitin yksittäinen kuva saa olla enintään 512 × 4096 pistettä; Surface Composerin erillinen suikalereitti kuvataan yllä. Jonoon mahtuu 64 odottavaa työtä ja historiaan 100 työtä. `done` tarkoittaa, että ESC/POS-tavut on kirjoitettu tiedostoon tai USB-laitteelle; se ei todista paperitulosteen laatua. Kuivatestitiedostoon kertyy kaikkien töiden tavut peräkkäin.
+Jono ja työhistoria ovat Pi:n muistissa: palvelun uudelleenkäynnistys tyhjentää ne. Tavallisen kuittireitin yksittäinen kuva saa olla enintään 512 × 65 535 pistettä; Surface Composerin erillinen suikalereitti kuvataan yllä. Jonoon mahtuu 64 odottavaa työtä ja historiaan 100 työtä. `done` tarkoittaa, että ESC/POS-tavut on kirjoitettu tiedostoon tai USB-laitteelle; se ei todista paperitulosteen laatua. Kuivatestitiedostoon kertyy kaikkien töiden tavut peräkkäin.
+
+## Pitkät nauhat ja kaislat — 2.189
+
+Size preset **Receipt 80 mm × 1 m** asettaa 80 × 1000 mm piirtoalueen.
+Ribbonin **Shape → Long** käyttää millimetreissä säädettäviä mutkien, levenemien,
+laskosten ja taskujen välejä. **Kaisla** piirtää pitkiä kapenevia korsia lehtineen,
+nivelineen ja valinnaisine tähkineen. Help sisältää neljä 1–3 metrin esimerkkiä.
+
+Muusian tavallinen kuittivienti ja LATU tukevat nyt enintään 65 535 rasteririviä.
+Pitkä kuva rasteroidaan ja esikatsellaan 1024 rivin kaistoina, mutta tulostetaan
+yhtenä työnä ja leikataan valinnan mukaan vasta lopussa. Lyhyiden kuittien
+rasterointi ja Thermal Textin ennen/jälkeen-tekstit säilyvät. LATUn animaatio-ZIP
+säilyttää freimien numeroinnin ja sallii myös pitkät kuvat.
+
+Tämä tavallinen kuittireitti sovittaa piirtoalueen leveyden 512 pisteeseen:
+80 × 1000 mm tuottaa 6400 riviä eli noin 903 mm paperia 180 dpi:n arviolla.
+Mittatarkka suikalevienti kulkee edelleen kalibroidun Surface Composerin kautta.
+65 535 rivin raja vastaa noin 9,2 metriä paperia. Päivitetty normaali reitti
+vaatii myös tämän version Print-palvelimen; sovelluksen Pages-julkaisu ei
+asenna Pi-palvelinta. Surface Composerin suikalereitti tukee pitkiä töitä jo
+ennestään. Julkaisun yhteydessä ei lähetetä fyysistä tulostustyötä.
 
 ## USB-tulostus
 

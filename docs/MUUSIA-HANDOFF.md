@@ -6443,3 +6443,43 @@ Documentation follow-up clarifies the clipper's default/optional width fitting;
 106 tests and the ordered catalog/build/37914 Learn gate passed again with that
 comment-only source clarification. Refresh clean source snapshot after final
 commit. Evidence: surface-bezels in the thread artifact directory.
+
+
+### 2.189 — Long Ribbon, Kaisla and one-metre receipt preset
+
+Daniel authorized publication. Integrated the accepted primary-checkout feature
+onto current origin/main e3ed42a8eea8ad320fe7d68f9e7a08b0d2b2aa78 in the isolated
+`codex/long-rolls-release` worktree. Primary checkout's unrelated dirty work is
+preserved; do not replace newer public source with that older complete tree.
+
+Ribbon Shape Long provides Line, Pleated and Channels, either orientation,
+physical bend/swell/fold/pocket repeats, physical taper distance, bounded width
+and continuous end-to-end filaments with a uniform work budget. New Nature
+node Kaisla supplies full-height tapered stems, bounded lean/sway, leaves,
+joints and optional feathery or cattail heads. Toolbar preset is Receipt
+80 mm x 1 m. Four new Help examples cover one-metre ribbons/reeds and three-metre
+cattails. Node docs, tags, recency, catalog and source bundle regenerated.
+
+Long receipt raster work lives in receipt-raster.js with shared format limits:
+512 x <=65535 rows, long canvases rendered in 1024-row strips. Short <=4096-row
+raster pixels are retained. The current native-text and numbered-animation API
+is preserved, including one-row text-only receipts. LATU keeps ZIP playback
+and frame metadata while accepting metre-long entries and tiled previews.
+Current Print server's normal receipt limit is extended to 65535 rows / 6 MB;
+Surface strip idle/idempotence/Clock guards, native fonts, labels and calibrated
+cut commands remain unchanged. Dashboard uses a bounded preview window for
+long normal receipts too. These server changes are source-only: Pages publication
+does not install or restart the Pi service, and no physical job was sent.
+Ordinary receipt export remains width-fit: nominal 80 x 1000 mm -> 6400 rows
+(about 903 mm at 180 dpi); calibrated 1:1 output remains Surface Composer.
+
+Validation: 62 long-roll geometry cases, 1545 Organic Ribbon checks (legacy
+hashes included), 106 Surface tests, 79 LATU tests, 17 Python Print service tests,
+11 real-browser raster/native-text cases, all 182 Help graph structures and
+focused lint pass. Normal long HTTP receipt tested through real local server
+into a temporary output file; up to 65535 ESC/POS rows checked byte-for-byte,
+with initialize-once and only the final cut. Shared ordered catalog -> production
+build -> check:learn passes all 37914 Learn checks; no capture/provenance bypass.
+Main/LATU production builds pass. Verify the exact release commit's Pages run
+and public 2.189/Help/preset before reporting publication, then refresh the clean
+source snapshot. Local browser checker is tools/validate-receipt-browser.html.

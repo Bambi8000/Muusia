@@ -910,6 +910,30 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Ribbon · One metre pleats",
+    desc: "An 80 mm × 1 m receipt ribbon. Shape Long keeps bends, swells and folds in physical millimetres as the canvas gets longer. Orientation turns it sideways. Wander automatically fits the narrow paper without shortening the ribbon. Each filament is one continuous stroke. Try Long form Line or Channels, or extend Canvas height to 3000 mm.",
+    canvas: { W: 80, H: 1000 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "ribbon", x: 30, y: 20, params: { ...defaults("ribbon"), shape: "Long", longForm: "Pleated", margin: 5, width: 36, wander: 12, lines: 32, widthVar: 0.8, bendLength: 650, swellLength: 360, foldLength: 480, tailLength: 90, layer: 0 } }], edges: [] }),
+  },
+  {
+    name: "Ribbon · One metre channels",
+    desc: "An 80 mm × 1 m ribbon with repeating open pockets. Pocket repeat and Swell repeat set physical distances; changing canvas length adds more detail. Pocket fill adds real outlines or hatching. Colours changes pens without changing geometry. Width and Wander stay inside Margin.",
+    canvas: { W: 80, H: 1000 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "ribbon", x: 30, y: 20, params: { ...defaults("ribbon"), shape: "Long", longForm: "Channels", margin: 5, width: 40, wander: 9, lines: 36, widthVar: 0.45, bendLength: 700, swellLength: 300, pocketSpacing: 230, pocketSize: 0.8, pocketFill: "Outline", tailLength: 80, layer: 0 } }], edges: [] }),
+  },
+  {
+    name: "Kaisla · One metre reeds",
+    desc: "Long reeds on 80 mm × 1 m paper, with tapered stems, pointed leaves, joints and feathery seed heads. Stalk length follows the canvas; Sway, Joint spacing and Leaf spacing keep their millimetre scale when you extend it to several metres. Sway bends within the receipt width instead of shortening the stems. Seed changes the plants. All marks are real pen paths.",
+    canvas: { W: 80, H: 1000 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "kaisla", x: 30, y: 20, params: { ...defaults("kaisla"), count: 5, seed: 17, leafSpacing: 280, lengthVar: 0.22 } }], edges: [] }),
+  },
+  {
+    name: "Kaisla · Three metre cattails",
+    desc: "A three-metre reed study on an 80 mm roll. Cattail heads use seven real rails; no screen-only fill. Joint spacing and Leaf spacing repeat detail along the entire roll. Leaf veins adds a centre stroke to each pointed leaf. Reduce Stalks for a quieter drawing, or select Seed head None for bare stems.",
+    canvas: { W: 80, H: 3000 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "kaisla", x: 30, y: 20, params: { ...defaults("kaisla"), count: 4, seed: 29, head: "Cattail", headLength: 90, headWidth: 4, leafSpacing: 500, leafLength: 160, leafVeins: true, sway: 8, swayLength: 800, width: 0.8 } }], edges: [] }),
+  },
+  {
     name: "Noise · Patent TV",
     desc: "Select Noise, set ANIMATE Frames to 24 and press Play. The antenna-free numbered CRT cabinet stays fixed while snow changes on its curved screen. Black frame chance inserts seeded dark interruptions; 0 turns them off. Motion Timeline needs no Frame wire. Mode Full sheet restores the open field.",
     canvas: { W: 297, H: 210 },
