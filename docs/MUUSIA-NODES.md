@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 360 built-in nodes in the current Muusia source. Conventions used below:
+All 361 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -3471,6 +3471,8 @@ Focus X/Y on Adaptive Grid or Portrait and Center X/Y on Spiral Image; the
 millimetre outputs use full paper coordinates. Its selected preview shows a
 point and radius guide that is never plotted. Frame can animate any of its
 three controls. Help: Shared colour grid.
+
+**Surface Context** — numeric paper context for Surface Composer Independent Content. Outputs: stable paper number, visible print rank/count, global centre X/Y, clockwise angle, original physical width/length, distance from surface centre, stable per-ID seed and normalized print index. Wire Paper # to Grid vertical lines, or Seed to a seeded generator. Independent evaluation uses each original paper's full dimensions, including when printing only a resumed segment. Mapped content and the normal graph use the single-canvas fallback. Moving a paper can change position-driven content, while its ID seed stays stable. Example: `surface-context-assembly.muusia.json` (four local grids with 1, 2, 3 and 4 lines).
 
 **Frame** — the animation clock. Outputs: `t 0→1` linear ramp (last frame = 1),
 `frame #` integer, `wave loop` and `ping-pong` (seamless: frame N continues into

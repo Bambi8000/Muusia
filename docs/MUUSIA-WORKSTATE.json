@@ -21,7 +21,7 @@
     "snapshot": "/private/tmp/muusia-project-files-2.176 (clean committed snapshot, prepared locally; not uploaded)",
     "moduleCount": 358,
     "registryCount": 360,
-    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 × 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
+    "validation": "358 module definitions audited on receipt, receipt strip, A4 and both A2 orientations; Solids six-shape/legacy-parameter validator; production build, 37914 Learn checks and catalog passed. Local browser showed 19 Solids paths and 769 points on a 72 \u00d7 100 mm receipt. Affected historical browser SVG/ZIP exports were recaptured and byte-identical.",
     "note": "Exact millimetre placement remains for Single Marker, Card Sheet and Needle Test. No physical plot was made. Unrelated primary checkout changes were preserved.",
     "commit": "1ac1679ab6f58c17a9eea1142c8f925bdb1431d2"
   },
@@ -50,9 +50,9 @@
     "branch": "codex/surface-composer",
     "worktree": "/private/tmp/muusia-surface-composer-20261112",
     "baseCommit": "73118d335153e76fb051fc75f99eee44866c2ac7",
-    "status": "local Muusia 2.182 Fan/Radial/Progressive/seeded Random arrangements complete in all paper families; not published",
-    "validation": "74 focused JS tests, focused lint, catalog, production build and 37914 Learn checks passed. Actual browser verified four patterns, Undo/Redo, Random seed repeat/variation/hidden-paper stability, independent family settings, exact save/load, real SVG/PNG exports. 6916 actual SVG vertices reprojected to source grid; no physical output.",
-    "nextStep": "Independent Content: per-paper graph evaluation with position/angle/index/distance context, then assembly map. Freeform animation batches and magnet-jig files remain follow-ups.",
+    "status": "local Muusia 2.183 Independent Content, assembly PDF and optional end labels complete; not published",
+    "validation": "86 focused JS tests plus Surface Context prototype/built-in contract, 10 Print service tests, focused lint, catalog, production build and 37914 Learn checks passed. Actual browser graph/image PDFs, PNG/SVG/DXF/G-code, mixed modes/Undo and exact Save/Load/Save verified. One short 100 mm body + 32 mm label sent to USB; physical bridge/feed awaiting user inspection.",
+    "nextStep": "Await physical end-label inspection/measurement. Freeform animation batches and magnet-jig files remain optional follow-ups.",
     "calibration": {
       "jobId": "6b696c5b77ab4fc8afef7c54495dde8f",
       "widthDots": 512,
@@ -238,6 +238,53 @@
       "persistence": "optional arrangement settings in each independent session; actual poses remain authoritative",
       "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-arrangements",
       "publication": "local only; no physical print/plot"
+    },
+    "independentAssembly": {
+      "version": "2.183",
+      "baseCommit": "6f1d448238ff01c884e9212f37274784de316813",
+      "modules": [
+        "src/surface-content.js",
+        "src/surface-assembly.js",
+        "src/surface-assembly-pdf.js",
+        "src/defs/nodes/surface-context.js"
+      ],
+      "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-assembly",
+      "pdf": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-assembly/assembly.pdf",
+      "example": "docs/examples/surface-context-assembly.muusia.json",
+      "options": "per-paper mapping/independent; PDF numbers/registration/dimensions/relations/artwork; end label off/attached/tear; separate SVG cut guide",
+      "nativeCut": "one atomic strip job; optional tearAtRow internal GS V 66 0 partial cut; fixed-left hardware bridge; one-strip manual-cooling default retained",
+      "serviceUpdate": {
+        "backup": "/home/print/muusia-print/server.py.before-end-label-20261113-015304",
+        "sha256": "bab43255b82d13b40046f492d5f6313897dc51275866da58cc135d8430b12248",
+        "caps": {
+          "width": 512,
+          "maxHeight": 65535,
+          "singleStripJob": true,
+          "requiresIdle": true,
+          "partialCutEndLabel": true,
+          "endLabelBridge": "fixed-left"
+        },
+        "health": {
+          "ready": true,
+          "queued": 0,
+          "mode": "USB",
+          "device": "/dev/usb/lp0"
+        }
+      },
+      "physicalTest": {
+        "jobId": "34ce718bdd2740b8b2c6395bfdc9f558",
+        "status": "done",
+        "transport": "USB",
+        "bodyMm": 100,
+        "labelMm": 32,
+        "bodyRows": 707,
+        "rasterHeight": 934,
+        "width": 512,
+        "tearAtRow": 707,
+        "singleStrip": true,
+        "physicalBridge": "Awaiting user inspection; no second print sent."
+      },
+      "publication": "local only; no push"
     }
   }
 }

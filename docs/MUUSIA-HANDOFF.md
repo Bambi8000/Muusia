@@ -6139,3 +6139,57 @@ Real screenshots, saved per-preset/all-family projects, actual downloads and
 verification.json in local visualization surface-arrangements. Dev app remains
 http://127.0.0.1:5192/. Next: Independent Content, then assembly map; freeform
 animation batches and magnet-jig files remain separately bounded follow-ups.
+
+
+### 2.183 — Independent Content, assembly PDF and detachable end labels (local)
+
+Implementation base: `6f1d448238ff01c884e9212f37274784de316813`, branch
+`codex/surface-composer`, feature worktree `/private/tmp/muusia-surface-composer-20261112`.
+Primary checkout's existing work is preserved. No push or app publication.
+
+All three Surface Composer paper families support per-paper Independent Content
+and mixed mapped/independent papers. Graphs use original physical W/H and the real
+engine with optional ctx.surface, including bound groups. Resume crops the original
+full-paper evaluation. Image sources repeat with their own aspect-preserving fit.
+Surface Context is a new math node (11 numeric outputs); its prototype was actually
+imported with Node import, tested, baked, and lab source removed. Example:
+`docs/examples/surface-context-assembly.muusia.json` (Paper # -> Grid vlines).
+
+Assembly PDF contains actual graph/image artwork, visible paper IDs and print/layer
+order, A/B/C/D body corners, dimensions, every pair's centre dX/dY/distance, nearest
+edge gap/overlap, bearing and rotation delta. Roll includes explicit machine-piece
+indices, ranges and start A/B coordinates; labels are included once at the tail.
+Numbers, registration, dimensions, pair tables and PDF artwork are configurable.
+Limits: 128 visible papers, 1M artwork vertices, 8192 machine pieces, 128 MiB output.
+Diagrams are scaled; coordinate tables use mm (2 decimal places).
+
+End labels default Off, with Attached and Tear-off options. Body origin, pitch and
+size never change. PNG and paper vector exports append the label; SVG cut paths
+remain separate files, not automatic G-code drawing moves. SVG bridge width is
+editable; Epson's left bridge is fixed by its cutter. Paper totals include label
+length and a separate adjustable mechanical-feed estimate for thermal output.
+Print service supports optional tearAtRow: body -> GS V 66 0 partial cut -> label
+-> final cut, in one atomic queue job. One strip and manual cooling remain default.
+Print service backup: `/home/print/muusia-print/server.py.before-end-label-20261113-015304`.
+Installed SHA256: bab43255b82d13b40046f492d5f6313897dc51275866da58cc135d8430b12248.
+
+One actual UI/live USB test: `34ce718bdd2740b8b2c6395bfdc9f558`, 100 mm range
+of original 260 mm strip + 32 mm label; raster 512 x 934, tearAtRow 707. Service
+reported done; UI advanced cursor to 100 mm and stopped for cooling. No second
+job. Physical bridge and blank feed gap await user's optional measurement. Do not
+claim physical tear quality or exact feed length has been verified. Live job history
+can export its raster preview; replay the full label/cut setup from Surface Composer.
+
+Validation: 86 focused JS tests, Surface Context contract, 10 Python Print tests,
+focused lint, catalog (359 modules/361 registered nodes), production build and
+37914 Learn checks passed. Existing tracked svg-workflow/physical-plot export
+source records are unchanged. Actual browser validated mixed modes/Undo, graph
+1/2/3/4-line PNGs, SVG/DXF/G-code files, rotated image PDF, optional annotations
+off, Roll piece ranges and exact Save/Load/Save equality. Final seven-page PDF
+rendered with Poppler and visually inspected. Build uses pdf-lib 1.17.1.
+
+Artifacts: `/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-assembly/`
+contains actual assembly.pdf, rendered pages, real browser projects/exports,
+composer.jpg, validation.json and physical/service records. APP_VERSION and Learn
+manifest 2.183. Follow-up: physical inspection; optional freeform animation batches
+and freeform magnet jigs.

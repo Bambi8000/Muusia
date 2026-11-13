@@ -64,6 +64,6 @@ export function regularCompositionMatches(session) {
   if (Math.abs(expected.widthMm - session.widthMm) > 1e-7 || Math.abs(expected.heightMm - session.heightMm) > 1e-7 || expected.strips.length !== session.strips.length) return false;
   return expected.strips.every((strip, i) => {
     const actual = session.strips[i];
-    return actual.visible && actual.id === strip.id && actual.rotationDeg === 0 && actual.printOrder === strip.printOrder && actual.printableOffsetMm === 0 && actual.printableWidthMm === strip.physicalWidthMm && stripCorners(strip).every((p, j) => p.every((n, k) => Math.abs(n - stripCorners(actual)[j][k]) < 1e-7));
+    return actual.contentMode === "image-mapping" && actual.visible && actual.id === strip.id && actual.rotationDeg === 0 && actual.printOrder === strip.printOrder && actual.printableOffsetMm === 0 && actual.printableWidthMm === strip.physicalWidthMm && stripCorners(strip).every((p, j) => p.every((n, k) => Math.abs(n - stripCorners(actual)[j][k]) < 1e-7));
   });
 }

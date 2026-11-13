@@ -361,3 +361,16 @@ lose it (including Import SVG); use closed-containment grouping there, or assign
 explicit groups at the source. Do not infer that every existing node preserves
 this field. When transforming a group, apply the same affine transform to all
 its paths; do not lay out holes and interior details as separate illustrations.
+
+### Surface Composer context (2.183)
+
+Independent Content evaluates the actual graph at each original paper's physical
+`ctx.W` / `ctx.H`. Its optional, immutable `ctx.surface` contains `number`
+(stable array index + 1), `printRank` and `count` (visible print order),
+`centerXmm`, `centerYmm`, `rotationDeg` (clockwise), `widthMm`, `lengthMm`,
+`distanceMm` (from surface centre), `seed` (stable ID + contentSeed uint32),
+and `t` (0–1 visible print rank). Surface Context exposes these as numeric pins.
+Normal graph, catalog and mapped evaluation omit the field; nodes must provide
+a canvas fallback. Bound group inputs receive the same context. A partial print
+range crops the original paper evaluation; it never changes context or refits
+content. No device or mutable live state enters compute.

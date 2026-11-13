@@ -234,6 +234,23 @@ def escpos_image(width, height, pixels, cut=True, initialize=True, max_height=MA
     return bytes(out)
 
 
+def escpos_surface_strip(height, pixels, cut=True, tear_at_row=None):
+    """One atomic body+label job. Function B partial-cuts the body at its end;
+    the mechanism feeds to its cutter, leaving blank paper before the label.
+    TM-T88V's left bridge is fixed by its cutter, not a programmable width.
+    """
+    if tear_at_row is None:
+        return escpos_image(WIDTH, height, pixels, cut, max_height=MAX_STRIP_HEIGHT)
+    if isinstance(tear_at_row, bool) or not isinstance(tear_at_row, int) or not 1 <= tear_at_row < height:
+        raise ValueError("End label cut must be between the body and label rows")
+    if len(pixels) != 64 * height or not 1 <= height <= MAX_STRIP_HEIGHT:
+        raise ValueError("Invalid surface raster")
+    out = bytearray(escpos_image(WIDTH, tear_at_row, pixels[:tear_at_row * 64], cut=False, max_height=MAX_STRIP_HEIGHT))
+    out.extend(b"\x1dV\x42\x00")
+    out.extend(escpos_image(WIDTH, height - tear_at_row, pixels[tear_at_row * 64:], cut=cut, initialize=False, max_height=MAX_STRIP_HEIGHT))
+    return bytes(out)
+
+
 def escpos_mixed_receipt(width, height, pixels, native_text, cut=True):
     """Print native text around one raster image and cut only at the end."""
     if not native_text:
@@ -364,7 +381,7 @@ class Handler(BaseHTTPRequestHandler):
                 queued = sum(j["status"] == "queued" for j in jobs.values())
             self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device})
         elif self.path == "/api/strip-capabilities":
-            self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "singleStripJob": True, "requiresIdle": True})
+            self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left"})
         elif self.path == "/api/clock":
             self._json(200, clock_snapshot())
         elif self.path == "/api/native-pages":
@@ -491,6 +508,9 @@ class Handler(BaseHTTPRequestHandler):
                 height, pixels, cut, native = validate_receipt(body, MAX_STRIP_HEIGHT, MAX_STRIP_BODY)
                 if native:
                     raise ValueError("Strip jobs contain raster graphics only")
+                tear_at_row = body.get("tearAtRow")
+                if tear_at_row is not None and (isinstance(tear_at_row, bool) or not isinstance(tear_at_row, int) or not 1 <= tear_at_row < height):
+                    raise ValueError("End label cut must be between the body and label rows")
                 name = body.get("name", "Surface strip")
                 if not isinstance(name, str) or not 1 <= len(name) <= 120:
                     raise ValueError("Invalid strip job name")
@@ -504,7 +524,7 @@ class Handler(BaseHTTPRequestHandler):
             if clock_snapshot()["running"]:
                 self._json(409, {"error": "Stop Clock before printing a surface strip"})
                 return
-            self._enqueue(name, height, pixels, cut, "strip", require_idle=True, request_id=request_id)
+            self._enqueue(name, height, pixels, cut, "strip", raw=escpos_surface_strip(height, pixels, cut, tear_at_row) if tear_at_row is not None else None, require_idle=True, request_id=request_id)
             return
         if self.path not in ("/api/jobs", "/api/inspect", "/api/cut"):
             self._json(404, {"error": "Not found"})

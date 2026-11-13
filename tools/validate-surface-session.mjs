@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { test } from "node:test";
 import { parseAst } from "rolldown/parseAst";
 import grid from "../src/defs/nodes/grid.js";
+import surfacecontext from "../src/defs/nodes/surface-context.js";
 import arvo from "../src/defs/nodes/arvo.js";
 import { EMPTY, Pin } from "../src/defs/helpers.js";
 import { createSurfaceSession, readSurfaceSession, updateSurfaceLayout, updateSurfaceStrip, regenerateSurface, addSurfaceStrip, removeSurfaceStrip, evaluateSurfaceGraph, surfaceGraphLevel } from "../src/surface-session.js";
@@ -99,7 +100,7 @@ const code = functions.map(name => {
 }).join("\n");
 const defs = ast.body.filter(n => n.type === "VariableDeclaration").flatMap(n => n.declarations).find(n => n.id.name === "DEFS");
 const group = defs.init.properties.find(p => p.key?.name === "group").value;
-const evaluate = new Function("NODES", "EMPTY", "Pin", `const SOLID_STYLE = {kind:'style',mode:'Solid'}; const DEFS = {...NODES, group: ${app.slice(group.start, group.end)}}; ${code}; return evalLevel;`)({ grid, arvo }, EMPTY, Pin);
+const evaluate = new Function("NODES", "EMPTY", "Pin", `const SOLID_STYLE = {kind:'style',mode:'Solid'}; const DEFS = {...NODES, group: ${app.slice(group.start, group.end)}}; ${code}; return evalLevel;`)({ grid, arvo, surfacecontext }, EMPTY, Pin);
 const defaults = node => Object.fromEntries(node.params.map(p => [p.key, p.def]));
 
 test("shared surface re-evaluates a real graph at full dimensions instead of scaling small output", () => {
@@ -122,4 +123,11 @@ test("bound numeric inputs reach real nodes inside a selected group", () => {
   assert.equal(surfaceGraphLevel(root, [2]), data);
   assert.equal(surfaceGraphLevel(root, [999]), null);
   assert.throws(() => evaluateSurfaceGraph(root, [999], { W: 2000, H: 1000 }, evaluate), /no longer exists/);
+});
+
+test("Surface Context travels through real graph evaluation and bound group parameters", () => {
+ const root={nodes:[{id:1,type:'surfacecontext',params:{}},{id:2,type:'group',params:{},data:{bindings:[{nodeId:3,port:'p:vlines'}],outputId:3,nodes:[{id:3,type:'grid',params:{...defaults(grid),hlines:0,margin:5}}],edges:[]}}],edges:[{id:'a',from:1,fromPort:0,to:2,toPort:0}]};
+ const ctx={W:80,H:200,surface:{number:4,printRank:1,count:4,centerXmm:120,centerYmm:400,rotationDeg:37,widthMm:80,lengthMm:200,distanceMm:12,seed:88,t:0}};
+ const out=evaluateSurfaceGraph(root,[2],ctx,evaluate).result.out[3][0];
+ assert.equal(out.paths.length,4);assert.ok(out.paths.every(p=>p.pts.every(([x,y])=>x>=5&&x<=75&&y>=5&&y<=195)));
 });

@@ -1540,6 +1540,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "75860d7432656c296ef05b76d2a03f4e490cf15305b825766f92ec3d7d3b67a7"
   },
+  "surfacecontext": {
+    "date": "2026-11-12",
+    "order": 134,
+    "sha256": "39038f97e00e9be3e81492118a732d770a0925b74f925e6312735a1568dad5ed"
+  },
   "svg_batch": {
     "date": "2026-10-20",
     "order": 93,

@@ -902,7 +902,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.182"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.183"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2690,8 +2690,8 @@ export default function App() {
     if (surfaceFamily === "Strips") setSurfaceSession(value);
     else setSurfaceLayouts(old => ({ ...old, [surfaceFamily]: typeof value === "function" ? value(old[surfaceFamily]) : value }));
   };
-  const surfaceEvaluate = useMemo(() => (W, H, graphPath, nodeId) => {
-    const { result } = evaluateSurfaceGraph(root, graphPath, { W, H, frameIdx, frameCount, machine: machineCtx(prof) }, evalLevel);
+  const surfaceEvaluate = useMemo(() => (W, H, graphPath, nodeId, surface) => {
+    const { result } = evaluateSurfaceGraph(root, graphPath, { W, H, frameIdx, frameCount, machine: machineCtx(prof), ...(surface ? { surface } : {}) }, evalLevel);
     const output = result.out[nodeId]?.[0];
     if (!output?.paths) throw new Error("Choose a node whose first output contains drawing paths.");
     return output;

@@ -195,7 +195,8 @@ test("invalid content, coordinates, density, formats and raster blocks fail expl
   assert.throws(() => placePathsOnSurface({ paths: [{ pts: [[NaN, 0]] }] }, p, canvas));
   assert.throws(() => placePathsOnSurface({}, p, canvas));
   for (const opts of [{}, { dotsPerMmX: 0 }, { dotsPerMmX: Infinity }, { dotsPerMmX: Number.MIN_VALUE }, { dotsPerMmX: 1, area: "unknown" }, { dotsPerMmX: MAX_RASTER_WIDTH }]) assert.throws(() => createStripRasterPlan(strip(), opts));
-  assert.throws(() => createStripRasterPlan(strip({ contentMode: "independent" }), { dotsPerMmX: 1 }));
+  assert.equal(createStripRasterPlan(strip({ contentMode: "independent" }), { dotsPerMmX: 1 }).strip.contentMode, "independent");
+  assert.throws(() => createStripRasterizer(src, p, canvas, strip({ contentMode: "independent" }), { dotsPerMmX: 1 }), /Resolve Independent/);
   const r = createStripRasterizer(src, p, canvas, strip(), { dotsPerMmX: 1 });
   for (const [start, count] of [[-1, 1], [0, 0], [0, .5], [4, 1], [2, 3], [NaN, 1], [0, MAX_RASTER_BLOCK_PIXELS]]) assert.throws(() => r.renderBlock(start, count));
 });

@@ -1,3 +1,4 @@
+import { labelExtraMm, labelFeedMm } from "./surface-assembly.js";
 import { createStrip, stripTransform, stripsInPrintOrder, surfaceSummary } from "./surface-composer.js";
 
 export const DEFAULT_PRODUCTION = Object.freeze({ rollLengthM: 80, usedOnRollM: 0, reserveM: 1, allowanceMm: 20, fromMm: 0, toMm: null, cut: true, serverUrl: "http://127.0.0.1:8633", lastJob: null });
@@ -23,14 +24,15 @@ export function productionSettings(input = {}) {
   return { rollLengthM: p.rollLengthM, usedOnRollM: p.usedOnRollM, reserveM: p.reserveM, allowanceMm: p.allowanceMm, fromMm: p.fromMm, toMm: p.toMm, cut: p.cut, serverUrl: p.serverUrl.replace(/\/$/, ""), lastJob };
 }
 
-export function paperBudget(strips, settings) {
+export function paperBudget(strips, settings, assembly) {
   const p = productionSettings(settings), summary = surfaceSummary(strips);
-  const allowanceM = summary.stripCount * p.allowanceMm / 1000;
-  const totalM = summary.totalLengthM + allowanceM;
+  const labelsM = summary.stripCount * labelExtraMm(assembly) / 1000;
+  const allowanceM = summary.stripCount * (p.allowanceMm + labelFeedMm(assembly)) / 1000;
+  const totalM = summary.totalLengthM + labelsM + allowanceM;
   const availableM = Math.max(0, p.rollLengthM - p.usedOnRollM - p.reserveM);
   const extraM = Math.max(0, totalM - availableM);
   const newRollCapacityM = p.rollLengthM - p.reserveM;
-  return { artworkM: summary.totalLengthM, allowanceM, totalM, availableM, fits: extraM < 1e-9, shortfallM: extraM, rollsNeeded: totalM === 0 ? 0 : 1 + Math.ceil(Math.max(0, extraM - 1e-9) / newRollCapacityM), stripCount: summary.stripCount };
+  return { artworkM: summary.totalLengthM, labelsM, allowanceM, totalM, availableM, fits: extraM < 1e-9, shortfallM: extraM, rollsNeeded: totalM === 0 ? 0 : 1 + Math.ceil(Math.max(0, extraM - 1e-9) / newRollCapacityM), stripCount: summary.stripCount };
 }
 
 /** A range is a rigid sub-strip. Moving its centre keeps the selected global
@@ -38,7 +40,6 @@ export function paperBudget(strips, settings) {
 export function stripPrintRange(input, fromMm = 0, toMm = null) {
   const original = createStrip(input);
   if (!original.visible) throw new Error("Show this strip before printing it.");
-  if (original.contentMode !== "image-mapping") throw new Error("Choose Image Mapping content.");
   nonnegative(fromMm, "Start position");
   const endMm = toMm ?? original.lengthMm;
   if (!Number.isFinite(endMm) || fromMm >= endMm || endMm > original.lengthMm) throw new Error(`Choose a range within this ${original.lengthMm.toFixed(1)} mm strip.`);
@@ -55,7 +56,7 @@ export function productionPlan(session, { consecutive = false } = {}) {
   if (index < 0) throw new Error("Select a visible strip to print.");
   const items = consecutive ? ordered.slice(index) : ordered.slice(index, index + 1);
   const ranges = items.map((strip, i) => stripPrintRange(strip, i ? 0 : settings.fromMm, consecutive ? null : settings.toMm));
-  return { ranges, totalM: ranges.reduce((n, r) => n + r.lengthMm / 1000 + settings.allowanceMm / 1000, 0) };
+  return { ranges, totalM: ranges.reduce((n, r) => n + r.lengthMm / 1000 + (settings.allowanceMm + labelExtraMm(session.assembly) + labelFeedMm(session.assembly)) / 1000, 0) };
 }
 
 export function advanceProduction(session, range) {

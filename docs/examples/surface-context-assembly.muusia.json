@@ -1,0 +1,471 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "surface-independent-assembly",
+  "canvas": {
+    "W": 100,
+    "H": 120
+  },
+  "jig": {
+    "mode": "Auto",
+    "magnets": []
+  },
+  "mega": {
+    "C": 2,
+    "R": 2,
+    "seam": 5,
+    "mode": "Overlap",
+    "marks": false,
+    "markPen": 0,
+    "labels": false,
+    "kind": "Sheets",
+    "rollW": 100,
+    "rollLen": 950,
+    "rollStrips": 2,
+    "rollSeg": 400
+  },
+  "surface": {
+    "version": 1,
+    "mode": "freeform",
+    "widthMm": 200,
+    "heightMm": 200,
+    "layout": {
+      "physicalWidthMm": 80,
+      "printableWidthMm": 70.8,
+      "printableOffsetMm": 4.6,
+      "rotationDeg": 0,
+      "gapMm": 8,
+      "count": null,
+      "lengthMm": null
+    },
+    "strips": [
+      {
+        "id": "angle-0",
+        "centerXmm": 100,
+        "centerYmm": 230,
+        "rotationDeg": 0,
+        "physicalWidthMm": 80,
+        "printableWidthMm": 70.8,
+        "printableOffsetMm": 4.6,
+        "lengthMm": 260,
+        "zIndex": 0,
+        "visible": true,
+        "printOrder": 1,
+        "contentMode": "independent"
+      },
+      {
+        "id": "angle-45",
+        "centerXmm": -12.583302491977037,
+        "centerYmm": 35.00000000000003,
+        "rotationDeg": 120,
+        "physicalWidthMm": 80,
+        "printableWidthMm": 70.8,
+        "printableOffsetMm": 4.6,
+        "lengthMm": 260,
+        "zIndex": 1,
+        "visible": true,
+        "printOrder": 2,
+        "contentMode": "independent"
+      },
+      {
+        "id": "angle-137",
+        "centerXmm": 212.583302491977,
+        "centerYmm": 34.99999999999994,
+        "rotationDeg": 240,
+        "physicalWidthMm": 80,
+        "printableWidthMm": 70.8,
+        "printableOffsetMm": 4.6,
+        "lengthMm": 260,
+        "zIndex": 2,
+        "visible": true,
+        "printOrder": 3,
+        "contentMode": "independent"
+      },
+      {
+        "id": "hidden-angle",
+        "centerXmm": 100,
+        "centerYmm": 100,
+        "rotationDeg": 0,
+        "physicalWidthMm": 80,
+        "printableWidthMm": 70.8,
+        "printableOffsetMm": 4.6,
+        "lengthMm": 260,
+        "zIndex": 0,
+        "visible": false,
+        "printOrder": 1,
+        "contentMode": "independent"
+      }
+    ],
+    "selectedId": "angle-45",
+    "nextId": 5,
+    "production": {
+      "rollLengthM": 80,
+      "usedOnRollM": 0,
+      "reserveM": 1,
+      "allowanceMm": 20,
+      "fromMm": 0,
+      "toMm": null,
+      "cut": true,
+      "serverUrl": "http://127.0.0.1:8633",
+      "lastJob": null
+    },
+    "source": {
+      "kind": "graph",
+      "nodeId": 5,
+      "graphPath": [],
+      "fit": "contain",
+      "image": null
+    },
+    "arrangement": {
+      "pattern": "radial",
+      "pivotXmm": 100,
+      "pivotYmm": 100,
+      "angleDeg": 0,
+      "fanSpreadDeg": 90,
+      "radialSweepDeg": 360,
+      "radiusMm": 0,
+      "spacingMm": 88,
+      "stepDeg": 12,
+      "spreadWidthMm": 160,
+      "spreadHeightMm": 160,
+      "rotationRangeDeg": 360,
+      "minLengthMm": 195,
+      "maxLengthMm": 325,
+      "seed": 1,
+      "varyLength": false
+    },
+    "contentSeed": 1,
+    "assembly": {
+      "numbers": true,
+      "registration": true,
+      "dimensions": true,
+      "relations": true,
+      "artwork": true,
+      "labelMode": "tear",
+      "labelLengthMm": 32,
+      "bridgeMm": 1.5,
+      "cutterFeedMm": 20
+    }
+  },
+  "surfaceLayouts": {
+    "version": 1,
+    "Sheets": {
+      "composition": {
+        "family": "Sheets",
+        "settings": {
+          "sheetWidthMm": 100,
+          "sheetHeightMm": 120,
+          "rollWidthMm": 100,
+          "rollLengthMm": 950,
+          "pieceLengthMm": 400,
+          "columns": 2,
+          "rows": 2,
+          "rollCount": 2,
+          "markPen": 0,
+          "seamMm": 5,
+          "join": "Overlap",
+          "marks": false,
+          "labels": false
+        },
+        "generated": {
+          "sheetWidthMm": 100,
+          "sheetHeightMm": 120,
+          "rollWidthMm": 100,
+          "rollLengthMm": 950,
+          "pieceLengthMm": 400,
+          "columns": 2,
+          "rows": 2,
+          "rollCount": 2,
+          "markPen": 0,
+          "seamMm": 5,
+          "join": "Overlap",
+          "marks": false,
+          "labels": false
+        }
+      },
+      "version": 1,
+      "mode": "freeform",
+      "widthMm": 195,
+      "heightMm": 235,
+      "layout": {
+        "physicalWidthMm": 100,
+        "printableWidthMm": 100,
+        "printableOffsetMm": 0,
+        "rotationDeg": 0,
+        "gapMm": 0,
+        "count": null,
+        "lengthMm": 120
+      },
+      "strips": [
+        {
+          "id": "sheet-001",
+          "centerXmm": 106.88211611006409,
+          "centerYmm": 86.62326364964247,
+          "rotationDeg": 126.07751235365868,
+          "physicalWidthMm": 100,
+          "printableWidthMm": 100,
+          "printableOffsetMm": 0,
+          "lengthMm": 136.02358302101493,
+          "zIndex": 0,
+          "visible": true,
+          "printOrder": 1,
+          "contentMode": "independent"
+        },
+        {
+          "id": "sheet-002",
+          "centerXmm": 175.24927972164005,
+          "centerYmm": 58.54573589749634,
+          "rotationDeg": 43.17251770757139,
+          "physicalWidthMm": 100,
+          "printableWidthMm": 100,
+          "printableOffsetMm": 0,
+          "lengthMm": 134.87578615546227,
+          "zIndex": 1,
+          "visible": true,
+          "printOrder": 2,
+          "contentMode": "independent"
+        },
+        {
+          "id": "sheet-003",
+          "centerXmm": 172.2438277406618,
+          "centerYmm": 160.14879393018782,
+          "rotationDeg": 252.0358489640057,
+          "physicalWidthMm": 100,
+          "printableWidthMm": 100,
+          "printableOffsetMm": 0,
+          "lengthMm": 126.31993205519393,
+          "zIndex": 2,
+          "visible": true,
+          "printOrder": 3,
+          "contentMode": "independent"
+        },
+        {
+          "id": "sheet-004",
+          "centerXmm": 26.876920209266245,
+          "centerYmm": 73.41128752287477,
+          "rotationDeg": 128.71615265496075,
+          "physicalWidthMm": 100,
+          "printableWidthMm": 100,
+          "printableOffsetMm": 0,
+          "lengthMm": 102.28021933929995,
+          "zIndex": 3,
+          "visible": true,
+          "printOrder": 4,
+          "contentMode": "independent"
+        }
+      ],
+      "selectedId": "sheet-001",
+      "nextId": 5,
+      "production": {
+        "rollLengthM": 80,
+        "usedOnRollM": 0,
+        "reserveM": 1,
+        "allowanceMm": 20,
+        "fromMm": 0,
+        "toMm": null,
+        "cut": true,
+        "serverUrl": "http://127.0.0.1:8633",
+        "lastJob": null
+      },
+      "source": {
+        "kind": "graph",
+        "nodeId": 5,
+        "graphPath": [],
+        "fit": "contain",
+        "image": null
+      },
+      "arrangement": {
+        "pattern": "random",
+        "pivotXmm": 97.5,
+        "pivotYmm": 117.5,
+        "angleDeg": 0,
+        "fanSpreadDeg": 90,
+        "radialSweepDeg": 360,
+        "radiusMm": 0,
+        "spacingMm": 100,
+        "stepDeg": 12,
+        "spreadWidthMm": 156,
+        "spreadHeightMm": 188,
+        "rotationRangeDeg": 360,
+        "minLengthMm": 90,
+        "maxLengthMm": 160,
+        "seed": 1,
+        "varyLength": true
+      },
+      "contentSeed": 1,
+      "assembly": {
+        "numbers": true,
+        "registration": true,
+        "dimensions": true,
+        "relations": true,
+        "artwork": true,
+        "labelMode": "tear",
+        "labelLengthMm": 32,
+        "bridgeMm": 1.5,
+        "cutterFeedMm": 20
+      }
+    },
+    "Roll": {
+      "composition": {
+        "family": "Roll",
+        "settings": {
+          "sheetWidthMm": 100,
+          "sheetHeightMm": 120,
+          "rollWidthMm": 100,
+          "rollLengthMm": 950,
+          "pieceLengthMm": 200,
+          "columns": 2,
+          "rows": 2,
+          "rollCount": 2,
+          "markPen": 0,
+          "seamMm": 5,
+          "join": "Overlap",
+          "marks": false,
+          "labels": false
+        },
+        "generated": {
+          "sheetWidthMm": 100,
+          "sheetHeightMm": 120,
+          "rollWidthMm": 100,
+          "rollLengthMm": 950,
+          "pieceLengthMm": 400,
+          "columns": 2,
+          "rows": 2,
+          "rollCount": 2,
+          "markPen": 0,
+          "seamMm": 5,
+          "join": "Overlap",
+          "marks": false,
+          "labels": false
+        }
+      },
+      "version": 1,
+      "mode": "freeform",
+      "widthMm": 195,
+      "heightMm": 950,
+      "layout": {
+        "physicalWidthMm": 100,
+        "printableWidthMm": 100,
+        "printableOffsetMm": 0,
+        "rotationDeg": 0,
+        "gapMm": 0,
+        "count": null,
+        "lengthMm": 950
+      },
+      "strips": [
+        {
+          "id": "roll-001",
+          "centerXmm": 47.5,
+          "centerYmm": 475,
+          "rotationDeg": 0,
+          "physicalWidthMm": 100,
+          "printableWidthMm": 100,
+          "printableOffsetMm": 0,
+          "lengthMm": 1050,
+          "zIndex": 0,
+          "visible": true,
+          "printOrder": 1,
+          "contentMode": "independent"
+        },
+        {
+          "id": "roll-002",
+          "centerXmm": 147.5,
+          "centerYmm": 475,
+          "rotationDeg": 12,
+          "physicalWidthMm": 100,
+          "printableWidthMm": 100,
+          "printableOffsetMm": 0,
+          "lengthMm": 950,
+          "zIndex": 1,
+          "visible": true,
+          "printOrder": 2,
+          "contentMode": "independent"
+        }
+      ],
+      "selectedId": "roll-001",
+      "nextId": 3,
+      "production": {
+        "rollLengthM": 80,
+        "usedOnRollM": 0,
+        "reserveM": 1,
+        "allowanceMm": 20,
+        "fromMm": 0,
+        "toMm": null,
+        "cut": true,
+        "serverUrl": "http://127.0.0.1:8633",
+        "lastJob": null
+      },
+      "source": {
+        "kind": "graph",
+        "nodeId": 5,
+        "graphPath": [],
+        "fit": "contain",
+        "image": null
+      },
+      "arrangement": {
+        "pattern": "progressive",
+        "pivotXmm": 97.5,
+        "pivotYmm": 475,
+        "angleDeg": 0,
+        "fanSpreadDeg": 90,
+        "radialSweepDeg": 360,
+        "radiusMm": 0,
+        "spacingMm": 100,
+        "stepDeg": 12,
+        "spreadWidthMm": 156,
+        "spreadHeightMm": 760,
+        "rotationRangeDeg": 360,
+        "minLengthMm": 787.5,
+        "maxLengthMm": 1312.5,
+        "seed": 1,
+        "varyLength": false
+      },
+      "contentSeed": 1,
+      "assembly": {
+        "numbers": true,
+        "registration": true,
+        "dimensions": true,
+        "relations": true,
+        "artwork": true,
+        "labelMode": "tear",
+        "labelLengthMm": 32,
+        "bridgeMm": 1.5,
+        "cutterFeedMm": 20
+      }
+    }
+  },
+  "customNodes": [],
+  "root": {
+    "nodes": [
+      {
+        "id": 5,
+        "type": "grid",
+        "x": 380,
+        "y": 40,
+        "params": {
+          "vlines": 7,
+          "hlines": 0,
+          "margin": 8,
+          "res": 2,
+          "layer": 2
+        }
+      },
+      {
+        "id": 6,
+        "type": "surfacecontext",
+        "x": 30,
+        "y": 40,
+        "params": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-context-grid",
+        "from": 6,
+        "fromPort": 0,
+        "to": 5,
+        "toPort": "p:vlines"
+      }
+    ]
+  }
+}

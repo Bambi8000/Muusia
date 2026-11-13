@@ -1,4 +1,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import { assemblySettings, labelExtraMm, endLabelPaths, extendedPaper, labelCutSvg } from "./surface-assembly.js";
+import { exportAssemblyPdf } from "./surface-assembly-pdf.js";
+import { evaluatePaperContent } from "./surface-content.js";
 import { stripTransform, stripCorners, surfaceSummary } from "./surface-composer.js";
 import { createContentPlacement, contentTransform, placePathsOnSurface } from "./surface-render.js";
 import { addSurfaceStrip, updateSurfaceStrip, updateSurfaceLayout, removeSurfaceStrip, regenerateSurface, MAX_SOURCE_PIXELS, MAX_SOURCE_URL_LENGTH } from "./surface-session.js";
@@ -11,7 +14,7 @@ import { DEFAULT_EXPORT_DPI, exportSurfacePngs, surfaceExportPlan } from "./surf
 import { preparePrintSource, renderSurfaceReceipt, checkSurfacePrinter, submitSurfaceReceipt, surfacePrintStatus } from "./surface-print.js";
 
 function fitView(session) {
-  const bounds = surfaceSummary(session.strips).bounds;
+  const bounds = surfaceSummary(session.strips.map(p => extendedPaper(p, session.assembly))).bounds;
   const x = Math.min(0, bounds?.minXmm ?? 0), y = Math.min(0, bounds?.minYmm ?? 0);
   const w = Math.max(session.widthMm, bounds?.maxXmm ?? 0) - x;
   const h = Math.max(session.heightMm, bounds?.maxYmm ?? 0) - y;
@@ -54,10 +57,12 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   const [exportArea, setExportArea] = useState("paper");
   const [exportMessage, setExportMessage] = useState("");
   const cancelExport = useRef(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [assemblyMessage, setAssemblyMessage] = useState("");
   const [vectorBusy, setVectorBusy] = useState(false);
   const [vectorSelected, setVectorSelected] = useState(false);
   const [vectorMessage, setVectorMessage] = useState("");
-  const busy = printBusy || exportBusy || vectorBusy;
+  const busy = printBusy || exportBusy || vectorBusy || pdfBusy;
   const [printMessage, setPrintMessage] = useState("");
   const stopPrint = useRef(false);
   const recoveredPrint = useRef(false);
@@ -67,10 +72,10 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   const settings = s.composition?.settings;
   const arrangement = s.arrangement ?? defaultArrangement(s);
   let selectedPieces = [], pieceError = "";
-  try { if (settings && selected) selectedPieces = compositionPieces(s, selected); } catch (e) { pieceError = e.message; }
+  try { if (settings && selected) selectedPieces = compositionPieces(s, extendedPaper(selected, s.assembly)); } catch (e) { pieceError = e.message; }
   const summary = useMemo(() => surfaceSummary(s.strips), [s.strips]);
-  const sheetAreaM2 = s.strips.filter(p => p.visible).reduce((sum, p) => sum + p.physicalWidthMm * p.lengthMm / 1000000, 0);
-  const budget = useMemo(() => paperBudget(s.strips, s.production), [s.strips, s.production]);
+  const sheetAreaM2 = s.strips.filter(p => p.visible).reduce((sum, p) => sum + p.physicalWidthMm * (p.lengthMm + labelExtraMm(s.assembly)) / 1000000, 0);
+  const budget = useMemo(() => paperBudget(s.strips, s.production, s.assembly), [s.strips, s.production, s.assembly]);
   const pendingJob = s.production.lastJob && ["queued", "printing", "unknown"].includes(s.production.lastJob.status);
   let printPlan = null, printPlanError = "";
   try { printPlan = productionPlan(s, { consecutive }); } catch (e) { printPlanError = e.message; }
@@ -96,6 +101,31 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
   const changeLayout = (key, value) => commit(old => updateSurfaceLayout(old, { [key]: value }));
   const changeSource = patch => commit(old => ({ ...old, source: { ...old.source, ...patch } }));
   const changeProduction = (key, value) => commit(old => ({ ...old, production: productionSettings({ ...old.production, [key]: value }) }), false);
+  const assembly = assemblySettings(s.assembly);
+  const changeAssembly = (key, value) => commit(old => ({ ...old, assembly: assemblySettings({ ...old.assembly, [key]: value }) }));
+  const download = (blob, filename) => {
+    const url = URL.createObjectURL(blob), link = document.createElement("a");
+    link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+  const exportAssembly = async () => {
+    if (busy) return;
+    cancelExport.current = false; setPdfBusy(true); setAssemblyMessage("Preparing assembly guide…");
+    try {
+      const result = await exportAssemblyPdf(sessionRef.current, { evaluateGraph, pens, projectName, cancelled: () => cancelExport.current || !alive.current, onProgress: message => { if (alive.current) setAssemblyMessage(message); } });
+      if (!alive.current || cancelExport.current) return;
+      download(result.blob, result.filename); setAssemblyMessage(`Saved Assembly PDF · ${result.pages} pages · ${result.model.papers.length} papers.`);
+    } catch (e) { if (alive.current) setAssemblyMessage(e.message); }
+    finally { if (alive.current) setPdfBusy(false); }
+  };
+  const exportCuts = () => {
+    try {
+      const papers = s.strips.filter(p => p.visible), files = papers.map(p => ({ name: `${p.id}-CUT-GUIDE.svg`, text: labelCutSvg(s,p) }));
+      if (!files.length) throw new Error("Show at least one paper.");
+      if (files.length === 1) download(new Blob([files[0].text], { type: "image/svg+xml" }), files[0].name);
+      else download(new Blob([vectorServices.buildZip(files)], { type: "application/zip" }), "end-label-cut-guides.zip");
+      setAssemblyMessage(`Saved ${files.length} separate cut guide(s). Use actual size / 100%. Leave the left bridge uncut.`);
+    } catch (e) { setAssemblyMessage(e.message); }
+  };
   const selectStrip = stripId => { if (!busy) onChange(old => ({ ...old, selectedId: stripId, production: { ...old.production, fromMm: 0, toMm: null } })); };
 
   const exportOptions = { dpi: exportResolution === "epson" ? DEFAULT_EXPORT_DPI : Number(exportResolution), area: exportArea, projectName };
@@ -184,8 +214,9 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
     stopPrint.current = false; recoveredPrint.current = false; setPrintBusy(true); setPrintMessage("Checking printer…");
     try {
       const plan = productionPlan(snapshot, { consecutive });
-      if (plan.totalM > paperBudget(snapshot.strips, snapshot.production).availableM + 1e-9) throw new Error("This print run exceeds the available roll. Adjust the range or roll settings.");
+      if (plan.totalM > paperBudget(snapshot.strips, snapshot.production, snapshot.assembly).availableM + 1e-9) throw new Error("This print run exceeds the available roll. Adjust the range or roll settings.");
       const printer = await checkSurfacePrinter(snapshot.production.serverUrl);
+      if (snapshot.assembly?.labelMode === "tear" && !printer.capabilities.partialCutEndLabel) throw new Error("Update Print service for tear-off end labels, or choose Attached panel.");
       dryRun = printer.mode === "test file";
       setPrintMessage("Preparing print content…");
       const source = await preparePrintSource(snapshot, evaluateGraph);
@@ -232,22 +263,26 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
 
   const content = useMemo(() => {
     try {
-      if (s.source.kind === "image") {
-        const image = s.source.image;
-        if (!image) return { empty: "Choose an image to map onto the paper strips." };
-        const placement = createContentPlacement({ sourceWidth: image.width, sourceHeight: image.height, widthMm: s.widthMm, heightMm: s.heightMm, fit: s.source.fit });
-        const t = contentTransform(placement);
-        const a = t.sourceToGlobal([0, 0]), b = t.sourceToGlobal([1, 0]), c = t.sourceToGlobal([0, 1]);
-        return { image, matrix: [b[0] - a[0], b[1] - a[1], c[0] - a[0], c[1] - a[1], a[0], a[1]] };
-      }
-      if (s.source.nodeId == null) return { empty: "Select a graph output or choose an image." };
-      const ps = evaluateGraph(s.widthMm, s.heightMm, s.source.graphPath, s.source.nodeId);
-      const placement = createContentPlacement({ sourceWidth: s.widthMm, sourceHeight: s.heightMm, widthMm: s.widthMm, heightMm: s.heightMm });
-      const global = placePathsOnSurface(ps, placement, { widthMm: s.widthMm, heightMm: s.heightMm });
-      const count = global.paths.reduce((n, p) => n + p.pts.length, 0);
-      return { paths: global.paths, stride: Math.max(1, Math.ceil(count / 150000)), empty: global.paths.length ? null : "This graph output contains no lines. Choose another output or an image." };
-    } catch (e) { return { empty: e.message }; }
-  }, [s.source, s.widthMm, s.heightMm, evaluateGraph]);
+      const preview = (frame, paper = null) => {
+        if (session.source.kind === "image") {
+          const image = session.source.image;
+          if (!image) throw new Error("Choose an image to map onto the papers.");
+          const placement = createContentPlacement({ sourceWidth: image.width, sourceHeight: image.height, widthMm: frame.widthMm, heightMm: frame.heightMm, fit: session.source.fit });
+          const t = contentTransform(placement), a = t.sourceToGlobal([0, 0]), b = t.sourceToGlobal([1, 0]), c = t.sourceToGlobal([0, 1]);
+          return { image, matrix: [b[0] - a[0], b[1] - a[1], c[0] - a[0], c[1] - a[1], a[0], a[1]] };
+        }
+        if (session.source.nodeId == null) throw new Error("Select a graph output or choose an image.");
+        const paths = paper ? evaluatePaperContent(session, paper, evaluateGraph).paths : placePathsOnSurface(evaluateGraph(frame.widthMm, frame.heightMm, session.source.graphPath, session.source.nodeId), createContentPlacement({ sourceWidth: frame.widthMm, sourceHeight: frame.heightMm, ...frame }), frame).paths;
+        const count = paths.reduce((n, p) => n + p.pts.length, 0);
+        return { paths, stride: Math.max(1, Math.ceil(count / 150000)) };
+      };
+      const independent = new Map(session.strips.filter(p => p.visible && p.contentMode === "independent").map(p => [p.id, preview({ widthMm: p.physicalWidthMm, heightMm: p.lengthMm }, p)]));
+      const mapped = session.strips.some(p => p.visible && p.contentMode === "image-mapping") ? preview(session) : {};
+      return { ...mapped, independent };
+    } catch (e) { return { independent: new Map(), empty: e.message }; }
+  }, [session, evaluateGraph]);
+  const art = item => <>{item?.image && <image href={item.image.src} width={item.image.width} height={item.image.height} transform={`matrix(${item.matrix.join(" ")})`} preserveAspectRatio="none" />}{item?.paths?.map((p, i) => { const points = item.stride > 1 ? p.pts.filter((q, j) => j % item.stride === 0 || j === p.pts.length - 1) : p.pts; return <path key={i} d={`M${points.map(q => `${q[0]},${q[1]}`).join("L")}${p.closed ? "Z" : ""}`} fill="none" stroke={pens[p.layer % pens.length]?.c || "#222"} strokeWidth={.8} vectorEffect="non-scaling-stroke" />; })}</>;
+  const hasIndependent = s.strips.some(p => p.visible && p.contentMode === "independent");
 
   const loadImage = async file => {
     if (!file) return;
@@ -357,9 +392,9 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
         <label className="sc-field"><span>Image fit</span><select aria-label="Image fit" value={s.source.fit} onChange={e => changeSource({ fit: e.target.value })}><option value="contain">Contain · whole image</option><option value="cover">Cover · crop to surface</option></select></label></>}
       </section>
       <section><h2>Surface & paper</h2><div className="sc-grid"><NumberField label="Surface width" value={s.widthMm} min={1} onChange={widthMm => commit({ ...session, widthMm, mode: settings ? "freeform" : session.mode })} /><NumberField label="Surface height" value={s.heightMm} min={1} onChange={heightMm => commit({ ...session, heightMm, mode: settings ? "freeform" : session.mode })} /></div>
-        {family === "Sheets" ? <div className="sc-paper-budget fits" aria-live="polite"><span>Total paper · visible sheets</span><strong>{summary.stripCount} sheets</strong><span>{sheetAreaM2.toFixed(3)} m² paper · {summary.totalLengthM.toFixed(2)} m combined length</span></div> : <>
+        {family === "Sheets" ? <div className="sc-paper-budget fits" aria-live="polite"><span>Total paper · visible sheets</span><strong>{summary.stripCount} sheets</strong><span>{sheetAreaM2.toFixed(3)} m² paper · {(summary.totalLengthM + summary.stripCount * labelExtraMm(s.assembly) / 1000).toFixed(2)} m combined length incl. labels</span></div> : <>
         <div className={`sc-paper-budget ${budget.fits ? "fits" : "short"}`} aria-live="polite"><span>Total paper · full layout</span><strong>{budget.totalM.toFixed(2)} m</strong><span>{budget.fits ? `Fits on this roll · ${(budget.availableM - budget.totalM).toFixed(2)} m spare` : `${budget.shortfallM.toFixed(2)} m more paper needed`}</span></div>
-        <p className="sc-note">{budget.artworkM.toFixed(2)} m strips + {budget.allowanceM.toFixed(2)} m feed/cut allowance</p>
+        <p className="sc-note">{budget.artworkM.toFixed(2)} m strips + {budget.labelsM.toFixed(2)} m labels + {budget.allowanceM.toFixed(2)} m feed/cut allowance</p>
         <div className="sc-grid"><NumberField label="Roll length (m)" value={s.production.rollLengthM} min={.1} onChange={v => changeProduction("rollLengthM", v)} /><NumberField label="Already used (m)" value={s.production.usedOnRollM} min={0} onChange={v => changeProduction("usedOnRollM", v)} /><NumberField label="Reserve (m)" value={s.production.reserveM} min={0} onChange={v => changeProduction("reserveM", v)} /><NumberField label="Allowance per strip" value={s.production.allowanceMm} min={0} onChange={v => changeProduction("allowanceMm", v)} /></div><p className="sc-note">Enter roll use manually. Feed/cut allowance is an estimate; hidden strips are excluded.</p></>}
 
       </section>
@@ -403,17 +438,17 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
         {exportMessage && <p className="sc-print-status" role="status">{exportMessage}</p>}
       </section></aside>
 
-      <main className="sc-stage"><div className="sc-stage-tools"><button onClick={() => setView(fitView(s))}>Fit all</button><button onClick={() => setView({ x: -s.widthMm * .05, y: -s.heightMm * .05, w: s.widthMm * 1.1, h: s.heightMm * 1.1 })}>Fit surface</button><label><input type="checkbox" checked={labels} onChange={e => setLabels(e.target.checked)} />Numbers</label><label><input type="checkbox" checked={reference} onChange={e => setReference(e.target.checked)} />Source reference</label><span>{content.stride > 1 ? "Preview simplified" : "Image Mapping"}</span></div>
+      <main className="sc-stage"><div className="sc-stage-tools"><button onClick={() => setView(fitView(s))}>Fit all</button><button onClick={() => setView({ x: -s.widthMm * .05, y: -s.heightMm * .05, w: s.widthMm * 1.1, h: s.heightMm * 1.1 })}>Fit surface</button><label><input type="checkbox" checked={labels} onChange={e => setLabels(e.target.checked)} />Numbers</label><label><input type="checkbox" checked={reference} onChange={e => setReference(e.target.checked)} />Source reference</label><span>{content.stride > 1 ? "Preview simplified" : hasIndependent ? "Independent / mixed content" : "Image Mapping"}</span></div>
         <div className="sc-drawing"><svg aria-label="Surface composition" ref={svgRef} viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`} onPointerDown={e => begin(e, "pan")} onPointerMove={move} onPointerUp={e => end(e)} onPointerCancel={e => end(e, true)} onContextMenu={e => e.preventDefault()}>
           <defs><clipPath id={`${uid}-canvas`}><rect width={s.widthMm} height={s.heightMm} /></clipPath><g id={`${uid}-art`} clipPath={`url(#${uid}-canvas)`}>
-            {content.image && <image href={content.image.src} width={content.image.width} height={content.image.height} transform={`matrix(${content.matrix.join(" ")})`} preserveAspectRatio="none" />}
-            {content.paths?.map((p, i) => { const points = content.stride > 1 ? p.pts.filter((q, j) => j % content.stride === 0 || j === p.pts.length - 1) : p.pts; return <path key={i} d={`M${points.map(q => `${q[0]},${q[1]}`).join("L")}${p.closed ? "Z" : ""}`} fill="none" stroke={pens[p.layer % pens.length]?.c || "#222"} strokeWidth={.8} vectorEffect="non-scaling-stroke" />; })}
-          </g>{sorted.map(strip => <clipPath key={strip.id} id={clipIds.get(strip.id)}><polygon points={polygon(stripCorners(strip, "printable"))} /></clipPath>)}</defs>
+            {art(content)}
+          </g>{sorted.map(strip => <clipPath key={strip.id} id={clipIds.get(strip.id)}><polygon points={polygon(stripCorners(strip, "printable"))} /></clipPath>)}{[...content.independent].map(([id, item]) => <g key={id} id={`${clipIds.get(id)}-local-art`}>{art(item)}</g>)}</defs>
           <rect width={s.widthMm} height={s.heightMm} fill="#343c45" stroke="#788694" strokeWidth={view.w * .0008} strokeDasharray={`${view.w * .004} ${view.w * .004}`} />
           {reference && <use href={`#${uid}-art`} opacity=".22" pointerEvents="none" />}
           {sorted.filter(strip => strip.visible).map(strip => <g key={strip.id} data-strip-id={strip.id} onPointerDown={e => begin(e, e.button === 1 ? "pan" : "move", strip)} className="sc-paper">
             <polygon points={polygon(stripCorners(strip))} fill="#fffdf8" stroke={s.selectedId === strip.id ? "#edaa62" : "#acb5b8"} strokeWidth={view.w * (s.selectedId === strip.id ? .0018 : .0005)} />
-            <use href={`#${uid}-art`} clipPath={`url(#${clipIds.get(strip.id)})`} pointerEvents="none" />
+            {strip.contentMode === "independent" ? <g clipPath={`url(#${clipIds.get(strip.id)})`} pointerEvents="none"><g transform={`translate(${strip.centerXmm} ${strip.centerYmm}) rotate(${strip.rotationDeg}) translate(${-strip.physicalWidthMm / 2} ${-strip.lengthMm / 2})`}><use href={`#${clipIds.get(strip.id)}-local-art`} /></g></g> : <use href={`#${uid}-art`} clipPath={`url(#${clipIds.get(strip.id)})`} pointerEvents="none" />}
+            {assembly.labelMode !== "off" && <g pointerEvents="none"><polygon points={polygon(stripCorners(extendedPaper(strip,assembly)))} fill="none" stroke="#79b6c4" strokeWidth={.5} vectorEffect="non-scaling-stroke" /><g transform={`translate(${strip.centerXmm} ${strip.centerYmm}) rotate(${strip.rotationDeg}) translate(${-strip.physicalWidthMm/2} ${-strip.lengthMm/2})`}>{endLabelPaths(s,strip).paths.map((p,i)=><path key={i} d={`M${p.pts.map(q=>q.join(",")).join("L")}`} fill="none" stroke="#79b6c4" strokeWidth={.6} vectorEffect="non-scaling-stroke" />)}{assembly.labelMode === "tear" && <path d={`M${Math.min(assembly.bridgeMm,strip.physicalWidthMm)},${strip.lengthMm}H${strip.physicalWidthMm}`} fill="none" stroke="#f47f8c" strokeDasharray="3 2" vectorEffect="non-scaling-stroke" />}</g></g>}
             {family === "Roll" && settings && Math.ceil(strip.lengthMm / settings.pieceLengthMm) <= 8192 && <path d={Array.from({ length: Math.max(0, Math.ceil(strip.lengthMm / settings.pieceLengthMm) - 1) }, (_, i) => { const t = stripTransform(strip), a = t.toGlobal([0, (i + 1) * settings.pieceLengthMm]), b = t.toGlobal([strip.physicalWidthMm, (i + 1) * settings.pieceLengthMm]); return `M${a.join(",")}L${b.join(",")}`; }).join(" ")} fill="none" stroke="#79b6c4" strokeWidth={1} vectorEffect="non-scaling-stroke" strokeDasharray="5 4" pointerEvents="none" />}
           </g>)}
           {labels && sorted.filter(strip => strip.visible).map(strip => { const t = stripTransform(strip), p = t.toGlobal([strip.physicalWidthMm / 2, Math.min(strip.lengthMm / 2, radius * 3)]); return <g key={strip.id} pointerEvents="none"><circle cx={p[0]} cy={p[1]} r={radius * 1.4} fill={s.selectedId === strip.id ? "#edaa62" : "#263541"} /><text x={p[0]} y={p[1]} fill={s.selectedId === strip.id ? "#1a2025" : "#fff"} textAnchor="middle" dominantBaseline="central" fontSize={radius * 1.5}>{s.strips.indexOf(strip) + 1}</text></g>; })}
@@ -424,19 +459,36 @@ export default function SurfaceComposer({ session: inputSession, onChange, onClo
       </main>
 
       <aside className="sc-inspector"><section><h2>{selected ? `${family === "Sheets" ? "Sheet" : "Strip"} ${s.strips.indexOf(selected) + 1}` : "Select a strip"}</h2>{selected ? <>
+        <label className="sc-field"><span>Paper content</span><select aria-label="Paper content mode" value={selected.contentMode} onChange={e => changeStrip("contentMode", e.target.value)}><option value="image-mapping">Image Mapping · shared surface</option><option value="independent">Independent Content · per paper</option></select></label><button className="sc-wide" disabled={busy} onClick={() => commit(old => ({ ...old, mode: "freeform", strips: old.strips.map(p => p.visible ? { ...p, contentMode: selected.contentMode } : p) }))}>Apply content mode to visible papers</button>
+        {hasIndependent && <><NumberField label="Content seed" value={s.contentSeed ?? 1} min={0} max={4294967295} step={1} onChange={v => commit(old => ({ ...old, contentSeed: v }))} /><p className="sc-note">Independent graphs run at each paper’s full size. Surface Context supplies paper number, position, angle, distance and stable seed. Images repeat on each paper.</p></>}
         <label className="sc-check"><input type="checkbox" checked={selected.visible} onChange={e => changeStrip("visible", e.target.checked)} />Visible · included in production</label>
         <div className="sc-grid"><NumberField label="Centre X" value={mm(selected.centerXmm)} onChange={v => changeStrip("centerXmm", v)} /><NumberField label="Centre Y" value={mm(selected.centerYmm)} onChange={v => changeStrip("centerYmm", v)} /><NumberField label="Rotation" value={mm(selected.rotationDeg)} onChange={v => changeStrip("rotationDeg", v)} /><NumberField label={family === "Sheets" ? "Sheet height" : "Length"} value={mm(selected.lengthMm)} min={1} onChange={v => changeStrip("lengthMm", v)} /><NumberField label="Paper width" value={selected.physicalWidthMm} min={.1} onChange={v => changeStrip("physicalWidthMm", v)} /><NumberField label="Ink width" value={selected.printableWidthMm} min={.1} onChange={v => changeStrip("printableWidthMm", v)} /><NumberField label="Ink offset" value={selected.printableOffsetMm} min={0} onChange={v => changeStrip("printableOffsetMm", v)} /><NumberField label="Layer" value={selected.zIndex} step={1} onChange={v => changeStrip("zIndex", v)} /><NumberField label="Print order" value={selected.printOrder} min={1} step={1} onChange={v => changeStrip("printOrder", v)} /></div>
         <div className="sc-actions"><button onClick={() => commit(old => addSurfaceStrip(old, old.selectedId))}>Duplicate {paperWord}</button><button onClick={() => commit(old => removeSurfaceStrip(old, old.selectedId))}>Remove</button></div></> : <p className="sc-note">Choose paper in the preview or in the list.</p>}</section>
+        <section className="sc-assembly"><h2>Assembly & end labels</h2>
+          <label className="sc-field"><span>End label</span><select aria-label="End label mode" value={assembly.labelMode} disabled={busy} onChange={e => changeAssembly("labelMode", e.target.value)}><option value="off">Off · body only</option><option value="attached">Attached panel</option><option value="tear">Tear-off · small left bridge</option></select></label>
+          {assembly.labelMode !== "off" && <NumberField label="End label length" value={assembly.labelLengthMm} min={24} max={100} disabled={busy} onChange={v => changeAssembly("labelLengthMm",v)} />}
+          {assembly.labelMode === "tear" && <><NumberField label="Cut guide bridge" value={assembly.bridgeMm} min={.2} max={10} disabled={busy} onChange={v => changeAssembly("bridgeMm",v)} /><NumberField label="Extra cutter feed (mm)" value={assembly.cutterFeedMm} min={0} max={100} disabled={busy} onChange={v => changeAssembly("cutterFeedMm",v)} /><p className="sc-note">The SVG cut guide leaves this width at the left edge. Epson uses its fixed left bridge and feeds blank paper before printing the label. Extra feed is an estimate.</p></>}
+          <label className="sc-check"><input type="checkbox" checked={assembly.numbers} disabled={busy} onChange={e => changeAssembly("numbers",e.target.checked)} />Paper numbers on labels / PDF map</label>
+          <label className="sc-check"><input type="checkbox" checked={assembly.registration} disabled={busy} onChange={e => changeAssembly("registration",e.target.checked)} />Registration on labels / PDF map</label>
+          <label className="sc-check"><input type="checkbox" checked={assembly.dimensions} disabled={busy} onChange={e => changeAssembly("dimensions",e.target.checked)} />Positions, sizes and angles</label>
+          <label className="sc-check"><input type="checkbox" checked={assembly.relations} disabled={busy} onChange={e => changeAssembly("relations",e.target.checked)} />Every paper pair · distance / angle table</label>
+          <label className="sc-check"><input type="checkbox" checked={assembly.artwork} disabled={busy} onChange={e => changeAssembly("artwork",e.target.checked)} />Artwork in PDF overview</label>
+          <button className="sc-primary sc-wide" disabled={busy || !summary.stripCount || loadingImage} onClick={exportAssembly}>Export Assembly PDF</button>
+          {assembly.labelMode === "tear" && <button className="sc-wide" disabled={busy || !summary.stripCount} onClick={exportCuts}>Export end-label cut guides · SVG</button>}
+          <p className="sc-note">Labels add paper after the artwork. PDF shows body corners A/B/C/D, print order and assembly coordinates in mm. Diagrams are scaled; use numeric dimensions. Up to 128 visible papers.</p>
+          {pdfBusy && <button className="sc-wide" onClick={() => { cancelExport.current = true; }}>Cancel PDF export</button>}
+          {assemblyMessage && <p className="sc-print-status" role="status">{assemblyMessage}</p>}
+        </section>
         {settings && <section className="sc-vector"><h2>Plotter / vector files</h2>
           <label className="sc-check"><input type="checkbox" checked={settings.marks} disabled={busy} onChange={e => changeComposition("marks", e.target.checked)} />{family === "Roll" ? "Registration ticks at piece boundaries" : "Crop marks"}</label>
           <label className="sc-check"><input type="checkbox" checked={settings.labels} disabled={busy} onChange={e => changeComposition("labels", e.target.checked)} />Paper / piece labels</label>
           <label className="sc-field"><span>Mark pen</span><select aria-label="Layout mark pen" value={settings.markPen} disabled={busy} onChange={e => changeComposition("markPen", Number(e.target.value))}>{pens.map((p, i) => <option key={i} value={i}>{i}: {p.name}</option>)}</select></label>
-          {family === "Roll" && selected && <p className="sc-note">Selected strip: {pieceError || `${selectedPieces.length} machine piece(s); last ${mm(selectedPieces.at(-1)?.lengthMm ?? 0)} mm.`}</p>}
+          {family === "Roll" && selected && <p className="sc-note">Selected strip: {pieceError || `${selectedPieces.length} machine piece(s); last ${mm(selectedPieces.at(-1)?.lengthMm ?? 0)} mm incl. end label.`}</p>}
           <label className="sc-check"><input type="checkbox" checked={vectorSelected} disabled={busy} onChange={e => setVectorSelected(e.target.checked)} />Selected {paperWord} only</label>
           <div className="sc-actions"><button disabled={busy || s.source.kind !== "graph" || !!content.empty} onClick={() => exportVectors("svg")}>SVG files</button><button disabled={busy || s.source.kind !== "graph" || !!content.empty} onClick={() => exportVectors("dxf")}>DXF files</button><button disabled={busy || !vectorServices?.gcodeEnabled || s.source.kind !== "graph" || !!content.empty} onClick={() => exportVectors("gcode")}>G-code files</button></div>
-          <button className="sc-wide" disabled={busy || s.source.kind !== "graph" || !!content.empty} onClick={() => exportVectors("svg", true)}>Source SVG · full artwork</button>
+          <button className="sc-wide" disabled={busy || hasIndependent || s.source.kind !== "graph" || !!content.empty} onClick={() => exportVectors("svg", true)}>Source SVG · full artwork</button>
           <p className="sc-note">{s.source.kind === "image" ? "Use PNG for an image source. Vector files require a graph output." : "Multiple files download in a ZIP. Paper motion changes the sampled artwork; file coordinates stay local to each paper or roll piece."}</p>
-          {vectorServices && s.strips.some(p => p.visible && (p.physicalWidthMm > vectorServices.workW || Math.min(p.lengthMm, family === "Roll" ? settings.pieceLengthMm : p.lengthMm) > vectorServices.workH)) && <p className="sc-note sc-work-warning">Some papers or machine pieces exceed the work area. Adjust their dimensions before plotting.</p>}
+          {vectorServices && s.strips.some(p => p.visible && (p.physicalWidthMm > vectorServices.workW || Math.min(p.lengthMm + labelExtraMm(s.assembly), family === "Roll" ? settings.pieceLengthMm : p.lengthMm + labelExtraMm(s.assembly)) > vectorServices.workH)) && <p className="sc-note sc-work-warning">Some papers or machine pieces exceed the work area. Adjust their dimensions before plotting.</p>}
           {vectorServices && <p className="sc-note">{vectorServices.machineName} · work area {vectorServices.workW} × {vectorServices.workH} mm. Check each file fits before plotting.</p>}
           {vectorBusy && <button className="sc-wide" onClick={() => { cancelExport.current = true; }}>Cancel vector export</button>}
           {vectorMessage && <p className="sc-print-status" role="status">{vectorMessage}</p>}

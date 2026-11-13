@@ -2188,5 +2188,13 @@
   "hatch",
   "stroke",
   "random"
+ ],
+ "surfacecontext": [
+  "math",
+  "surface",
+  "paper",
+  "position",
+  "seed",
+  "independent"
  ]
 }

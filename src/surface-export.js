@@ -1,3 +1,5 @@
+import { assemblySettings, extendedPaper, endLabelPaths, labelExtraMm } from "./surface-assembly.js";
+import { resolveSurfaceContent } from "./surface-content.js";
 import { Zlib, Zip, ZipPassThrough, strToU8 } from "fflate";
 import { clipPathsToStrip, stripCorners, stripsInPrintOrder, surfaceSummary } from "./surface-composer.js";
 import { createStripRasterPlan, createStripRasterizer } from "./surface-render.js";
@@ -11,7 +13,7 @@ export const MAX_EXPORT_BYTES = 128 * 1024 * 1024;
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 const safeName = value => String(value || "surface").normalize("NFKD").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "surface";
 
-/** Export whole visible strips, independently of the physical print cursor. */
+/** Export whole visible strips with optional end labels, independently of the physical print cursor. */
 export function surfaceExportPlan(input, { selectedOnly = false, dpi = DEFAULT_EXPORT_DPI, area = "paper", projectName = "surface" } = {}) {
   const session = readSurfaceSession(input);
   if (!Number.isFinite(dpi) || dpi < 25 || dpi > 600) throw new Error("Choose a resolution between 25 and 600 dpi.");
@@ -21,7 +23,7 @@ export function surfaceExportPlan(input, { selectedOnly = false, dpi = DEFAULT_E
   const prefix = safeName(projectName);
   let pixels = 0;
   const entries = chosen.map(strip => {
-    const plan = createStripRasterPlan(strip, { dotsPerMmX: dpi / 25.4, area });
+    const plan = createStripRasterPlan(extendedPaper(strip, session.assembly), { dotsPerMmX: dpi / 25.4, area });
     if (plan.width * plan.height > MAX_STRIP_EXPORT_PIXELS || plan.height > 0x7fffffff) throw new Error("This strip exceeds the export budget. Choose a lower resolution.");
     pixels += plan.width * plan.height;
     if (pixels > MAX_EXPORT_PIXELS) throw new Error("This export exceeds the pixel budget. Choose a lower resolution or export strips individually.");
@@ -32,11 +34,12 @@ export function surfaceExportPlan(input, { selectedOnly = false, dpi = DEFAULT_E
     surface: { widthMm: session.widthMm, heightMm: session.heightMm, origin: "top-left", x: "right", y: "down", positiveRotation: "clockwise" },
     source: { kind: session.source.kind, fit: session.source.kind === "image" ? session.source.fit : null, image: session.source.kind === "image" && session.source.image ? { name: session.source.image.name, width: session.source.image.width, height: session.source.image.height } : null },
     raster: { dpi, dotsPerMmX: dpi / 25.4, dotsPerMmY: dpi / 25.4, area, colour: "RGB", background: "white", graphLineWidthMm: .3 },
-    paper: { stripCount: chosen.length, totalLengthM: surfaceSummary(chosen).totalLengthM, allowancesIncluded: false },
-    printInstructions: "Use actual size / 100%. Disable fit to page. Physical target sizes and rounded raster extents are listed separately. Files contain complete strips, without feed/cut allowance or production cursor cropping.",
+    paper: { stripCount: chosen.length, totalLengthM: surfaceSummary(chosen).totalLengthM + chosen.length * labelExtraMm(session.assembly) / 1000, allowancesIncluded: false },
+    printInstructions: "Use actual size / 100%. Disable fit to page. Physical target sizes and rounded raster extents are listed separately. Files contain complete strips, with optional end labels; without mechanical feed/cut allowance or production cursor cropping.",
     strips: entries.map(({ plan, filename }) => ({
-      ...plan.strip, filename, number: session.strips.findIndex(s => s.id === plan.strip.id) + 1,
-      paperCornersMm: stripCorners(plan.strip), printableCornersMm: stripCorners(plan.strip, "printable"),
+      ...session.strips.find(p => p.id === plan.strip.id), outputLengthMm: plan.strip.lengthMm, filename, number: session.strips.findIndex(s => s.id === plan.strip.id) + 1,
+      bodyLengthMm: session.strips.find(p => p.id === plan.strip.id).lengthMm, endLabel: assemblySettings(session.assembly),
+      paperCornersMm: stripCorners(session.strips.find(p => p.id === plan.strip.id)), printableCornersMm: stripCorners(plan.strip, "printable"),
       raster: { width: plan.width, height: plan.height, localXmm: plan.localXmm, widthMm: plan.widthMm, heightMm: plan.heightMm, rasterWidthMm: plan.rasterWidthMm, rasterHeightMm: plan.rasterHeightMm },
     })),
   };
@@ -89,8 +92,15 @@ export async function writeStripPng(renderer, metadata, { onData, cancelled = ()
 }
 
 export function createExportRenderer(source, session, plan, pens = []) {
-  if (source.image) return createStripRasterizer(source.image, source.placement, session, plan.strip, { dotsPerMmX: plan.dotsPerMmX, dotsPerMmY: plan.dotsPerMmY, area: plan.area });
-  const paths = clipPathsToStrip(source.paths, plan.strip).paths;
+  const original = session.strips.find(p => p.id === plan.strip.id) ?? plan.strip;
+  const label = endLabelPaths(session, original);
+  const resolved = resolveSurfaceContent(source, session, original);
+  source = resolved.source;
+  session = resolved.frame;
+  const samplingStrip = resolved.strip;
+  const rasterizer = source.image ? createStripRasterizer(source.image, source.placement, session, samplingStrip, { dotsPerMmX: plan.dotsPerMmX, dotsPerMmY: plan.dotsPerMmY, area: plan.area }) : null;
+  if (rasterizer && !label.lengthMm) return rasterizer;
+  const paths = [...(source.paths ? clipPathsToStrip(source.paths, samplingStrip).paths : []), ...label.paths];
   const canvas = document.createElement("canvas"); canvas.width = plan.width;
   return {
     plan,
@@ -99,6 +109,10 @@ export function createExportRenderer(source, session, plan, pens = []) {
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) throw new Error("Line rendering is unavailable.");
       ctx.fillStyle = "white"; ctx.fillRect(0, 0, plan.width, rowCount);
+      if (rasterizer && rowStart < rasterizer.plan.height) {
+        const block = rasterizer.renderBlock(rowStart, Math.min(rowCount, rasterizer.plan.height - rowStart));
+        ctx.putImageData(new ImageData(block.data, block.width, block.height), 0, 0);
+      }
       ctx.scale(plan.dotsPerMmX, plan.dotsPerMmY); ctx.translate(-plan.localXmm, -rowStart / plan.dotsPerMmY);
       ctx.beginPath(); ctx.rect(plan.strip.printableOffsetMm, 0, plan.strip.printableWidthMm, plan.strip.lengthMm); ctx.clip();
       ctx.lineWidth = .3; ctx.lineCap = "round"; ctx.lineJoin = "round";

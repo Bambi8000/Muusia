@@ -56,11 +56,36 @@ class PrintServerTests(unittest.TestCase):
             self.assertLessEqual(sum(len(b) for b in server.job_images.values()), server.MAX_IMAGE_HISTORY_BYTES)
             self.assertIn("b" * 32, server.job_images)
             server.work.get_nowait(); server.work.task_done()
+            server.jobs["b" * 32]["status"] = "done"
+            for invalid in [0,5000,True,1.5,"300"]:
+                with self.assertRaises(HTTPError) as bad_label:
+                    post({**payload,"requestId":"c"*32,"tearAtRow":invalid})
+                self.assertEqual(bad_label.exception.code,400);bad_label.exception.close()
+            self.assertEqual(post({**payload,"requestId":"c"*32,"tearAtRow":300})["id"],"c"*32)
+            queued=server.work.get_nowait();server.work.task_done()
+            self.assertIsInstance(queued[1],bytes)
+            self.assertEqual(queued[1].count(b"\x1dV\x42\x00"),1)
         finally:
             httpd.shutdown(); httpd.server_close()
             server.jobs.clear(); server.job_images.clear(); server.job_native_texts.clear()
             with server.clock_condition:
                 server.clock_state["running"] = False
+
+    def test_surface_label_partial_cut_keeps_one_atomic_raster(self):
+        pixels = bytes([0xa5]) * 64 * 500
+        encoded = server.escpos_surface_strip(500, pixels, True, 300)
+        expected = (server.escpos_image(512, 300, pixels[:64*300], False)
+                    + b"\x1dV\x42\x00"
+                    + server.escpos_image(512, 200, pixels[64*300:], True, initialize=False))
+        self.assertEqual(encoded, expected)
+        self.assertEqual(encoded.count(b"\x1b@"), 1)
+        self.assertEqual(encoded.count(b"\x1dV\x42\x00"), 1)
+        self.assertTrue(encoded.endswith(b"\x1dV\x41\x20"))
+        self.assertFalse(server.escpos_surface_strip(500, pixels, False, 300).endswith(b"\x1dV\x41\x20"))
+        for invalid in [0, 500, -1, True, 2.5, "300"]:
+            with self.assertRaises(ValueError):
+                server.escpos_surface_strip(500, pixels, True, invalid)
+        self.assertEqual(server.escpos_surface_strip(500, pixels), server.escpos_image(512,500,pixels))
 
     def test_long_strip_raster_is_continuous_and_cuts_only_at_the_end(self):
         height = 14135

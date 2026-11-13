@@ -150,7 +150,6 @@ export function createRasterSampler(image, placement, surface, { interpolation =
  *  reported separately. Long strips are described without allocating an image. */
 export function createStripRasterPlan(input, { dotsPerMmX, dotsPerMmY = dotsPerMmX, area = "printable" } = {}) {
   const strip = createStrip(input);
-  if (strip.contentMode !== "image-mapping") throw new Error("Raster mapping requires Image Mapping content mode.");
   positive(dotsPerMmX, "Horizontal pixel density"); positive(dotsPerMmY, "Vertical pixel density");
   positive(1 / dotsPerMmX, "Horizontal pixel pitch"); positive(1 / dotsPerMmY, "Vertical pixel pitch");
   if (area !== "paper" && area !== "printable") throw new Error("Raster area must be paper or printable.");
@@ -173,6 +172,7 @@ export function createStripRasterPlan(input, { dotsPerMmX, dotsPerMmY = dotsPerM
  *  coordinates, so any sequence of bounded blocks reproduces a single image.
  *  The consumer controls scheduling/cancellation between synchronous blocks. */
 export function createStripRasterizer(image, placement, surface, strip, options = {}) {
+  if (strip.contentMode === "independent") throw new Error("Resolve Independent Content before raster sampling.");
   const plan = createStripRasterPlan(strip, options);
   const sampler = rasterSampler(image, placement, surface, options.interpolation ?? "bilinear");
   const transform = stripTransform(plan.strip);
