@@ -100,12 +100,18 @@ async function awaitPrintJob(base, id, timeoutMs = 30000) {
 export async function sendReceipt(serverUrl, receipt, cut = true) {
   const base = localPrintBase(serverUrl);
   const headers = { "Content-Type": "application/json" };
-  const response = await fetch(`${base}/api/jobs`, {
+  if (receipt.kind === "text") {
+    const health = await fetch(`${base}/health`);
+    const info = await health.json().catch(() => ({}));
+    if (!health.ok) throw new Error(info.error || `Print server returned ${health.status}.`);
+    if (!info.formats?.includes("text")) throw new Error("Update the Muusia print server for native ASCII receipts.");
+  }
+  const response = await fetch(`${base}${receipt.kind === "text" ? "/api/ascii-jobs" : "/api/jobs"}`, {
     method: "POST", headers, body: JSON.stringify({ ...receipt, cut }),
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || `Print server returned ${response.status}.`);
-  return awaitPrintJob(base, result.id, receipt.height > 4096 ? 30 * 60 * 1000 : 30000);
+  return awaitPrintJob(base, result.id, (receipt.height || receipt.lines?.length * receipt.lineSpacing) > 4096 ? 30 * 60 * 1000 : 30000);
 }
 
 export async function nativeFontTests(serverUrl) {

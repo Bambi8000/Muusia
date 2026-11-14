@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 361 built-in nodes in the current Muusia source. Conventions used below:
+All 363 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -1335,6 +1335,22 @@ Threshold leaves the lightest cells empty. Columns sets resolution; characters
 are real pen strokes, so the result plots like any other geometry — and loop
 letters (O 0 D Q 8 Ö, dots) come out as real closed shapes, so Pattern Fill,
 Container and the other region nodes see them.
+
+**Receipt ASCII** — native ESC/POS character art for 80 mm receipt paper,
+inspired by an accidental error print. Error weave makes small drifting groups
+and diagonal waves; Waves, Stream and Noise offer alternate rhythms. Characters
+accepts printable ASCII (spaces remain gaps); control codes and non-ASCII are
+removed. Density, Repeat columns, Drift per row, Wave, Wave rows and Corruption
+control the composition. Seed repeats it exactly. Font B supports up to 56
+columns, Font A up to 42; the block is centred in the 512-dot print area.
+Canvas aspect sets the roll length, bounded to 353,357 dots; Row gap dots adds
+space above the font's minimum line height. All rows remain in long rolls.
+Select this node and use PRINT ASCII RECEIPT (updated print server required),
+or DOWNLOAD ESCPOS for a native command file. Preview uses a substitute
+monospace font with the same characters and layout; the device uses Epson's
+built-in glyphs. This is receipt text rather than path geometry: path modifiers,
+plotter exports and animation frame export do not apply. LATU currently reads
+image receipts only. Help: Receipt ASCII · Beautiful error and Dense stream.
 
 **Braille** — Grade 1 braille as a grid of dot circles at standard geometry
 (2.5 mm dot pitch, 6 mm cell, 10 mm line at Scale 1). Letters a–z plus Nordic

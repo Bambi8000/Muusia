@@ -2205,5 +2205,15 @@
   "position",
   "seed",
   "independent"
+ ],
+ "receiptascii": [
+  "text",
+  "receipt",
+  "ascii",
+  "error",
+  "glitch",
+  "thermal",
+  "escpos",
+  "kuitti"
  ]
 }

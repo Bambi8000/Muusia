@@ -6719,3 +6719,32 @@ with the printer power-cycled first to clear the interrupted command buffer.
 Artifacts: receipt-50m-seam-test/endurance-50m/record.json includes exact
 server data, paper-out reason and Daniel's physical quality confirmation.
 Refresh the clean 93-file source snapshot after committing this record.
+
+
+### 2.191 — Receipt ASCII · Beautiful error
+
+Daniel requested a receipt ASCII node inspired by IMG_3542.MOV, then explicitly
+authorized publication and the Pi Print update. Integrated only this feature onto
+current main 50be76e; the primary checkout's older unrelated work stays intact.
+Receipt ASCII generates drifting diagonal groups, Waves, Stream and seeded Noise.
+Two Help examples, font A/B, bounded columns, density/repetition/drift/wave, row gap
+and corruption controls. Preview preserves characters/layout using a substitute
+monospace font. Print and DOWNLOAD ESCPOS use actual native printer characters,
+with no raster substitution. The text-only output has no plotter paths; irrelevant
+animation exports are hidden. Existing geometry export actions remain unchanged.
+
+Pi adds validated ASCII preview/bin/job routes; printable bytes only, width/length
+bounds. Native text uses bounded 16-row parts through the existing continuous USB
+transport, preserving all raster/Surface/50 m behavior and the tested cutter command
+GS V 65 32. Local download bytes equal server output. Native boundaries skip numeric
+ESC $ operands (including LF byte 10) before scanning line endings.
+
+Validation: focused node/bounds/parity/send checks, 28 Python Print/USB tests,
+62 long-roll cases, 184 Help graphs, focused lint; ordered catalog → build →
+37914 Learn checks passed. Actual 2.191 browser preview and ESC/POS download
+matched the tested 106-row program. Updated live server.py and ascii_receipt.py
+with backup /home/print/muusia-print/before-ascii-20261114 after checking base hash.
+Daniel confirmed the printer had been power-cycled. Service started, USB ready,
+queue empty, Clock off. Existing usb_transport.py and receipt_limits.py hashes
+preserved. Live preview/bin validation creates no job. No physical print requested
+or sent in this release. Exact Pages run/public verification recorded after push.

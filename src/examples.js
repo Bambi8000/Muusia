@@ -910,6 +910,18 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Receipt ASCII · Beautiful error",
+    desc: "Small ASCII groups drift into diagonal waves, inspired by an accidental error print. Select Receipt ASCII, then use PRINT ASCII RECEIPT or DOWNLOAD ESCPOS. Density, Drift per row, Wave and Corruption shape the rhythm. The printer uses its own font. The 80 × 300 canvas makes a short first study; choose Receipt 80 mm × 1 m for a long roll. Requires the updated Muusia print server; path modifiers and plotter exports do not apply.",
+    canvas: { W: 80, H: 300 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "receiptascii", x: 30, y: 20, params: { ...defaults("receiptascii") } }], edges: [] }),
+  },
+  {
+    name: "Receipt ASCII · Dense stream",
+    desc: "A denser one-metre stream of printable punctuation and digits. The text goes to the printer as native ESC/POS characters. Change Characters, Repeat columns and Corruption, or choose Waves for a more regular weave. Select the node to preview and print.",
+    canvas: { W: 80, H: 1000 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "receiptascii", x: 30, y: 20, params: { ...defaults("receiptascii"), pattern: "Stream", characters: "01:;|/<>+=.*", density: 0.78, repeat: 17.4, corruption: 0.2, seed: 3543 } }], edges: [] }),
+  },
+  {
     name: "Ribbon · One metre pleats",
     desc: "An 80 mm × 1 m receipt ribbon. Shape Long keeps bends, swells and folds in physical millimetres as the canvas gets longer. Orientation turns it sideways. Wander automatically fits the narrow paper without shortening the ribbon. Each filament is one continuous stroke. Try Long form Line or Channels, or extend Canvas height to 3000 mm.",
     canvas: { W: 80, H: 1000 },

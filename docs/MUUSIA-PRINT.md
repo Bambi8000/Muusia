@@ -272,3 +272,9 @@ noin 44,63 metriä; viimeinen tulostimen kuittaama rivi 315968 vastaa
 noin 44,71 metriä mitatulla kalibroinnilla. Käyttäjä vahvisti laadun pysyneen
 hyvänä paperin loppuun asti. Täyttä 50 m:n tulostetta ja loppuleikkausta
 ei tässä kokeessa vahvistettu. Palvelu jätettiin pysäytetyksi.
+
+## Receipt ASCII · Beautiful error (2.191)
+
+Help → Receipt ASCII · Beautiful error tuottaa videon kaltaisia pieniä merkkiryhmiä ja vinoja aaltoja. Dense stream tekee tiheämmän nauhan. Valitse node ja PRINT ASCII RECEIPT tai DOWNLOAD ESCPOS. Density, Wave, Drift per row, Repeat columns ja Corruption säätävät rytmiä. Font B sallii enintään 56 saraketta ja Font A 42. Canvasin kuvasuhde määrää pituuden; esikatselun fontti on korvaava, paperilla käytetään Epsonin omia merkkejä. Merkit ovat tulostuvaa ASCII:a, eivät kuvarasteria. Viivamuokkaimet, plotteriviennit ja freimivienti eivät koske tätä ulostuloa.
+
+Päivitetyn palvelimen `/health` ilmoittaa `formats: ["image", "text"]`. Uudet `/api/ascii-jobs`, `/api/ascii-bin` ja `/api/ascii-preview` hyväksyvät rajatut kentät `font`, `lineSpacing`, `left`, `lines` ja `cut`. Binääri ja suora lähetys sisältävät samat tavut. Esikatselupyyntö ei jonota työtä. Palvelin hylkää ohjausmerkit ja liian leveät/pitkät rivit. Teksti kulkee nykyisen jatkuvan kuitattavan USB-siirron kautta 16 rivin paloina; aiempi kuva-, Thermal Text-, Surface- ja 50 m tulostus säilyvät. Leikkaus on nykyinen GS V 65 32, kerran lopussa.

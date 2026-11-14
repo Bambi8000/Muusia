@@ -1,4 +1,4 @@
-# MUUSIA v2.190
+# MUUSIA v2.191
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -133,7 +133,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **360 built-in node modules** across Generators,
+HTML file you can double-click. The current source has **361 built-in node modules** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
@@ -500,3 +500,5 @@ Frame-sequence export as a single ZIP · custom pen palettes · per-pen time est
 value ports on promoted group params · multi-tip brush tool change (servo) ·
 zoned vacuum table workflow for wet media · registration marks for mega sheets ·
 GitHub `nodes/` library folder.
+
+**Receipt ASCII:** Help → Receipt ASCII · Beautiful error creates drifting character groups inspired by a beautiful error print. Select the node, then PRINT ASCII RECEIPT or DOWNLOAD ESCPOS. Density, Wave, Drift and Corruption shape the pattern. Print uses native Epson characters.

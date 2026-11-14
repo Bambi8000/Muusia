@@ -25,6 +25,7 @@ import PreviewCropControls from "./preview-crop-controls.jsx";
 import { directionPassFiles } from "./direction-pass-export.js";
 import DirectionPassControls from "./direction-pass-controls.jsx";
 import MuusiaGuide from "./muusia-guide.jsx";
+import { asciiReceipt, encodeAsciiReceipt, RECEIPT_FONTS } from "./receipt-ascii.js";
 import { renderReceipt, sendReceipt, nativeFontTests, nativeFontTest, nativeFontBinary, sendNativeFontTest, nativePageCatalog, nativePageGlyphs, previewNativeComposition, nativeCompositionBinary, sendNativeComposition, RECEIPT_MAX_HEIGHT_DOTS, RECEIPT_DOTS_PER_MM } from "./thermal-print.js";
 import { DEFAULT_NEEDLE_MACHINE, needleExportError, upgradeNeedleProfile, DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
 const AnalyzeButton = makeAnalyzeButton(React);
@@ -902,7 +903,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.190"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.191"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -1393,6 +1394,14 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
   };
   const q1 = (v) => Math.round(v * 10) / 10;
   const els = [];
+  if (ps.receiptText) {
+    const receipt = ps.receiptText, metrics = RECEIPT_FONTS[receipt.font];
+    const scale = W / 512 * s;
+    els.push(<g key="receipt-text" transform={`translate(${ox},${oy}) scale(${scale})`} fill="black" fontFamily="'Courier New', monospace" fontSize={metrics.height}>
+      {receipt.lines.map((line, row) => line.trim() ? <text key={row} x={receipt.left} y={row * receipt.lineSpacing + metrics.height * 0.8}
+        xmlSpace="preserve" textLength={line.length * metrics.width} lengthAdjust="spacingAndGlyphs">{line}</text> : null)}
+    </g>);
+  }
   (ps.paths || []).forEach((p, i) => {
     if (p.pts.length < 2) return;
     const d = "M" + p.pts.map(([x, y]) => `${(ox + x * s).toFixed(1)},${(oy + y * s).toFixed(1)}`).join("L") + (p.closed ? "Z" : "");
@@ -2516,7 +2525,7 @@ export default function App() {
       else if (e.key === "Escape") { if (guideOpen) setGuideOpen(false); else if (focusOn) { setFocusOn(false); setFocusWatch(null); } else { setBigPreview(false); setSelIds([]); } }
       else if (e.key === " ") {
         e.preventDefault();
-        if (!focusOn) setBigPreview((v) => (v ? false : primaryPS.paths.length > 0));
+        if (!focusOn) setBigPreview((v) => (v ? false : !!(primaryPS.receiptText || primaryPS.paths.length)));
       }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "f") {
         e.preventDefault();
@@ -2554,7 +2563,8 @@ export default function App() {
   const primaryNode = lvl.nodes.find((n) => n.id === primary);
   const primaryOut = primary != null ? results[primary] : null;
   const primaryPS = primaryOut && primaryOut[0] && primaryOut[0].paths ? primaryOut[0] : EMPTY;
-  const hasReceiptContent = primaryPS.paths.length > 0 || (Array.isArray(primaryPS.thermalText) && primaryPS.thermalText.length > 0);
+  const nativeReceipt = primaryPS.receiptText;
+  const hasReceiptContent = !!nativeReceipt || primaryPS.paths.length > 0 || (Array.isArray(primaryPS.thermalText) && primaryPS.thermalText.length > 0);
   const importEdit = primaryNode && (primaryNode.type === "svgimport" || primaryNode.type === "pdfimport") && primaryPS.paths.length
     && !testCrop.active && !measureOn && !jigPlace ? (() => {
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -2834,10 +2844,10 @@ export default function App() {
   const doExportDXF = () => { setGcode(megaOn ? megaPreview("dxf") : toDXF(exportPS(), ctx)); setExportKind("dxf"); setCopied(false); };
   const doReceiptPrint = async () => {
     setPrintBusy(true);
-    setPrintStatus("Preparing 512-dot receipt…");
+    setPrintStatus(nativeReceipt ? "Preparing ASCII receipt…" : "Preparing 512-dot receipt…");
     try {
-      const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH, null, primaryPS.thermalText);
-      setPrintStatus(receipt.thermalText?.length
+      const receipt = nativeReceipt ? asciiReceipt(nativeReceipt) : renderReceipt(primaryPS.paths, canvasW, canvasH, null, primaryPS.thermalText);
+      setPrintStatus(nativeReceipt ? `Sending ${receipt.lines.length} rows of ESC/POS text…` : receipt.thermalText?.length
         ? `Sending receipt with ${receipt.thermalText.length} Epson text block${receipt.thermalText.length === 1 ? "" : "s"}…`
         : `Sending ${Math.round(receipt.height / RECEIPT_DOTS_PER_MM)} mm receipt…`);
       const job = await sendReceipt(printUrl, receipt, printCut);
@@ -2933,18 +2943,18 @@ export default function App() {
   };
   const downloadReceiptFile = () => {
     try {
-      const receipt = renderReceipt(primaryPS.paths, canvasW, canvasH, null, primaryPS.thermalText);
-      const data = JSON.stringify({ format: "muusia-receipt", version: 1, ...receipt, cut: printCut });
-      const blob = new Blob([data], { type: "application/json" });
+      const receipt = nativeReceipt ? asciiReceipt(nativeReceipt) : renderReceipt(primaryPS.paths, canvasW, canvasH, null, primaryPS.thermalText);
+      const data = nativeReceipt ? encodeAsciiReceipt(receipt, printCut) : JSON.stringify({ format: "muusia-receipt", version: 1, ...receipt, cut: printCut });
+      const blob = new Blob([data], { type: nativeReceipt ? "application/octet-stream" : "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${projName || "patch"}.muusia-receipt.json`;
+      a.download = `${projName || "patch"}.${nativeReceipt ? "escpos" : "muusia-receipt.json"}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
-      setPrintStatus(`Receipt file saved · ${receipt.width} × ${receipt.height} dots${receipt.thermalText?.length ? ` · ${receipt.thermalText.length} Epson text block${receipt.thermalText.length === 1 ? "" : "s"}` : ""}`);
+      setPrintStatus(nativeReceipt ? `ESC/POS saved · ${receipt.lines.length} text rows` : `Receipt file saved · ${receipt.width} × ${receipt.height} dots${receipt.thermalText?.length ? ` · ${receipt.thermalText.length} Epson text block${receipt.thermalText.length === 1 ? "" : "s"}` : ""}`);
     } catch (err) {
       setPrintStatus(`Receipt export failed: ${err.message || err}`);
     }
@@ -4154,9 +4164,9 @@ export default function App() {
                 style={{ cursor: "pointer", color: popout ? T.accent : T.dim, fontSize: 12, lineHeight: 1, padding: "0 4px" }}>
                 ⧉
               </div>
-              <div onClick={() => primaryPS.paths.length && setBigPreview(true)}
+              <div onClick={() => hasReceiptContent && setBigPreview(true)}
                 title="Enlarge preview"
-                style={{ cursor: primaryPS.paths.length ? "pointer" : "default", color: primaryPS.paths.length ? T.accent : T.dim, fontSize: 13, lineHeight: 1, padding: "0 2px" }}>
+                style={{ cursor: hasReceiptContent ? "pointer" : "default", color: hasReceiptContent ? T.accent : T.dim, fontSize: 13, lineHeight: 1, padding: "0 2px" }}>
                 ⛶
               </div>
             </div>
@@ -4188,7 +4198,7 @@ export default function App() {
               )}
               <div style={{ flex: 1 }} />
               <div style={{ fontSize: 10, color: T.dim, fontVariantNumeric: "tabular-nums", fontFamily: mono, whiteSpace: "nowrap" }}>
-                {String(stats.n).padStart(4, "\u2007")} paths · {String(stats.pts).padStart(6, "\u2007")} pts · {(stats.L / 1000).toFixed(2).padStart(6, "\u2007")} m
+                {nativeReceipt ? `${nativeReceipt.lines.length} ASCII rows · Font ${nativeReceipt.font}` : <>{String(stats.n).padStart(4, "\u2007")} paths · {String(stats.pts).padStart(6, "\u2007")} pts · {(stats.L / 1000).toFixed(2).padStart(6, "\u2007")} m</>}
               </div>
             </div>
             {testCropControls}
@@ -4229,7 +4239,7 @@ export default function App() {
                 ZIP: all sheets for one pen, then the next. Reuse the same numbered sheets with a fixed paper stop. Keep markers on the base pen. No fitting or centering between passes. Empty passes are listed and skipped.
               </div>}
               {animExportError && <div role="alert" style={{ color: T.accent, fontSize: 10 }}>{animExportError}</div>}
-              <div hidden={customSurfaceOutput}>
+              <div hidden={customSurfaceOutput || !!nativeReceipt}>
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                 <button onClick={() => exportAllFrames("gcode")} disabled={animBusy > 0 || !primaryOut?.[0]?.paths || !gcodeProf} title={gcodeProf ? "" : "External SVG profile \u2014 use SVG"}
                   style={{ flex: 1, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: primaryOut?.[0]?.paths ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
@@ -4244,7 +4254,7 @@ export default function App() {
                   DXF {"\u00D7"} {frameCount}
                 </button>
               </div>
-              <button onClick={exportReceiptFrames} disabled={animBusy > 0 || !hasReceiptContent || megaOn}
+              <button onClick={exportReceiptFrames} disabled={!!nativeReceipt || animBusy > 0 || !hasReceiptContent || megaOn}
                 title={megaOn ? "Turn off Mega Canvas for receipt frames" : "One numbered receipt per frame, with large L marks and a machine-readable frame number; downloads a ZIP when there are multiple frames"}
                 style={{ width: "100%", marginTop: 6, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: hasReceiptContent && !megaOn ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                 Receipt {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
@@ -4568,7 +4578,7 @@ export default function App() {
             <div style={{ marginTop: 14, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
               <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", color: T.text }}>MUUSIA PRINT · TM-T88V</div>
               <div style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, margin: "4px 0 7px" }}>
-                Selected node → black lines on 80 mm thermal paper. Thermal Text adds Epson font text before or after the image. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / RECEIPT_DOTS_PER_MM)} mm of image.
+                {nativeReceipt ? `ASCII receipt · Font ${nativeReceipt.font} · ${nativeReceipt.lines[0]?.length || 0} columns × ${nativeReceipt.lines.length} rows. Printed with the printer’s own characters; preview uses a substitute font.` : <>Selected node → black lines on 80 mm thermal paper. Thermal Text adds Epson font text before or after the image. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / RECEIPT_DOTS_PER_MM)} mm of image.</>}
               </div>
               <input aria-label="Receipt server URL" value={printUrl} onChange={e => setPrintUrl(e.target.value)} placeholder="http://127.0.0.1:8633"
                 style={{ boxSizing: "border-box", width: "100%", background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, padding: "5px 7px", fontSize: 10, fontFamily: mono }} />
@@ -4576,14 +4586,14 @@ export default function App() {
                 <input type="checkbox" checked={printCut} onChange={e => setPrintCut(e.target.checked)} /> Cut after print
               </label>
               <button onClick={downloadReceiptFile} disabled={!hasReceiptContent || megaOn}
-                title={megaOn ? "Turn off Mega Canvas for receipt export" : "Save a receipt file for Print; LATU currently previews the image only"}
+                title={megaOn ? "Turn off Mega Canvas for receipt export" : nativeReceipt ? "Save native ESC/POS text commands" : "Save a receipt file for Print; LATU currently previews the image only"}
                 style={{ width: "100%", marginTop: 6, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.line}`, background: "transparent", color: hasReceiptContent && !megaOn ? T.text : T.dim, fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: hasReceiptContent && !megaOn ? "pointer" : "default" }}>
-                DOWNLOAD RECEIPT FILE
+                {nativeReceipt ? "DOWNLOAD ESCPOS" : "DOWNLOAD RECEIPT FILE"}
               </button>
               <button onClick={doReceiptPrint} disabled={!hasReceiptContent || megaOn || printBusy}
                 title={megaOn ? "Turn off Mega Canvas for the first receipt print" : "Send the selected node to the local Raspberry Pi print server"}
                 style={{ width: "100%", marginTop: 6, padding: "7px 0", borderRadius: 5, border: `1px solid ${T.value}`, background: "transparent", color: hasReceiptContent && !megaOn && !printBusy ? T.value : T.dim, fontFamily: disp, fontWeight: 700, fontSize: 11, cursor: hasReceiptContent && !megaOn && !printBusy ? "pointer" : "default" }}>
-                {printBusy ? "PRINTING…" : "PRINT RECEIPT"}
+                {printBusy ? "PRINTING…" : nativeReceipt ? "PRINT ASCII RECEIPT" : "PRINT RECEIPT"}
               </button>
               {printStatus && <div role="status" style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, marginTop: 5 }}>{printStatus}</div>}
               <div style={{ borderTop: `1px solid ${T.line}`, marginTop: 12, paddingTop: 10 }}>

@@ -581,5 +581,21 @@
       "lastVisibleMarkerMm": 44627.968,
       "jobDurationSeconds": 406.512
     }
+  },
+  "lastReceiptAscii": {
+    "version": "2.191",
+    "date": "2026-11-14",
+    "baseCommit": "50be76e2d8ad8c6bd3d4b9e311d141acd49c5e11",
+    "branch": "codex/receipt-ascii-release",
+    "worktree": "/private/tmp/muusia-receipt-ascii-20261114",
+    "status": "validated; Pi updated; publication pending",
+    "validation": "Native ASCII patterns/bounds/client-server parity/send flow; 28 Python Print/USB tests; 62 long-roll cases; 184 Help examples; focused lint; catalog/build/37914 Learn checks; real browser preview and native download.",
+    "service": {
+      "host": "print.local",
+      "status": "active, USB ready, queue empty, Clock off",
+      "backup": "/home/print/muusia-print/before-ascii-20261114",
+      "usbTransportPreserved": true,
+      "physicalPrintSent": false
+    }
   }
 }

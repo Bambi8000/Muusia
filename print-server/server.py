@@ -19,6 +19,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 import native_fonts
+from ascii_receipt import escpos_text, program_segments as ascii_segments
 import print_package
 import usb_transport
 from receipt_limits import MAX_HEIGHT, MAX_BODY, MAX_IMPORT, MAX_LENGTH_MM
@@ -316,7 +317,7 @@ def print_worker():
             else:
                 if usb_transport.failure:
                     raise OSError(usb_transport.failure)
-                parts = usb_transport.segments(data)
+                parts = ascii_segments(data) if kind == "ascii" else usb_transport.segments(data)
                 device = os.environ.get("MUUSIA_PRINT_DEVICE", "/dev/usb/lp0")
                 if not stat.S_ISCHR(os.stat(device).st_mode):
                     raise OSError(f"Printer path is not a character device: {device}")
@@ -407,7 +408,7 @@ class Handler(BaseHTTPRequestHandler):
             ready = printer_ready()
             with jobs_lock:
                 queued = sum(j["status"] == "queued" for j in jobs.values())
-            self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device, "error": usb_transport.failure})
+            self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device, "error": usb_transport.failure, "formats": ["image", "text"]})
         elif self.path == "/api/strip-capabilities":
             self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "maxLengthMm": MAX_LENGTH_MM, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left", "printPackageVersion": 1, "trimMarksVersion": 1})
         elif self.path == "/api/clock":
@@ -497,6 +498,27 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(400, {"error": "Clock stop takes no body"})
             else:
                 self._json(200, stop_clock())
+            return
+        if self.path in ("/api/ascii-jobs", "/api/ascii-bin", "/api/ascii-preview"):
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 1 <= length <= MAX_BODY:
+                    raise ValueError("ASCII request is too large or empty")
+                body = json.loads(self.rfile.read(length))
+                if not isinstance(body, dict) or type(body.get("cut", True)) is not bool:
+                    raise ValueError("ASCII request must be an object with a boolean cut")
+                data = escpos_text(body, body.get("cut", True))
+                height = len(body["lines"]) * body["lineSpacing"]
+            except (ValueError, TypeError, json.JSONDecodeError) as exc:
+                self._json(400, {"error": str(exc)})
+                return
+            if self.path == "/api/ascii-bin":
+                self._headers(200, len(data), "application/octet-stream", "receipt-ascii.escpos")
+                self.wfile.write(data)
+            elif self.path == "/api/ascii-preview":
+                self._json(200, {"rows": len(body["lines"]), "height": height, "bytes": len(data), "font": body["font"]})
+            else:
+                self._enqueue("Receipt ASCII", height, None, body.get("cut", True), "ascii", raw=data)
             return
         if self.path in ("/api/native-compose", "/api/native-compose/preview", "/api/native-compose/bin"):
             try:

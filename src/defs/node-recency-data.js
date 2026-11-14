@@ -1210,6 +1210,11 @@ export const NODE_RECENCY = {
     "order": 93,
     "sha256": "05e9186cdfae447ad8e705db4b7f36a12c197d9238269815c2413ec3a626a3a2"
   },
+  "receiptascii": {
+    "date": "2026-11-14",
+    "order": 136,
+    "sha256": "e5758d9ed13cb6fed77d16f98922ed2b3c8549d654be7dd853b61069ffa384ae"
+  },
   "rectcollage": {
     "date": "2026-07-22",
     "order": 1,
