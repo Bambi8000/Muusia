@@ -6748,3 +6748,11 @@ Daniel confirmed the printer had been power-cycled. Service started, USB ready,
 queue empty, Clock off. Existing usb_transport.py and receipt_limits.py hashes
 preserved. Live preview/bin validation creates no job. No physical print requested
 or sent in this release. Exact Pages run/public verification recorded after push.
+
+Release b3a2eccc347e13779355f589aa987ddb530f481f is published. Exact Pages run
+43585758077 passed build/Learn/deploy; public 2.191 matches the tested app bytes
+and the actual public browser shows Receipt ASCII with 106 rows and enabled
+PRINT ASCII RECEIPT / DOWNLOAD ESCPOS. Live Pi bin SHA256 matches the same
+106-row browser/client program (6085 bytes); preview/bin calls created no jobs.
+Service ready in USB mode, queue empty, Clock off. Final clean snapshot refreshed
+at /private/tmp/muusia-receipt-ascii-snapshot-20261114; prepared locally only.

@@ -2,16 +2,15 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.189",
-    "date": "2026-11-13",
-    "commit": "73d7cef153bf61362b6fa233553bf3681b03f048",
-    "pagesRunId": 43411850913,
+    "version": "2.191",
+    "commit": "b3a2eccc347e13779355f589aa987ddb530f481f",
+    "pagesRunId": 43585758077,
+    "publicAppSha256": "946de74647c663f8988f6b284428725ffdbe7eabfe83414819a91343f5e7c137",
+    "matchesTestedBuild": true,
+    "physicalPrintSent": false,
+    "date": "2026-11-14",
     "url": "https://bambi8000.github.io/Muusia/",
-    "tutorials": "https://bambi8000.github.io/Muusia/learn/",
-    "status": "verified public Muusia 2.189; Long Ribbon, Kaisla, one-metre preset and long receipt export",
-    "publicAppSha256": "7543b18bdfe1ccbe27d3551c7e4048d255197f1e667596119f5fa8c33df5011d",
-    "verifiedDeploymentCommit": "73d7cef153bf61362b6fa233553bf3681b03f048",
-    "verifiedDeploymentRunId": 43411850913
+    "status": "verified public Muusia 2.191 and live native ASCII Print support"
   },
   "lastIntegration": {
     "version": "2.189",
@@ -588,7 +587,7 @@
     "baseCommit": "50be76e2d8ad8c6bd3d4b9e311d141acd49c5e11",
     "branch": "codex/receipt-ascii-release",
     "worktree": "/private/tmp/muusia-receipt-ascii-20261114",
-    "status": "validated; Pi updated; publication pending",
+    "status": "published and verified; Pi Print updated and active",
     "validation": "Native ASCII patterns/bounds/client-server parity/send flow; 28 Python Print/USB tests; 62 long-roll cases; 184 Help examples; focused lint; catalog/build/37914 Learn checks; real browser preview and native download.",
     "service": {
       "host": "print.local",
@@ -596,6 +595,39 @@
       "backup": "/home/print/muusia-print/before-ascii-20261114",
       "usbTransportPreserved": true,
       "physicalPrintSent": false
-    }
+    },
+    "commit": "b3a2eccc347e13779355f589aa987ddb530f481f",
+    "pagesRunId": 43585758077,
+    "publicAppSha256": "946de74647c663f8988f6b284428725ffdbe7eabfe83414819a91343f5e7c137",
+    "matchesTestedBuild": true,
+    "physicalPrintSent": false,
+    "liveValidation": {
+      "preview": {
+        "rows": 106,
+        "height": 1908,
+        "bytes": 6085,
+        "font": "B"
+      },
+      "binarySha256": "1605980dfe61ac0e6bbfb9c13c3e8c5e30eb36b225031b92b6e913d285e48c5b",
+      "health": {
+        "ready": true,
+        "queued": 0,
+        "mode": "USB",
+        "device": "/dev/usb/lp0",
+        "error": null,
+        "formats": [
+          "image",
+          "text"
+        ]
+      },
+      "clock": {
+        "running": false,
+        "interval": "second",
+        "lastLine": null,
+        "lastQueuedAt": null,
+        "error": null
+      }
+    },
+    "snapshot": "/private/tmp/muusia-receipt-ascii-snapshot-20261114"
   }
 }
