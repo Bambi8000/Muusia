@@ -910,9 +910,14 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
-    name: "Double Pendulum · Full disc", desc: "Select Double Pendulum with Mode → Full disc. One continuously driven stroke fills the circular area and keeps moving through the upper half. Avoid retracing is on; Line spacing mm keeps it from following older ink, and checked smooth detours can continue the drawing without pen lifts. Crossings are still allowed. Time asks for more drawing; the route can stop early when it becomes too crowded. Use one solid pen and match spacing to the physical nib. A4 wide.",
+    name: "Double Pendulum · Dense full disc", desc: "Full disc with Traces 4 adds four successive driven runs to one uninterrupted line. Time is per run, Perturb deg changes later motion, and all runs share Avoid retracing protection. Compare Traces 1 and 4. A crowded route can end early instead of following old ink; Line spacing mm sets that clearance. One pen, no restarts. A4 wide.",
     canvas: { W: 297, H: 210 },
-    make: defaults => ({ nodes: [{ id: 9001, type: "double_pendulum", x: 30, y: 20, params: { ...defaults("double_pendulum"), motion: "Full disc", time: 60, cy: 50, noRetrace: true, lineGap: .6, fillCentre: true } }], edges: [] }),
+    make: defaults => ({ nodes: [{ id: 9001, type: "double_pendulum", x: 30, y: 20, params: { ...defaults("double_pendulum"), motion: "Full disc", traces: 4, time: 12, cy: 50, noRetrace: true, lineGap: .6, fillCentre: true } }], edges: [] }),
+  },
+  {
+    name: "Double Pendulum · Full disc", desc: "Select Double Pendulum with Mode → Full disc. One continuously driven stroke fills the circular area and keeps moving through the upper half. Raise Traces for more density: each run adds Time to the same continuous motion, with Perturb deg gradually varying later runs. Avoid retracing is on; Line spacing mm keeps it from following older ink, and checked smooth detours can continue the drawing without pen lifts. Crossings are still allowed. Time asks for more drawing; the route can stop early when it becomes too crowded. Use one solid pen and match spacing to the physical nib. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "double_pendulum", x: 30, y: 20, params: { ...defaults("double_pendulum"), motion: "Full disc", traces: 1, time: 60, cy: 50, noRetrace: true, lineGap: .6, fillCentre: true } }], edges: [] }),
   },
   {
     name: "Double Pendulum · Fill centre", desc: "Different arm lengths normally leave a central hole. Full disc → Fill centre remaps that inner radius into the centre. Toggle it to compare. Avoid retracing and Line spacing mm protect against following the same older stroke; the output remains one continuous path. The outer dashed circle is a guide and never plots. A4 wide.",

@@ -7042,3 +7042,40 @@ controls in the served app. No physical plot or printer job sent. Snapshot is
 prepared locally at /private/tmp/muusia-double-pendulum-snapshot-20261117 after
 this final documentation commit. No Claude web upload. Primary checkout remains
 historical and dirty; continue from this release worktree or current origin/main.
+
+
+### 2.198 — Restore Traces density control in Full disc
+
+2026-11-17 · Base 475acf891eab548723668bbaa6b5704c647fed04. Daniel reported
+that Full disc hid the Traces control used to make the drawing denser. Expose
+**Traces** (1–8) and **Perturb deg** in this mode. Each extra run continues the
+same driven state and ink history for another Time interval; after the first
+run the second drive phase drifts gradually by Perturb deg per run. There is no
+jump back to the start, separate stroke, pen change or lifting. Full disc Trace
+and Pen per trace remain hidden. Original Gravity semantics and one-run Full
+disc geometry are retained. The 112,000-point output and 400,000 routing-check
+budgets remain; the integration limit accommodates eight 120-second runs.
+Crowding can cap density before all requested runs finish. The existing
+clearance is never reduced to fit more traces. Solid Style is required for an
+unbroken stroke, as before.
+
+New Help starter **Double Pendulum · Dense full disc** uses Traces 4 and Time
+12 on A4 wide. Existing Full disc starter remains one run. Documentation and
+node metadata describe Time per run and the shared clearance. No shared
+exporter change; App.jsx changes only APP_VERSION. Focused validator now has
+219 checks including 1/2/4/8 runs, visible controls, perturbation, deterministic
+output, bounded maximal requests, density increase, cross-run retracing probes,
+and actual SVG/servo/bed-Z continuity. Node default fixture: 8.90 m for Traces 1
+versus 15.10 m for Traces 4, measured near-parallel retracing rounds to 0.00%.
+Original node validator, all 189 Help examples and focused lint pass.
+Native browser Help load and live Traces 4→1→4: 8.86→4.83→8.86 m, always one
+path. Native SVG has one path; native G-code lowers once, draws all 37,328 moves
+before lifting, and has no mid-stroke travel or bounds warning. No hardware run.
+Evidence: docs/double-pendulum-disc-traces-checks.json. Ordered release gate and
+exact public deployment remain to be recorded on completion. Continue from
+this release worktree/current origin/main, not the historical dirty primary.
+
+2.198 release gate passed in order: catalog/recency, production build and
+37,914 Learn checks. Twelve representative Gravity/one-run Full disc outputs
+match the previous release exactly. All 189 Help examples and both focused
+validators pass. Exact-commit public deployment remains to be verified.

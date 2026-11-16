@@ -1,0 +1,66 @@
+{
+  "version": "2.198",
+  "date": "2026-11-17",
+  "baseCommit": "475acf891eab548723668bbaa6b5704c647fed04",
+  "focusedChecks": 219,
+  "legacyValidator": "all passed",
+  "helpExamples": 189,
+  "densityFixture": {
+    "runtime": "Node",
+    "timePerRun": 25,
+    "lineGapMm": 0.6,
+    "traces1": {
+      "points": 36508,
+      "metresRounded": 8.9
+    },
+    "traces4": {
+      "points": 80017,
+      "metresRounded": 15.1
+    },
+    "nearParallelRepeatPercentRounded": 0.0,
+    "note": "Independent fine spatial probes from existing validator, crossings permitted; finite paper capacity can end runs early."
+  },
+  "actualBrowser": {
+    "source": "Real local app, Help starter, live Traces 4\u21921\u21924 control, native SVG/G-code export controls",
+    "checks": {
+      "version": "2.198",
+      "canvas": {
+        "W": 297,
+        "H": 210
+      },
+      "traces": 4,
+      "timePerRun": 12,
+      "thinStats": "- generic: 1 paths \u00b7 15893 pts \u00b7 4.83 m",
+      "denseStats": "- generic: 1 paths \u00b7 37329 pts \u00b7 8.86 m",
+      "svgPaths": 1,
+      "penDowns": 1,
+      "drawBeforeLift": 37328,
+      "noMidStrokeTravel": true,
+      "outOfBounds": false,
+      "hardwareRun": false
+    }
+  },
+  "files": {
+    "node": {
+      "sha256": "f12a3ade18744e6c39d420be586c4d6f4c503ce9ce0dfe97be1cc2a6a6d9d6cb",
+      "bytes": 8628
+    },
+    "routing": {
+      "sha256": "73f1347ab9e6919201ac1e58a02ddb6a1d20e2f2569d07a05960dade96bc3d48",
+      "bytes": 10402
+    },
+    "validator": {
+      "sha256": "259eab7140df94ffc7a8202f5f7ce56a3c64f6ba0133ad59fc5d54545b2d1049",
+      "bytes": 9856
+    },
+    "nativeSvg": {
+      "sha256": "211907f722d447fb10accfdc82f750895764f04a4053f83b0089b78e4d504812",
+      "bytes": 491925
+    },
+    "nativeGcode": {
+      "sha256": "09d788c36b9c6a35ea9e871cc2d49e1aa806f109c719492adca25b9cf40e0db2",
+      "bytes": 902866
+    }
+  },
+  "legacyParityCases": 12
+}

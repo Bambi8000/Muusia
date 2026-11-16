@@ -881,5 +881,28 @@
     "publicAppSha256": "25fe3179a7b29d8b4e95a836d2370da277c7bf65324d08e1542dbd3fab236f60",
     "matchesTestedBuild": true,
     "url": "https://bambi8000.github.io/Muusia/"
+  },
+  "lastDoublePendulumTraces": {
+    "version": "2.198",
+    "date": "2026-11-17",
+    "baseCommit": "475acf891eab548723668bbaa6b5704c647fed04",
+    "branch": "codex/double-pendulum-disc-traces",
+    "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
+    "status": "validated; exact public deployment pending",
+    "published": false,
+    "behavior": "Expose Traces 1\u20138 and Perturb in Full disc; extra runs extend the same continuous route and shared ink history for a denser result until clearance or budget prevents continuation.",
+    "validation": {
+      "fullDisc": 219,
+      "legacy": "all passed; 12 Gravity/one-run outputs match previous release exactly",
+      "helpExamples": 189,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "actualBrowser": "Traces 1\u21924:4.83\u21928.86m,one path; SVG one path; G-code one lower and37328draw moves before lift, no mid-stroke travel/bounds warning."
+    },
+    "evidence": "docs/double-pendulum-disc-traces-checks.json",
+    "physicalPrintSent": false,
+    "snapshot": "/private/tmp/muusia-double-pendulum-traces-snapshot-20261117 (local only; refresh after final documentation commit)"
   }
 }

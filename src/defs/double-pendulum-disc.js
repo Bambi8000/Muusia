@@ -137,7 +137,11 @@ export function drawFullDisc(p, ctx, step) {
   const l1 = Math.max(1, p.l1), l2 = Math.max(1, p.l2), sum = l1 + l2;
   const gap = Math.max(.2, Math.min(3, p.lineGap ?? .6));
   const spacing = Math.max(.1, Math.min(2, p.detail));
-  const dt = .004, steps = Math.min(60000, Math.round(Math.max(.5, p.time) / dt));
+  const traces = Math.max(1, Math.min(8, Math.round(p.traces ?? 1)));
+  const duration = Math.max(.5, p.time);
+  // Consecutive runs share one moving state and one ink history. Extending the
+  // drive avoids jumping back to each run's start or drawing disconnected copies.
+  const dt = .004, steps = Math.min(240000, Math.round(duration * traces / dt));
   const phase1 = p.a1 * Math.PI / 180, phase2 = p.a2 * Math.PI / 180;
   const omega = 2 * Math.PI * 1.4 * Math.sqrt(Math.max(.05, p.grav) * 80 / sum);
   const ratio = (1 + Math.sqrt(5)) / 2;
@@ -146,7 +150,9 @@ export function drawFullDisc(p, ctx, step) {
     // Incommensurate drive phases distribute petals around the disc.
     // The original coupled RK4 motion supplies a bounded chaotic perturbation.
     const a = phase1 + omega * t + .2 * (Math.sin(state[0]) - Math.sin(phase1));
-    const b = phase2 + ratio * omega * t + .2 * (Math.sin(state[1]) - Math.sin(phase2));
+    const pass = Math.max(0, t / duration - 1);
+    const perturb = traces > 1 ? Math.max(.001, Math.min(2, p.perturb ?? .05)) * Math.PI / 180 * pass : 0;
+    const b = phase2 + ratio * omega * t + perturb + .2 * (Math.sin(state[1]) - Math.sin(phase2));
     let u = l1 * Math.sin(a) + l2 * Math.sin(b), v = l1 * Math.cos(a) + l2 * Math.cos(b);
     const r = Math.hypot(u, v);
     let mapped = r / sum;

@@ -44,7 +44,23 @@ ok(minRadius(hollow, uf) > uf.radius * .3, 'disabling centre fill preserves the 
 for (const over of [{ time: 120 }, { lineGap: .2 }, { lineGap: 3 }, { detail: .3 }, { detail: 2 }, { l1: 80, l2: 80, time: 120, detail: .3 }, { l1: 10, l2: 80 }, { grav: 3, m2: 5 }, { a1: 0, a2: 0, damp: .5 }, { layer: -1 }, { fitCanvas: false }, { noRetrace: false }, { cx: 0, cy: 0 }, { cx: 100, cy: 100 }]) valid(run(over), over);
 for (const context of [{ W: 297, H: 210 }, { W: 841, H: 594 }, { W: 35, H: 45 }]) valid(run({}, context), {}, context);
 for (const over of [{ l1: 60 }, { l2: 25 }, { m2: 3 }, { a1: 80 }, { a2: 70 }, { grav: 2 }, { damp: .2 }, { time: 5 }, { detail: 1.5 }, { cx: 40 }, { cy: 60 }, { lineGap: 1 }, { noRetrace: false }]) ok(hash(base) !== hash(run(over)), 'active control: ' + JSON.stringify(over));
-ok(hash(base) === hash(run({ trace: 'Both', traces: 8, perturb: 2, penEach: true })), 'full disc always one pen-down route regardless of hidden trace controls');
+ok(hash(base) === hash(run({ trace: 'Both', penEach: true })), 'full disc ignores hidden trace and per-pen controls');
+for (const key of ['traces', 'perturb']) {
+  const control = N.params.find(p => p.key === key);
+  ok(!control.showIf || control.showIf({ ...defaults, motion: 'Full disc' }), key + ' visible in Full disc');
+}
+ok(hash(base) === hash(run({ traces: undefined })), 'older full-disc patches default to one run');
+const dense2 = run({ traces: 2 }), dense4 = run({ traces: 4 }), dense8 = run({ traces: 8 });
+valid(dense2, { traces: 2 }); valid(dense4, { traces: 4 }); valid(dense8, { traces: 8 });
+const length = r => pathLength(r.paths[0].pts);
+ok(length(dense2) > length(base) * 1.2, 'two runs produce materially more ink');
+ok(length(dense4) > length(base) * 1.5, 'four runs visibly thicken the default drawing');
+ok(length(dense4) >= length(dense2) && length(dense8) >= length(dense4), 'additional requested runs keep the accepted route until crowding or budget');
+ok(hash(dense4) === hash(run({ traces: 4 })), 'multi-run route is deterministic');
+ok(hash(dense4) !== hash(run({ traces: 4, perturb: 2 })), 'multi-run perturbation changes later motion');
+ok(hash(dense4) === hash(run({ traces: 4, trace: 'Both', penEach: true })), 'many runs retain one pen and one connected path');
+valid(run({ traces: 8, time: 120, l1: 80, l2: 80, detail: .3 }), { traces: 8, time: 120, l1: 80, l2: 80, detail: .3 });
+valid(run({ traces: 8, noRetrace: false, time: 120, detail: .3 }), { traces: 8, noRetrace: false, time: 120, detail: .3 });
 const guides = N.overlay({ ...defaults, motion: 'Full disc' }, ctx);
 ok(guides.filter(g => g.kind === 'circle').length === 1, 'only outer circle guide; no inner arm-circle guide');
 ok(guides.some(g => g.kind === 'circle' && g.r === frame.radius), 'guide uses actual fitted circle');
@@ -73,20 +89,22 @@ function repeatRatio(result, gap) {
 }
 const raw = run({ noRetrace: false }), rawRepeat = repeatRatio(raw, .6), safeRepeat = repeatRatio(base, .6);
 ok(safeRepeat < rawRepeat * .35, 'protection substantially reduces measured near-parallel retracing');
+const denseRepeat = repeatRatio(dense4, .6);
+ok(denseRepeat < .01, 'all additional runs share the prior-ink check');
 const style = { kind: 'style', mode: 'Dashed', dash: 4, gap: 2, vary: 0, seed: 1 };
 ok(hash(run({}, ctx, style)) === hash(applyStyle(base, style)), 'Style contract retained');
 const source = fs.readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8'), ast = parseAst(source, { lang: 'jsx' });
 const fn = name => { const n = ast.body.find(n => n.type === 'FunctionDeclaration' && n.id.name === name); return source.slice(n.start, n.end); };
-const svg = new Function('PENS', fn('toSVG') + ';return toSVG;')(PENS)(base, ctx);
+const svg = new Function('PENS', fn('toSVG') + ';return toSVG;')(PENS)(dense4, ctx);
 ok((svg.match(/<path /g) || []).length === 1, 'actual SVG exporter writes one path');
 const exportGcode = new Function('PENS', 'pathLength', 'needleExportError', 'APP_VERSION', fn('toGcode') + ';return toGcode;')(PENS, pathLength, needleExportError, 'test');
 for (const profile of [DEFAULT_MACHINE, DEFAULT_MACHINE_B]) {
-  const code = exportGcode(base, ctx, { ...profile, workW: 400, workH: 400 }), lines = code.split('\n');
+  const code = exportGcode(dense4, ctx, { ...profile, workW: 400, workH: 400 }), lines = code.split('\n');
   const down = profile.zMode === 'servo' ? l => l.includes(`ANGLE=${profile.servoDown} ; pen down`) : l => l === `G1 Z${profile.penDown} F${profile.zFeed}`;
   ok(lines.filter(down).length === 1, profile.zMode + ': lowers once');
   const tail = lines.slice(lines.findIndex(down) + 1), lift = tail.findIndex(l => profile.zMode === 'servo' ? l.startsWith('SET_SERVO') : /^G1 Z/.test(l));
-  ok(tail.slice(0, lift).filter(l => /^G1 X/.test(l)).length === points.length - 1, profile.zMode + ': every segment is drawn before any lift');
+  ok(tail.slice(0, lift).filter(l => /^G1 X/.test(l)).length === dense4.paths[0].pts.length - 1, profile.zMode + ': every segment is drawn before any lift');
   ok(!tail.slice(0, lift).some(l => /^G0|^M0|^SET_SERVO|^G1 Z/.test(l)), profile.zMode + ': no travel, pauses or lifts inside drawing');
   ok(!code.includes('OUT OF BOUNDS'), profile.zMode + ': fitted page matches illustrative test work area');
 }
-console.log(`${checks} Full disc checks passed; ${points.length} points; measured near-retrace ${(rawRepeat * 100).toFixed(2)}% → ${(safeRepeat * 100).toFixed(2)}%; ${Math.round(performance.now() - start)} ms`);
+console.log(`${checks} Full disc checks passed; ${points.length} points; measured near-retrace ${(rawRepeat * 100).toFixed(2)}% → ${(safeRepeat * 100).toFixed(2)}%; dense four-run ${dense4.paths[0].pts.length} points / ${(length(dense4) / 1000).toFixed(2)} m / repeat ${(denseRepeat * 100).toFixed(2)}%; ${Math.round(performance.now() - start)} ms`);

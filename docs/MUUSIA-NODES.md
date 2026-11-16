@@ -2230,12 +2230,16 @@ sets clearance from older near-parallel ink, including reverse-direction passes.
 Short, checked smooth detours can rejoin later free motion without lifting or
 teleporting; every connector is tested against prior ink. The bounded search
 ends the one open path if it cannot continue, so Time is an upper limit in this
-mode. Crossings at other angles are allowed; this does not guarantee paper wear
-is impossible with any physical pen/pressure/paper. Traces and Trace controls
-are hidden in Full disc, which uses one pen and one path before Style. Dashed
-Styles or cutting modifiers can split it. Fit canvas fits the whole circular
+mode. **Traces** (1–8) adds successive runs to the same continuous drive, with
+**Time** per run and **Perturb deg** gradually changing the second arm phase
+after the first run. More runs add density until the clearance, search or point
+budget limits it. All runs share one ink history; they never restart on top of
+the first stroke. Crossings at other angles are allowed; this does not guarantee
+paper wear is impossible with any physical pen/pressure/paper. Trace and Pen per
+trace controls are hidden in Full disc, which uses one pen and one path before
+Style. Dashed Styles or cutting modifiers can split it. Fit canvas fits the whole circular
 guide first, preserving the clearance in final millimetres. Help includes
-**Double Pendulum · Full disc** and **Double Pendulum · Fill centre**.
+**Double Pendulum · Full disc**, **Fill centre** and **Dense full disc**.
 
 **Gyroid** — the triply periodic minimal surface sliced into stacked contour
 rings with the Retro Mesh camera (Perspective, Rot X/Y, fit). Cells sets the
