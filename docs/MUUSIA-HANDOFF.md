@@ -6778,3 +6778,10 @@ download. Pi update backed up server.py/ascii_receipt.py to
 /home/print/muusia-print/before-ascii-size-20261116; no physical print sent.
 The service was idle with Clock off; printer device was not connected during
 preflight. Live binary/preview and exact Pages publication recorded after push.
+
+Release 020bf4d6bab44f841550cbe6c2b14012f603c6a8 published as 2.192; exact
+Pages run43841313575 passed. Public app bytes equal the tested build; actual
+public browser confirms Character size ×. Live Pi preview/bin for 3× matches
+the actual browser download (36 rows,871 bytes,GS !34). Pi USB ready,queue empty,
+Clock off,asciiSizeVersion1. No physical print. Final clean snapshot refreshed
+at /private/tmp/muusia-ascii-size-snapshot-20261116; local only.

@@ -2,15 +2,15 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.191",
-    "commit": "b3a2eccc347e13779355f589aa987ddb530f481f",
-    "pagesRunId": 43585758077,
-    "publicAppSha256": "946de74647c663f8988f6b284428725ffdbe7eabfe83414819a91343f5e7c137",
+    "version": "2.192",
+    "commit": "020bf4d6bab44f841550cbe6c2b14012f603c6a8",
+    "pagesRunId": 43841313575,
+    "publicAppSha256": "0e9adbbe71437dbf7b6ecdea5c4d3777e849fd31b8c376e87be1c9da60546712",
     "matchesTestedBuild": true,
-    "physicalPrintSent": false,
-    "date": "2026-11-14",
+    "date": "2026-11-16",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public Muusia 2.191 and live native ASCII Print support"
+    "status": "verified public Muusia 2.192; Receipt ASCII 1–8× size and live Print support",
+    "physicalPrintSent": false
   },
   "lastIntegration": {
     "version": "2.189",
@@ -634,9 +634,42 @@
     "version": "2.192",
     "date": "2026-11-16",
     "baseCommit": "993b54d8e4e7ed96c20e7cfd3e81ce68ca37a82e",
-    "status": "validated; publication pending",
+    "status": "published and verified; live Print updated",
     "validation": "Both ROM fonts at all 1–8× sizes; native byte parity; 1× exact old program; missing-size legacy defaults; width/row bounds; old-server rejection; actual browser 3× control/18 columns/36 rows and exact ESC/POS download; 29 Python Print tests; 184 Help graphs; lint/catalog/build/37914 Learn checks.",
     "serviceBackup": "/home/print/muusia-print/before-ascii-size-20261116",
-    "physicalPrintSent": false
+    "physicalPrintSent": false,
+    "commit": "020bf4d6bab44f841550cbe6c2b14012f603c6a8",
+    "pagesRunId": 43841313575,
+    "publicAppSha256": "0e9adbbe71437dbf7b6ecdea5c4d3777e849fd31b8c376e87be1c9da60546712",
+    "matchesTestedBuild": true,
+    "liveValidation": {
+      "preview": {
+        "rows": 36,
+        "height": 1872,
+        "bytes": 871,
+        "font": "B"
+      },
+      "binarySha256": "bf4f59883477f93c888ff104632b29d2265b0359a5340a829380339811251fa4",
+      "health": {
+        "ready": true,
+        "queued": 0,
+        "mode": "USB",
+        "device": "/dev/usb/lp0",
+        "error": null,
+        "formats": [
+          "image",
+          "text"
+        ],
+        "asciiSizeVersion": 1
+      },
+      "clock": {
+        "running": false,
+        "interval": "second",
+        "lastLine": null,
+        "lastQueuedAt": null,
+        "error": null
+      }
+    },
+    "snapshot": "/private/tmp/muusia-ascii-size-snapshot-20261116"
   }
 }
