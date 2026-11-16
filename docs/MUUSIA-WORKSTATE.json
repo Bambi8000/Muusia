@@ -724,5 +724,47 @@
       "downloadEscposEnabled": true
     },
     "snapshot": "/private/tmp/muusia-ascii-merge-snapshot-20261116 (refresh after documentation commit; local only)"
+  },
+  "lastReceiptAsciiBaseline": {
+    "version": "2.194",
+    "date": "2026-11-16",
+    "baseCommit": "dbf964c0991c98dccf0b95d64999f3c54ef24c0c",
+    "status": "validated and live Print updated; Pages publication pending",
+    "physicalEvidence": "User IMG_3556.jpeg: individual ASCII nodes good, Merge has clipped glyph tops and missing small layer. 2.193 paper behavior was not verified by previous byte-parity tests.",
+    "fix": "Stable full-page ESC W; explicit ESC $ x and GS $ scaled ROM baseline for every row (A21/B16). Print capability asciiOverlayVersion2.",
+    "validation": "31 Python Print/USB tests including Page-mode bounds for A/B at1–8x; 148 user rows checked at baseline-derived positions; JS/Python/actual-browser byte parity; old-server rejection; lint;catalog/build/37914 Learn checks.",
+    "physicalPrintSent": false,
+    "serviceBackup": "/home/print/muusia-print/before-ascii-baseline-20261116",
+    "live": {
+      "preview": {
+        "rows": 148,
+        "layers": 2,
+        "height": 1764,
+        "bytes": 8199,
+        "font": "B"
+      },
+      "binarySha256": "c84123eb92c1a044f2c32f7c6418c8194841e5efd93f6f159260feb40198c960",
+      "health": {
+        "ready": true,
+        "queued": 0,
+        "mode": "USB",
+        "device": "/dev/usb/lp0",
+        "error": null,
+        "formats": [
+          "image",
+          "text"
+        ],
+        "asciiSizeVersion": 1,
+        "asciiOverlayVersion": 2
+      },
+      "clock": {
+        "running": false,
+        "interval": "second",
+        "lastLine": null,
+        "lastQueuedAt": null,
+        "error": null
+      },
+      "physicalPrintSent": false
+    }
   }
 }

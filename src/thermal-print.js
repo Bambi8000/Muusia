@@ -105,7 +105,7 @@ export async function sendReceipt(serverUrl, receipt, cut = true) {
     const info = await health.json().catch(() => ({}));
     if (!health.ok) throw new Error(info.error || `Print server returned ${health.status}.`);
     if (!info.formats?.includes("text")) throw new Error("Update the Muusia print server for native ASCII receipts.");
-    if (receipt.layers && !(info.asciiOverlayVersion >= 1)) throw new Error("Update the Muusia print server for overlapping ASCII layers.");
+    if (receipt.layers && !(info.asciiOverlayVersion >= 2)) throw new Error("Update the Muusia print server for unclipped overlapping ASCII layers.");
     if (receipt.size > 1 && !(info.asciiSizeVersion >= 1)) throw new Error("Update the Muusia print server for ASCII character sizes.");
   }
   const response = await fetch(`${base}${receipt.kind === "text" ? "/api/ascii-jobs" : "/api/jobs"}`, {

@@ -108,3 +108,70 @@ class AsciiTests(unittest.TestCase):
         c = {**self.body, "size": 3, "lineSpacing": 52, "lines": ["1"] * 100}
         with self.assertRaisesRegex(ValueError, "shared row gap"):
             ascii_receipt.escpos_text({"layers": [b, c]})
+
+    def test_overlay_text_baselines_and_full_glyph_bounds(self):
+        # Epson TM-T88V ROM baselines: A=21, B=16. Interpret the emitted
+        # cursor commands rather than assuming ESC W's origin is glyph top.
+        # https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/esc_cm.html
+        for size in range(1, 9):
+            spacing = 24 * size + 1
+            layers = [{"font": font, "size": size, "lineSpacing": spacing,
+                       "left": 12, "lines": ["01 0"] * 25} for font in ("A", "B")]
+            data = ascii_receipt.escpos_text({"layers": layers})
+            pos, page_top, page_height = 37, 0, 0
+            font, scale, x, baseline = None, None, None, None
+            actual = []
+            while pos < len(data):
+                command = data[pos:pos + 2]
+                number = lambda offset: int.from_bytes(data[pos + offset:pos + offset + 2], "little")
+                if command == b"\x1bL":
+                    page_height = 0
+                    pos += 2
+                elif command == b"\x1bT":
+                    self.assertEqual(data[pos + 2], 0)
+                    pos += 3
+                elif command == b"\x1bW":
+                    self.assertEqual(page_height, 0, "ESC W must not reset each text row")
+                    self.assertEqual((number(2), number(4), number(6)), (0, 0, 512))
+                    page_height = number(8)
+                    x = baseline = None
+                    pos += 10
+                elif command == b"\x1bM":
+                    font = "B" if data[pos + 2] else "A"
+                    pos += 3
+                elif command == b"\x1d!":
+                    scale = (data[pos + 2] & 7) + 1
+                    pos += 3
+                elif command == b"\x1b$":
+                    x = number(2)
+                    pos += 4
+                elif command == b"\x1d$":
+                    baseline = number(2)
+                    pos += 4
+                elif data[pos] == 12:
+                    page_top += page_height
+                    pos += 1
+                elif command in (b"\x1dV", b"\x1b@"):
+                    break
+                else:
+                    end = pos
+                    while end < len(data) and 32 <= data[end] <= 126:
+                        end += 1
+                    self.assertGreater(end, pos)
+                    self.assertIsNotNone(x, "every row needs its own x")
+                    self.assertIsNotNone(baseline, "every row needs its own baseline")
+                    width, height, offset = (12, 24, 21) if font == "A" else (9, 17, 16)
+                    top = baseline - offset * scale
+                    self.assertGreaterEqual(top, 0, "glyph top must not be clipped")
+                    self.assertLessEqual(top + height * scale, page_height, "glyph bottom must not be clipped")
+                    self.assertLessEqual(x + (end - pos) * width * scale, 512)
+                    actual.append((font, scale, x, page_top + top, data[pos:end].decode("ascii")))
+                    x = baseline = None
+                    pos = end
+            expected = [(layer["font"], size, 12, row * spacing, text)
+                        for layer in layers for row, text in enumerate(layer["lines"])]
+            self.assertEqual(sorted(actual), sorted(expected))
+            self.assertEqual(page_top, 25 * spacing)
+            parts = ascii_receipt.program_segments(data)
+            self.assertEqual(b"".join(part for part, _ in parts), data)
+            self.assertEqual(sum(rows for _, rows in parts), page_top)

@@ -1336,7 +1336,7 @@ are real pen strokes, so the result plots like any other geometry — and loop
 letters (O 0 D Q 8 Ö, dots) come out as real closed shapes, so Pattern Fill,
 Container and the other region nodes see them.
 
-**Receipt ASCII** — Merge overlays multiple outputs at their original positions, preserving different fonts and sizes. Native printing uses bounded Page mode areas rather than concatenating strips; up to 32 flattened layers. A long composition must have a shared glyph-free row boundary within 1024 dots, otherwise native export asks for a larger Row gap or shorter canvas before any print is queued.  native ESC/POS character art for 80 mm receipt paper,
+**Receipt ASCII** — Merge overlays multiple outputs at their original positions, preserving different fonts and sizes. Native printing uses one stable area per bounded Page mode page, with explicit horizontal positions and font-scaled baselines (TM-T88V A:21/B:16 dots), rather than concatenating strips; up to 32 flattened layers. Requires Print asciiOverlayVersion 2 to avoid the clipped native overlay in 2.193. A long composition must have a shared glyph-free row boundary within 1024 dots, otherwise native export asks for a larger Row gap or shorter canvas before any print is queued.  native ESC/POS character art for 80 mm receipt paper,
 inspired by an accidental error print. Error weave makes small drifting groups
 and diagonal waves; Waves, Stream and Noise offer alternate rhythms. Characters
 accepts printable ASCII (spaces remain gaps); control codes and non-ASCII are

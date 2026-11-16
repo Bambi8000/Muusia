@@ -1,4 +1,4 @@
-# MUUSIA v2.193
+# MUUSIA v2.194
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes

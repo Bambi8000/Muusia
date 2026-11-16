@@ -408,7 +408,7 @@ class Handler(BaseHTTPRequestHandler):
             ready = printer_ready()
             with jobs_lock:
                 queued = sum(j["status"] == "queued" for j in jobs.values())
-            self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device, "error": usb_transport.failure, "formats": ["image", "text"], "asciiSizeVersion": 1, "asciiOverlayVersion": 1})
+            self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device, "error": usb_transport.failure, "formats": ["image", "text"], "asciiSizeVersion": 1, "asciiOverlayVersion": 2})
         elif self.path == "/api/strip-capabilities":
             self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "maxLengthMm": MAX_LENGTH_MM, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left", "printPackageVersion": 1, "trimMarksVersion": 1})
         elif self.path == "/api/clock":

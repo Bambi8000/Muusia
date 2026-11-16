@@ -1,6 +1,6 @@
 import { RECEIPT_MAX_HEIGHT_DOTS } from "./receipt-format.js";
 
-export const RECEIPT_FONTS = Object.freeze({ A: { width: 12, height: 24, columns: 42 }, B: { width: 9, height: 17, columns: 56 } });
+export const RECEIPT_FONTS = Object.freeze({ A: { width: 12, height: 24, baseline: 21, columns: 42 }, B: { width: 9, height: 17, baseline: 16, columns: 56 } });
 export const ASCII_PAGE_ROWS = 1024;
 export const asciiLayers = value => value?.layers || (value ? [value] : []);
 export const asciiHeight = value => Math.max(0, ...asciiLayers(value).map(layer => layer.lines.length * layer.lineSpacing));
@@ -74,16 +74,19 @@ function encodeAsciiOverlay(receipt, cut) {
     out.push(27, 76, 27, 84, 0);
     area(0, 0, 512, end - start);
     for (const layer of receipt.layers) {
-      const glyphHeight = RECEIPT_FONTS[layer.font].height * layer.size;
+      const baseline = RECEIPT_FONTS[layer.font].baseline * layer.size;
       out.push(27, 77, layer.font === "B" ? 1 : 0, 29, 33, (layer.size - 1) * 17);
       for (let row = Math.ceil(start / layer.lineSpacing); row < layer.lines.length && row * layer.lineSpacing < end; row++) {
         const line = layer.lines[row];
         if (!line.trim()) continue;
-        area(layer.left, row * layer.lineSpacing - start, 512 - layer.left, glyphHeight);
+        // Page-mode text is positioned at its baseline, not the glyph's top.
+        // Keep the page area stable: row-sized areas clip enlarged glyphs and
+        // inherit a cursor baseline that does not follow ESC M / GS ! changes.
+        const y = row * layer.lineSpacing - start + baseline;
+        out.push(27, 36, layer.left & 255, layer.left >> 8, 29, 36, y & 255, y >> 8);
         for (let i = 0; i < line.length; i++) out.push(line.charCodeAt(i));
       }
     }
-    area(0, 0, 512, end - start);
     out.push(12); // FF prints the combined page and returns to Standard mode.
   }
   if (cut) out.push(29, 86, 65, 32);

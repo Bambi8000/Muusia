@@ -96,7 +96,7 @@ def overlay_program(body, cut=True):
         area(0, 0, WIDTH, end - start)
         for layer in layers:
             size = layer.get("size", 1)
-            glyph_height = (24 if layer["font"] == "A" else 17) * size
+            baseline = (21 if layer["font"] == "A" else 16) * size
             out.extend((27, 77, int(layer["font"] == "B"), 29, 33, (size - 1) * 17))
             first = (start + layer["lineSpacing"] - 1) // layer["lineSpacing"]
             for row in range(first, len(layer["lines"])):
@@ -105,9 +105,12 @@ def overlay_program(body, cut=True):
                     break
                 line = layer["lines"][row]
                 if line.strip():
-                    area(layer["left"], y - start, WIDTH - layer["left"], glyph_height)
+                    # GS $ addresses the font-scaled baseline. ESC W stays at
+                    # the full page so no row area clips an enlarged glyph.
+                    baseline_y = y - start + baseline
+                    left = layer["left"]
+                    out.extend((27, 36, left & 255, left >> 8, 29, 36, baseline_y & 255, baseline_y >> 8))
                     out.extend(line.encode("ascii"))
-        area(0, 0, WIDTH, end - start)
         out.append(12)
     if cut:
         out.extend(b"\x1dVA\x20")
@@ -129,6 +132,8 @@ def overlay_segments(data):
             position += 10
         elif command in (b"\x1bM", b"\x1bT", b"\x1d!"):
             position += 3
+        elif command in (b"\x1b$", b"\x1d$"):
+            position += 4
         elif data[position] == 12:
             position += 1
             parts.append((data[start:position], height))

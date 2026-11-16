@@ -6833,3 +6833,32 @@ overlays both sizes;148textrows and enabled PRINT ASCII RECEIPT/DOWNLOAD ESCPOS.
 Final clean snapshot refreshed at /private/tmp/muusia-ascii-merge-snapshot-20261116;
 prepared locally only. Continue from /private/tmp/muusia-receipt-ascii-20261114
 or current origin/main; primary checkout remains historical and dirty.
+
+
+### 2.194 — Fix clipped native ASCII Merge printing
+
+Daniel supplied a physical three-strip comparison (IMG_3556.jpeg): both individual
+ASCII nodes print correctly; the2.193 Merge shows U-shaped truncated zeros and
+loses the small text layer. Previous byte parity and preview validation did not
+verify Page-mode baseline semantics. Do not cite2.193 as paper-verified.
+
+Use one full ESC W area per bounded page, then ESC $ for each row's x and GS $
+for its baseline. TM-T88V ROM A baseline21/B16 scales with GS ! size; the original
+row origin remains the glyph top. The old row-sized ESC W reset the cursor and
+clipped enlarged glyphs. Text stays native; pagination/one final cut and standard
+single-node bytes stay unchanged. USB segmentation skips both four-byte cursor
+commands including numeric FF/LF bytes. asciiOverlayVersion2 is required before
+an overlay job can be sent; version1 rejects before POST.
+
+Primary reference: https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/esc_cm.html
+and https://files.support.epson.com/pdf/pos/bulk/epos-device_xml_um_en_revy.pdf
+(TM-T88V baseline table; Page mode position is the baseline, double-height42+).
+
+Validation: regression fails on old per-row-area program;31 Python tests pass,
+including fontA/B × sizes1–8, full glyph bounds, page transitions, cursor operand
+bytes and exact reconstruction. Original graph148rows at exact baseline-derived
+positions; nested Merge/legacy behavior, no old-server jobs; JS/Python and actual
+local-browser ESC/POS download equal. Lint and ordered catalog/build/37914 Learn
+checks pass. Native overlay encoder only; no geometry/export recapture needed.
+Service backup/publication/browser verification recorded below after deployment.
+No physical print or cut sent; final paper confirmation still belongs to Daniel.
