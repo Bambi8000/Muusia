@@ -6974,3 +6974,15 @@ and ordered catalog / production build / 37,914 Learn checks. Browser recapture
 proof is complete. Public deployment remains to be verified for the exact commit.
 The primary checkout is still historical and dirty; continue from this worktree
 or current origin/main. No Claude web upload or physical print was requested.
+
+
+Improved String art published as 2.196, implementation commit
+38bc0a60e1feac98776a7df8eeb35a72a194b17c. Exact Pages run 43962254420 passed
+build, 37,914 Learn checks and deployment. Public root HTML is byte-identical
+to the tested production build: SHA256
+5ed46216a1bf79f57b59fbab542faa8ba6f67cc4930acc9b924acc65abd4dba9.
+Verified public version, String art and Thread width mm control. No physical
+plot or printer job sent. Snapshot prepared locally at
+/private/tmp/muusia-string-art-quality-snapshot-20261116; refresh after this final
+documentation commit. No Claude web upload. Primary checkout remains historical
+and dirty; continue from this release worktree or current origin/main.
