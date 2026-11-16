@@ -910,6 +910,16 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Receipt ASCII · Merge two sizes",
+    desc: "Two native ASCII fields overlap through Merge, preserving 1× and 2× characters and their original row spacing. Select Merge, then DOWNLOAD ESCPOS or PRINT ASCII RECEIPT. The output is one overlaid receipt, not two consecutive strips. Requires the updated Print server. Try Density and Seed on either input.",
+    canvas: { W: 72, H: 250 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "receiptascii", x: 30, y: 20, params: { ...defaults("receiptascii"), cols: 56, density: 0.19 } },
+      { id: 9002, type: "receiptascii", x: 350, y: 20, params: { ...defaults("receiptascii"), size: 2 } },
+      { id: 9003, type: "merge", x: 690, y: 20, params: { ...defaults("merge") } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9003, toPort: 0 }, { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: 1 }] }),
+  },
+  {
     name: "Receipt ASCII · Beautiful error",
     desc: "Small ASCII groups drift into diagonal waves, inspired by an accidental error print. Select Receipt ASCII, then use PRINT ASCII RECEIPT or DOWNLOAD ESCPOS. Density, Drift per row, Wave and Corruption shape the rhythm. The printer uses its own font. The 80 × 300 canvas makes a short first study; choose Receipt 80 mm × 1 m for a long roll. Requires the updated Muusia print server; path modifiers and plotter exports do not apply.",
     canvas: { W: 80, H: 300 },

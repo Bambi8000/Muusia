@@ -6785,3 +6785,38 @@ public browser confirms Character size ×. Live Pi preview/bin for 3× matches
 the actual browser download (36 rows,871 bytes,GS !34). Pi USB ready,queue empty,
 Clock off,asciiSizeVersion1. No physical print. Final clean snapshot refreshed
 at /private/tmp/muusia-ascii-size-snapshot-20261116; local only.
+
+
+### 2.193 — Merge native ASCII layers as an overlay
+
+Daniel reported two Receipt ASCII nodes feeding Merge produced empty output.
+Actual Chrome graph saved to Downloads/patch.muusia (6).json; contains 1×
+Font B (56 columns,density.19) and 2× Font B on72×250mm, wired to Merge102.
+Daniel explicitly chose overlapping fields, not consecutive strips.
+Merge now preserves/flat-flattens up to32 native text layers, retaining each
+font,size,left edge and row spacing. Preview draws both in the same coordinates.
+Length is the maximum layer height. Nested Merge works; thermalText metadata
+is retained too. Pure geometry outputs are unchanged byte-for-byte. Mixed vector
+or Thermal Text with ASCII is explicitly refused by the native-only print route
+rather than silently dropping a sibling.
+
+Native output uses Epson Page mode, separate row areas and FF per bounded
+1024-dot page. A page ends only where no nonblank glyph crosses the edge; an
+unsupported long combination requests a shared Row gap or shorter canvas before
+sending bytes. No raster substitute, no per-layer sequential strips. Existing
+single-node standard-mode bytes remain identical. Overlay USB acknowledgements
+occur after FF returns to Standard mode; window4 applies to overlays only,
+while prior raster/standard text retains the default16-band window. One final
+cutter command. Updated service advertises asciiOverlayVersion1.
+
+Validation: exact original row positions/sizes in the compiled user graph,
+nested Merge, old vector/pen rules, JS/Python/browser byte parity;30 Python
+Print/USB tests;185 Help graphs;focused lint and ordered catalog/build/37914
+Learn checks. Actual browser recaptured affected Merge outputs: physical-plot,
+per-pen SVG-workflow ZIP, colour-drift,curve-interference and two Region combined
+SVGs,all byte-identical;sliding-moire and composite SVG×36 ZIPs (72frames)
+exactly match current evaluator/exporter. Fresh source provenance recorded
+only after those real exports; historical PNG and independent outputs kept.
+Pi backup before-ascii-overlay-20261116 includes server,ASCII encoder and USB
+helper. Service update/Pages exact commit and live no-print check recorded below.
+No physical test or cut requested/sent during this task.

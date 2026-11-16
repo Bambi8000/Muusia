@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "2.192",
-  "sourceCommit": "993b54d8e4e7ed96c20e7cfd3e81ce68ca37a82e",
+  "version": "2.193",
+  "sourceCommit": "3d2d50a6eaa2994fa2ca06c1123440d70e93b27f",
   "canvas": {
     "W": 297,
     "H": 210
@@ -110,7 +110,7 @@
       },
       {
         "path": "src/defs/nodes/merge.js",
-        "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
+        "sha256": "f205fbadb058509dbb4fcf68d475fda08c697e1173ae9d134d79d8e0b9e2cb6a"
       },
       {
         "path": "src/defs/nodes/arvo.js",

@@ -1,0 +1,81 @@
+{
+  "app": "muusia",
+  "v": 1,
+  "name": "Receipt ASCII — two sizes overlaid",
+  "canvas": {
+    "W": 72,
+    "H": 250
+  },
+  "root": {
+    "nodes": [
+      {
+        "id": 101,
+        "type": "receiptascii",
+        "x": 24,
+        "y": 24,
+        "params": {
+          "pattern": "Error weave",
+          "characters": "01':;|",
+          "font": "B",
+          "size": 1,
+          "cols": 56,
+          "density": 0.19,
+          "repeat": 10.5,
+          "drift": 0.65,
+          "wave": 3,
+          "period": 42,
+          "corruption": 0.08,
+          "gap": 1,
+          "seed": 3542
+        }
+      },
+      {
+        "id": 102,
+        "type": "merge",
+        "x": 673,
+        "y": 40,
+        "params": {
+          "count": 2,
+          "penPer": false
+        }
+      },
+      {
+        "id": 104,
+        "type": "receiptascii",
+        "x": 318,
+        "y": 124,
+        "params": {
+          "pattern": "Error weave",
+          "characters": "01':;|",
+          "font": "B",
+          "size": 2,
+          "cols": 52,
+          "density": 0.36,
+          "repeat": 10.5,
+          "drift": 0.65,
+          "wave": 3,
+          "period": 42,
+          "corruption": 0.08,
+          "gap": 1,
+          "seed": 3542
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e103",
+        "from": 101,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 0
+      },
+      {
+        "id": "e105",
+        "from": 104,
+        "fromPort": 0,
+        "to": 102,
+        "toPort": 1
+      }
+    ]
+  }
+}

@@ -671,5 +671,15 @@
       }
     },
     "snapshot": "/private/tmp/muusia-ascii-size-snapshot-20261116"
+  },
+  "lastReceiptAsciiMerge": {
+    "version": "2.193",
+    "date": "2026-11-16",
+    "baseCommit": "3d2d50a6eaa2994fa2ca06c1123440d70e93b27f",
+    "status": "validated; publication pending",
+    "userPatchBackup": "/Users/daniel/Downloads/patch.muusia (6).json",
+    "validation": "Actual user graph at 72x250 mm: 148 original rows/2 font sizes overlap across 3 native pages; browser download equals Python/JS programs; nested Merge and legacy vector behavior;30 Python tests;185 Help graphs;focused lint;actual byte-identical 5 static SVGs/per-pen ZIP;72 actual animation frames match evaluation;catalog/build/37914 Learn checks.",
+    "serviceBackup": "/home/print/muusia-print/before-ascii-overlay-20261116",
+    "physicalPrintSent": false
   }
 }

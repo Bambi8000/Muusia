@@ -289,3 +289,21 @@ Oletus 1× säilyttää aiemman tulosteen tavut; vanhat projektit ja pyynnöt il
 `asciiSizeVersion: 1`; suurennettu tulostus pyytää päivittämään vanhan palvelimen.
 Tekstin siirtopalat rajataan myös paperinsyötön mukaan enintään 288 pisteeseen.
 Koko on tulostimen oma [GS ! -suurennus](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/gs_exclamation.html).
+
+### Receipt ASCII päällekkäin Mergellä (2.193)
+
+**Merge** säilyttää ASCII-lähteet erillisinä päällekkäisinä kerroksina.
+Molempien merkkikoko, fontti, sarakkeet ja rivien paikat säilyvät. Pituus on
+pisimmän kerroksen pituus, ei kerrosten summa. Myös sisäkkäiset Merget toimivat
+(enintään 32 kerrosta). Help → Receipt ASCII · Merge two sizes vastaa käyttäjän
+72 × 250 mm:n kahden erikokoisen ASCII-noden kytkentää.
+
+Native-tulostus käyttää Epsonin [Page modea](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/esc_cl.html):
+kunkin rivin tulostusalue asetetaan sen omalle X/Y-paikalle, ja FF tulostaa
+yhdistetyn alueen. Enintään 1024 pisteen sivut rajataan vain kohdasta, jossa
+yksikään ei-tyhjä merkki ei katkea. Jos pitkästä yhdistelmästä ei löydy yhteistä
+rajaa, vienti pyytää lisäämään Row gap -arvoa tai lyhentämään kangasta; mitään
+ei rajata hiljaa pois eikä tulostusta jonoteta ennen validointia. Leikkaus kerran
+lopussa. Palvelin ilmoittaa `asciiOverlayVersion: 1`. Bittikuvia ei lähetetä
+ASCII:n tilalla. Viivojen tai Thermal Textin sekoittaminen ASCII-kerroksiin
+näyttää esikatselun mutta pyytää tulostamaan ne erikseen, jotta kumpikaan ei katoa.

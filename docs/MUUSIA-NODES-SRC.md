@@ -29360,12 +29360,16 @@ export default {
     ],
     compute(ins, p) {
       const paths = [];
+      const receiptLayers = [], thermalText = [];
       for (let i = 0; i < Math.round(p.count); i++) {
         const src = ins[i] || EMPTY;
         if (!src.paths) continue;
         for (const path of src.paths) paths.push(p.penPer ? { ...path, layer: i % PENS.length } : path);
+        if (src.receiptText) receiptLayers.push(...(src.receiptText.layers || [src.receiptText]));
+        if (Array.isArray(src.thermalText)) thermalText.push(...src.thermalText);
       }
-      return { paths };
+      return { paths, ...(receiptLayers.length ? { receiptText: receiptLayers.length === 1 ? receiptLayers[0] : { layers: receiptLayers } } : {}),
+        ...(thermalText.length ? { thermalText } : {}) };
     },
   
 };

@@ -1,11 +1,11 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.177",
-  "date": "2026-11-12",
+  "appVersion": "2.193",
+  "date": "2026-11-16",
   "patch": "examples/tutorial-svg-workflow.muusia.json",
   "patchSha256": "6707d0f11b0c68f4b7d8ea611f8585238cf44076b5528c6315af8d711ef97ed5",
   "bundle": "examples/svg-workflow-per-pen.zip",
-  "originalDownload": "Export a two-colour SVG set-sheets-svg (9).zip",
+  "originalDownload": "Export a two-colour SVG set-sheets-svg (10).zip",
   "sha256": "f0ce3fe36c406929766f68e644cdf3c4866602be463e5276172b001a500eca42",
   "selectedNode": "Merge",
   "settings": {
@@ -104,12 +104,12 @@
     {
       "path": "src/defs/nodes/merge.js",
       "selector": "file",
-      "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
+      "sha256": "f205fbadb058509dbb4fcf68d475fda08c697e1173ae9d134d79d8e0b9e2cb6a"
     }
   ],
   "sourceCommit": "6e46d6e",
   "sourceProvenanceVersion": 2,
   "captureMethod": "Actual Muusia 2.177 local browser Load, select Merge, Optimize route off, Preserve direction on, Mega Canvas off. Physical SVG download and Stack Pens ZIP download, Red hidden, margin 0, Mirror/Numbers/Drill off. SVG bytes unchanged. Existing PNGs and historical G-code evidence unchanged; no hardware.",
   "sourceWorkingTree": "codex/needle-profile-3mm; sourceFiles identify captured source",
-  "recaptureNote": "2026-11-12: browser recapture for opt-in 3 mm needle profile, lift 5 mm."
+  "recaptureNote": "Actual local Muusia UI export after Merge adds receipt metadata. Original vector artifact bytes and geometry are identical. Existing PNG captures remain historical."
 }

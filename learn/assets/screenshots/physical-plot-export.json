@@ -1,7 +1,7 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.177",
-  "date": "2026-11-12",
+  "appVersion": "2.193",
+  "date": "2026-11-16",
   "patch": "examples/tutorial-physical-plot.muusia.json",
   "patchSha256": "40ad012f7f4a25944b6f1f497df0bef9d8ee9a9546c752b85fa6b9dabade8613",
   "file": "examples/physical-plot.svg",
@@ -68,7 +68,7 @@
     {
       "path": "src/defs/nodes/merge.js",
       "selector": "file",
-      "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
+      "sha256": "f205fbadb058509dbb4fcf68d475fda08c697e1173ae9d134d79d8e0b9e2cb6a"
     }
   ],
   "gcodeSoftwareCheck": {
@@ -90,8 +90,8 @@
   "physicalPlotVerified": false,
   "sourceCommit": "6e46d6e",
   "sourceProvenanceVersion": 2,
-  "originalDownload": "Prepare your first physical plot (10).svg",
+  "originalDownload": "Prepare your first physical plot (11).svg",
   "captureMethod": "Actual Muusia 2.177 local browser Load, select Merge, Optimize route off, Preserve direction on, Mega Canvas off. Physical SVG download and Stack Pens ZIP download, Red hidden, margin 0, Mirror/Numbers/Drill off. SVG bytes unchanged. Existing PNGs and historical G-code evidence unchanged; no hardware.",
   "sourceWorkingTree": "codex/needle-profile-3mm; sourceFiles identify captured source",
-  "recaptureNote": "2026-11-12: browser recapture for opt-in 3 mm needle profile, lift 5 mm."
+  "recaptureNote": "Actual local Muusia UI export after Merge adds receipt metadata. Original vector artifact bytes and geometry are identical. Existing PNG captures remain historical."
 }

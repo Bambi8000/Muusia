@@ -3,9 +3,12 @@ import re
 from receipt_limits import MAX_HEIGHT
 
 WIDTH = 512
+PAGE_ROWS = 1024
 
 def escpos_text(body, cut=True):
     """Encode bounded printable ASCII using the TM-T88V's built-in font."""
+    if "layers" in body:
+        return overlay_program(body, cut)
     font = body.get("font")
     if font not in ("A", "B"):
         raise ValueError("Text font must be A or B")
@@ -44,6 +47,8 @@ def program_segments(data):
     """Keep native text in small acknowledged windows without splitting commands."""
     # escpos_text owns this fixed header. Skip each four-byte ESC $ position
     # before finding LF: its numeric position byte may itself equal 0x0A.
+    if data[37:39] == b"\x1bL":
+        return overlay_segments(data)
     spacing = data[36]
     rows_per_part = max(1, min(16, 288 // spacing))
     position, start, rows = 37, 0, 0
@@ -58,5 +63,83 @@ def program_segments(data):
             parts.append((data[start:position], rows * spacing))
             start, rows = position, 0
     parts.append((data[start:], rows * spacing))
+    return parts
+
+
+def overlay_program(body, cut=True):
+    layers = body.get("layers")
+    if not isinstance(layers, list) or not 1 <= len(layers) <= 32 or any(not isinstance(layer, dict) or "layers" in layer for layer in layers):
+        raise ValueError("ASCII Merge supports at most 32 flat text layers")
+    programs = [escpos_text(layer, False) for layer in layers]
+    height = max(len(layer["lines"]) * layer["lineSpacing"] for layer in layers)
+    blocked = bytearray(height + 1)
+    for layer in layers:
+        glyph_height = (24 if layer["font"] == "A" else 17) * layer.get("size", 1)
+        for row, line in enumerate(layer["lines"]):
+            if line.strip():
+                start = row * layer["lineSpacing"]
+                blocked[start + 1:start + glyph_height] = b"\x01" * (glyph_height - 1)
+    pages, start = [], 0
+    while start < height:
+        end = min(height, start + PAGE_ROWS)
+        while end > start and blocked[end]:
+            end -= 1
+        if end == start:
+            raise ValueError("Native ASCII overlap needs a shared row gap within 1024 dots. Increase Row gap or use a shorter canvas.")
+        pages.append((start, end))
+        start = end
+    out = bytearray(programs[0][:37])
+    def area(x, y, w, h):
+        out.extend((27, 87, x & 255, x >> 8, y & 255, y >> 8, w & 255, w >> 8, h & 255, h >> 8))
+    for start, end in pages:
+        out.extend(b"\x1bL\x1bT\x00")
+        area(0, 0, WIDTH, end - start)
+        for layer in layers:
+            size = layer.get("size", 1)
+            glyph_height = (24 if layer["font"] == "A" else 17) * size
+            out.extend((27, 77, int(layer["font"] == "B"), 29, 33, (size - 1) * 17))
+            first = (start + layer["lineSpacing"] - 1) // layer["lineSpacing"]
+            for row in range(first, len(layer["lines"])):
+                y = row * layer["lineSpacing"]
+                if y >= end:
+                    break
+                line = layer["lines"][row]
+                if line.strip():
+                    area(layer["left"], y - start, WIDTH - layer["left"], glyph_height)
+                    out.extend(line.encode("ascii"))
+        area(0, 0, WIDTH, end - start)
+        out.append(12)
+    if cut:
+        out.extend(b"\x1dVA\x20")
+    out.extend(b"\x1b@")
+    return bytes(out)
+
+
+def overlay_segments(data):
+    """Acknowledge only after FF returns to Standard mode; skip numeric bytes."""
+    parts, position, start, height = [], 37, 0, None
+    while position < len(data):
+        command = data[position:position + 2]
+        if command == b"\x1bL":
+            height = None
+            position += 2
+        elif command == b"\x1bW":
+            if height is None:
+                height = data[position + 8] + 256 * data[position + 9]
+            position += 10
+        elif command in (b"\x1bM", b"\x1bT", b"\x1d!"):
+            position += 3
+        elif data[position] == 12:
+            position += 1
+            parts.append((data[start:position], height))
+            start = position
+        elif command in (b"\x1dV", b"\x1b@"):
+            break
+        elif 32 <= data[position] <= 126:
+            position += 1
+        else:
+            raise ValueError("Invalid generated ASCII overlay command")
+    if start < len(data):
+        parts.append((data[start:], 0))
     return parts
 

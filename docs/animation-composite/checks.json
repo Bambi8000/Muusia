@@ -13,7 +13,7 @@
     "src/defs/nodes/move_scale.js": "24e05802cad7793d1ff3e4b08f4951503af26072f7a5ceb8c054607289721021",
     "src/defs/nodes/container.js": "fb9b11583906d0c0678f8df117224aa41899aef9a13123b1f1bdf1b058a7d801",
     "src/defs/nodes/solids.js": "bc88ae10fd78f7e4d6b8907e34e123bcd5e819bf6ec2697cde53834d073b1aa8",
-    "src/defs/nodes/merge.js": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf",
+    "src/defs/nodes/merge.js": "f205fbadb058509dbb4fcf68d475fda08c697e1173ae9d134d79d8e0b9e2cb6a",
     "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
     "src/defs/canvas-fit.js": "de2af6f95db84e5be088dbb607939faf89804b5c0bccc3dc08f7b76c93ebc1f1"
   },
@@ -81,6 +81,20 @@
         "fnv": "6675cb91",
         "sha256": "3ac64c1a93f587121c9b301d1fb2c6df19f0ba4149f827d49dbefef5a3cf6c91"
       }
+    }
+  ],
+  "refreshes": [
+    {
+      "date": "2026-11-16",
+      "appVersion": "2.193",
+      "sourceCommit": "3d2d50a6eaa2994fa2ca06c1123440d70e93b27f",
+      "sourceWorkingTree": true,
+      "scope": "Actual local browser re-export after native ASCII Merge support. Vector paths unchanged; no hardware run. Historical screenshots and other independent output nodes remain unchanged.",
+      "key": "composite",
+      "frames": 36,
+      "zipSha256": "549bdeab869a15c9087c1a6c6a1796c10f7257a64fc0ed3d767088426009937a",
+      "download": "Grid Hairs + rotating Solids-frames-svg (4).zip",
+      "allFramesEqual": true
     }
   ]
 }

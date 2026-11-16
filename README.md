@@ -1,4 +1,4 @@
-# MUUSIA v2.192
+# MUUSIA v2.193
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes
@@ -504,3 +504,5 @@ GitHub `nodes/` library folder.
 **Receipt ASCII:** Help → Receipt ASCII · Beautiful error creates drifting character groups inspired by a beautiful error print. Select the node, then PRINT ASCII RECEIPT or DOWNLOAD ESCPOS. Density, Wave, Drift and Corruption shape the pattern. Print uses native Epson characters.
 
 Receipt ASCII now includes **Character size × (1–8)**. Columns and row spacing automatically fit the enlarged native characters; preview and ESC/POS output use the same size.
+
+**Merge now preserves Receipt ASCII layers** and overlaps them at their original positions and character sizes. Start with Help → Receipt ASCII · Merge two sizes. Native output requires the updated Print server.

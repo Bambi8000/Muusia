@@ -87,3 +87,24 @@ class AsciiTests(unittest.TestCase):
         finally:
             httpd.shutdown()
             httpd.server_close()
+
+    def test_overlay_pages_keep_both_sizes_and_one_cut(self):
+        a = {**self.body, "lines": ["01 01"] * 98}
+        b = {**self.body, "size": 2, "lineSpacing": 35, "lines": ["00 11"] * 50}
+        data = ascii_receipt.escpos_text({"layers": [a, b]})
+        parts = ascii_receipt.program_segments(data)
+        self.assertEqual(b"".join(part for part, _ in parts), data)
+        self.assertEqual(sum(rows for _, rows in parts), 1764)
+        self.assertTrue(all(0 <= rows <= 1024 for _, rows in parts))
+        self.assertEqual(len([rows for _, rows in parts if rows]), 3)
+        self.assertEqual(data.count(b"\x1dVA\x20"), 1)
+        self.assertIn(b"\x1d!\x00", data)
+        self.assertIn(b"\x1d!\x11", data)
+        self.assertNotIn(b"\x1dv0", data)
+        for bad in ({"layers": []}, {"layers": [a] * 33}, {"layers": [{"layers": [a]}]}, {"layers": [a, {**b, "lines": ["\x1b@"]}]}):
+            with self.assertRaises(ValueError):
+                ascii_receipt.escpos_text(bad)
+        # No silent clipping when an arbitrary combination has no shared gap.
+        c = {**self.body, "size": 3, "lineSpacing": 52, "lines": ["1"] * 100}
+        with self.assertRaisesRegex(ValueError, "shared row gap"):
+            ascii_receipt.escpos_text({"layers": [b, c]})

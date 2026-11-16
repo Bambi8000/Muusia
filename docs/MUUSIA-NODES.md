@@ -1336,7 +1336,7 @@ are real pen strokes, so the result plots like any other geometry — and loop
 letters (O 0 D Q 8 Ö, dots) come out as real closed shapes, so Pattern Fill,
 Container and the other region nodes see them.
 
-**Receipt ASCII** — native ESC/POS character art for 80 mm receipt paper,
+**Receipt ASCII** — Merge overlays multiple outputs at their original positions, preserving different fonts and sizes. Native printing uses bounded Page mode areas rather than concatenating strips; up to 32 flattened layers. A long composition must have a shared glyph-free row boundary within 1024 dots, otherwise native export asks for a larger Row gap or shorter canvas before any print is queued.  native ESC/POS character art for 80 mm receipt paper,
 inspired by an accidental error print. Error weave makes small drifting groups
 and diagonal waves; Waves, Stream and Noise offer alternate rhythms. Characters
 accepts printable ASCII (spaces remain gaps); control codes and non-ASCII are
@@ -3355,7 +3355,7 @@ working)* — clips paths by closed mask shapes (keep inside/outside). Use
 **Container**, which does the same for wired shapes and adds parametric
 regions, rotation, ±Gap and bisection-accurate cuts.
 
-**Merge** — combines up to several path inputs; later inputs plot later.
+**Merge** — preserves native Receipt ASCII layers as an overlaid receipt (including nested Merges), with each layer’s font, size and row positions intact. Native thermal text blocks are retained too. Vector paths and pen-per-input behavior remain the same.  combines up to several path inputs; later inputs plot later.
 
 **Split** — separates paths into multiple outputs by rule (e.g. layer, index).
 

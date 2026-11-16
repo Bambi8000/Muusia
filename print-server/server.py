@@ -329,7 +329,7 @@ def print_worker():
                     def progress(rows):
                         with jobs_lock:
                             jobs[job_id]["confirmedRows"] = rows
-                    usb_transport.print_program(fd, parts, progress)
+                    usb_transport.print_program(fd, parts, progress, window_bands=4 if kind == "ascii" and data[37:39] == b"\x1bL" else usb_transport.WINDOW_BANDS)
             finally:
                 os.close(fd)
             with jobs_lock:
@@ -408,7 +408,7 @@ class Handler(BaseHTTPRequestHandler):
             ready = printer_ready()
             with jobs_lock:
                 queued = sum(j["status"] == "queued" for j in jobs.values())
-            self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device, "error": usb_transport.failure, "formats": ["image", "text"], "asciiSizeVersion": 1})
+            self._json(200, {"ready": ready, "queued": queued, "mode": "test file" if os.environ.get("MUUSIA_PRINT_OUTPUT_FILE") else "USB", "device": device, "error": usb_transport.failure, "formats": ["image", "text"], "asciiSizeVersion": 1, "asciiOverlayVersion": 1})
         elif self.path == "/api/strip-capabilities":
             self._json(200, {"width": WIDTH, "maxHeight": MAX_STRIP_HEIGHT, "maxLengthMm": MAX_LENGTH_MM, "singleStripJob": True, "requiresIdle": True, "partialCutEndLabel": True, "endLabelBridge": "fixed-left", "printPackageVersion": 1, "trimMarksVersion": 1})
         elif self.path == "/api/clock":
@@ -508,7 +508,8 @@ class Handler(BaseHTTPRequestHandler):
                 if not isinstance(body, dict) or type(body.get("cut", True)) is not bool:
                     raise ValueError("ASCII request must be an object with a boolean cut")
                 data = escpos_text(body, body.get("cut", True))
-                height = len(body["lines"]) * body["lineSpacing"]
+                layers = body.get("layers", [body])
+                height = max(len(layer["lines"]) * layer["lineSpacing"] for layer in layers)
             except (ValueError, TypeError, json.JSONDecodeError) as exc:
                 self._json(400, {"error": str(exc)})
                 return
@@ -516,7 +517,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._headers(200, len(data), "application/octet-stream", "receipt-ascii.escpos")
                 self.wfile.write(data)
             elif self.path == "/api/ascii-preview":
-                self._json(200, {"rows": len(body["lines"]), "height": height, "bytes": len(data), "font": body["font"]})
+                self._json(200, {"rows": sum(len(layer["lines"]) for layer in layers), "layers": len(layers), "height": height, "bytes": len(data), "font": layers[0]["font"]})
             else:
                 self._enqueue("Receipt ASCII", height, None, body.get("cut", True), "ascii", raw=data)
             return

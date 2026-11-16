@@ -92,7 +92,7 @@ def acknowledge(fd, token, timeout=TIMEOUT):
         del received[:-len(expected)]
 
 
-def print_program(fd, parts, progress=None, timeout=TIMEOUT):
+def print_program(fd, parts, progress=None, timeout=TIMEOUT, window_bands=WINDOW_BANDS):
     sequence = int(uuid.uuid4().hex[:4], 16)
     def token():
         nonlocal sequence
@@ -104,7 +104,7 @@ def print_program(fd, parts, progress=None, timeout=TIMEOUT):
     source = iter(parts)
     current, exhausted, rows_sent = None, False, 0
     while current is not None or pending or not exhausted:
-        if current is None and not exhausted and len(pending) < WINDOW_BANDS:
+        if current is None and not exhausted and len(pending) < window_bands:
             try:
                 data, rows = next(source)
             except StopIteration:

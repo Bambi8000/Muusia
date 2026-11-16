@@ -866,9 +866,9 @@ export const NODE_RECENCY = {
     "sha256": "396c8852955297ef9e7ebf2cc47f007273c10822041b4212130d0e17250c3e8e"
   },
   "merge": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf"
+    "date": "2026-11-16",
+    "order": 138,
+    "sha256": "f205fbadb058509dbb4fcf68d475fda08c697e1173ae9d134d79d8e0b9e2cb6a"
   },
   "mesh": {
     "date": "2026-07-22",

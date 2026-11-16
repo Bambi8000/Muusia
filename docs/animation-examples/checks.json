@@ -17,7 +17,7 @@
     "src/defs/nodes/zigzag_path.js": "8af4f46ea950ae5a3726daf4f755819a7bfacfd2f7b751669daace866c8e0759",
     "src/defs/nodes/grid.js": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2",
     "src/defs/nodes/lens.js": "f417c90ff9822eb90128298431544d003cce098bf99477e05a211d8dedeee30a",
-    "src/defs/nodes/merge.js": "a6b58bcb26f988f7d556e25e6e7fb6098c9f07598de006227e7685697381a6bf",
+    "src/defs/nodes/merge.js": "f205fbadb058509dbb4fcf68d475fda08c697e1173ae9d134d79d8e0b9e2cb6a",
     "src/defs/nodes/hersheytext.js": "0123eac198ac8ac6ab9a7f86b87787b933eed27632a7fdbbfc1e781b609d1fb7",
     "src/defs/nodes/chop.js": "cb47b6bd402e6396d137fd73c32a179a0b559a188df500942db9460a8541dfe9",
     "src/defs/nodes/explosion.js": "1cba589dfd741c9a3c5ab98741a339e5eabc594664cfca1d59022dbe3908f399",
@@ -476,6 +476,20 @@
           }
         }
       ]
+    }
+  ],
+  "refreshes": [
+    {
+      "date": "2026-11-16",
+      "appVersion": "2.193",
+      "sourceCommit": "3d2d50a6eaa2994fa2ca06c1123440d70e93b27f",
+      "sourceWorkingTree": true,
+      "scope": "Actual local browser re-export after native ASCII Merge support. Vector paths unchanged; no hardware run. Historical screenshots and other independent output nodes remain unchanged.",
+      "key": "sliding-moire",
+      "frames": 36,
+      "zipSha256": "1bd413b07fbd82f45b99edb6ac5df71815638607b4a9a91c46e5f676fc689d71",
+      "download": "Renkaiden välinen syke-frames-svg (2).zip",
+      "allFramesEqual": true
     }
   ]
 }
