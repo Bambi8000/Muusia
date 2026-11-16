@@ -6820,3 +6820,16 @@ only after those real exports; historical PNG and independent outputs kept.
 Pi backup before-ascii-overlay-20261116 includes server,ASCII encoder and USB
 helper. Service update/Pages exact commit and live no-print check recorded below.
 No physical test or cut requested/sent during this task.
+
+Release 62dc77341db03102e7682f5b95342bb71c409aa9 published as2.193. Exact
+Pages run43844402556 passed build/Learn/deploy. Public app SHA256
+08dc4f1e805ad0f4b8eaee247207814026e990f5cd7e9efcdf737fe4540dd9a3
+matches the tested build. Pi USB ready,queue empty,Clock off,asciiOverlayVersion1.
+Live preview/bin matches JS/Python and actual browser download:148rows,2layers,
+1764dots,8525bytes;SHA2569564fc6b2c45ebc87adebe39a8059166e59e28cfc7fdf0e675fa696857245d3b.
+No job or physical print created. Original Chrome tab updated to2.193 and its
+full saved graph restored from patch.muusia(6).json. Selected Merge now visibly
+overlays both sizes;148textrows and enabled PRINT ASCII RECEIPT/DOWNLOAD ESCPOS.
+Final clean snapshot refreshed at /private/tmp/muusia-ascii-merge-snapshot-20261116;
+prepared locally only. Continue from /private/tmp/muusia-receipt-ascii-20261114
+or current origin/main; primary checkout remains historical and dirty.

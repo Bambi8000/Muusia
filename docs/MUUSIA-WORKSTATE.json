@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.192",
-    "commit": "020bf4d6bab44f841550cbe6c2b14012f603c6a8",
-    "pagesRunId": 43841313575,
-    "publicAppSha256": "0e9adbbe71437dbf7b6ecdea5c4d3777e849fd31b8c376e87be1c9da60546712",
+    "version": "2.193",
+    "commit": "62dc77341db03102e7682f5b95342bb71c409aa9",
     "matchesTestedBuild": true,
+    "pagesRunId": 43844402556,
+    "publicAppSha256": "08dc4f1e805ad0f4b8eaee247207814026e990f5cd7e9efcdf737fe4540dd9a3",
     "date": "2026-11-16",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public Muusia 2.192; Receipt ASCII 1–8× size and live Print support",
+    "status": "verified public Muusia 2.193; native ASCII layers overlay in Merge; live Print support and original Chrome graph restored",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -676,10 +676,53 @@
     "version": "2.193",
     "date": "2026-11-16",
     "baseCommit": "3d2d50a6eaa2994fa2ca06c1123440d70e93b27f",
-    "status": "validated; publication pending",
+    "status": "published and live-verified; original Chrome graph restored",
     "userPatchBackup": "/Users/daniel/Downloads/patch.muusia (6).json",
     "validation": "Actual user graph at 72x250 mm: 148 original rows/2 font sizes overlap across 3 native pages; browser download equals Python/JS programs; nested Merge and legacy vector behavior;30 Python tests;185 Help graphs;focused lint;actual byte-identical 5 static SVGs/per-pen ZIP;72 actual animation frames match evaluation;catalog/build/37914 Learn checks.",
     "serviceBackup": "/home/print/muusia-print/before-ascii-overlay-20261116",
-    "physicalPrintSent": false
+    "physicalPrintSent": false,
+    "commit": "62dc77341db03102e7682f5b95342bb71c409aa9",
+    "pagesRunId": 43844402556,
+    "publicAppSha256": "08dc4f1e805ad0f4b8eaee247207814026e990f5cd7e9efcdf737fe4540dd9a3",
+    "live": {
+      "preview": {
+        "rows": 148,
+        "layers": 2,
+        "height": 1764,
+        "bytes": 8525,
+        "font": "B"
+      },
+      "binarySha256": "9564fc6b2c45ebc87adebe39a8059166e59e28cfc7fdf0e675fa696857245d3b",
+      "health": {
+        "ready": true,
+        "queued": 0,
+        "mode": "USB",
+        "device": "/dev/usb/lp0",
+        "error": null,
+        "formats": [
+          "image",
+          "text"
+        ],
+        "asciiSizeVersion": 1,
+        "asciiOverlayVersion": 1
+      },
+      "clock": {
+        "running": false,
+        "interval": "second",
+        "lastLine": null,
+        "lastQueuedAt": null,
+        "error": null
+      }
+    },
+    "browser": {
+      "version": "2.193",
+      "restoredOriginalGraph": true,
+      "selected": "Merge102",
+      "layers": 2,
+      "rows": 148,
+      "printAsciiEnabled": true,
+      "downloadEscposEnabled": true
+    },
+    "snapshot": "/private/tmp/muusia-ascii-merge-snapshot-20261116 (refresh after documentation commit; local only)"
   }
 }
