@@ -6881,3 +6881,33 @@ local only. Continue from release worktree or origin/main, not the dirty primary
 baseline correction. Corrected native ASCII Merge output is now user-confirmed
 on paper; this supersedes the pending paper-confirmation note above. No further
 print or cut requested or sent by the assistant.
+
+
+### 2.195 — Portrait String art
+
+Daniel authorized publication on 2026-11-16. Integrated only the new Portrait
+mode onto current public 2.194 (base a6e121633fe9d6e176682ce7ec90cb257189fc2e),
+using an isolated release worktree; the historical dirty primary checkout and
+its unrelated work are preserved.
+
+Mode **String art** approximates a centre-cropped photo using straight chords
+between equally spaced circular anchors. **Nails** adjusts 24–400 anchors;
+**Thread lines** caps the continuous route at 100–6000 chords and reveals an
+exact prefix. A residual fitter can stop early when the current nail has no
+improving chord. Every endpoint is a nail, each chord continues from the last,
+and exact chord retraces are avoided. Seed chooses the start; Pen width / Ink
+strength calibrate simulated coverage; Detail, Gamma, White cutoff and Focus
+apply. One selected pen; no face analysis needed. Nails and circle are guides
+only. Plain SVG is one path; actual servo and bed-Z G-code exports lower once
+and draw all chords before any lift. Dashed Styles or cutting modifiers can
+split the route. White areas can be crossed by a taut chord.
+
+Includes an A3 Help starter, manual/catalog/tags, current node recency and source
+bundle, a real-photo browser comparison and focused regression checks. Local
+original checks passed: 197 String art, 96 legacy Portrait, 208 Scribble;
+legacy geometry hashes unchanged. Release checks passed on current public base: 197 String art, 96 legacy Portrait,
+208 Scribble, all 186 Help examples, focused lint (existing warnings only), and
+the ordered catalog / production build / 37,914 Learn checks. Current dependencies
+use the same package-lock as the prior release. Public deployment verification
+is recorded in WORKSTATE after completion. No physical plot,
+printer job, hardware configuration update or Claude web upload requested.

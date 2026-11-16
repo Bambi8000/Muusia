@@ -1317,6 +1317,7 @@
  "portrait": [
   "connect",
   "flow",
+  "geometric",
   "halftone",
   "image",
   "organic",

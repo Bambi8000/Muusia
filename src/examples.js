@@ -1805,6 +1805,11 @@ export const EXAMPLES = [
     make: defaults => ({ nodes: [{ id: 9001, type: "colour_scribble", x: 30, y: 20, params: { ...defaults("colour_scribble"), ...{"layout": "Islands", "gesture": "Hatching", "bundles": 135, "density": 13, "length": 24, "width": 9, "spread": 0.95, "variation": 0.65, "disorder": 0.55, "curve": 0.45, "threads": 0.6, "rotation": 0, "cx": 50, "cy": 50, "margin": 10, "seed": 31, "colours": 6, "layer": 1, "pen2": 7, "pen3": 6, "pen4": 4, "pen5": 5, "pen6": 10} } }], edges: [] }),
   },
   {
+    name: "Portrait · String art", desc: "Choose an image on Portrait and use Mode → String art. One continuous thread runs between Nails arranged on a circle. Nails changes the number of anchors; Thread lines sets the maximum number of straight chords. The photo is centre-cropped to the circle. Start with a close portrait and a light background. No face analysis is needed. Pen width and Ink strength tune the simulated thread darkness; Gamma and White cutoff adjust the photo. Nail markers are guides, and the plain output plots without lifts between chords.",
+    canvas: { W: 297, H: 420 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "portrait", x: 30, y: 20, params: { ...defaults("portrait"), mode: "String art", stringNails: 200, stringLines: 2400 } }], edges: [] }),
+  },
+  {
     name: "Portrait · Continuous scribble", desc: "Choose image on the Portrait node, then keep Mode → Scribble. One continuous line builds the darks with irregular loops; no Analyze face step is needed. Start with a close crop and a light, plain background. Scribble density adds ink, Loop size changes the gesture, Wander loosens it, and Feature contrast opens the light areas. Pen width should match your pen. White cutoff suppresses loops, but the connecting line can cross white areas. A3 portrait, one pen.",
     canvas: { W: 297, H: 420 },
     make: defaults => ({ nodes: [{ id: 9001, type: "portrait", x: 30, y: 20, params: { ...defaults("portrait"), mode: "Scribble", scribbleSize: 2.4, scribbleDensity: 1.1, scribbleWander: 0.25, scribbleFeatures: 0.7, detail: 0.8, penW: 0.3, gamma: 1.05 } }], edges: [] }),

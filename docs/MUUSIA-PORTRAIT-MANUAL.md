@@ -14,7 +14,7 @@ white.
 
 1. Choose image… (JPEG/PNG; EXIF is corrected, the photo is resized to
    1280 px and frozen into the node — it travels inside the patch).
-2. For **Scribble**, **Tonal**, **Spiral** or **TSP**, skip analysis and select
+2. For **String art**, **Scribble**, **Tonal**, **Spiral** or **TSP**, skip analysis and select
    the mode directly. For feature modes, press **Analyze face** (needs an http origin, not file://; first run
    downloads ~92 MB of models once, then they are cached). The frozen
    analysis carries landmark chains, hair/glasses/skin/neck regions, a
@@ -37,12 +37,47 @@ does not need route sorting.
 | Features+tonal | yes* | Feature lines + hair/beard flow first, tonal shading under them (feature ink is pre-deposited, shading avoids the lines). |
 | Features only | yes* | The feature layer alone — contours, hair, beard. |
 | One line | yes | The Picasso portrait: pruned chains of every face linked into ONE unbroken line, transitions arc over cheeks/forehead. Empty without an analysis. |
+| String art | no | One continuous thread of straight chords between adjustable nails around a circle. The photo is centre-cropped. |
 | Scribble | no | One continuous, irregular looping stroke. Residual tone drives density; local gradients tighten loops around dark details. |
 | Spiral | no | One Archimedean spiral, wave amplitude from darkness. |
 | TSP | no | One line through a darkness-weighted dot cloud (Quality = 2-opt budget). |
 
 *Degrades to pure Tonal bit-identically when the analysis is missing or
 invalid.
+
+## String art portraits
+
+Choose **Mode → String art** to draw a photo as a single thread stretched
+between nails equally spaced around a circle. No **Analyze face** step is
+needed. **Help → Portrait · String art** opens a ready-to-use A3 starter.
+
+- **Nails (24–400)** controls the number of possible anchors. Start at 200;
+  fewer nails give a more angular web, more give finer choices of chord.
+- **Thread lines (100–6000)** caps the number of straight segments. Increasing
+  it extends the same route. The fitter stops early when no next chord improves
+  the simulated image, so this is an upper limit rather than an exact count.
+- **Pen width mm / Ink strength** tune simulated thread darkness. Lower values
+  let more overlapping threads build up before an area is saturated. They do
+  not change the app's SVG preview stroke width or your physical pen.
+- **Detail** sets fitting resolution. **Gamma / White cutoff** adjust source
+  tone; **Focus** weights accuracy inside its ellipse. **Seed** picks the
+  starting nail; **Pen** selects the single pen used for the whole thread.
+- **Margin mm** sets the circle's distance from the shorter paper edges. The
+  image fills the circle with its aspect preserved and the excess centre-cropped.
+  Crop your source photo beforehand to choose what appears inside the circle.
+
+Every output point is a nail and every segment runs directly to another nail.
+The output is **one open path**, with no lifts or travel moves between chords.
+SVG contains one continuous path; plain G-code lowers the pen once for the
+whole drawing and lifts it after the last chord. A dashed Style or a cutting
+modifier can split the route. Nail markers and the circle are preview guides
+only. Chords can cross light areas: White cutoff changes the target tone and
+cannot make holes in a taut thread. This is a tonal approximation; plain,
+light backgrounds usually give clearer portraits.
+
+Developer checks: `node tools/validate-portrait-string-art.mjs`. With the local
+dev server running, `/tools/validate-portrait-string-art.html` compares the real
+photo intake and node output at 60, 200 and 400 nails.
 
 ## Continuous Scribble portraits
 

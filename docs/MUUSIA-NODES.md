@@ -3565,7 +3565,17 @@ frame; use Triangle for seamless loops.
 release as fractions of the loop. Starts and ends at zero, ideal for animations
 that appear, hold, and fade.
 
-**Portrait** (gen / textimg) draws a photo the way a portraitist works. New mode
+**Portrait** (gen / textimg) draws a photo the way a portraitist works.
+**String art** turns the photo into one continuous thread of straight chords
+between equally spaced nails around a circle. **Nails (24–400)** adjusts the
+anchors; **Thread lines (100–6000)** caps the route, which can stop early when
+no next chord improves the tonal fit. The photo is centre-cropped to the circle.
+No face analysis is needed. Pen width / Ink strength tune simulated thread
+darkness, Detail sets fitting resolution, and Gamma, White cutoff, Focus and
+Seed apply. Nail markers are guides only. The plain path has no lifts between
+chords in SVG or G-code; dashed Styles and cutting modifiers can split it.
+Help includes **Portrait · String art** as an A3 starter.
+
 Scribble turns a photo into one continuous wandering line without face analysis:
 irregular loops build the shadows and local gradients tighten facial details.
 Scribble density, Loop size mm, Wander and Feature contrast control its

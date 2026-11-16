@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Portrait String art — local review</title>
+<style>
+  body { margin: 32px; background: #eeece7; color: #242725; font: 15px/1.5 system-ui, sans-serif; }
+  h1 { margin: 0; font-size: 26px; } p { max-width: 950px; }
+  main { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+  article img, article svg { display: block; width: 100%; background: white; }
+  img { aspect-ratio: 210 / 297; object-fit: contain; } h2 { font-size: 18px; }
+  output { font: 12px/1.5 monospace; } #status { font-weight: 600; }
+  @media(max-width: 800px) { main { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+</style>
+<h1>Portrait · String art</h1>
+<p>Same photo, three nail counts. Each drawing is one continuous route of straight nail-to-nail chords.
+The photo is centre-cropped to the circle. Nail guides do not export. These are the real node's default settings; SVG uses the app's standard 0.3 mm preview stroke.</p>
+<p id="status">Drawing…</p>
+<main><article><h2>Source photo</h2><img src="../fixtures/portrait-photo.jpg" alt="Source portrait"></article></main>
+<script type="module">
+import N from '../src/defs/nodes/portrait.js';
+import { intakeImage } from '../src/analyze.js';
+const defaults = Object.fromEntries(N.params.map(p => [p.key, p.def]));
+try {
+  const blob = await (await fetch('../fixtures/portrait-photo.jpg')).blob();
+  const src = await new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = reject; r.readAsDataURL(blob); });
+  const data = await intakeImage(src, 'portrait-photo.jpg');
+  const context = { W: 210, H: 297 };
+  for (const count of [60, 200, 400]) {
+    const start = performance.now();
+    const result = N.compute([], { ...defaults, mode: 'String art', stringNails: count }, context, { data });
+    const duration = Math.round(performance.now() - start);
+    const points = result.paths[0]?.pts || [];
+    const length = points.slice(1).reduce((s, q, i) => s + Math.hypot(q[0] - points[i][0], q[1] - points[i][1]), 0);
+    const article = document.createElement('article');
+    article.innerHTML = `<h2>${count} nails</h2><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297"><polyline fill="none" stroke="#242725" stroke-width=".3" stroke-linejoin="round" points="${points.map(p => p.join(',')).join(' ')}"/></svg><output>${result.paths.length} continuous path · ${points.length - 1} chords<br>${(length / 1000).toFixed(1)} m · ${duration} ms</output>`;
+    const button = document.createElement('button');
+    button.textContent = 'Download editable patch';
+    button.onclick = () => {
+      const patch = { app: 'muusia', v: 1, name: 'Portrait String art', canvas: context, root: { nodes: [{ id: 9001, type: 'portrait', x: 30, y: 20, params: { ...defaults, mode: 'String art', stringNails: count, file: 'portrait-photo.jpg' }, data }], edges: [] } };
+      const url = URL.createObjectURL(new Blob([JSON.stringify(patch)], { type: 'application/json' }));
+      const a = document.createElement('a'); a.href = url; a.download = `portrait-string-art-${count}.muusia.json`; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    article.append(document.createElement('br'), button);
+    document.querySelector('main').append(article);
+  }
+  document.querySelector('#status').textContent = 'Ready · no face analysis · all processing local';
+} catch (error) { document.querySelector('#status').textContent = error.message; }
+</script>
+</html>

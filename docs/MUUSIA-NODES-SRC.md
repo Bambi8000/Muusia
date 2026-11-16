@@ -39904,6 +39904,18 @@ export default {
 ```js
 import { Pin, EMPTY, PENS, mulberry32, hash2, noise2, resample, applyStyle } from "../helpers.js";
 
+// Shared by the guide and the drawing: every turn lands on an exact nail.
+function stringArtFrame(p, { W, H }) {
+  const margin = Math.max(0, p.margin ?? 12);
+  const r = Math.max(0, Math.min(W, H) / 2 - margin);
+  const count = Math.max(24, Math.min(400, Math.round(p.stringNails ?? 200)));
+  const nails = Array.from({ length: count }, (_, i) => {
+    const a = i * Math.PI * 2 / count - Math.PI / 2;
+    return [W / 2 + r * Math.cos(a), H / 2 + r * Math.sin(a)];
+  });
+  return { r, nails };
+}
+
 export default {
   key: "portrait",
   name: "Portrait",
@@ -39912,24 +39924,26 @@ export default {
   fileImage: true,
   faceAnalysis: true,
   fileAccept: ".jpg,.jpeg,.png",
-  desc: "Draws a photo the way a portraitist works. Scribble builds a likeness from one continuous wandering line: irregular loops pile into shadows and thin out across highlights. No Analyze face step is needed. Scribble density controls ink coverage; Loop size sets gesture size; Wander loosens the handwriting; Feature contrast favours dark details over flat skin tone. Gamma and White cutoff tune the source. A plain background works best. Cutoff suppresses loops, but connecting strokes may still cross white areas to keep the line unbroken. One Pen is used; a wired Style with dashes can split the line. The 118k point budget bounds very dense work. Modes Features+tonal and Features only read the frozen face analysis (Analyze face button): landmark chains become smoothed splines pruned in importance order by Line economy (max = all contours, min = just the eyes), the face oval splits into a high-importance jaw arc and an early-dropping upper arc, glasses come from the parsed region behind their own checkbox, and hair is drawn as FLOW, not outline - streamlines seeded in the hair mask along the frozen flow field, density from image darkness. Feature lines take the node's Pen; tonal rounds continue on the next pens with the feature ink already deposited, so shading automatically avoids the lines. Without a valid analysis the feature modes degrade to pure Tonal. Tonal works with no ML at all: several ROUNDS over the same sheet, each hatching only where the image is still darker than the ink already placed (a digital residual), the 'squint' blur narrowing round by round - big masses first, detail last. Round = pen: with Pen assignment Cycle the G-code pauses at every round and you decide at the machine whether to continue. Hatch mode Flow follows tonal contours, Cross-hatch rotates 45/135/90 degrees per round, Mix alternates. Ink strength calibrates the simulated pen darkness (plot a small hatch swatch first). The Focus ellipse multiplies detail weight inside it. Strokes hard-stop at the White cutoff boundary so eye whites and catchlights stay clean. Mode One line is the Picasso portrait: the pruned feature chains are ordered by a small endpoint tour and linked with light arcs bulging over the cheeks and forehead - one unbroken line, requiring an analysis (empty without one). Sketch nerve brings the Tresset look: contours re-stated by nervous slightly-offset passes and shading strokes that wobble - 0 is the clean drawing, bit-identical to before. Modes Spiral and TSP draw the whole image as ONE unbroken line from tone alone. Travel Sort can improve multi-path G-code travel; it does not affect SVG or DXF. Single-line modes already have one route.",
+  desc: "Draws a photo the way a portraitist works. String art winds one continuous thread between adjustable Nails on a circle, choosing straight chords to approximate the photo. Thread lines is an upper limit; fitting can stop early. The photo is centre-cropped to the circle. No face analysis is needed. Pen width and Ink strength control simulated thread darkness; Detail sets fitting resolution. Gamma, White cutoff, Focus and Seed apply. White areas can be crossed by chords; nail markers are guides only. Scribble builds a likeness from one continuous wandering line: irregular loops pile into shadows and thin out across highlights. No Analyze face step is needed. Scribble density controls ink coverage; Loop size sets gesture size; Wander loosens the handwriting; Feature contrast favours dark details over flat skin tone. Gamma and White cutoff tune the source. A plain background works best. Cutoff suppresses loops, but connecting strokes may still cross white areas to keep the line unbroken. One Pen is used; a wired Style with dashes can split the line. The 118k point budget bounds very dense work. Modes Features+tonal and Features only read the frozen face analysis (Analyze face button): landmark chains become smoothed splines pruned in importance order by Line economy (max = all contours, min = just the eyes), the face oval splits into a high-importance jaw arc and an early-dropping upper arc, glasses come from the parsed region behind their own checkbox, and hair is drawn as FLOW, not outline - streamlines seeded in the hair mask along the frozen flow field, density from image darkness. Feature lines take the node's Pen; tonal rounds continue on the next pens with the feature ink already deposited, so shading automatically avoids the lines. Without a valid analysis the feature modes degrade to pure Tonal. Tonal works with no ML at all: several ROUNDS over the same sheet, each hatching only where the image is still darker than the ink already placed (a digital residual), the 'squint' blur narrowing round by round - big masses first, detail last. Round = pen: with Pen assignment Cycle the G-code pauses at every round and you decide at the machine whether to continue. Hatch mode Flow follows tonal contours, Cross-hatch rotates 45/135/90 degrees per round, Mix alternates. Ink strength calibrates the simulated pen darkness (plot a small hatch swatch first). The Focus ellipse multiplies detail weight inside it. Strokes hard-stop at the White cutoff boundary so eye whites and catchlights stay clean. Mode One line is the Picasso portrait: the pruned feature chains are ordered by a small endpoint tour and linked with light arcs bulging over the cheeks and forehead - one unbroken line, requiring an analysis (empty without one). Sketch nerve brings the Tresset look: contours re-stated by nervous slightly-offset passes and shading strokes that wobble - 0 is the clean drawing, bit-identical to before. Modes Spiral and TSP draw the whole image as ONE unbroken line from tone alone. Travel Sort can improve multi-path G-code travel; it does not affect SVG or DXF. Single-line modes already have one route.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
     { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
-    { key: "mode", label: "Mode", type: "select", options: ["Tonal", "Features+tonal", "Features only", "One line", "Scribble", "Spiral", "TSP"], def: "Tonal" },
+    { key: "mode", label: "Mode", type: "select", options: ["Tonal", "Features+tonal", "Features only", "One line", "Scribble", "String art", "Spiral", "TSP"], def: "Tonal" },
+    { key: "stringNails", label: "Nails", type: "slider", min: 24, max: 400, step: 1, def: 200, showIf: p => p.mode === "String art" },
+    { key: "stringLines", label: "Thread lines", type: "slider", min: 100, max: 6000, step: 100, def: 2400, showIf: p => p.mode === "String art" },
     { key: "scribbleDensity", label: "Scribble density", type: "slider", min: 0.2, max: 3, step: 0.05, def: 1, showIf: p => p.mode === "Scribble" },
     { key: "scribbleSize", label: "Loop size mm", type: "slider", min: 0.6, max: 18, step: 0.1, def: 5, showIf: p => p.mode === "Scribble" },
     { key: "scribbleWander", label: "Wander", type: "slider", min: 0, max: 1, step: 0.05, def: 0.35, showIf: p => p.mode === "Scribble" },
     { key: "scribbleFeatures", label: "Feature contrast", type: "slider", min: 0, max: 1, step: 0.05, def: 0.55, showIf: p => p.mode === "Scribble" },
-    { key: "economy", label: "Line economy", type: "slider", min: 0, max: 1, step: 0.01, def: 0.7, showIf: p => p.mode !== "Scribble" },
-    { key: "glassesOn", label: "Glasses lines", type: "check", def: true, showIf: p => p.mode !== "Scribble" },
-    { key: "nerve", label: "Sketch nerve", type: "slider", min: 0, max: 1, step: 0.01, def: 0, showIf: p => p.mode !== "Scribble" },
-    { key: "rounds", label: "Rounds", type: "slider", min: 1, max: 8, step: 1, def: 4, showIf: p => p.mode !== "Scribble" },
+    { key: "economy", label: "Line economy", type: "slider", min: 0, max: 1, step: 0.01, def: 0.7, showIf: p => p.mode !== "Scribble" && p.mode !== "String art" },
+    { key: "glassesOn", label: "Glasses lines", type: "check", def: true, showIf: p => p.mode !== "Scribble" && p.mode !== "String art" },
+    { key: "nerve", label: "Sketch nerve", type: "slider", min: 0, max: 1, step: 0.01, def: 0, showIf: p => p.mode !== "Scribble" && p.mode !== "String art" },
+    { key: "rounds", label: "Rounds", type: "slider", min: 1, max: 8, step: 1, def: 4, showIf: p => p.mode !== "Scribble" && p.mode !== "String art" },
     { key: "detail", label: "Detail", type: "slider", min: 0, max: 1, step: 0.01, def: 0.5 },
     { key: "penW", label: "Pen width mm", type: "slider", min: 0.2, max: 2, step: 0.05, def: 0.5 },
     { key: "ink", label: "Ink strength", type: "slider", min: 0.2, max: 3, step: 0.05, def: 1 },
-    { key: "hatch", label: "Hatch mode", type: "select", options: ["Flow", "Cross-hatch", "Mix"], def: "Flow", showIf: p => p.mode !== "Scribble" },
+    { key: "hatch", label: "Hatch mode", type: "select", options: ["Flow", "Cross-hatch", "Mix"], def: "Flow", showIf: p => p.mode !== "Scribble" && p.mode !== "String art" },
     { key: "gamma", label: "Gamma", type: "slider", min: 0.3, max: 3, step: 0.05, def: 1 },
     { key: "cutoff", label: "White cutoff", type: "slider", min: 0, max: 0.9, step: 0.01, def: 0.1 },
     { key: "focusX", label: "Focus X %", type: "slider", min: 0, max: 100, step: 0.5, def: 50 },
@@ -39937,8 +39951,8 @@ export default {
     { key: "focusRX", label: "Focus RX %", type: "slider", min: 2, max: 60, step: 0.5, def: 24 },
     { key: "focusRY", label: "Focus RY %", type: "slider", min: 2, max: 60, step: 0.5, def: 16 },
     { key: "focusBoost", label: "Focus boost", type: "slider", min: 0, max: 3, step: 0.05, def: 0 },
-    { key: "penAssign", label: "Pen assignment", type: "select", options: ["Same", "Cycle", "Start+1"], def: "Cycle", showIf: p => p.mode !== "Scribble" },
-    { key: "quality", label: "Quality", type: "slider", min: 1, max: 8, step: 1, def: 3 },
+    { key: "penAssign", label: "Pen assignment", type: "select", options: ["Same", "Cycle", "Start+1"], def: "Cycle", showIf: p => p.mode !== "Scribble" && p.mode !== "String art" },
+    { key: "quality", label: "Quality", type: "slider", min: 1, max: 8, step: 1, def: 3, showIf: p => p.mode !== "String art" },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
     { key: "seed", label: "Seed", type: "seed", def: 77 },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
@@ -39948,6 +39962,14 @@ export default {
     const { W, H } = ctx;
     const m = Math.max(0, p.margin);
     const guides = [{ kind: "rect", x: m, y: m, w: Math.max(0, W - 2 * m), h: Math.max(0, H - 2 * m) }];
+    if (p.mode === "String art") {
+      const { r, nails } = stringArtFrame(p, ctx);
+      guides.splice(0, guides.length);
+      if (r >= 2.5) {
+        guides.push({ kind: "circle", cx: W / 2, cy: H / 2, r });
+        for (const [x, y] of nails) guides.push({ kind: "circle", cx: x, cy: y, r: 0.45 });
+      }
+    }
     /* focus ellipse as a 40-pt poly (no ellipse guide kind); same math as focusMul in compute */
     const ex = (W * p.focusX) / 100, ey = (H * p.focusY) / 100;
     const rx = Math.max(1, (W * p.focusRX) / 100), ry = Math.max(1, (H * p.focusRY) / 100);
@@ -39958,6 +39980,7 @@ export default {
     }
     guides.push({ kind: "poly", pts });
     guides.push({ kind: "point", x: ex, y: ey });
+    if (p.mode === "String art") return guides;
     /* frozen analysis as dashed guides - one glance shows whether the
        analysis landed, before any ink (needs the engine's 4th overlay arg) */
     try {
@@ -40004,7 +40027,9 @@ export default {
     if (boxW < 5 || boxH < 5) return applyStyle({ paths: [] }, ins[0]);
 
     /* image fitted to the margin box, aspect preserved (image.js / Stipple convention) */
-    const sc = Math.min(boxW / img.w, boxH / img.h);
+    const sc = p.mode === "String art"
+      ? Math.min(boxW, boxH) / Math.min(img.w, img.h)
+      : Math.min(boxW / img.w, boxH / img.h);
     const iw = img.w * sc, ih = img.h * sc;
     const x0 = (W - iw) / 2, y0 = (H - ih) / 2;
 
@@ -40026,6 +40051,89 @@ export default {
       const d = a + (b - a) * fu + (c - a) * fv + (a - b - c + d0) * fu * fv;
       return Math.pow(Math.max(0, Math.min(1, d)), gamma);
     };
+
+    /* ================= single-line mode: STRING ART =================
+       Greedy residual fitting with a continuous route. Cached chord rasters
+       bound the work to 400 nails / 6000 lines / a 192-square tone field.
+       Every deposited mark is an actual straight nail-to-nail segment. */
+    if (p.mode === "String art") {
+      const { r, nails } = stringArtFrame(p, ctx);
+      const count = nails.length;
+      const limit = Math.max(100, Math.min(6000, Math.round(p.stringLines ?? 2400)));
+      const size = 96 + Math.round(Math.max(0, Math.min(1, p.detail ?? 0.5)) * 96);
+      const cell = 2 * r / size, left = W / 2 - r, top = H / 2 - r;
+      const residual = new Float32Array(size * size), weight = new Float32Array(size * size);
+      const fx = W * p.focusX / 100, fy = H * p.focusY / 100;
+      const rx = Math.max(1, W * p.focusRX / 100), ry = Math.max(1, H * p.focusRY / 100);
+      let mass = 0;
+      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+        const xx = left + (x + 0.5) * cell, yy = top + (y + 0.5) * cell;
+        const i = y * size + x;
+        if (Math.hypot(xx - W / 2, yy - H / 2) > r) continue;
+        const d = darkAt(xx, yy);
+        residual[i] = Math.max(0, (d - cut) / (1 - cut));
+        const q = ((xx - fx) / rx) ** 2 + ((yy - fy) / ry) ** 2;
+        weight[i] = 1 + Math.max(0, p.focusBoost) * Math.max(0, 1 - q);
+        mass += residual[i];
+      }
+      if (mass < 0.01) return applyStyle({ paths: [] }, ins[0]);
+      // Coarse cells model fractional thread coverage, rather than opaque
+      // strokes filling an entire cell. A wider/stronger pen needs fewer lines.
+      const strength = Math.max(0.003, Math.min(0.5, penW * inkK / cell * 0.35));
+      const cache = new Array(count * count);
+      const chord = (a, b) => {
+        const key = Math.min(a, b) * count + Math.max(a, b);
+        if (cache[key]) return cache[key];
+        const A = nails[Math.min(a, b)], B = nails[Math.max(a, b)];
+        const dx = (B[0] - A[0]) / cell, dy = (B[1] - A[1]) / cell;
+        const steps = Math.max(1, Math.ceil(Math.max(Math.abs(dx), Math.abs(dy))));
+        const indices = new Uint16Array(steps);
+        let n = 0, prev = -1;
+        for (let k = 0; k < steps; k++) {
+          const t = (k + 0.5) / steps;
+          const x = Math.max(0, Math.min(size - 1, Math.floor((A[0] - left) / cell + dx * t)));
+          const y = Math.max(0, Math.min(size - 1, Math.floor((A[1] - top) / cell + dy * t)));
+          const i = y * size + x;
+          if (i !== prev && weight[i] > 0) { indices[n++] = i; prev = i; }
+        }
+        const entry = { indices: indices.subarray(0, n), deposit: strength * Math.hypot(dx, dy) / Math.max(1, n) };
+        cache[key] = entry;
+        return entry;
+      };
+      const rng = mulberry32((p.seed | 0) * 7919 + 933);
+      let current = Math.floor(rng() * count), previous = -1;
+      const pts = [nails[current].slice()];
+      // Near-neighbour chords mostly shade the rim instead of the portrait.
+      const skip = Math.max(2, Math.round(count * 0.025));
+      for (let line = 0; line < limit; line++) {
+        let best = -1, bestScore = 0;
+        for (let next = 0; next < count; next++) {
+          const gap = Math.abs(next - current);
+          if (Math.min(gap, count - gap) < skip || next === previous) continue;
+          const candidate = chord(current, next);
+          if (candidate.used) continue;
+          const { indices, deposit } = candidate;
+          let gain = 0;
+          // Exact squared-error reduction of the simulated ink. Negative
+          // residuals penalise crossing highlights or already saturated areas.
+          for (let k = 0; k < indices.length; k++) {
+            const i = indices[k];
+            gain += weight[i] * (2 * residual[i] - deposit);
+          }
+          const score = deposit * gain / Math.max(1, indices.length);
+          if (score > bestScore) { bestScore = score; best = next; }
+        }
+        if (best < 0) break;
+        const chosen = chord(current, best);
+        chosen.used = true; // Retracing the same opaque ink adds no visible thread.
+        const { indices, deposit } = chosen;
+        for (let k = 0; k < indices.length; k++) residual[indices[k]] -= deposit;
+        previous = current; current = best;
+        pts.push(nails[current].slice());
+      }
+      const layer = ((Math.round(p.layer) % PENS.length) + PENS.length) % PENS.length;
+      return applyStyle({ paths: pts.length > 1 ? [{ pts, closed: false, layer }] : [] }, ins[0]);
+    }
 
     /* ================= single-line mode: SCRIBBLE =================
        Tone-guided irregular loops, joined BEFORE ink deposition. Every bridge
