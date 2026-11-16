@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.194",
-    "commit": "fe11c51f92d766d7b44c5ee1efa28e2d883d2cec",
-    "pagesRunId": 43846538388,
-    "publicAppSha256": "e942ec091a2ca84e763fc584073b79740a01f46c39f2edcd64358f7021eb3724",
+    "version": "2.195",
+    "commit": "6a3577565b2b594a3d34ee8fcb21da0d358eaaf2",
+    "pagesRunId": 43953906293,
+    "publicAppSha256": "c4d6ac4ffa705450c9449e6a7149e773e917cdc65abe7dec54dbfbc0994fbd8a",
     "matchesTestedBuild": true,
     "date": "2026-11-16",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public2.194; live Print asciiOverlayVersion2; user confirmed physical ASCII Merge print works",
+    "status": "verified public 2.195; Portrait String art and adjustable Nails present; public bytes identical to tested build",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -786,8 +786,8 @@
     "baseCommit": "a6e121633fe9d6e176682ce7ec90cb257189fc2e",
     "branch": "codex/portrait-string-art-release",
     "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
-    "status": "validated release; publication verification pending",
-    "published": false,
+    "status": "verified public 2.195; Portrait String art and adjustable Nails present; public bytes identical to tested build",
+    "published": true,
     "validation": {
       "stringArt": 197,
       "legacyPortrait": 96,
@@ -801,6 +801,13 @@
       "browser": "local real photo, 60/200/400 nail comparisons; app 80→200 control update preserves one path",
       "environment": "Reused dependencies from previous release after verifying identical package-lock SHA256; initial older dependency set lacked pdfjs-dist/build/pdf.mjs."
     },
-    "physicalPrintSent": false
+    "physicalPrintSent": false,
+    "commit": "6a3577565b2b594a3d34ee8fcb21da0d358eaaf2",
+    "pagesRunId": 43953906293,
+    "publicAppSha256": "c4d6ac4ffa705450c9449e6a7149e773e917cdc65abe7dec54dbfbc0994fbd8a",
+    "matchesTestedBuild": true,
+    "url": "https://bambi8000.github.io/Muusia/",
+    "snapshot": "/private/tmp/muusia-string-art-snapshot-20261116",
+    "snapshotStatus": "prepared locally only; refresh after final documentation commit; no Claude upload"
   }
 }

@@ -6911,3 +6911,14 @@ the ordered catalog / production build / 37,914 Learn checks. Current dependenci
 use the same package-lock as the prior release. Public deployment verification
 is recorded in WORKSTATE after completion. No physical plot,
 printer job, hardware configuration update or Claude web upload requested.
+
+
+Portrait String art release 6a3577565b2b594a3d34ee8fcb21da0d358eaaf2 is now
+published as 2.195. Its exact Pages run 43953906293 passed build, 37,914 Learn
+checks and deployment. Public root HTML is byte-identical to the tested build:
+SHA256 c4d6ac4ffa705450c9449e6a7149e773e917cdc65abe7dec54dbfbc0994fbd8a.
+Verified version, String art, Thread lines and stringNails in the public app.
+No hardware or print job was sent. Clean source snapshot prepared locally at
+/private/tmp/muusia-string-art-snapshot-20261116; refresh after this final docs
+commit. No Claude web upload. Continue from the String art release worktree or
+current origin/main; the primary checkout remains historical and dirty.
