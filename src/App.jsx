@@ -903,7 +903,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.191"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.192"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -1395,11 +1395,11 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
   const q1 = (v) => Math.round(v * 10) / 10;
   const els = [];
   if (ps.receiptText) {
-    const receipt = ps.receiptText, metrics = RECEIPT_FONTS[receipt.font];
+    const receipt = ps.receiptText, metrics = RECEIPT_FONTS[receipt.font], size = receipt.size || 1;
     const scale = W / 512 * s;
-    els.push(<g key="receipt-text" transform={`translate(${ox},${oy}) scale(${scale})`} fill="black" fontFamily="'Courier New', monospace" fontSize={metrics.height}>
-      {receipt.lines.map((line, row) => line.trim() ? <text key={row} x={receipt.left} y={row * receipt.lineSpacing + metrics.height * 0.8}
-        xmlSpace="preserve" textLength={line.length * metrics.width} lengthAdjust="spacingAndGlyphs">{line}</text> : null)}
+    els.push(<g key="receipt-text" transform={`translate(${ox},${oy}) scale(${scale})`} fill="black" fontFamily="'Courier New', monospace" fontSize={metrics.height * size}>
+      {receipt.lines.map((line, row) => line.trim() ? <text key={row} x={receipt.left} y={row * receipt.lineSpacing + metrics.height * size * 0.8}
+        xmlSpace="preserve" textLength={line.length * metrics.width * size} lengthAdjust="spacingAndGlyphs">{line}</text> : null)}
     </g>);
   }
   (ps.paths || []).forEach((p, i) => {
@@ -4198,7 +4198,7 @@ export default function App() {
               )}
               <div style={{ flex: 1 }} />
               <div style={{ fontSize: 10, color: T.dim, fontVariantNumeric: "tabular-nums", fontFamily: mono, whiteSpace: "nowrap" }}>
-                {nativeReceipt ? `${nativeReceipt.lines.length} ASCII rows · Font ${nativeReceipt.font}` : <>{String(stats.n).padStart(4, "\u2007")} paths · {String(stats.pts).padStart(6, "\u2007")} pts · {(stats.L / 1000).toFixed(2).padStart(6, "\u2007")} m</>}
+                {nativeReceipt ? `${nativeReceipt.lines.length} ASCII rows · Font ${nativeReceipt.font} · ${nativeReceipt.size || 1}×` : <>{String(stats.n).padStart(4, "\u2007")} paths · {String(stats.pts).padStart(6, "\u2007")} pts · {(stats.L / 1000).toFixed(2).padStart(6, "\u2007")} m</>}
               </div>
             </div>
             {testCropControls}
@@ -4578,7 +4578,7 @@ export default function App() {
             <div style={{ marginTop: 14, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
               <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", color: T.text }}>MUUSIA PRINT · TM-T88V</div>
               <div style={{ color: T.dim, fontSize: 10, lineHeight: 1.4, margin: "4px 0 7px" }}>
-                {nativeReceipt ? `ASCII receipt · Font ${nativeReceipt.font} · ${nativeReceipt.lines[0]?.length || 0} columns × ${nativeReceipt.lines.length} rows. Printed with the printer’s own characters; preview uses a substitute font.` : <>Selected node → black lines on 80 mm thermal paper. Thermal Text adds Epson font text before or after the image. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / RECEIPT_DOTS_PER_MM)} mm of image.</>}
+                {nativeReceipt ? `ASCII receipt · Font ${nativeReceipt.font} · ${nativeReceipt.size || 1}× · ${nativeReceipt.lines[0]?.length || 0} columns × ${nativeReceipt.lines.length} rows. Printed with the printer’s own characters; preview uses a substitute font.` : <>Selected node → black lines on 80 mm thermal paper. Thermal Text adds Epson font text before or after the image. Fits canvas width to 512 dots (72 mm print area); maximum {Math.round(RECEIPT_MAX_HEIGHT_DOTS / RECEIPT_DOTS_PER_MM)} mm of image.</>}
               </div>
               <input aria-label="Receipt server URL" value={printUrl} onChange={e => setPrintUrl(e.target.value)} placeholder="http://127.0.0.1:8633"
                 style={{ boxSizing: "border-box", width: "100%", background: T.panel2, color: T.text, border: `1px solid ${T.line}`, borderRadius: 4, padding: "5px 7px", fontSize: 10, fontFamily: mono }} />

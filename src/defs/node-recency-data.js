@@ -1211,9 +1211,9 @@ export const NODE_RECENCY = {
     "sha256": "05e9186cdfae447ad8e705db4b7f36a12c197d9238269815c2413ec3a626a3a2"
   },
   "receiptascii": {
-    "date": "2026-11-14",
-    "order": 136,
-    "sha256": "e5758d9ed13cb6fed77d16f98922ed2b3c8549d654be7dd853b61069ffa384ae"
+    "date": "2026-11-16",
+    "order": 137,
+    "sha256": "e188e07983881879d235aa476d9215f24862643a93c0131ae9934ee33a22c89a"
   },
   "rectcollage": {
     "date": "2026-07-22",

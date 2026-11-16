@@ -36,6 +36,28 @@ class AsciiTests(unittest.TestCase):
             self.assertTrue(all(rows <= 16 * 18 for _, rows in parts))
             self.assertEqual(sum(data.count(b"\x1dVA\x20") for data, _ in parts), 1)
 
+    def test_native_size_all_fonts_and_scales(self):
+        legacy = ascii_receipt.escpos_text(self.body)
+        self.assertEqual(legacy, ascii_receipt.escpos_text({**self.body, "size": 1}))
+        for font, width, height in (("A", 12, 24), ("B", 9, 17)):
+            for size in range(1, 9):
+                columns = 512 // (width * size)
+                body = {**self.body, "font": font, "size": size, "left": (512 - columns * width * size) // 2,
+                        "lineSpacing": height * size + 1, "lines": ["0" * columns] * 33}
+                data = ascii_receipt.escpos_text(body)
+                self.assertEqual(data[9], (size - 1) * 17)
+                parts = ascii_receipt.program_segments(data)
+                self.assertEqual(b"".join(part for part, _ in parts), data)
+                self.assertEqual(sum(rows for _, rows in parts), 33 * body["lineSpacing"])
+                self.assertTrue(all(rows <= 288 for _, rows in parts))
+                with self.assertRaises(ValueError):
+                    ascii_receipt.escpos_text({**body, "lines": ["0" * (columns + 1)]})
+                with self.assertRaises(ValueError):
+                    ascii_receipt.escpos_text({**body, "lineSpacing": height * size - 1})
+        for size in (0, 9, -1, True, "2", 1.5, None):
+            with self.subTest(size=size), self.assertRaises(ValueError):
+                ascii_receipt.escpos_text({**self.body, "size": size})
+
     def test_http_binary_preview_and_queue(self):
         httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
         threading.Thread(target=httpd.serve_forever, daemon=True).start()

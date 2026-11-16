@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import def from "../src/defs/nodes/receiptascii.js";
 import { asciiReceipt, encodeAsciiReceipt, RECEIPT_FONTS } from "../src/receipt-ascii.js";
 import { RECEIPT_MAX_HEIGHT_DOTS } from "../src/receipt-format.js";
@@ -12,6 +13,24 @@ const base = run();
 assert.deepEqual(base, run(), "same seed must reproduce every character");
 assert.notDeepEqual(base, run({ seed: 7 }));
 assert.equal(base.paths.length, 0, "receipt characters must not become plotter geometry");
+assert.equal(createHash("sha256").update(encodeAsciiReceipt(base.receiptText)).digest("hex"), "1605980dfe61ac0e6bbfb9c13c3e8c5e30eb36b225031b92b6e913d285e48c5b", "1× preserves the published 2.191 program exactly");
+const legacy = { ...base.receiptText }; delete legacy.size;
+assert.deepEqual(encodeAsciiReceipt(legacy), encodeAsciiReceipt(base.receiptText));
+const legacyParams = { ...defaults }; delete legacyParams.size;
+assert.deepEqual(def.compute([], legacyParams, { W: 80, H: 300 }), base);
+for (const font of ["A", "B"]) for (let size = 1; size <= 8; size++) {
+  const receipt = asciiReceipt(run({ font, size, cols: 56 }, 80, 1000).receiptText), metrics = RECEIPT_FONTS[font];
+  const maxCols = Math.floor(512 / (metrics.width * size));
+  assert.equal(receipt.size, size);
+  assert.equal(receipt.lines[0].length, maxCols);
+  assert.equal(receipt.lineSpacing, metrics.height * size + 1);
+  assert.equal(receipt.lines.length, Math.floor(6400 / receipt.lineSpacing));
+  assert.equal(receipt.left, Math.floor((512 - maxCols * metrics.width * size) / 2));
+  const js = Buffer.from(encodeAsciiReceipt(receipt));
+  assert.equal(js[9], (size - 1) * 17, "native GS ! scales width and height");
+  const python = execFileSync("python3", ["-c", "import sys,json;sys.path.insert(0,'print-server');import ascii_receipt;sys.stdout.buffer.write(ascii_receipt.escpos_text(json.load(sys.stdin)))"], { input: JSON.stringify(receipt) });
+  assert.deepEqual(js, python, `${font} ${size}× native parity`);
+}
 for (const pattern of ["Error weave", "Waves", "Stream", "Noise"]) {
   for (const font of ["A", "B"]) {
     const { receiptText } = run({ pattern, font, cols: 1e9 }, 80, 1000);
@@ -40,6 +59,8 @@ for (const bad of [
   { font: "C" }, { lines: ["\x1b@"] }, { lines: ["\n"] }, { lines: ["ä"] },
   { lines: ["a".repeat(57)] }, { lineSpacing: 16 }, { lineSpacing: 256 },
   { left: -1 }, { left: 1.5 }, { lines: [] }, { lines: Array(Math.floor(RECEIPT_MAX_HEIGHT_DOTS / 18) + 1).fill("0") },
+  ...[0, 9, -1, 1.5, true, "2", null].map(size => ({ size })),
+  { size: 2, lineSpacing: 33 }, { size: 8, lineSpacing: 137, lines: ["0".repeat(8)] },
 ]) assert.throws(() => asciiReceipt({ ...base.receiptText, ...bad }));
 assert.deepEqual(encodeAsciiReceipt(base.receiptText, false).slice(-2), new Uint8Array([27, 64]));
 
@@ -48,7 +69,7 @@ try {
   const requests = [];
   globalThis.fetch = async (url, options) => {
     requests.push({ url, options });
-    return { ok: true, json: async () => url.endsWith("/health") ? { formats: ["image", "text"] }
+    return { ok: true, json: async () => url.endsWith("/health") ? { formats: ["image", "text"], asciiSizeVersion: 1 }
       : options?.method === "POST" ? { id: "test-job" } : { id: "test-job", status: "done" } };
   };
   assert.equal((await sendReceipt("http://127.0.0.1:8631", asciiReceipt(base.receiptText), false)).status, "done");
@@ -56,6 +77,12 @@ try {
   assert.equal(sent.kind, "text");
   assert.equal(sent.cut, false);
   assert.deepEqual(sent.lines, base.receiptText.lines);
+  await sendReceipt("http://127.0.0.1:8631", asciiReceipt(run({ size: 4 }).receiptText));
+  assert.equal(JSON.parse(requests[4].options.body).size, 4);
+  let resizedPost = false;
+  globalThis.fetch = async (_url, options) => { resizedPost ||= options?.method === "POST"; return { ok: true, json: async () => ({ formats: ["image", "text"] }) }; };
+  await assert.rejects(sendReceipt("http://localhost:8631", asciiReceipt(run({ size: 2 }).receiptText)), /Update.*character sizes/);
+  assert.equal(resizedPost, false, "old server must not silently print resized art at 1×");
   let posted = false;
   globalThis.fetch = async (_url, options) => { posted ||= options?.method === "POST"; return { ok: true, json: async () => ({ ready: true }) }; };
   await assert.rejects(sendReceipt("http://localhost:8631", asciiReceipt(base.receiptText)), /Update the Muusia print server/);

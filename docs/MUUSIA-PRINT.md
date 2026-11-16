@@ -278,3 +278,14 @@ ei tässä kokeessa vahvistettu. Palvelu jätettiin pysäytetyksi.
 Help → Receipt ASCII · Beautiful error tuottaa videon kaltaisia pieniä merkkiryhmiä ja vinoja aaltoja. Dense stream tekee tiheämmän nauhan. Valitse node ja PRINT ASCII RECEIPT tai DOWNLOAD ESCPOS. Density, Wave, Drift per row, Repeat columns ja Corruption säätävät rytmiä. Font B sallii enintään 56 saraketta ja Font A 42. Canvasin kuvasuhde määrää pituuden; esikatselun fontti on korvaava, paperilla käytetään Epsonin omia merkkejä. Merkit ovat tulostuvaa ASCII:a, eivät kuvarasteria. Viivamuokkaimet, plotteriviennit ja freimivienti eivät koske tätä ulostuloa.
 
 Päivitetyn palvelimen `/health` ilmoittaa `formats: ["image", "text"]`. Uudet `/api/ascii-jobs`, `/api/ascii-bin` ja `/api/ascii-preview` hyväksyvät rajatut kentät `font`, `lineSpacing`, `left`, `lines` ja `cut`. Binääri ja suora lähetys sisältävät samat tavut. Esikatselupyyntö ei jonota työtä. Palvelin hylkää ohjausmerkit ja liian leveät/pitkät rivit. Teksti kulkee nykyisen jatkuvan kuitattavan USB-siirron kautta 16 rivin paloina; aiempi kuva-, Thermal Text-, Surface- ja 50 m tulostus säilyvät. Leikkaus on nykyinen GS V 65 32, kerran lopussa.
+
+### Receipt ASCII: merkkikoko (2.192)
+
+**Character size ×** suurentaa merkit molempiin suuntiin 1–8-kertaisiksi.
+Sarakemäärä rajoitetaan automaattisesti kuitin leveyteen, ja riviväli seuraa
+merkin korkeutta sekä Row gap -arvoa. Esikatselu näyttää saman koon.
+Oletus 1× säilyttää aiemman tulosteen tavut; vanhat projektit ja pyynnöt ilman
+`size`-kenttää käyttävät 1×-kokoa. Uusi palvelin ilmoittaa `/health`-vastauksessa
+`asciiSizeVersion: 1`; suurennettu tulostus pyytää päivittämään vanhan palvelimen.
+Tekstin siirtopalat rajataan myös paperinsyötön mukaan enintään 288 pisteeseen.
+Koko on tulostimen oma [GS ! -suurennus](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/gs_exclamation.html).

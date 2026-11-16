@@ -629,5 +629,14 @@
       }
     },
     "snapshot": "/private/tmp/muusia-receipt-ascii-snapshot-20261114"
+  },
+  "lastReceiptAsciiSize": {
+    "version": "2.192",
+    "date": "2026-11-16",
+    "baseCommit": "993b54d8e4e7ed96c20e7cfd3e81ce68ca37a82e",
+    "status": "validated; publication pending",
+    "validation": "Both ROM fonts at all 1–8× sizes; native byte parity; 1× exact old program; missing-size legacy defaults; width/row bounds; old-server rejection; actual browser 3× control/18 columns/36 rows and exact ESC/POS download; 29 Python Print tests; 184 Help graphs; lint/catalog/build/37914 Learn checks.",
+    "serviceBackup": "/home/print/muusia-print/before-ascii-size-20261116",
+    "physicalPrintSent": false
   }
 }

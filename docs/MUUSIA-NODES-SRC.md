@@ -42354,13 +42354,14 @@ const num = (value, fallback, lo, hi) => Math.max(lo, Math.min(hi, Number.isFini
 
 export default {
   key: "receiptascii", name: "Receipt ASCII", cat: "gen", group: "textimg",
-  desc: "Native receipt-printer character art inspired by a beautiful error print. Error weave makes drifting diagonal groups and denser bands; Waves, Stream and Noise explore other rhythms. Characters takes printable ASCII; spaces make gaps. Columns is limited to 56 (Font B) or 42 (Font A). Canvas aspect sets the roll length; Row gap adds space between lines. Seed repeats the same print. Select this node and PRINT ASCII RECEIPT, or DOWNLOAD ESCPOS. The preview uses a substitute monospace font; the printer uses its own Epson font. This output is receipt text, so path modifiers and plotter exports do not apply.",
+  desc: "Native receipt-printer character art inspired by a beautiful error print. Error weave makes drifting diagonal groups and denser bands; Waves, Stream and Noise explore other rhythms. Characters takes printable ASCII; spaces make gaps. Character size enlarges native glyphs 1–8× in both directions; columns and row count automatically fit the paper. At 1×, Columns is limited to 56 (Font B) or 42 (Font A). Canvas aspect sets the roll length; Row gap adds space between lines. Seed repeats the same print. Select this node and PRINT ASCII RECEIPT, or DOWNLOAD ESCPOS. The preview uses a substitute monospace font; the printer uses its own Epson font. This output is receipt text, so path modifiers and plotter exports do not apply.",
   ins: [], outs: [Pin("paths", "Receipt text")],
   params: [
     { key: "pattern", label: "Pattern", type: "select", options: ["Error weave", "Waves", "Stream", "Noise"], def: "Error weave" },
     { key: "characters", label: "Characters", type: "text", def: "01':;|" },
     { key: "font", label: "Printer font", type: "select", options: ["B", "A"], def: "B" },
-    { key: "cols", label: "Columns", type: "slider", min: 8, max: 56, step: 1, def: 52 },
+    { key: "size", label: "Character size ×", type: "slider", min: 1, max: 8, step: 1, def: 1 },
+    { key: "cols", label: "Columns", type: "slider", min: 1, max: 56, step: 1, def: 52 },
     { key: "density", label: "Density", type: "slider", min: 0, max: 1, step: 0.01, def: 0.36 },
     { key: "repeat", label: "Repeat columns", type: "slider", min: 3, max: 40, step: 0.1, def: 10.5 },
     { key: "drift", label: "Drift per row", type: "slider", min: -3, max: 3, step: 0.05, def: 0.65 },
@@ -42372,8 +42373,10 @@ export default {
   ],
   compute(_ins, p, ctx) {
     const font = p.font === "A" ? "A" : "B", metrics = RECEIPT_FONTS[font];
-    const cols = Math.round(num(p.cols, 52, 8, metrics.columns));
-    const lineSpacing = metrics.height + Math.round(num(p.gap, 1, 0, 36));
+    const size = Math.round(num(p.size, 1, 1, 8));
+    const cellWidth = metrics.width * size;
+    const cols = Math.round(num(p.cols, 52, 1, Math.floor(512 / cellWidth)));
+    const lineSpacing = metrics.height * size + Math.round(num(p.gap, 1, 0, 36));
     const height = Math.round(num(ctx.H / ctx.W * 512, 1024, lineSpacing, RECEIPT_MAX_HEIGHT_DOTS));
     const rows = Math.max(1, Math.floor(height / lineSpacing));
     const characters = String(p.characters ?? "01':;|").replace(/[^\x20-\x7e]/g, "").slice(0, 256) || "01':;|";
@@ -42402,7 +42405,7 @@ export default {
       }
       lines.push(line);
     }
-    return { paths: [], receiptText: { font, lineSpacing, left: Math.floor((512 - cols * metrics.width) / 2), lines } };
+    return { paths: [], receiptText: { font, size, lineSpacing, left: Math.floor((512 - cols * cellWidth) / 2), lines } };
   },
 };
 ```

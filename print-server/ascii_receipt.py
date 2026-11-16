@@ -10,6 +10,11 @@ def escpos_text(body, cut=True):
     if font not in ("A", "B"):
         raise ValueError("Text font must be A or B")
     cell_width, cell_height = (12, 24) if font == "A" else (9, 17)
+    size = body.get("size", 1)
+    if type(size) is not int or not 1 <= size <= 8:
+        raise ValueError("ASCII character size must be 1–8")
+    cell_width *= size
+    cell_height *= size
     spacing, left, lines = body.get("lineSpacing"), body.get("left"), body.get("lines")
     if type(spacing) is not int or not cell_height <= spacing <= 255:
         raise ValueError("Invalid text line spacing")
@@ -23,6 +28,7 @@ def escpos_text(body, cut=True):
     out = bytearray(b"\x1b@\x1c.\x1bM")
     out.append(1 if font == "B" else 0)
     out.extend(b"\x1d!\x00\x1bR\x00\x1bt\x00\x1b \x00\x1ba\x00\x1dL\x00\x00\x1dW\x00\x02\x1dP\xb4\xb4\x1b3")
+    out[9] = (size - 1) * 17
     out.append(spacing)
     for line in lines:
         out.extend((27, 36, left & 255, left >> 8))
@@ -39,6 +45,7 @@ def program_segments(data):
     # escpos_text owns this fixed header. Skip each four-byte ESC $ position
     # before finding LF: its numeric position byte may itself equal 0x0A.
     spacing = data[36]
+    rows_per_part = max(1, min(16, 288 // spacing))
     position, start, rows = 37, 0, 0
     parts = []
     while data[position:position + 2] == b"\x1b$":
@@ -47,7 +54,7 @@ def program_segments(data):
             raise ValueError("Truncated ASCII row")
         position = end + 1
         rows += 1
-        if rows == 16:
+        if rows == rows_per_part:
             parts.append((data[start:position], rows * spacing))
             start, rows = position, 0
     parts.append((data[start:], rows * spacing))

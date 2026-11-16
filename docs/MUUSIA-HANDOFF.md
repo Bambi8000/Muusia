@@ -6756,3 +6756,25 @@ PRINT ASCII RECEIPT / DOWNLOAD ESCPOS. Live Pi bin SHA256 matches the same
 106-row browser/client program (6085 bytes); preview/bin calls created no jobs.
 Service ready in USB mode, queue empty, Clock off. Final clean snapshot refreshed
 at /private/tmp/muusia-receipt-ascii-snapshot-20261114; prepared locally only.
+
+
+### 2.192 — Receipt ASCII character size
+
+Daniel requested letter size for Receipt ASCII. Character size × (1–8)
+enlarges native glyph width and height together; effective columns fit the
+512-dot paper, and line spacing/row count follow the enlarged font plus Row gap.
+Preview and ESC/POS share the size. Missing size defaults to 1×; the published
+2.191 default program retains its exact SHA256. Both JS and Python validate
+size and scaled bounds. GS ! uses the same integer enlargement in both encoders.
+The service advertises asciiSizeVersion 1; enlarged requests reject older
+servers before queuing rather than printing silently at 1×. Text transport
+parts are additionally bounded to 288 feed dots, including large glyphs.
+
+29 Python Print/USB tests, all 16 font/size combinations with client/server byte
+parity, legacy default/bounds/send checks, 184 Help graphs, focused lint and
+ordered catalog/build/37914 Learn checks pass. Actual 2.192 browser adjustment
+1×→3× produced 18 columns ×36 rows and matching native GS ! byte 34 in its
+download. Pi update backed up server.py/ascii_receipt.py to
+/home/print/muusia-print/before-ascii-size-20261116; no physical print sent.
+The service was idle with Clock off; printer device was not connected during
+preflight. Live binary/preview and exact Pages publication recorded after push.
