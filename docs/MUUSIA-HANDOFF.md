@@ -7144,3 +7144,58 @@ Verified public version, Bounce control and Random bounce starter. No physical
 print. Refresh local snapshot /private/tmp/muusia-double-pendulum-bounce-snapshot-20261117
 after this final documentation commit; no Claude web upload. Primary remains
 historical and dirty; continue from current origin/main or this release worktree.
+
+
+### 2.200 — Differential Growth: bounded line growth with holes
+
+2026-11-17 · Base 63bfe89e164c0c2f36cf66bd19c356b94e1315a0. Daniel approved
+implementing the reviewed Line Growth engine in the existing Differential
+Growth node. **Mode → Bounded** adds **Boundary** and **Start** paths on ports
+1/2; Style remains port 0. **Classic** remains the default. Eighteen original
+Classic fixtures on portrait/landscape sheets exactly match the previous module.
+
+Auto boundary uses supplied closed contours, otherwise a circle; Circle/Canvas
+and required Wired options are available. Nested rings use even-odd holes.
+Auto start uses wired simple open/closed lines or a circle in the roomiest
+region; Circle/Line options and Start size are provided. Imported starts clip
+at boundaries and holes into honest separate strands. Invalid/crossing/touching
+starts, self-intersecting boundaries and oversized inputs return empty rather
+than inventing connectors. One start only grows within its connected region;
+multiple islands need their own starts. Inputs are never mutated.
+
+Growth %, Steps, Spacing mm, Max points, Chaos and Seed control repeatable
+simulation. Point budget is shared across all strands (up to12,000); built-in
+starts are sampled evenly to fit it. One final path per accepted starting
+strand; guides/history do not plot. Physical nib clearance is not guaranteed.
+Spacing controls repulsion reach. Style is applied last and may split strokes.
+
+New plain-ESM helpers: line-growth-engine.js (adapted Gilbert Chen MIT engine,
+boundary and geometry, pinned upstream6cd6467d9c3f9d8e97ce36a15d20cac2b9032dea;
+complete MIT notice retained) and line-growth.js (Muusia normalization, starts,
+clipping, controls, two-entry fixed-checkpoint cache). Joint per-step boundary
+and inclusive contact checks reject new crossings and shortcuts across holes;
+64-pass exhaustion rolls the entire step back. Final/checkpoint verification
+rejects adjacent degeneracy too. A deterministic16-million node-step work cap
+bounds long runs. Partial Growth is simulated on a copy, preserving scrub/fresh
+parity. No worker or external dependency and no shared exporter change.
+App.jsx changes only APP_VERSION. Full upstream credit/adaptation details are
+in MUUSIA-LINE-GROWTH-NOTICE.md and the engine license header. No network compute.
+
+Four Help examples and tools/line-growth-preview.mjs reproduce real built-in
+outputs. Keep the hole uses Lettering O, Depth0/Outline and Spacing4.5 so one
+auto-start fills the letter while preserving its hole. 284 focused checks pass:
+independent segment/inside/boundary checks, determinism and scrub parity,
+controls, clipping through holes, multiple starts, invalid inputs, hard limits,
+all four complete example graphs, Style and actual SVG/servo/bed-Z continuity.
+All194 Help graphs and focused lint pass. Native browser verified Mode Bounded,
+Boundary wiring, Growth100→35→100 and Spacing2.2→4.5. Final O export: one SVG
+path, one servo lower, all3316draw segments including closure before lift,
+no mid-stroke travel or bounds warning. No hardware run. Evidence:
+docs/line-growth-checks.json. Ordered release gate and exact public deployment
+are recorded below after completion. Primary checkout remains historical and
+dirty; continue from this release worktree or current origin/main.
+
+2.200 release gate passed in order: catalog/recency, production build and
+37,914 Learn checks. Focused284 checks, eighteen Classic parity fixtures,
+all194 Help graphs and lint pass. Exact-commit public deployment remains to
+be verified. No other app/engine/export behavior changed.

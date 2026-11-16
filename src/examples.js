@@ -910,6 +910,35 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Differential Growth · Bounded disc", desc: "Select Differential Growth, Mode Bounded. One final closed line folds inside the circle. Raise Growth % to continue, lower Spacing mm for denser folds, and change Seed for another repeatable result. Max points caps detail. The dashed boundary is a guide and never plots; only the final line exports. Growth can take a few seconds and stops at point/work limits. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "diffgrowth", x: 30, y: 20, params: { ...defaults("diffgrowth"), mode: "Bounded" } }], edges: [] }),
+  },
+  {
+    name: "Differential Growth · Keep the hole", desc: "Lettering O, with Outline and Depth 0, feeds the Boundary input. Both closed contours define the region; the centre remains empty. Select Differential Growth. Auto places a small start circle where there is room, then grows it inside the letter. The letter outline remains a guide, so the output is just one grown line. Try Growth %, Spacing mm and Seed. One start grows inside one connected region. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lettering", x: 25, y: 20, params: { ...defaults("lettering"), text: "O", size: 120, weight: 42, depth: 0, fill: "Outline" } },
+      { id: 9002, type: "diffgrowth", x: 345, y: 20, params: { ...defaults("diffgrowth"), mode: "Bounded", spacing: 4.5, maxPoints: 3600 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 1 }] }),
+  },
+  {
+    name: "Differential Growth · Grow a drawn line", desc: "Draw Path feeds Start, the second blue input. Select Differential Growth to see the final grown open line. Edit Draw Path, or replace it with your own simple SVG line. Boundary clips the start at holes or edges; disconnected pieces remain separate strokes. Starts that cross or touch one another are refused. One accepted line remains one continuous stroke. Keep Seed fixed while changing Growth %. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 25, y: 20, params: { ...defaults("drawn_path"), points: [[.22,.5],[.35,.48],[.5,.52],[.65,.48],[.78,.5]], smoothness: 50 } },
+      { id: 9002, type: "diffgrowth", x: 345, y: 20, params: { ...defaults("diffgrowth"), mode: "Bounded" } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 2 }] }),
+  },
+  {
+    name: "Differential Growth · Own boundary", desc: "A closed Draw Path supplies the Boundary. Edit its points to change the region. Differential Growth grows a final line inside the concave outline. Closed contours nested inside another are holes; disjoint regions need their own starts if you want to fill each one. Keep the supplied boundary simple. The boundary is a guide and does not add a plotted outline. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 25, y: 20, params: { ...defaults("drawn_path"), closed: true, points: [[.08,.15],[.65,.05],[.95,.27],[.72,.46],[.94,.85],[.4,.95],[.08,.78],[.2,.45]], smoothness: 0 } },
+      { id: 9002, type: "diffgrowth", x: 345, y: 20, params: { ...defaults("diffgrowth"), mode: "Bounded" } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 1 }] }),
+  },
+  {
     name: "Double Pendulum · Random bounce", desc: "Full disc with Bounce 85% sends one continuous line irregularly between the outer rim and centre. Try Bounce 100% for the strongest radial flights, or 0 for the original orbit. Seed gives another repeatable route; Traces adds density. Avoid retracing and Line spacing mm apply to the whole stroke, including rounded turns and detours. A crowded route may end early. A4 wide.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [{ id: 9001, type: "double_pendulum", x: 30, y: 20, params: { ...defaults("double_pendulum"), motion: "Full disc", bounce: 85, seed: 1, traces: 3, time: 12, cy: 50, noRetrace: true, lineGap: .6, fillCentre: true } }], edges: [] }),

@@ -1985,10 +1985,30 @@ artwork in for a low-poly version.
 by normalized iteration count. The c-parameters accept value wires, so an LFO
 turns the fractal into a living, loop-seamless organism.
 
-**Differential Growth** — the classic organic-growth algorithm: a seed circle
-whose points repel neighbours and split stretched edges until the line fills
-space like coral. Deterministic (position-hashed chaos); wire Iterations to
-animate. Heavier at high iteration counts.
+**Differential Growth** — **Classic** keeps the original seeded-circle simulation
+and Iterations behavior unchanged. **Bounded** grows the final line inside a
+closed **Boundary** input (blue port 1) or a built-in Circle/Canvas. Auto uses a
+wired boundary when supplied; Wired requires one. Nested closed contours are
+even-odd holes. **Start** input (blue port 2) accepts simple open or closed lines;
+Auto uses them or makes a small circle in the roomiest region. Circle and Line
+ignore the wired start, with **Start size %** measured against local clearance.
+One start grows inside one connected region; provide starts for other islands.
+Imported lines are clipped at boundary edges/holes and disconnected pieces stay
+separate; crossing, touching, degenerate or oversized starts are refused.
+**Growth %** controls simulation progress up to **Steps**. **Spacing mm** controls
+repulsion reach/density, not a guaranteed physical nib clearance. **Max points**
+caps all strands together (200–12,000). Seed and Chaos give repeatable variations.
+Boundary/segment checks hold back invalid motion, including whole segments across
+holes, with a valid fallback and a 16-million node-step work budget. Large requests
+may stop before all Steps; lower Spacing needs more detail and time. Initial
+built-in circles are sampled evenly to the point budget. Fixed-checkpoint caching
+makes increasing Growth faster and scrubbing deterministic. A first dense growth
+can take a few seconds. Only final strands export; boundary guides and history
+do not. One strand stays one stroke; separate strands need lifts. Style is port 0
+and applies last, so dashes can split strokes. No spline smoothing after the
+geometry check. Based on Gilbert Chen’s MIT Line Growth; see
+`MUUSIA-LINE-GROWTH-NOTICE.md`. Help: **Bounded disc**, **Keep the hole**,
+**Grow a drawn line**, **Own boundary**.
 
 **Runes** — asemic writing: a seeded alphabet of invented angular glyphs laid out
 in words and lines. Repeating letters from a finite alphabet make it read as

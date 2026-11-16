@@ -382,6 +382,8 @@
   "grid"
  ],
  "diffgrowth": [
+  "region",
+  "connect",
   "animation",
   "chaos",
   "organic",

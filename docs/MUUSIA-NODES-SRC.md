@@ -12918,25 +12918,40 @@ export default {
 
 ```js
 import { Pin, mulberry32, noise2, applyStyle } from "../helpers.js";
+import { boundedLineGrowth, lineGrowthRegion } from "../line-growth.js";
 
 export default {
   key: "diffgrowth",
     name: "Differential Growth",
     cat: "gen",
     group: "organic",
-    ins: [Pin("style", "Style")],
+    desc: "Classic keeps the original circle simulation. Bounded grows a final line inside the Boundary input or a built-in Circle/Canvas. Closed Boundary paths use even-odd holes. Auto start uses wired Start paths or a small circle; Circle and Line start in the roomiest region. Growth % reveals simulation progress; Steps sets full growth and Spacing mm controls the repulsion reach and density, not a guaranteed physical nib clearance. Max points caps total detail. Seed and Chaos vary repeatable growth. Wired starts are clipped at the boundary and holes; disconnected pieces stay separate, while crossing or touching starts are refused. One accepted starting strand stays one stroke; several strands need pen lifts. Output includes only the final grown strands, without guides or growth history. Boundary and segment contact checks prevent new crossings; the simulation holds back invalid moves. Degenerate or oversized inputs return empty. Complex growth may take a few seconds; increasing Growth reuses the same simulation. Keep Seed and forces fixed when animating. Bounded mode uses adapted MIT Line Growth by Gilbert Chen (2026).",
+    ins: [Pin("style", "Style"), Pin("paths", "Boundary"), Pin("paths", "Start")],
     outs: [Pin("paths")],
     params: [
-      { key: "iters", label: "Iterations (wire LFO)", type: "slider", min: 0, max: 400, step: 5, def: 150 },
-      { key: "repel", label: "Repulsion radius mm", type: "slider", min: 2, max: 15, step: 0.5, def: 6 },
-      { key: "edge", label: "Edge length mm", type: "slider", min: 1, max: 6, step: 0.25, def: 2.5 },
+      { key: "mode", label: "Mode", type: "select", options: ["Classic", "Bounded"], def: "Classic" },
+      { key: "boundary", label: "Boundary", type: "select", options: ["Auto", "Circle", "Canvas", "Wired"], def: "Auto", showIf: p => p.mode === "Bounded" },
+      { key: "start", label: "Start", type: "select", options: ["Auto", "Circle", "Line", "Wired"], def: "Auto", showIf: p => p.mode === "Bounded" },
+      { key: "startSize", label: "Start size %", type: "slider", min: 1, max: 80, step: 1, def: 20, showIf: p => p.mode === "Bounded" && p.start !== "Wired" },
+      { key: "growth", label: "Growth %", type: "slider", min: 0, max: 100, step: 1, def: 100, showIf: p => p.mode === "Bounded" },
+      { key: "steps", label: "Steps", type: "slider", min: 100, max: 6000, step: 100, def: 2200, showIf: p => p.mode === "Bounded" },
+      { key: "spacing", label: "Spacing mm", type: "slider", min: .5, max: 15, step: .1, def: 3.9, showIf: p => p.mode === "Bounded" },
+      { key: "maxPoints", label: "Max points", type: "slider", min: 200, max: 12000, step: 200, def: 3600, showIf: p => p.mode === "Bounded" },
+      { key: "iters", label: "Iterations (wire LFO)", type: "slider", min: 0, max: 400, step: 5, def: 150, showIf: p => p.mode !== "Bounded" },
+      { key: "repel", label: "Repulsion radius mm", type: "slider", min: 2, max: 15, step: 0.5, def: 6, showIf: p => p.mode !== "Bounded" },
+      { key: "edge", label: "Edge length mm", type: "slider", min: 1, max: 6, step: 0.25, def: 2.5, showIf: p => p.mode !== "Bounded" },
       { key: "chaos", label: "Chaos", type: "slider", min: 0, max: 1, step: 0.05, def: 0.3 },
-      { key: "r0", label: "Seed circle mm", type: "slider", min: 5, max: 60, step: 1, def: 18 },
+      { key: "r0", label: "Seed circle mm", type: "slider", min: 5, max: 60, step: 1, def: 18, showIf: p => p.mode !== "Bounded" },
       { key: "margin", label: "Margin mm", type: "slider", min: 5, max: 60, step: 1, def: 15 },
       { key: "seed", label: "Seed", type: "seed", def: 17 },
       { key: "layer", label: "Pen", type: "pen", def: 0 }
     ],
+    overlay(p, ctx, ins) {
+      if (p.mode !== "Bounded") return [];
+      return (lineGrowthRegion(p, ctx, ins?.[1]) || []).map(pts => ({ kind: "poly", pts: [...pts, pts[0]] }));
+    },
     compute(ins, p, ctx) {
+      if (p.mode === "Bounded") return applyStyle(boundedLineGrowth(ins, p, ctx), ins[0]);
       const { W, H } = ctx;
       const m = Math.max(2, p.margin);
       const x0 = m, y0 = m, x1 = W - m, y1 = H - m;

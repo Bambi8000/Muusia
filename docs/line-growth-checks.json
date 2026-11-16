@@ -1,0 +1,90 @@
+{
+  "version": "2.200",
+  "date": "2026-11-17",
+  "baseCommit": "63bfe89e164c0c2f36cf66bd19c356b94e1315a0",
+  "source": {
+    "url": "https://github.com/gil336699/line-growth",
+    "commit": "6cd6467d9c3f9d8e97ce36a15d20cac2b9032dea",
+    "copyright": "2026 Gilbert Chen",
+    "license": "MIT"
+  },
+  "focused": {
+    "checks": 284,
+    "examples": [
+      {
+        "name": "Differential Growth \u00b7 Bounded disc",
+        "paths": 1,
+        "points": 3600
+      },
+      {
+        "name": "Differential Growth \u00b7 Keep the hole",
+        "paths": 1,
+        "points": 3316
+      },
+      {
+        "name": "Differential Growth \u00b7 Grow a drawn line",
+        "paths": 1,
+        "points": 3600
+      },
+      {
+        "name": "Differential Growth \u00b7 Own boundary",
+        "paths": 1,
+        "points": 3600
+      }
+    ],
+    "elapsedMs": 42159
+  },
+  "helpExamples": 194,
+  "legacyParityCases": 18,
+  "actualBrowser": {
+    "source": "Real built-in node and Help example; native Growth/Spacing controls and SVG/G-code export panels",
+    "checks": {
+      "version": "2.200",
+      "example": "Differential Growth \u00b7 Keep the hole",
+      "canvas": {
+        "W": 297,
+        "H": 210
+      },
+      "finalSpacingMm": 4.5,
+      "controlScrubSpacingMm": 2.2,
+      "controls": {
+        "full": "- generic: 1 paths \u00b7 3600 pts \u00b7 3.30 m",
+        "partial": "- generic: 1 paths \u00b7 3279 pts \u00b7 2.74 m",
+        "restored": "- generic: 1 paths \u00b7 3600 pts \u00b7 3.30 m",
+        "finalSpacing4_5": "- generic: 1 paths \u00b7 3316 pts \u00b7 5.61 m"
+      },
+      "svgPaths": 1,
+      "penDowns": 1,
+      "drawBeforeLift": 3316,
+      "noMidStrokeTravel": true,
+      "outOfBounds": false,
+      "hardwareRun": false
+    }
+  },
+  "files": {
+    "node": {
+      "sha256": "f976a0a0d83c965d66127124089a690d225b808b662135a661ee2d5ecc373b60",
+      "bytes": 7649
+    },
+    "engine": {
+      "sha256": "f9fadebca24705f901e115d20de15646d626c199b26ba7a115044addfa2876f8",
+      "bytes": 34561
+    },
+    "adapter": {
+      "sha256": "3c845fca59174d57f4746028520b4fbe9422945191823cc3ac81d99070381f21",
+      "bytes": 8487
+    },
+    "validator": {
+      "sha256": "8df541c07fe558689bcaf547837680486b2c9396ae82f18774aa044a6b23bcd7",
+      "bytes": 10073
+    },
+    "nativeSvg": {
+      "sha256": "667b8c5096835d4efe64d798879761f661679f52036c56052fb6d0c9c9f6465f",
+      "bytes": 43789
+    },
+    "nativeGcode": {
+      "sha256": "97d4819003112cee44ffe805deb733e01bcd3dc84536e4ef65c03d29e627516d",
+      "bytes": 80610
+    }
+  }
+}

@@ -356,9 +356,9 @@ export const NODE_RECENCY = {
     "sha256": "a028ea318ad49fc7a91304b34408a345a4f3279844621cb86457106121957c7d"
   },
   "diffgrowth": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "e2193fcd43d45b9e3866332726bf4bfae6ee01aa76e0cefa9427de7009b0552a"
+    "date": "2026-11-16",
+    "order": 144,
+    "sha256": "f976a0a0d83c965d66127124089a690d225b808b662135a661ee2d5ecc373b60"
   },
   "diffpens": {
     "date": "2026-07-22",
