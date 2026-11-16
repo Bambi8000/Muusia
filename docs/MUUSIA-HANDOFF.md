@@ -7199,3 +7199,14 @@ dirty; continue from this release worktree or current origin/main.
 37,914 Learn checks. Focused284 checks, eighteen Classic parity fixtures,
 all194 Help graphs and lint pass. Exact-commit public deployment remains to
 be verified. No other app/engine/export behavior changed.
+
+
+Bounded Differential Growth published as 2.200, implementation commit
+5ff0d6095ba6be809a3bc944cfaa2d201d384be8. Exact Pages run 43981988664 passed
+build, 37,914 Learn checks and deployment. Public root is byte-identical to the
+tested production build, SHA256
+5a7a6b0b97f94b03568d4d0a3303dfe5b8493dad255c576d789b96259e472415.
+Verified public version and all four new Help starters. No physical print.
+Refresh local snapshot /private/tmp/muusia-bounded-growth-snapshot-20261117 after
+this final documentation commit; no Claude web upload. Primary remains dirty
+and historical; continue from current origin/main or this release worktree.

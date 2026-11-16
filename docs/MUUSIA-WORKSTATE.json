@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.199",
-    "commit": "5f24d45fea2ffd5e21db6e79d05d4cb3705588fa",
-    "pagesRunId": 43977759034,
-    "publicAppSha256": "ace290f5b201305265374a9da13e78983cea50cb87ed7989ab23da9fdcc5e949",
+    "version": "2.200",
+    "commit": "5ff0d6095ba6be809a3bc944cfaa2d201d384be8",
+    "pagesRunId": 43981988664,
+    "publicAppSha256": "5a7a6b0b97f94b03568d4d0a3303dfe5b8493dad255c576d789b96259e472415",
     "matchesTestedBuild": true,
     "date": "2026-11-17",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.199; Bounce and Random bounce starter present; exact tested bytes",
+    "status": "verified public 2.200; Bounded Differential Growth and four Help starters present; exact tested bytes",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -944,8 +944,8 @@
     "baseCommit": "63bfe89e164c0c2f36cf66bd19c356b94e1315a0",
     "branch": "codex/bounded-differential-growth",
     "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
-    "status": "validated; exact public deployment pending",
-    "published": false,
+    "status": "verified public 2.200; Bounded Differential Growth and four Help starters present; exact tested bytes",
+    "published": true,
     "behavior": "Opt-in Bounded Differential Growth with Boundary/Start inputs, even-odd holes, growth/spacing/point controls, checked final noncrossing strokes and fixed-checkpoint caching; Classic unchanged.",
     "validation": {
       "focused": 284,
@@ -955,15 +955,20 @@
       "build": "passed",
       "learn": 37914,
       "lint": "passed",
-      "actualBrowser": "Bounded O/Boundary wiring; Growth100\u219235\u2192100;Spacing4.5;native SVG one path,G-code one lower and3316draw moves including closure before lift,no travel/bounds warning."
+      "actualBrowser": "Bounded O with Boundary wiring; Growth 100\u219235\u2192100; Spacing 4.5 mm; native SVG one path; G-code one lower and all 3316 draw moves including closure before lift; no mid-stroke travel or bounds warning."
     },
     "upstream": {
       "project": "gil336699/line-growth",
       "commit": "6cd6467d9c3f9d8e97ce36a15d20cac2b9032dea",
-      "license": "MIT, Copyright2026GilbertChen; retained in source and notice"
+      "license": "MIT, Copyright 2026 Gilbert Chen; complete license retained in engine source and notice"
     },
     "evidence": "docs/line-growth-checks.json",
     "physicalPrintSent": false,
-    "snapshot": "/private/tmp/muusia-bounded-growth-snapshot-20261117 (local only; refresh after final documentation commit)"
+    "snapshot": "/private/tmp/muusia-bounded-growth-snapshot-20261117 (local only; refresh after final documentation commit)",
+    "commit": "5ff0d6095ba6be809a3bc944cfaa2d201d384be8",
+    "pagesRunId": 43981988664,
+    "publicAppSha256": "5a7a6b0b97f94b03568d4d0a3303dfe5b8493dad255c576d789b96259e472415",
+    "matchesTestedBuild": true,
+    "url": "https://bambi8000.github.io/Muusia/"
   }
 }
