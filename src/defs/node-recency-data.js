@@ -377,8 +377,8 @@ export const NODE_RECENCY = {
   },
   "double_pendulum": {
     "date": "2026-11-16",
-    "order": 142,
-    "sha256": "f12a3ade18744e6c39d420be586c4d6f4c503ce9ce0dfe97be1cc2a6a6d9d6cb"
+    "order": 143,
+    "sha256": "65fc089a4f097037d11bbf5bd75c9654c0e7e18990aa5b99c14f32135043b565"
   },
   "drape": {
     "date": "2026-10-19",

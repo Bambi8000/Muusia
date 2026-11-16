@@ -910,6 +910,11 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Double Pendulum · Random bounce", desc: "Full disc with Bounce 85% sends one continuous line irregularly between the outer rim and centre. Try Bounce 100% for the strongest radial flights, or 0 for the original orbit. Seed gives another repeatable route; Traces adds density. Avoid retracing and Line spacing mm apply to the whole stroke, including rounded turns and detours. A crowded route may end early. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "double_pendulum", x: 30, y: 20, params: { ...defaults("double_pendulum"), motion: "Full disc", bounce: 85, seed: 1, traces: 3, time: 12, cy: 50, noRetrace: true, lineGap: .6, fillCentre: true } }], edges: [] }),
+  },
+  {
     name: "Double Pendulum · Dense full disc", desc: "Full disc with Traces 4 adds four successive driven runs to one uninterrupted line. Time is per run, Perturb deg changes later motion, and all runs share Avoid retracing protection. Compare Traces 1 and 4. A crowded route can end early instead of following old ink; Line spacing mm sets that clearance. One pen, no restarts. A4 wide.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [{ id: 9001, type: "double_pendulum", x: 30, y: 20, params: { ...defaults("double_pendulum"), motion: "Full disc", traces: 4, time: 12, cy: 50, noRetrace: true, lineGap: .6, fillCentre: true } }], edges: [] }),

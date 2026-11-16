@@ -7090,3 +7090,46 @@ Verified public version and Dense full disc starter. No physical print. Refresh
 local snapshot /private/tmp/muusia-double-pendulum-traces-snapshot-20261117 after
 this final documentation commit; no Claude web upload. Primary remains dirty and
 historical; continue from current origin/main or this release worktree.
+
+
+### 2.199 — Double Pendulum: irregular radial Bounce
+
+2026-11-17 · Base bcca0c10fa75a7d257cf808fe562944ac7172d53. Daniel requested
+more random bouncing between the outer rim and centre, rather than a rotating
+orbit. **Full disc → Bounce %** blends the old motion with seeded, irregular
+outer/inner waypoint flights. 0 preserves the previous geometry exactly; 70–100
+makes more radial bouncing. **Seed** changes a repeatable route and appears only
+when Bounce is positive. At 100, flights replace the arm dynamics and Gravity
+sets their tempo. The existing Gravity mode is unchanged.
+
+Waypoints alternate between a broad inner disc and an irregular rim angle;
+flight durations vary by seed. Trimmed quadratic corners keep position/tangent
+continuity and avoid reversing directly down the incoming line. All controls
+stay in the circular frame; unequal-arm centre exclusion is retained when Fill
+centre is off. Every sampled flight and route detour uses the same existing
+near-parallel ink clearance, visit limits and bounded search. One open route,
+one pen, no lifting to restart. Crossing wear is still possible; no physical
+paper guarantee. Traces extends the same motion/ink history as in 2.198.
+
+New Help starter **Double Pendulum · Random bounce**: Bounce 85, Seed 1,
+Traces 3, Time 12, A4 wide. Reproducible real-node comparison supports:
+`node tools/double-pendulum-disc-preview.mjs [output-dir] [vite-origin] bounce`.
+321 focused checks cover new controls, seeded variation, old missing/zero Bounce,
+bounds, several seeds, extreme requests, unequal-arm centre exclusion, radial
+travel versus orbiting, repeated rim-centre flights, retracing and actual
+SVG/servo/bed-Z single-stroke export. One fixture raises radial travel share
+from 0.30 to 0.80, with 52 rim-to-centre excursions and near-parallel sampling
+rounded to 0.00%. Original node validator, all 190 Help graphs and focused lint
+pass. Native app tests Bounce 85→0→100, Seed 1→2→1, and confirms Seed hidden
+at zero. Native Bounce 100 export has one SVG path; G-code lowers once, draws
+all 25,426 segments before lifting, no mid-stroke travel or bounds warning.
+Evidence: docs/double-pendulum-bounce-checks.json. No physical plot sent.
+No shared exporter behavior changed; App.jsx changes only APP_VERSION. Ordered
+release gate/exact public deployment are recorded below when complete. Continue
+from this release worktree or current origin/main; primary remains historical
+and dirty.
+
+2.199 release gate passed in order: catalog/recency, production build and
+37,914 Learn checks. Twelve Gravity/Bounce zero outputs match the previous
+release exactly. All 190 Help graphs and both focused validators pass.
+Exact-commit public deployment remains to be verified.

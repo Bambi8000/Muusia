@@ -1,0 +1,71 @@
+{
+  "version": "2.199",
+  "date": "2026-11-17",
+  "baseCommit": "bcca0c10fa75a7d257cf808fe562944ac7172d53",
+  "focusedChecks": 321,
+  "legacyValidator": "all passed",
+  "helpExamples": 190,
+  "motionFixture": {
+    "timePerRun": 25,
+    "traces": 3,
+    "bouncePercent": 100,
+    "seed": 1,
+    "radialTravelRatioRounded": 0.8,
+    "oldOrbitRatioRounded": 0.3,
+    "rimToCentreFlights": 52,
+    "rimThresholdRadius": 0.75,
+    "centreThresholdRadius": 0.3,
+    "nearParallelRepeatPercentRounded": 0.0,
+    "note": "Independent spatial probes; crossings allowed. Finite paper capacity may end the single stroke before the requested time."
+  },
+  "actualBrowser": {
+    "source": "Real built-in Help load and native Bounce/Seed controls, native SVG/G-code export controls",
+    "checks": {
+      "version": "2.199",
+      "canvas": {
+        "W": 297,
+        "H": 210
+      },
+      "bounce": 100,
+      "seed": 1,
+      "traces": 3,
+      "timePerRun": 12,
+      "controls": {
+        "b85": "- generic: 1 paths \u00b7 30221 pts \u00b7 7.46 m",
+        "b0": "- generic: 1 paths \u00b7 37329 pts \u00b7 8.86 m",
+        "seedHiddenAtZero": true,
+        "b100": "- generic: 1 paths \u00b7 25427 pts \u00b7 7.21 m",
+        "seed2": "- generic: 1 paths \u00b7 20632 pts \u00b7 5.94 m"
+      },
+      "svgPaths": 1,
+      "penDowns": 1,
+      "drawBeforeLift": 25426,
+      "noMidStrokeTravel": true,
+      "outOfBounds": false,
+      "hardwareRun": false
+    }
+  },
+  "files": {
+    "node": {
+      "sha256": "65fc089a4f097037d11bbf5bd75c9654c0e7e18990aa5b99c14f32135043b565",
+      "bytes": 9208
+    },
+    "routing": {
+      "sha256": "cfd71605baa16e6e4b5edcd013af983b1c99290025b6d99ce957387fbbd1df97",
+      "bytes": 12648
+    },
+    "validator": {
+      "sha256": "8beb46d30c3a1baff899b68d54a16bb4534341e8698f9d61da3c224eb016fd0b",
+      "bytes": 12646
+    },
+    "nativeSvg": {
+      "sha256": "534e3f98b58d547074f90d16e8af9cc3611621470c39f4227dc8c2887d3c29cf",
+      "bytes": 337206
+    },
+    "nativeGcode": {
+      "sha256": "4ddb7b19d688f5ada34ecb5097a5c33e43d8da052c9a1b95c26ee49f47a9a96e",
+      "bytes": 617225
+    }
+  },
+  "legacyParityCases": 12
+}

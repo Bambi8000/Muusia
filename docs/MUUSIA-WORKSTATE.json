@@ -909,5 +909,28 @@
     "publicAppSha256": "7f38233be275fdae1cba3f8c536bcbdf918fbc23e02763ca7731ec6b1bfa436a",
     "matchesTestedBuild": true,
     "url": "https://bambi8000.github.io/Muusia/"
+  },
+  "lastDoublePendulumBounce": {
+    "version": "2.199",
+    "date": "2026-11-17",
+    "baseCommit": "bcca0c10fa75a7d257cf808fe562944ac7172d53",
+    "branch": "codex/double-pendulum-bounce",
+    "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
+    "status": "validated; exact public deployment pending",
+    "published": false,
+    "behavior": "Full disc Bounce 0\u2013100% blends orbit with irregular seeded rim-to-centre flights; Seed changes route; rounded turns and all traces share old-ink clearance. Zero preserves old output.",
+    "validation": {
+      "fullDisc": 321,
+      "legacy": "all passed; twelve old Gravity/Bounce zero cases exactly preserved",
+      "helpExamples": 190,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "actualBrowser": "Bounce85\u21920\u2192100,Seed1\u21922\u21921;native SVG one path,G-code one lower and all25426moves before lift,no travel or bounds warning."
+    },
+    "evidence": "docs/double-pendulum-bounce-checks.json",
+    "physicalPrintSent": false,
+    "snapshot": "/private/tmp/muusia-double-pendulum-bounce-snapshot-20261117 (local only; refresh after final documentation commit)"
   }
 }

@@ -1,3 +1,5 @@
+import { mulberry32 } from './helpers.js';
+
 // Driven drawing extension. Gravity mode remains the original RK4 simulation.
 export function fullDiscFrame(p, { W, H }) {
   let radius = Math.max(1, p.l1) + Math.max(1, p.l2);
@@ -132,6 +134,36 @@ function withoutRetracing(input, gap, frame) {
   return output;
 }
 
+// Alternate random outer and inner waypoints. Trim and round each corner so
+// the pen turns through a small arc rather than reversing down its incoming line.
+// All controls stay inside the unit disc, so the convex curves stay there too.
+function bouncingMotion(seed, tempo) {
+  const random = mulberry32(Math.round(seed) >>> 0), vertices = [], times = [0];
+  let segment = 0, angle = random() * Math.PI * 2;
+  const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  const ensure = n => {
+    while (vertices.length <= n) {
+      const i = vertices.length;
+      if (i % 2 === 0) angle += Math.PI * (.55 + random() * .9);
+      const direction = i % 2 ? random() * Math.PI * 2 : angle;
+      const r = i % 2 ? .45 * Math.sqrt(random()) : .94 + random() * .06;
+      vertices.push([Math.cos(direction) * r, Math.sin(direction) * r]);
+      if (i) times.push(times[i - 1] + (.18 + random() * .22) / tempo);
+    }
+  };
+  return t => {
+    ensure(segment + 2);
+    while (t >= times[segment + 1]) { segment++; ensure(segment + 2); }
+    const a = vertices[segment], b = vertices[segment + 1], c = vertices[segment + 2];
+    const start = mix(a, b, .18), entry = mix(b, a, .18), exit = mix(b, c, .18);
+    const u = (t - times[segment]) / (times[segment + 1] - times[segment]);
+    // Each straight leg starts at the end of the previous rounded corner.
+    if (u < .64) return mix(start, entry, u / .64);
+    const q = (u - .64) / .36, v = 1 - q;
+    return [v * v * entry[0] + 2 * v * q * b[0] + q * q * exit[0], v * v * entry[1] + 2 * v * q * b[1] + q * q * exit[1]];
+  };
+}
+
 export function drawFullDisc(p, ctx, step) {
   const { x: X, y: Y, radius } = fullDiscFrame(p, ctx);
   const l1 = Math.max(1, p.l1), l2 = Math.max(1, p.l2), sum = l1 + l2;
@@ -145,6 +177,8 @@ export function drawFullDisc(p, ctx, step) {
   const phase1 = p.a1 * Math.PI / 180, phase2 = p.a2 * Math.PI / 180;
   const omega = 2 * Math.PI * 1.4 * Math.sqrt(Math.max(.05, p.grav) * 80 / sum);
   const ratio = (1 + Math.sqrt(5)) / 2;
+  const bounce = Math.max(0, Math.min(1, (p.bounce ?? 0) / 100));
+  const randomPoint = bounce ? bouncingMotion(p.seed ?? 1, omega / (Math.PI * 2 * 1.4)) : null;
   let state = [phase1, phase2, 0, 0];
   const point = t => {
     // Incommensurate drive phases distribute petals around the disc.
@@ -161,7 +195,15 @@ export function drawFullDisc(p, ctx, step) {
     // of repeatedly polishing one fixed-radius circular caustic.
     const breathing = .75 + .25 * Math.sin(t * .53 + phase1) ** 2;
     const scale = r > 1e-9 ? Math.min(1, mapped) * radius * breathing / r : 0;
-    return [X + u * scale, Y + v * scale];
+    if (!bounce) return [X + u * scale, Y + v * scale];
+    const q = randomPoint(t);
+    u = u * scale * (1 - bounce) + q[0] * radius * bounce;
+    v = v * scale * (1 - bounce) + q[1] * radius * bounce;
+    const rr = Math.hypot(u, v);
+    const holeBase = p.fillCentre === false ? radius * .75 * Math.abs(l1 - l2) / sum : 0;
+    const hole = holeBase > 0 ? holeBase + radius * .02 : 0;
+    if (rr < hole && rr > 1e-9) { u *= hole / rr; v *= hole / rr; }
+    return [X + u, Y + v];
   };
   const points = [point(0)], POINT_BUDGET = 112000;
 

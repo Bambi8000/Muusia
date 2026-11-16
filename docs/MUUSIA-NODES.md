@@ -2223,7 +2223,12 @@ Both or Midpoint; Traces and Perturb compare chaotic trajectories, optionally
 with one pen per trace. Damping settles the passive motion towards the bottom.
 **Full disc** is a driven drawing extension: incommensurate rotating arm phases
 with a bounded RK4 perturbation and slow radial breathing distribute a single
-continuous stroke around the whole circular area. **Fill centre** removes the
+continuous stroke around the whole circular area. **Bounce %** blends this with
+seeded, irregular flights between outer and inner waypoints: 0 preserves the
+original orbit, 70–100 produces more radial bouncing; **Seed** changes the
+repeatable route. Rounded turns keep the pen moving through the corners. At 100,
+the random flights replace the arm dynamics and Gravity controls flight tempo.
+All flights still use Traces and the shared retracing protection. **Fill centre** removes the
 unequal-arm inner hole; equal arms already reach the centre. The inner arm-circle
 guide is omitted in this mode. **Avoid retracing** defaults on: **Line spacing mm**
 sets clearance from older near-parallel ink, including reverse-direction passes.
@@ -2239,7 +2244,8 @@ paper wear is impossible with any physical pen/pressure/paper. Trace and Pen per
 trace controls are hidden in Full disc, which uses one pen and one path before
 Style. Dashed Styles or cutting modifiers can split it. Fit canvas fits the whole circular
 guide first, preserving the clearance in final millimetres. Help includes
-**Double Pendulum · Full disc**, **Fill centre** and **Dense full disc**.
+**Double Pendulum · Full disc**, **Fill centre**, **Dense full disc** and
+**Random bounce**.
 
 **Gyroid** — the triply periodic minimal surface sliced into stacked contour
 rings with the Retro Mesh camera (Perspective, Rot X/Y, fit). Cells sets the

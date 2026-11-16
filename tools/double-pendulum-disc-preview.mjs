@@ -1,9 +1,19 @@
-/* node tools/double-pendulum-disc-preview.mjs [output-dir] [vite-origin]
+/* node tools/double-pendulum-disc-preview.mjs [output-dir] [vite-origin] [bounce]
    Serve output-dir locally while the app dev server is running. */
 import fs from 'node:fs';import path from 'node:path';
 const dir=path.resolve(process.argv[2]||'/tmp/muusia-double-pendulum-disc');
 const origin=process.argv[3]||'http://127.0.0.1:5189';
 fs.mkdirSync(dir,{recursive:true});
 const html="<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><title>Double Pendulum \u2014 Full disc</title><style>body{margin:28px;background:#eeeae3;color:#252824;font:14px/1.5 system-ui}h1{font-size:24px}main{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}article svg{width:100%;display:block;background:white}h2{font-size:17px}output{font:12px/1.5 monospace}</style><h1>Double Pendulum \u00b7 full circle, one continuous line</h1><p>Real built-in node. The driven disc keeps the arms moving through the whole circle. Paper clearance rejects following old ink; short detours are checked too. A crowded route stops safely instead of lifting.</p><main></main><script type=\"module\">import N from '__ORIGIN__/src/defs/nodes/double_pendulum.js';const defs=Object.fromEntries(N.params.map(p=>[p.key,p.def]));for(const preset of [{title:'Gravity \u00b7 original',params:{}},{title:'Full disc \u00b7 protected',params:{motion:'Full disc'}},{title:'Full disc \u00b7 unprotected',params:{motion:'Full disc',noRetrace:false}},{title:'Unequal arms \u00b7 centre filled',params:{motion:'Full disc',l1:65,l2:30}}]){const params={...defs,cy:50,...preset.params};const start=performance.now(),out=N.compute([],params,{W:210,H:297}),ms=Math.round(performance.now()-start),pts=out.paths[0]?.pts||[];let length=0;for(let i=1;i<pts.length;i++)length+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);const el=document.createElement('article');el.innerHTML=`<h2>${preset.title}</h2><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 210 297\"><polyline fill=\"none\" stroke=\"#252824\" stroke-width=\".35\" stroke-linejoin=\"round\" points=\"${pts.map(p=>p.join(',')).join(' ')}\"/></svg><output>${out.paths.length} continuous path \u00b7 ${pts.length} points<br>${(length/1000).toFixed(2)} m \u00b7 ${ms} ms</output>`;const button=document.createElement('button');button.textContent='Download patch';button.onclick=()=>{const patch={app:'muusia',v:1,name:preset.title,canvas:{W:210,H:297},root:{nodes:[{id:9001,type:'double_pendulum',x:30,y:20,params}],edges:[]}};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(patch)],{type:'application/json'}));a.download='double-pendulum-disc.muusia.json';a.click();};el.append(document.createElement('br'),button);document.querySelector('main').append(el);}</script></html>";
-fs.writeFileSync(path.join(dir,'index.html'),html.replaceAll('__ORIGIN__',origin));
+let preview = html;
+if (process.argv[4] === 'bounce') {
+  const presets = [0, 50, 85, 100].map(bounce => ({
+    title: `Bounce ${bounce}%`,
+    params: { motion: 'Full disc', bounce, seed: 1, traces: 3, time: 12 },
+  }));
+  preview = preview.replace(/for\(const preset of \[.*?\]\)/, 'for(const preset of ' + JSON.stringify(presets) + ')')
+    .replace(/<h1>.*?<\/h1>/, '<h1>Double Pendulum · orbit to irregular bouncing</h1>')
+    .replace(/<p>.*?<\/p>/, '<p>Same Time 12, Traces 3 and Seed 1. Bounce increases irregular rim-to-centre flights. Each drawing is one continuous stroke with shared ink clearance; crowded routes may end early.</p>');
+}
+fs.writeFileSync(path.join(dir,'index.html'),preview.replaceAll('__ORIGIN__',origin));
 console.log('Real-node comparison: '+dir+'/index.html');
