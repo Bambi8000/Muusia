@@ -6876,3 +6876,8 @@ Daniel should save current work then refresh to2.194. Physical confirmation of
 the corrected overlay is still pending; screenshot only shows browser preview.
 Final clean snapshot at /private/tmp/muusia-ascii-baseline-snapshot-20261116;
 local only. Continue from release worktree or origin/main, not the dirty primary.
+
+2026-11-16 physical confirmation: Daniel reports "nyt toimii" after the2.194
+baseline correction. Corrected native ASCII Merge output is now user-confirmed
+on paper; this supersedes the pending paper-confirmation note above. No further
+print or cut requested or sent by the assistant.

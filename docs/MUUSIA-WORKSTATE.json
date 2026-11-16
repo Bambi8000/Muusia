@@ -9,7 +9,7 @@
     "matchesTestedBuild": true,
     "date": "2026-11-16",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public2.194 native overlay baseline correction; live Print asciiOverlayVersion2; physical paper confirmation pending",
+    "status": "verified public2.194; live Print asciiOverlayVersion2; user confirmed physical ASCII Merge print works",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -730,7 +730,7 @@
     "version": "2.194",
     "date": "2026-11-16",
     "baseCommit": "dbf964c0991c98dccf0b95d64999f3c54ef24c0c",
-    "status": "published; exact public bytes/browser export and live Print verified; paper confirmation pending",
+    "status": "published; public export/live Print verified; user confirmed physical Merge print works",
     "physicalEvidence": "User IMG_3556.jpeg: individual ASCII nodes good, Merge has clipped glyph tops and missing small layer. 2.193 paper behavior was not verified by previous byte-parity tests.",
     "fix": "Stable full-page ESC W; explicit ESC $ x and GS $ scaled ROM baseline for every row (A21/B16). Print capability asciiOverlayVersion2.",
     "validation": "31 Python Print/USB tests including Page-mode bounds for A/B at1–8x; 148 user rows checked at baseline-derived positions; JS/Python/actual-browser byte parity; old-server rejection; lint;catalog/build/37914 Learn checks.",
@@ -773,6 +773,11 @@
     "matchesTestedBuild": true,
     "userPatchBackup": "/Users/daniel/Downloads/patch.muusia (7).json",
     "browser": "Actual public2.194 Merge preview148rows;8199-byte download equals JS/Python/live Print. Saved newest Chrome graph with added Grid Hairs. Chrome interaction changed during user activity; no forced reload/restore applied. User should refresh after saving current work.",
-    "snapshot": "/private/tmp/muusia-ascii-baseline-snapshot-20261116 (refresh after documentation commit; local only)"
+    "snapshot": "/private/tmp/muusia-ascii-baseline-snapshot-20261116 (refresh after documentation commit; local only)",
+    "physicalConfirmation": {
+      "date": "2026-11-16",
+      "source": "Daniel: nyt toimii",
+      "result": "User confirmed corrected ASCII Merge printing works on paper after2.194 baseline fix."
+    }
   }
 }
