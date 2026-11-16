@@ -6862,3 +6862,17 @@ local-browser ESC/POS download equal. Lint and ordered catalog/build/37914 Learn
 checks pass. Native overlay encoder only; no geometry/export recapture needed.
 Service backup/publication/browser verification recorded below after deployment.
 No physical print or cut sent; final paper confirmation still belongs to Daniel.
+
+Release fe11c51f92d766d7b44c5ee1efa28e2d883d2cec published as2.194; exact
+Pages run43846538388 passed. Public app SHA256
+e942ec091a2ca84e763fc584073b79740a01f46c39f2edcd64358f7021eb3724
+matches the tested build. Actual public-browser overlay download8199bytes equals
+JS/Python/live Pi SHA256c84123eb92c1a044f2c32f7c6418c8194841e5efd93f6f159260feb40198c960.
+Pi backup /home/print/muusia-print/before-ascii-baseline-20261116; USB transport
+hash unchanged. USB ready,queue empty,Clock off,asciiOverlayVersion2. No physical
+job/cut. Newest Chrome graph saved to Downloads/patch.muusia(7).json,including
+Grid Hairs106. User changed Chrome during interaction; no forced refresh/restore.
+Daniel should save current work then refresh to2.194. Physical confirmation of
+the corrected overlay is still pending; screenshot only shows browser preview.
+Final clean snapshot at /private/tmp/muusia-ascii-baseline-snapshot-20261116;
+local only. Continue from release worktree or origin/main, not the dirty primary.
