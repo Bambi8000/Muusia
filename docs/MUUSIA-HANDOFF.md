@@ -7030,3 +7030,15 @@ Release gate/publication and final snapshot are recorded below when completed.
 2.197 release gate passed in order: catalog including recency, production build,
 and 37,914 Learn checks. All 188 Help examples and both focused node validators
 pass. Publication must be verified for the exact release commit.
+
+
+Double Pendulum Full disc published as 2.197, implementation commit
+6c023f4154c216efd4ca4ce884c2acb302ae6c19. Exact Pages run 43969186500 passed
+build, 37,914 Learn checks and deployment. Public root HTML is byte-identical
+to the tested production build: SHA256
+25fe3179a7b29d8b4e95a836d2370da277c7bf65324d08e1542dbd3fab236f60.
+Verified public version and Full disc, Fill centre, Avoid retracing and spacing
+controls in the served app. No physical plot or printer job sent. Snapshot is
+prepared locally at /private/tmp/muusia-double-pendulum-snapshot-20261117 after
+this final documentation commit. No Claude web upload. Primary checkout remains
+historical and dirty; continue from this release worktree or current origin/main.

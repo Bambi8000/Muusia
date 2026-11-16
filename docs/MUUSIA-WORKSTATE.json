@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.196",
-    "commit": "38bc0a60e1feac98776a7df8eeb35a72a194b17c",
-    "pagesRunId": 43962254420,
-    "publicAppSha256": "5ed46216a1bf79f57b59fbab542faa8ba6f67cc4930acc9b924acc65abd4dba9",
+    "version": "2.197",
+    "commit": "6c023f4154c216efd4ca4ce884c2acb302ae6c19",
+    "pagesRunId": 43969186500,
+    "publicAppSha256": "25fe3179a7b29d8b4e95a836d2370da277c7bf65324d08e1542dbd3fab236f60",
     "matchesTestedBuild": true,
-    "date": "2026-11-16",
+    "date": "2026-11-17",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.196; improved thin-thread String art and matching preview/SVG width; exact tested bytes",
+    "status": "verified public 2.197; exact tested bytes, full-disc controls present",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -860,8 +860,8 @@
     "baseCommit": "23c57a5120f447aa5f289712c2ab6400d5e941ce",
     "branch": "codex/double-pendulum-full-disc",
     "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
-    "status": "validated; exact-commit public deployment pending",
-    "published": false,
+    "status": "verified public 2.197; exact tested bytes, full-disc controls present",
+    "published": true,
     "behavior": "Optional driven Full disc, centre fill, adjustable near-parallel ink clearance and checked smooth detours; one open stroke, original Gravity unchanged.",
     "validation": {
       "fullDisc": 174,
@@ -875,6 +875,11 @@
     },
     "evidence": "docs/double-pendulum-disc-checks.json",
     "physicalPrintSent": false,
-    "snapshot": "/private/tmp/muusia-double-pendulum-snapshot-20261117 (local only; refresh after final documentation commit)"
+    "snapshot": "/private/tmp/muusia-double-pendulum-snapshot-20261117 (local only; refresh after final documentation commit)",
+    "commit": "6c023f4154c216efd4ca4ce884c2acb302ae6c19",
+    "pagesRunId": 43969186500,
+    "publicAppSha256": "25fe3179a7b29d8b4e95a836d2370da277c7bf65324d08e1542dbd3fab236f60",
+    "matchesTestedBuild": true,
+    "url": "https://bambi8000.github.io/Muusia/"
   }
 }
