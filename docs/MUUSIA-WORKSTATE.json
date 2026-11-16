@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.197",
-    "commit": "6c023f4154c216efd4ca4ce884c2acb302ae6c19",
-    "pagesRunId": 43969186500,
-    "publicAppSha256": "25fe3179a7b29d8b4e95a836d2370da277c7bf65324d08e1542dbd3fab236f60",
+    "version": "2.198",
+    "commit": "83623eb1e171eb273a543e797333663ee903b761",
+    "pagesRunId": 43974944039,
+    "publicAppSha256": "7f38233be275fdae1cba3f8c536bcbdf918fbc23e02763ca7731ec6b1bfa436a",
     "matchesTestedBuild": true,
     "date": "2026-11-17",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.197; exact tested bytes, full-disc controls present",
+    "status": "verified public 2.198; Full disc Traces density control and starter present; exact tested bytes",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -888,8 +888,8 @@
     "baseCommit": "475acf891eab548723668bbaa6b5704c647fed04",
     "branch": "codex/double-pendulum-disc-traces",
     "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
-    "status": "validated; exact public deployment pending",
-    "published": false,
+    "status": "verified public 2.198; Full disc Traces density control and starter present; exact tested bytes",
+    "published": true,
     "behavior": "Expose Traces 1\u20138 and Perturb in Full disc; extra runs extend the same continuous route and shared ink history for a denser result until clearance or budget prevents continuation.",
     "validation": {
       "fullDisc": 219,
@@ -903,6 +903,11 @@
     },
     "evidence": "docs/double-pendulum-disc-traces-checks.json",
     "physicalPrintSent": false,
-    "snapshot": "/private/tmp/muusia-double-pendulum-traces-snapshot-20261117 (local only; refresh after final documentation commit)"
+    "snapshot": "/private/tmp/muusia-double-pendulum-traces-snapshot-20261117 (local only; refresh after final documentation commit)",
+    "commit": "83623eb1e171eb273a543e797333663ee903b761",
+    "pagesRunId": 43974944039,
+    "publicAppSha256": "7f38233be275fdae1cba3f8c536bcbdf918fbc23e02763ca7731ec6b1bfa436a",
+    "matchesTestedBuild": true,
+    "url": "https://bambi8000.github.io/Muusia/"
   }
 }

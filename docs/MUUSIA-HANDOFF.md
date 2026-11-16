@@ -7079,3 +7079,14 @@ this release worktree/current origin/main, not the historical dirty primary.
 37,914 Learn checks. Twelve representative Gravity/one-run Full disc outputs
 match the previous release exactly. All 189 Help examples and both focused
 validators pass. Exact-commit public deployment remains to be verified.
+
+
+Traces fix published as 2.198, implementation commit
+83623eb1e171eb273a543e797333663ee903b761. Exact Pages run 43974944039 passed
+build, 37,914 Learn checks and deployment. Public root is byte-identical to the
+tested production build, SHA256
+7f38233be275fdae1cba3f8c536bcbdf918fbc23e02763ca7731ec6b1bfa436a.
+Verified public version and Dense full disc starter. No physical print. Refresh
+local snapshot /private/tmp/muusia-double-pendulum-traces-snapshot-20261117 after
+this final documentation commit; no Claude web upload. Primary remains dirty and
+historical; continue from current origin/main or this release worktree.
