@@ -1807,7 +1807,7 @@ export const EXAMPLES = [
   {
     name: "Portrait · String art", desc: "Choose an image on Portrait and use Mode → String art. One continuous thread runs between Nails arranged on a circle. Nails changes the number of anchors; Thread lines sets the maximum number of straight chords. The photo is centre-cropped to the circle. Start with a close portrait and a light background. No face analysis is needed. Pen width and Ink strength tune the simulated thread darkness; Gamma and White cutoff adjust the photo. Nail markers are guides, and the plain output plots without lifts between chords.",
     canvas: { W: 297, H: 420 },
-    make: defaults => ({ nodes: [{ id: 9001, type: "portrait", x: 30, y: 20, params: { ...defaults("portrait"), mode: "String art", stringNails: 200, stringLines: 2400 } }], edges: [] }),
+    make: defaults => ({ nodes: [{ id: 9001, type: "portrait", x: 30, y: 20, params: { ...defaults("portrait"), mode: "String art", stringNails: 250, stringLines: 6000, stringWidth: 0.035 } }], edges: [] }),
   },
   {
     name: "Portrait · Continuous scribble", desc: "Choose image on the Portrait node, then keep Mode → Scribble. One continuous line builds the darks with irregular loops; no Analyze face step is needed. Start with a close crop and a light, plain background. Scribble density adds ink, Loop size changes the gesture, Wander loosens it, and Feature contrast opens the light areas. Pen width should match your pen. White cutoff suppresses loops, but the connecting line can cross white areas. A3 portrait, one pen.",

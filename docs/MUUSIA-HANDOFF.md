@@ -6922,3 +6922,55 @@ No hardware or print job was sent. Clean source snapshot prepared locally at
 /private/tmp/muusia-string-art-snapshot-20261116; refresh after this final docs
 commit. No Claude web upload. Continue from the String art release worktree or
 current origin/main; the primary checkout remains historical and dirty.
+
+
+### 2.196 — Improve Portrait String art likeness
+
+Daniel requested better image formation after comparing a detailed 250-nail
+reference to 2.195. Keep the 24–400 nail range; the limiting factors were coarse
+whole-cell ink deposits, a thick universal preview, and locally trapped greedy
+routes. This change improves those factors, without adding lifts or nail-free
+waypoints.
+
+The new independent fitter (src/defs/portrait-string-art.js) integrates thin
+chord coverage across neighbouring cells, accumulates optical density, protects
+local contrast, and refines continuous paths in fixed 128-chord blocks. Bounded
+two-chord lookahead can cross an unhelpful local move when the combined move
+improves the image; all crossing ink is scored. The cache has a fixed 64 MiB
+budget and a FIFO ring. Thread lines remains an exact route prefix; default
+6000, max 20000. Default Nails is 250. **Thread width mm** (default 0.035) replaces
+the unused Tonal pen-width control in this mode; Ink strength calibrates density,
+Detail sets fitting resolution, Quality controls route refinement. Existing
+saved patches retain their own line limit. A physical nib must match the chosen
+width; this parameter cannot command a narrower pen.
+
+Optional positive per-path strokeWidth is honoured by preview and SVG (capped
+at 10 mm); absent/invalid values retain historical output. G-code/DXF remain
+centreline geometry. Portrait reapplies width after Style so dashed output also
+keeps its appearance. Other modifiers may discard optional metadata.
+
+Actual same-photo/crop comparison at 250 nails: 446 old chords versus 3875 new
+fine chords, one continuous path. Independent browser-canvas RMSE on this one
+image improved from 0.40361 to 0.25697 (about 36% lower). This is one illustrated
+case, not a universal likeness/physical-ink claim. The actual built-in UI exported
+one SVG path with width 0.035 and a 3875-move G-code with one pen-down command.
+No hardware or print job was sent.
+
+Before refreshing source provenance, recaptured via the actual app UI all 58
+static SVGs, all 30 animation batches (518 complete SVG frames), and Stack Pens
+ZIP with Red hidden / margin 0 / Mirror and Numbers off / Drill Off. All 518
+frames exactly matched the current evaluator and old/new serializers; four
+Region static files instead matched historical browser bytes at last-decimal
+Node/browser rounding boundaries. Both Stack files match historical SVG bytes.
+Historical PNG/G-code captures were retained and are not claimed as new. Evidence:
+docs/portrait-string-art-quality-checks.json. The real-photo tone fixture and
+reproducible local comparison tool cover future fitting changes. Focused and
+ordered release validation / publication are recorded in WORKSTATE on completion.
+
+
+2.196 release validation passed: 220 String art, 96 legacy Portrait, 208 Scribble,
+all 186 Help examples, focused lint (four existing unused-variable warnings),
+and ordered catalog / production build / 37,914 Learn checks. Browser recapture
+proof is complete. Public deployment remains to be verified for the exact commit.
+The primary checkout is still historical and dirty; continue from this worktree
+or current origin/main. No Claude web upload or physical print was requested.

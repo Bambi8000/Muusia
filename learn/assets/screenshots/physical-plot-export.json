@@ -1,6 +1,6 @@
 {
   "source": "Actual Muusia browser export",
-  "appVersion": "2.193",
+  "appVersion": "2.196",
   "date": "2026-11-16",
   "patch": "examples/tutorial-physical-plot.muusia.json",
   "patchSha256": "40ad012f7f4a25944b6f1f497df0bef9d8ee9a9546c752b85fa6b9dabade8613",
@@ -38,7 +38,7 @@
     {
       "path": "src/App.jsx",
       "selector": "app-export-core",
-      "sha256": "6134483db4a840637c7a57ab4333f9d5fa01fc2e3cc83fad77a429791abd87f9"
+      "sha256": "cf33c1113365d6c5170513e26c2130c647ee88df2dadd764190bf641b7753d7f"
     },
     {
       "path": "src/App.jsx",
@@ -93,5 +93,6 @@
   "originalDownload": "Prepare your first physical plot (11).svg",
   "captureMethod": "Actual Muusia 2.177 local browser Load, select Merge, Optimize route off, Preserve direction on, Mega Canvas off. Physical SVG download and Stack Pens ZIP download, Red hidden, margin 0, Mirror/Numbers/Drill off. SVG bytes unchanged. Existing PNGs and historical G-code evidence unchanged; no hardware.",
   "sourceWorkingTree": "codex/needle-profile-3mm; sourceFiles identify captured source",
-  "recaptureNote": "Actual local Muusia UI export after Merge adds receipt metadata. Original vector artifact bytes and geometry are identical. Existing PNG captures remain historical."
+  "recaptureNote": "Actual local Muusia UI export after Merge adds receipt metadata. Original vector artifact bytes and geometry are identical. Existing PNG captures remain historical.",
+  "sourceRecapture": "2026-11-16, Muusia 2.196 actual local UI: recaptured all 58 static SVG exports, all 30 animation batches (518 frames), and the per-pen Stack ZIP with Red hidden. Complete legacy results preserved, including historical browser rounding for four Region outputs. The optional path strokeWidth affects new String art only. Historical PNG/G-code captures remain unchanged. Full evidence: docs/portrait-string-art-quality-checks.json."
 }

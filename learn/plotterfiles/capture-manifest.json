@@ -5,7 +5,7 @@
   "date": "2026-10-20",
   "scope": "Actual local development app, five additions not yet published. Six SVG downloads, five G-code downloads, twelve SVG growth frames, six unretouched Focus captures converted from JPEG to PNG, and actual Custom Tile drag + corner toggle + Save. Route optimization off. Machine A Servo 330x240 mm is an illustrative software-check profile, not calibrated hardware. No physical plotting.",
   "engineSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
-  "exporterSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "exporterSha256": "e34e46e2804e0d4ca7d82377a656421cf4bf8371684f40ec0803e989294e4b99",
   "sources": {
     "src/defs/nodes/circpack.js": "4fe9211b9d7d4e0acc7343582c8eb7111b14aa47f05b110a3c3931b20fcf936f",
     "src/defs/nodes/hitomezashi.js": "ae6319867c0c2ad2aba418368303c08cadc1f6cf2a071c73c52d1968d96d36d0",
@@ -129,5 +129,6 @@
       "basedOnCommit": "364852cf002de5e5e5d2615b6126a8302172e7fd",
       "scope": "Custom Tile neutral defaults, actual SVG, G-code and Focus recaptured after Pattern Mask was added. Original geometry unchanged; existing custom-editor interaction evidence retained."
     }
-  ]
+  ],
+  "sourceRecapture": "2026-11-16, Muusia 2.196 actual local UI: recaptured all 58 static SVG exports, all 30 animation batches (518 frames), and the per-pen Stack ZIP with Red hidden. Complete legacy results preserved, including historical browser rounding for four Region outputs. The optional path strokeWidth affects new String art only. Historical PNG/G-code captures remain unchanged. Full evidence: docs/portrait-string-art-quality-checks.json."
 }

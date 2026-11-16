@@ -809,5 +809,44 @@
     "url": "https://bambi8000.github.io/Muusia/",
     "snapshot": "/private/tmp/muusia-string-art-snapshot-20261116",
     "snapshotStatus": "prepared locally only; refresh after final documentation commit; no Claude upload"
+  },
+  "lastStringArtQuality": {
+    "version": "2.196",
+    "date": "2026-11-16",
+    "baseCommit": "88575d918bbfa430a359645f7174d05db3aadecc",
+    "branch": "codex/portrait-string-art-release",
+    "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
+    "published": false,
+    "status": "quality improvement validated; publication verification pending",
+    "validation": {
+      "stringArt": 220,
+      "legacyPortrait": 96,
+      "scribble": 208,
+      "helpExamples": 186,
+      "learn": 37914,
+      "catalog": "passed, source recency current",
+      "build": "passed",
+      "lint": "passed, existing Portrait warnings only",
+      "actualBrowser": {
+        "staticSvgs": 58,
+        "animationBatches": 30,
+        "animationFrames": 518,
+        "stackZipFiles": 2,
+        "newPortraitChords": 3875,
+        "newPortraitSvgPaths": 1,
+        "newPortraitGcodePenDowns": 1
+      }
+    },
+    "imageQuality": {
+      "nails": 250,
+      "oldChords": 446,
+      "newChords": 3875,
+      "oldCanvasRmse": 0.4036111085625688,
+      "newCanvasRmse": 0.25696594652964844,
+      "note": "One existing-fixture close crop; not a universal or physical-ink guarantee."
+    },
+    "evidence": "docs/portrait-string-art-quality-checks.json",
+    "physicalPrintSent": false,
+    "snapshot": "/private/tmp/muusia-string-art-quality-snapshot-20261116 (prepare after final documentation commit; local only)"
   }
 }

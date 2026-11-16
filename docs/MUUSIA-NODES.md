@@ -3567,14 +3567,20 @@ that appear, hold, and fade.
 
 **Portrait** (gen / textimg) draws a photo the way a portraitist works.
 **String art** turns the photo into one continuous thread of straight chords
-between equally spaced nails around a circle. **Nails (24–400)** adjusts the
-anchors; **Thread lines (100–6000)** caps the route, which can stop early when
-no next chord improves the tonal fit. The photo is centre-cropped to the circle.
-No face analysis is needed. Pen width / Ink strength tune simulated thread
-darkness, Detail sets fitting resolution, and Gamma, White cutoff, Focus and
-Seed apply. Nail markers are guides only. The plain path has no lifts between
-chords in SVG or G-code; dashed Styles and cutting modifiers can split it.
-Help includes **Portrait · String art** as an A3 starter.
+between equally spaced circular nails. **Nails (24–400)** sets the anchors
+(default 250); **Thread lines (100–20000)** caps the route (default 6000).
+**Thread width mm** controls actual preview/SVG width and simulated coverage;
+the fine 0.035 mm default lets thousands of thin chords build facial detail.
+Match the width to the physical pen for plotting. The fitter integrates subpixel
+coverage, models accumulated density, protects local contrast and refines route
+sections; a short two-step search avoids stopping at the first unhelpful nail.
+It can still stop early when its bounded search finds no useful continuation.
+Thread lines reveals an exact prefix. Detail, Quality, Ink strength, Gamma,
+White cutoff, Focus and Seed apply. The photo is centre-cropped; no face analysis
+is needed. Nail markers are guides only, and chords may cross white areas.
+Plain output has no lifts between chords in SVG or G-code. Dashed Styles and
+cutting modifiers can split it. Help includes **Portrait · String art** as an A3
+starter.
 
 Scribble turns a photo into one continuous wandering line without face analysis:
 irregular loops build the shadows and local gradients tighten facial details.

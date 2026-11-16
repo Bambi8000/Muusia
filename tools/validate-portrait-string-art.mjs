@@ -23,7 +23,7 @@ const img = image((x, y, w, h) => {
 });
 const run = (over = {}, im = img, context = ctx, style, analysis) => N.compute([style], { ...defaults, mode: 'String art', ...over }, context, { data: { img: im, analysis } });
 const hash = r => createHash('sha256').update(JSON.stringify(r)).digest('hex');
-function valid(r, count = 200, context = ctx, margin = 12, limit = 2400) {
+function valid(r, count = defaults.stringNails, context = ctx, margin = 12, limit = defaults.stringLines) {
   ok(r.paths.length === 1, 'one continuous path');
   const path = r.paths[0], r0 = Math.min(context.W, context.H) / 2 - margin;
   ok(path.closed === false && Number.isInteger(path.layer) && path.layer >= 0 && path.layer < 12, 'open path with valid pen');
@@ -36,17 +36,25 @@ function valid(r, count = 200, context = ctx, margin = 12, limit = 2400) {
   }), 'every endpoint on a discrete nail');
   ok(path.pts.every((q, i, a) => !i || Math.hypot(q[0] - a[i - 1][0], q[1] - a[i - 1][1]) > 1e-8), 'no zero-length chords');
 }
+const photoFixture = JSON.parse(fs.readFileSync(new URL('../fixtures/portrait-string-art-tone.json', import.meta.url)));
+const photo = { w: photoFixture.w, h: photoFixture.h, g: Array.from(Buffer.from(photoFixture.darknessBase64, 'base64'), v => v / 255) };
+const portraitPhoto = run({}, photo);
+valid(portraitPhoto);
+ok(portraitPhoto.paths[0].pts.length > 2000, 'real portrait fixture retains thousands of fine chords');
 const start = performance.now(), base = run();
 valid(base);
+ok(base.paths[0].pts.length > 2500, 'thin thread builds thousands of chords rather than stopping after a few hundred');
+ok(base.paths[0].strokeWidth === defaults.stringWidth, 'thread width attached to continuous path');
+ok(run({stringWidth:.07}).paths[0].pts.length < base.paths[0].pts.length, 'wider threads need fewer chords');
 ok(hash(base) === hash(run()), 'deterministic');
 ok(hash(base) !== hash(run({ seed: 78 })), 'seed changes route');
 ok(hash(base) === hash(run({}, img, ctx, undefined, { v: 999, faces: 'invalid' })), 'independent of face analysis');
 for (const count of [24, 60, 120, 300, 400]) valid(run({ stringNails: count }), count);
-for (const context of [{ W: 297, H: 210 }, { W: 841, H: 594 }, { W: 45, H: 60 }]) valid(run({}, img, context), 200, context);
+for (const context of [{ W: 297, H: 210 }, { W: 841, H: 594 }, { W: 45, H: 60 }]) valid(run({}, img, context), defaults.stringNails, context);
 for (const im of [image(() => .9, 2, 2), image(() => .8, 180, 20), image(() => .8, 20, 180)]) valid(run({}, im));
 valid(run({ stringNails: 2 }), 24);
 valid(run({ stringNails: 999 }), 400);
-valid(run({ stringNails: 400, stringLines: 999999, detail: 1, penW: .2, ink: .2 }), 400, ctx, 12, 6000);
+valid(run({ stringNails: 400, stringLines: 999999, detail: 1, stringWidth: .02, ink: .2 }), 400, ctx, 12, 20000);
 ok(run({}, null).paths.length === 0, 'missing image empty');
 ok(run({}, image(() => 0)).paths.length === 0, 'white image empty');
 ok(run({ cutoff: .8 }, image(() => .6)).paths.length === 0, 'cutoff suppresses tone');
@@ -61,21 +69,21 @@ const short = run({ stringLines: 100, ink: .2 }), longer = run({ stringLines: 50
 ok(short.paths[0].pts.length === 101, '100-line cap respected');
 ok(longer.paths[0].pts.length > short.paths[0].pts.length, 'higher cap adds chords');
 ok(JSON.stringify(short.paths[0].pts) === JSON.stringify(longer.paths[0].pts.slice(0, 101)), 'thread count reveals exact route prefix');
-for (const over of [{ penW: .2 }, { ink: .2 }, { detail: 1 }, { gamma: 3 }, { focusBoost: 3 }, { cutoff: .3 }]) {
+for (const over of [{ stringWidth: .02 }, { ink: .2 }, { quality: 1 }, { detail: 1 }, { gamma: 3 }, { focusBoost: 3 }, { cutoff: .3 }]) {
   const r = run(over); valid(r); ok(hash(r) !== hash(base), 'active control: ' + JSON.stringify(over));
 }
 ok(run({ layer: 7 }).paths.every(p => p.layer === 7), 'selected pen only');
-ok(hash(run({ rounds: 8, quality: 8, hatch: 'Mix', penAssign: 'Same', economy: 0, nerve: 1, glassesOn: false })) === hash(base), 'hidden legacy controls have no effect');
+ok(hash(run({ rounds: 8, penW: 2, hatch: 'Mix', penAssign: 'Same', economy: 0, nerve: 1, glassesOn: false })) === hash(base), 'hidden legacy controls have no effect');
 const guides = N.overlay({ ...defaults, mode: 'String art', stringNails: 60 }, ctx, [], { data: { img } });
 ok(guides.filter(g => g.kind === 'circle' && g.r === .45).length === 60, 'guide shows the exact nail count');
 ok(!guides.some(g => g.kind === 'rect'), 'no misleading rectangular guide');
-for (const key of ['stringNails', 'stringLines']) {
+for (const key of ['stringNails', 'stringLines', 'stringWidth']) {
   const p = N.params.find(p => p.key === key);
   ok(p.showIf({ mode: 'String art' }) && !p.showIf({ mode: 'Tonal' }), 'mode-specific control: ' + key);
 }
-for (const key of ['rounds', 'hatch', 'penAssign', 'economy', 'nerve', 'glassesOn', 'quality', 'scribbleDensity']) ok(!N.params.find(p => p.key === key).showIf({ mode: 'String art' }), 'hide unused control: ' + key);
+for (const key of ['rounds', 'hatch', 'penAssign', 'economy', 'nerve', 'glassesOn', 'penW', 'scribbleDensity']) ok(!N.params.find(p => p.key === key).showIf({ mode: 'String art' }), 'hide unused control: ' + key);
 const style = { kind: 'style', mode: 'Dashed', dash: 4, gap: 2, vary: 0, phase: 0, seed: 1 };
-ok(hash(run({}, img, ctx, style)) === hash(applyStyle(base, style)), 'Style contract');
+ok(hash(run({}, img, ctx, style)) === hash({paths:applyStyle(base, style).paths.map(p=>({...p,strokeWidth:defaults.stringWidth}))}), 'Style contract');
 // Independent segment sampling: dark half must receive more ink per unit area.
 const bands = run({ stringNails: 200 }, image((x, y, w) => x < w / 2 ? .9 : .12));
 let dark = 0, light = 0;
@@ -93,6 +101,11 @@ const ast = parseAst(appSource, { lang: 'jsx' });
 const fn = name => { const n = ast.body.find(n => n.type === 'FunctionDeclaration' && n.id.name === name); return appSource.slice(n.start, n.end); };
 const gcode = new Function('needleExportError', 'PENS', 'pathLength', 'APP_VERSION', fn('toGcode') + '; return toGcode;')(needleExportError, PENS, pathLength, 'test');
 const svg = new Function('PENS', fn('toSVG') + '; return toSVG;')(PENS)(base, ctx);
+ok(svg.includes('stroke-width="'+defaults.stringWidth+'"'), 'SVG preserves physical thread width');
+const invalidWidth = { paths: [{ ...base.paths[0], strokeWidth: NaN }] };
+const makeSVG = new Function('PENS', fn('toSVG') + '; return toSVG;')(PENS);
+ok(!makeSVG(invalidWidth, ctx).includes('NaN'), 'invalid optional width falls back to legacy appearance');
+ok(makeSVG({paths:[{...base.paths[0],strokeWidth:99}]},ctx).includes('stroke-width="10"'), 'optional width is bounded');
 ok((svg.match(/<path /g) || []).length === 1 && (svg.match(/d="M/g) || []).length === 1, 'SVG has one unbroken path');
 for (const profile of [DEFAULT_MACHINE, DEFAULT_MACHINE_B]) {
   const code = gcode(base, ctx, { ...profile, workW: 330, workH: 330 });

@@ -1,0 +1,838 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "2.196",
+  "date": "2026-11-16",
+  "baseCommit": "88575d918bbfa430a359645f7174d05db3aadecc",
+  "source": "Actual local Muusia UI: Load, select output, Optimize route off, EXPORT SVG or SVG × Frames. Card positions/collapsed state only changed to keep the selected output visible. No plotting, service calls or hardware.",
+  "staticExports": 58,
+  "animationBatches": 30,
+  "animationFrames": 518,
+  "perPenStack": "Both historical SVG files byte-identical with Red hidden in preview; margin 0, Mirror/Numbers off, Drill Off.",
+  "imageQuality": [
+    {
+      "chords": 446,
+      "rmse": 0.4036111085625688,
+      "title": "2.195 · old fitter"
+    },
+    {
+      "chords": 3875,
+      "rmse": 0.25696594652964844,
+      "title": "New · fine thread"
+    },
+    {
+      "chords": 1969,
+      "rmse": 0.2766191208680255,
+      "title": "New · 0.07 mm thread"
+    }
+  ],
+  "imageQualityMethod": "Same close crop of existing portrait-photo.jpg, 250 nails. Independent browser canvas draws each actual route at 1536 px page width and its own stroke width, downsamples the circular image region to 192 square and compares the tone to the frozen source after cutoff. One illustrative image, not a universal likeness score.",
+  "newPortraitActualUi": {
+    "chords": 3875,
+    "svgPaths": 1,
+    "svgStrokeWidthMm": 0.035,
+    "gcodePenDownCommands": 1,
+    "gcodeDrawMoves": 3875,
+    "penChangePauses": 0,
+    "profile": "Illustrative default A Servo, 330 x 240 mm; route/width checks only, not a physical-ready A4 portrait setup. No machine run."
+  },
+  "legacySerializer": "For every expected frame the old and new toSVG functions produced identical bytes on the same actual evaluator output. Actual browser exports then matched those complete SVGs; four static Region results matched the historical browser files instead because of last-decimal JS-engine rounding. All 518 actual browser animation frames were byte-identical to their expected SVGs. Historical PNG/G-code captures were not refreshed.",
+  "cases": [
+    {
+      "id": 0,
+      "patch": "learn/examples/tutorial-physical-plot.muusia.json",
+      "patchSha256": "40ad012f7f4a25944b6f1f497df0bef9d8ee9a9546c752b85fa6b9dabade8613",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "66c32f681b229a1132bbef1ecf8b414b8c87db8c6004d33996ee374ac904d15f",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 1,
+      "patch": "learn/craft/patches/3d-view.muusia.json",
+      "patchSha256": "d87d86e7880375aad88e91f3889e91bbf37230a82f923b781edd8bc7fd2c3eab",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "24418be9f478454168ecc4de9c149ea02a69a4e9f49dc67c182eec80b18827b4",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 2,
+      "patch": "learn/craft/patches/array.muusia.json",
+      "patchSha256": "3e516da0c8108319482d5834a94b721a6d3ed6e4b69c64a17c98dedbd4a3d065",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "2b4040fba0f34a0ddd7cff6f099b0c7c94d846aad0b0b7a76ea742765bcd122a",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 3,
+      "patch": "learn/craft/patches/crystal-growth.muusia.json",
+      "patchSha256": "f63102a68fbe147ff1e4d6c43d4bd832b4e5aecba03a5ade0e728c074718a46b",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "79bafe7c53f9f19bf0a5be2cd6e8fd539c58697455879a5c16fd0c9c57fcb72d",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 4,
+      "patch": "learn/craft/patches/drape.muusia.json",
+      "patchSha256": "8a56a6c35a2bbf2aec2dae7ecb1dde77323ce0311bfb7f9231502c2ccebbe4d8",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "c6c2a28161174ff3d27ccf0cc0d5a2d2a93f3bc8e3b1e655ed6971d00d6f41ea",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 5,
+      "patch": "learn/craft/patches/gravity.muusia.json",
+      "patchSha256": "fe529ef5d7779d1e353c99aeb21c6c76fb897937c00b56e3fa88ba853ba7c254",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "591c7afd8e16cbaf04b5c296585e2c9f64007c4f108db93bfc8966d3a2ff5aa7",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 6,
+      "patch": "learn/craft/patches/lens.muusia.json",
+      "patchSha256": "d84a4f062e40df9a5c0799766f4f66f334c177ebdbc5d6d380c7aba1e9bddac4",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "31b6885b3406bfad54d425c11a52867659551f706c250a0c597bab46684675c6",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 7,
+      "patch": "learn/craft/patches/marbling.muusia.json",
+      "patchSha256": "94ae57428aa9eb627d98669a03a6f490b4e507255a9cde6286942546f2c4d760",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "0f55c0d80fad6f54b2b50757304170859f6b4e0d92c1e5ed60cc1cf93159ba53",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 8,
+      "patch": "learn/craft/patches/mesh-render.muusia.json",
+      "patchSha256": "489d39da37a16ac70a661183b5ddd4731a886c4fa6bcdae4a7c921908a973774",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "18b69c04c89f5eed8a5809ffbb1e455cb3e93cf9b3c78c47a4323f93445b0aac",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 9,
+      "patch": "learn/craft/patches/path-bend.muusia.json",
+      "patchSha256": "710943c22b7386c5c2166641415e7aa93543e450f5fa8ac99967a1e8b6387c49",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "0811d0af1d4483751b6f2f062e2070e2a3e81a37297d4381fd81705b7bae4ebc",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 10,
+      "patch": "learn/craft/patches/reaction-patterns.muusia.json",
+      "patchSha256": "8a1fed09f4d983c0d42381a5f98aef5c59fbaf18f00dfe819029d7c0ac12eb02",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "669a98655af6ca8bb68045c8019de9e23ab12ff593e4ca965f5f2bfa8eed218e",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 11,
+      "patch": "learn/craft/patches/seamless-tile.muusia.json",
+      "patchSha256": "022c5e3e2070032ca10eff6bd11b159fb07e2f58d0557f710f11b91e46ba64e9",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "712c6d7ae081063e0efdfa366ba67c372cacabbb767fb29b3ceb89db0bcd1087",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 12,
+      "patch": "learn/craft/patches/shape-packing.muusia.json",
+      "patchSha256": "1b04622b1d44c60be03663f071c478cdf99fa929e966e22c85d8c36f12c97ad5",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "6d32925f2f4e2a97cfff859f724c749feccc1d6e0e59c4d942db36e190b43100",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 13,
+      "patch": "learn/craft/patches/marbling-animation.muusia.json",
+      "patchSha256": "db0574061ce760e0d2a4644ad7141f93fe2c885a1b16cd7c1e394a8cc613a7e1",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "db77e89c28e84c556abde53c7af1ae2eafa1d7fe7a2cdf3543f8ad10e0fa5435",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 14,
+      "patch": "learn/craft/patches/path-bend-animation.muusia.json",
+      "patchSha256": "cd99671939fe1e98cbe526fc79fbe32ed8d0fa94efaed26e79d637a986751f86",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "ceadb18a1a26e34d77c70c8a311559ddaab1caaec31268438d7ef2f6ea1276e0",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 15,
+      "patch": "learn/craft/patches/reaction-patterns-animation.muusia.json",
+      "patchSha256": "75888069e17892b49822d331d5f52016524e59345f7914dc568ac52a5e984c2f",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "e61082165f1ea84c9859444df2b4dcd6aee45294e39bdda65591c060395f709a",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 16,
+      "patch": "learn/craft/patches/crystal-growth-animation.muusia.json",
+      "patchSha256": "d470250ef185b75ca8bcba8848cbdb245f62c5b52f409ba4c7174790e07751e7",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "fcf89b3f33c2a1883db11b115a9f4194c6fa9b014ee69c8f249ed1f09594a00d",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 17,
+      "patch": "learn/craft/patches/mesh-render-animation.muusia.json",
+      "patchSha256": "d8974dae38615df8b13ee7fbab93445693135c3917f1cc598c7d69c20662a9be",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "777014dd4eb224bb527c180f8dc0863d4b85020bba0ccbd8d4bd93d5a11c09de",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 18,
+      "patch": "learn/craft/patches/array-animation.muusia.json",
+      "patchSha256": "246da51d5b1e7c64d9ed0a45d92a8996fdd04f3ebadef8fa40b689fc2d72c57e",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "6071db631a8b3e9639c21dcf49dd9d3891b91ca1da8b32d66b2f396ace32c84f",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 19,
+      "patch": "learn/craft/patches/lens-animation.muusia.json",
+      "patchSha256": "a977d58b7b423aa7aeae8f92b80886d92b7ec17c46a3888d19b2819d7f9820b7",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "e2fc95d11b30fd35c4472f70c3467d665b58cdab5c7c4b3b8d4aa1c1cc907cc9",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 20,
+      "patch": "learn/craft/patches/3d-view-animation.muusia.json",
+      "patchSha256": "00d2a5777f59f1f4ebdf2311892aa3cf409f50cc08d30ceec6ccd741459ac812",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "b814fac72b26acc838a76a32fd9e597829f035c02225665127aa022f19c34616",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 21,
+      "patch": "learn/craft/patches/drape-animation.muusia.json",
+      "patchSha256": "492e0824ee89d4bea508a798544ea147921773bdd531da4800ee168da1120292",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "f7493c029d50bb65bfb4d5aaf227691b80a11282dacb03e7419784749cc665dc",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 22,
+      "patch": "learn/craft/patches/gravity-animation.muusia.json",
+      "patchSha256": "d9b73a1edcdbbd650ead2a17ec89f80bb797bce3e7682c32b436e4dfa54af907",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "9711a366f86c4630b81968f31cac281328532b5c77f12c82c094c928b29d88bd",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 23,
+      "patch": "learn/shapes/patches/block-field.muusia.json",
+      "patchSha256": "11adab8caed549761bb157c157304530b7c5cc150d3ea257b3d6b3a7f9d81443",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "d8d1be7661a96ec24a265c07f0ed9ba7657399c03e33abfcb6bb6054b7baca67",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 24,
+      "patch": "learn/shapes/patches/cell-strands.muusia.json",
+      "patchSha256": "b8aafdcd140f45051151815bab59d3d9c7db8230c4e49cf22de5fc42510af651",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "4aeec0fd85968459024d183d9acf3dfd78df84c8964b463bd70611b2de7d4747",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 25,
+      "patch": "learn/shapes/patches/cell-warp.muusia.json",
+      "patchSha256": "2184179cc1bb9e0ac7a65827403e7c3b2ec1cb4975b0f636b7c9a2dc33ef46e8",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "9aaa0b357f38bda7d46ffbac1cf1555239496e4f5c81a8af9a71f55533e6a148",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 26,
+      "patch": "learn/shapes/patches/flow-poles.muusia.json",
+      "patchSha256": "0aef8d06180c4cca36ae1bcb7991e9898875b1bfe863a34d24186538266c89a2",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "cc853fffaf23cb8cd2af67ba559de6e236af08dcbe39809a304e0555ed502f1c",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 27,
+      "patch": "learn/shapes/patches/network-drift.muusia.json",
+      "patchSha256": "3d8a83087bedc39e50735d63985a6a86d7ec9df1c8924002f1619b0d2ac2aa17",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "50f58142310bd2c0836453b54070f0a4594531849c27e32ee66816d30defea3b",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 28,
+      "patch": "learn/shapes/patches/packed-rectangles.muusia.json",
+      "patchSha256": "27b4d87400ac94c2eb0ef74539fbd32774810c9028fb6923c39c1b7901264aa4",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "508edb2a8da3d2e92650b324255a4027cc0a8d31c26fa79a21782af18e3e4a9c",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 29,
+      "patch": "learn/shapes/patches/spiral-morph.muusia.json",
+      "patchSha256": "26736a99808e0d8b2425afc44ac976ad0a6cb79f2e5591164e6dc2d18ad7fe77",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "20b89dbbfa9b14b13a2f97630630ff7412043a41bfb8bee2b0fde434e0c2f3eb",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 30,
+      "patch": "learn/shapes/patches/tiles-field.muusia.json",
+      "patchSha256": "9c12162cff01f199bc1140d28eb1408ddd5bf672b25ef8c8e95c12271e4bcfe1",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "893c8fc3141a900835309d205eab7a2ba2a80f240b3d9ebfa037e73153c25b21",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 31,
+      "patch": "learn/shapes/patches/truchet-bands.muusia.json",
+      "patchSha256": "d87bca47fc0f5f3af4fbd9a0fcec7cbc71ba630b15401fd60b1ca5d2b17875b7",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "5202e4ea673cf3ff9870a4d5ced84d86b245db9a59bc90f42327c2c883b45de1",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 32,
+      "patch": "learn/shapes/patches/wave-interference.muusia.json",
+      "patchSha256": "8af8d798c3b1e3049c5e100ddd33dfdf5faa7a46ecbc3e601d3808c92053b508",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "c7f62c94f118b33210eb80868a7a3f4018d80da4d2c834a16576868de9e4247a",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 33,
+      "patch": "learn/shapes/patches/flow-poles-animation.muusia.json",
+      "patchSha256": "2e1d49a4ec47f289a9a823b6da0706bc15931dc9f33833e4dcccbab6d1b8404b",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "17543aa16d6738128dca64c27bccda6c4bb027eb20ca7b0481864ebdfe177fc9",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 34,
+      "patch": "learn/shapes/patches/wave-interference-animation.muusia.json",
+      "patchSha256": "26ea29b600ad5349432a0234930335031703353dc81fcf2d158e8adb144a0135",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "b515466314eb98c9afdcb0f3ef11cbe9374906b14c4a2589b1c0153bd501d1d5",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 35,
+      "patch": "learn/shapes/patches/spiral-morph-animation.muusia.json",
+      "patchSha256": "14530a97b8ad1f9f96c6af0324178bc78277f649727b3a8b01f3e858fec3dd72",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "264edcca19a1fee5492ebe09fb4112c3d7f3392522faab0cdeb43626373abc07",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 36,
+      "patch": "learn/shapes/patches/cell-warp-animation.muusia.json",
+      "patchSha256": "0ff11758a20b174183ef05e970ba45b2862009166a417da90374189f0d0b39de",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "ed1fb353a40dd7f31219d25c42ad7fc1bdd144108ad5ccee9b39bb5d77b9b6a0",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 37,
+      "patch": "learn/shapes/patches/tiles-field-animation.muusia.json",
+      "patchSha256": "c83267815df7eeb089f91821ee8408e69723f5d2f426252d42f24c76a05def0b",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "c817c2bb9ab7edaa6c2dcd7fc8841c75a1f016eab150b2e1fb3e3f749efead21",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 38,
+      "patch": "learn/shapes/patches/network-drift-animation.muusia.json",
+      "patchSha256": "87e75c822fae640fc78b3f6d2fe13b9becbe3640e56c6ace7a8f6868e1cc01df",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "cee90f6604f9eb9ad6e5a0a3405dd0971f3983e2de13667d84c86ab562470607",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 39,
+      "patch": "learn/shapes/patches/cell-strands-animation.muusia.json",
+      "patchSha256": "5f55cd6de45a69807e373075cfc39be5e1b399544575155f9788bcefb28530c0",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "95d04bd5c68419570d8eea377f44ed894ab518798424d97911f7337e549cff8a",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 40,
+      "patch": "learn/shapes/patches/block-field-animation.muusia.json",
+      "patchSha256": "7472edfaacb48f0857f15d19441616961577737a4a0665c0a187abdb159df476",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "61b65908178b5b34b33366b8b81caffd558c4c412caf1ffd152c081d4d223626",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 41,
+      "patch": "learn/plotterfiles/patches/custom-tile.muusia.json",
+      "patchSha256": "0e422d8d444362d5745b0439c7a670d953b8f63fe3b315508fa3cd5020e361a9",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "68f4cfd53ce263491a9accef94a134cc93f966e824d07402aa6e4ad573567caa",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 42,
+      "patch": "learn/plotterfiles/patches/floret.muusia.json",
+      "patchSha256": "67dcd27f1d9e8f062ede6576230d55f8eab56134e7f6f9341903bac7ca208461",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "b3b861838e10f668a7c0c0a881856e7a2c0d78a5787c1cd5c0a4170f7c588e61",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 43,
+      "patch": "learn/plotterfiles/patches/hitomezashi.muusia.json",
+      "patchSha256": "8ccd9171e8a11aa5f5ca663d4a1680952f957d2b68048a81924d65090d3bccaa",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "9ceddaa1f14c0fa814fba9802a740c3c3790f88751fa2b493885231a1e10771c",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 44,
+      "patch": "learn/plotterfiles/patches/spiral-packing.muusia.json",
+      "patchSha256": "826fa8aae3065a62887737993596387a39a2ac89d4f3d5f1a932e9ec7df85a62",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "da8fdc6a385c355c6eb5fca9c79ba4c4893149b730e15fd90d84d4da4e0aa3bc",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 45,
+      "patch": "learn/plotterfiles/patches/tessellation.muusia.json",
+      "patchSha256": "663e575662affaffe6b13087c165bb0762ab33aa41e81712e75f4326bea89523",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "67b6939a059f9947959b990db214dd576cfbf316cf220c17558115193dc1f797",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 46,
+      "patch": "learn/plotterfiles/patches/venation.muusia.json",
+      "patchSha256": "d26b279b689440136981c8c22c0fddd3a4730950c2279e569e540e87aa70998d",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "97005cc782bc91174eb851df6159c2dcf5613abe43280deec73d242331d07899",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 47,
+      "patch": "learn/plotterfiles-more/patches/automata-3d.muusia.json",
+      "patchSha256": "e811107cc7e5ab3df4bf5b1c70c6c3efff124b2c5807183166592565181f4d9d",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "6722d98ff8a7b624712df74cd1fffc2c9a9f90bc2f233608993c32b93bcfe6e4",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 48,
+      "patch": "learn/plotterfiles-more/patches/continuous-fill.muusia.json",
+      "patchSha256": "13538d7cf82091e112c34480a97e47141981b7f4e8e15843753b164dbfe7e8c0",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "73ab4884d241da514cbbad94cb100b0196110a3b0f7d4250c60d6069dd009ec9",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 49,
+      "patch": "learn/plotterfiles-more/patches/curve-interference.muusia.json",
+      "patchSha256": "6f3d4b489970ff443bb5c90621fd95dfc62f15e4c201dfdff5f05bd9fce6812d",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "48d267ad9493d545c4c38f0373a78832a13eeae409c7c3c5e90f1ae0ea313ce2",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 50,
+      "patch": "learn/plotterfiles-more/patches/disarray-field.muusia.json",
+      "patchSha256": "a33d504be2fc650c8de920ea12c2827c1d028bd26b8391e089929db790cbe377",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "dbea3336d783caa3c2f4b3f761badeed98d7fc2ef9da9d6d2f4c9d7723e0c71c",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 51,
+      "patch": "learn/plotterfiles-more/patches/fragment-layout.muusia.json",
+      "patchSha256": "186423b0df0fa58ad4b899ac2f93b7c7a7b510b53942540df5730623cd289442",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "50100702d2eb107919fbef729c985b77db7a87642590c7ff5245eac82505e862",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 52,
+      "patch": "learn/plotterfiles-more/patches/hex-weave.muusia.json",
+      "patchSha256": "2cbe62e98622cd4923b45940e531e910a9db1b216338504769ebf836c847409e",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "fa2a75daeb7681dfdcbb0b4d9f490795ac4687e1f29aece4ea1856a556b3d3d8",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 53,
+      "patch": "learn/plotterfiles-more/patches/maurer-rose.muusia.json",
+      "patchSha256": "74c241aa6d2e8007e8c2d330d8c503271bdfcf69534f15a54da0dc8b6758ee46",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "c1677b40e048413969f51451521d6814e2317b1cc791ab551ba3784d160b0eaf",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 54,
+      "patch": "learn/plotterfiles-more/patches/one-line-grid.muusia.json",
+      "patchSha256": "cded1e1492a2d4e9ed5c97e6363daaa305bdbc6405353fe3a6a7117af2353d15",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "7721259863c7f5cb7795bfca2aa85631c16fef77addf4137e3594aec34bb5012",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 55,
+      "patch": "learn/plotterfiles-more/patches/pattern-mask.muusia.json",
+      "patchSha256": "b18d566b145e7ad51398a6af3bfef50a885f656dc2001059c0fc5eef5ea2d11d",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "1d79ce050757f71ab1b679c2714948679dbb0c242d1f60b90a3c7792b0446d1d",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 56,
+      "patch": "learn/plotterfiles-more/patches/pattern-silhouette.muusia.json",
+      "patchSha256": "93720fe764ab8ee719a207d4bdc1ee60315c2f941a29c77fe18037ac532e7c8b",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "97dc3d8c8f5911c1e4fad697c9254343d92a6b42f88635ff5ebc21c7088d370d",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 57,
+      "patch": "learn/plotterfiles-more/patches/plot-preparation.muusia.json",
+      "patchSha256": "e0a811c9cb5dd3305d8ef6b7cec65167a57e1c9e5b4acb8e06df80ce9a676de3",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "f745bde24ae08f1d4121345c8e2ff469ba09d4fee96f1236b2f4e4edea1495c0",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 58,
+      "patch": "learn/plotterfiles-more/patches/recursive-structure.muusia.json",
+      "patchSha256": "30f99abc55d7920dd575fb101ab0ab005c1feaaab0b5c7d9c41574e8fd720865",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "5567cd9e0a5ea547df416f21cd06e9ab698dfced46341041da760d340d2d33c1",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 59,
+      "patch": "learn/plotterfiles-more/patches/svg-batch.muusia.json",
+      "patchSha256": "363124fdf46b42901a5caff703b403faefad860ce371769e65f48eef2f54afcc",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "5a06249222ac77830cb36306ee68065b68bd9cdbb3c22e665ef19db019deafe7",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 60,
+      "patch": "learn/plotterfiles-more/patches/tonal-turing.muusia.json",
+      "patchSha256": "27385b360862c2791fe7133dace2a73c2c73d5a912da160367f0e87f399cc8c9",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "e68e3298027449b8445f1f70fdcfe1303269514ea31b6580a9d28b8d7271abad",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 61,
+      "patch": "learn/designminis/patches/custom-motif.muusia.json",
+      "patchSha256": "203eeb119b7d3aa21baa21c8ad1213945ba516639b059345773917cc5d638300",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "025463dec9c36f21996714cdb681b300aac71793b2d58676eea47016318fca8d",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 62,
+      "patch": "learn/designminis/patches/fluid-union.muusia.json",
+      "patchSha256": "9423c1831082ab950c699aff425ba060d3b87a60edc233bec63592c132310418",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "6f913fa18e683cda107c177e1935853ace9cff3d54f8965726fc9b7cb9530dce",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 63,
+      "patch": "learn/designminis/patches/vector-dither.muusia.json",
+      "patchSha256": "397fa01e7a8e8cae61d3d52b8ac452d36c18c3fa2663601d399f7e34f62c2bfb",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "6f174f53a822d7dd18df7cea22eacc47793980ee3f3f872daa88ee9e1dbf1740",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 64,
+      "patch": "learn/designminis/patches/weave-draft.muusia.json",
+      "patchSha256": "96aec891ccabe1ba945a874a595648241d9617f659a0abbd7c94e5f0a0a50ca8",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "07b8a85cf743455728beecf4e577c6b109332a3cd298d17f9d9562c9a4f59c01",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 65,
+      "patch": "learn/multicolour-grid/patches/folded-grid-3-pen-a3.muusia.json",
+      "patchSha256": "2d9947b74718acac8bedc1be4fcb46dd440a7071541230a1a8711ee5d4fd39b0",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "982a83c9689ed5328987b7fbff69034cd539fe84b6910488a30012e829cf7285",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 66,
+      "patch": "learn/multicolour-grid/patches/folded-grid-4-pen-a3.muusia.json",
+      "patchSha256": "a8a07fb0404a89ee69a061a6cce2987fba6df23993e7e0b3026cc672b5c57e38",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "70ba45f534dba1b4df624314fb886d8e5d842718750eaba0ce7f052410a9febb",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 67,
+      "patch": "learn/multicolour-grid/patches/folded-grid-colour-drift-a3.muusia.json",
+      "patchSha256": "3844b5af25d75623834f7380bb7349baf7d11970968ac206a75df3bf4f06b5e0",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "b49c340ae0a719a382c7996848298c345ac60ccdc85f27ff1524e19ac1a295d2",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 68,
+      "patch": "learn/regions/patches/tonal-regions.muusia.json",
+      "patchSha256": "669747954d6c1f85db85731e0e907fe45f972aeaff8461b4427123a56b6e310c",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "da44d978f48bf9265a14830eea49b38a5b5463ad67d3e604fbaeb430e936a3fa",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 69,
+      "patch": "learn/regions/patches/tonal-regions.muusia.json",
+      "patchSha256": "669747954d6c1f85db85731e0e907fe45f972aeaff8461b4427123a56b6e310c",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "03fa32e3dcca21d3f1599f202da155be5fbd4a124a38e1eef7b0683de13a01c7",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 70,
+      "patch": "learn/regions/patches/tonal-regions.muusia.json",
+      "patchSha256": "669747954d6c1f85db85731e0e907fe45f972aeaff8461b4427123a56b6e310c",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "8f24489ee8fb6c78ffbbae1cc92f9287f2a91e5ebccd84bafbc8903f2fb4e456",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 71,
+      "patch": "learn/regions/patches/four-pen-regions.muusia.json",
+      "patchSha256": "424ca76c91e89e1a4eaaf906e5d9979fdf0573780876b42ce3e3c44c987ef3db",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "74bd3a15680ad7286376f59c8e8650f25d915cce62f49b52ff552e609dbd9df7",
+      "comparison": "historical browser SVG (Node rounding differs)"
+    },
+    {
+      "id": 72,
+      "patch": "learn/regions/patches/four-pen-regions.muusia.json",
+      "patchSha256": "424ca76c91e89e1a4eaaf906e5d9979fdf0573780876b42ce3e3c44c987ef3db",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "60ff3cd1cdd6f20d48256476f7cc0988cec8e51c0c5154d616b6cfb2a0c23003",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 73,
+      "patch": "learn/regions/patches/four-pen-regions.muusia.json",
+      "patchSha256": "424ca76c91e89e1a4eaaf906e5d9979fdf0573780876b42ce3e3c44c987ef3db",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "17f0eded40dea53d47b2aad228f0440958571e6589e8801ad9c92d9e258a97fd",
+      "comparison": "historical browser SVG (Node rounding differs)"
+    },
+    {
+      "id": 74,
+      "patch": "learn/regions/patches/two-pen-regions.muusia.json",
+      "patchSha256": "a7abf2ec9ed62eda2ca9ceed55659d93c927bd1dd7d1828c46622d64eadfd5cd",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "39111b6595af19277155f590fc77f326907bcb4b1238d793ec611964a87e48c6",
+      "comparison": "historical browser SVG (Node rounding differs)"
+    },
+    {
+      "id": 75,
+      "patch": "learn/regions/verification/photo-intake.muusia.json",
+      "patchSha256": "d8c5dcf99e226577ebea3048c2aece78f75f84064f51df70f033afea861e69d1",
+      "kind": "svg",
+      "frames": 1,
+      "svgOrZipSha256": "ff76bbcb1e26ebbccebd3dc3154fcc9893021928168a328afc67a15adc5d5b30",
+      "comparison": "historical browser SVG (Node rounding differs)"
+    },
+    {
+      "id": 76,
+      "patch": "learn/plotterfiles/patches/venation-animation.muusia.json",
+      "patchSha256": "db6995345a9313db30bc931f01f5681255128478fe1cfa4582074a198ad6d645",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "34b965370953956d3f8d33552b9a050ec89aca2b3ebd005865dda0b75590f205",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 77,
+      "patch": "learn/plotterfiles-more/patches/automata-3d-animation.muusia.json",
+      "patchSha256": "79091d22c4dd9d50203c86774599a7c769c907662914d84fb8595d1d1dc2f99e",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "c6be3b81820de6aeccdadce4d393dfda82f32b9c0c67bdaf7181fb5be70b5cfa",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 78,
+      "patch": "learn/plotterfiles-more/patches/tonal-turing-animation.muusia.json",
+      "patchSha256": "3e37f4d34e3a67c646641b527828a98bcd66335456d0c274ddd79f589d6b35f4",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "3c2eb24ad5f30717686378527404d2816b408e8f5ec1ae434e53137e49754dfb",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 79,
+      "patch": "learn/plotterfiles-more/patches/curve-interference.muusia.json",
+      "patchSha256": "6f3d4b489970ff443bb5c90621fd95dfc62f15e4c201dfdff5f05bd9fce6812d",
+      "kind": "frames",
+      "frames": 12,
+      "svgOrZipSha256": "8d05b1e99b69e75a90e771389477bb87a891a620f6e5c06d250ac83fe21688bb",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 80,
+      "patch": "learn/plotterfiles-more/patches/svg-batch-animation.muusia.json",
+      "patchSha256": "1ddbf6028e807702aa5018bd5c723ccaf70bca9882e9cd829fbef93268407ad4",
+      "kind": "frames",
+      "frames": 2,
+      "svgOrZipSha256": "dead8d03e8a200bcf813d609803678801f31cc87fafa3e56cf629e5be8ffad9d",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 81,
+      "patch": "docs/animation-examples/patches/travelling-wave.muusia.json",
+      "patchSha256": "692b73eb4ef0a54e52ce41c1842134673aa6fb19b4e2b1ed7f92c14a16be5b0b",
+      "kind": "frames",
+      "frames": 36,
+      "svgOrZipSha256": "74d8d08f1d07972988cb5edd6fdc7a3f7c27a6603b30e8a2d953eef4e83a8f82",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 82,
+      "patch": "docs/animation-examples/patches/sliding-moire.muusia.json",
+      "patchSha256": "7032d09e1b1bca9beea3176bc58325a81d725a7d31c58a5e5ec3323426f76a16",
+      "kind": "frames",
+      "frames": 36,
+      "svgOrZipSha256": "1bd413b07fbd82f45b99edb6ac5df71815638607b4a9a91c46e5f676fc689d71",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 83,
+      "patch": "docs/animation-examples/patches/travelling-pinch.muusia.json",
+      "patchSha256": "64565b36e4a9faab678dc6c0ae60cc0d729c7cf70ff1f9a1d87eba9b58b0cc85",
+      "kind": "frames",
+      "frames": 36,
+      "svgOrZipSha256": "d5c2c47848aec1fc30dcc881f2acc2ed46bed0de67bda1c43d4153302c4d1004",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 84,
+      "patch": "docs/animation-examples/patches/reassembly.muusia.json",
+      "patchSha256": "d648724a89a4b1bc88ccff97d014bb1bf401f6326f5d72a7d211e0a69af34917",
+      "kind": "frames",
+      "frames": 36,
+      "svgOrZipSha256": "fda2e9182478cfc8cdbef4e995268a36e833d394d910cc2a607e6cb82e89d198",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 85,
+      "patch": "docs/animation-examples/patches/letter-shift.muusia.json",
+      "patchSha256": "a8cdef4658764a134b82cbbda2631ef98261df3c47e5c12c25dd18b05340a56e",
+      "kind": "frames",
+      "frames": 36,
+      "svgOrZipSha256": "e6864961db3924348e02e92da3cf71ccbfd15ed1541ce3068c3c5123c7fe01c2",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 86,
+      "patch": "docs/animation-examples/patches/living-volume.muusia.json",
+      "patchSha256": "21bceff2777c62ec229b6c11c79ef6666cfbbfba032e3f3db2bdae8080be240a",
+      "kind": "frames",
+      "frames": 36,
+      "svgOrZipSha256": "03afe60743175bbb83cd3afb8f5dc033b77de838be773afea5c82e69549a9f63",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    },
+    {
+      "id": 87,
+      "patch": "docs/animation-composite/grid-hairs-solids.muusia.json",
+      "patchSha256": "883ba42da800c029ee54d2da624377a468e4a26cc784fd7aa4456ae53636f3f6",
+      "kind": "frames",
+      "frames": 36,
+      "svgOrZipSha256": "549bdeab869a15c9087c1a6c6a1796c10f7257a64fc0ed3d767088426009937a",
+      "comparison": "byte-identical to expected actual evaluator/exporter output"
+    }
+  ],
+  "sourceFiles": {
+    "src/defs/portrait-string-art.js": "26acbaaed8dc3940f5c99e6e7a9d2928fd551e081cae953acdaa9f7bba3c2020",
+    "src/defs/nodes/portrait.js": "4cc965935d8cdb7122219d79e58f0e2283a018c242b7515f6b81c21575eb5bc2"
+  },
+  "svgExportScopeSha256": "e34e46e2804e0d4ca7d82377a656421cf4bf8371684f40ec0803e989294e4b99"
+}

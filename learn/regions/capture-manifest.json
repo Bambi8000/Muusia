@@ -5,7 +5,7 @@
   "sourceCommit": "da8ef3bb6898cc9b4644216bc1616ed4d3e92535",
   "scope": "Actual local built-in Region Hatch at 127.0.0.1:5176. Route optimization off; default A Servo example 330x240 mm, uncalibrated. Six SVG downloads, two G-code downloads (software checks only), four unretouched UI captures, Choose image + Save. No hardware run or publication.",
   "engineSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
-  "exporterSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "exporterSha256": "e34e46e2804e0d4ca7d82377a656421cf4bf8371684f40ec0803e989294e4b99",
   "sourceHashes": {
     "src/defs/nodes/region_hatch.js": "a75b1883925093f6a989eae4e50241bc3767549503615d9119f0756bf762e03a",
     "src/defs/nodes/setpen.js": "f794990a7915e45f700f2dd80d0590320910da6adbbf8baca98e18f995956c9c",
@@ -123,5 +123,5 @@
       ]
     }
   ],
-  "sourceRecapture": "\n2026-11-16, Muusia 2.193 actual local browser: re-exported only the affected Merge outputs (Carve an image into tonal regions (9).svg, Draw a four-pen patchwork (11).svg) with Optimize route off. Every byte equals the existing SVG artifacts; historical PNG/G-code records and independent outputs are unchanged."
+  "sourceRecapture": "\n2026-11-16, Muusia 2.193 actual local browser: re-exported only the affected Merge outputs (Carve an image into tonal regions (9).svg, Draw a four-pen patchwork (11).svg) with Optimize route off. Every byte equals the existing SVG artifacts; historical PNG/G-code records and independent outputs are unchanged.\n2026-11-16, Muusia 2.196 actual local UI: recaptured all 58 static SVG exports, all 30 animation batches (518 frames), and the per-pen Stack ZIP with Red hidden. Complete legacy results preserved, including historical browser rounding for four Region outputs. The optional path strokeWidth affects new String art only. Historical PNG/G-code captures remain unchanged. Full evidence: docs/portrait-string-art-quality-checks.json."
 }

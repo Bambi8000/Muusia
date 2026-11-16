@@ -51,20 +51,30 @@ Choose **Mode → String art** to draw a photo as a single thread stretched
 between nails equally spaced around a circle. No **Analyze face** step is
 needed. **Help → Portrait · String art** opens a ready-to-use A3 starter.
 
-- **Nails (24–400)** controls the number of possible anchors. Start at 200;
+- **Nails (24–400)** controls the number of possible anchors. Start at 250;
   fewer nails give a more angular web, more give finer choices of chord.
-- **Thread lines (100–6000)** caps the number of straight segments. Increasing
-  it extends the same route. The fitter stops early when no next chord improves
-  the simulated image, so this is an upper limit rather than an exact count.
-- **Pen width mm / Ink strength** tune simulated thread darkness. Lower values
-  let more overlapping threads build up before an area is saturated. They do
-  not change the app's SVG preview stroke width or your physical pen.
-- **Detail** sets fitting resolution. **Gamma / White cutoff** adjust source
+- **Thread lines (100–20000)** caps the number of straight segments. Increasing
+  it extends the same route. The fitter stops when no useful continuation is found within its bounded
+  search, so this is an upper limit rather than an exact count. The new default
+  is 6000; older saved patches keep their own line limit.
+- **Thread width mm (0.01–0.5)** sets the simulated thread coverage and its
+  preview/SVG stroke width. The default 0.035 mm builds fine detail with thousands
+  of chords. Match this to your physical pen when plotting: the parameter cannot
+  make a real nib thinner. Wider threads need fewer strokes to reach a tone.
+- **Ink strength** calibrates how strongly the physical ink darkens the paper.
+  Lower values allow more overlapping chords. It does not change the SVG colour.
+- **Detail** sets fitting resolution. **Quality** controls local route refinement. **Gamma / White cutoff** adjust source
   tone; **Focus** weights accuracy inside its ellipse. **Seed** picks the
   starting nail; **Pen** selects the single pen used for the whole thread.
 - **Margin mm** sets the circle's distance from the shorter paper edges. The
   image fills the circle with its aspect preserved and the excess centre-cropped.
   Crop your source photo beforehand to choose what appears inside the circle.
+
+The fitter integrates each thin chord across neighbouring tone samples instead
+of filling a complete coarse pixel. It models accumulated density, protects
+local contrast and refines the route in fixed 128-chord blocks. A short two-step
+search can escape a locally exhausted nail; every bridge is scored as drawn ink.
+Earlier blocks stay fixed so Thread lines preserves an exact prefix.
 
 Every output point is a nail and every segment runs directly to another nail.
 The output is **one open path**, with no lifts or travel moves between chords.
@@ -77,7 +87,10 @@ light backgrounds usually give clearer portraits.
 
 Developer checks: `node tools/validate-portrait-string-art.mjs`. With the local
 dev server running, `/tools/validate-portrait-string-art.html` compares the real
-photo intake and node output at 60, 200 and 400 nails.
+photo intake and node output at 60, 200 and 400 nails. A same-photo comparison
+against 2.195 can be prepared with `node tools/portrait-string-art-quality.mjs
+[output-dir] [vite-origin]`; serve that output locally. The baseline comes from
+the original release commit, so the comparison tool needs that Git history.
 
 ## Continuous Scribble portraits
 

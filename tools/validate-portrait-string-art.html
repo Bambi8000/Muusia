@@ -13,7 +13,7 @@
 </style>
 <h1>Portrait · String art</h1>
 <p>Same photo, three nail counts. Each drawing is one continuous route of straight nail-to-nail chords.
-The photo is centre-cropped to the circle. Nail guides do not export. These are the real node's default settings; SVG uses the app's standard 0.3 mm preview stroke.</p>
+The photo is centre-cropped to the circle. Nail guides do not export. These are the real node's default settings; SVG uses the selected Thread width mm.</p>
 <p id="status">Drawing…</p>
 <main><article><h2>Source photo</h2><img src="../fixtures/portrait-photo.jpg" alt="Source portrait"></article></main>
 <script type="module">
@@ -32,7 +32,7 @@ try {
     const points = result.paths[0]?.pts || [];
     const length = points.slice(1).reduce((s, q, i) => s + Math.hypot(q[0] - points[i][0], q[1] - points[i][1]), 0);
     const article = document.createElement('article');
-    article.innerHTML = `<h2>${count} nails</h2><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297"><polyline fill="none" stroke="#242725" stroke-width=".3" stroke-linejoin="round" points="${points.map(p => p.join(',')).join(' ')}"/></svg><output>${result.paths.length} continuous path · ${points.length - 1} chords<br>${(length / 1000).toFixed(1)} m · ${duration} ms</output>`;
+    article.innerHTML = `<h2>${count} nails</h2><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297"><polyline fill="none" stroke="#242725" stroke-width="${defaults.stringWidth}" stroke-linejoin="round" points="${points.map(p => p.join(',')).join(' ')}"/></svg><output>${result.paths.length} continuous path · ${points.length - 1} chords<br>${(length / 1000).toFixed(1)} m · ${duration} ms</output>`;
     const button = document.createElement('button');
     button.textContent = 'Download editable patch';
     button.onclick = () => {

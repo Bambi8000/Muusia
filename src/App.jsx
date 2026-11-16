@@ -903,7 +903,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.195"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.196"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -1132,10 +1132,12 @@ function toSVG(ps, ctx) {
       .filter((p) => p.layer === L)
       .map((p) => {
         if (p.pts.length < 2) return "";
-        return "M" + p.pts.map(([x, y]) => `${f2(x)},${f2(y)}`).join("L") + (p.closed ? "Z" : "");
+        const d = "M" + p.pts.map(([x, y]) => `${f2(x)},${f2(y)}`).join("L") + (p.closed ? "Z" : "");
+        const width = Number.isFinite(p.strokeWidth) && p.strokeWidth > 0 ? Math.min(10, p.strokeWidth) : null;
+        return { d, width };
       })
       .filter(Boolean)
-      .map((dd) => `    <path d="${dd}"/>`)
+      .map(({ d, width }) => `    <path d="${d}"${width === null ? "" : ` stroke-width="${width}"`}/>` )
       .join("\n");
     return `  <g id="pen-${L}-${pen.name.toLowerCase()}" fill="none" stroke="${pen.c}" stroke-width="0.3" stroke-linecap="round" stroke-linejoin="round">\n${d}\n  </g>`;
   });
@@ -1407,7 +1409,7 @@ function PathsSVG({ ps, W, H, width, height, arrows = false, pad = 4, guides = n
     const d = "M" + p.pts.map(([x, y]) => `${(ox + x * s).toFixed(1)},${(oy + y * s).toFixed(1)}`).join("L") + (p.closed ? "Z" : "");
     els.push(
       <path key={i} d={d} fill="none" stroke={PENS[p.layer % PENS.length].c}
-        strokeWidth={Math.max(0.7, s * 0.35)} strokeLinecap="round" strokeLinejoin="round" opacity="0.92" />
+        strokeWidth={Number.isFinite(p.strokeWidth) && p.strokeWidth > 0 ? s * Math.min(10, p.strokeWidth) : Math.max(0.7, s * 0.35)} strokeLinecap="round" strokeLinejoin="round" opacity="0.92" />
     );
     if (arrows && p.pts.length > 4) {
       const mid = Math.floor(p.pts.length / 2);

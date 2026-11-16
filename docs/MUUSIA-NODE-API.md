@@ -73,6 +73,11 @@ Everything flowing through blue wires is a **path set**:
   first point at the end yourself).
 - `layer` — integer pen index `0..11` (12 pens; colors/names user-editable in the app). Layers
   become pen-change stops in G-code and `<g>` groups in SVG export.
+- `strokeWidth` — optional finite positive stroke width in millimetres. Preview
+  and SVG honour it (capped at 10 mm); paths without it keep the historical
+  appearance byte-for-byte in SVG. This is a presentation/coverage hint, not
+  a physical pen command: G-code and DXF remain centreline geometry. Modifiers
+  that reconstruct paths may discard optional presentation metadata.
 
 Curves do not exist: everything is a polyline. Sample curves densely enough
 (typically a point every 0.5–2 mm) to look smooth.

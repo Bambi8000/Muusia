@@ -5,7 +5,7 @@
   "sourceCommit": "f881d9ef3adfe82596807ea3b38186880292ae4c",
   "scope": "Actual local Muusia build containing Craft nodes. Twelve original SVG exports, twelve Focus screenshots and twelve fresh graph screenshots; source cards minimized for readability. Ten actual 12-frame SVG batch exports. No pixel retouching, hardware execution or publication.",
   "engineScopeSha256": "0c32e3d0011b81cb75719ce5f4806badb83db87ef359923abc374610e998a73b",
-  "exportScopeSha256": "b60aa67322e83d0f432af7065cf80d5002ba06f5b01d039cb13ddaebc7ec01ad",
+  "exportScopeSha256": "e34e46e2804e0d4ca7d82377a656421cf4bf8371684f40ec0803e989294e4b99",
   "sourceHashes": {
     "src/defs/nodes/grid.js": "45501affa0434717cfd6978fe713411eeb6ba3f4b627a7de208c44fb133f2ae2",
     "src/defs/nodes/marbling.js": "1550aec846a03da9f72ec371cb663c41bf995828ff14382c340ed789dae04a5e",
@@ -469,5 +469,6 @@
         }
       }
     }
-  ]
+  ],
+  "sourceRecapture": "2026-11-16, Muusia 2.196 actual local UI: recaptured all 58 static SVG exports, all 30 animation batches (518 frames), and the per-pen Stack ZIP with Red hidden. Complete legacy results preserved, including historical browser rounding for four Region outputs. The optional path strokeWidth affects new String art only. Historical PNG/G-code captures remain unchanged. Full evidence: docs/portrait-string-art-quality-checks.json."
 }

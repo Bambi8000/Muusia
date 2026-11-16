@@ -1157,8 +1157,8 @@ export const NODE_RECENCY = {
   },
   "portrait": {
     "date": "2026-11-16",
-    "order": 139,
-    "sha256": "18784277114aad32492c6cecc901dd3aa4c23eae7d761dfc89eaf1926e437377"
+    "order": 140,
+    "sha256": "4cc965935d8cdb7122219d79e58f0e2283a018c242b7515f6b81c21575eb5bc2"
   },
   "potato": {
     "date": "2026-09-13",
