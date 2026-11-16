@@ -2217,13 +2217,25 @@ print, Edge roughens the cap rim, Fade breaks lines into a dusty falloff that
 strengthens toward the rim, Dust scatters spore specks (own pen), Rim band adds
 a dense edge ring. Count drops up to six varied caps on one sheet.
 
-**Double Pendulum** — a real double pendulum drawing its chaotic trace (RK4,
-fixed step, fully deterministic — no seed). Trace Bob 2 / Bob 1 / Both /
-Midpoint; Traces runs up to eight pendulums with a tiny Perturb offset so chaos
-tears the bundle apart, optionally one pen per trace. Damping spirals the line
-into rest for a finite drawing; the trace provably stays inside Arm 1 + Arm 2
-around the Pivot. Chain into Brush Z (Ramp down) for a chaotic brush stroke
-fading with the energy.
+**Double Pendulum** — two modes. **Gravity** retains the real coupled RK4
+simulation: two arms fall and swing under gravity; Trace selects Bob 2, Bob 1,
+Both or Midpoint; Traces and Perturb compare chaotic trajectories, optionally
+with one pen per trace. Damping settles the passive motion towards the bottom.
+**Full disc** is a driven drawing extension: incommensurate rotating arm phases
+with a bounded RK4 perturbation and slow radial breathing distribute a single
+continuous stroke around the whole circular area. **Fill centre** removes the
+unequal-arm inner hole; equal arms already reach the centre. The inner arm-circle
+guide is omitted in this mode. **Avoid retracing** defaults on: **Line spacing mm**
+sets clearance from older near-parallel ink, including reverse-direction passes.
+Short, checked smooth detours can rejoin later free motion without lifting or
+teleporting; every connector is tested against prior ink. The bounded search
+ends the one open path if it cannot continue, so Time is an upper limit in this
+mode. Crossings at other angles are allowed; this does not guarantee paper wear
+is impossible with any physical pen/pressure/paper. Traces and Trace controls
+are hidden in Full disc, which uses one pen and one path before Style. Dashed
+Styles or cutting modifiers can split it. Fit canvas fits the whole circular
+guide first, preserving the clearance in final millimetres. Help includes
+**Double Pendulum · Full disc** and **Double Pendulum · Fill centre**.
 
 **Gyroid** — the triply periodic minimal surface sliced into stacked contour
 rings with the Retro Mesh camera (Perspective, Rot X/Y, fit). Cells sets the

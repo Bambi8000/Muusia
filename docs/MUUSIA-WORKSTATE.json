@@ -290,7 +290,7 @@
         "physicalBridgeVerified": true,
         "confirmationDate": "2026-11-13",
         "confirmationSource": "User inspection of the printed test",
-        "userResponse": "Lappu jäi vasemmalta kiinni",
+        "userResponse": "Lappu j\u00e4i vasemmalta kiinni",
         "cutterFeedMeasuredMm": 18,
         "cutterFeedStatus": "User supplied annotated photo: 18 mm cut-to-text minus 3 mm text inset, plus 2 mm raster-to-cut tail, yields about 17 mm extra material per internal cut.",
         "secondJobSent": false,
@@ -407,7 +407,7 @@
       "baseCommit": "5f4ec588289641971973aa070750ecfa4be74309",
       "status": "published and verified; Print service installed",
       "tests": "98 Surface JS, 15 Python Print, focused lint, catalog, build, 37914 Learn checks",
-      "browser": "3 x 1 m Print ZIP, import no auto-send, one manual dry job, one direct dry job; exact ESC/POS equality; selected 500–1000 mm retains geometry; live import USB ready/empty queue",
+      "browser": "3 x 1 m Print ZIP, import no auto-send, one manual dry job, one direct dry job; exact ESC/POS equality; selected 500\u20131000 mm retains geometry; live import USB ready/empty queue",
       "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-print-transfer",
       "serviceBackup": "/home/print/muusia-print/before-print-package-20261113-113049",
       "physicalPrintSent": false,
@@ -635,7 +635,7 @@
     "date": "2026-11-16",
     "baseCommit": "993b54d8e4e7ed96c20e7cfd3e81ce68ca37a82e",
     "status": "published and verified; live Print updated",
-    "validation": "Both ROM fonts at all 1–8× sizes; native byte parity; 1× exact old program; missing-size legacy defaults; width/row bounds; old-server rejection; actual browser 3× control/18 columns/36 rows and exact ESC/POS download; 29 Python Print tests; 184 Help graphs; lint/catalog/build/37914 Learn checks.",
+    "validation": "Both ROM fonts at all 1\u20138\u00d7 sizes; native byte parity; 1\u00d7 exact old program; missing-size legacy defaults; width/row bounds; old-server rejection; actual browser 3\u00d7 control/18 columns/36 rows and exact ESC/POS download; 29 Python Print tests; 184 Help graphs; lint/catalog/build/37914 Learn checks.",
     "serviceBackup": "/home/print/muusia-print/before-ascii-size-20261116",
     "physicalPrintSent": false,
     "commit": "020bf4d6bab44f841550cbe6c2b14012f603c6a8",
@@ -733,7 +733,7 @@
     "status": "published; public export/live Print verified; user confirmed physical Merge print works",
     "physicalEvidence": "User IMG_3556.jpeg: individual ASCII nodes good, Merge has clipped glyph tops and missing small layer. 2.193 paper behavior was not verified by previous byte-parity tests.",
     "fix": "Stable full-page ESC W; explicit ESC $ x and GS $ scaled ROM baseline for every row (A21/B16). Print capability asciiOverlayVersion2.",
-    "validation": "31 Python Print/USB tests including Page-mode bounds for A/B at1–8x; 148 user rows checked at baseline-derived positions; JS/Python/actual-browser byte parity; old-server rejection; lint;catalog/build/37914 Learn checks.",
+    "validation": "31 Python Print/USB tests including Page-mode bounds for A/B at1\u20138x; 148 user rows checked at baseline-derived positions; JS/Python/actual-browser byte parity; old-server rejection; lint;catalog/build/37914 Learn checks.",
     "physicalPrintSent": false,
     "serviceBackup": "/home/print/muusia-print/before-ascii-baseline-20261116",
     "live": {
@@ -798,7 +798,7 @@
       "productionBuild": "passed",
       "lint": "passed; four existing unused-variable warnings in Portrait",
       "actualExporter": "one pen-down and all chords before first lift for servo and bed-Z; SVG one path",
-      "browser": "local real photo, 60/200/400 nail comparisons; app 80→200 control update preserves one path",
+      "browser": "local real photo, 60/200/400 nail comparisons; app 80\u2192200 control update preserves one path",
       "environment": "Reused dependencies from previous release after verifying identical package-lock SHA256; initial older dependency set lacked pdfjs-dist/build/pdf.mjs."
     },
     "physicalPrintSent": false,
@@ -853,5 +853,28 @@
     "publicAppSha256": "5ed46216a1bf79f57b59fbab542faa8ba6f67cc4930acc9b924acc65abd4dba9",
     "matchesTestedBuild": true,
     "url": "https://bambi8000.github.io/Muusia/"
+  },
+  "lastDoublePendulumDisc": {
+    "version": "2.197",
+    "date": "2026-11-17",
+    "baseCommit": "23c57a5120f447aa5f289712c2ab6400d5e941ce",
+    "branch": "codex/double-pendulum-full-disc",
+    "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
+    "status": "validated; exact-commit public deployment pending",
+    "published": false,
+    "behavior": "Optional driven Full disc, centre fill, adjustable near-parallel ink clearance and checked smooth detours; one open stroke, original Gravity unchanged.",
+    "validation": {
+      "fullDisc": 174,
+      "legacyDoublePendulum": "all passed; seven representative old outputs byte-identical",
+      "helpExamples": 188,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "actualBrowser": "One SVG path/no guide circles; one servo lower, all 37270 draw moves before lift, no mid-stroke travel or bounds warning."
+    },
+    "evidence": "docs/double-pendulum-disc-checks.json",
+    "physicalPrintSent": false,
+    "snapshot": "/private/tmp/muusia-double-pendulum-snapshot-20261117 (local only; refresh after final documentation commit)"
   }
 }

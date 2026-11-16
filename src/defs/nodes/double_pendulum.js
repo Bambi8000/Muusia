@@ -1,20 +1,25 @@
 import { Pin, PENS, applyStyle } from "../helpers.js";
 import { fitCanvasPaths } from "../canvas-fit.js";
+import { drawFullDisc, fullDiscFrame } from "../double-pendulum-disc.js";
 
 export default {
   key: "double_pendulum",
   name: "Double Pendulum",
   cat: "gen",
   group: "scientific",
-  desc: "A real double pendulum drawing its chaotic trace \u2014 two arms under gravity, integrated with fixed-step RK4, fully deterministic from the parameters. Trace picks what draws: the classic Bob 2 tip, Bob 1, Both, or the arm Midpoint. Traces runs several pendulums side by side with a tiny angle offset (Perturb, degrees) between them: chaos tears the bundle apart \u2014 the butterfly effect on paper \u2014 optionally one pen per trace. Arm 1/2 are millimetres (the trace provably stays inside their sum around the Pivot), Mass 2 skews the dynamics, Gravity scales tempo, Damping bleeds energy so the line spirals into rest for a finite drawing (0 = endless chaos, cut by Time). Start angles set the drop; Detail decimates the trace by distance. Tip: Traces 6, Perturb 0.05, pen per trace, Damping 0.05 is the poster.",
+  desc: "Mode Full disc is a driven drawing extension that distributes one continuous stroke around the whole disc instead of letting gravity settle it at the bottom. Fill centre removes the unequal-arm inner hole; equal arms already reach the centre. Slow radial breathing spreads circular turning points. Avoid retracing is on by default in this mode: Line spacing mm sets the clearance from older near-parallel ink (including opposite directions), sharp backtracking is refused, and checked smooth detours can rejoin a later free part of the motion. Crossings at other angles remain possible. The route can stop before Time when the bounded search finds no continuation; it never lifts to restart. Traces, Trace and Pen per trace are unused in Full disc, which always has one path and one pen before Style. A dashed Style can split it. Fit canvas fits the complete circle and its guide to the sheet without rescaling the clearance afterwards. Physical nib width, pressure, paper and repeated crossings still affect wear. Mode Gravity retains the original simulation: A real double pendulum drawing its chaotic trace \u2014 two arms under gravity, integrated with fixed-step RK4, fully deterministic from the parameters. Trace picks what draws: the classic Bob 2 tip, Bob 1, Both, or the arm Midpoint. Traces runs several pendulums side by side with a tiny angle offset (Perturb, degrees) between them: chaos tears the bundle apart \u2014 the butterfly effect on paper \u2014 optionally one pen per trace. Arm 1/2 are millimetres (the trace provably stays inside their sum around the Pivot), Mass 2 skews the dynamics, Gravity scales tempo, Damping bleeds energy so the line spirals into rest for a finite drawing (0 = endless chaos, cut by Time). Start angles set the drop; Detail decimates the trace by distance. Tip: Traces 6, Perturb 0.05, pen per trace, Damping 0.05 is the poster.",
   ins: [Pin("style", "Style")],
   outs: [Pin("paths")],
   params: [
+    { key: "motion", label: "Mode", type: "select", options: ["Gravity", "Full disc"], def: "Gravity" },
+    { key: "fillCentre", label: "Fill centre", type: "check", def: true, showIf: p => p.motion === "Full disc" },
+    { key: "noRetrace", label: "Avoid retracing", type: "check", def: true, showIf: p => p.motion === "Full disc" },
+    { key: "lineGap", label: "Line spacing mm", type: "slider", min: .2, max: 3, step: .1, def: .6, showIf: p => p.motion === "Full disc" && p.noRetrace !== false },
     { key: "fitCanvas", label: "Fit canvas", type: "check", def: true },
     { key: "trace", label: "Trace", type: "select",
-      options: ["Bob 2", "Bob 1", "Both", "Midpoint"], def: "Bob 2" },
-    { key: "traces", label: "Traces", type: "slider", min: 1, max: 8, step: 1, def: 1 },
-    { key: "perturb", label: "Perturb deg", type: "slider", min: 0.001, max: 2, step: 0.001, def: 0.05 },
+      options: ["Bob 2", "Bob 1", "Both", "Midpoint"], def: "Bob 2", showIf: p => p.motion !== "Full disc" },
+    { key: "traces", label: "Traces", type: "slider", min: 1, max: 8, step: 1, def: 1, showIf: p => p.motion !== "Full disc" },
+    { key: "perturb", label: "Perturb deg", type: "slider", min: 0.001, max: 2, step: 0.001, def: 0.05, showIf: p => p.motion !== "Full disc" },
     { key: "l1", label: "Arm 1 mm", type: "slider", min: 10, max: 80, step: 0.5, def: 40 },
     { key: "l2", label: "Arm 2 mm", type: "slider", min: 10, max: 80, step: 0.5, def: 40 },
     { key: "m2", label: "Mass 2", type: "slider", min: 0.2, max: 5, step: 0.05, def: 1 },
@@ -26,10 +31,14 @@ export default {
     { key: "detail", label: "Detail mm", type: "slider", min: 0.3, max: 2, step: 0.05, def: 0.6 },
     { key: "cx", label: "Pivot X %", type: "slider", min: 0, max: 100, step: 1, def: 50 },
     { key: "cy", label: "Pivot Y %", type: "slider", min: 0, max: 100, step: 1, def: 42 },
-    { key: "penEach", label: "Pen per trace", type: "check", def: false },
+    { key: "penEach", label: "Pen per trace", type: "check", def: false, showIf: p => p.motion !== "Full disc" },
     { key: "layer", label: "Pen", type: "pen", def: 0 },
   ],
   overlay(p, ctx) {
+    if (p.motion === "Full disc") {
+      const { x, y, radius } = fullDiscFrame(p, ctx);
+      return [{ kind: "point", x, y }, { kind: "circle", cx: x, cy: y, r: radius }];
+    }
     const X = (ctx.W * p.cx) / 100, Y = (ctx.H * p.cy) / 100;
     return [
       { kind: "point", x: X, y: Y },
@@ -88,6 +97,11 @@ export default {
       const k4 = f(add(s, k3, dt));
       return s.map((v, i) => v + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
     };
+
+    if (p.motion === "Full disc") {
+      const pts = drawFullDisc(p, ctx, step);
+      return applyStyle({ paths: pts.length > 1 ? [{ pts, closed: false, layer: (basePen + PENS.length) % PENS.length }] : [] }, ins[0]);
+    }
 
     for (let k = 0; k < nT; k++) {
       const layer = p.penEach ? (basePen + k) % PENS.length : basePen;

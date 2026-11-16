@@ -405,6 +405,8 @@
   "warp"
  ],
  "double_pendulum": [
+  "round",
+  "connect",
   "chaos",
   "physics",
   "scientific",

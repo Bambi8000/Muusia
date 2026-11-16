@@ -1,0 +1,62 @@
+{
+  "version": "2.197",
+  "date": "2026-11-17",
+  "node": "double_pendulum",
+  "baseCommit": "23c57a5120f447aa5f289712c2ab6400d5e941ce",
+  "focusedChecks": 174,
+  "legacyValidator": "all passed",
+  "helpExamples": 188,
+  "legacyParity": "Seven representative Gravity outputs byte-identical to pre-change module in the same Node runtime.",
+  "nearParallelSampling": {
+    "clearanceMm": 0.6,
+    "unprotectedPercent": 18.44,
+    "protectedPercentRounded": 0.0,
+    "note": "One default parameter fixture and independent fine spatial probes; crossings allowed, not a universal physical-paper guarantee."
+  },
+  "actualBrowser": {
+    "app": "Muusia 2.197",
+    "source": "Real local app, built-in node, native SVG and G-code export controls",
+    "checks": {
+      "svgPaths": 1,
+      "guideCircles": 0,
+      "penDowns": 1,
+      "drawBeforeLift": 37270,
+      "noMidStrokeTravel": true,
+      "outOfBounds": false,
+      "canvas": {
+        "W": 297,
+        "H": 210
+      },
+      "params": {
+        "time": 60,
+        "mode": "Full disc",
+        "lineSpacingMm": 0.6,
+        "fillCentre": true,
+        "avoidRetracing": true
+      },
+      "hardwareRun": false
+    }
+  },
+  "files": {
+    "node": {
+      "sha256": "f48ce5451eb51e553fd81ad77acfc7e2eea768468ab54c023ad5c164c88d9e2f",
+      "bytes": 8396
+    },
+    "routing": {
+      "sha256": "38b8836caed7e65e6739d89003c9fc8bf1140bef8ecafae6328d15549c5650dd",
+      "bytes": 9965
+    },
+    "validator": {
+      "sha256": "d9c86997e730772f5ef0704a1243d7a6382bfc9246268b61e9f6631d75616617",
+      "bytes": 8204
+    },
+    "nativeSvg": {
+      "sha256": "02f0dba7470abc8cfa6cd1c1f5f57b4989d83e64ae959f337776853c75081abd",
+      "bytes": 491268
+    },
+    "nativeGcode": {
+      "sha256": "dcb58ff64caa572e7b24126cc516204edbea57484784a8b8b970f171074015f3",
+      "bytes": 901571
+    }
+  }
+}

@@ -6986,3 +6986,47 @@ plot or printer job sent. Snapshot prepared locally at
 /private/tmp/muusia-string-art-quality-snapshot-20261116; refresh after this final
 documentation commit. No Claude web upload. Primary checkout remains historical
 and dirty; continue from this release worktree or current origin/main.
+
+
+### 2.197 — Double Pendulum: Full disc and retracing protection
+
+2026-11-17 · Base 23c57a5120f447aa5f289712c2ab6400d5e941ce. Daniel requested
+whole-circle coverage, removal of the central hole/circle and less repeated
+scraping along the same route. New **Mode → Full disc** is an artistic driven
+extension: incommensurate rotating phases with the original RK4 as a bounded
+perturbation, plus slow radial breathing to spread circular turning points.
+Gravity remains the default and its existing simulation is unchanged. Full disc
+always produces one open path with one pen before Style; hidden Trace/Traces
+controls do not add strokes. A dashed Style can still split a stroke.
+
+**Fill centre** removes the unequal-arm inner hole. The new overlay includes
+only the outer boundary and pivot; guide circles are not exported. **Avoid
+retracing** defaults on, with **Line spacing mm** default 0.6 (0.2–3 mm).
+A spatial index rejects close near-parallel and reverse segments, limits older
+independent visits, and checks smooth tangent-aware detours before committing
+them. Crossings at other angles remain possible. If bounded searching cannot
+continue, the one stroke ends; it never lifts and restarts. No guarantee about
+all nibs, paper, pressure or crossing wear. Fit canvas sizes the full circle
+before routing, preserving the requested clearance in final millimetres.
+
+Changes are confined to this node, its new helper, two reproducible Help
+examples, focused validation, a real-node comparison generator, generated node
+metadata, documentation and the app version. No shared exporter behavior changed.
+`tools/validate-double_pendulum-disc.mjs`: 174 checks, geometry/parameter sweeps,
+16 angular sectors, centre coverage, unequal-arm hole toggle, one path/pen,
+independent near-parallel sampling (18.44% → 0.00% rounded in one fixture),
+and actual SVG/servo/bed-Z exporter continuity. Original node validator passes;
+seven representative Gravity outputs were byte-identical to the old module.
+All 188 Help examples and focused lint pass. Native browser export at A4 wide,
+Time 60, gap 0.6: one SVG path, no circle guides; G-code lowers once and draws
+37,270 segments before lifting, with no mid-stroke travel or bounds warning.
+No hardware run. Evidence: `docs/double-pendulum-disc-checks.json`.
+
+Primary checkout remains historical and dirty; continue from this release
+worktree or current origin/main. Local comparison generator:
+`node tools/double-pendulum-disc-preview.mjs [output-dir] [vite-origin]`.
+Release gate/publication and final snapshot are recorded below when completed.
+
+2.197 release gate passed in order: catalog including recency, production build,
+and 37,914 Learn checks. All 188 Help examples and both focused node validators
+pass. Publication must be verified for the exact release commit.

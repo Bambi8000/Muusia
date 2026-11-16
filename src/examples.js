@@ -910,6 +910,16 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Double Pendulum · Full disc", desc: "Select Double Pendulum with Mode → Full disc. One continuously driven stroke fills the circular area and keeps moving through the upper half. Avoid retracing is on; Line spacing mm keeps it from following older ink, and checked smooth detours can continue the drawing without pen lifts. Crossings are still allowed. Time asks for more drawing; the route can stop early when it becomes too crowded. Use one solid pen and match spacing to the physical nib. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "double_pendulum", x: 30, y: 20, params: { ...defaults("double_pendulum"), motion: "Full disc", time: 60, cy: 50, noRetrace: true, lineGap: .6, fillCentre: true } }], edges: [] }),
+  },
+  {
+    name: "Double Pendulum · Fill centre", desc: "Different arm lengths normally leave a central hole. Full disc → Fill centre remaps that inner radius into the centre. Toggle it to compare. Avoid retracing and Line spacing mm protect against following the same older stroke; the output remains one continuous path. The outer dashed circle is a guide and never plots. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "double_pendulum", x: 30, y: 20, params: { ...defaults("double_pendulum"), motion: "Full disc", l1: 65, l2: 30, time: 45, cy: 50, noRetrace: true, lineGap: .6, fillCentre: true } }], edges: [] }),
+  },
+  {
     name: "Receipt ASCII · Merge two sizes",
     desc: "Two native ASCII fields overlap through Merge, preserving 1× and 2× characters and their original row spacing. Select Merge, then DOWNLOAD ESCPOS or PRINT ASCII RECEIPT. The output is one overlaid receipt, not two consecutive strips. Requires the updated Print server. Try Density and Seed on either input.",
     canvas: { W: 72, H: 250 },
