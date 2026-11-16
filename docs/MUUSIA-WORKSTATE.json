@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.198",
-    "commit": "83623eb1e171eb273a543e797333663ee903b761",
-    "pagesRunId": 43974944039,
-    "publicAppSha256": "7f38233be275fdae1cba3f8c536bcbdf918fbc23e02763ca7731ec6b1bfa436a",
+    "version": "2.199",
+    "commit": "5f24d45fea2ffd5e21db6e79d05d4cb3705588fa",
+    "pagesRunId": 43977759034,
+    "publicAppSha256": "ace290f5b201305265374a9da13e78983cea50cb87ed7989ab23da9fdcc5e949",
     "matchesTestedBuild": true,
     "date": "2026-11-17",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.198; Full disc Traces density control and starter present; exact tested bytes",
+    "status": "verified public 2.199; Bounce and Random bounce starter present; exact tested bytes",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -916,8 +916,8 @@
     "baseCommit": "bcca0c10fa75a7d257cf808fe562944ac7172d53",
     "branch": "codex/double-pendulum-bounce",
     "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
-    "status": "validated; exact public deployment pending",
-    "published": false,
+    "status": "verified public 2.199; Bounce and Random bounce starter present; exact tested bytes",
+    "published": true,
     "behavior": "Full disc Bounce 0\u2013100% blends orbit with irregular seeded rim-to-centre flights; Seed changes route; rounded turns and all traces share old-ink clearance. Zero preserves old output.",
     "validation": {
       "fullDisc": 321,
@@ -931,6 +931,11 @@
     },
     "evidence": "docs/double-pendulum-bounce-checks.json",
     "physicalPrintSent": false,
-    "snapshot": "/private/tmp/muusia-double-pendulum-bounce-snapshot-20261117 (local only; refresh after final documentation commit)"
+    "snapshot": "/private/tmp/muusia-double-pendulum-bounce-snapshot-20261117 (local only; refresh after final documentation commit)",
+    "commit": "5f24d45fea2ffd5e21db6e79d05d4cb3705588fa",
+    "pagesRunId": 43977759034,
+    "publicAppSha256": "ace290f5b201305265374a9da13e78983cea50cb87ed7989ab23da9fdcc5e949",
+    "matchesTestedBuild": true,
+    "url": "https://bambi8000.github.io/Muusia/"
   }
 }

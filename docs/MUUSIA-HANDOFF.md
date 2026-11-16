@@ -7133,3 +7133,14 @@ and dirty.
 37,914 Learn checks. Twelve Gravity/Bounce zero outputs match the previous
 release exactly. All 190 Help graphs and both focused validators pass.
 Exact-commit public deployment remains to be verified.
+
+
+Bounce published as 2.199, implementation commit
+5f24d45fea2ffd5e21db6e79d05d4cb3705588fa. Exact Pages run 43977759034 passed
+build, 37,914 Learn checks and deployment. Public root is byte-identical to the
+tested production build, SHA256
+ace290f5b201305265374a9da13e78983cea50cb87ed7989ab23da9fdcc5e949.
+Verified public version, Bounce control and Random bounce starter. No physical
+print. Refresh local snapshot /private/tmp/muusia-double-pendulum-bounce-snapshot-20261117
+after this final documentation commit; no Claude web upload. Primary remains
+historical and dirty; continue from current origin/main or this release worktree.
