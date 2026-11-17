@@ -7254,3 +7254,15 @@ docs/scanner-voronoi-checks.json. Screenshots and native exports are local at
 Learn gate and focused lint passed. Exact-commit Pages/public verification pending.
 Primary checkout remains historical and dirty; continue from this release
 worktree or current origin/main. Refresh snapshot after final documentation commit.
+
+
+Scanner and bounded Voronoi published as 2.201, implementation commit
+c6188883d15250cc90c47ea2c98361faba314a6d. Exact Pages run 43986064468 passed
+build, 37,914 Learn checks and deployment. Public root is byte-identical to the
+tested production build, SHA256
+aceea162621f8ded9d4c2dafcc1787f446b38c869f73c8f46c0e5e583c8af3b6.
+Verified public version, both features, all six new Help starters and retained
+license notices. No physical print. Refresh local snapshot
+/private/tmp/muusia-scanner-voronoi-snapshot-20261117 after this documentation
+commit. No Claude web upload. Primary remains dirty and historical; continue
+from current origin/main or the release worktree.

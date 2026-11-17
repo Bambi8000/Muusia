@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.200",
-    "commit": "5ff0d6095ba6be809a3bc944cfaa2d201d384be8",
-    "pagesRunId": 43981988664,
-    "publicAppSha256": "5a7a6b0b97f94b03568d4d0a3303dfe5b8493dad255c576d789b96259e472415",
+    "version": "2.201",
+    "commit": "c6188883d15250cc90c47ea2c98361faba314a6d",
+    "pagesRunId": 43986064468,
+    "publicAppSha256": "aceea162621f8ded9d4c2dafcc1787f446b38c869f73c8f46c0e5e583c8af3b6",
     "matchesTestedBuild": true,
     "date": "2026-11-17",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.200; Bounded Differential Growth and four Help starters present; exact tested bytes",
+    "status": "verified public 2.201; Scanner and bounded Voronoi with six Help starters; exact tested bytes",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -977,8 +977,8 @@
     "baseCommit": "c7f35a38e38c1d4ded242c4e56eb89e414e75f5e",
     "branch": "codex/scanner-voronoi-bounded",
     "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
-    "status": "validated; exact public deployment pending",
-    "published": false,
+    "status": "verified public 2.201; Scanner and bounded Voronoi with six Help starters; exact tested bytes",
+    "published": true,
     "behavior": "Scanner Smooth/Bands with shared spatial motion and optional drawn gesture; opt-in Bounded Voronoi with clipped holes, density, rounding, web clearance, Cells/Seeds outputs. Classic unchanged.",
     "validation": {
       "focused": 302,
@@ -992,6 +992,11 @@
     },
     "evidence": "docs/scanner-voronoi-checks.json",
     "physicalPrintSent": false,
-    "snapshot": "/private/tmp/muusia-scanner-voronoi-snapshot-20261117 (local only; refresh after final documentation commit)"
+    "snapshot": "/private/tmp/muusia-scanner-voronoi-snapshot-20261117 (local only; refresh after final documentation commit)",
+    "commit": "c6188883d15250cc90c47ea2c98361faba314a6d",
+    "pagesRunId": 43986064468,
+    "publicAppSha256": "aceea162621f8ded9d4c2dafcc1787f446b38c869f73c8f46c0e5e583c8af3b6",
+    "matchesTestedBuild": true,
+    "url": "https://bambi8000.github.io/Muusia/"
   }
 }

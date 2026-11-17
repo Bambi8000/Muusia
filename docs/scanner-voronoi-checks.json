@@ -45,5 +45,16 @@
     "console": "no warnings/errors",
     "screenshots": "/Users/daniel/plotter-patcher/output/scanner-voronoi",
     "physicalPrintSent": false
+  },
+  "publication": {
+    "version": "2.201",
+    "commit": "c6188883d15250cc90c47ea2c98361faba314a6d",
+    "pagesRunId": 43986064468,
+    "publicAppSha256": "aceea162621f8ded9d4c2dafcc1787f446b38c869f73c8f46c0e5e583c8af3b6",
+    "matchesTestedBuild": true,
+    "date": "2026-11-17",
+    "url": "https://bambi8000.github.io/Muusia/",
+    "status": "verified public 2.201; Scanner and bounded Voronoi with six Help starters; exact tested bytes",
+    "physicalPrintSent": false
   }
 }
