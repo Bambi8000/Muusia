@@ -2239,5 +2239,6 @@
   "motion",
   "continuous",
   "bands"
- ]
+ ],
+ "word_shape": ["text", "geometric", "region", "fill"]
 }

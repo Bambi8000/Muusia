@@ -1780,6 +1780,11 @@ export const NODE_RECENCY = {
     "order": 132,
     "sha256": "73cfb673ac2992f60dcdf3ee4a02fd4acda4256311f7ea142b36f491d733db89"
   },
+  "word_shape": {
+    "date": "2026-11-17",
+    "order": 146,
+    "sha256": "d0ce18d6327178652e0ebaf8130e04a522dba95908aeb1911b86585e7333918c"
+  },
   "worm": {
     "date": "2026-07-22",
     "order": 1,

@@ -910,6 +910,48 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Word Shape · ABRACADABRA",
+    desc: "The complete word loses one final letter on every centred row, ending with A. Switch Shape for Triangle up, Diamond, Hourglass, Circle, Heart, Square or Hexagon. Serif uses real plotter strokes. Letter and row spacing change the proportions; Fit text shrinks the letters into the built-in fitting box.",
+    canvas: {"W": 210, "H": 297},
+    make: defaults => ({ nodes: [{ id: 9001, type: "word_shape", x: 60, y: 40, params: { ...defaults("word_shape"), ...{} } }], edges: [] }),
+  },
+  {
+    name: "Word Shape · Diamond",
+    desc: "A concrete poem that grows from one letter to the full word and shrinks again. Rows from text gives 2N-1 rows. Try Remove letters from Start or Both sides, or change Row alignment. All text stays upright.",
+    canvas: {"W": 210, "H": 297},
+    make: defaults => ({ nodes: [{ id: 9001, type: "word_shape", x: 60, y: 40, params: { ...defaults("word_shape"), ...{"text": "MUUSIA", "shape": "Diamond", "width": 150, "height": 195, "size": 24, "tracking": 1.6} } }], edges: [] }),
+  },
+  {
+    name: "Word Shape · Hourglass",
+    desc: "A word narrows into a one-letter waist and widens again. Try a phrase, a different font, or Custom Rows. The fitting box is only a preview guide.",
+    canvas: {"W": 210, "H": 297},
+    make: defaults => ({ nodes: [{ id: 9001, type: "word_shape", x: 60, y: 40, params: { ...defaults("word_shape"), ...{"text": "HOURGLASS", "shape": "Hourglass", "height": 230, "width": 155, "size": 20} } }], edges: [] }),
+  },
+  {
+    name: "Word Shape · Heart of words",
+    desc: "Complete words flow through a heart, leaving a cleft between its lobes. Whole words keeps TYPE and LOVE intact. Increase Rows or lower Letter height for finer shape detail. Change to Circle, Square or Hexagon to compare region fills.",
+    canvas: {"W": 210, "H": 210},
+    make: defaults => ({ nodes: [{ id: 9001, type: "word_shape", x: 60, y: 40, params: { ...defaults("word_shape"), ...{"text": "TYPE LOVE", "shape": "Heart", "mode": "Whole words", "autoRows": false, "rows": 25, "width": 175, "height": 165, "size": 6, "tracking": 1.15, "lineSpacing": 1.2, "clearance": 0.4} } }], edges: [] }),
+  },
+  {
+    name: "Word Shape · Inside a letter",
+    desc: "Lettering O feeds Word Shape's blue Shape input. Its outer contour and inner hole form one even-odd region. TYPE and ART remain whole inside the letter strokes; its counter stays blank. Select Word Shape, try Inside / Outside, and change Lettering's Text for your own closed lettering. The source outline is a guide, not an added plotted stroke.",
+    canvas: { W: 210, H: 297 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lettering", x: 30, y: 40, params: { ...defaults("lettering"), text: "O", size: 190, weight: 26, font: "Bold", depth: 0, fill: "Outline", margin: 24 } },
+      { id: 9002, type: "word_shape", x: 360, y: 40, params: { ...defaults("word_shape"), text: "TYPE ART", source: "Wired shape", mode: "Whole words", font: "Plotter", autoRows: false, rows: 38, size: 4, tracking: 1.15, lineSpacing: 1.2, clearance: 0.35 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "Word Shape · Around your shape",
+    desc: "A closed Draw Path feeds Word Shape. Outside lays a continuous repeated phrase around the polygon and leaves its silhouette empty. Edit the source points to redraw the void, or choose Inside to fill it. Complete letters stay clear of the boundary. Shape source Wired shape refuses open paths; enable Closed shape in Draw Path.",
+    canvas: { W: 210, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "drawn_path", x: 30, y: 40, params: { ...defaults("drawn_path"), closed: true, smoothness: 0, margin: 12, points: [[0.5,0.16],[0.59,0.39],[0.83,0.39],[0.64,0.54],[0.71,0.8],[0.5,0.64],[0.29,0.8],[0.36,0.54],[0.17,0.39],[0.41,0.39]] } },
+      { id: 9002, type: "word_shape", x: 360, y: 40, params: { ...defaults("word_shape"), text: "WORDS MAKE SHAPES", source: "Wired shape", placement: "Outside", mode: "Repeat text", font: "Plotter", autoRows: false, rows: 34, size: 4.2, tracking: 1.12, lineSpacing: 1.2, clearance: 1.5 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
     name: "Scanner · Continuous scan", desc: "Select Scanner. A sheet of vertical lines moves sideways during a top-to-bottom scan. Smooth keeps all 45 original strokes continuous, with no added pen lifts. Try Speed, Motion X/Y, Shake and Zoom change. Phase % can be driven by Frame or LFO. Keep a margin for the displaced drawing, or add Fit afterwards. A4 wide.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [

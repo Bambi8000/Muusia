@@ -998,5 +998,33 @@
     "publicAppSha256": "aceea162621f8ded9d4c2dafcc1787f446b38c869f73c8f46c0e5e583c8af3b6",
     "matchesTestedBuild": true,
     "url": "https://bambi8000.github.io/Muusia/"
+  },
+  "lastUserConfirmedCompletedWork": {
+    "date": "2026-11-17",
+    "items": [
+      "bed origin",
+      "clock source code",
+      "KlipperScreen visual changes"
+    ],
+    "source": "Direct user confirmation; no further verification or changes requested."
+  },
+  "lastWordShape": {
+    "date": "2026-11-17",
+    "branch": "codex/word-shape",
+    "worktree": "/private/tmp/muusia-word-shape-20261117",
+    "baseCommit": "54049d536d318f31d46817d723c87c68b4b12531",
+    "status": "Complete local Word Shape node, eight presets, wired inside/outside layout and six portable projects; not published; APP_VERSION remains 2.201",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/word-shape",
+    "validation": {
+      "focused": 436,
+      "helpExamples": 206,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "nativeBrowser": "Exact eleven ABRACADABRA rows; triangle native SVG 242 paths / G-code 242 lowers and 524 draw moves; wired Outside star SVG 1466 paths / G-code 1466 lowers and 5084 draw moves, no bounds warnings; switched star Inside (495 paths); whole-word O (1343 paths) preserves hole."
+    },
+    "physicalPrintSent": false,
+    "limits": "Uppercase SFONT-based Plotter/Serif (\u00c4\u00d6\u00c5); unsupported glyphs become ?. Complete character boxes can leave gaps at corners. Wired inputs keep coordinates. Dense requests refused whole, not truncated."
   }
 }

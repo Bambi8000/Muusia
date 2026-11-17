@@ -7266,3 +7266,53 @@ license notices. No physical print. Refresh local snapshot
 /private/tmp/muusia-scanner-voronoi-snapshot-20261117 after this documentation
 commit. No Claude web upload. Primary remains dirty and historical; continue
 from current origin/main or the release worktree.
+
+
+### W — 2026-11-17 · Word Shape, local node
+
+Local branch `codex/word-shape`, worktree `/private/tmp/muusia-word-shape-20261117`,
+base 54049d536d318f31d46817d723c87c68b4b12531. New `word_shape` generator in
+Text & Image. Default reproduces Daniel's reference: eleven centred ABRACADABRA
+rows, dropping one final character per row down to A. Eight presets: Triangle
+down/up, Diamond, Hourglass, Circle, Heart, Square and Hexagon. Shorten rows
+chooses End, Start or Both sides; Repeat text wraps the phrase; Whole words
+keeps words intact and in sequence. Plotter and authored terminal-serif capital
+strokes, ÄÖÅ, fixed cell spacing, row spacing/alignment, fitting box, automatic
+or custom rows, clearance, margin, pen and Style. No seed/randomness.
+
+User added a Shape input with Inside/Outside placement. Auto prefers incoming
+closed paths; Wired shape explicitly requires them, Built-in ignores them.
+Wired geometry keeps physical coordinates. Even-odd holes, concavity, separate
+pieces and overlapping contours work. Region row intervals and complete-box
+edge checks keep every letter uncut. Outside fills the surrounding page and
+leaves the input region blank. Shape guides never plot; Merge the source to
+add its outline. Built-in Shorten rows makes a typographic stepped silhouette
+in its fitting box; other layouts use the actual polygon region. Text is
+capitalised, unsupported glyphs become ?, and dense requests are rejected whole
+at bounded geometry/work limits rather than exporting a partial page.
+
+Prototype baked and removed; six real Help examples, catalog/tags, recency and
+source bundle updated. Actual counts: 363 modules, 365 registry entries and
+230 generators. Node, preview tool, focused validator and examples are scoped
+changes; no shared engine/exporter/font/hardware changes. APP_VERSION remains
+2.201 for this local delivery. No push or publication requested.
+
+436 focused checks pass: exact reference row text, all eight shapes, meaningful
+controls, complete words, finite bounds, typography closure, Unicode accents,
+input immutability, rejection limits, source precedence, independent segment
+and character-box checks for holes/concavity/islands/overlap, real SVG/servo/bed-Z
+exports and six self-contained project files. 206 Help graphs, focused lint,
+ordered catalog/build/37,914 Learn gate and diff checks pass. Native app shows
+the reference triangle, wired star Outside/Inside and words inside an O with
+an empty counter. Actual native SVG/G-code: triangle 242 strokes, 242 lowers,
+524 draw moves; Outside star 1,466 strokes, 1,466 lowers, 5,084 moves; no bounds
+warning. Inside star 495 strokes; whole-word O 1,343 strokes. No physical print.
+
+Portable node definition, six projects (custom source included), actual SVGs,
+path data and PNG/overview renders are in WORKSTATE's artifact directory.
+PNGs render actual node strokes; they are not UI screenshots.
+`node tools/preview-word-shape.mjs <directory>` reproduces SVGs/projects/data.
+Local app: http://127.0.0.1:5195/ → Help → Word Shape.
+Daniel's prior confirmations about the bed origin, clock source code and
+KlipperScreen visuals remain recorded as completed; do not reopen them.
+Robot Cave Art remains absent (the new branch starts from public origin/main).

@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 363 built-in nodes in the current Muusia source. Conventions used below:
+All 365 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -28,7 +28,38 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (226)
+## Generators (230)
+
+**Word Shape** — words arranged as a typographic silhouette. Shorten rows
+starts with the complete text and removes letters from End, Start or Both sides.
+Triangle down reproduces ABRACADABRA down to A. Other presets are Triangle up,
+Diamond, Hourglass, Circle, Heart (two top lobes), Square and Hexagon.
+Rows from text uses the character count; Diamond/Hourglass use 2N-1 rows.
+These built-in shortened compositions fit a centred Width/Height box, rather
+than clipping text against a polygon. Repeat text and Whole words instead flow
+through the actual preset region. Whole words never splits a word.
+Shape source Auto uses incoming closed paths at their existing canvas coordinates,
+including even-odd holes and disconnected regions; empty Auto uses the preset.
+Wired shape explicitly requires a valid region and ignores Built-in width/height.
+Built-in ignores the Shape wire. Place text Inside fills the region; Outside
+fills the surrounding page within Margin, leaving the region empty.
+Wired regions always use geometric flow, including Shorten rows (the longest
+text prefix/suffix that fits each available interval). Glyphs stay upright,
+complete and uncut; conservative character boxes and Clearance can leave small
+empty gaps at tight corners. The source shape is only a guide and is never
+added to Text output. Merge it separately to draw its outline.
+Plotter and Serif are true single-line capital strokes, including ÄÖÅ.
+Unsupported characters become ?, whitespace and | become spaces. Letter height
+is cap height; accents and serifs count in the fitting/clearance box. Fit text
+can reduce that height to fit Rows. For Whole words it fits the longest word,
+while Repeat text wraps without shrinking a whole phrase to one line.
+Row alignment, Letter spacing and Row spacing shape the typography.
+Text is capped at 240 characters and 160 rows. Extreme requests return empty
+as a whole at work/2,500-letter/100,000-point limits, before Style; later words
+are never silently truncated by a budget. Six Help starters include the reference
+triangle, Diamond, Hourglass, Heart of words, Inside a letter and Around your shape.
+Search: word, calligram, concrete poetry, sana, muoto, kolmio.
+
 
 **Adaptive Grid** — a square grid that refines its cells near a focus point,
 an incoming drawing, or a seeded noise field. *Detail source* selects Focus,
