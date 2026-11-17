@@ -5,7 +5,7 @@
   "publicBaseCommit": "54049d536d318f31d46817d723c87c68b4b12531",
   "branch": "codex/word-slice-cloth-release",
   "worktree": "/private/tmp/muusia-word-slice-cloth-release-20261118",
-  "status": "Validated release candidate; publication verification pending",
+  "status": "Published and verified Muusia 2.202",
   "scope": [
     "Word Shape: eight silhouettes, complete word/letter layouts and wired Inside/Outside",
     "Slice Raster: six independent halftones across up to eight strips/grid/collage regions, photo intake and animated masks",
@@ -32,9 +32,39 @@
   "packageLockSha256": "1ae5a26ab9cac96d1eba329f807c91d4fdd9e33fa40bac2c6018eefbe0165c83",
   "publication": {
     "url": "https://bambi8000.github.io/Muusia/",
-    "verified": false
+    "verified": true,
+    "pagesRunId": 44193790243,
+    "pagesRunUrl": "https://github.com/Bambi8000/Muusia/actions/runs/44193790243",
+    "conclusion": "success",
+    "headSha": "c070526bc2113bcdca0c698d9b77621edeed04a0",
+    "publicAppSha256": "59cb422738479b83a2e5f342c4ae56de50275138681c293d06b9aa0f5c6534ca",
+    "matchesTestedBuild": true,
+    "nativeBrowser": {
+      "version": "2.202",
+      "wordShape": {
+        "paths": 242,
+        "points": 724
+      },
+      "sliceRaster": {
+        "example": "Four screens",
+        "paths": 4843,
+        "points": 62281
+      },
+      "drapeRoll": {
+        "paths": 538,
+        "points": 8608
+      },
+      "drapeTransparent": {
+        "hiddenLines": false,
+        "paths": 1435,
+        "points": 27081
+      },
+      "warningsOrErrors": [],
+      "finalTab": "Public Slice Raster Four screens, enlarged preview"
+    }
   },
   "physicalPrintSent": false,
   "primaryDirtyWorkspaceChanged": false,
-  "robotCaveArt": "Absent from implementation and release; not reintroduced."
+  "robotCaveArt": "Absent from implementation and release; not reintroduced.",
+  "releaseCommit": "c070526bc2113bcdca0c698d9b77621edeed04a0"
 }

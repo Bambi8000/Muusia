@@ -1,36 +1,15 @@
 {
   "schemaVersion": 1,
-  "active": [
-  {
-    "id": "word-slice-cloth-release",
-    "owner": "Astra",
-    "role": "Integrate, validate and publish Word Shape, Slice Raster and Flying cloth",
-    "baseCommit": "fae3417517e5df52c83ec5fd8b017e89af431ac8",
-    "publicBaseCommit": "54049d536d318f31d46817d723c87c68b4b12531",
-    "scope": [
-      "src/App.jsx",
-      "README.md",
-      "src/defs/catalog.js",
-      "src/defs/node-recency-data.js",
-      "docs/MUUSIA-NODES-SRC.md",
-      "learn/generated/manifest.json",
-      "docs/MUUSIA-HANDOFF.md",
-      "docs/MUUSIA-WORKSTATE.json",
-      "docs/word-slice-cloth-release-checks.json"
-    ],
-    "status": "ready",
-    "outcome": "Publish all four local implementation commits as Muusia 2.202, including Slice Raster, and verify exact public build."
-  }
-],
+  "active": [],
   "lastPublished": {
-    "version": "2.201",
-    "commit": "c6188883d15250cc90c47ea2c98361faba314a6d",
-    "pagesRunId": 43986064468,
-    "publicAppSha256": "aceea162621f8ded9d4c2dafcc1787f446b38c869f73c8f46c0e5e583c8af3b6",
+    "version": "2.202",
+    "commit": "c070526bc2113bcdca0c698d9b77621edeed04a0",
+    "pagesRunId": 44193790243,
+    "publicAppSha256": "59cb422738479b83a2e5f342c4ae56de50275138681c293d06b9aa0f5c6534ca",
     "matchesTestedBuild": true,
-    "date": "2026-11-17",
+    "date": "2026-11-18",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.201; Scanner and bounded Voronoi with six Help starters; exact tested bytes",
+    "status": "verified public 2.202; Word Shape, Slice Raster and Drape Flying with all motions and optional transparency; exact tested bytes",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -1034,7 +1013,7 @@
     "branch": "codex/word-shape",
     "worktree": "/private/tmp/muusia-word-shape-20261117",
     "baseCommit": "54049d536d318f31d46817d723c87c68b4b12531",
-    "status": "Complete local Word Shape node, eight presets, wired inside/outside layout and six portable projects; not published; APP_VERSION remains 2.201",
+    "status": "Published and verified in Muusia 2.202; implementation and checks retained; release c070526bc2113bcdca0c698d9b77621edeed04a0",
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/word-shape",
     "validation": {
       "focused": 436,
@@ -1053,7 +1032,7 @@
     "branch": "codex/slice-raster",
     "worktree": "/private/tmp/muusia-slice-raster-20261117",
     "baseCommit": "33a004b6e8a53bc9fd709a649d5f94b218cb9386",
-    "status": "Complete local node and portable projects; not published; Word Shape retained; APP_VERSION stays 2.201",
+    "status": "Published and verified in Muusia 2.202; implementation and checks retained; release c070526bc2113bcdca0c698d9b77621edeed04a0",
     "reference": "https://www.instagram.com/p/Df11A5UjRB1/?img_index=1 \u2014 toan_vu_huu caption and video verified in user-opened Chrome tab; independent plotter implementation, no copied reference code/media",
     "behavior": "One shared image fit across up to eight Strips/Grid/Collage regions with independent Lines/Dots/Crosshatch/Waves/Squares/Diamonds, size, angle, pitch, ink and pen; moving masks and Timeline cycles. Filled spiral marks are real paths.",
     "validation": {
@@ -1075,7 +1054,7 @@
     "branch": "codex/flying-cloth",
     "worktree": "/private/tmp/muusia-flying-cloth-20261118",
     "baseCommit": "02288e3cfde73c80aecbcc69b52358be1a1c097e",
-    "status": "Complete local Drape Flying mode; not published; Word Shape and Slice Raster retained; Robot Cave Art absent; APP_VERSION stays 2.201",
+    "status": "Published and verified in Muusia 2.202; implementation and checks retained; release c070526bc2113bcdca0c698d9b77621edeed04a0",
     "behavior": [
       "Drape Surface Flying; whole-canvas fourth-input UV artwork with clipping and source pens",
       "Artwork default without grid; optional Artwork + grid, Grid, Threads",
@@ -1107,7 +1086,7 @@
     "baseCommit": "78c0520424acad1cd2bebb2e5e19b136cb214084",
     "branch": "codex/flying-cloth",
     "worktree": "/private/tmp/muusia-flying-cloth-20261118",
-    "status": "Complete local Roll/Loop/Corkscrew follow-up; not published; Flutter and earlier local work retained",
+    "status": "Published and verified in Muusia 2.202; implementation and checks retained; release c070526bc2113bcdca0c698d9b77621edeed04a0",
     "validation": {
       "focused": 782,
       "helpExamples": 216,
@@ -1121,5 +1100,36 @@
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/flying-cloth-motions",
     "snapshot": "/private/tmp/muusia-flying-cloth-snapshot-20261118 (refresh after commit)",
     "physicalPrintSent": false
+  },
+  "lastWordSliceClothRelease": {
+    "version": "2.202",
+    "date": "2026-11-18",
+    "baseCommit": "fae3417517e5df52c83ec5fd8b017e89af431ac8",
+    "branch": "codex/word-slice-cloth-release",
+    "worktree": "/private/tmp/muusia-word-slice-cloth-release-20261118",
+    "releaseCommit": "c070526bc2113bcdca0c698d9b77621edeed04a0",
+    "pagesRunId": 44193790243,
+    "published": true,
+    "status": "verified public 2.202; Word Shape, Slice Raster and Flying cloth; exact tested app bytes",
+    "moduleCount": 364,
+    "registryCount": 366,
+    "checks": {
+      "wordShape": 436,
+      "sliceRaster": 544,
+      "flyingCloth": 782,
+      "legacyDrape": "passed",
+      "helpGraphs": 216,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "publicBrowser": "Version, all three rendered starters, Hidden lines off and zero errors verified"
+    },
+    "publicAppSha256": "59cb422738479b83a2e5f342c4ae56de50275138681c293d06b9aa0f5c6534ca",
+    "matchesTestedBuild": true,
+    "url": "https://bambi8000.github.io/Muusia/",
+    "evidence": "docs/word-slice-cloth-release-checks.json",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false,
+    "snapshot": "/private/tmp/muusia-word-slice-cloth-release-snapshot-20261118 (refreshed after final metadata commit)"
   }
 }

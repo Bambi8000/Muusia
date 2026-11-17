@@ -289,9 +289,13 @@ new-motion browser SVG frames, input photo rendering and legacy byte parity.
 Craft Drape references were already recaptured through the actual UI; no
 historical PNG dates changed. Lockfile and installed build versions match.
 
-`docs/word-slice-cloth-release-checks.json` records tested build hash and will
-record exact deployment/public verification. Do not infer publication from this
-candidate entry; check WORKSTATE lastPublished and the release evidence.
+Published commit `c070526bc2113bcdca0c698d9b77621edeed04a0`, successful Pages
+run `44193790243`. Public https://bambi8000.github.io/Muusia/ is verified 2.202;
+its SHA-256 exactly matches the tested local app (full digest in release evidence).
+Actual public UI renders Word Shape 242 paths/724 points, Slice Raster Four
+screens 4,843/62,281, and Drape Roll 538/8,608. Hidden lines off shows 1,435/27,081.
+No public browser warnings/errors; enlarged Slice Raster example left open.
+`docs/word-slice-cloth-release-checks.json` and WORKSTATE record full proof.
 No physical print or device configuration update is part of this release.
 
 
