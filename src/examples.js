@@ -1522,6 +1522,19 @@ export const EXAMPLES = [
       { id: 9002, type: "drape", x: 370, y: 20, params: { ...defaults("drape"), physicsMode: "Flying", waveHeight: 10, wavelength: 100, twist: -45, edgeCurl: 265, phase: 130, yaw: 12, pitch: 35, persp: .25 } }
     ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 3 }] }),
   },
+  ...[
+    { label: "roll", profile: "Roll", axis: "Length", phase: 140, pitch: 38, yaw: -25, text: "ROUND AND ROUND", explanation: "Roll winds and unwinds the whole sheet, up to one and a half turns. The rolling layers pass in front of each other. This goes beyond the edge curls in Flutter." },
+    { label: "loop", profile: "Loop", axis: "Width", phase: 90, pitch: 38, yaw: -25, text: "WORDS COME AROUND", explanation: "Loop keeps the whole sheet in an open coil, with overlapping ends and a changing bend. Hidden lines makes the near side conceal the far side. The opening is intentional: this is still one rectangular sheet." },
+    { label: "corkscrew", profile: "Corkscrew", axis: "Length", phase: 30, pitch: 58, yaw: 15, text: "LETTERS IN MOTION", explanation: "Corkscrew gives the sheet a complete helical turn. The twist travels through the surface over time. This is stronger than the original Twist control." },
+  ].map(m => ({
+    name: "Drape · Flying " + m.label,
+    desc: "Select Drape. Movement " + m.profile + ". " + m.explanation + " Motion amount blends from the original flutter at 0% to the full profile at 100%. Motion along chooses Width or Length. Wave height, Twist and Edge curl add smaller folds on top. Set Attachment Free for the full wrap, or keep an edge, corners or centre anchored. Open ANIMATE, choose 48 frames and Play for a seamless cycle; Manual Phase chooses a still. Framing stays fixed across the cycle. Geometry can intersect; this is a drawing deformation without collisions.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "word_shape", x: 20, y: 20, params: { ...defaults("word_shape"), text: m.text, shape: "Square", mode: "Repeat text", autoRows: false, rows: 16, width: 265, height: 175, size: 7, tracking: 1.15, lineSpacing: 1.4, clearance: .25 } },
+      { id: 9002, type: "drape", x: 370, y: 20, params: { ...defaults("drape"), physicsMode: "Flying", flightMotion: m.profile, motionAmount: 100, motionAxis: m.axis, waveHeight: 3, wavelength: 180, waveDirection: 25, twist: 0, edgeCurl: 0, yaw: m.yaw, pitch: m.pitch, persp: .2, motion: "Timeline", phase: m.phase } }
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 3 }] }),
+  })),
   {
     name: "Drape · Flag typography",
     desc: "Select Drape. Flag pins a cloth sheet along its left edge; the new Cloth artwork input maps this text onto the moving mesh. Grid can be drawn too. Choose Hanging for a top attachment, or change Attachment directly. Wind, Gravity, Damping and Elasticity drive a bounded pinned mass-spring solve. Pull point fixes one movable point. Set Time source Timeline, 32 frames and Play for periodic wind. Each pose reconstructs the solver, with fixed framing and margin clipping. Objects/Mesh are used only in Draped mode; cloth self-collision is not solved.",

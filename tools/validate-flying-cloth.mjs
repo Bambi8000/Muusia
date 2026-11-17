@@ -138,6 +138,69 @@ ok(!visible(p0).includes('clothGravity') && !visible(p0).includes('flightSpeed')
 ok(visible({ ...p0, motion: 'Timeline' }).includes('flightSpeed'), 'timeline speed visible');
 ok(!visible({ ...p0, physicsMode: 'Draped' }).includes('flightContent'), 'legacy controls separate');
 
+// Whole-sheet motion profiles, separate from the original flutter controls.
+const profiles = ['Roll', 'Loop', 'Corkscrew'];
+for (const flightMotion of profiles) {
+  ok(hash(run({ flightMotion, motionAmount: 0 })) === hash(base), 'zero profile amount exact Flutter ' + flightMotion);
+  ok(hash(run({ flightMotion, phase: 90, motionAmount: 40 })) !== hash(run({ flightMotion, phase: 90, motionAmount: 100 })), 'profile amount live ' + flightMotion);
+  ok(hash(run({ flightMotion, phase: 90, motionAxis: 'Width' })) !== hash(run({ flightMotion, phase: 90, motionAxis: 'Length' })), 'motion axis live ' + flightMotion);
+  for (const motionAxis of ['Width', 'Length']) {
+    for (const motionAmount of [1, 50, 100]) {
+      const over = { flightMotion, motionAxis, motionAmount, motion: 'Timeline', phase: 67, flightSpeed: 2 };
+      const frame = i => run(over, art, { ...ctx, frameCount: 48, frameIdx: i });
+      const a = frame(0), b = frame(48); valid(a); ok(hash(a) === hash(b), 'profile exact loop');
+      const seven = hash(frame(7)); frame(29); ok(seven === hash(frame(7)) && seven !== hash(a), 'profile random-access motion');
+      const framing = [0, 7, 24, 40].map(frameIdx => { const S = flyingSurface({ ...p0, ...over }, { ...ctx, frameCount: 48, frameIdx }); return [S.scale, S.project([0, 0, 0])]; });
+      ok(framing.every(f => hash(f) === hash(framing[0])), 'profile framing and centre fixed');
+    }
+    for (const [flightPin, uv] of Object.entries(anchors)) for (const phase of [0, 90, 180, 270]) {
+      const S = flyingSurface({ ...p0, flightMotion, motionAxis, flightPin, phase }, ctx);
+      ok(uv.every(([u,v]) => { const q = S.world(u,v); return Math.hypot(q[0] - (u-.5), q[1] - (.5-v)*S.aspect, q[2]) < 1e-12; }), 'profile fixed attachments');
+    }
+  }
+  ok(visible({ ...p0, flightMotion }).includes('motionAmount') && visible({ ...p0, flightMotion }).includes('motionAxis'), 'profile controls visible');
+}
+ok(!visible(p0).includes('motionAmount') && !visible(p0).includes('motionAxis'), 'Flutter hides inactive profile controls');
+ok(hash(run({ flightMotion: 'unknown' })) === hash(base), 'unknown movement safely uses Flutter');
+const neutral = { ...p0, waveHeight: 0, twist: 0, edgeCurl: 0, flightPin: 'Free', motionAmount: 100 };
+const turnOf = curve => {
+  let previous, sum = 0;
+  for (let i = 1; i < curve.length; i++) { const d = sub(curve[i], curve[i-1]), angle = Math.atan2(d[1],d[0]); if (previous !== undefined) { let delta = angle - previous; while (delta > Math.PI) delta -= 2*Math.PI; while (delta < -Math.PI) delta += 2*Math.PI; sum += delta; } previous = angle; }
+  return Math.abs(sum);
+};
+for (const flightMotion of ['Roll', 'Loop']) for (const motionAxis of ['Width','Length']) {
+  const S = flyingSurface({ ...neutral, flightMotion, motionAxis, phase: flightMotion === 'Roll' ? 180 : 90 }, ctx);
+  const axis = motionAxis === 'Width' ? 0 : 1;
+  const curve = Array.from({length:401},(_,i) => { const q = S.world(motionAxis === 'Width' ? i/400 : .5, motionAxis === 'Width' ? .5 : i/400); return [q[axis],q[2]]; });
+  ok(turnOf(curve) > 2*Math.PI*1.1, 'whole sheet turns MORE than 360 degrees ' + flightMotion + '/' + motionAxis);
+  const L = curve.reduce((n,q,i) => n + (i ? Math.hypot(...sub(q,curve[i-1])) : 0),0), restLength = motionAxis === 'Width' ? 1 : S.aspect;
+  ok(L > restLength*.85 && L < restLength*1.2, 'coil retains approximate sheet arc length');
+  ok(Math.hypot(...sub(curve[0],curve.at(-1))) > .01, 'spiral separates overlapping ends');
+}
+for (const motionAxis of ['Width','Length']) {
+  const S = flyingSurface({ ...neutral, flightMotion: 'Corkscrew', motionAxis }, ctx), crossAxis = motionAxis === 'Width' ? 1 : 0;
+  const orientations = Array.from({length:201},(_,i) => { const u = motionAxis === 'Width' ? i/200 : .25, v = motionAxis === 'Width' ? .25 : i/200, a = S.world(u,v), b = S.world(motionAxis === 'Width' ? u : .75,motionAxis === 'Width' ? .75 : v); return [b[crossAxis]-a[crossAxis],b[2]-a[2]]; });
+  // The section vector itself completes one turn; its polygon tangent does too.
+  ok(turnOf(orientations) > 2*Math.PI*.98, 'Corkscrew winds a full turn ' + motionAxis);
+}
+for (const flightMotion of profiles) for (const motionAxis of ['Width','Length']) for (const c of [{W:297,H:210},{W:210,H:297},{W:100,H:600}]) for (const phase of [0,90,180,270]) {
+  const over = { flightMotion, motionAxis, motionAmount: 100, waveHeight: 40, wavelength: 30, twist: 180, edgeCurl: -270, persp: 1, pitch: 38, yaw: 43, phase, clothDensity: 45 };
+  const S = flyingSurface({...p0,...over},c);
+  ok(S.vertices.map(S.project).every(q => q.every(Number.isFinite) && q[0] >= 10-1e-6 && q[0] <= c.W-10+1e-6 && q[1] >= 10-1e-6 && q[1] <= c.H-10+1e-6), 'extreme profile bounds before clamp');
+}
+for (const flightMotion of profiles) {
+  const over = { flightMotion, phase: flightMotion === 'Roll' ? 180 : 90, waveHeight: 3, twist: 0, edgeCurl: 0 };
+  valid(run(over)); ok(length(run(over)) < length(run({...over,hidden:false}))*.9, 'whole-wrap foreground hides back ' + flightMotion);
+}
+const parentHelper = execFileSync('git',['show','78c0520424acad1cd2bebb2e5e19b136cb214084:src/defs/flying-cloth.js'],{encoding:'utf8'}).replace(/^import .*;\n/gm,'').replace(/export function /g,'function ');
+const parentNode = execFileSync('git',['show','78c0520424acad1cd2bebb2e5e19b136cb214084:src/defs/nodes/drape.js'],{encoding:'utf8'});
+const parentExpression = parentNode.slice(parentNode.indexOf('export default ')+15).trim().replace(/;$/,'');
+const parent = new Function(...Object.keys(H),'return (()=>{'+parentHelper+'; return '+parentExpression+';})()')(...Object.values(H));
+for (const over of [{},{phase:130},{motion:'Timeline',phase:18},{flightPin:'Centre'},{flightContent:'Artwork + grid'},{hidden:false},{yaw:120,pitch:10,persp:1}]) {
+  const ins = [undefined,undefined,undefined,art], c = {...ctx,frameCount:48,frameIdx:9}, p = {...p0,...over};
+  ok(hash(N.compute(ins,p,c,{})) === hash(parent.compute(ins,p,c,{})), 'original Flutter exact parent parity');
+}
+
 // Existing solver outputs must remain EXACTLY the same as the actual parent.
 const previous = execFileSync('git', ['show', '02288e3cfde73c80aecbcc69b52358be1a1c097e:src/defs/nodes/drape.js'], { encoding: 'utf8' });
 const expr = previous.slice(previous.indexOf('export default ') + 15).trim().replace(/;$/, '');
@@ -167,7 +230,7 @@ const portable = new Function(...Object.keys(H), 'return ' + customSources()[0].
 ok(hash(portable.compute([undefined, undefined, undefined, art], p0, ctx, {})) === hash(base), 'self-contained portable definition parity');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'flying-cloth-check-'));
 try {
-  ok(generate(dir, false).length === 3, 'three portable starters');
+  ok(generate(dir, false).length === 6, 'six portable starters');
   const patch = JSON.parse(fs.readFileSync(path.join(dir, 'flying-cloth-1.muusia.json'), 'utf8'));
   ok(patch.customNodes.length === 2 && patch.customNodes[0].source.includes('renderFlyingCloth'), 'portable projects embed both new node definitions');
 } finally { fs.rmSync(dir, { recursive: true, force: true }); }

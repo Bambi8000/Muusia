@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-18",
+  "appVersion": "2.201",
+  "baseCommit": "78c0520424acad1cd2bebb2e5e19b136cb214084",
+  "branch": "codex/flying-cloth",
+  "worktree": "/private/tmp/muusia-flying-cloth-20261118",
+  "status": "Complete local follow-up; not published",
+  "request": "User liked Flying but wanted the sheet to bend around itself, rather than only flutter in wind.",
+  "behavior": {
+    "Flutter": "Exact original output retained, including old projects without Movement.",
+    "Roll": "Whole sheet periodically winds and unwinds through up to 540 degrees.",
+    "Loop": "Whole sheet stays in an open changing coil, 306–450 degrees.",
+    "Corkscrew": "A complete helical twist travels through the sheet.",
+    "controls": "Movement; Motion amount 0–100%; Motion along Width/Length. Existing waves/twist/edge curl combine with the new profiles.",
+    "geometry": "Small spiral pitch separates wraps. Fixed centre/framing, two-sided hidden surfaces, final attachment envelope and whole-output point budgets retained. Perspective stays in front of the camera at extreme inputs.",
+    "amountZero": "Exact previous Flutter geometry and framing, not an approximately flat new projection."
+  },
+  "validation": {
+    "focused": 782,
+    "legacy": "Seven exact parent Flutter comparisons plus nine original Draped/Hanging/Flag comparisons and original Drape validator pass.",
+    "geometry": "Independent full-turn measurements prove Roll/Loop bend the whole sheet more than 360 degrees, approximate arc-length retention, separated ends, full Corkscrew winding, both axes, fixed anchors for every profile, exact loops, fixed framing and extreme pre-clamp bounds.",
+    "helpExamples": 216,
+    "catalog": "passed",
+    "build": "passed",
+    "learn": 37914,
+    "lint": "No errors/warnings in modified helper, examples and preview/validation tools. Existing Drape unused-variable warnings are unchanged.",
+    "nativeBrowser": {
+      "roll": {
+        "paths": 538,
+        "points": 8608,
+        "servoLowers": 538,
+        "drawMoves": 8132,
+        "boundsWarning": false
+      },
+      "rollAmountZero": {
+        "paths": 1435,
+        "points": 27081
+      },
+      "loop": {
+        "paths": 532,
+        "points": 10173
+      },
+      "corkscrew": {
+        "paths": 701,
+        "points": 11075
+      },
+      "corkscrewWidth": {
+        "paths": 1163,
+        "points": 18512
+      },
+      "exportedFramesPerProfile": 48,
+      "all144NativeSvgFramesMatchSourceBytes": true,
+      "controls": "Movement, amount 0/100, axis change and next frame exercised. Final fresh reload shows Roll preset; no warnings/errors since reload.",
+      "batchSha256": {
+        "roll": "fe2a7777b34908ea10ee7fb3c8b458c5df7e891058e767ec4865abc8569e9ec8",
+        "loop": "ee659be18ca1e0ab9db780d75d28af7f8c36b2c279de17b704604237614752c7",
+        "corkscrew": "8a23ecf5f83b806140b50a28c4c6c7fc5858a8c7196194af70f7ebbbaa212a4e"
+      }
+    },
+    "learnRecapture": "The exact documented Craft Flag graph was recaptured through the actual Help starter: static SVG and all twelve Timeline SVG frames match stored historical bytes. Drape/helper provenance refreshed, historical PNG dates retained; full shared gate green."
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/flying-cloth-motions",
+  "media": "Three new GIFs render actual node strokes; six self-contained projects and SVGs. These renders are not browser screenshots.",
+  "physicalPrintSent": false,
+  "limitations": "Analytic motion profiles with geometry blending; cloth/object collisions are not simulated."
+}

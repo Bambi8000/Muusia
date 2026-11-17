@@ -22,6 +22,9 @@ export function flyingSurface(p, ctx) {
   const phase = (Math.round(((turns % 1 + 1) % 1) * 1e12) % 1e12) / 1e12 * TAU;
   const twist = number(p.twist, 30, -180, 180) * Math.PI / 180;
   const curl = number(p.edgeCurl, 100, -270, 270) * Math.PI / 180;
+  const profile = ['Roll', 'Loop', 'Corkscrew'].includes(p.flightMotion) ? p.flightMotion : 'Flutter';
+  const amount = profile === 'Flutter' ? 0 : number(p.motionAmount, 100, 0, 100) / 100;
+  const alongWidth = p.motionAxis !== 'Length', axisLength = alongWidth ? 1 : aspect;
   const attachment = p.flightPin || 'Free';
   const envelope = (u, v) => {
     if (attachment === 'Corners') return (Math.sin(Math.PI * u) ** 2 + Math.sin(Math.PI * v) ** 2) / 2;
@@ -42,14 +45,37 @@ export function flyingSurface(p, ctx) {
     const zz = bentX * Math.sin(turn) + bentZ * Math.cos(turn)
       + height * (.78 * Math.sin(wave - phase) + .22 * Math.sin(wave * 2 + phase + v * 2));
     const e = envelope(u, v);
-    return [x + (xx - x) * e, y, zz * e];
+    if (!amount) return [x + (xx - x) * e, y, zz * e];
+    const q = [xx, y, zz], axis = alongWidth ? 0 : 1;
+    let target = q.slice();
+    if (profile === 'Corkscrew') {
+      // A complete helical turn across the sheet, with the twist travelling in time.
+      const crossAxis = 1 - axis, angle = TAU * (q[axis] / axisLength + .2 * Math.sin(phase));
+      target[crossAxis] = q[crossAxis] * Math.cos(angle) - zz * Math.sin(angle);
+      target[2] = q[crossAxis] * Math.sin(angle) + zz * Math.cos(angle);
+    } else {
+      // Integrate a rotating tangent: the WHOLE sheet bends through more than
+      // 360 degrees. A small spiral pitch separates overlapping wraps in depth.
+      const bend = profile === 'Roll' ? TAU * .75 * (1 - Math.cos(phase)) : TAU * (1.05 + .2 * Math.sin(phase));
+      if (bend > 1e-9) {
+        const s = q[axis], angle = bend * s / axisLength;
+        const gap = .06 * axisLength * Math.min(1, bend / TAU) * s / axisLength;
+        const sinc = Math.abs(angle) < 1e-7 ? 1 - angle * angle / 6 : Math.sin(angle) / angle;
+        const cosc = Math.abs(angle) < 1e-7 ? angle / 2 : (1 - Math.cos(angle)) / angle;
+        target[axis] = s * sinc + (gap - zz) * Math.sin(angle);
+        target[2] = s * cosc + (zz - gap) * Math.cos(angle);
+      }
+    }
+    target = q.map((v, k) => v + (target[k] - v) * amount);
+    // Attachment is applied after every deformation, including lengthwise rolls.
+    return [x + (target[0] - x) * e, y + (target[1] - y) * e, target[2] * e];
   };
   const yaw = number(p.yaw, 25, -3600, 3600) * Math.PI / 180;
   const elev = number(p.pitch, 50, 1, 90) * Math.PI / 180;
   const eye = [Math.sin(yaw) * Math.cos(elev), -Math.cos(yaw) * Math.cos(elev), Math.sin(elev)];
   const right = [Math.cos(yaw), Math.sin(yaw), 0];
   const up = [-Math.sin(yaw) * Math.sin(elev), Math.cos(yaw) * Math.sin(elev), Math.cos(elev)];
-  const perspective = number(p.persp, .35, 0, 1) * .4;
+  let perspective = number(p.persp, .35, 0, 1) * .4;
   const dot = (q, a) => q[0] * a[0] + q[1] * a[1] + q[2] * a[2];
   const view = q => {
     const depth = dot(q, eye), divisor = Math.max(.25, 1 - perspective * depth);
@@ -60,17 +86,45 @@ export function flyingSurface(p, ctx) {
   const turnMax = Math.abs(twist) / 2;
   const curlPeak = Math.min(Math.abs(curl), 2.331123);
   const zCurl = curlPeak < 1e-8 ? 0 : .23 * (1 - Math.cos(curlPeak)) / curlPeak;
-  const xBound = Math.hypot(.5, zCurl);
-  const zBound = .5 * Math.sin(Math.min(Math.PI / 2, turnMax)) + zCurl + height;
-  let bx = 0, by = 0;
-  for (const x of [-xBound, xBound]) for (const y of [-aspect / 2, aspect / 2]) for (const z of [-zBound, zBound]) {
-    const q = view([x, y, z]); bx = Math.max(bx, Math.abs(q[0])); by = Math.max(by, Math.abs(q[1]));
+  let xBound = Math.hypot(.5, zCurl), yBound = aspect / 2;
+  let zBound = .5 * Math.sin(Math.min(Math.PI / 2, turnMax)) + zCurl + height;
+  let zMin = -zBound, zMax = zBound;
+  if (amount) {
+    // Rotations preserve radius. A wrapped arc is no farther from its origin
+    // than its source arc length; add the transported normal and spiral pitch.
+    if (profile === 'Corkscrew') {
+      const crossBound = alongWidth ? yBound : xBound, radius = Math.hypot(crossBound, zBound);
+      if (alongWidth) yBound += (radius - yBound) * amount;
+      else xBound += (radius - xBound) * amount;
+      zBound += (radius - zBound) * amount;
+      zMin = -zBound; zMax = zBound;
+    } else {
+      const axisBound = alongWidth ? xBound : yBound, gapBound = .06 * axisBound;
+      const minBend = TAU * .85;
+      const across = (profile === 'Loop' ? Math.min(axisBound, axisLength / minBend) : axisBound) + gapBound + zBound;
+      const depth = (profile === 'Loop' ? Math.min(axisBound, 2 * axisLength / minBend) : axisBound) + gapBound + zBound;
+      if (alongWidth) xBound += (across - xBound) * amount;
+      else yBound += (across - yBound) * amount;
+      zMin = -zBound - gapBound * amount;
+      zMax = zBound + (depth - zBound) * amount;
+    }
   }
-  const scale = Math.min((W - margin * 2) / (2 * Math.max(1e-8, bx)), (H - margin * 2) / (2 * Math.max(1e-8, by)));
-  const project = q => { const v = view(q); return [W / 2 + v[0] * scale, H / 2 + v[1] * scale, v[2]]; };
+  if (amount) {
+    const depthBound = xBound * Math.abs(eye[0]) + yBound * Math.abs(eye[1]) + Math.max(-zMin, zMax) * Math.abs(eye[2]);
+    perspective = Math.min(perspective, .7 / Math.max(1e-8, depthBound));
+  }
+  let bx = 0, by = 0, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const x of [-xBound, xBound]) for (const y of [-yBound, yBound]) for (const z of [zMin, zMax]) {
+    const q = view([x, y, z]); bx = Math.max(bx, Math.abs(q[0])); by = Math.max(by, Math.abs(q[1]));
+    x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]);
+  }
+  const centreX = amount ? (x0 + x1) / 2 : 0, centreY = amount ? (y0 + y1) / 2 : 0;
+  const scale = amount ? Math.min((W - margin * 2) / Math.max(1e-8, x1 - x0), (H - margin * 2) / Math.max(1e-8, y1 - y0))
+    : Math.min((W - margin * 2) / (2 * Math.max(1e-8, bx)), (H - margin * 2) / (2 * Math.max(1e-8, by)));
+  const project = q => { const v = view(q); return [W / 2 + (v[0] - centreX) * scale, H / 2 + (v[1] - centreY) * scale, v[2]]; };
   const detail = Math.round(number(p.clothDensity, 28, 8, 45));
   // Rendering mesh follows the smallest allowed wavelength, independently of grid spacing.
-  const nx = Math.max(48, detail * 2, Math.ceil(24 / wavelength));
+  const nx = Math.max(amount ? 72 : 48, detail * 2, Math.ceil(24 / wavelength));
   const ny = Math.max(24, Math.ceil(nx * aspect));
   const vertices = Array.from({ length: (nx + 1) * (ny + 1) }, (_, k) => world(k % (nx + 1) / nx, Math.floor(k / (nx + 1)) / ny));
   // Both artwork and occlusion use exactly the same triangles. Bilinear artwork

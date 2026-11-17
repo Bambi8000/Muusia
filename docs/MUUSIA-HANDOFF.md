@@ -7425,3 +7425,44 @@ of actual pen paths (not a screenshot). Artifact path and full evidence are in
 there. No reference media/code copied, no printer used. Conservative framing
 leaves turning room; surface collisions are not simulated. Previous user
 confirmations about bed origin, clock source and KlipperScreen remain complete.
+
+
+### W — 2026-11-18 · Whole-sheet Flying motions, local follow-up
+
+Same `codex/flying-cloth` checkout; base
+`78c0520424acad1cd2bebb2e5e19b136cb214084`. Daniel noted the first version only
+fluttered while the reference also bent around itself. Flying now has Movement:
+Flutter preserves previous output exactly; Roll winds/unwinds the whole sheet
+through up to 540°, Loop stays in an open changing 306–450° coil, and Corkscrew
+adds a full helical turn with travelling orientation. Motion amount blends 0%
+(original Flutter, including framing) to 100%; Motion along selects Width or
+Length. Existing waves/twist/curl remain additive. Final attachment envelope
+holds corners/edges/centre fixed after every deformation. Spiral pitch separates
+rolling layers; existing two-sided occlusion hides their back. Fixed camera
+centre/framing across phases, bounded perspective, complete output budgets.
+No collisions are simulated. No engine, exporter, machine or pressure-Z changes.
+
+Three new Help starters (Flying roll/loop/corkscrew), six portable example
+projects total. 782 focused checks pass, including independent measured turns
+beyond 360°, approximate arc-length retention, separated ends, full helical
+winding, all attachments/both axes, exact loops, fixed framing, extreme projected
+bounds before clamp, seven exact previous-Flutter cases and nine old solver
+cases. Original Drape validator and 216 Help graphs pass. Modified helper/tools/
+examples lint clean; original node's unused-variable warnings unchanged.
+Catalog/build/37,914 Learn checks and diff check pass. Craft's exact documented
+Flag starter was recaptured in the real UI: static SVG and twelve animation
+frames still byte-identical to stored references. Refreshed only Drape/helper
+source provenance; retained historical PNG capture dates.
+
+Actual UI: Roll 538 paths / 8,608 points, amount 0 gives 1,435 paths / 27,081
+points; G-code 538 lowers / 8,132 drawing moves, no bounds warning. Loop 532 paths /
+10,173 points. Corkscrew Length 701 paths / 11,075 points; Width 1,163 / 18,512.
+All three actual 48-frame SVG batches (144 frames) match source byte-for-byte.
+Settings, frame stepping and fresh reload checked with no new browser errors.
+Final local tab shows Flying roll at 48 frames with enlarged preview.
+
+Full evidence and artifacts: `docs/flying-cloth-motions-checks.json` and WORKSTATE.
+Preview tool reproduces three new GIFs from actual node paths (not screenshots),
+as well as all six self-contained projects/SVGs. Earlier local Word Shape/Slice
+Raster work and user hardware confirmations retained; Robot Cave Art absent.
+APP_VERSION remains 2.201; no push, publication or hardware execution.

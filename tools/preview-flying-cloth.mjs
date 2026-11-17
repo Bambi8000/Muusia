@@ -46,11 +46,11 @@ export function generate(dir, animate = true) {
     fs.writeFileSync(path.join(dir, stem + '.muusia.json'), JSON.stringify({ app: 'muusia', v: 1, name: ex.name, canvas: ex.canvas, customNodes, root: graph }, null, 2));
     records.push({ name: ex.name, paths: result.paths.length, points: result.paths.reduce((n, p) => n + p.pts.length, 0) });
   }
-  if (animate) {
+  if (animate) for (const ex of [examples[0], ...examples.slice(3)]) {
     const width = 960, height = Math.round(width * 210 / 297), frames = 48;
     const gif = gifenc.GIFEncoder(), palette = [[250, 248, 241], [35, 40, 39]];
     for (let frame = 0; frame < frames; frame++) {
-      const { result } = evaluate(examples[0], frame, frames), pixels = new Uint8Array(width * height);
+      const { result } = evaluate(ex, frame, frames), pixels = new Uint8Array(width * height);
       const dot = (x, y) => { if (x >= 0 && y >= 0 && x < width && y < height) pixels[y * width + x] = 1; };
       const line = (a, b) => {
         const dx = (b[0] - a[0]) / 297 * width, dy = (b[1] - a[1]) / 210 * height;
@@ -60,7 +60,7 @@ export function generate(dir, animate = true) {
       for (const p of result.paths) for (let j = 0; j < p.pts.length - (p.closed ? 0 : 1); j++) line(p.pts[j], p.pts[(j + 1) % p.pts.length]);
       gif.writeFrame(pixels, width, height, { palette, delay: 80, repeat: 0 });
     }
-    gif.finish(); fs.writeFileSync(path.join(dir, 'flying-typography.gif'), gif.bytes());
+    gif.finish(); fs.writeFileSync(path.join(dir, ex === examples[0] ? 'flying-typography.gif' : 'flying-' + ex.name.split(' ').at(-1) + '.gif'), gif.bytes());
   }
   fs.writeFileSync(path.join(dir, 'checks.json'), JSON.stringify(records, null, 2) + '\n');
   return records;

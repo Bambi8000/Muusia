@@ -929,6 +929,18 @@ Artwork + grid, Grid and Threads reveal the sheet. Whole source canvas coordinat
 map to UV; outside art is clipped, never clamped onto the rim. Source pens stay
 with the artwork; Pen controls the optional grid. Word Shape can supply a panel
 of repeated words, a calligram, or text inside/outside a wired shape.
+Movement selects Flutter (original wind), Roll (the whole sheet winds and unwinds
+through up to 540°), Loop (a continuously bent open coil, 306–450°), or Corkscrew
+(a full helical turn whose orientation travels). Motion along selects Width or
+Length. Motion amount 0% returns the exact original Flutter output; 100% is the
+full new profile, with intermediate values blending the geometry. Existing waves,
+twist and edge curl add local folds to every profile. Choose Free attachment to
+see the complete wrap; anchored parts stay fixed after all deformations. A small
+spiral pitch separates rolling layers so the front can hide the back. Loop stays
+open because the source is a rectangular sheet, without stitching its edges.
+Each profile uses fixed framing over its whole cycle, including a fixed camera
+centre; tight coiling naturally makes the sheet occupy less of the page. Help
+also includes Flying roll, Flying loop and Flying corkscrew.
 Wave height % is relative to sheet width; Wavelength % is a sheet-width distance,
 Wave direction turns the wave, Twist rotates across the length, and signed Edge
 curl rolls both side edges. Attachment: Free, four Corners, Top edge, Left edge,

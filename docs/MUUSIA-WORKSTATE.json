@@ -1080,5 +1080,25 @@
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/flying-cloth",
     "physicalPrintSent": false,
     "snapshot": "/private/tmp/muusia-flying-cloth-snapshot-20261118 (local only; refreshed after commit)"
+  },
+  "lastFlyingClothMotions": {
+    "date": "2026-11-18",
+    "baseCommit": "78c0520424acad1cd2bebb2e5e19b136cb214084",
+    "branch": "codex/flying-cloth",
+    "worktree": "/private/tmp/muusia-flying-cloth-20261118",
+    "status": "Complete local Roll/Loop/Corkscrew follow-up; not published; Flutter and earlier local work retained",
+    "validation": {
+      "focused": 782,
+      "helpExamples": 216,
+      "legacy": "All original Drape checks and exact parent Flutter parity",
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "nativeBrowser": "144 actual new-motion SVG frames match source; Roll G-code 538 lowers / 8132 drawing moves, no bounds warning. Settings and fresh reload checked. Historical Craft exports recaptured unchanged."
+    },
+    "evidence": "docs/flying-cloth-motions-checks.json",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/flying-cloth-motions",
+    "snapshot": "/private/tmp/muusia-flying-cloth-snapshot-20261118 (refresh after commit)",
+    "physicalPrintSent": false
   }
 }

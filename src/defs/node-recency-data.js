@@ -382,8 +382,8 @@ export const NODE_RECENCY = {
   },
   "drape": {
     "date": "2026-11-17",
-    "order": 148,
-    "sha256": "cdef176ebf8deab46ae85ff4f13a9b50b8affe06973c320df84169a2b793d640"
+    "order": 149,
+    "sha256": "ba313291960ce17304650bf38996713c5f46e4ce7bd7687c88423e1bb68791b7"
   },
   "drawn_path": {
     "date": "2026-11-05",
