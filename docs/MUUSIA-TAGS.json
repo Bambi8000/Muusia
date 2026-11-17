@@ -2240,5 +2240,6 @@
   "continuous",
   "bands"
  ],
- "word_shape": ["text", "geometric", "region", "fill"]
+ "word_shape": ["text", "geometric", "region", "fill"],
+ "slice_raster": ["image", "hatch", "dots", "texture", "animation", "pens"]
 }

@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 365 built-in nodes in the current Muusia source. Conventions used below:
+All 366 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -28,7 +28,37 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (230)
+## Generators (231)
+
+**Slice Raster** — one registered image interpreted with different halftones
+in up to eight slices. Strips uses a shared Slice angle; Grid uses Columns;
+Collage makes seeded non-overlapping rectangular partitions. Each active slice
+has its own Raster selector. Advanced slice settings exposes Size share, raster
+Angle, Raster pitch, Ink strength and Pen independently. Size share sets strip
+width, per-row Grid width or target Collage area. Raster choices are Lines
+(tone-lengthened hatch marks), Dots (filled round spirals), Crosshatch (an extra
+shadow screen), Waves (tone-modulated broken wave hatches), Squares, Diamonds
+and Off. Dot fill pitch is actual spiral spacing; match it to the physical nib.
+Changing pitch produces the coarse/fine collage effect across one image.
+Auto starts with an original procedural Tone study until a PNG/JPG is loaded.
+Image file requires a valid image; Tone study explicitly ignores the file.
+Contain fits the whole picture; Cover crops it to the paper margin. All slices
+sample this one shared mapping and retain the image's proportions and position.
+Gap leaves empty seams. Mask phase moves the region masks over a stationary
+image and stationary raster fields, wrapping at the edges; it does not move
+the photograph. Motion Timeline follows ANIMATE with integer Cycles and no
+duplicated endpoint. Manual exposes Mask phase for scrubbing or a Frame wire.
+One slice is static. The partition and screen grids are deterministic;
+Collage seed changes only that partition. White cutoff, Contrast, Gamma and
+Invert apply to the shared image, before each slice's Ink strength.
+Every mark is a real pen path, clipped to its convex slice and image bounds.
+The region guides are never plotted. Dense requests coarsen all pitches, spiral
+fill and sampling together until complete output fits the work/110k-point budget
+before Style. No later slice is silently discarded. Extreme impossible requests
+return empty. Four Help starters: Four screens, Diagonal resolutions,
+Collage in six rasters and Moving raster windows. Search: slicer, halftone,
+collage, rasteri, viipale.
+
 
 **Word Shape** — words arranged as a typographic silhouette. Shorten rows
 starts with the complete text and removes letters from End, Start or Both sides.

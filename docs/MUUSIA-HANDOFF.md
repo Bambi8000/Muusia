@@ -7316,3 +7316,58 @@ Local app: http://127.0.0.1:5195/ → Help → Word Shape.
 Daniel's prior confirmations about the bed origin, clock source code and
 KlipperScreen visuals remain recorded as completed; do not reopen them.
 Robot Cave Art remains absent (the new branch starts from public origin/main).
+
+
+### W — 2026-11-18 · Slice Raster, local node
+
+Local branch `codex/slice-raster`, worktree `/private/tmp/muusia-slice-raster-20261117`,
+base 33a004b6e8a53bc9fd709a649d5f94b218cb9386. Word Shape is retained; Robot
+Cave Art remains absent. No shared engine/exporter/hardware change or version
+bump; APP_VERSION stays 2.201 for local delivery. No publication requested.
+
+Daniel clarified that the Slicer idea is independent halftones/resolutions in
+different parts of one image. The exact reference was then verified in his
+open Chrome tab: https://www.instagram.com/p/Df11A5UjRB1/?img_index=1 by
+toan_vu_huu. Caption confirms multiple bitmap halftones and different resolutions
+per slice; video shows rectangular collage partitions and coarse/fine screens.
+The implementation is independent Muusia plotter geometry; no original source
+code or reference media were copied. Reference user tab was returned to slide 1.
+
+New `slice_raster` in Text & Image: PNG/JPG intake (640 px), an original Tone
+study fallback in Auto, explicit file/study source and Contain/Cover. One shared
+image mapping spans every region. Up to eight Strips (angle), Grid (columns) or
+seeded Collage rectangles. Each slice selects Lines, Dots, Crosshatch, Waves,
+Squares, Diamonds or Off. Advanced exposes independent Size share, raster
+angle, physical pitch, ink strength and pen. Dot/square/diamond fills are real
+spiral paths; lines use tonal mark length, crosshatch adds a shadow family and
+waves use tonal broken hatches. Global tone controls and physical fill pitch.
+Every stroke clips to its convex region and image bounds. Guides never plot.
+
+Manual phase or Timeline cycles move only masks across the stationary photo and
+raster fields. One slice stays static; loop endpoints match and evaluation is
+scrub-order independent. Dense settings coarsen all regions uniformly under
+work/110k-point limits, without dropping later slices; impossible requests are
+refused whole. Style last. Four Help starters, catalog/tags, recency, accurate
+counts (364 modules / 366 registry / 231 generators), source bundle and docs
+updated. Prototype baked then deleted.
+
+Validation: 544 focused checks, including independent partition area/coverage,
+region/segment bounds, six distinct rasters, real tonal ink, stable registration,
+per-slice isolation, missing/invalid files, UI visibility with wired count bounds,
+source immutability, dense eight-slice completion, seamless loops, import parity,
+portable projects and actual SVG/servo/bed-Z exporters. Word Shape's 436 checks
+remain green. 210 Help graphs, focused lint, ordered catalog/build/37,914 Learn
+checks and diff check pass. Native image chooser loads the local fixture portrait
+at 640 square; four screens show 4,735 paths / 48,182 points. Native SVG has all
+4,735 paths, G-code all 4,735 lowers and 43,447 moves, no bounds warning. Slice 2
+Squares changes geometry to 4,748 paths; six-slice Collage 4,382 paths / 52,665
+points. Timeline next frame changes to 4,372 paths / 47,290 points; switching
+back restores the Manual result. Actual saved project exactly matches final
+source output. No physical print or printer connection was used.
+
+Artifact directory is in WORKSTATE: portable node, four original-study projects,
+real SVG/path outputs, and a local-only photo collage project saved from the app
+with the node source embedded. Its loaded photograph is not in the commit.
+Comparison PNGs render actual exported pen paths, not screenshots. Browser proof
+is in local browser-checks.json. Local app http://127.0.0.1:5196/ → Help →
+Slice Raster. Completed bed-origin/clock/KlipperScreen decisions remain intact.

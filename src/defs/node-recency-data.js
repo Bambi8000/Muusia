@@ -1410,6 +1410,11 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "b1c441751ec36f6f94dab0ff7ed268abd2b1098ce219a8a964430c5c98046e14"
   },
+  "slice_raster": {
+    "date": "2026-11-17",
+    "order": 147,
+    "sha256": "fbb6cf8e62c27e13b71f43c39274e363f6ba17b64ab30d51b8cfa46b606612a7"
+  },
   "sliderule": {
     "date": "2026-08-01",
     "order": 16,

@@ -910,6 +910,30 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Slice Raster · Four screens",
+    desc: "One image continues across four differently rasterised strips: Lines, Dots, Crosshatch and Waves. Auto starts with an original tone study. Choose an image to replace it. Advanced slice settings exposes each slice's independent size share, raster angle, raster pitch, ink strength and pen. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "slice_raster", x: 60, y: 40, params: { ...defaults("slice_raster"), ...{} } }], edges: [] }),
+  },
+  {
+    name: "Slice Raster · Diagonal resolutions",
+    desc: "Six diagonal strips use the same dot screen at six different pitches. The picture stays registered while the raster resolution changes from slice to slice. Try Slice angle, Gap and Advanced slice settings. Dot fill pitch is real spiral spacing, so match it to the physical nib.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "slice_raster", x: 60, y: 40, params: { ...defaults("slice_raster"), ...{"count": 6, "sliceAngle": 32, "raster1": "Dots", "raster2": "Dots", "raster3": "Dots", "raster4": "Dots", "raster5": "Dots", "raster6": "Dots", "pitch1": 1.4, "pitch2": 2, "pitch3": 2.8, "pitch4": 3.8, "pitch5": 5.2, "pitch6": 7, "angle1": 0, "angle2": 0, "angle3": 0, "angle4": 0, "angle5": 0, "angle6": 0, "advanced": true} } }], edges: [] }),
+  },
+  {
+    name: "Slice Raster · Collage in six rasters",
+    desc: "Six non-overlapping rectangles form a seeded collage. Lines, Dots, Crosshatch, Waves, Squares and Diamonds interpret the same image. The picture is fitted once across the complete page. Change Collage seed, Size share or the raster of a single slice.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "slice_raster", x: 60, y: 40, params: { ...defaults("slice_raster"), ...{"layout": "Collage", "count": 6, "seed": 82, "gap": 1, "pitch1": 1.2, "pitch2": 2.8, "pitch3": 1.6, "pitch4": 1.8, "pitch5": 4, "pitch6": 3.2} } }], edges: [] }),
+  },
+  {
+    name: "Slice Raster · Moving raster windows",
+    desc: "Four Grid regions travel across one stationary picture and its stationary raster fields. Motion Timeline reads ANIMATE directly; set 24 frames and press Play. Manual exposes Mask phase for scrubbing. The final frame is the step before the first, making the loop continuous. PNG/SVG/G-code frame exports use the same masks.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "slice_raster", x: 60, y: 40, params: { ...defaults("slice_raster"), ...{"layout": "Grid", "count": 4, "columns": 2, "motion": "Timeline", "cycles": 1, "pen1": 0, "pen2": 1, "pen3": 2, "pen4": 6} } }], edges: [] }),
+  },
+  {
     name: "Word Shape · ABRACADABRA",
     desc: "The complete word loses one final letter on every centred row, ending with A. Switch Shape for Triangle up, Diamond, Hourglass, Circle, Heart, Square or Hexagon. Serif uses real plotter strokes. Letter and row spacing change the proportions; Fit text shrinks the letters into the built-in fitting box.",
     canvas: {"W": 210, "H": 297},

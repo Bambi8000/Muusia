@@ -1026,5 +1026,27 @@
     },
     "physicalPrintSent": false,
     "limits": "Uppercase SFONT-based Plotter/Serif (\u00c4\u00d6\u00c5); unsupported glyphs become ?. Complete character boxes can leave gaps at corners. Wired inputs keep coordinates. Dense requests refused whole, not truncated."
+  },
+  "lastSliceRaster": {
+    "date": "2026-11-18",
+    "branch": "codex/slice-raster",
+    "worktree": "/private/tmp/muusia-slice-raster-20261117",
+    "baseCommit": "33a004b6e8a53bc9fd709a649d5f94b218cb9386",
+    "status": "Complete local node and portable projects; not published; Word Shape retained; APP_VERSION stays 2.201",
+    "reference": "https://www.instagram.com/p/Df11A5UjRB1/?img_index=1 \u2014 toan_vu_huu caption and video verified in user-opened Chrome tab; independent plotter implementation, no copied reference code/media",
+    "behavior": "One shared image fit across up to eight Strips/Grid/Collage regions with independent Lines/Dots/Crosshatch/Waves/Squares/Diamonds, size, angle, pitch, ink and pen; moving masks and Timeline cycles. Filled spiral marks are real paths.",
+    "validation": {
+      "focused": 544,
+      "wordShapeRegression": 436,
+      "helpGraphs": 210,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "nativeBrowser": "Loaded fixture portrait through actual image chooser (640 square); four screens SVG 4735 paths, G-code 4735 lowers / 43447 moves, no bounds warning; changed Slice 2 raster (4748 paths); six-slice Collage 4382 paths / 52665 points; Timeline frame 2 changes to 4372 paths / 47290 points; Manual restores exact output; actual saved project matches final source."
+    },
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/slice-raster",
+    "nativeEvidence": "browser-checks.json and photo-collage.muusia.json in artifact directory; photo project is local only, not committed",
+    "physicalPrintSent": false
   }
 }
