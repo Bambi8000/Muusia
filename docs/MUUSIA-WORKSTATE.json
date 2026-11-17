@@ -1,6 +1,27 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+  {
+    "id": "word-slice-cloth-release",
+    "owner": "Astra",
+    "role": "Integrate, validate and publish Word Shape, Slice Raster and Flying cloth",
+    "baseCommit": "fae3417517e5df52c83ec5fd8b017e89af431ac8",
+    "publicBaseCommit": "54049d536d318f31d46817d723c87c68b4b12531",
+    "scope": [
+      "src/App.jsx",
+      "README.md",
+      "src/defs/catalog.js",
+      "src/defs/node-recency-data.js",
+      "docs/MUUSIA-NODES-SRC.md",
+      "learn/generated/manifest.json",
+      "docs/MUUSIA-HANDOFF.md",
+      "docs/MUUSIA-WORKSTATE.json",
+      "docs/word-slice-cloth-release-checks.json"
+    ],
+    "status": "ready",
+    "outcome": "Publish all four local implementation commits as Muusia 2.202, including Slice Raster, and verify exact public build."
+  }
+],
   "lastPublished": {
     "version": "2.201",
     "commit": "c6188883d15250cc90c47ea2c98361faba314a6d",

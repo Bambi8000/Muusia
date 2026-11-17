@@ -1,0 +1,40 @@
+{
+  "version": "2.202",
+  "date": "2026-11-18",
+  "baseCommit": "fae3417517e5df52c83ec5fd8b017e89af431ac8",
+  "publicBaseCommit": "54049d536d318f31d46817d723c87c68b4b12531",
+  "branch": "codex/word-slice-cloth-release",
+  "worktree": "/private/tmp/muusia-word-slice-cloth-release-20261118",
+  "status": "Validated release candidate; publication verification pending",
+  "scope": [
+    "Word Shape: eight silhouettes, complete word/letter layouts and wired Inside/Outside",
+    "Slice Raster: six independent halftones across up to eight strips/grid/collage regions, photo intake and animated masks",
+    "Drape Flying: text/artwork, Flutter/Roll/Loop/Corkscrew, both motion axes, anchors, camera, periodic frames and Hidden lines off for transparent cloth"
+  ],
+  "validation": {
+    "wordShape": 436,
+    "sliceRaster": 544,
+    "flyingCloth": 782,
+    "legacyDrape": "passed",
+    "helpGraphs": 216,
+    "catalog": "passed",
+    "build": "passed",
+    "learn": 37914,
+    "legacyProvenance": "Craft Drape static SVG and twelve Timeline frames recaptured byte-identically in the implementation commits; source provenance includes flying-cloth helper.",
+    "nativeImplementationProof": [
+      "docs/flying-cloth-checks.json",
+      "docs/flying-cloth-motions-checks.json",
+      "docs/MUUSIA-WORKSTATE.json lastWordShape/lastSliceRaster"
+    ],
+    "dependencyVersionsMatchLock": true
+  },
+  "testedAppSha256": "59cb422738479b83a2e5f342c4ae56de50275138681c293d06b9aa0f5c6534ca",
+  "packageLockSha256": "1ae5a26ab9cac96d1eba329f807c91d4fdd9e33fa40bac2c6018eefbe0165c83",
+  "publication": {
+    "url": "https://bambi8000.github.io/Muusia/",
+    "verified": false
+  },
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "robotCaveArt": "Absent from implementation and release; not reintroduced."
+}

@@ -1,4 +1,9 @@
-# MUUSIA v2.201
+# MUUSIA v2.202
+
+Version 2.202 adds **Word Shape** for words inside or outside shapes, **Slice Raster**
+for independent halftones in different regions of one image, and **Drape → Flying**
+for animated cloth typography with Flutter, Roll, Loop and Corkscrew movements.
+Turn off Hidden lines to see through the cloth. Ready-wired examples are in Help.
 
 Region Hatch, Line Drape, Cell Strands, Block Field and the Craft node suite are
 available with the extended L-System and shape/field tools. Learn includes

@@ -264,6 +264,37 @@ according to the session's actual capabilities:
 
 ## Version history (condensed)
 
+### 2.202 — 2026-11-18 · Word Shape, Slice Raster and Flying cloth
+
+Daniel explicitly requested publication, and separately confirmed Slice Raster
+must be included. Release branch `codex/word-slice-cloth-release`, worktree
+`/private/tmp/muusia-word-slice-cloth-release-20261118`, based on local
+`fae3417517e5df52c83ec5fd8b017e89af431ac8`. The four implementation commits
+fast-forward published main `54049d536d318f31d46817d723c87c68b4b12531`.
+Primary dirty checkout and hardware remain untouched. Robot Cave Art is absent.
+
+Includes Word Shape's eight silhouettes and wired Inside/Outside text; Slice
+Raster's per-region six halftones, independent resolutions/angles/pens, photo
+intake, Strips/Grid/Collage and moving masks; Drape Flying with full Flutter,
+Roll, Loop and Corkscrew motion profiles, width/length axes, amount, anchors,
+camera, hidden-surface removal, exact loops and plotter frame exports. Turn
+Hidden lines off for transparent cloth. All sixteen new Help starters included
+(216 total). Release changes only APP_VERSION to 2.202 in App.jsx, README,
+release records and generated Learn manifest; implementation commits are kept.
+
+Revalidated: Word Shape 436, Slice Raster 544, Flying cloth 782, original Drape,
+216 Help graphs, catalog/build/37,914 Learn checks. Implementation evidence
+includes actual SVG/G-code, independent occlusion and wrapping geometry, 144
+new-motion browser SVG frames, input photo rendering and legacy byte parity.
+Craft Drape references were already recaptured through the actual UI; no
+historical PNG dates changed. Lockfile and installed build versions match.
+
+`docs/word-slice-cloth-release-checks.json` records tested build hash and will
+record exact deployment/public verification. Do not infer publication from this
+candidate entry; check WORKSTATE lastPublished and the release evidence.
+No physical print or device configuration update is part of this release.
+
+
 ### 2.176 — 2026-11-12 · Canvas size adaptation
 
 Solids now fits its output on the selected canvas by default, including old
