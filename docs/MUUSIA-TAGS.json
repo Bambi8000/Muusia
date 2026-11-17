@@ -1953,7 +1953,13 @@
  "voronoi": [
   "clip",
   "geometric",
-  "mesh"
+  "mesh",
+  "cells",
+  "holes",
+  "bounded",
+  "density",
+  "rounded",
+  "growth"
  ],
  "warp": [
   "3d",
@@ -2040,7 +2046,12 @@
   "animation",
   "branching"
  ],
- "line_shadows": ["hatch", "repeat", "transform", "optical"],
+ "line_shadows": [
+  "hatch",
+  "repeat",
+  "transform",
+  "optical"
+ ],
  "line_drape": [
   "deform",
   "text",
@@ -2220,5 +2231,13 @@
   "thermal",
   "escpos",
   "kuitti"
+ ],
+ "scanner": [
+  "scanner",
+  "glitch",
+  "distortion",
+  "motion",
+  "continuous",
+  "bands"
  ]
 }

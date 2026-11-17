@@ -1948,9 +1948,21 @@ segments and lines alternate direction (serpentine).
 
 **Hyperbolic Truchet Maze** — Truchet arcs on a polar grid whose rings crowd toward the center or the rim (Ring Crowding), so the maze reads as a hyperbolic disc. Arc strands connect seamlessly across cells; *Solve* traces the strand network and recolors one strand running from the center to the outer rim onto the Solve pen (arcs style only).
 
-**Voronoi** — seeded sites carved into cells by half-plane clipping, with optional
-Lloyd relaxation (0-3) for even cell sizes. Shared edges are emitted exactly once,
-so no line is drawn twice. Optional site crosses.
+**Voronoi** — Classic preserves the original half-plane diagram, Lloyd relaxation
+and optional site crosses. Bounded adds Canvas/Circle or wired closed Boundary
+paths with even-odd holes, up to 2,000 sites, Random/Even/Hex placement, up to
+eight density-weighted relaxation passes, and Linear/Radial density gradients.
+Holes outputs inset closed contours with Web width mm (half on each adjacent
+cell), fitted rounded corners and Min hole size. Edges emits each shared edge
+once; Include outline adds the region rings once. Cells and Seeds are separate
+outputs: separated cell regions and a small closed start loop in each piece.
+Wire them to Differential Growth Boundary and Start; use Bounded there and keep
+at most 64 pieces within its shared point budget. Multiple cells require lifts.
+Regions wrapping around a boundary hole receive material bridges, which may
+split a cell. Small or vanished holes stay solid. Style affects Drawing only.
+Wired boundaries retain their coordinates; Margin affects built-in boundaries.
+Invalid/excessive geometry returns empty. No kerf compensation. Based on the
+Voronoi Studio idea by Gilbert Chen, using d3-delaunay and Clipper2-TS.
 
 **Metaballs** — a blob field (sum of r²/d²) contoured with marching squares into
 1-5 nested iso-bands; segments are stitched into closed organic loops that merge
@@ -3757,3 +3769,19 @@ truncating later regions or pen layers. Input images are frozen in the patch;
 computation is browser-local. See `learn/regions/` for two English tutorials,
 three patches, an original source PNG and actual exports of both outputs and
 Merge. The source PNG can be replaced through Choose image.
+
+
+## Scanner modifier
+
+**Scanner** — moves vector artwork while a virtual scanner reads it. Smooth
+keeps each input stroke continuous; Bands cuts at physical scan-strip boundaries
+without drawing across displaced jumps. Scan direction, Motion X/Y mm, Speed,
+repeatable Shake, changing Zoom and animatable Phase control the shared spatial
+field. Optional Motion uses the first Draw Path as a recorded gesture, normalised
+to the chosen X/Y amplitudes and played forwards/backwards. All source paths use
+the same motion at the same scan coordinate, independent of input sampling.
+Pen, stroke-width and interpolated Z metadata survive. Output may leave the
+canvas: leave margins or add Fit/Crop. Photos first need Portrait/Image Contours;
+this first version distorts paths. Zero amplitudes preserve exact input geometry.
+Invalid or excessive input/detail returns empty as a whole (120,000 point cap).
+Three Help starters demonstrate continuous scans, broken bands and drawn motion.

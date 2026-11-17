@@ -7210,3 +7210,47 @@ Verified public version and all four new Help starters. No physical print.
 Refresh local snapshot /private/tmp/muusia-bounded-growth-snapshot-20261117 after
 this final documentation commit; no Claude web upload. Primary remains dirty
 and historical; continue from current origin/main or this release worktree.
+
+
+### 2.201 — 2026-11-17 · Scanner and bounded Voronoi
+
+Scanner is a new Deform modifier. Smooth applies one shared spatial scan field
+to all paths and preserves their stroke count, closure, pen, width and interpolated
+Z. Bands splits exactly at physical strips and never bridges displacement jumps.
+Direction, Motion X/Y mm, Speed, seeded Shake, Zoom and Phase control the effect.
+Optional Motion reads the first Draw Path as a normalised recorded gesture.
+Phase accepts Frame/LFO animation. Output may leave the page; leave margins or
+add Fit/Crop. Photos first need vector conversion. Excessive/invalid inputs return
+empty as a whole, with a 120,000-point cap. Prototype imported via Node ⇣ before
+bake; built-in validated and graduated lab file removed.
+
+Voronoi Classic is preserved exactly. Opt-in Bounded adds closed Boundary input
+with even-odd holes, Canvas/Circle defaults, 3–2,000 sites, Random/Even/Hex
+placement, 0–8 density-weighted relax passes and Linear/Radial density. Holes
+outputs inset, rounded cut-out contours with physical web clearance and minimum
+hole size. Edges emits shared edges once; Include outline adds region rings once.
+Regions wrapping a hole receive material bridges, including overlapping bridges.
+Cells outputs separated closed regions and Seeds a small closed loop per piece.
+Wire these to Differential Growth Boundary and Start, Mode Bounded, at most
+64 pieces within its shared point budget. Style only affects Drawing. Several
+cells require separate strokes. No kerf compensation or hardware run.
+
+New helpers use pinned d3-delaunay 6.0.6 and clipper2-ts 2.0.1-19. Studio by
+Gilbert Chen inspired the feature; implementation is an independent Muusia
+adapter. Complete dependency notices are in MUUSIA-VORONOI-NOTICE.md and retained
+as node metadata in the single-file build. Existing credited Boundary utilities
+are reused. No changes to shared engine/exporter or existing Growth behavior.
+
+Six new Help starters (200 total), real-output preview tool, catalog/tags, recency
+and source bundle included. Focused validator passes 302 checks, including
+18 exact Classic parity fixtures, independent inside/hole/web checks, drawn
+motion/Z/continuity/limits, 2,000 complete cells and actual SVG/servo/bed-Z exports.
+Native app verifies Scanner phase/modes (45 continuous strokes, 45 lowers and
+9,315 moves), custom-boundary O/Edges/density/count controls and 12-cell Growth
+(12 lowers, all 4,000 moves, no bounds warning), Growth scrubbing and no console
+errors. Both actual browser SVGs match final source byte-for-byte. Evidence:
+docs/scanner-voronoi-checks.json. Screenshots and native exports are local at
+/Users/daniel/plotter-patcher/output/scanner-voronoi. Ordered catalog/build/37,914
+Learn gate and focused lint passed. Exact-commit Pages/public verification pending.
+Primary checkout remains historical and dirty; continue from this release
+worktree or current origin/main. Refresh snapshot after final documentation commit.

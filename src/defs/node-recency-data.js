@@ -1325,6 +1325,11 @@ export const NODE_RECENCY = {
     "order": 132,
     "sha256": "5ae46845149101865a3456ef37762354230420475a65cf723ab539421786848b"
   },
+  "scanner": {
+    "date": "2026-11-17",
+    "order": 145,
+    "sha256": "b7de71a5d7f23eae1dd14ec6fdc803da7daf40190ca34b60061c9aa68057e471"
+  },
   "scatter": {
     "date": "2026-07-22",
     "order": 1,
@@ -1731,9 +1736,9 @@ export const NODE_RECENCY = {
     "sha256": "dd2a92223af27508dd24cd1f164f0e4ab6d3d6a58d31a281f5607cd56bed1735"
   },
   "voronoi": {
-    "date": "2026-07-22",
-    "order": 1,
-    "sha256": "cb4f1c8424c39d84935e3334c85bdf4b88bbad7e75335ef129d21526a4c01d01"
+    "date": "2026-11-17",
+    "order": 145,
+    "sha256": "1198de70edbf8e6d885ae0bfc24e11e9194dfa47f2cb1bbf486177c739f00801"
   },
   "warp": {
     "date": "2026-10-19",

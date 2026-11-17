@@ -910,6 +910,52 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   {
+    name: "Scanner · Continuous scan", desc: "Select Scanner. A sheet of vertical lines moves sideways during a top-to-bottom scan. Smooth keeps all 45 original strokes continuous, with no added pen lifts. Try Speed, Motion X/Y, Shake and Zoom change. Phase % can be driven by Frame or LFO. Keep a margin for the displaced drawing, or add Fit afterwards. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "grid", x: 25, y: 20, params: { ...defaults("grid"), vlines: 45, hlines: 0, margin: 36 } },
+      { id: 9002, type: "scanner", x: 345, y: 20, params: { ...defaults("scanner"), motionX: 24, motionY: 5, zoom: 8, shake: 1.5 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "Scanner · Broken bands", desc: "Lettering outlines become displaced scanner strips. Bands deliberately splits strokes at each strip, without drawing a connector across a glitch. Select Scanner and try Band width, Speed and Phase. Change to Smooth to restore continuous distorted strokes. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lettering", x: 25, y: 20, params: { ...defaults("lettering"), text: "ECHO", size: 85, weight: 10, depth: 0, fill: "Outline", margin: 40 } },
+      { id: 9002, type: "scanner", x: 345, y: 20, params: { ...defaults("scanner"), mode: "Bands", band: 5, motionX: 22, shake: 1, speed: 2 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 0 }] }),
+  },
+  {
+    name: "Scanner · Drawn motion", desc: "Draw Path is a movement recording, wired to Scanner Motion. Edit its points to change the gesture. Scanner normalises that first path and scales it with Motion X/Y; the open gesture plays forwards and backwards continuously. The grid is wired to Drawing. Change Phase to scrub the gesture. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "grid", x: 25, y: 20, params: { ...defaults("grid"), vlines: 30, hlines: 12, margin: 40 } },
+      { id: 9002, type: "drawn_path", x: 25, y: 310, params: { ...defaults("drawn_path"), points: [[.1,.5],[.35,.15],[.5,.85],[.65,.2],[.9,.5]], smoothness: 70 } },
+      { id: 9003, type: "scanner", x: 345, y: 20, params: { ...defaults("scanner"), motionX: 20, motionY: 14, speed: 1, shake: 0 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9003, toPort: 0 }, { id: "e9102", from: 9002, fromPort: 0, to: 9003, toPort: 1 }] }),
+  },
+  {
+    name: "Voronoi · Rounded holes", desc: "Select Voronoi, Mode Bounded. Rounded cut-out contours fill a circle, with smaller cells toward its centre. Web width is the minimum geometric gap between cells; Corner radius rounds the holes and Min hole size keeps tiny regions solid. Try Placement and Relax passes. Include outline adds the circle to the drawing. This is vector geometry without kerf compensation. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "voronoi", x: 25, y: 20, params: { ...defaults("voronoi"), mode: "Bounded", boundary: "Circle", count: 140, density: "Radial", densityStrength: 90, web: 1.6, radius: 3, outline: true } }], edges: [] }),
+  },
+  {
+    name: "Voronoi · Own boundary", desc: "Lettering O feeds Voronoi Boundary. The cells stay inside the letter and leave its middle empty. Mode Bounded uses the wired contours at their original position. Try Edges to draw the shared network once, or Holes for separated rounded contours. The dashed boundary is only a guide unless Include outline is enabled. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lettering", x: 25, y: 20, params: { ...defaults("lettering"), text: "O", size: 120, weight: 42, depth: 0, fill: "Outline" } },
+      { id: 9002, type: "voronoi", x: 345, y: 20, params: { ...defaults("voronoi"), mode: "Bounded", count: 100, web: 1.5, radius: 2, density: "Linear", densityStrength: 85, outline: true } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 1 }] }),
+  },
+  {
+    name: "Voronoi · Growing cells", desc: "Two wires: Voronoi Cells to Differential Growth Boundary, and Seeds to Start. Select Differential Growth, Mode Bounded. Each separated cell has its own small closed starting loop and grows one continuous line. Several cells require pen lifts between cells; there are no connectors through the gaps. Try Growth %, Spacing and the Voronoi seed. Keep at most 64 cell pieces for the growth node, sharing Max points. A4 wide.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "voronoi", x: 25, y: 20, params: { ...defaults("voronoi"), mode: "Bounded", count: 12, web: 3, radius: 4, margin: 22 } },
+      { id: 9002, type: "diffgrowth", x: 345, y: 20, params: { ...defaults("diffgrowth"), mode: "Bounded", steps: 1600, spacing: 2.5, maxPoints: 4000 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 1, to: 9002, toPort: 1 }, { id: "e9102", from: 9001, fromPort: 2, to: 9002, toPort: 2 }] }),
+  },
+  {
     name: "Differential Growth · Bounded disc", desc: "Select Differential Growth, Mode Bounded. One final closed line folds inside the circle. Raise Growth % to continue, lower Spacing mm for denser folds, and change Seed for another repeatable result. Max points caps detail. The dashed boundary is a guide and never plots; only the final line exports. Growth can take a few seconds and stops at point/work limits. A4 wide.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [{ id: 9001, type: "diffgrowth", x: 30, y: 20, params: { ...defaults("diffgrowth"), mode: "Bounded" } }], edges: [] }),

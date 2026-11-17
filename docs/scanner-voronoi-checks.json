@@ -1,0 +1,49 @@
+{
+  "checks": 302,
+  "legacy": 18,
+  "examples": [
+    {
+      "name": "Scanner · Continuous scan",
+      "paths": 45,
+      "points": 9360
+    },
+    {
+      "name": "Scanner · Broken bands",
+      "paths": 130,
+      "points": 3070
+    },
+    {
+      "name": "Scanner · Drawn motion",
+      "paths": 42,
+      "points": 71718
+    },
+    {
+      "name": "Voronoi · Rounded holes",
+      "paths": 141,
+      "points": 6755
+    },
+    {
+      "name": "Voronoi · Own boundary",
+      "paths": 102,
+      "points": 5862
+    },
+    {
+      "name": "Voronoi · Growing cells",
+      "paths": 12,
+      "points": 4000
+    }
+  ],
+  "densityMeanX": 132.53998068055566,
+  "physicalPrintSent": false,
+  "actualBrowser": {
+    "version": "2.201",
+    "prototype": "Scanner imported via Node ⇣ and inspected before bake; graduated lab copy removed",
+    "scanner": "Smooth 45 paths, 9360 points; Phase 0→35→0; Bands 1260 honest fragments; native SVG 45 paths; G-code 45 lowers, 9315 draw moves, no bounds warning",
+    "voronoi": "Own-boundary O, 102 paths, 5862 points; centre empty; Holes→Edges; count 100→120; density Linear→Radial; all three outputs present",
+    "growth": "Cells→Boundary, Seeds→Start; Growth 100→35→100; native SVG 12 paths; G-code 12 lowers, 4000 draw moves, no bounds warning",
+    "afterFinalFix": "Both actual native SVGs byte-identical to final source outputs",
+    "console": "no warnings/errors",
+    "screenshots": "/Users/daniel/plotter-patcher/output/scanner-voronoi",
+    "physicalPrintSent": false
+  }
+}

@@ -970,5 +970,28 @@
     "publicAppSha256": "5a7a6b0b97f94b03568d4d0a3303dfe5b8493dad255c576d789b96259e472415",
     "matchesTestedBuild": true,
     "url": "https://bambi8000.github.io/Muusia/"
+  },
+  "lastScannerVoronoi": {
+    "version": "2.201",
+    "date": "2026-11-17",
+    "baseCommit": "c7f35a38e38c1d4ded242c4e56eb89e414e75f5e",
+    "branch": "codex/scanner-voronoi-bounded",
+    "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
+    "status": "validated; exact public deployment pending",
+    "published": false,
+    "behavior": "Scanner Smooth/Bands with shared spatial motion and optional drawn gesture; opt-in Bounded Voronoi with clipped holes, density, rounding, web clearance, Cells/Seeds outputs. Classic unchanged.",
+    "validation": {
+      "focused": 302,
+      "classicParity": 18,
+      "helpExamples": 200,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "actualBrowser": "Scanner controls/45-stroke SVG/G-code; own-boundary Voronoi controls; 12-cell Growth SVG/G-code and scrubbing; final native/source SVG byte parity; no console warnings/errors"
+    },
+    "evidence": "docs/scanner-voronoi-checks.json",
+    "physicalPrintSent": false,
+    "snapshot": "/private/tmp/muusia-scanner-voronoi-snapshot-20261117 (local only; refresh after final documentation commit)"
   }
 }
