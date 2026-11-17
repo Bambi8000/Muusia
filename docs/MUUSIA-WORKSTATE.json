@@ -1048,5 +1048,37 @@
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/slice-raster",
     "nativeEvidence": "browser-checks.json and photo-collage.muusia.json in artifact directory; photo project is local only, not committed",
     "physicalPrintSent": false
+  },
+  "lastFlyingCloth": {
+    "date": "2026-11-18",
+    "branch": "codex/flying-cloth",
+    "worktree": "/private/tmp/muusia-flying-cloth-20261118",
+    "baseCommit": "02288e3cfde73c80aecbcc69b52358be1a1c097e",
+    "status": "Complete local Drape Flying mode; not published; Word Shape and Slice Raster retained; Robot Cave Art absent; APP_VERSION stays 2.201",
+    "behavior": [
+      "Drape Surface Flying; whole-canvas fourth-input UV artwork with clipping and source pens",
+      "Artwork default without grid; optional Artwork + grid, Grid, Threads",
+      "Wave height, wavelength, direction, twist, signed edge curl",
+      "Free, Corners, Top edge, Left edge, Centre attachments",
+      "Manual phase, Timeline 0–8 whole cycles; exact endpoints and fixed framing",
+      "Perspective camera and two-sided perspective-correct hidden-surface removal",
+      "Three Help starters and self-contained portable projects",
+      "Complete bounded XY geometry; uniform dense resampling or whole refusal; no machine Z from cloth depth"
+    ],
+    "validation": {
+      "focused": 378,
+      "wordShape": 436,
+      "sliceRaster": 544,
+      "helpExamples": 213,
+      "legacy": "Nine parent byte-parity cases plus original Drape validator pass",
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "nativeBrowser": "676-stroke SVG matches source bytes; 676 G-code lowers / 16299 moves, no bounds warning; all 48 actual SVG batch frames match source bytes. Own artwork and controls checked. Old Craft static SVG and twelve animation frames recaptured byte-identically."
+    },
+    "evidence": "docs/flying-cloth-checks.json",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/flying-cloth",
+    "physicalPrintSent": false,
+    "snapshot": "/private/tmp/muusia-flying-cloth-snapshot-20261118 (local only; refreshed after commit)"
   }
 }

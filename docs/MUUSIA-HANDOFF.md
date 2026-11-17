@@ -7371,3 +7371,57 @@ with the node source embedded. Its loaded photograph is not in the commit.
 Comparison PNGs render actual exported pen paths, not screenshots. Browser proof
 is in local browser-checks.json. Local app http://127.0.0.1:5196/ → Help →
 Slice Raster. Completed bed-origin/clock/KlipperScreen decisions remain intact.
+
+
+### W — 2026-11-18 · Drape Flying cloth, local implementation
+
+Branch `codex/flying-cloth`, worktree `/private/tmp/muusia-flying-cloth-20261118`,
+base `02288e3cfde73c80aecbcc69b52358be1a1c097e`. All preceding local Word Shape
+and Slice Raster work is retained. Robot Cave Art remains absent. No version
+bump, publication or hardware action; APP_VERSION stays 2.201.
+
+Daniel requested all proposed features from the open Magic Carpet reference
+(robfarmerxyz, Instagram Dfj7ZbMEw3w). New Surface Flying in existing Drape:
+whole-canvas UV text/artwork on fourth input, default Artwork without a grid,
+optional grid/threads, wave height/wavelength/direction, twist, signed edge curl,
+and Free/Corners/Top edge/Left edge/Centre attachments. Source pens retained;
+Pen selects the optional grid. Camera, perspective and two-sided hidden-surface
+removal use the same triangulated surface, with exact perspective-correct depth.
+Manual Phase or Timeline with 0–8 whole cycles; exact loop endpoints, fixed
+conservative framing and deterministic random-access poses. All outputs are
+ordinary XY strokes; pressure/depth nodes belong last. This is an analytic
+periodic deformation, without cloth/object collision physics. Outside art is
+clipped rather than collapsed onto the rim. Dense artwork resamples uniformly
+or is refused whole, never silently truncated. Three Help starters added.
+
+Implementation is isolated in `src/defs/flying-cloth.js`; old Drape solvers are
+unchanged. 378 focused checks include independent world-space occlusion rays,
+attachment anchors, exact loops, fixed bounds, dense complete outputs, import
+parity and actual servo/bed-Z exporters. Nine old solver outputs match parent
+bytes exactly; original Drape validator passes after correcting its stale pin
+count (the fourth input already existed). Word Shape 436 and Slice Raster 544
+regression checks, 213 Help graphs, catalog/build/37,914 Learn and diff checks
+pass. Focused lint has no errors and four pre-existing unused-variable warnings.
+
+Native UI: 676 paths / 16,881 points; SVG is byte-identical to source. G-code:
+676 lowers, 16,299 drawing moves, no bounds warning. Hidden off shows 739 paths;
+next Timeline frame shows 690 paths / 17,199 points. Own Spiro drawing with
+Corners and separate grid/art pens shows 51 paths / 71,940 points. Actual 48-frame
+SVG batch matches source frame-by-frame. Play/Pause, settings and fresh reload
+checked; no browser warnings/errors after final reload. Local app on port 5197,
+Help → Drape · Flying typography. A selected enlarged preview is left open.
+
+Learn initially flagged the modified Drape dependency. The exact Craft Flag
+graph equals its Help starter after normal default filling. Recaptured its
+static SVG and twelve-frame Timeline batch through the actual UI: all historical
+SVG bytes preserved. Refreshed only source provenance, recorded the new helper
+dependency, and retained original PNG capture dates. Full shared gate then green.
+Do not rerun the old bulk record-captures script to erase this maintenance record.
+
+`tools/preview-flying-cloth.mjs <directory>` reproduces three projects with
+self-contained Drape/Word Shape definitions, real SVGs, and a 48-frame GIF render
+of actual pen paths (not a screenshot). Artifact path and full evidence are in
+`docs/flying-cloth-checks.json` and WORKSTATE. Native SVG/48-frame ZIP are also
+there. No reference media/code copied, no printer used. Conservative framing
+leaves turning room; surface collisions are not simulated. Previous user
+confirmations about bed origin, clock source and KlipperScreen remain complete.

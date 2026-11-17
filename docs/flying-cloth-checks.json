@@ -1,0 +1,83 @@
+{
+  "date": "2026-11-18",
+  "appVersion": "2.201",
+  "baseCommit": "02288e3cfde73c80aecbcc69b52358be1a1c097e",
+  "branch": "codex/flying-cloth",
+  "status": "complete local implementation; not published",
+  "reference": {
+    "url": "https://www.instagram.com/p/Dfj7ZbMEw3w/?img_index=1",
+    "author": "robfarmerxyz",
+    "caption": "Magic Carpet",
+    "inspection": "User-opened Chrome video inspected read-only; independent implementation, no reference text, code or media copied."
+  },
+  "behavior": [
+    "Drape Surface Flying; whole-canvas fourth-input UV artwork with clipping and source pens",
+    "Artwork default without grid; optional Artwork + grid, Grid, Threads",
+    "Wave height, wavelength, direction, twist, signed edge curl",
+    "Free, Corners, Top edge, Left edge, Centre attachments",
+    "Manual phase, Timeline 0–8 whole cycles; exact endpoints and fixed framing",
+    "Perspective camera and two-sided perspective-correct hidden-surface removal",
+    "Three Help starters and self-contained portable projects",
+    "Complete bounded XY geometry; uniform dense resampling or whole refusal; no machine Z from cloth depth"
+  ],
+  "validation": {
+    "flyingClothChecks": 378,
+    "legacyDrape": "Existing validator passes; corrected its stale three-pin assertion to four existing inputs. Nine actual-parent comparisons of Draped/Hanging/Flag are byte-identical.",
+    "wordShapeChecks": 436,
+    "sliceRasterChecks": 544,
+    "helpGraphs": 213,
+    "catalog": "passed",
+    "productionBuild": "passed",
+    "learnChecks": 37914,
+    "lint": "no errors; four pre-existing unused-variable warnings in Drape and its original validator",
+    "nativeBrowser": {
+      "url": "http://127.0.0.1:5197/",
+      "typography": {
+        "paths": 676,
+        "points": 16881,
+        "svgPaths": 676,
+        "servoLowers": 676,
+        "drawMoves": 16299,
+        "boundsWarning": false,
+        "svgSha256": "af53c14192386466312e1de045f0a6e0b5c99ca5f7d4a5748f434c52dc426eaf",
+        "nativeSvgMatchesSourceBytes": true
+      },
+      "hiddenOff": {
+        "paths": 739,
+        "points": 19268
+      },
+      "nextFrame": {
+        "frameIndex": 1,
+        "frameCount": 48,
+        "paths": 690,
+        "points": 17199
+      },
+      "ownDrawing": {
+        "paths": 51,
+        "points": 71940,
+        "attachment": "Corners",
+        "sourcePen": 2,
+        "gridPen": 0
+      },
+      "controls": "Wave height, Twist, Centre attachment, Hidden lines, Play/Pause and frame stepping exercised; values restored.",
+      "animation": {
+        "frames": 48,
+        "nativeZipSha256": "318cdf2ef30af144411134e3fb320f929c3dadb125300cf9469e41a7cb68ca4f",
+        "allFramesMatchSourceBytes": true
+      },
+      "freshLoad": "Reloaded final code, loaded Flying typography again; zero warnings/errors since reload. Deliverable tab kept open."
+    },
+    "learnRecapture": {
+      "dependency": "src/defs/nodes/drape.js",
+      "initialFailure": "Craft source provenance changed (1 of 37914 checks).",
+      "resolution": "Actual local UI export of the exact documented Flag typography graph via equivalent Help starter; static SVG and all twelve Timeline frames match stored historical bytes. Source provenance refreshed, helper dependency recorded. Historical PNG dates unchanged. Full shared gate then passed."
+    }
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/flying-cloth",
+  "media": "flying-typography.gif renders actual node output; not a browser screenshot",
+  "limitations": [
+    "Flying is a periodic deformation; cloth and object collisions are not simulated.",
+    "Conservative fixed framing leaves turning room on the sheet."
+  ],
+  "physicalPrintSent": false
+}

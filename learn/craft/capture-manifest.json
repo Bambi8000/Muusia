@@ -20,11 +20,12 @@
     "src/defs/nodes/array.js": "e409c2c2c56f191e1c953e0d32eba851df4be985a89dafa9e6cbc3e167bcada4",
     "src/defs/nodes/lens.js": "f417c90ff9822eb90128298431544d003cce098bf99477e05a211d8dedeee30a",
     "src/defs/nodes/view3d.js": "756c385135ded1359a15b4ec4fb1a0c68d236a97d4afc852dc06cd315d04ef5b",
-    "src/defs/nodes/drape.js": "dae5798f70ee5021037455e901244a8d9f0281a08b58aaea3ad2579cf763db98",
+    "src/defs/nodes/drape.js": "cdef176ebf8deab46ae85ff4f13a9b50b8affe06973c320df84169a2b793d640",
     "src/defs/nodes/gravity.js": "d2e9d881f3873bd7b6c3aed1303383ffeca961731f193a21e3a62f9cb6c546ff",
     "src/defs/nodes/frame.js": "a54eda291087ba7e5c3b532ffca182412d6925e2cabf7b6e579d16e8c01ba204",
     "src/defs/nodes/matem.js": "ab965c8f945f17f096ce91e52526942448c6591b94b28e53c389be5cecedf5a5",
-    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0"
+    "src/defs/helpers.js": "145a35cb3c7e6af3ed72a99785231d29c2a99ee79dbbaefba9d2af33429b07c0",
+    "src/defs/flying-cloth.js": "74fd8c251b60c9336b1e69d38274bd032c3ca11621411ba5b1c17d0e7e31a3f9"
   },
   "lessons": [
     {
@@ -429,6 +430,15 @@
           "file": "patches/drape-animation.muusia.json",
           "sha256": "492e0824ee89d4bea508a798544ea147921773bdd531da4800ee168da1120292"
         }
+      },
+      "flyingMaintenance": {
+        "date": "2026-11-18",
+        "appVersion": "2.201",
+        "baseCommit": "02288e3cfde73c80aecbcc69b52358be1a1c097e",
+        "scope": "Actual local UI recapture of the exact documented Flag typography graph via its byte-equivalent Help starter. Static SVG and all twelve Timeline SVG frames are byte-identical to the stored reference exports. Only source provenance refreshed; historical PNG captures retain their original dates. No hardware execution or publication.",
+        "staticDownloadSha256": "c6c2a28161174ff3d27ccf0cc0d5a2d2a93f3bc8e3b1e655ed6971d00d6f41ea",
+        "animationDownloadSha256": "c4423fa8800d46d7d88ee1e87f6ffdbda9b508be8eaa2841c7ea74755a2de987",
+        "checks": "tools/validate-flying-cloth.mjs: nine additional legacy modes/camera/artwork cases preserve parent output exactly."
       }
     },
     {

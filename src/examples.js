@@ -1496,6 +1496,33 @@ export const EXAMPLES = [
     ], edges: [{"id": "e9101", "from": 9001, "fromPort": 0, "to": 9002, "toPort": 0}] }),
   },
   {
+    name: "Drape · Flying typography",
+    desc: "Select Drape: Flying maps a full panel of serif words onto a floating sheet, with no grid. Edit the text in Word Shape. Wave height, Wavelength, Wave direction, Twist and Edge curl shape the surface; Yaw, Elevation and Perspective set the camera. Hidden lines removes text behind foreground folds. Open ANIMATE, choose 48 frames and Play: Time source Timeline makes one seamless loop. Loops per timeline sets speed in whole cycles, including zero to freeze. Phase offsets the pose; Pause to export the current frame as SVG or G-code; Manual and Phase choose a still pose. Framing stays fixed. Cloth artwork accepts any drawing, including imported vector art. This is a periodic deformation without cloth collisions.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "word_shape", x: 20, y: 20, params: { ...defaults("word_shape"), text: "WORDS BECOME WAVES", shape: "Square", mode: "Repeat text", autoRows: false, rows: 14, width: 265, height: 175, size: 8, tracking: 1.15, lineSpacing: 1.4, clearance: 0.25 } },
+      { id: 9002, type: "drape", x: 370, y: 20, params: { ...defaults("drape"), physicsMode: "Flying", flightContent: "Artwork", waveHeight: 14, wavelength: 155, waveDirection: 25, twist: 45, edgeCurl: 160, yaw: -12, pitch: 60, persp: .3, motion: "Timeline", phase: 45 } }
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 3 }] }),
+  },
+  {
+    name: "Drape · Flying drawing",
+    desc: "A Spiro drawing with a second pen for the grid rides the same Flying surface as text. Cloth artwork maps the whole source canvas to the sheet and preserves source pens. No grid is needed; choose Artwork + grid to reveal the surface. Corners holds all four corners in place. Try Free, Top edge, Left edge or Centre; attached points remain fixed throughout the loop. Manual Phase gives a still frame. Put Brush Z or Needle Punch after Drape if needed: the 3D cloth depth is projected into XY, not machine Z.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "spiro", x: 20, y: 20, params: { ...defaults("spiro"), layer: 2 } },
+      { id: 9002, type: "drape", x: 370, y: 20, params: { ...defaults("drape"), physicsMode: "Flying", flightPin: "Corners", flightContent: "Artwork + grid", waveHeight: 18, wavelength: 100, twist: 70, edgeCurl: 120, phase: 100, yaw: 20, pitch: 45, layer: 0 } }
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 3 }] }),
+  },
+  {
+    name: "Drape · Flying curled edges",
+    desc: "A sheet of words with tightly curled edges. Compare Hidden lines on/off: folds can hide the ink behind them even though the fabric itself is not drawn. The back is also opaque. Edge curl accepts negative values to turn the other way. Adjust Elevation to inspect folds, and choose Manual Phase for a fixed export. Flying does not prevent surface intersections; occlusion displays the nearest surface at each point.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "word_shape", x: 20, y: 20, params: { ...defaults("word_shape"), text: "FLOAT FOLD FLOW", shape: "Square", mode: "Repeat text", autoRows: false, rows: 14, width: 270, height: 175, size: 8, tracking: 1.15, lineSpacing: 1.4, clearance: 0.25 } },
+      { id: 9002, type: "drape", x: 370, y: 20, params: { ...defaults("drape"), physicsMode: "Flying", waveHeight: 10, wavelength: 100, twist: -45, edgeCurl: 265, phase: 130, yaw: 12, pitch: 35, persp: .25 } }
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 3 }] }),
+  },
+  {
     name: "Drape · Flag typography",
     desc: "Select Drape. Flag pins a cloth sheet along its left edge; the new Cloth artwork input maps this text onto the moving mesh. Grid can be drawn too. Choose Hanging for a top attachment, or change Attachment directly. Wind, Gravity, Damping and Elasticity drive a bounded pinned mass-spring solve. Pull point fixes one movable point. Set Time source Timeline, 32 frames and Play for periodic wind. Each pose reconstructs the solver, with fixed framing and margin clipping. Objects/Mesh are used only in Draped mode; cloth self-collision is not solved.",
     canvas: {"W": 297, "H": 210},

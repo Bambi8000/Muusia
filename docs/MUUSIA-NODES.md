@@ -923,7 +923,31 @@ drift, ragged over/undershooting ends, broken strokes and the occasional missed
 line. *Edges* draws the construction lines (corner lines, block edges, door
 frames, far wall) with *Edge pen*. Point budget 112k with early stop.
 
-**Drape** — Surface Draped preserves the original solver described below.
+**Drape** — Surface Flying maps text or any vector drawing on the fourth input,
+Cloth artwork, onto a freely floating sheet. Artwork is the default (no grid);
+Artwork + grid, Grid and Threads reveal the sheet. Whole source canvas coordinates
+map to UV; outside art is clipped, never clamped onto the rim. Source pens stay
+with the artwork; Pen controls the optional grid. Word Shape can supply a panel
+of repeated words, a calligram, or text inside/outside a wired shape.
+Wave height % is relative to sheet width; Wavelength % is a sheet-width distance,
+Wave direction turns the wave, Twist rotates across the length, and signed Edge
+curl rolls both side edges. Attachment: Free, four Corners, Top edge, Left edge,
+or Centre. Attached points remain at rest in every pose. Cloth detail sets the
+grid and rendering detail. Yaw, Elevation and Perspective set the camera; Hidden
+lines uses both sides of the opaque sheet so foreground folds conceal artwork
+behind them. The sheet itself need not be drawn. Occlusion compares exact
+perspective-correct triangle depth rather than approximate pixel-centre depth.
+Manual Phase chooses a still; Timeline adds frame position with integer Loops
+per timeline (0 freezes, 1–8 complete cycles). Endpoints are identical, scrubbing
+is independent of playback order, and a conservative envelope fixes framing for
+the whole loop. Pause and export the current frame, or use the existing animation
+ZIP exports. Flying is an analytic periodic deformation, not cloth collision
+physics; surfaces can intersect. The result is ordinary XY pen strokes, not
+machine Z. Put pressure/depth modifiers last. Dense requests coarsen sampling
+uniformly and are refused whole if the complete result cannot fit 118k points.
+Help: Flying typography, Flying drawing, Flying curled edges.
+
+Surface Draped preserves the original solver described below.
 Hanging / Flag use a deterministic pinned mass-spring sheet, with Attachment,
 Cloth detail, Gravity, Elasticity, Damping, Wind, Phase and an optional Pull point.
 Cloth drawing selects Grid, Threads, Artwork or Artwork + grid; Weave crossings

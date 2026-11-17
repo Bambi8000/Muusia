@@ -41,7 +41,7 @@ const STYLES = def.params.find((q) => q.key === "style").options;
 /* --- definition shape --- */
 ok(def.cat === "gen" && def.group === "structural", "definition: gen/structural");
 ok(typeof def.desc === "string" && def.desc.length > 200, "definition: desc present");
-ok(def.ins.length === 3 && def.ins[0].type === "style" && def.ins[1].type === "paths" && def.ins[2].type === "mesh" && def.outs.length === 1, "pins: Style, Objects (paths), Mesh in; one paths out");
+ok(def.ins.length === 4 && def.ins[0].type === "style" && def.ins[1].type === "paths" && def.ins[2].type === "mesh" && def.ins[3].type === "paths" && def.outs.length === 1, "pins: Style, Objects (paths), Mesh, Cloth artwork in; one paths out");
 ok(def.params.every((q) => /^[a-z][a-z0-9]*$/i.test(q.key)) && new Set(def.params.map((q) => q.key)).size === def.params.length, "params: unique keys");
 ok(def.params.some((q) => q.type === "seed") && def.params.some((q) => q.type === "pen"), "params: seed and pen present");
 

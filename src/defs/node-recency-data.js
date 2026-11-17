@@ -381,9 +381,9 @@ export const NODE_RECENCY = {
     "sha256": "65fc089a4f097037d11bbf5bd75c9654c0e7e18990aa5b99c14f32135043b565"
   },
   "drape": {
-    "date": "2026-10-19",
-    "order": 89,
-    "sha256": "dae5798f70ee5021037455e901244a8d9f0281a08b58aaea3ad2579cf763db98"
+    "date": "2026-11-17",
+    "order": 148,
+    "sha256": "cdef176ebf8deab46ae85ff4f13a9b50b8affe06973c320df84169a2b793d640"
   },
   "drawn_path": {
     "date": "2026-11-05",

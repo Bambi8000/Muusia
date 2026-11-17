@@ -13421,27 +13421,36 @@ export default {
 
 ```js
 import { Pin, EMPTY, mulberry32, noise2, applyStyle, resample, pathLength } from "../helpers.js";
+import { renderFlyingCloth } from "../flying-cloth.js";
 
 export default {
   key: "drape",
   name: "Drape",
   cat: "gen",
   group: "structural",
-  desc: "Draped preserves the original mesh cloth laid over hidden objects. Hanging and Flag use a separate deterministic pinned mass-spring sheet: choose attachment, gravity, elasticity, damping, wind and a pull point. Cloth artwork maps the new fourth input onto the sheet; source coordinates use the whole canvas as UV. Grid, Threads and Weave are optional. Timeline reconstructs a periodic wind pose on every frame; manual Phase can be wired. This solver does not collide with the Objects/Mesh inputs or solve cloth self-collision. Hidden lines uses a two-sided depth buffer. Framing is fixed over wind phase; output clips to Margin. In Draped mode: Seeded spheres, boxes, cones or a mix sit on a table; a grid sheet is dropped over them and relaxed with Tension until it rests on the tops and sags smoothly in between, with optional Wrinkles in the folds. Wire your own objects instead: closed paths on the Objects input become flat-topped blocks with a soft edge, open paths become round ridges, and a triangle mesh on the Mesh input (Blob Mesh, or anything Mesh Slice would take) is rasterised from above into the height field — a wired input replaces the seeded objects. The result is turned in 3D with Yaw, Elevation and Perspective and drawn with true hidden-line removal, so the far side of every bump disappears behind it; Lock size scales by the sheet's rotation-invariant bounding circle so Yaw turns the drape without changing its size, and Sheet Round makes the cloth a disc whose outline does not change with Yaw at all (Square and Fit are rectangles). Styles: Wire (the grid), Weave (warp and weft break alternately at every crossing, like a woven net), Contour (height contours of the draped surface projected in 3D) and Hatch (grid lines that thicken away from Light angle, plus the silhouette). Density sets the mesh count in both directions; Size and Height scale the objects, Count how many. Shrink-only fit keeps the drawing inside the margins.",
+  desc: "Flying turns text or any drawing on Cloth artwork into a floating, waving sheet. Wave height, Wavelength, Direction, Twist and Edge curl shape it. Attachment chooses Free, Corners, Top edge, Left edge or Centre. Artwork is the default: no cloth grid is drawn. Time source Timeline loops exactly with integer Loops per timeline; Manual Phase freezes a plottable pose. Camera and Hidden lines project the folded surface; fixed framing prevents animation breathing. Flying is a periodic deformation, without collision simulation. Draped preserves the original mesh cloth laid over hidden objects. Hanging and Flag use a separate deterministic pinned mass-spring sheet: choose attachment, gravity, elasticity, damping, wind and a pull point. Cloth artwork maps the new fourth input onto the sheet; source coordinates use the whole canvas as UV. Grid, Threads and Weave are optional. Timeline reconstructs a periodic wind pose on every frame; manual Phase can be wired. This solver does not collide with the Objects/Mesh inputs or solve cloth self-collision. Hidden lines uses a two-sided depth buffer. Framing is fixed over wind phase; output clips to Margin. In Draped mode: Seeded spheres, boxes, cones or a mix sit on a table; a grid sheet is dropped over them and relaxed with Tension until it rests on the tops and sags smoothly in between, with optional Wrinkles in the folds. Wire your own objects instead: closed paths on the Objects input become flat-topped blocks with a soft edge, open paths become round ridges, and a triangle mesh on the Mesh input (Blob Mesh, or anything Mesh Slice would take) is rasterised from above into the height field — a wired input replaces the seeded objects. The result is turned in 3D with Yaw, Elevation and Perspective and drawn with true hidden-line removal, so the far side of every bump disappears behind it; Lock size scales by the sheet's rotation-invariant bounding circle so Yaw turns the drape without changing its size, and Sheet Round makes the cloth a disc whose outline does not change with Yaw at all (Square and Fit are rectangles). Styles: Wire (the grid), Weave (warp and weft break alternately at every crossing, like a woven net), Contour (height contours of the draped surface projected in 3D) and Hatch (grid lines that thicken away from Light angle, plus the silhouette). Density sets the mesh count in both directions; Size and Height scale the objects, Count how many. Shrink-only fit keeps the drawing inside the margins.",
   ins: [Pin("style", "Style"), Pin("paths", "Objects"), Pin("mesh", "Mesh"), Pin("paths", "Cloth artwork")],
   outs: [Pin("paths", "Lines")],
   params: [
-    {key:'physicsMode',label:'Surface',type:'select',options:['Draped','Hanging','Flag'],def:'Draped'},
-    {key:'clothDensity',label:'Cloth detail',type:'slider',min:8,max:45,step:1,def:28,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'physicsMode',label:'Surface',type:'select',options:['Draped','Hanging','Flag','Flying'],def:'Draped'},
+    {key:'clothDensity',label:'Cloth detail',type:'slider',min:8,max:45,step:1,def:28,showIf:p=>['Hanging','Flag','Flying'].includes(p.physicsMode)},
     {key:'clothContent',label:'Cloth drawing',type:'select',options:['Grid','Threads','Artwork','Artwork + grid'],def:'Grid',showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'flightContent',label:'Cloth drawing',type:'select',options:['Artwork','Artwork + grid','Grid','Threads'],def:'Artwork',showIf:p=>p.physicsMode==='Flying'},
+    {key:'flightPin',label:'Attachment',type:'select',options:['Free','Corners','Top edge','Left edge','Centre'],def:'Free',showIf:p=>p.physicsMode==='Flying'},
+    {key:'waveHeight',label:'Wave height %',type:'slider',min:0,max:40,step:1,def:12,showIf:p=>p.physicsMode==='Flying'},
+    {key:'wavelength',label:'Wavelength %',type:'slider',min:30,max:250,step:1,def:140,showIf:p=>p.physicsMode==='Flying'},
+    {key:'waveDirection',label:'Wave direction °',type:'slider',min:0,max:360,step:1,def:20,showIf:p=>p.physicsMode==='Flying'},
+    {key:'twist',label:'Twist °',type:'slider',min:-180,max:180,step:1,def:30,showIf:p=>p.physicsMode==='Flying'},
+    {key:'edgeCurl',label:'Edge curl °',type:'slider',min:-270,max:270,step:1,def:100,showIf:p=>p.physicsMode==='Flying'},
+    {key:'flightSpeed',label:'Loops per timeline',type:'slider',min:0,max:8,step:1,def:1,showIf:p=>p.physicsMode==='Flying'&&p.motion==='Timeline'},
     {key:'pin',label:'Attachment',type:'select',options:['Auto','Top edge','Top corners','Left edge'],def:'Auto',showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
     {key:'weave',label:'Weave crossings',type:'check',def:false,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.clothContent!=='Artwork'&&p.clothContent!=='Threads'},
     {key:'clothGravity',label:'Gravity %',type:'slider',min:0,max:100,step:1,def:70,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
     {key:'elasticity',label:'Elasticity %',type:'slider',min:0,max:80,step:1,def:20,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
     {key:'damping',label:'Damping %',type:'slider',min:0,max:80,step:1,def:12,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
     {key:'wind',label:'Wind %',type:'slider',min:0,max:100,step:1,def:35,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
-    {key:'motion',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual',showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
-    {key:'phase',label:'Wind phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
+    {key:'motion',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual',showIf:p=>['Hanging','Flag','Flying'].includes(p.physicsMode)},
+    {key:'phase',label:'Phase °',type:'slider',min:0,max:360,step:1,def:0,showIf:p=>['Hanging','Flag','Flying'].includes(p.physicsMode)},
     {key:'pull',label:'Pull point',type:'check',def:false,showIf:p=>p.physicsMode==='Hanging'||p.physicsMode==='Flag'},
     {key:'pullX',label:'Pull X %',type:'slider',min:0,max:100,step:1,def:65,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
     {key:'pullY',label:'Pull Y %',type:'slider',min:0,max:100,step:1,def:65,showIf:p=>(p.physicsMode==='Hanging'||p.physicsMode==='Flag')&&p.pull},
@@ -13493,6 +13502,7 @@ export default {
   },
 
   compute(ins, p, ctx, node) {
+    if(p.physicsMode==='Flying')return renderFlyingCloth(ins,p,ctx);
     if(p.physicsMode==='Hanging'||p.physicsMode==='Flag')return this._cloth(ins,p,ctx);
     const W = ctx.W, H = ctx.H;
     const seed = Math.round(Number(p.seed) || 0);
