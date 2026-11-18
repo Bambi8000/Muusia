@@ -1,0 +1,33 @@
+{
+  "version": "2.206",
+  "date": "2026-11-18",
+  "baseCommit": "fafaf7c4747a00cd4357313e5c7a149490e43208",
+  "branch": "codex/eyelashes",
+  "worktree": "/private/tmp/muusia-eyelashes-20261118",
+  "status": "Tested Eyelashes 2.206 release; awaiting exact-commit deployment and public verification",
+  "published": false,
+  "features": [
+    "Eyelashes Hairs and Tapered spikes, broad real-fill bases converging to sharp tips",
+    "Optional lower lid, manual/Timeline blinking, stable seeded roots and four iris choices",
+    "Blue stationary Eye artwork masked by closing eyelids; source pens retained",
+    "Six live Help starters and portable projects, native SVG/G-code and receipt animation"
+  ],
+  "moduleCount": 367,
+  "registryCount": 369,
+  "checks": {
+    "eyelashes": 2196,
+    "actualAnimationFrames": 144,
+    "helpGraphs": 239,
+    "lint": "passed",
+    "catalog": "passed",
+    "build": "passed",
+    "implementationNativeBrowser": "See docs/eyelashes-checks.json for actual import/baked UI, masked closure, complete spike G-code, 24 source-identical SVG frames and 24 offline-validated native receipts.",
+    "learn": 37914
+  },
+  "testedAppSha256": "8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7",
+  "url": "https://bambi8000.github.io/Muusia/",
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/eyelashes",
+  "snapshot": "/private/tmp/muusia-eyelashes-release-snapshot-20261118 (refresh after final metadata commit; local only)",
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false
+}

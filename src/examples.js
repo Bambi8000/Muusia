@@ -910,6 +910,109 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   ...[
+  {
+    "name": "Beautiful accident",
+    "params": {
+      "shape": "Oval",
+      "angle": 168,
+      "lower": false,
+      "content": "None",
+      "count": 510,
+      "length": 32,
+      "clumping": 96,
+      "clumps": 48,
+      "curl": 7,
+      "lean": -18,
+      "disorder": 78,
+      "ink": 90,
+      "rootWidth": 1.1,
+      "width": 210,
+      "height": 92,
+      "seed": 72
+    }
+  },
+  {
+    "name": "Blinking eye",
+    "params": {}
+  },
+  {
+    "name": "Slit eye",
+    "params": {
+      "shape": "Swept",
+      "iris": "Slit",
+      "count": 220,
+      "clumping": 75,
+      "clumps": 34,
+      "ink": 50,
+      "curl": 48,
+      "lean": 25,
+      "angle": -8,
+      "seed": 89
+    }
+  },
+  {
+    "name": "Wired dream",
+    "params": {
+      "count": 260,
+      "content": "Auto",
+      "artFit": "Cover",
+      "ink": 75,
+      "clumping": 92,
+      "lowerCount": 37,
+      "seed": 131
+    },
+    "wired": true
+  },
+  {
+    "name": "Receipt blink",
+    "canvas": {
+      "W": 72,
+      "H": 100
+    },
+    "params": {
+      "width": 61,
+      "height": 25,
+      "length": 11,
+      "count": 150,
+      "rootWidth": 0.4,
+      "pitch": 0.25,
+      "clumps": 24,
+      "ink": 40,
+      "lowerCount": 40,
+      "margin": 4,
+      "seed": 51
+    }
+  },
+  {
+    "name": "Tapered spikes",
+    "params": {
+      "form": "Tapered spikes",
+      "spikeWidth": 2.8,
+      "count": 220,
+      "clumping": 72,
+      "clumps": 35,
+      "ink": 55,
+      "length": 30,
+      "lower": false,
+      "angle": 168,
+      "shape": "Oval",
+      "content": "None",
+      "seed": 101
+    }
+  }
+].map(p => ({
+    name: "Eyelashes · " + p.name,
+    desc: "Select Eyelashes. Irregular tapered hairs gather into dark roots, inspired by an accidental wet-ink plot. Lower lid adds the second lash row. Choose Manual and Openness for a still or Timeline with 24 ANIMATE frames and Play for a blink; the eye fully closes at frame 19/24 with the default hold. Phase, Blinks per timeline and Open hold set timing. Four iris styles are available. A blue Eye artwork wire puts another node drawing inside the eye; Auto follows the wire, including an empty drawing. Artwork stays stationary while the eyelids mask it. Cover fills the open-eye frame; Contain keeps the complete canvas; Canvas keeps its original coordinates. Source pens survive. Lash form Tapered spikes gives wide bases and sharp tips; Spike base width changes thickness. Hairs keeps the fine strands. Root ink, Clumping, Curl and Seed change the accident. All output is actual XY linework.",
+    canvas: p.canvas || {W:297,H:210},
+    make: defaults => ({
+      nodes: p.wired ? [
+        {id:9001,type:"lissajous",x:20,y:30,params:{...defaults("lissajous"),fx:5,fy:7,phase:1.1,turns:1,margin:12,layer:4}},
+        {id:9002,type:"eyelashes",x:350,y:30,params:{...defaults("eyelashes"),...p.params,time:"Timeline"}}
+      ] : [{id:9001,type:"eyelashes",x:40,y:30,params:{...defaults("eyelashes"),...p.params,time:"Timeline"}}],
+      edges: p.wired ? [{id:"e9101",from:9001,fromPort:0,to:9002,toPort:1}] : []
+    })
+  })),
+  ...[
     {title:'Raised ribbon',params:{wave:0,twist:0,roll:-10,elevation:28,depth:100,shoulder:3}},
     {title:'Wave ribbon',params:{text:'FLOW',wave:15,twist:25,depth:100,roll:-8,elevation:24,height:250,shoulder:3}},
     {title:'Raised ring',params:{text:'TYPE LOOP',surface:'Ring',height:90,radius:140,depth:70,ribbonLines:48,wave:0,twist:0,roll:0,elevation:50,phase:40}},

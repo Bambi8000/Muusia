@@ -1,0 +1,232 @@
+{
+  "date": "2026-11-18",
+  "baseCommit": "fafaf7c4747a00cd4357313e5c7a149490e43208",
+  "branch": "codex/eyelashes",
+  "worktree": "/private/tmp/muusia-eyelashes-20261118",
+  "status": "Complete requested Eyelashes implementation; release preparation in progress",
+  "reference": "Two user-supplied plot photographs: irregular dark lash roots, uneven fine hairs and an open oval fringe caused by an accidental wet-ink plot. Independent vector implementation; reference media not committed.",
+  "behavior": [
+    "Seeded Hairs and Tapered spikes with curved strands, clumped roots, varied lengths, real tapered outline/fill geometry and adjustable spike base width.",
+    "Optional lower lid and density/length, optional lid line; Almond, Oval and Swept shapes.",
+    "Manual Openness and seamless Timeline blink with Phase, integer cycles, open hold, stable hair identities and pose-independent framing.",
+    "Auto/Iris/Artwork/Artwork + iris/None with Round/Radiant/Slit/Spiral eye choices, pupil and gaze controls.",
+    "Blue Eye artwork fits the whole input canvas to the fully open eye (Cover/Contain) or keeps actual paper coordinates (Canvas). The current eyelid clips stationary artwork; source pens stay. Connected empty artwork stays empty.",
+    "All geometry is XY, including incoming artwork. At full closure no iris/artwork remains and coincident lid outlines draw once.",
+    "Complete bounded work and point budgets; uniformly coarser lash sampling/fill or whole refusal, never a prefix. Six live Help examples and portable projects, including one 72 x 100 mm receipt example."
+  ],
+  "validation": {
+    "focused": 2196,
+    "actualAnimationFrames": 144,
+    "helpGraphs": 239,
+    "lint": "passed",
+    "catalog": "passed; 367 modules / 369 registry entries / 234 generators",
+    "implementationBuild": "passed",
+    "implementationLearn": 37914,
+    "coverage": "All shapes/iris types, manual/Timeline closure and exact loops, lower lid, control liveness, stable framing, independent concave-mask intersections/no seam chords, preserved source pens, malformed/large inputs, XY budgets, pointed closed spike outlines/monotone taper/real fill, portable source and actual SVG/servo/bed-Z exporters.",
+    "labImport": {
+      "importedThroughNodeChooser": true,
+      "key": "eyelashes",
+      "open": {
+        "paths": 1475,
+        "points": 25439
+      },
+      "manualClosed": {
+        "paths": 1342,
+        "points": 22614
+      }
+    },
+    "nativeCaptureAppVersion": "2.205",
+    "nativeBrowser": {
+      "freshLoadAt": "2026-11-18T21:25:10.689Z",
+      "models": [
+        {
+          "name": "Beautiful accident",
+          "paths": 1938,
+          "points": 32814,
+          "stats": "362 text 1938  paths \u00b7  \u200732814  pts \u00b7  \u200726.18  m"
+        },
+        {
+          "name": "Blinking eye",
+          "paths": 1475,
+          "points": 25439,
+          "stats": "362 text 1475  paths \u00b7  \u200725439  pts \u00b7  \u200721.21  m"
+        },
+        {
+          "name": "Slit eye",
+          "paths": 881,
+          "points": 19698,
+          "stats": "362 text \u2007881  paths \u00b7  \u200719698  pts \u00b7  \u200713.64  m"
+        },
+        {
+          "name": "Wired dream",
+          "paths": 1058,
+          "points": 17656,
+          "stats": "362 text 1058  paths \u00b7  \u200717656  pts \u00b7  \u200715.47  m"
+        },
+        {
+          "name": "Receipt blink",
+          "paths": 555,
+          "points": 8770,
+          "stats": "362 text \u2007555  paths \u00b7  \u2007\u20078770  pts \u00b7  \u2007\u20072.08  m"
+        },
+        {
+          "name": "Tapered spikes",
+          "paths": 1814,
+          "points": 34330,
+          "stats": "362 text 1814  paths \u00b7  \u200734330  pts \u00b7  \u200727.60  m"
+        }
+      ],
+      "spikeWidth4": "\t\t\t362 text 2541  paths \u00b7  \u200746689  pts \u00b7  \u200737.16  m",
+      "manualClosed": "\t\t\t362 text 1042  paths \u00b7  \u200717510  pts \u00b7  \u200714.52  m",
+      "timelineClosed": "\t\t\t362 text 1042  paths \u00b7  \u200717510  pts \u00b7  \u200714.52  m\n\t\t\t364 text ANIMATE  \u2014  frame  19 / 24 Frames",
+      "play": {
+        "frame": 2,
+        "frameCount": 24,
+        "paths": 1058,
+        "points": 17656
+      },
+      "restored": {
+        "frame": 1,
+        "frameCount": 24,
+        "paths": 1058,
+        "points": 17656
+      },
+      "logs": []
+    },
+    "nativeExports": {
+      "svgByteParity": true,
+      "paths": 1814,
+      "points": 34330,
+      "closedSpikeOutlines": 220,
+      "gcodeLowers": 1814,
+      "gcodeDrawMoves": 32736,
+      "boundsWarning": false,
+      "artifactSha256": {
+        "native-spikes.svg": "3a14013164305e0ed5a95740f02bd00bba03d86e9fd4c6a85f555bd0f9e4bacd",
+        "native-spikes.gcode": "156374e59a65569ef90e61dc5a22e819ce1032b8bcc2e6a7fac509ff343467cd",
+        "eyelashes-wired-24-svg-frames.zip": "185a285208ed6f12821228c47e498c9289f6e5b62e06907d81aaef0b7c296726",
+        "eyelashes-receipt-24-frames.zip": "5d3cd72327d4b2a51fa933d9283cb1cb43ceb872af30036e5dca99dc72205e5f"
+      },
+      "nativeSvgFramesMatchingSource": 24,
+      "receiptFrames": 24,
+      "receiptDimensions": [
+        512,
+        738
+      ],
+      "distinctReceiptBodies": 7,
+      "openAndClosedReceiptDiffer": true,
+      "offlinePrintParserAccepted": 24,
+      "serverStarted": false,
+      "jobsQueued": 0,
+      "physicalPrintSent": false,
+      "receiptBodyHashes": [
+        {
+          "frame": 1,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 2,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 3,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 4,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 5,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 6,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 7,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 8,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 9,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 10,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 11,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 12,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 13,
+          "bodySha256": "7594b5d007cebbd8a8f6590ec9665ca99c647153d21afcdcc104fe24fe1d0cce"
+        },
+        {
+          "frame": 14,
+          "bodySha256": "2993460bd9d684fa660affed32dc11cc4cdcee6c376c06659f450963025d58af"
+        },
+        {
+          "frame": 15,
+          "bodySha256": "ed49726fc300d82dde1d3640024e80e996636afe831159e3fbacaf157165ba02"
+        },
+        {
+          "frame": 16,
+          "bodySha256": "b83af3fb9962dcc0d05128241edd207230061e30a62456afcad4ab86f0826d13"
+        },
+        {
+          "frame": 17,
+          "bodySha256": "29d1176ae2928e6cf086ed99f41a4e049fec21ffcb2dcc585cf0f0e93655202c"
+        },
+        {
+          "frame": 18,
+          "bodySha256": "b2c64600c3bfa719909261f39efc2ec1970b5080d047abc2813d882878c884e3"
+        },
+        {
+          "frame": 19,
+          "bodySha256": "1a78f05822b1b43a3d73515305c0637a11c41f1c45c01a688f514a5b16673810"
+        },
+        {
+          "frame": 20,
+          "bodySha256": "b2c64600c3bfa719909261f39efc2ec1970b5080d047abc2813d882878c884e3"
+        },
+        {
+          "frame": 21,
+          "bodySha256": "29d1176ae2928e6cf086ed99f41a4e049fec21ffcb2dcc585cf0f0e93655202c"
+        },
+        {
+          "frame": 22,
+          "bodySha256": "b83af3fb9962dcc0d05128241edd207230061e30a62456afcad4ab86f0826d13"
+        },
+        {
+          "frame": 23,
+          "bodySha256": "ed49726fc300d82dde1d3640024e80e996636afe831159e3fbacaf157165ba02"
+        },
+        {
+          "frame": 24,
+          "bodySha256": "2993460bd9d684fa660affed32dc11cc4cdcee6c376c06659f450963025d58af"
+        }
+      ]
+    }
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/eyelashes",
+  "snapshot": "/private/tmp/muusia-eyelashes-release-snapshot-20261118 (refresh after final metadata commit)",
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "limits": [
+    "Stylised planar eyelids and vector lashes; no physical paper, pen or hair simulation.",
+    "The eyelid mask is a sampled polygon. Artwork exceeding source/intersection budgets is refused whole.",
+    "Very dense requests reduce lash samples/fill uniformly; the source is never partially retained.",
+    "Receipt images repeat during the open hold: 24 registered files contain seven distinct image bodies in the default blink."
+  ]
+}

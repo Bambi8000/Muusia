@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 368 built-in nodes in the current Muusia source. Conventions used below:
+All 369 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -28,7 +28,37 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (233)
+## Generators (234)
+
+**Eyelashes** — irregular lash bundles inspired by an accidental wet-ink plot.
+Almond, Oval and Swept eye shapes carry seeded curved hairs with varied lengths,
+clumped roots, tapered parallel ink and little root tangles. Lower lid optionally
+adds its outline and shorter lash row; Draw lid can leave only the hairs.
+Length is the longest hair before page fitting. Length variation shortens hairs;
+Clumping and Clumps gather their roots; Curl, Lean and Disorder bend the strands.
+Root ink, Root width and Root fill pitch control real drawn density.
+Lash form Tapered spikes draws wider bases and curved flanks converging to
+a sharp tip, with closed outlines and actual parallel fill strokes. Spike base
+width sets their thickness; Hairs preserves the finer strands.
+Openness selects a still with Time source Manual. Timeline blinks with Phase,
+integer Blinks per timeline and Open hold. Default 24-frame timing closes at
+zero-based frame 18 (shown as 19/24). The same hairs stay attached to their lids;
+framing and artwork mapping are independent of the opening. Closed coincident
+lid outlines draw once, and the eye contents disappear completely.
+Eye contents Auto uses a connected blue Eye artwork input, including an empty
+one, otherwise the chosen Round, Radiant, Slit or Spiral iris. Iris, Artwork,
+Artwork + iris and None select the sources explicitly. Artwork maps the entire
+source canvas into the fully open eye: Cover fills it, Contain preserves the
+complete canvas, Canvas retains its original paper coordinates, even when the eye rotates. Source pens are
+preserved. The current eyelid region clips every segment, including the curved
+narrow region during closing; clipped fragments stay separate. The artwork does
+not collapse or resize with the blink. Look X/Y, Iris size and Pupil size shape
+the built-in eye. Rotation, Eye width/height and Margin share fixed framing.
+All geometry is ordinary XY; source Z components are removed. Complete requests
+coarsen lash sampling/fill uniformly or refuse whole at 120k output points;
+artwork accepts up to 30k paths / 120k points with bounded intersection work.
+Six live Help starters include Beautiful accident, Blinking eye, Slit eye,
+Wired dream (Lissajous input), a 72 × 100 mm Receipt blink and Tapered spikes.
 
 **Text Roll** — two constructions around a three-dimensional Drum or Ring.
 Raised ribbon is one continuous, periodically closed band. The same horizontal

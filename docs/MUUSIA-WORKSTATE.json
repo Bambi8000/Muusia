@@ -1,6 +1,33 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+    {
+      "id": "eyelashes",
+      "owner": "Astra",
+      "role": "Implement and publish Eyelashes with blink, masked artwork and tapered spikes",
+      "baseCommit": "fafaf7c4747a00cd4357313e5c7a149490e43208",
+      "files": [
+        "nodes-lab/eyelashes.plotternode.js",
+        "src/defs/nodes/eyelashes.js",
+        "src/examples.js",
+        "tools/preview-eyelashes.mjs",
+        "tools/validate-eyelashes.mjs",
+        "src/defs/node-recency-data.js",
+        "src/defs/catalog.js",
+        "docs/MUUSIA-NODES-SRC.md",
+        "docs/MUUSIA-NODES.md",
+        "docs/MUUSIA-TAGS.json",
+        "docs/MUUSIA-HANDOFF.md",
+        "docs/MUUSIA-WORKSTATE.json",
+        "docs/eyelashes-checks.json",
+        "learn/generated/manifest.json",
+        "src/App.jsx",
+        "docs/eyelashes-release-checks.json"
+      ],
+      "status": "in_progress",
+      "outcome": "Publish the complete requested Eyelashes node, including lower lid, iris choices, masked blue artwork input and thick-base pointed lashes."
+    }
+  ],
   "lastPublished": {
     "version": "2.205",
     "commit": "f774747b76dcb9eff1595c631c094c60c4a839b5",
@@ -1394,5 +1421,63 @@
     "primaryDirtyWorkspaceChanged": false,
     "snapshot": "/private/tmp/muusia-slice-raster-input-release-snapshot-20261118 (refreshed after final metadata commit; local only)",
     "evidence": "docs/slice-raster-input-release-checks.json"
+  },
+  "lastEyelashes": {
+    "date": "2026-11-18",
+    "baseCommit": "fafaf7c4747a00cd4357313e5c7a149490e43208",
+    "branch": "codex/eyelashes",
+    "worktree": "/private/tmp/muusia-eyelashes-20261118",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/eyelashes",
+    "snapshot": "/private/tmp/muusia-eyelashes-release-snapshot-20261118 (refresh after final metadata commit; local only)",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false,
+    "status": "Complete implementation; publication requested and being prepared as 2.206",
+    "evidence": "docs/eyelashes-checks.json",
+    "validation": {
+      "eyelashes": 2196,
+      "actualAnimationFrames": 144,
+      "helpGraphs": 239,
+      "lint": "passed",
+      "catalog": "passed",
+      "build": "passed",
+      "implementationNativeBrowser": "See docs/eyelashes-checks.json for actual import/baked UI, masked closure, complete spike G-code, 24 source-identical SVG frames and 24 offline-validated native receipts.",
+      "learn": 37914
+    }
+  },
+  "pendingUserRequests": [
+    {
+      "id": "gif-to-receipt",
+      "status": "next_after_eyelashes_release",
+      "request": "Create a GIF to Receipt node with animated GIF file intake, scaling and rotation with optional locked aspect ratio, monochrome conversion controls, and receipt animation export.",
+      "requestedDate": "2026-11-18"
+    }
+  ],
+  "lastEyelashesRelease": {
+    "version": "2.206",
+    "date": "2026-11-18",
+    "baseCommit": "fafaf7c4747a00cd4357313e5c7a149490e43208",
+    "branch": "codex/eyelashes",
+    "worktree": "/private/tmp/muusia-eyelashes-20261118",
+    "status": "Tested Eyelashes 2.206 release; awaiting exact-commit deployment and public verification",
+    "published": false,
+    "moduleCount": 367,
+    "registryCount": 369,
+    "checks": {
+      "eyelashes": 2196,
+      "actualAnimationFrames": 144,
+      "helpGraphs": 239,
+      "lint": "passed",
+      "catalog": "passed",
+      "build": "passed",
+      "implementationNativeBrowser": "See docs/eyelashes-checks.json for actual import/baked UI, masked closure, complete spike G-code, 24 source-identical SVG frames and 24 offline-validated native receipts.",
+      "learn": 37914
+    },
+    "testedAppSha256": "8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7",
+    "url": "https://bambi8000.github.io/Muusia/",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/eyelashes",
+    "snapshot": "/private/tmp/muusia-eyelashes-release-snapshot-20261118 (refresh after final metadata commit; local only)",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false,
+    "evidence": "docs/eyelashes-release-checks.json"
   }
 }

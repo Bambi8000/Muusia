@@ -7912,3 +7912,65 @@ recorded in WORKSTATE. Public tab is kept on the wired lettering starter.
 Final documentation-only metadata is pushed with skip-ci; verified app bytes
 remain unchanged. Snapshot refreshed after that final commit; no Claude project
 UI upload or physical print.
+
+### 2.206 — 2026-11-18 · Eyelashes, blink and masked eye artwork
+
+Daniel supplied photographs of a beautiful pen/paper accident and requested an
+Eyelashes node, then added animated closing/opening, optional lower lid, iris
+choices, a blue TV-like masked artwork input and thicker pointed lashes. He
+explicitly requested publication. Base
+`fafaf7c4747a00cd4357313e5c7a149490e43208`, branch `codex/eyelashes`, isolated
+worktree `/private/tmp/muusia-eyelashes-20261118`.
+
+New Eyelashes generator in Organic & Flow. Seeded curved Hairs have clumped roots,
+varied length, tapered parallel ink and small root tangles. Tapered spikes adds
+closed flanks, actual interior fill and adjustable broad bases converging to one
+sharp tip. Optional lower lid, its density/length and optional outline. Almond,
+Oval and Swept shapes. Manual Openness or seamless Timeline blink with phase,
+integer cycles/open hold; same hairs stay attached, fixed framing across poses.
+Default 24-frame cycle fully closes at zero-based 18 (shown 19/24).
+
+Auto/Iris/Artwork/Artwork + iris/None; Round, Radiant, Slit and Spiral irises, pupil
+and gaze. Blue Eye artwork retains source pens. Cover/Contain maps the full source
+canvas to the fully open eye; Canvas preserves actual paper coordinates even
+through eye rotation/fitting. Artwork stays stationary while the current sampled
+lid polygon clips it, including the concave narrow closing band. No hidden-gap
+connections; fully closed eyes contain no artwork/iris. Closed coincident lid
+lines draw once. Geometry is XY; incoming Z is removed. Bounded source/intersection
+work and whole-request lash sampling/fill adaptation; dense jobs refuse whole
+rather than retaining a prefix. Six Help starters and embedded-source projects
+include Beautiful accident, Tapered spikes, Wired dream and Receipt blink.
+
+Actual Node chooser lab import and manual open/closed rendering verified before
+baking; graduated lab copy removed. Final 2,196 focused checks, 144 actual poses,
+all shape/iris modes, bounds, lower lid, independent concave-mask intersections,
+spike monotone taper/fill, portable parity and real SVG/servo/bed-Z exports pass.
+Focused lint, all 239 Help graphs and catalog gate pass. Release version 2.206;
+367 modules, 369 registry entries, 234 generators. No engine/exporter/machine
+changes. Implementation and final version-only ordered catalog/build/37,914 Learn
+gates pass.
+
+Fresh native baked load: all six starter stats match source. Spike base 2.8 →
+4 → 2.8 changes 1,814 / 34,330 to 2,541 / 46,689 and restores exact output.
+Wired eye open 1,058 / 17,656; manual closed and Timeline frame 19/24 both
+1,042 / 17,510 with no artwork left. Play advances and reset restores. Native
+spike SVG is source-byte-identical; G-code contains all 1,814 lowers and 32,736
+draw moves, including 220 closed spike outlines, no bounds warning. All 24
+actual wired SVG frames match source exactly. Receipt ZIP has 24 registered
+512 × 738 frames, seven distinct image bodies because of the open hold, accepted
+offline by Print without server/queue/printing. Decoded open and closed receipts
+visually checked. Final fresh-load warning/error logs empty. Native capture UI
+was 2.205; release changes only the version constant after capture.
+
+Proof `docs/eyelashes-checks.json`; release proof
+`docs/eyelashes-release-checks.json`. Source/catalog/recency/reference/tags refreshed.
+Artifact path is in WORKSTATE lastEyelashes; local tab port 5201 remains on the
+wired eye. Test/deploy/public-byte verification will be recorded after the release
+commit; no publication inferred from local build. Primary dirty checkout and
+hardware files untouched. Snapshot
+`/private/tmp/muusia-eyelashes-release-snapshot-20261118` refreshed after final
+metadata; no Claude UI upload claimed.
+
+Next authorized request after this release: GIF to Receipt node, animated GIF file
+intake, scaling/rotation with aspect lock, monochrome conversion/dither controls
+and registered receipt animation export. Recorded in WORKSTATE pendingUserRequests.
