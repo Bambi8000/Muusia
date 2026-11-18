@@ -1217,5 +1217,26 @@
     "publicAppSha256": "b56c63ce9f3fe7584f077141f3767bb5cd313132b983e9a191fadce4f444ed0f",
     "matchesTestedBuild": true,
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/pixel-blast-release"
+  },
+  "lastTextRoll": {
+    "date": "2026-11-18",
+    "baseCommit": "55e93007deaf1c0f50c052b63e1e693f774edd95",
+    "branch": "codex/text-roll",
+    "worktree": "/private/tmp/muusia-text-roll-20261118",
+    "status": "Complete local built-in Text Roll node; not published; APP_VERSION stays 2.203",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/text-roll",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false,
+    "snapshot": "/private/tmp/muusia-text-roll-snapshot-20261118 (refresh after commit; local only)",
+    "validation": {
+      "focused": 786,
+      "helpGraphs": 229,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "nativeBrowser": "Four exact-stat Help starters; editable text, all movements, transparent/restored ink, Play/Pause and fresh built-in load; 283-path source-identical SVG, complete G-code and 24 exact native SVG frames; 24 validated receipt frames; no final-load warning/error logs."
+    },
+    "evidence": "docs/text-roll-checks.json"
   }
 }

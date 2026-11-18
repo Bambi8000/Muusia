@@ -910,6 +910,17 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   ...[
+    {title:'Sculpted drum',params:{}},
+    {title:'Rolling ring',params:{text:'TYPE LOOP',surface:'Ring',height:90,radius:130,depth:75,slices:22,twist:20,elevation:46,phase:40,roll:12,wave:15}},
+    {title:'Rippled scroll',params:{text:'FLOW',height:220,arc:290,depth:80,slices:26,wave:40,waves:3,twist:70,elevation:20,phase:110}},
+    {title:'Rocking receipt',params:{text:'ROLL',motion:'Rock',height:260,radius:80,depth:60,slices:22,wave:0,twist:0,elevation:22,phase:35}},
+  ].map(m=>({
+    name:'Text Roll · '+m.title,
+    desc:'Select Text Roll. Thick letters travel around a three-dimensional Drum or Ring. Edit Text, then try Letter height, Radius, Letter depth and Contour slices. Wave and Twist deform the moving letters. Hidden lines removes back ink using the actual solid glyph faces and side walls; switch it off to see through the lettering. Empty space and counters remain open. Choose Scroll, Rock or Tumble. Open ANIMATE, set 24 or 32 frames and Play: Time source Timeline needs no wire. Phase offsets the loop, Direction reverses it, Loops sets whole cycles. Manual freezes a still. The framing stays fixed while the letters move. This 72 × 100 mm canvas fits receipts: Receipt × N downloads numbered frames with registration marks; printing is separate. SVG and G-code export the same real XY ink. Depth is visual and never machine Z. Uppercase ÄÖÅ are supported; unknown glyphs become ?.',
+    canvas:{W:72,H:100},
+    make:defaults=>({nodes:[{id:9101,type:'text_roll',x:40,y:20,params:{...defaults('text_roll'),time:'Timeline',...m.params}}],edges:[]}),
+  })),
+  ...[
     { title: "Firework", effect: "Firework", phase: 45, cy: 50, amount: 640, gravity: 35, trails: 65, grain: 22 },
     { title: "Willow trails", effect: "Willow", phase: 58, cy: 37, amount: 480, gravity: 85, trails: 100, grain: 25 },
     { title: "Volley", effect: "Volley", phase: 58, cy: 50, amount: 1000, gravity: 35, trails: 65, grain: 22 },

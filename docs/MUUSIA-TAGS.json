@@ -2246,5 +2246,6 @@
  ],
  "word_shape": ["text", "geometric", "region", "fill"],
  "slice_raster": ["image", "hatch", "dots", "texture", "animation", "pens"],
- "pixel_blast": ["pixel", "animation", "receipt", "particles", "firework", "kuitti"]
+ "pixel_blast": ["pixel", "animation", "receipt", "particles", "firework", "kuitti"],
+ "text_roll": ["text", "typography", "3d", "animation", "roll", "ring", "receipt", "teksti", "rulla"]
 }

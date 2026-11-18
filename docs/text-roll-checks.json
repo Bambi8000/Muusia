@@ -1,0 +1,156 @@
+{
+  "date": "2026-11-18",
+  "baseCommit": "55e93007deaf1c0f50c052b63e1e693f774edd95",
+  "branch": "codex/text-roll",
+  "worktree": "/private/tmp/muusia-text-roll-20261118",
+  "status": "Complete local built-in Text Roll node; not published; APP_VERSION stays 2.203",
+  "reference": {
+    "url": "https://www.instagram.com/p/DfCZV25jedu/?img_index=1",
+    "author": "daniel_maarleveld / Studio Daniel Maarleveld",
+    "inspection": "Read-only inspection of all three user-opened carousel videos. Thick scrolling letters wrapped around a circle with many contour layers and 3D distortion. Original independent implementation, no reference code/media copied. Reference returned to its first slide."
+  },
+  "features": [
+    "Standalone generator, editable uppercase SFONT text with real thick Round/Block glyph unions, closed contours and triangulated counters",
+    "Drum or Ring; radial/axial depth, contour slices, arc, repeats, tracking, height/radius, wave/lobes and twist",
+    "Scroll, Rock and Tumble; Manual or Timeline, reversible integer loops and exact endpoints; random access without accumulated state",
+    "Two-sided solid letter face and side-wall depth buffer; no opaque background cylinder; Hidden lines off retains rear contours",
+    "Invariant camera envelope including accents; stable framing, orthographic/perspective and view angle/elevation/roll",
+    "Ordinary bounded XY paths and pen indices for existing SVG/G-code/receipt exports; no machine Z from visual depth",
+    "64 normalized characters / four repeats; bounded glyph cache/work, uniform density/resolution reduction or whole refusal at 120k points",
+    "Four live 72 x 100 mm Help examples and self-contained portable projects"
+  ],
+  "validation": {
+    "lab": 780,
+    "baked": 786,
+    "helpGraphs": 229,
+    "lint": "passed for baked node, examples and both tools without warnings/errors",
+    "catalog": "passed; 366 source modules, 368 registry entries, 233 generators",
+    "build": "passed",
+    "learn": 37914,
+    "focusedCoverage": [
+      "Every shared SFONT glyph in both fonts and three weights; O counter is physically empty",
+      "All six surface/movement pairs, finite bounded ink, exact loop endpoints, Manual freeze and random-access parity",
+      "Live controls, unsupported visible fallback, accents, excessive text/invalid values and extreme canvas/work budgets",
+      "Independent solid-face occlusion and open-counter tests, perspective geometry, invariant framing and portable Help parity",
+      "Actual SVG and both servo/bed-Z export functions retain every path and drawing move"
+    ],
+    "nativeBrowser": {
+      "models": [
+        {
+          "title": "Rolling ring",
+          "stats": "~\t\t\t362 text \u2007376  paths \u00b7  \u200728012  pts \u00b7  \u2007\u20072.37  m"
+        },
+        {
+          "title": "Rippled scroll",
+          "stats": "~\t\t\t362 text \u2007655  paths \u00b7  \u200721926  pts \u00b7  \u2007\u20072.36  m"
+        },
+        {
+          "title": "Rocking receipt",
+          "stats": "~\t\t\t362 text \u2007466  paths \u00b7  \u200720770  pts \u00b7  \u2007\u20072.61  m"
+        },
+        {
+          "title": "Sculpted drum",
+          "stats": "~\t\t\t362 text \u2007283  paths \u00b7  \u200722994  pts \u00b7  \u2007\u20072.76  m"
+        }
+      ],
+      "movements": [
+        {
+          "movement": "Tumble",
+          "stats": "~\t\t\t362 text \u2007407  paths \u00b7  \u200719274  pts \u00b7  \u2007\u20071.67  m"
+        },
+        {
+          "movement": "Rock",
+          "stats": "~\t\t\t362 text \u2007419  paths \u00b7  \u200723464  pts \u00b7  \u2007\u20072.71  m"
+        },
+        {
+          "movement": "Scroll",
+          "stats": "~\t\t\t362 text \u2007283  paths \u00b7  \u200722994  pts \u00b7  \u2007\u20072.76  m"
+        }
+      ],
+      "transparent": "140 paths / 31880 points / 21.81 m",
+      "ownTextRulla": "214 paths / 22538 points",
+      "playObserved": "frame 3/24, 519 paths / 23721 points",
+      "restored": "283 paths / 22994 points",
+      "logs": [],
+      "freshBakedLoad": true,
+      "prototypeHmrLogs": [
+        {
+          "level": "error",
+          "message": "TypeError: Cannot read properties of undefined (reading 'name')\n    at App (http://127.0.0.1:5199/src/App.jsx?t=1794999255181:8528:101)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:5199/node_modules/.vite/deps/react-dom_client.js?v=dbefd21d:12866:12)\n    at renderWithHooks (http://127.0.0.1:5199/node_modules/.vite/deps/react-dom_client.js?v=dbefd21d:4213:19)\n    at updateFunctionComponent (http://127.0.0.1:5199/node_modules/.vite/deps/react-dom_client.js?v=dbefd21d:5569:16)\n    at beginWork (http://127.0.0.1:5199/node_modules/.vite/deps/react-dom_client.js?v=dbefd21d:6140:20)\n    at runWithFiberInDEV (http://127.0.0.1:5199/node_modules/.vite/deps/react-dom_client.js?v=dbefd21d:851:66)\n    at performUnitOfWork (http://127.0.0.1:5199/node_modules/.vite/deps/react-dom_client.js?v=dbefd21d:8429:92)\n    at workLoopSync (http://127.0.0.1:5199/node_modules/.vite/deps/react-dom_client.js?v=dbefd21d:8325:37)\n    at renderRootSync (http://127.0.0.1:5199/node_modules/.vite/deps/react-dom_client.js?v=dbefd21d:8309:6)\n    at performWorkOnRoot (http://127.0.0.1:5199/node_modules/.vite/deps/react-dom_client.js?v=dbefd21d:7994:27)",
+          "timestamp": "2026-11-18T10:54:15.287Z",
+          "url": "http://127.0.0.1:5199/src/App.jsx?t=1794999255181"
+        },
+        {
+          "level": "warn",
+          "message": "%s\n\n%s\n An error occurred in the <App> component. Consider adding an error boundary to your tree to customize error handling behavior.\nVisit https://react.dev/link/error-boundaries to learn more about error boundaries.",
+          "timestamp": "2026-11-18T10:54:15.287Z",
+          "url": "http://127.0.0.1:5199/@vite/client"
+        }
+      ],
+      "finalReloadAt": "2026-11-18T11:05:47.385Z"
+    },
+    "starterGeometry": [
+      {
+        "name": "Sculpted drum",
+        "paths": 283,
+        "points": 22994
+      },
+      {
+        "name": "Rolling ring",
+        "paths": 376,
+        "points": 28012
+      },
+      {
+        "name": "Rippled scroll",
+        "paths": 655,
+        "points": 21926
+      },
+      {
+        "name": "Rocking receipt",
+        "paths": 466,
+        "points": 20770
+      }
+    ],
+    "staticNativeExport": {
+      "paths": 283,
+      "points": 22994,
+      "svgPaths": 283,
+      "svgByteParity": true,
+      "gcodeLowers": 283,
+      "gcodeDrawMoves": 22712,
+      "boundsWarning": false
+    },
+    "nativeAnimationExports": {
+      "sourceIdenticalNativeSvgFrames": 24,
+      "receiptFrames": 24,
+      "distinctImageBodies": 24,
+      "blankImageBodies": 0,
+      "width": 512,
+      "height": 738,
+      "offlinePrintParserAccepted": 24,
+      "jobsQueued": 0,
+      "serverStarted": false,
+      "physicalPrintSent": false,
+      "receiptZipSha256": "57f533a0d9a8465d60ea8701bdacbe9d87b420075faca5f8f5b5b6b7a896959d",
+      "finalSourceSha256": "f2b88ea7920015ee18b21fc2fc24e32175d78adab2985c398b1e003716d3251f",
+      "finalCoarseGlyphGuardPreservesNativeFrames": true
+    },
+    "prototypeHmr": "During adding an example before baking, the in-progress HMR briefly lacked the new built-in definition. Historical log retained. A final fresh baked reload was verified with no warning/error logs; no engine change required.",
+    "coarseGlyphGuard": "A non-space glyph without a complete sampled contour refuses the whole attempt rather than disappearing. All 24 captured native SVG frames remain byte-identical to final guarded source."
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/text-roll",
+  "media": {
+    "text-roll-gallery.gif": "32-frame four-style animation rendered from actual node paths",
+    "text-roll-browser.jpg": "Actual final fresh baked browser screenshot",
+    "native-receipt-frame-01.png": "PNG decoded from native exported packed receipt bytes"
+  },
+  "publication": false,
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "limits": [
+    "Depth-buffer visibility is approximate at a bounded 420-cell resolution; fine edges can break into short ink runs.",
+    "Dense requests may reduce all contour slices/resolution uniformly or refuse the entire result.",
+    "Uppercase shared stroke alphabet; unsupported glyphs become visible question marks."
+  ],
+  "snapshot": "/private/tmp/muusia-text-roll-snapshot-20261118 (refresh after commit; local only)"
+}

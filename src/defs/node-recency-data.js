@@ -1610,6 +1610,11 @@ export const NODE_RECENCY = {
     "order": 127,
     "sha256": "ce0eb0def3b7046452dbf840cce23d0769b02992a04cc66ff309cb4db493590f"
   },
+  "text_roll": {
+    "date": "2026-11-18",
+    "order": 152,
+    "sha256": "f2b88ea7920015ee18b21fc2fc24e32175d78adab2985c398b1e003716d3251f"
+  },
   "textpath": {
     "date": "2026-07-22",
     "order": 1,

@@ -7633,3 +7633,59 @@ The public tab is kept open on the enlarged mushroom preview at frame 1/24.
 Final documentation-only metadata is pushed with skip-ci; app bytes remain those
 of the verified release. Snapshot refreshed locally after that final commit;
 no Claude project UI upload and no physical print.
+
+### W — 2026-11-18 · Text Roll, local animated typography node
+
+Daniel requested a text-roll node in the spirit of the open browser example.
+Base `55e93007deaf1c0f50c052b63e1e693f774edd95`, branch `codex/text-roll`,
+clean isolated worktree `/private/tmp/muusia-text-roll-20261118`.
+Read-only visual reference: Studio Daniel Maarleveld, Instagram DfCZV25jedu;
+three carousel videos of scrolling 3D text wrapped around a circle. No reference
+code or media copied; user's tab returned to the first slide.
+
+New `text_roll` / Text Roll generator in Text & Image. Independent solid glyph
+geometry thickens the shared uppercase SFONT alphabet into Round/Block unions,
+traces closed contours, preserves counters and triangulates the actual faces.
+Drum/Ring wraps and contour slices show radial/axial letter depth. Scroll,
+Rock and Tumble; Manual/Timeline, direction and integer Loops, exact endpoints,
+independent scrubbing. Text, arc/repeats/tracking, height/radius/depth, wave/lobes,
+twist and camera controls. Two-sided glyph/side-wall visibility has no invisible
+background cylinder; Hidden lines off retains back ink. Phase-invariant framing
+includes accent extents. Size/Margin guides show the fitting box. Bounded glyph
+cache/work, 64 normalized characters and four repeats; complete requests adapt
+uniformly or refuse whole at 120k points. All outputs are ordinary XY strokes;
+visual depth is never machine Z. Four 72 × 100 mm live Help starters and portable
+projects: Sculpted drum, Rolling ring, Rippled scroll, Rocking receipt.
+
+Actual Node chooser lab import and prototype preview checked; 780 lab checks
+passed, baked/revalidated, graduated lab file removed. Final 786 focused checks
+cover all SFONT glyphs in two fonts/three weights, solid counters, all six motion
+and surface pairs, loops, random access, live controls, independent occlusion
+scenes, invariant camera bounds, invalid/extreme requests, portable Help parity
+and actual SVG / servo / bed-Z exporters. Focused lint clean, 229 Help graphs,
+catalog/build/37,914 Learn gate pass. Counts: 366 modules, 368 registry entries,
+233 generators. No engine, exporter, machine or APP_VERSION change (2.203).
+
+Native fresh built-in load: all four starter stats match source. Own text RULLA,
+all movement choices, Hidden lines off/on and Play/Pause/restoration verified.
+Drum = 283 paths / 22,994 points; native SVG matches exact source bytes;
+G-code = 283 lowers / all 22,712 draw moves, no bounds warning. All 24 actual
+SVG animation frames also match source. Native receipt ZIP: 24 unique image
+bodies, 512 × 738 including numbers/marks; all accepted by the Print parser
+OFFLINE without starting a server or queuing a job. A transient intermediate
+HMR missing-def error while adding the example before bake is retained in the
+proof; final fresh reload has no warning/error logs. No shared-engine fix needed.
+
+`tools/preview-text-roll.mjs <directory>` reproduces the actual-vector 32-frame
+four-style GIF, SVGs, portable source and self-contained projects. Native receipt
+ZIP directly contains 24 JSONs for Print. Actual screenshot and decoded receipt
+PNG are in WORKSTATE's artifact directory; proof `docs/text-roll-checks.json`.
+Visibility is approximate at a 420-cell depth buffer; very fine edges can split
+into short runs. Dense requests can reduce all slices/resolution uniformly. A thin glyph that
+cannot retain a complete contour is refused whole rather than dropped; all
+24 native SVG captures are rechecked byte-identical against this final guard.
+Local app port 5199 is kept on the enlarged drum, paused at frame 1/24.
+No publication requested for this new node; no push or physical print. Primary
+dirty checkout and earlier published 2.203 remain untouched. Fresh origin/main
+still 55e9300. Refresh local snapshot `/private/tmp/muusia-text-roll-snapshot-20261118`
+after commit; no Claude UI upload claimed.

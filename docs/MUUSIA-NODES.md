@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 367 built-in nodes in the current Muusia source. Conventions used below:
+All 368 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -28,7 +28,29 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (232)
+## Generators (233)
+
+**Text Roll** — solid outlined text scrolling around a three-dimensional Drum
+or Ring. Contour slices repeat the glyph outlines through Letter depth, making
+the curved side walls visible. Round and Block use the shared uppercase stroke
+alphabet, thickened into a union with real face triangles and closed counters.
+Text supports ÄÖÅ; unsupported characters become ?. Radius, Letter height, Arc,
+Repeats, Weight and Tracking change the sculpture; Wave, integer Waves and Twist
+deform the travelling letters. Scroll makes full turns, Rock sways and Tumble
+turns the whole object. Direction reverses motion. Manual Phase chooses a still;
+Timeline follows ANIMATE with zero to four whole Loops and exact endpoints.
+Every pose reconstructs independently. The camera uses a phase-invariant
+envelope, preserving framing through the loop; View angle/elevation/roll and
+Perspective change the projection. Hidden lines uses two-sided solid letter
+faces and side walls, leaving counters and empty space genuinely open. Disable
+it to retain all back contours. It has a bounded 420-cell depth-buffer resolution,
+so very fine visibility edges are approximate. Size and Margin set the fitting
+box shown by the guide. Ordinary XY output exports through SVG, G-code and the
+native receipt animation pipeline; apparent depth never becomes machine Z.
+Up to 64 normalised characters and four repeats. Work and complete geometry are
+bounded; dense text uniformly reduces slices/resolution or is refused whole at
+120k points. No later characters are silently dropped. Four live 72 × 100 mm
+Help starters demonstrate the drum, ring, rippled scroll and rocking receipt.
 
 **Pixel Blast** — eight seeded animated black pixel effects: Firework, falling
 Willow trails, three-burst Volley, rising Mushroom cloud, Ground blast,
