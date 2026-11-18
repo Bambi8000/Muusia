@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.206",
-    "commit": "dd4cde334e6fdd28dcd6425fb179e33e39cd35dc",
-    "pagesRunId": 44403120381,
-    "publicAppSha256": "8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7",
+    "version": "2.207",
+    "commit": "15cdd484b5e9440a55ce46131bb76fde4b507567",
+    "pagesRunId": 44418804368,
+    "publicAppSha256": "f808e8ad76b27aad693983497007cda0f08f3b672049936059d1b2f62440a94b",
     "matchesTestedBuild": true,
-    "date": "2026-11-18",
+    "date": "2026-11-19",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.206; animated Eyelashes with optional lower lid, iris choices, masked artwork and tapered spikes; exact tested bytes",
+    "status": "verified public 2.207; GIF to Receipt with colour/monochrome and colouring outlines, all frames frozen and continuous animation strip; exact tested bytes",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -1455,7 +1455,7 @@
   },
   "lastGifReceipt": {
     "date": "2026-11-19",
-    "status": "release_2.207_pending_public_verification",
+    "status": "verified_public_2.207",
     "baseCommit": "176ff8b4fca5506f0c04df353835970fe549915b",
     "branch": "codex/gif-to-receipt",
     "worktree": "/private/tmp/muusia-gif-to-receipt-20261118",
@@ -1463,8 +1463,12 @@
     "validation": "1373 focused checks, 120 computed frames, 66 browser checks, 244 Help graphs, 62 long rolls, 50 m limits, catalog/build/37914 Learn. Native 24 SVG and receipt frames verified; continuous strip byte-identical; Print accepted offline and cut only at end.",
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-receipt",
     "proof": "docs/gif-receipt-checks.json",
-    "publication": "User authorized publication on 2026-11-19; 2.207 release tested, deployment verification pending",
+    "publication": "Muusia 2.207 published and checked on 2026-11-19; all five starters, native GIF import and a complete uncut 24-frame strip verified",
     "physicalPrintSent": false,
-    "releaseEvidence": "docs/gif-receipt-release-checks.json"
+    "releaseEvidence": "docs/gif-receipt-release-checks.json",
+    "published": true,
+    "releaseCommit": "15cdd484b5e9440a55ce46131bb76fde4b507567",
+    "pagesRunId": 44418804368,
+    "publicAppSha256": "f808e8ad76b27aad693983497007cda0f08f3b672049936059d1b2f62440a94b"
   }
 }

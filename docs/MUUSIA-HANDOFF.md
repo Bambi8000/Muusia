@@ -8076,3 +8076,18 @@ public-byte and actual public-browser verification follow below when complete.
 Source counts: 368 modules / 370 registry entries / 235 generators. Primary
 dirty checkout and hardware unchanged. Refresh the clean project snapshot at
 `/private/tmp/muusia-gif-receipt-release-snapshot-20261119` after final metadata.
+
+
+Publication verified: release `15cdd484b5e9440a55ce46131bb76fde4b507567`, exact-commit
+Pages run `44418804368` completed successfully. Public app SHA-256
+`f808e8ad76b27aad693983497007cda0f08f3b672049936059d1b2f62440a94b`
+matches the tested release build byte-for-byte. A fresh public browser shows
+2.207; all five GIF starters match their source statistics. Native colour GIF
+picker loads all 24 frames, switches to GIF file and sets 24 ANIMATE frames;
+Play advances. Actual public Receipt strip ×24 with Cut off downloads one
+512×17712-dot image, identical to the locally validated strip. Offline Print
+accepts it with cut=false and queues no job. No browser warning/error logs.
+Screenshot, native public strip and `public-browser-checks.json` are in the
+artifact directory. Public tab remains on the imported GIF colouring outline.
+Final metadata-only push uses skip-ci, leaving verified app bytes unchanged.
+Clean snapshot refreshed after that commit; no Claude UI upload or physical print.

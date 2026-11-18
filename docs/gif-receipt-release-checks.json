@@ -5,8 +5,8 @@
   "baseCommit": "176ff8b4fca5506f0c04df353835970fe549915b",
   "branch": "codex/gif-to-receipt",
   "worktree": "/private/tmp/muusia-gif-to-receipt-20261118",
-  "status": "Release tested; deployment and public verification pending",
-  "published": false,
+  "status": "Verified public Muusia 2.207; all five GIF starters, native file import, playback and continuous uncut strip verified",
+  "published": true,
   "moduleCount": 368,
   "registryCount": 370,
   "generators": 235,
@@ -33,5 +33,58 @@
   "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-receipt",
   "snapshot": "/private/tmp/muusia-gif-receipt-release-snapshot-20261119 (refresh after final metadata commit; local only)",
   "physicalPrintSent": false,
-  "primaryDirtyWorkspaceChanged": false
+  "primaryDirtyWorkspaceChanged": false,
+  "releaseCommit": "15cdd484b5e9440a55ce46131bb76fde4b507567",
+  "pagesRunId": 44418804368,
+  "publicAppSha256": "f808e8ad76b27aad693983497007cda0f08f3b672049936059d1b2f62440a94b",
+  "matchesTestedBuild": true,
+  "publicBrowser": {
+    "version": "2.207",
+    "presets": [
+      {
+        "name": "Colour to dots",
+        "paths": 3546,
+        "points": 7092
+      },
+      {
+        "name": "Colouring outlines",
+        "paths": 298,
+        "points": 596
+      },
+      {
+        "name": "Light colouring guide",
+        "paths": 890,
+        "points": 1780
+      },
+      {
+        "name": "Turned animation",
+        "paths": 2342,
+        "points": 4684
+      },
+      {
+        "name": "Bold threshold",
+        "paths": 133,
+        "points": 266
+      }
+    ],
+    "loadedFile": [
+      "colour-orbit.gif · 128 × 96 · 24 frames · 2.32 s"
+    ],
+    "stripButton": [
+      "Receipt strip × 24"
+    ],
+    "download": "/Users/daniel/Downloads/patch-animation-strip.muusia-receipt (1).json",
+    "playing": "ANIMATE  —  frame   5 / 24 Frames",
+    "logs": [],
+    "nativeStrip": {
+      "width": 512,
+      "height": 17712,
+      "frames": 24,
+      "cut": false,
+      "equalsTestedNativeStrip": true,
+      "rawSha256": "961c62fe76fd035cfe0db17c3618c10b3bc9354d947135ab3f040e38ac970e2a",
+      "offlinePrintAccepted": true,
+      "noPrintJobQueued": true
+    }
+  }
 }
