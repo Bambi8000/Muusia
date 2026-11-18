@@ -1185,5 +1185,31 @@
       "nativeBrowser": "309 paths / 1854 points; exact SVG bytes and 24 source-identical native SVG frames; 24 validated receipt frames; controls, Play/Pause, fresh load and zero console errors checked."
     },
     "evidence": "docs/pixel-mushroom-checks.json"
+  },
+  "lastPixelBlastRelease": {
+    "version": "2.203",
+    "date": "2026-11-18",
+    "baseCommit": "872b5aca00dd053d48f2794ec3b4362d75ae3bbc",
+    "branch": "codex/pixel-blast-release",
+    "worktree": "/private/tmp/muusia-pixel-explosions-20261118",
+    "status": "Validated and prepared for the user-authorized release; public verification pending",
+    "published": false,
+    "moduleCount": 365,
+    "registryCount": 367,
+    "checks": {
+      "pixelBlast": 841,
+      "helpGraphs": 225,
+      "lint": "passed",
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "implementationNativeBrowser": "See docs/pixel-blast-checks.json and docs/pixel-mushroom-checks.json for actual SVG/G-code/receipt captures, exact source parity and no queued printing."
+    },
+    "testedAppSha256": "b56c63ce9f3fe7584f077141f3767bb5cd313132b983e9a191fadce4f444ed0f",
+    "url": "https://bambi8000.github.io/Muusia/",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false,
+    "snapshot": "/private/tmp/muusia-pixel-blast-release-snapshot-20261118 (refresh after final metadata commit)",
+    "evidence": "docs/pixel-blast-release-checks.json"
   }
 }

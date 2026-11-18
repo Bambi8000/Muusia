@@ -7594,3 +7594,28 @@ Local port 5198 is left open on the enlarged cloud, paused at frame 1/24.
 APP_VERSION remains 2.202; origin/main was fetched and is still f37850d.
 No push/publication, no primary dirty checkout edits. Refresh the local Claude
 snapshot after commit; no Claude UI upload claimed.
+
+### 2.203 — 2026-11-18 · Pixel Blast and rolling mushroom cloud
+
+Daniel explicitly requested publication after the mushroom refinement. Release
+branch `codex/pixel-blast-release`, worktree
+`/private/tmp/muusia-pixel-explosions-20261118`, implementation base
+`872b5aca00dd053d48f2794ec3b4362d75ae3bbc`. Fresh origin/main remains f37850d;
+the two local Pixel Blast commits descend directly from it. APP_VERSION bumps
+once from 2.202 to 2.203. Primary dirty checkout untouched.
+
+Publishes all eight original Pixel Blast effects, nine receipt-sized Help
+starters and the improved mushroom cloud: rising stem, billowing crown,
+counter-rotating folds and late breakup, with Cloud rise / Cap width / Cap roll.
+All output uses existing bounded XY ink and SVG/G-code/receipt exporters.
+Word Shape, Slice Raster, Flying cloth and user-confirmed hardware work remain
+intact. No hardware command or physical print.
+
+Release tree passes 841 Pixel Blast checks, 225 Help graphs, focused lint and
+ordered catalog / production build / 37,914 Learn checks. Generated recency,
+catalog and source bundle regenerated; unchanged outputs stay untouched.
+Native browser/export proof is retained in pixel-blast-checks.json and
+pixel-mushroom-checks.json. Public deployment is pending at this entry; final
+exact-commit Pages run, checksum and browser verification will be appended after
+success. Release proof: `docs/pixel-blast-release-checks.json`. Refresh snapshot
+`/private/tmp/muusia-pixel-blast-release-snapshot-20261118` after final metadata.
