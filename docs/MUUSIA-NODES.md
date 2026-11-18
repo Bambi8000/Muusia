@@ -43,6 +43,11 @@ pixels are real tightly spaced serpentine strokes; Pixel outlines retains each
 cell's outline. No SVG fill or screen-only opacity is required. Source paths
 therefore work with SVG, G-code and the normal black receipt raster renderer.
 Trails, Gravity, Wind, Smoke and Rings appear for the effects that use them.
+Mushroom cloud now grows from a short hot core into a feeding stem, a broad
+billowing cap and two counter-rotating folds, then tears into drifting smoke.
+Cloud rise adjusts its height, Cap width sets the crown's spread and Cap roll
+changes the overturning motion and internal light seams. Seeded texture follows
+individual billows, keeping adjacent poses coherent on the fixed pixel grid.
 Centre, Blast size, Grain and Seed change the composition. Guides never export.
 Grid work is bounded at 45k cells; dense results uniformly increase pixel size
 and retry before allocating paths. The complete result fits 110k points or is

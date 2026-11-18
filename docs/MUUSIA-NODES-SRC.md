@@ -38580,7 +38580,7 @@ import { Pin, EMPTY, noise2 } from "../helpers.js";
 
 export default {
   key: 'pixel_blast', name: 'Pixel Blast', cat: 'gen', group: 'textimg',
-  desc: 'Animated black pixel explosions for receipts and plotters. Firework, Willow, Volley, Mushroom cloud, Ground blast, Shockwave, Collision and Fountain have different growth and debris motion. Choose Manual Phase for a still, or Timeline and Play; integer loops repeat with a short empty interval between events. Each frame is reconstructed from Seed, so scrubbing never accumulates ink. Pixel size is physical millimetres on a fixed grid; Pixel fill controls the gaps. Filled pixels use real tightly spaced serpentine strokes, not SVG-only fills; Pixel outlines is lighter. Trails, Gravity, Wind, Smoke and Rings appear where used. Use a 72 × 100 mm canvas for receipts, then ANIMATE → Receipt × N for numbered frames with registration marks in one ZIP. This downloads files; printing is separate. Dense or long canvases uniformly increase pixel size to retain the whole image within work/point limits. Plotting output is ordinary XY paths. This is a graphic particle effect, not a physical blast simulation.',
+  desc: 'Animated black pixel explosions for receipts and plotters. Firework, Willow, Volley, Mushroom cloud, Ground blast, Shockwave, Collision and Fountain have different growth and debris motion. Mushroom cloud develops from a hot core through a rising stem into rolling billows, then breaks apart. Cloud rise, Cap width and Cap roll control its silhouette and counter-rotating smoke folds. Choose Manual Phase for a still, or Timeline and Play; integer loops repeat with a short empty interval between events. Each frame is reconstructed from Seed, so scrubbing never accumulates ink. Pixel size is physical millimetres on a fixed grid; Pixel fill controls the gaps. Filled pixels use real tightly spaced serpentine strokes, not SVG-only fills; Pixel outlines is lighter. Trails, Gravity, Wind, Smoke and Rings appear where used. Use a 72 × 100 mm canvas for receipts, then ANIMATE → Receipt × N for numbered frames with registration marks in one ZIP. This downloads files; printing is separate. Dense or long canvases uniformly increase pixel size to retain the whole image within work/point limits. Plotting output is ordinary XY paths. This is a graphic particle effect, not a physical blast simulation.',
   ins: [], outs: [Pin('paths', 'Pixels')],
   params: [
     { key: 'effect', label: 'Explosion', type: 'select', options: ['Firework', 'Willow', 'Volley', 'Mushroom cloud', 'Ground blast', 'Shockwave', 'Collision', 'Fountain'], def: 'Firework' },
@@ -38596,6 +38596,9 @@ export default {
     { key: 'gravity', label: 'Gravity %', type: 'slider', min: 0, max: 100, step: 1, def: 45, showIf: p => !['Mushroom cloud', 'Shockwave'].includes(p.effect) },
     { key: 'wind', label: 'Wind %', type: 'slider', min: -100, max: 100, step: 1, def: 0, showIf: p => p.effect !== 'Shockwave' },
     { key: 'smoke', label: 'Smoke %', type: 'slider', min: 0, max: 100, step: 1, def: 65, showIf: p => ['Mushroom cloud', 'Ground blast'].includes(p.effect) },
+    { key: 'rise', label: 'Cloud rise %', type: 'slider', min: 50, max: 150, step: 1, def: 100, showIf: p => p.effect === 'Mushroom cloud' },
+    { key: 'spread', label: 'Cap width %', type: 'slider', min: 50, max: 160, step: 1, def: 100, showIf: p => p.effect === 'Mushroom cloud' },
+    { key: 'curl', label: 'Cap roll %', type: 'slider', min: 0, max: 100, step: 1, def: 70, showIf: p => p.effect === 'Mushroom cloud' },
     { key: 'rings', label: 'Rings', type: 'slider', min: 1, max: 6, step: 1, def: 3, showIf: p => p.effect === 'Shockwave' },
     { key: 'grain', label: 'Grain %', type: 'slider', min: 0, max: 100, step: 1, def: 22 },
     { key: 'cx', label: 'Centre X %', type: 'slider', min: 0, max: 100, step: 1, def: 50 },
@@ -38667,15 +38670,65 @@ export default {
     if(effect==='Firework'||effect==='Willow')firework(t,0,0,1,0,count,effect==='Willow');
     else if(effect==='Volley')for(let j=0;j<3;j++) { const delay=j*.12;firework((t-delay)/(1-delay),[-.55,.48,0][j],[-.28,-.12,.38][j],.58,j+1,Math.ceil(count/3)); }
     else if(effect==='Mushroom cloud') {
-      const u=smooth((t-.04)/.72),h=1.55*u,w=.15+.78*Math.sqrt(u),drift=wind*u*.4;
-      if(t<.14)puff(0,0,.38*smooth(t/.1),.2,1.2);
-      if(u>0) {
-        for(let j=0;j<12;j++) { const v=j/11; puff(drift*v+.045*Math.sin(v*15-t*6)*u,-h*v,.10+.10*(1-v)*u,.13+.045*u,(.65+.4*smoke)*Math.min(1,u*5)); }
-        puff(drift,-h,w*.88,.18+.07*u,(.55+.6*smoke)*Math.min(1,u*5));
-        for(let j=0;j<9;j++) { const a=j/8*Math.PI,rx=Math.cos(a)*w*.78,ry=-Math.sin(a)*.18*u; puff(drift+rx,-h+ry,w*(.25+.1*random(j,2)),(.19+.12*random(j,3))*Math.sqrt(u),(.65+.55*smoke)*Math.min(1,u*5),.3); }
-        puff(drift-w*.51,-h+.11,w*.43,.17+.05*u,.7+.35*smoke,.8);puff(drift+w*.51,-h+.11,w*.43,.17+.05*u,.7+.35*smoke,.8);
-        ring(0,.03,Math.min(1.2,t*2),.12*u,.4+smoke*.3,.2);
+      // A fixed Eulerian pixel grid samples moving billows. Texture travels with
+      // each billow, rather than being reseeded at screen positions every frame.
+      const lift=smooth((t-.08)/.78),bloom=smooth((t-.16)/.5),decay=smooth((t-.66)/.32);
+      const rise=n(p.rise,100,50,150)/100,spread=n(p.spread,100,50,160)/100,roll=n(p.curl,70,0,100)/100;
+      const h=(.12+1.62*lift)*rise,w=(.12+.75*bloom+.12*decay)*spread,drift=wind*lift*lift*.48;
+      const born=smooth((t-.025)/.12),lobes=[];
+      const lobe=(x,y,rx,ry,id,spin=0,power=1)=>lobes.push({x,y,rx,ry,id,spin,power});
+      // The central column feeds the cap; its edges develop rising, widening knots.
+      for(let j=0;j<11;j++) {
+        const v=j/10,phase=t*2.6-v*1.2,bulge=.5+.5*Math.sin(phase*Math.PI*2);
+        const bend=Math.sin(v*9-t*5)*.035*lift;
+        lobe(drift*v*v+bend,-h*v,.075+(.07*bulge+.075*(1-v))*lift+.035*decay,.12+.07*lift,j,Math.sin(j*7)*roll*.4,(1-.65*decay)*born);
       }
+      // A crown of unequal billows lifts first; the two outer rolls turn down
+      // and back in, making the cap visibly overturn instead of just scaling.
+      for(let j=0;j<7;j++) {
+        const a=j/6*Math.PI,id=30+j,r=.22+.07*random(id,2),shoulder=Math.cos(a)*w*.7;
+        lobe(drift+shoulder,-h-Math.sin(a)*(.11+.12*bloom),w*(r+.04*decay),(.12+.22*bloom+.06*decay)*( .88+.22*random(id,3)),id,-Math.sign(shoulder)*roll*t*4.8,born);
+      }
+      for(const side of [-1,1]) {
+        const angle=(t-.16)*roll*5.3,rx=.19+.15*bloom;
+        lobe(drift+side*(w*.66+Math.sin(angle)*rx*.45),-h+.015+.045*(1-Math.cos(angle)),w*.35,.15+.09*bloom,side<0?51:52,-side*angle*1.7,born);
+      }
+      for(const q of lobes) {
+        const X=cx+q.x*S,Y=cy+q.y*S,RX=Math.max(pitch,q.rx*S),RY=Math.max(pitch,q.ry*S);
+        const c0=Math.max(0,Math.floor((X-RX*1.15-x0)/pitch)),c1=Math.min(cols-1,Math.floor((X+RX*1.15-x0)/pitch));
+        const r0=Math.max(0,Math.floor((Y-RY*1.15-y0)/pitch)),r1=Math.min(rows-1,Math.floor((Y+RY*1.15-y0)/pitch));
+        for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++) {
+          const u=(x0+(c+.5)*pitch-X)/RX,v=(y0+(r+.5)*pitch-Y)/RY;
+          const a=Math.atan2(v,u),d=Math.hypot(u,v),ragged=1+.10*(noise2(u*3+q.id,v*3,seed+80)-.5)*2;
+          if(d>ragged)continue;
+          const theta=a-q.spin-roll*(1-d)*3.6,tx=Math.cos(theta)*d,ty=Math.sin(theta)*d;
+          const body=noise2(tx*3.4+q.id*7,ty*3.4,seed+91),fine=noise2(tx*9+q.id*3,ty*9,seed+92);
+          const rim=smooth((d-.67)/.23)*(.72+.24*v),volume=(.28+.72*body)*(.76+.24*v);
+          const edge=1-smooth((d/ragged-.86)/.14),dissolve=smooth((body+fine*.25-decay*.86)/.24);
+          const density=Math.max(rim*(.66+.55*smoke),volume*(.45+.65*smoke))*edge*dissolve*q.power;
+          put(x0+(c+.5)*pitch,y0+(r+.5)*pitch,density);
+        }
+      }
+      // Light seams trace a pair of counter-rotating rolls through the combined
+      // cap, so overlapping puffs cannot hide all of its internal movement.
+      if(bloom>0)for(let r=0;r<rows;r++)for(let c=0;c<cols;c++) {
+        const k=r*cols+c;if(!field[k])continue;
+        const x=(x0+(c+.5)*pitch-cx)/S-drift,y=(y0+(r+.5)*pitch-cy)/S+h;
+        if(Math.abs(x)>w*1.15||Math.abs(y)>.55)continue;
+        let seam=0;
+        for(const side of [-1,1]) {
+          const u=(x-side*w*.48)/(w*.49),v=(y-.025)/(.15+.13*bloom),d=Math.hypot(u,v);
+          const a=Math.atan2(v,u)*side,turn=a+d*5.6-roll*t*7;
+          const groove=smooth((Math.cos(turn)-.72)/.23)*smooth((d-.06)/.18)*(1-smooth((d-.78)/.28));
+          seam=Math.max(seam,groove);
+        }
+        field[k]*=1-seam*roll*bloom*.88;
+      }
+      // Short hot core, then a broad uneven skirt which settles as the cap rises.
+      if(t<.24)puff(0,-.06,.12+.28*smooth(t/.15),.12+.24*smooth(t/.18),1.4*(1-smooth((t-.12)/.12)));
+      const skirt=smooth((t-.06)/.32)*(1-smooth((t-.62)/.25));
+      if(skirt>0)for(let j=0;j<13;j++) { const v=j/12*2-1; puff(v*(.16+t*1.35),.02-Math.sin(j*8)*.025,.09+.08*skirt,.04+.04*skirt,skirt*(.35+.5*smoke)); }
+      ring(0,.045,Math.min(1.16,t*2),.035+.045*lift,(1-smooth((t-.28)/.35))*.75,.22);
     } else if(effect==='Shockwave') {
       const rings=Math.round(n(p.rings,3,1,6));
       for(let j=0;j<rings;j++) { const u=(t-j*.085)/(1-j*.06); if(u>0&&u<1)ring(0,0,.06+u*1.3,.06+u*1.3,(1-u*.65),grain*.42); }

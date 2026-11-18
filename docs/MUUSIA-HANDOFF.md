@@ -7558,3 +7558,39 @@ bitmap bytes. These are not UI screenshots. Local app port 5198 → Help →
 Pixel Blast; final enlarged Firework preview is kept open at 24 frames.
 Previous Word Shape/Slice Raster/Drape release and hardware confirmations remain
 intact; Robot Cave Art remains absent. No physical print or publish in this task.
+
+### W — 2026-11-18 · Pixel Blast mushroom motion refinement, local
+
+Daniel requested a better mushroom cloud. Base
+`0e8f229cbfddb4fabd077f41ec2a0bf3c2e294a4`, continuing the clean
+`codex/pixel-explosions` worktree at `/private/tmp/muusia-pixel-explosions-20261118`.
+The cloud now develops through a hot core, feeding stem, widening crown,
+overturning shoulders and late smoke breakup. Unequal seeded billows carry their
+own texture; two counter-rotating light seams reveal internal motion through
+overlapping puffs. Dust settles as the cap lifts. Mushroom-only controls:
+Cloud rise 50–150%, Cap width 50–160%, Cap roll 0–100%. Help's mushroom pose
+starts at Phase 50. Existing pixels, loop behavior and complete output limits
+remain. The seven other models match the parent byte-for-byte at 28 poses.
+
+841 focused checks pass, including growth, cap/stem geometry, new controls,
+adjacent-pose coherence, breakup, malformed values, portable parity, bounds,
+budgets and actual SVG/servo/bed-Z exporters. Focused lint, all 225 Help graphs
+and the ordered catalog/build/37,914 Learn gate pass. Native baked app, including
+a fresh reload: 309 paths / 1,854 points; SVG matches source bytes; 24 native SVG
+frames also match exactly. Native G-code retains all 1,545 draw moves without
+bounds warnings. Three controls, Play/Pause and restoration checked; no console
+warning/error logs. The actual 24-frame receipt ZIP has 23 distinct image bodies
+including its intentional empty interval; all 24 pass the offline Print parser.
+No server/queue started and no physical printing.
+
+`tools/preview-pixel-mushroom.mjs <directory> [previous-source.js]` reproduces the
+48-frame actual-vector GIF, optional same-seed before/after GIF, six-stage contact
+sheet, portable node and self-contained project. Proof: `docs/pixel-mushroom-checks.json`.
+Artifacts are in WORKSTATE's lastPixelMushroom directory. The new
+`mushroom-24-receipts.zip` directly contains 24 receipt JSONs, so this ZIP can be
+imported into Print as-is. Older eight-style collection is historical and has
+the earlier cloud; use this new standalone batch for the refined cloud.
+Local port 5198 is left open on the enlarged cloud, paused at frame 1/24.
+APP_VERSION remains 2.202; origin/main was fetched and is still f37850d.
+No push/publication, no primary dirty checkout edits. Refresh the local Claude
+snapshot after commit; no Claude UI upload claimed.

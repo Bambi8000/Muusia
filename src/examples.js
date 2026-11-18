@@ -913,7 +913,7 @@ export const EXAMPLES = [
     { title: "Firework", effect: "Firework", phase: 45, cy: 50, amount: 640, gravity: 35, trails: 65, grain: 22 },
     { title: "Willow trails", effect: "Willow", phase: 58, cy: 37, amount: 480, gravity: 85, trails: 100, grain: 25 },
     { title: "Volley", effect: "Volley", phase: 58, cy: 50, amount: 1000, gravity: 35, trails: 65, grain: 22 },
-    { title: "Mushroom cloud", effect: "Mushroom cloud", phase: 58, cy: 84, amount: 640, gravity: 45, trails: 60, grain: 65, smoke: 75 },
+    { title: "Mushroom cloud", effect: "Mushroom cloud", phase: 50, cy: 84, amount: 640, gravity: 45, trails: 60, grain: 65, smoke: 75 },
     { title: "Ground blast", effect: "Ground blast", phase: 48, cy: 78, amount: 800, gravity: 55, trails: 80, grain: 45, smoke: 55 },
     { title: "Shockwave", effect: "Shockwave", phase: 52, cy: 50, amount: 640, gravity: 45, trails: 60, grain: 30, rings: 4 },
     { title: "Collision", effect: "Collision", phase: 62, cy: 50, amount: 520, gravity: 30, trails: 70, grain: 40 },

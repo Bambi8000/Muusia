@@ -45,6 +45,24 @@ for(const patch of [{},{fill:100},{draw:'Pixel outlines'},{effect:'Mushroom clou
 }
 const stats=(over={})=>{const p={...d,...over},L=N._layout(p,ctx),{bits}=N._pixels(p,ctx,L);let n=0,x=0,y=0,x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;for(let r=0;r<L.rows;r++)for(let c=0;c<L.cols;c++)if(bits[r*L.cols+c]){const X=L.x+(c+.5)*L.pitch,Y=L.y+(r+.5)*L.pitch;n++;x+=X;y+=Y;x0=Math.min(x0,X);x1=Math.max(x1,X);y0=Math.min(y0,Y);y1=Math.max(y1,Y);}return {n,x:x/n,y:y/n,x0,x1,y0,y1,L,bits};};
 ok(stats({effect:'Mushroom cloud',cy:84,phase:65}).y0<stats({effect:'Mushroom cloud',cy:84,phase:25}).y0-10,'cloud rises and develops a stem');
+const mushroom={effect:'Mushroom cloud',cy:84,size:80,phase:60};
+const capWidth=s=>{let lo=Infinity,hi=-Infinity;for(let r=0;r<s.L.rows;r++)for(let c=0;c<s.L.cols;c++)if(s.bits[r*s.L.cols+c]&&s.L.y+(r+.5)*s.L.pitch<s.L.cy-10){const x=s.L.x+(c+.5)*s.L.pitch;lo=Math.min(lo,x);hi=Math.max(hi,x);}return hi-lo;};
+ok(capWidth(stats({...mushroom,spread:130}))>capWidth(stats({...mushroom,spread:50}))*1.6,'cap width control changes the elevated cap, independently of ground dust');
+ok(stats({...mushroom,rise:120}).y0<stats({...mushroom,rise:50}).y0-10,'cloud rise control changes physical height');
+ok(capWidth(stats({...mushroom,phase:65}))>capWidth(stats({...mushroom,phase:32}))*1.5,'cap blooms after the initial column');
+ok(stats({...mushroom,phase:90}).n<stats({...mushroom,phase:65}).n*.45,'late smoke breaks up before the loop resets');
+for(const patch of [{rise:50},{rise:150},{spread:50},{spread:160},{curl:0},{curl:100},{smoke:0},{smoke:100}]){
+ valid(run({...mushroom,...patch}));ok(hash(run({...mushroom,...patch}))!==hash(run(mushroom)),'live mushroom '+hash(patch));
+}
+const cloudMid=stats({...mushroom,phase:55}),cloudNext=stats({...mushroom,phase:56}),cloudLater=stats({...mushroom,phase:75});
+const overlap=(a,b)=>{let both=0,either=0;for(let i=0;i<a.bits.length;i++){if(a.bits[i]&&b.bits[i])both++;if(a.bits[i]||b.bits[i])either++;}return both/either;};
+ok(overlap(cloudMid,cloudNext)>.6&&overlap(cloudMid,cloudNext)>overlap(cloudMid,cloudLater),'nearby poses move coherently rather than replacing all smoke');
+for(const phase of [20,45,70]){
+ const s=stats({...mushroom,phase});let rooted=0;for(let r=0;r<s.L.rows;r++)for(let c=0;c<s.L.cols;c++)if(s.bits[r*s.L.cols+c]){const x=s.L.x+(c+.5)*s.L.pitch,y=s.L.y+(r+.5)*s.L.pitch;if(y>s.L.cy-6&&y<s.L.cy&&Math.abs(x-s.L.cx)<s.L.scale*.12)rooted++;}
+ ok(rooted>3,'stem feeds cloud from a stable origin');
+}
+for(const phase of [12,38,63,87]){const p={...d,...mushroom,phase},portableCloud=new Function(...Object.keys(H),'return '+portableSource())(...Object.values(H));ok(hash(portableCloud.compute([],p,ctx))===hash(N.compute([],p,ctx)),'new mushroom is self-contained at every stage');}
+for(const patch of [{rise:NaN,spread:Infinity,curl:-100},{rise:150,spread:160,curl:100,smoke:100,pixel:.5}])valid(run({...mushroom,...patch}));
 const cloud=stats({effect:'Mushroom cloud',cy:84,phase:58});let upper=0,lower=0;for(let r=0;r<cloud.L.rows;r++)for(let c=0;c<cloud.L.cols;c++)if(cloud.bits[r*cloud.L.cols+c]){const Y=cloud.L.y+(r+.5)*cloud.L.pitch,X=cloud.L.x+(c+.5)*cloud.L.pitch;if(Y<cloud.y)upper=Math.max(upper,Math.abs(X-cloud.L.cx));else if(Y>cloud.y+8&&Y<cloud.L.cy-6)lower=Math.max(lower,Math.abs(X-cloud.L.cx));}ok(upper>lower*1.5,'mushroom cap wider than stem');
 ok(stats({wind:100,phase:65}).x>stats({wind:-100,phase:65}).x+2,'wind transports ink horizontally');
 ok(stats({gravity:100}).y>stats({gravity:0}).y+1,'gravity curves spark paths down');
@@ -56,8 +74,9 @@ for(const c of [{W:297,H:210},{W:30,H:20},{W:72,H:1000},{W:72,H:10000},{W:100000
 for(const c of [{W:0,H:100},{W:NaN,H:100},{W:6,H:6},{W:1,H:100000},{}])ok(!run({},c).paths.length,'invalid or impossible canvas empty');
 valid(run({pixel:NaN,amount:Infinity,phase:47,gravity:-100,wind:10000,size:10000,fill:-100,layer:100,seed:NaN}));
 for(const p of [{}, {...d,effect:'Mushroom cloud'},{...d,effect:'Shockwave'}]){
- const visible=N.params.filter(q=>!q.showIf||q.showIf(p)).map(q=>q.key);if(p.effect==='Mushroom cloud')ok(visible.includes('smoke')&&!visible.includes('gravity')&&!visible.includes('trails'),'cloud controls scoped');if(p.effect==='Shockwave')ok(visible.includes('rings')&&!visible.includes('wind'),'shock controls scoped');
+ const visible=N.params.filter(q=>!q.showIf||q.showIf(p)).map(q=>q.key);if(p.effect==='Mushroom cloud')ok(['smoke','rise','spread','curl'].every(k=>visible.includes(k))&&!visible.includes('gravity')&&!visible.includes('trails'),'cloud controls scoped');if(p.effect==='Shockwave')ok(visible.includes('rings')&&!visible.includes('wind'),'shock controls scoped');
 }
+for(const effect of N.params[0].options.filter(e=>e!=='Mushroom cloud'))ok(N.params.filter(q=>['rise','spread','curl'].includes(q.key)).every(q=>!q.showIf({...d,effect})),'cloud controls hidden in '+effect);
 ok(Array.isArray(N.overlay({},{}))&&N.overlay(d,ctx).some(q=>q.kind==='point'),'guarded spatial overlay');
 
 const app=fs.readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8'),ast=parseAst(app,{lang:'jsx'}),decl=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='toGcode');

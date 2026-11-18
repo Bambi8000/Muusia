@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-18",
+  "baseCommit": "0e8f229cbfddb4fabd077f41ec2a0bf3c2e294a4",
+  "branch": "codex/pixel-explosions",
+  "worktree": "/private/tmp/muusia-pixel-explosions-20261118",
+  "status": "Complete local mushroom cloud refinement; not published; APP_VERSION remains 2.202",
+  "behavior": [
+    "Staged hot core, rising feeding column, widening crown, overturning shoulders, settling dust and coherent late breakup",
+    "Seeded texture advected with individual billows; two counter-rotating light seams remain visible through overlapping puffs",
+    "Cloud rise 50\u2013150%, Cap width 50\u2013160%, Cap roll 0\u2013100%; visible only for Mushroom cloud",
+    "Existing fixed physical pixels, Manual/Timeline, exact loop endpoints and complete output budgets retained",
+    "Help mushroom starter opens at Phase 50 with 72 x 100 mm canvas; seven other effects unchanged"
+  ],
+  "validation": {
+    "focused": 841,
+    "otherEffectByteParity": 28,
+    "otherEffectParityDescription": "All seven other models compared with the parent implementation at four phases each; exact path geometry equality.",
+    "helpGraphs": 225,
+    "lint": "changed node, examples and preview/validator tools pass without warnings/errors",
+    "catalog": "passed; source hashes current",
+    "build": "passed",
+    "learn": 37914,
+    "nativeBrowser": {
+      "paths": 309,
+      "points": 1854,
+      "svgPaths": 309,
+      "svgByteParity": true,
+      "gcodeDrawMoves": 1545,
+      "gcodeBoundsWarning": false,
+      "controls": {
+        "rise70": {
+          "paths": 298,
+          "points": 1788
+        },
+        "width65": {
+          "paths": 293,
+          "points": 1758
+        },
+        "roll0": {
+          "paths": 277,
+          "points": 1662
+        },
+        "restored": {
+          "paths": 309,
+          "points": 1854
+        }
+      },
+      "playPause": "Advanced Timeline to frame 2, paused and returned to frame 1.",
+      "freshLoad": "Reloaded baked app; Help starter renders exact 309 paths / 1854 points, three new controls present, no warning/error logs.",
+      "finalTab": "http://127.0.0.1:5198/ \u2014 Mushroom cloud enlarged preview, paused at frame 1/24",
+      "screenshot": "mushroom-browser.jpg"
+    },
+    "nativeExports": {
+      "nativeSvgFramesMatchingSource": 24,
+      "receiptFrames": 24,
+      "width": 512,
+      "height": 738,
+      "distinctImageBodies": 23,
+      "blankImageBodies": 2,
+      "offlinePrintParserAccepted": 24,
+      "jobsQueued": 0,
+      "serverStarted": false,
+      "physicalPrintSent": false,
+      "receiptZipSha256": "18d474196ab7ed0e59188ba714d130cf55a75c078d448080ad92515f9bfb99ef"
+    }
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/pixel-mushroom-v2",
+  "media": {
+    "mushroom-cloud.gif": "48-frame actual-vector animation",
+    "mushroom-before-after.gif": "48-frame same-seed comparison with parent source",
+    "mushroom-stages.gif": "Six actual vector poses at 8/20/35/50/68/84%",
+    "native-receipt-frame-01.png": "PNG decoded from actual 1-bit receipt bytes",
+    "mushroom-browser.jpg": "Actual browser screenshot"
+  },
+  "publication": false,
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "snapshot": "/private/tmp/muusia-pixel-mushroom-snapshot-20261118 (refresh after commit)"
+}

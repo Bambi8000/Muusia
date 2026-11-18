@@ -1127,8 +1127,8 @@ export const NODE_RECENCY = {
   },
   "pixel_blast": {
     "date": "2026-11-18",
-    "order": 150,
-    "sha256": "0cb13328f26f82c5544cc57d01b85dd598996529e91b1308db0f4e395139fa34"
+    "order": 151,
+    "sha256": "d6e0a39318c3c760d105dddb2a839bb4b43dbc6a75fbc98f1c1b895ce335410c"
   },
   "plaid": {
     "date": "2026-09-15",

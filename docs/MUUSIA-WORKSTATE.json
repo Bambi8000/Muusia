@@ -1161,6 +1161,29 @@
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/pixel-blast",
     "physicalPrintSent": false,
     "primaryDirtyWorkspaceChanged": false,
-    "snapshot": "/private/tmp/muusia-pixel-blast-snapshot-20261118 (refresh after commit)"
+    "snapshot": "/private/tmp/muusia-pixel-blast-snapshot-20261118 (refresh after commit)",
+    "mushroomRefinement": "See lastPixelMushroom and docs/pixel-mushroom-checks.json for the newer cloud motion and receipt batch."
+  },
+  "lastPixelMushroom": {
+    "date": "2026-11-18",
+    "baseCommit": "0e8f229cbfddb4fabd077f41ec2a0bf3c2e294a4",
+    "branch": "codex/pixel-explosions",
+    "worktree": "/private/tmp/muusia-pixel-explosions-20261118",
+    "status": "Complete local mushroom cloud refinement; not published; APP_VERSION remains 2.202",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/pixel-mushroom-v2",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false,
+    "snapshot": "/private/tmp/muusia-pixel-mushroom-snapshot-20261118 (refresh after commit)",
+    "validation": {
+      "focused": 841,
+      "otherEffectByteParity": 28,
+      "helpGraphs": 225,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "nativeBrowser": "309 paths / 1854 points; exact SVG bytes and 24 source-identical native SVG frames; 24 validated receipt frames; controls, Play/Pause, fresh load and zero console errors checked."
+    },
+    "evidence": "docs/pixel-mushroom-checks.json"
   }
 }
