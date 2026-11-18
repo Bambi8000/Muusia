@@ -1223,7 +1223,7 @@
     "baseCommit": "55e93007deaf1c0f50c052b63e1e693f774edd95",
     "branch": "codex/text-roll",
     "worktree": "/private/tmp/muusia-text-roll-20261118",
-    "status": "Complete local built-in Text Roll node; not published; APP_VERSION stays 2.203",
+    "status": "Complete local Text Roll with Floating letters and Raised ribbon; not published; APP_VERSION stays 2.203",
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/text-roll",
     "physicalPrintSent": false,
     "primaryDirtyWorkspaceChanged": false,
@@ -1237,6 +1237,30 @@
       "lint": "passed",
       "nativeBrowser": "Four exact-stat Help starters; editable text, all movements, transparent/restored ink, Play/Pause and fresh built-in load; 283-path source-identical SVG, complete G-code and 24 exact native SVG frames; 24 validated receipt frames; no final-load warning/error logs."
     },
-    "evidence": "docs/text-roll-checks.json"
+    "evidence": "docs/text-roll-checks.json",
+    "ribbonUpdate": "See lastTextRibbon and docs/text-ribbon-checks.json for continuous horizontal rows and the preserved Floating mode."
+  },
+  "lastTextRibbon": {
+    "date": "2026-11-18",
+    "baseCommit": "148741528753599d71e542a529644cd584b65837",
+    "branch": "codex/text-roll",
+    "worktree": "/private/tmp/muusia-text-roll-20261118",
+    "status": "Complete local Raised ribbon construction; existing Floating letters preserved; not published; APP_VERSION remains 2.203",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/text-ribbon",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false,
+    "snapshot": "/private/tmp/muusia-text-ribbon-snapshot-20261118 (refresh after commit; local only)",
+    "validation": {
+      "ribbonFocused": 438,
+      "floatingRegression": 786,
+      "unchangedFloatingPoses": 24,
+      "helpGraphs": 232,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "nativeBrowser": "Three new ribbon starters and original Floating drum; complete 56-row SVG, 399-path visible source-identical SVG, complete G-code, 24 source-identical SVG frames and 24 unique native receipts; no warning/error logs."
+    },
+    "evidence": "docs/text-ribbon-checks.json"
   }
 }

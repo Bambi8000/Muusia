@@ -910,6 +910,16 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   ...[
+    {title:'Raised ribbon',params:{wave:0,twist:0,roll:-10,elevation:28,depth:100,shoulder:3}},
+    {title:'Wave ribbon',params:{text:'FLOW',wave:15,twist:25,depth:100,roll:-8,elevation:24,height:250,shoulder:3}},
+    {title:'Raised ring',params:{text:'TYPE LOOP',surface:'Ring',height:90,radius:140,depth:70,ribbonLines:48,wave:0,twist:0,roll:0,elevation:50,phase:40}},
+  ].map(m=>({
+    name:'Text Roll · '+m.title,
+    desc:'Select Text Roll, Construction Raised ribbon. This is one continuous band ruled with horizontal rows: each row rises into the letter strokes, runs along their raised surface and returns to the band in spaces and counters. The letters share the ribbon. Horizontal lines changes the stripes; Letter depth changes relief, Relief shoulder rounds its rise and Ribbon padding adds blank borders. Drum wraps an upright ribbon, Ring lays it into an annulus. Scroll, Rock and Tumble work with Manual Phase or Timeline. Set 24 or 32 ANIMATE frames and Play; the framing stays fixed and endpoints match. Hidden lines off reveals complete closed rows including the far side. Construction Floating letters retains the original separate letter sculptures. On this 72 × 100 mm canvas, Receipt × N downloads numbered registered frames; SVG/G-code use the same XY ink. Printing is separate.',
+    canvas:{W:72,H:100},
+    make:defaults=>({nodes:[{id:9101,type:'text_roll',x:40,y:20,params:{...defaults('text_roll'),construction:'Raised ribbon',time:'Timeline',...m.params}}],edges:[]}),
+  })),
+  ...[
     {title:'Sculpted drum',params:{}},
     {title:'Rolling ring',params:{text:'TYPE LOOP',surface:'Ring',height:90,radius:130,depth:75,slices:22,twist:20,elevation:46,phase:40,roll:12,wave:15}},
     {title:'Rippled scroll',params:{text:'FLOW',height:220,arc:290,depth:80,slices:26,wave:40,waves:3,twist:70,elevation:20,phase:110}},

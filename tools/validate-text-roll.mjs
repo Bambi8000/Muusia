@@ -68,7 +68,7 @@ ok(ink(run({hidden:false}))>ink(base),'back contours add actual exportable ink')
 ok(Array.isArray(N.overlay({},{}))&&N.overlay(d,canvas).some(q=>q.kind==='point'),'guarded placement guides');
 const portable=new Function(...Object.keys(H),'return '+source())(...Object.values(H));
 for(const p of [{},{surface:'Ring',phase:140},{hidden:false},{text:'ÄÖÅ'}])ok(json(portable.compute([],{...d,...p},canvas))===json(run(p)),'self-contained node parity');
-const help=EXAMPLES.filter(e=>e.name.startsWith('Text Roll · '));ok(help.length===presets.length,'four built-in Help starters');
+const help=EXAMPLES.filter(e=>presets.some(p=>e.name==='Text Roll · '+p.name));ok(help.length===presets.length,'four original floating Help starters');
 for(const [i,ex]of help.entries()){const graph=ex.make(()=>defaults());ok(ex.name==='Text Roll · '+presets[i].name&&json(N.compute([],graph.nodes[0].params,ex.canvas))===json(run({...presets[i].params,time:'Timeline'})),'Help and portable preset source parity');}
 const app=fs.readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8'),ast=parseAst(app,{lang:'jsx'}),decl=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='toGcode');
 const toGcode=new Function('PENS','pathLength','needleExportError','APP_VERSION',app.slice(decl.start,decl.end)+';return toGcode;')(H.PENS,H.pathLength,needleExportError,'test');

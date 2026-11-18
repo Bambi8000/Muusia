@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-18",
+  "baseCommit": "148741528753599d71e542a529644cd584b65837",
+  "branch": "codex/text-roll",
+  "worktree": "/private/tmp/muusia-text-roll-20261118",
+  "status": "Complete local Raised ribbon construction; existing Floating letters preserved; not published; APP_VERSION remains 2.203",
+  "reference": {
+    "url": "https://www.instagram.com/p/DfCZV25jedu/?img_index=1",
+    "author": "Studio Daniel Maarleveld",
+    "reinspection": "Revisited the user-opened video and its moving poses after the correction: horizontal rows traverse a shared ribbon and lift into lettering. This differs from the earlier separate extruded glyph outlines. No reference code/media copied."
+  },
+  "behavior": [
+    "Construction Floating letters preserves the original separate solid glyph sculptures, including old patches with no Construction key",
+    "Construction Raised ribbon is one connected periodic height-field band with two boundary loops; spaces and counters remain part of the band",
+    "Horizontal rows continue across the entire band, raising at letter strokes and returning to its base; rows are local to the ribbon before camera projection",
+    "Drum and Ring, Scroll/Rock/Tumble, Manual/Timeline and exact loops all work; no machine Z from relief",
+    "Horizontal lines, Relief shoulder and Ribbon padding are scoped to the new mode; floating Arc/Contour slices remain intact and are inactive for the closed ribbon",
+    "Empty text leaves a plain band. Dense work is uniformly reduced or refused whole. No partial strip allocation/export.",
+    "Three new live 72 x 100 mm starters: Raised ribbon, Wave ribbon and Raised ring; the four Floating starters remain"
+  ],
+  "validation": {
+    "ribbonFocused": 438,
+    "floatingRegression": 786,
+    "unchangedFloatingPoses": 24,
+    "floatingParityDescription": "Parent source compared at 24 exact poses covering both shapes, all three movements and four phases.",
+    "helpGraphs": 232,
+    "lint": "passed without warnings/errors",
+    "catalog": "passed; 366 modules / 368 registry entries / 233 generators",
+    "build": "passed",
+    "learn": 37914,
+    "topology": "One connected manifold band with exactly two boundary loops and no glyph holes/seam crack. Continuous horizontal rows share base and raised radii.",
+    "coverage": "Both shapes, all movements, loops/random access, O counter base, zero/empty relief, new controls, exact portable/Help parity, margins/framing, dense budgets, actual SVG and servo/bed-Z exports.",
+    "nativeBrowser": {
+      "models": [
+        {
+          "title": "Wave ribbon",
+          "stats": "~\t\t\t361 text \u2007278  paths \u00b7  \u200726785  pts \u00b7  \u2007\u20072.44  m"
+        },
+        {
+          "title": "Raised ring",
+          "stats": "~\t\t\t361 text \u2007475  paths \u00b7  \u200741828  pts \u00b7  \u2007\u20073.72  m"
+        },
+        {
+          "title": "Sculpted drum",
+          "stats": "~\t\t\t361 text \u2007283  paths \u00b7  \u200722994  pts \u00b7  \u2007\u20072.76  m"
+        },
+        {
+          "title": "Raised ribbon",
+          "stats": "~\t\t\t361 text \u2007399  paths \u00b7  \u200733001  pts \u00b7  \u2007\u20073.00  m"
+        }
+      ],
+      "completeRows": "Hidden lines off: 56 closed paths / 17920 points",
+      "rows28": "333 visible paths / 28067 points",
+      "restored": "399 paths / 33001 points",
+      "play": "frame 3/24; 615 paths / 32613 points",
+      "freshLoadAt": "2026-11-18T11:39:32.054Z",
+      "logs": []
+    },
+    "nativeStatic": {
+      "svgPaths": 399,
+      "points": 33001,
+      "svgByteParity": true,
+      "completeClosedRows": 56,
+      "gcodeLowers": 399,
+      "gcodeDrawMoves": 32603,
+      "boundsWarning": false
+    },
+    "nativeAnimation": {
+      "nativeSvgFramesMatchingSource": 24,
+      "receiptFrames": 24,
+      "distinctImageBodies": 24,
+      "width": 512,
+      "height": 738,
+      "offlinePrintParserAccepted": 24,
+      "serverStarted": false,
+      "jobsQueued": 0,
+      "physicalPrintSent": false,
+      "receiptZipSha256": "b6e7c7d4e56a312032128d73bff566e75813dcf4c511db5f89ee22ef994ce3d8"
+    }
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/text-ribbon",
+  "media": {
+    "raised-ribbon.gif": "32-frame actual-vector animation of the new ribbon",
+    "text-ribbon-gallery.gif": "Three actual ribbon variants plus preserved Floating letters",
+    "ribbon-browser.jpg": "Actual fresh built-in app screenshot",
+    "native-receipt-frame-01.png": "Decoded actual 1-bit receipt"
+  },
+  "publication": false,
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "limits": [
+    "Horizontal means along the unwrapped ribbon; perspective, wave and view roll can curve or tilt those rows on screen.",
+    "Visibility is approximate at the existing bounded 420-cell buffer; fine contours may break into short runs.",
+    "Relief is a graphic continuous surface; no collision simulation or machine-depth command."
+  ],
+  "snapshot": "/private/tmp/muusia-text-ribbon-snapshot-20261118 (refresh after commit; local only)"
+}

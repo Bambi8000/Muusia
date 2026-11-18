@@ -7689,3 +7689,52 @@ No publication requested for this new node; no push or physical print. Primary
 dirty checkout and earlier published 2.203 remain untouched. Fresh origin/main
 still 55e9300. Refresh local snapshot `/private/tmp/muusia-text-roll-snapshot-20261118`
 after commit; no Claude UI upload claimed.
+
+### W — 2026-11-18 · Text Roll continuous horizontal ribbon, local
+
+Daniel clarified that the example has horizontal lines belonging to one ribbon,
+rising into the lettering, and explicitly asked to keep the Floating mode.
+Reference DfCZV25jedu was revisited in the user-opened browser before completing
+the new geometry. Base `148741528753599d71e542a529644cd584b65837`, continuing
+`codex/text-roll` at `/private/tmp/muusia-text-roll-20261118`.
+
+Construction now offers Floating letters and Raised ribbon. Old patches without
+the setting remain Floating and are byte-identical at 24 tested poses. The new
+mode is a connected periodic height-field sheet with two band boundaries.
+Horizontal UV rows traverse spaces, rise at the glyph strokes and return to the
+base inside counters. They are not nested letter outlines. The whole sheet
+participates in two-sided visibility; Hidden lines off exposes complete closed
+rows. Horizontal lines, Relief shoulder and Ribbon padding are scoped controls.
+Existing Letter depth sets relief. Drum/Ring and Scroll/Rock/Tumble remain;
+integer loops, random access and fixed camera framing apply to the new mode.
+The ribbon closes around a full circle; floating Arc and Contour slices are
+inactive there. Empty text leaves a plain band. Dense requests adapt as a whole
+or refuse; no partial strip. All output remains ordinary XY, no machine Z.
+Three new receipt-sized Help starters plus the original four Floating starters.
+
+438 ribbon checks and all 786 Floating checks pass: connected manifold topology,
+two boundaries/no seam crack, horizontal rows sharing base and raised radii,
+counter base, loops/framing, liveness, invalid/extreme requests, budgets, portable
+Help parity and actual SVG/servo/bed-Z exporters. Focused lint, 232 Help graphs
+and ordered catalog/build/37,914 Learn checks pass. Counts unchanged at 366 source
+modules, 368 registry entries, 233 generators. No engine/exporter or machine edits.
+
+Fresh native app: Raised ribbon 399 paths / 33,001 points; Wave ribbon 278 /
+26,785; Raised ring 475 / 41,828. Original Sculpted drum stays 283 / 22,994.
+Hidden lines off exports exactly 56 closed full-row paths / 17,920 points;
+Horizontal lines 28 visibly changes geometry, restoring 56 restores exact source.
+Play/Pause and frame reset checked. Both full-row and visible SVGs match source
+bytes. G-code keeps 399 lowers and all 32,603 drawing moves, no bounds warning.
+All 24 actual SVG animation frames match source exactly; 24 unique native
+receipt image bodies validate offline in Print, without a server/queue or print.
+No browser warning/error logs after the fresh built-in load.
+
+Proof: `docs/text-ribbon-checks.json`. `tools/preview-text-ribbon.mjs <directory>`
+reproduces actual-vector GIFs, three SVGs, self-contained projects and portable
+source. Artifact path is in WORKSTATE's lastTextRibbon. Receipt ZIP directly
+contains 24 JSONs for Print. Horizontal describes the unwrapped ribbon; camera
+projection can curve/tilt those rows. Existing 420-cell visibility remains an
+approximation. Local tab port 5199 is kept on Raised ribbon, paused frame 1/24.
+APP_VERSION stays 2.203; no push/publication or primary dirty checkout changes.
+Refresh local snapshot `/private/tmp/muusia-text-ribbon-snapshot-20261118` after
+commit. No Claude UI upload claimed.

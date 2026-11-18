@@ -2,17 +2,18 @@ import { Pin, EMPTY, SFONT } from "../helpers.js";
 
 export default {
   key: 'text_roll', name: 'Text Roll', cat: 'gen', group: 'textimg',
-  desc: 'Thick outlined letters scroll around a three-dimensional Drum or Ring. Contour slices reveal the solid letter depth, while Hidden lines removes ink behind the actual letters, including their counters and side walls. There is no opaque background cylinder. Edit Text, Weight, Letter height, Radius, Arc and Repeats; Wave and Twist distort the travelling letters. Scroll makes full turns, Rock sways, Tumble turns the whole sculpture. Manual Phase freezes a pose; Timeline follows ANIMATE Play with whole Loops and an exact repeating endpoint. Hidden lines off shows the back contours too. Framing stays fixed through the loop. Uppercase plotter capitals include ÄÖÅ; unsupported characters become ?. Up to 64 input characters and four repeats; excessive density is reduced uniformly or refused whole. Output is ordinary XY ink for SVG, G-code and receipt animation exports. The apparent depth never becomes machine Z.',
+  desc: 'Two constructions for animated type around a Drum or Ring. Raised ribbon is one continuous band: the same horizontal rows pass through spaces, rise out into the letter strokes and return to the band inside counters. Horizontal lines controls row density; Letter depth raises the type and Relief shoulder rounds its transitions. Empty text leaves a plain ribbon. Hidden lines removes the far side of the actual folded surface. Floating letters preserves the original separate solid glyphs with Contour slices, open counters and no background cylinder. Arc applies to floating letters; the ribbon always closes around the full circle. Both use editable Text, Weight, Letter height, Radius, Repeats, Wave and Twist. Scroll makes full turns, Rock sways, Tumble turns the whole sculpture. Manual Phase freezes a pose; Timeline follows ANIMATE Play with whole Loops and exact repeating endpoints. Hidden lines off shows back ink too. Framing stays fixed through the loop. Uppercase plotter capitals include ÄÖÅ; unsupported characters become ?. Up to 64 normalized characters and four repeats; excessive density is reduced uniformly or refused whole. Ordinary XY ink exports through SVG, G-code and receipt animation; visual depth never becomes machine Z.',
   ins: [], outs: [Pin('paths', 'Text')],
   params: [
     {key:'text',label:'Text',type:'text',def:'MUUSIA'},
+    {key:'construction',label:'Construction',type:'select',options:['Floating letters','Raised ribbon'],def:'Floating letters'},
     {key:'surface',label:'Roll shape',type:'select',options:['Drum','Ring'],def:'Drum'},
     {key:'motion',label:'Movement',type:'select',options:['Scroll','Rock','Tumble'],def:'Scroll'},
     {key:'time',label:'Time source',type:'select',options:['Manual','Timeline'],def:'Manual'},
     {key:'phase',label:'Phase °',type:'slider',min:0,max:360,step:1,def:30},
     {key:'cycles',label:'Loops per timeline',type:'slider',min:0,max:4,step:1,def:1,showIf:p=>p.time==='Timeline'},
     {key:'direction',label:'Direction',type:'select',options:['Forward','Reverse'],def:'Forward'},
-    {key:'arc',label:'Arc °',type:'slider',min:90,max:360,step:1,def:330},
+    {key:'arc',label:'Arc °',type:'slider',min:90,max:360,step:1,def:330,showIf:p=>p.construction!=='Raised ribbon'},
     {key:'repeat',label:'Repeats',type:'slider',min:1,max:4,step:1,def:1},
     {key:'font',label:'Letter shape',type:'select',options:['Round','Block'],def:'Round'},
     {key:'weight',label:'Weight %',type:'slider',min:8,max:42,step:1,def:24},
@@ -20,7 +21,10 @@ export default {
     {key:'height',label:'Letter height %',type:'slider',min:50,max:280,step:1,def:230},
     {key:'radius',label:'Radius %',type:'slider',min:60,max:200,step:1,def:85},
     {key:'depth',label:'Letter depth %',type:'slider',min:0,max:120,step:1,def:65},
-    {key:'slices',label:'Contour slices',type:'slider',min:2,max:48,step:1,def:20,showIf:p=>+p.depth!==0},
+    {key:'slices',label:'Contour slices',type:'slider',min:2,max:48,step:1,def:20,showIf:p=>p.construction!=='Raised ribbon'&&+p.depth!==0},
+    {key:'ribbonLines',label:'Horizontal lines',type:'slider',min:12,max:96,step:1,def:56,showIf:p=>p.construction==='Raised ribbon'},
+    {key:'shoulder',label:'Relief shoulder %',type:'slider',min:2,max:18,step:1,def:5,showIf:p=>p.construction==='Raised ribbon'},
+    {key:'padding',label:'Ribbon padding %',type:'slider',min:0,max:30,step:1,def:0,showIf:p=>p.construction==='Raised ribbon'},
     {key:'wave',label:'Wave %',type:'slider',min:0,max:45,step:1,def:12},
     {key:'waves',label:'Waves around roll',type:'slider',min:1,max:6,step:1,def:3,showIf:p=>+p.wave>0},
     {key:'twist',label:'Twist °',type:'slider',min:-180,max:180,step:1,def:-20},
@@ -80,6 +84,7 @@ export default {
     if(this._glyphCache.size>=96)this._glyphCache.clear();this._glyphCache.set(key,result);return result;
   },
   _scene(p,ctx,cell=.42,requestedSlices){
+    if(p.construction==='Raised ribbon')return this._ribbonScene(p,ctx,cell,requestedSlices);
     const input=String(p.text??'MUUSIA');if(input.length>128)return null;
     const text=input.toUpperCase().replace(/[|\n\r\t]/g,' '),chars=Array.from(text);
     if(!chars.length||chars.length>64||!text.trim())return null;
@@ -117,6 +122,48 @@ export default {
     const radial=radius+(p.surface==='Ring'?height*glyphExtent:depth/2)+wave*.2;
     const vertical=(p.surface==='Ring'?depth/2:height*glyphExtent)+wave*.4;
     return {paths,triangles,slices,t,radial,vertical,bound:Math.hypot(radial,vertical)};
+  },
+  _ribbonScene(p,ctx,cell=.42,requestedLines){
+    // Horizontal rows traverse ONE height-field ribbon, including spaces and
+    // counters. A letter raises the same rows; it is never a separate glyph body.
+    const input=String(p.text??'MUUSIA');if(input.length>128)return null;
+    const text=input.toUpperCase().replace(/[|\n\r\t]/g,' '),chars=Array.from(text);if(chars.length>64)return null;
+    const copies=Math.round(this._n(p.repeat,1,1,4)),gap=2.5*this._n(p.tracking,1,.6,2),weight=this._n(p.weight,24,8,42),r=weight/20;
+    const shoulder=this._n(p.shoulder,5,2,18)/10,padding=this._n(p.padding,0,0,30)/10,square=p.font==='Block';
+    const items=[];let cursor=0,minY=0,maxY=10;
+    for(let k=0;k<copies;k++)for(const char of (chars.length?chars:[' ']).concat(k<copies-1?[' ']:[])){
+      const g=SFONT[char]||SFONT['?'],segs=[],pts=g.s.flat();
+      for(const s of g.s)for(let j=1;j<s.length;j++)segs.push([s[j-1],s[j]]);
+      const xs=pts.map(q=>q[0]);for(const q of pts){minY=Math.min(minY,q[1]);maxY=Math.max(maxY,q[1]);}
+      items.push({x:cursor,segs,lo:cursor+(xs.length?Math.min(...xs):0)-r-shoulder,hi:cursor+(xs.length?Math.max(...xs):g.w)+r+shoulder});cursor+=g.w+gap;
+    }
+    const pad=r+shoulder+Math.max(.7,gap/2),length=Math.max(10,cursor-gap+2*pad),top=minY-padding,bottom=maxY+padding;
+    const rows=Math.max(12,Math.round(this._n(requestedLines??p.ribbonLines,56,12,96))),refine=Math.max(1,Math.ceil(64/(cell/.42)/(rows-1))),V=(rows-1)*refine;
+    const step=Math.min(cell*.5,r*.6,shoulder*.75),U=Math.max(96,Math.ceil(length/step));
+    if(U>4096||U*V*2>100000||rows*U>85000)return null;
+    const TAU=Math.PI*2,cycles=Math.round(this._n(p.cycles,1,0,4)),frame=p.time==='Timeline'&&Number.isFinite(ctx?.frameIdx)&&ctx.frameCount>1?ctx.frameIdx/ctx.frameCount*cycles:0;
+    const turns=this._n(p.phase,30,-36000,36000)/360+frame,t=(Math.round(((turns%1+1)%1)*1e12)%1e12)/1e12,sign=p.direction==='Reverse'?-1:1;
+    const angle=sign*TAU*(p.motion==='Rock'?.19*Math.sin(t*TAU):p.motion==='Tumble'?0:t),tumble=p.motion==='Tumble'?sign*t*TAU:0;
+    const height=this._n(p.height,230,50,280)/100,depth=this._n(p.depth,65,0,120)/100,wave=this._n(p.wave,12,0,45)/100,waves=Math.round(this._n(p.waves,3,1,6)),twist=this._n(p.twist,-20,-180,180)*Math.PI/180;
+    const maxV=Math.max(Math.abs(5-top),Math.abs(5-bottom))/10*height,radius=Math.max(this._n(p.radius,85,60,200)/100,p.surface==='Ring'?maxV+.15:.2);
+    const columns=Array.from({length:U},(_,i)=>{const x=i/U*length-pad;return {x,near:items.filter(g=>g.segs.length&&x>=g.lo&&x<=g.hi)};});
+    const grid=[],relief=new Float32Array((V+1)*U);
+    for(let j=0;j<=V;j++){
+      const y=top+(bottom-top)*j/V,v=(5-y)/10*height;
+      for(let i=0;i<U;i++){
+        const {x,near}=columns[i];let distance=100;
+        for(const g of near)for(const [a,b]of g.segs){const X=x-g.x,dx=b[0]-a[0],dy=b[1]-a[1],q=Math.max(0,Math.min(1,((X-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));const xx=X-a[0]-q*dx,yy=y-a[1]-q*dy;distance=Math.min(distance,(square?Math.max(Math.abs(xx),Math.abs(yy)):Math.hypot(xx,yy))-r);}
+        const z=Math.max(0,Math.min(1,(shoulder-distance)/(2*shoulder))),rise=z*z*(3-2*z)*depth;relief[j*U+i]=rise;
+        const a=(i/U-.5)*TAU+angle+twist*v/height,w=wave*Math.sin(waves*a),radial=p.surface==='Ring'?radius+v+wave*.2*Math.cos(waves*a):radius+rise+wave*.15*Math.cos(waves*a);
+        const X=radial*Math.sin(a),Y=p.surface==='Ring'?rise+w*.4:v+w*.4,Z=radial*Math.cos(a);
+        grid.push([X,Y*Math.cos(tumble)-Z*Math.sin(tumble),Y*Math.sin(tumble)+Z*Math.cos(tumble)]);
+      }
+    }
+    const at=(i,j)=>grid[j*U+i%U],paths=[],triangles=[];
+    for(let j=0;j<=V;j+=refine)paths.push(Array.from({length:U},(_,i)=>at(i,j)));
+    for(let j=0;j<V;j++)for(let i=0;i<U;i++){const a=at(i,j),b=at(i+1,j),c=at(i+1,j+1),d=at(i,j+1);triangles.push([a,b,c],[a,c,d]);}
+    const radial=radius+(p.surface==='Ring'?maxV:depth)+wave*.2,vertical=(p.surface==='Ring'?depth:maxV)+wave*.4;
+    return {paths,triangles,t,slices:rows,radial,vertical,bound:Math.hypot(radial,vertical),ribbon:{rows,columns:U,meshRows:V+1,relief,baseRadius:radius,top,bottom,depth}};
   },
   _camera(p,ctx,scene){
     const {bound,radial,vertical}=scene;
@@ -182,7 +229,8 @@ export default {
   },
   compute(_ins,p,ctx){
     for(let attempt=0;attempt<5;attempt++){
-      const scene=this._scene(p,ctx,.42*Math.pow(1.32,attempt),Math.max(2,this._n(p.slices,20,2,48)/Math.pow(1.7,attempt)));
+      const density=p.construction==='Raised ribbon'?this._n(p.ribbonLines,56,12,96):this._n(p.slices,20,2,48);
+      const scene=this._scene(p,ctx,.42*Math.pow(1.32,attempt),Math.max(2,density/Math.pow(1.7,attempt)));
       if(!scene)continue;const camera=this._camera(p,ctx,scene);if(!camera)return EMPTY;
       const result=this._render(p,scene,camera);if(result&&result.paths.reduce((n,q)=>n+q.pts.length,0)<=120000)return result;
     }

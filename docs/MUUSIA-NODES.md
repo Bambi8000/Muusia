@@ -30,9 +30,21 @@ returns no punches when its specified calibration grid cannot fit.
 
 ## Generators (233)
 
-**Text Roll** — solid outlined text scrolling around a three-dimensional Drum
-or Ring. Contour slices repeat the glyph outlines through Letter depth, making
-the curved side walls visible. Round and Block use the shared uppercase stroke
+**Text Roll** — two constructions around a three-dimensional Drum or Ring.
+Raised ribbon is one continuous, periodically closed band. The same horizontal
+rows pass through spaces, rise into the lettering and return to the band inside
+counters. The rows follow the ribbon's horizontal direction before camera
+projection; they are not nested letter outlines. Horizontal lines sets density,
+Letter depth raises the text, Relief shoulder rounds its transitions and Ribbon
+padding adds blank borders. Empty text leaves the plain band. The complete
+surface, including the base in counters and spaces, participates in hidden-line
+removal. The ribbon always spans a full circle. Mesh/point/work budgets adapt
+the whole surface uniformly or refuse it; no partial strip is exported.
+
+Floating letters preserves the original separate solid glyph sculptures exactly,
+including old patches with no Construction setting. Contour slices repeat their
+outlines through Letter depth, making curved side walls visible. Arc applies
+only to this construction. Round and Block use the shared uppercase stroke
 alphabet, thickened into a union with real face triangles and closed counters.
 Text supports ÄÖÅ; unsupported characters become ?. Radius, Letter height, Arc,
 Repeats, Weight and Tracking change the sculpture; Wave, integer Waves and Twist
@@ -50,7 +62,8 @@ native receipt animation pipeline; apparent depth never becomes machine Z.
 Up to 64 normalised characters and four repeats. Work and complete geometry are
 bounded; dense text uniformly reduces slices/resolution or is refused whole at
 120k points. No later characters are silently dropped. Four live 72 × 100 mm
-Help starters demonstrate the drum, ring, rippled scroll and rocking receipt.
+Help starters retain the drum, ring, rippled scroll and rocking receipt. Three
+additional starters demonstrate Raised ribbon, Wave ribbon and Raised ring.
 
 **Pixel Blast** — eight seeded animated black pixel effects: Firework, falling
 Willow trails, three-burst Volley, rising Mushroom cloud, Ground blast,
