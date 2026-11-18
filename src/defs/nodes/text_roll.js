@@ -211,19 +211,27 @@ export default {
     const visible=q=>{const x=Math.floor((q[0]-ox)/pixel),y=Math.floor((q[1]-oy)/pixel);return x<0||y<0||x>=res||y>=res||q[2]>=buffer[y*res+x]-tolerance;};
     const paths=[];
     for(const q of projected){
-      let run=[],all=true;const runs=[];
-      const flush=()=>{if(run.length>=2)runs.push(run);run=[];};
+      let run=[],all=true,index=0,from=0;const runs=[];
+      // Keep each fragment's actual position in the closed contour. A visible
+      // first point alone does not mean the last retained fragment reaches it.
+      const flush=()=>{if(run.length)runs.push({pts:run,from,to:index-1});run=[];};
       for(let i=0;i<q.length;i++){
         const a=q[i],b=q[(i+1)%q.length],steps=Math.max(1,Math.ceil(Math.hypot(a[0]-b[0],a[1]-b[1])/(pixel*.7)));
         for(let j=0;j<steps;j++){
           const t=j/steps,v=a.map((x,k)=>x+(b[k]-x)*t);
-          if(visible(v)){const last=run.at(-1);if(!last||Math.hypot(last[0]-v[0],last[1]-v[1])>1e-9)run.push(v.slice(0,2));}else{all=false;flush();}
+          if(visible(v)){if(!run.length)from=index;const last=run.at(-1);if(!last||Math.hypot(last[0]-v[0],last[1]-v[1])>1e-9)run.push(v.slice(0,2));}else{all=false;flush();}
+          index++;
         }
       }
       flush();
-      if(all&&runs.length===1){paths.push({pts:runs[0],closed:true,layer:pen});continue;}
-      if(runs.length>1&&visible(q[0])){runs[0]=runs.at(-1).concat(runs[0]);runs.pop();}
-      for(const pts of runs)paths.push({pts,closed:false,layer:pen});
+      if(all&&runs.length===1&&runs[0].pts.length>=3){paths.push({pts:runs[0].pts,closed:true,layer:pen});continue;}
+      if(runs.length>1&&runs[0].from===0&&runs.at(-1).to===index-1){
+        const a=runs.at(-1).pts,b=runs[0].pts,duplicate=Math.hypot(a.at(-1)[0]-b[0][0],a.at(-1)[1]-b[0][1])<=1e-9;
+        runs[0]={pts:a.concat(duplicate?b.slice(1):b),from:runs.at(-1).from,to:runs[0].to};runs.pop();
+      }
+      // Single samples may become real two-point ink across the seam; discard
+      // them only after that merge, never use a neighboring fragment instead.
+      for(const {pts}of runs)if(pts.length>=2)paths.push({pts,closed:false,layer:pen});
     }
     return {paths};
   },

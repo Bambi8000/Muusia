@@ -1,0 +1,201 @@
+{
+  "date": "2026-11-18",
+  "baseCommit": "48f64163c464c6de976248cc6bfd47a9e9537cad",
+  "branch": "codex/text-roll",
+  "worktree": "/private/tmp/muusia-text-roll-20261118",
+  "status": "Fixed stray clipping joins locally; not published; APP_VERSION remains 2.203",
+  "problem": "Closed-contour clipping joined the last retained visible fragment to the first whenever the first contour point was visible, even if hidden samples or discarded singleton fragments separated those fragments.",
+  "fix": [
+    "Track actual sample positions for visible runs and merge the seam only when both boundary runs reach it.",
+    "Keep singleton fragments until the seam is resolved, preserving legitimate tiny strokes without substituting a different run.",
+    "Leave camera, glyphs, visibility tolerance, transparent output and machine/export code unchanged."
+  ],
+  "baselineAudit": {
+    "floatingFrames": 96,
+    "falseEdges": 243,
+    "maxFalseEdgeMm": 59.64619668741391,
+    "countsByStarter": {
+      "Sculpted drum": 53,
+      "Rolling ring": 70,
+      "Rippled scroll": 88,
+      "Rocking receipt": 32
+    },
+    "independentSyntheticFalseChordMm": 69.4708579,
+    "previousSourceRegression": "Expected failure: hidden-tail square must retain two separate visible runs"
+  },
+  "validation": {
+    "clippingChecks": 1607,
+    "actualComputeFrames": 392,
+    "frameCounts": [
+      24,
+      32
+    ],
+    "starters": 7,
+    "maxValidOutputEdgeMm": 0.139142,
+    "clippingCoverage": "Independent source-edge fixtures: hidden-tail split, genuine seam, terminal/initial/both singletons, seam-only visibility, hidden seam, isolated samples, all-visible and all-hidden; complete actual compute including density retries for all seven starters.",
+    "floatingRegression": 786,
+    "ribbonRegression": 438,
+    "transparentFramesByteIdentical": 168,
+    "helpGraphs": 232,
+    "lint": "passed",
+    "catalog": "passed; 366 modules / 368 registry entries / 233 generators",
+    "build": "passed",
+    "learn": 37914,
+    "nativeBrowser": {
+      "models": [
+        {
+          "title": "Rolling ring",
+          "stats": "~\t\t\t362 text \u2007382  paths \u00b7  \u200728017  pts \u00b7  \u2007\u20072.30  m"
+        },
+        {
+          "title": "Rippled scroll",
+          "stats": "~\t\t\t362 text \u2007659  paths \u00b7  \u200721927  pts \u00b7  \u2007\u20072.34  m"
+        },
+        {
+          "title": "Rocking receipt",
+          "stats": "~\t\t\t362 text \u2007466  paths \u00b7  \u200720770  pts \u00b7  \u2007\u20072.61  m"
+        },
+        {
+          "title": "Sculpted drum",
+          "stats": "~\t\t\t362 text \u2007290  paths \u00b7  \u200722998  pts \u00b7  \u2007\u20072.66  m"
+        }
+      ],
+      "freshLoadAt": "2026-11-18T11:53:31.820Z",
+      "playPauseToggled": true,
+      "restored": "frame1/24;290 paths/22998 points",
+      "logs": []
+    },
+    "nativeExports": {
+      "svgByteParity": true,
+      "paths": 290,
+      "points": 22998,
+      "gcodeLowers": 290,
+      "gcodeDrawMoves": 22709,
+      "boundsWarning": false,
+      "nativeSvgFramesMatchingSource": 24,
+      "receiptFrames": 24,
+      "distinctCroppedImageBodies": 24,
+      "blankImageBodies": 0,
+      "width": 512,
+      "height": 738,
+      "offlinePrintParserAccepted": 24,
+      "serverStarted": false,
+      "jobsQueued": 0,
+      "physicalPrintSent": false,
+      "sourceSha256": "4176ff708a00ec4c042a0783158a6ec070682e4ebe4ba0c88ff967af7e85ba14",
+      "artifactSha256": {
+        "native-clean.svg": "a7c8f7abec6d415f39078799a17dbf14da1eaf8ca543b2da3a20d4680d727192",
+        "native-clean.gcode": "e3f5dd59de8f715bc69750a662d97bf40a2e73a9021eeff3739afe4af4788008",
+        "text-roll-24-svg-frames.zip": "2138aa3488ace9ecbcbd3e5da39678945480122f285957166c3211fe941de093",
+        "text-roll-24-receipts.zip": "63b5898d06a0c4b55918ac797a57a7a6830e6faadc5fd56245cdd78977350192"
+      },
+      "croppedFrameImages": [
+        {
+          "frame": 1,
+          "croppedImageSha256": "619bafd5c9ebab3133cd5fbfae300bb3b6c1a99563b6d18bb5feb7a5130bb981"
+        },
+        {
+          "frame": 2,
+          "croppedImageSha256": "870f4c39d843941c31d6f35b7b64afd1e128e6880d7f81dce87f4baf4586a7f1"
+        },
+        {
+          "frame": 3,
+          "croppedImageSha256": "0968739e5b941f4ae4226811183da5e8d6dc5cad96a3af30248ddc18a9736664"
+        },
+        {
+          "frame": 4,
+          "croppedImageSha256": "7e1064cc5553d0aa4da5b0d2f506ddbf01b97fedb5c99892a972a0a2f978e76e"
+        },
+        {
+          "frame": 5,
+          "croppedImageSha256": "5fbf67fbab742aeb78021478ae849cb268d3802f879425723a52ecd45c9043c2"
+        },
+        {
+          "frame": 6,
+          "croppedImageSha256": "c5f9734abc37285a7564ce9937f32029605ab515485ba7995793e25759f14845"
+        },
+        {
+          "frame": 7,
+          "croppedImageSha256": "cc34b624057bfe3e3e7ad666358088f4bec34b338745fc9942db5dda4ea3d236"
+        },
+        {
+          "frame": 8,
+          "croppedImageSha256": "21ad59192b82e3b636e8b3cbcfa8203f7c2a4e9f894515569f2339e8a85a9b1a"
+        },
+        {
+          "frame": 9,
+          "croppedImageSha256": "9f3bedbd0a0ffebfa9bc4f54dc605253723456cc13f236e4e55d42f2b5d73ead"
+        },
+        {
+          "frame": 10,
+          "croppedImageSha256": "c92514e39f7391f5745c68b18884e20507c23a3e0799abf95e0705529e200dd1"
+        },
+        {
+          "frame": 11,
+          "croppedImageSha256": "117d6d58a019b8f26606107f291b9f176187c5ddce4396f448f23a5d56debb52"
+        },
+        {
+          "frame": 12,
+          "croppedImageSha256": "d9624b26f9d010251c43e86a2b7e27756d1f96cc259efe5edc2f6dc7c3309bb7"
+        },
+        {
+          "frame": 13,
+          "croppedImageSha256": "a0d9129805f2e7d335d1d725257ef377d76c8c5ec1b4759a9284e76b00d2c3a4"
+        },
+        {
+          "frame": 14,
+          "croppedImageSha256": "fd0d69608444a51f5c2217186106b912187b5aa4787901a4af97e99767c26de5"
+        },
+        {
+          "frame": 15,
+          "croppedImageSha256": "cf9c095b02bffa0ff8e20e72fc00d48014b9e49b5e21a576c2f91ad638acf4b0"
+        },
+        {
+          "frame": 16,
+          "croppedImageSha256": "80975c54bc46e53dd48f50f2c791d9c338da8329a4add6c23c0b2cc671847163"
+        },
+        {
+          "frame": 17,
+          "croppedImageSha256": "c9b194dd46048bac800b286627d5e9edfe680e182c6a23eae41aaaede24cf4dc"
+        },
+        {
+          "frame": 18,
+          "croppedImageSha256": "cb716e5ac27954943d80480614df24b5a87ae651dcd078e6231310e7e90fb44e"
+        },
+        {
+          "frame": 19,
+          "croppedImageSha256": "2dc3002fa5e83a883738b6ff46401408bd1a46edd5687e352c02230037886490"
+        },
+        {
+          "frame": 20,
+          "croppedImageSha256": "6a31a8e2f15f36e8e9078db0cee98841d0792e04e7e62a169b901d45d076bfff"
+        },
+        {
+          "frame": 21,
+          "croppedImageSha256": "7d47d8bbf30ddb1f83e7443f3aaf7d1f5f8e8ab85990ddabc1a8efb8248a805a"
+        },
+        {
+          "frame": 22,
+          "croppedImageSha256": "fc90b4f5a8f7b759c4eae08e9b02fcfaf8a61c1e93a0919b3ccacdb7759e0252"
+        },
+        {
+          "frame": 23,
+          "croppedImageSha256": "c2981c0a2b65bbd704b13b536fb89edd9431be00ee1787e847ee06cce0b2d229"
+        },
+        {
+          "frame": 24,
+          "croppedImageSha256": "d48156827ed8f70204c3dc00bb6d258fdcd618fa3927c929d4c2a4ac59770de4"
+        }
+      ]
+    }
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/text-roll-clean",
+  "snapshot": "/private/tmp/muusia-text-roll-clean-snapshot-20261118 (refresh after final commit; local only)",
+  "publication": false,
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "limits": [
+    "Hidden-surface sampling retains its existing bounded 420-cell approximation, which may split very fine strokes.",
+    "This corrects false connections across hidden gaps; it does not change the letter or ribbon design."
+  ]
+}

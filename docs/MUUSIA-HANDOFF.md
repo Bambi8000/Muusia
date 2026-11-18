@@ -7738,3 +7738,47 @@ approximation. Local tab port 5199 is kept on Raised ribbon, paused frame 1/24.
 APP_VERSION stays 2.203; no push/publication or primary dirty checkout changes.
 Refresh local snapshot `/private/tmp/muusia-text-ribbon-snapshot-20261118` after
 commit. No Claude UI upload claimed.
+
+### W — 2026-11-18 · Text Roll hidden-gap clipping fix, local
+
+Daniel reported unrelated glitch lines in the original Floating examples.
+Base `48f64163c464c6de976248cc6bfd47a9e9537cad`, branch `codex/text-roll`,
+worktree `/private/tmp/muusia-text-roll-20261118`. The closed-contour clipping
+joined retained start/end fragments solely because the first point was visible.
+Hidden tail samples or discarded singleton fragments could make those runs
+unrelated, producing chords up to 59.646 mm in the actual Floating starters
+(243 false edges across four starters at 24 poses). An independent square
+fixture reproduces a 69.47 mm false chord in the previous source.
+
+`text_roll._render` now retains fragment sample positions, joins only actual
+contour-boundary neighbors, and drops singletons only after resolving the seam.
+Legitimate seam strokes and fully visible closed contours remain. Glyphs,
+camera, tolerance and transparent geometry are unchanged; 168 transparent
+frames across all seven starters are byte-identical to the parent.
+
+New `tools/validate-text-roll-clipping.mjs`: 1,607 checks, independent source-edge
+fixtures plus 392 actual compute frames (all four Floating and three Ribbon
+starters at both 24 and 32 frames), including normal density retries. No false
+hidden-gap jumps remain; largest valid sampled edge is 0.139142 mm. Optional
+`--before <previous-node-source>` fails on the independent fixture. Existing
+786 Floating / 438 Ribbon checks, focused lint and all 232 Help graphs pass.
+Ordered catalog/build/37,914 Learn gate passes; counts stay 366 modules,
+368 registry entries and 233 generators. No engine, exporter or machine edits.
+
+Fresh native app: corrected Sculpted drum 290 paths / 22,998 points, Rolling
+ring 382 / 28,017, Rippled scroll 659 / 21,927, Rocking receipt 466 / 20,770.
+Static SVG is source-byte-identical; G-code has all 290 lowers and 22,709
+drawing moves without bounds warning. All 24 native SVG animation frames
+match source exactly. Native receipt ZIP has 24 unique valid 512 × 738 frames,
+accepted offline by Print without server, queue or physical print. Play/Pause
+toggle/reset and fresh-load empty warning/error logs checked.
+
+Proof: `docs/text-roll-clipping-checks.json`. Current corrected artifacts and
+self-contained portable projects are in WORKSTATE's lastTextRollClipping; older
+Text Roll/Ribbon artifact folders remain historical. Both preview scripts
+reproduce corrected geometry. Actual browser screenshot and decoded receipt
+PNG checked. Local tab port 5199 stays on the enlarged corrected Floating drum
+at frame 1/24. Visibility retains its existing 420-cell approximation for fine
+stroke splits. APP_VERSION remains 2.203; no push/publication or primary dirty
+checkout changes. Refresh `/private/tmp/muusia-text-roll-clean-snapshot-20261118`
+after commit; no Claude UI upload claimed.

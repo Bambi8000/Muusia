@@ -1238,7 +1238,8 @@
       "nativeBrowser": "Four exact-stat Help starters; editable text, all movements, transparent/restored ink, Play/Pause and fresh built-in load; 283-path source-identical SVG, complete G-code and 24 exact native SVG frames; 24 validated receipt frames; no final-load warning/error logs."
     },
     "evidence": "docs/text-roll-checks.json",
-    "ribbonUpdate": "See lastTextRibbon and docs/text-ribbon-checks.json for continuous horizontal rows and the preserved Floating mode."
+    "ribbonUpdate": "See lastTextRibbon and docs/text-ribbon-checks.json for continuous horizontal rows and the preserved Floating mode.",
+    "clippingUpdate": "See lastTextRollClipping and docs/text-roll-clipping-checks.json for corrected hidden-line seam joins and current portable projects/animations. Earlier capture statistics describe the pre-fix source."
   },
   "lastTextRibbon": {
     "date": "2026-11-18",
@@ -1261,6 +1262,32 @@
       "lint": "passed",
       "nativeBrowser": "Three new ribbon starters and original Floating drum; complete 56-row SVG, 399-path visible source-identical SVG, complete G-code, 24 source-identical SVG frames and 24 unique native receipts; no warning/error logs."
     },
-    "evidence": "docs/text-ribbon-checks.json"
+    "evidence": "docs/text-ribbon-checks.json",
+    "clippingUpdate": "See lastTextRollClipping and docs/text-roll-clipping-checks.json for corrected hidden-line seam joins and current portable projects/animations. Earlier capture statistics describe the pre-fix source."
+  },
+  "lastTextRollClipping": {
+    "date": "2026-11-18",
+    "baseCommit": "48f64163c464c6de976248cc6bfd47a9e9537cad",
+    "branch": "codex/text-roll",
+    "worktree": "/private/tmp/muusia-text-roll-20261118",
+    "status": "Fixed stray clipping joins locally; not published; APP_VERSION remains 2.203",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/text-roll-clean",
+    "snapshot": "/private/tmp/muusia-text-roll-clean-snapshot-20261118 (refresh after final commit; local only)",
+    "validation": {
+      "clipping": 1607,
+      "computeFrames": 392,
+      "floating": 786,
+      "ribbon": 438,
+      "transparentParityFrames": 168,
+      "helpGraphs": 232,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "lint": "passed",
+      "nativeBrowser": "Four original Help starters match corrected stats; 290-path source-identical static SVG, complete G-code, 24 exact SVG frames and 24 unique validated receipts; fresh-load logs empty."
+    },
+    "evidence": "docs/text-roll-clipping-checks.json",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false
   }
 }
