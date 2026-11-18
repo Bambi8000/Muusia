@@ -5,8 +5,8 @@
   "remoteBaseCommit": "55e93007deaf1c0f50c052b63e1e693f774edd95",
   "branch": "codex/text-roll-release",
   "worktree": "/private/tmp/muusia-text-roll-20261118",
-  "status": "Tested Muusia 2.204 release; awaiting exact-commit deployment and public verification",
-  "published": false,
+  "status": "Verified public Muusia 2.204; Floating letters, continuous Raised ribbon and corrected clipping; exact tested app bytes",
+  "published": true,
   "moduleCount": 366,
   "registryCount": 368,
   "features": [
@@ -25,12 +25,81 @@
     "catalog": "passed",
     "build": "passed",
     "implementationNativeBrowser": "See docs/text-roll-clipping-checks.json and docs/text-ribbon-checks.json for exact native SVG/G-code/receipt checks. The version-only release leaves that geometry unchanged.",
-    "learn": 37914
+    "learn": 37914,
+    "publicBrowser": "All seven starters match source stats; Raised ribbon advances to frame 3/24, Hidden lines off yields 56 complete rows and restores exact visible ink; no warning/error logs."
   },
   "testedAppSha256": "ca237d6c54b7cc6b70b9ebb67323dd7d879924aad5e805e98e6625f8b59057ea",
   "url": "https://bambi8000.github.io/Muusia/",
   "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/text-roll-release",
   "physicalPrintSent": false,
   "primaryDirtyWorkspaceChanged": false,
-  "snapshot": "/private/tmp/muusia-text-roll-release-snapshot-20261118 (refresh after final metadata commit)"
+  "snapshot": "/private/tmp/muusia-text-roll-release-snapshot-20261118 (refreshed after final metadata commit; local only)",
+  "releaseCommit": "d7b8124eea8444c0abe4a62a913a7d85e61d7881",
+  "pagesRunId": 44303632044,
+  "publicAppSha256": "ca237d6c54b7cc6b70b9ebb67323dd7d879924aad5e805e98e6625f8b59057ea",
+  "matchesTestedBuild": true,
+  "publicBrowser": {
+    "url": "https://bambi8000.github.io/Muusia/",
+    "version": "2.204",
+    "freshLoadAt": "2026-11-18T12:26:40.926Z",
+    "models": [
+      {
+        "title": "Sculpted drum",
+        "paths": 290,
+        "points": 22998
+      },
+      {
+        "title": "Rolling ring",
+        "paths": 382,
+        "points": 28017
+      },
+      {
+        "title": "Rippled scroll",
+        "paths": 659,
+        "points": 21927,
+        "stats": "361 text \u2007659  paths \u00b7  \u200721927  pts \u00b7  \u2007\u20072.34  m"
+      },
+      {
+        "title": "Rocking receipt",
+        "paths": 466,
+        "points": 20770,
+        "stats": "361 text \u2007466  paths \u00b7  \u200720770  pts \u00b7  \u2007\u20072.61  m"
+      },
+      {
+        "title": "Raised ribbon",
+        "paths": 399,
+        "points": 33001,
+        "stats": "361 text \u2007399  paths \u00b7  \u200733001  pts \u00b7  \u2007\u20073.00  m"
+      },
+      {
+        "title": "Wave ribbon",
+        "paths": 278,
+        "points": 26785,
+        "stats": "361 text \u2007278  paths \u00b7  \u200726785  pts \u00b7  \u2007\u20072.44  m"
+      },
+      {
+        "title": "Raised ring",
+        "paths": 475,
+        "points": 41828,
+        "stats": "361 text \u2007475  paths \u00b7  \u200741828  pts \u00b7  \u2007\u20073.72  m"
+      }
+    ],
+    "play": {
+      "frame": 3,
+      "frameCount": 24,
+      "paths": 615,
+      "points": 32613
+    },
+    "transparentRibbon": {
+      "paths": 56,
+      "points": 17920
+    },
+    "restored": {
+      "frame": 1,
+      "frameCount": 24,
+      "paths": 399,
+      "points": 33001
+    },
+    "logs": []
+  }
 }

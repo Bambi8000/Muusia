@@ -7808,3 +7808,17 @@ tested app SHA-256. Push/deployment and fresh public UI verification follow this
 release commit; do not infer publication from the local build. No physical print
 or primary dirty checkout changes. Refresh snapshot at
 `/private/tmp/muusia-text-roll-release-snapshot-20261118` after final metadata.
+
+Publication verified: release `d7b8124eea8444c0abe4a62a913a7d85e61d7881`,
+exact-commit Pages run `44303632044` completed successfully. Public
+https://bambi8000.github.io/Muusia/ SHA-256
+`ca237d6c54b7cc6b70b9ebb67323dd7d879924aad5e805e98e6625f8b59057ea`
+matches the tested app bytes exactly. Fresh public browser shows 2.204; all seven
+Text Roll Help starters match corrected source stats. Raised ribbon Play advances
+to frame 3/24 (615 paths / 32,613 points); Hidden lines off gives 56 complete rows
+/ 17,920 points; resetting and restoring visibility returns 399 / 33,001 at frame
+1/24. No browser warning/error logs. Actual public screenshot and checks are in
+the release artifact directory recorded in WORKSTATE. Public tab is kept open on
+the enlarged Raised ribbon preview. Final documentation-only metadata is pushed
+with skip-ci; app bytes stay those of the verified release. Snapshot refreshed
+after final metadata commit; no Claude UI upload or physical print.
