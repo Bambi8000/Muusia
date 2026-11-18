@@ -981,6 +981,15 @@ export const EXAMPLES = [
     make: defaults => ({ nodes: [{ id: 9001, type: "slice_raster", x: 60, y: 40, params: { ...defaults("slice_raster"), ...{"layout": "Grid", "count": 4, "columns": 2, "motion": "Timeline", "cycles": 1, "pen1": 0, "pen2": 1, "pen3": 2, "pen4": 6} } }], edges: [] }),
   },
   {
+    name: "Slice Raster · Wired lettering",
+    desc: "A blue wire takes Lettering into Slice Raster's Drawing input. Select Slice Raster: one word becomes Lines, Dots, Crosshatch and Waves in four strips. Edit the text in Lettering or connect another drawing. Auto follows the wire; Image file and Tone study ignore it. Drawing stroke mm thickens source lines. Fill closed shapes fills the letter faces while preserving counters; open paths remain strokes. The drawing keeps its canvas position. Each slice still has its own raster and Pen. No photo is needed.",
+    canvas: { W: 210, H: 148 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "lettering", x: 20, y: 30, params: { ...defaults("lettering"), text: "RASTER", size: 78, weight: 32, font: "Block", depth: 0, fill: "Outline", margin: 18 } },
+      { id: 9002, type: "slice_raster", x: 350, y: 30, params: { ...defaults("slice_raster"), source: "Auto", drawingFill: true, drawingWidth: 0.8, pitch1: 1.2, pitch2: 2.2, pitch3: 1.4, pitch4: 1.5, margin: 12 } },
+    ], edges: [{ id: "e9101", from: 9001, fromPort: 0, to: 9002, toPort: 1 }] }),
+  },
+  {
     name: "Word Shape · ABRACADABRA",
     desc: "The complete word loses one final letter on every centred row, ending with A. Switch Shape for Triangle up, Diamond, Hourglass, Circle, Heart, Square or Hexagon. Serif uses real plotter strokes. Letter and row spacing change the proportions; Fit text shrinks the letters into the built-in fitting box.",
     canvas: {"W": 210, "H": 297},

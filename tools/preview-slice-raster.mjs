@@ -4,11 +4,23 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseAst } from 'rolldown/parseAst';
 import N from '../src/defs/nodes/slice_raster.js';
+import Lettering from '../src/defs/nodes/lettering.js';
 import { PENS } from '../src/defs/helpers.js';
 import { EXAMPLES } from '../src/examples.js';
 export const defaults = Object.fromEntries(N.params.map(p => [p.key, p.def]));
 const source=fs.readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8'),ast=parseAst(source,{lang:'jsx'}),decl=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='toSVG');
 export const toSVG=new Function('PENS',source.slice(decl.start,decl.end)+';return toSVG;')(PENS);
+export function evaluate(example,frameIdx=0,frameCount=24) {
+  const defs={slice_raster:N,lettering:Lettering},canvas={...example.canvas,frameIdx,frameCount};
+  const graph=example.make(type=>Object.fromEntries(defs[type].params.map(p=>[p.key,p.def]))),values=new Map();
+  const get=id=>{
+    if(values.has(id))return values.get(id);
+    const node=graph.nodes.find(n=>n.id===id),def=defs[node.type];
+    const ins=def.ins.map((_,port)=>{const e=graph.edges.find(e=>e.to===id&&e.toPort===port);return e?get(e.from):undefined;});
+    const value=def.compute(ins,node.params,canvas,node);values.set(id,value);return value;
+  };
+  const node=graph.nodes.at(-1);return {graph,node,result:get(node.id)};
+}
 export function generate(dir) {
   fs.mkdirSync(dir,{recursive:true});
   const esm=fs.readFileSync(new URL('../src/defs/nodes/slice_raster.js',import.meta.url),'utf8'),custom='('+esm.slice(esm.indexOf('export default ')+15).trim().replace(/;$/,'')+')\n';
@@ -16,7 +28,7 @@ export function generate(dir) {
   const records=[],cards=[];
   const examples=EXAMPLES.filter(e=>e.name.startsWith('Slice Raster · '));
   for(const [i,ex]of examples.entries()) {
-    const graph=ex.make(()=>({...defaults})),node=graph.nodes.at(-1),result=N.compute([],node.params,ex.canvas,node),stem='slice-raster-'+(i+1);
+    const {graph,result}=evaluate(ex),stem='slice-raster-'+(i+1);
     if(!result.paths.length)throw Error('Empty starter '+ex.name);
     fs.writeFileSync(path.join(dir,stem+'.svg'),toSVG(result,ex.canvas));
     fs.writeFileSync(path.join(dir,stem+'.muusia.json'),JSON.stringify({app:'muusia',v:1,name:ex.name,canvas:ex.canvas,customNodes:[{key:N.key,source:custom}],root:graph},null,2));

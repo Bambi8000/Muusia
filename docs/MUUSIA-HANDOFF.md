@@ -7822,3 +7822,54 @@ the release artifact directory recorded in WORKSTATE. Public tab is kept open on
 the enlarged Raised ribbon preview. Final documentation-only metadata is pushed
 with skip-ci; app bytes stay those of the verified release. Snapshot refreshed
 after final metadata commit; no Claude UI upload or physical print.
+
+### W — 2026-11-18 · Slice Raster blue Drawing input, local
+
+Daniel requested a blue input ball and confirmed that another node's drawing
+should become the raster source. Base `9cfb0ff17a83e5a81c5fdb2a529fd37161255bf9`,
+branch `codex/slice-raster-input`, isolated worktree
+`/private/tmp/muusia-slice-raster-input-20261118`.
+
+Slice Raster now appends blue Drawing at input 1; Style remains at input 0.
+Source Auto prioritises a connected drawing, including an empty drawing, over
+the stored image or Tone study. Drawing (wired) explicitly requires the input;
+old Image file / Tone study strings and behavior remain. Drawing stroke mm and
+optional Fill closed shapes interpret source linework as black. Closed interiors
+use per-source-pen even-odd parity, unioned across normalized pens, plus stroked
+borders. Open paths remain strokes. Per-slice output pens stay independent.
+Drawing uses exact canvas coordinates and Margin; Contain/Cover does not refit it.
+A shared stationary raster serves every moving slice. Bounded 640px conversion
+coarsens the complete source or refuses whole at work limits, with 30k-path /
+120k-point caps and no joining across invalid vertices. Very fine detail may
+soften under sampling; wide source borders can reduce small counters.
+
+New Help starter Slice Raster · Wired lettering connects Lettering RASTER to
+Drawing. Existing four image starters remain, and preview tooling evaluates the
+real wired graph and saves five standalone projects with embedded node source.
+Source/catalog/recency, reference and tags refreshed. No engine, shared helper,
+exporter, machine or APP_VERSION change (2.204).
+
+793 dedicated checks with the previous source include 144 byte-identical legacy
+cases, 90 actual wired animation frames, all six rasters/three layouts, exact
+loops, source registration, independent hole/capsule probes, source priorities,
+Style index, nonmutation, malformed/extreme input, dense whole-source adaptation
+and portable source dependency parity. Existing Slice Raster 545 checks pass.
+Independent review matched every diagonal capsule pixel to exact coverage and
+found no actionable issue. Focused lint, all 233 Help graphs and ordered
+catalog/build/37,914 Learn checks pass. Counts stay 366 modules / 368 registry
+entries / 233 generators.
+
+Actual fresh browser shows the blue Lettering → Drawing wire and 622 paths /
+16,629 points. Native Source modes, Fill closed shapes (off: 376 / 2,885),
+Drawing stroke 3 mm (709 / 9,086), empty Lettering (0 paths) and exact restoration
+checked. SVG matches final source bytes. G-code contains all 622 lowers and
+16,007 drawing moves without bounds warning. No browser warning/error logs.
+Final pen-normalization guard only affects invalid input pens; captured SVG was
+recalculated byte-identically with the final source. No physical print.
+
+Proof `docs/slice-raster-input-checks.json`; actual screenshot, native exports,
+five portable projects and SVGs are in WORKSTATE's lastSliceRasterInput artifacts.
+Local app port 5200 remains open on the wired example. No push/publication was
+requested for this addition; published 2.204 and the primary dirty checkout stay
+untouched. Refresh `/private/tmp/muusia-slice-raster-input-snapshot-20261118` after
+commit; no Claude project UI upload claimed.

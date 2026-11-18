@@ -1047,7 +1047,8 @@
     },
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/slice-raster",
     "nativeEvidence": "browser-checks.json and photo-collage.muusia.json in artifact directory; photo project is local only, not committed",
-    "physicalPrintSent": false
+    "physicalPrintSent": false,
+    "drawingInputUpdate": "See lastSliceRasterInput and docs/slice-raster-input-checks.json for the newer local blue Drawing source input; not yet published."
   },
   "lastFlyingCloth": {
     "date": "2026-11-18",
@@ -1331,5 +1332,30 @@
     "primaryDirtyWorkspaceChanged": false,
     "snapshot": "/private/tmp/muusia-text-roll-release-snapshot-20261118 (refreshed after final metadata commit; local only)",
     "evidence": "docs/text-roll-release-checks.json"
+  },
+  "lastSliceRasterInput": {
+    "date": "2026-11-18",
+    "baseCommit": "9cfb0ff17a83e5a81c5fdb2a529fd37161255bf9",
+    "branch": "codex/slice-raster-input",
+    "worktree": "/private/tmp/muusia-slice-raster-input-20261118",
+    "status": "Complete local Slice Raster blue Drawing input; not published; APP_VERSION stays 2.204",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/slice-raster-input",
+    "snapshot": "/private/tmp/muusia-slice-raster-input-snapshot-20261118 (refresh after final commit; local only)",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false,
+    "published": false,
+    "evidence": "docs/slice-raster-input-checks.json",
+    "validation": {
+      "drawingWithBaseline": 793,
+      "legacyByteParityCases": 144,
+      "wiredAnimationFrames": 90,
+      "legacySliceRaster": 545,
+      "helpGraphs": 233,
+      "lint": "passed",
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "nativeBrowser": "Visible blue Drawing wire from Lettering; Source precedence, closed fill, line width, empty text and restoration checked; 622-path source-byte-identical SVG, 622 G-code lowers / 16007 draw moves; no bounds warning or browser warning/error logs."
+    }
   }
 }

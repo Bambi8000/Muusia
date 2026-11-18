@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-18",
+  "baseCommit": "9cfb0ff17a83e5a81c5fdb2a529fd37161255bf9",
+  "branch": "codex/slice-raster-input",
+  "worktree": "/private/tmp/muusia-slice-raster-input-20261118",
+  "status": "Complete local Slice Raster blue Drawing input; not published; APP_VERSION stays 2.204",
+  "behavior": [
+    "Append blue Drawing input at index 1; saved Style input stays at index 0.",
+    "Auto prioritises a connected drawing, including EMPTY; otherwise existing image/tone fallback stays unchanged. Explicit Image file and Tone study ignore the wire; Drawing (wired) requires it.",
+    "Drawing stroke mm sets source width; optional Fill closed shapes uses even-odd fill per normalized source pen plus borders. Open paths stay stroked. All source ink is interpreted as black; output pens remain per slice.",
+    "Drawing remains at canvas coordinates, clipped to Margin. Image fit never moves it. One stationary source raster is shared by every slice.",
+    "Complete input caps: 30k paths / 120k points. Nonfinite/malformed input refuses whole. Up to 640px raster; bounded fill/stroke work retries uniformly down to 64px or refuses whole, never retaining a prefix.",
+    "New live Lettering RASTER \u2192 Slice Raster Drawing Help starter; five self-contained portable projects and SVG previews."
+  ],
+  "validation": {
+    "drawingWithPreviousSourceComparison": 793,
+    "legacyCasesByteIdentical": 144,
+    "actualWiredAnimationFrames": 90,
+    "legacySliceRasterChecks": 545,
+    "helpGraphs": 233,
+    "lint": "passed",
+    "catalog": "passed; 366 modules / 368 registry entries / 233 generators",
+    "build": "passed",
+    "learn": 37914,
+    "coverage": "Six rasters and three layouts, exact loops and scrubbing, source position, empty/stale source precedence, holes and source pen union, immutable input, malformed late paths, huge coordinates, whole dense adaptation, portable source dependency parity and actual built-in exporters.",
+    "independentAudit": "Every pixel of a diagonal stroke independently matched capsule coverage (maximum Float32 difference 2.98e-8); hole/union, drawing fit and huge clipping probes passed.",
+    "nativeBrowser": {
+      "url": "http://127.0.0.1:5200/",
+      "drawingWireVisible": true,
+      "sourceModes": [
+        {
+          "source": "Drawing (wired)",
+          "stats": "361 text \u2007622  paths \u00b7  \u200716629  pts \u00b7  \u2007\u20076.30  m"
+        },
+        {
+          "source": "Image file",
+          "stats": "361 text \u2007\u2007\u20070  paths \u00b7  \u2007\u2007\u2007\u2007\u20070  pts \u00b7  \u2007\u20070.00  m"
+        },
+        {
+          "source": "Tone study",
+          "stats": "361 text 3714  paths \u00b7  \u200734588  pts \u00b7  \u2007\u20078.66  m"
+        },
+        {
+          "source": "Auto",
+          "stats": "361 text \u2007622  paths \u00b7  \u200716629  pts \u00b7  \u2007\u20076.30  m"
+        }
+      ],
+      "controls": {
+        "outlineThin": {
+          "paths": 376,
+          "points": 2885
+        },
+        "outlineWidth3": {
+          "paths": 709,
+          "points": 9086
+        }
+      },
+      "emptyInputPaths": 0,
+      "restored": {
+        "paths": 622,
+        "points": 16629
+      },
+      "logs": []
+    },
+    "nativeExports": {
+      "example": "Slice Raster \u00b7 Wired lettering",
+      "canvas": {
+        "W": 210,
+        "H": 148
+      },
+      "svgByteParity": true,
+      "paths": 622,
+      "points": 16629,
+      "expectedDrawMoves": 16007,
+      "gcodeLowers": 622,
+      "gcodeDrawMoves": 16007,
+      "boundsWarning": false,
+      "sourceSha256": "d2b13017565f0314d7a1080ac9c64a2fc536e77a9cceea952d389ed46e4b386c",
+      "artifacts": {
+        "native-wired.svg": {
+          "bytes": 210311,
+          "copyByteParity": true,
+          "sha256": "55f53eab4f4439f8b9102b6bd6c5e75729b8682769bc61bfe8e0d704210ea3c6"
+        },
+        "native-wired.gcode": {
+          "bytes": 453789,
+          "copyByteParity": true,
+          "sha256": "10a7d0481161cb61d353b73b0de3fd9cb66bbefec8e32cc4ed9b9da4fdbbb5e9"
+        }
+      },
+      "serverStarted": false,
+      "jobsQueued": 0,
+      "physicalPrintSent": false,
+      "verification": "Offline file copying, source evaluation and byte/count checks only",
+      "passed": true,
+      "captureSourceSha256": "d2b13017565f0314d7a1080ac9c64a2fc536e77a9cceea952d389ed46e4b386c",
+      "verifiedFinalSourceSha256": "d9b7edc3f45d93a9483e25d2f4476136827039cc18bc781c53aea52c60b7c439",
+      "finalSvgByteParity": true,
+      "finalSourceNote": "Final pen-index normalization only affects malformed source pens; current complete source recalculates the captured SVG byte-identically."
+    }
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/slice-raster-input",
+  "snapshot": "/private/tmp/muusia-slice-raster-input-snapshot-20261118 (refresh after final commit; local only)",
+  "publication": false,
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "limits": [
+    "Input conversion is sampled at a bounded resolution; very thin or dense detail can soften or disappear.",
+    "Incoming path geometry supplies monochrome tone; slice pens set output ink.",
+    "Closed fill includes stroked borders, so wide Drawing stroke settings can reduce small counters."
+  ]
+}

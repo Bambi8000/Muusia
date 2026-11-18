@@ -52025,11 +52025,14 @@ import { Pin, EMPTY, mulberry32, applyStyle } from "../helpers.js";
 export default {
   key: "slice_raster", name: "Slice Raster", cat: "gen", group: "textimg",
   fileImage: true, imageMax: 640,
-  desc: "One image, different halftones in each slice. Choose Strips, Grid or seeded Collage rectangles; up to eight slices each keep their own Raster, Size share, Angle, Raster pitch, Ink strength and Pen. Advanced settings exposes these per-slice controls. Lines lengthens hatch marks with tone, Crosshatch adds a second shadow screen, Waves bends broken hatch lines, and Dots/Squares/Diamonds use real filled spiral strokes. All rasters sample one shared image fit: changing a slice never refits the picture inside it. Auto shows an original Tone study until a PNG/JPG is loaded; Image file explicitly requires a loaded picture. Contain preserves the complete image; Cover crops it to the page margin. Gap leaves blank seams. Phase moves the region masks across a stationary image and raster field; Timeline follows ANIMATE in a seamless cycle. Collage seed changes only the partition. Dot fill pitch is physical spiral spacing; match it to your nib. Dense requests uniformly coarsen sampling, pitch and spiral fill for every slice; later slices are never dropped. Style is applied last. Search: slicer, raster, halftone, collage, image, viipale, rasteri.",
-  ins: [Pin("style", "Style")], outs: [Pin("paths", "Drawing")],
+  desc: "One image or wired drawing, different halftones in each slice. Connect any blue Paths output to Drawing. Auto prioritises the connected drawing, including an empty drawing; otherwise it uses the image file or Tone study. Drawing (wired) requires that input; Image file and Tone study explicitly ignore it. Drawing keeps its canvas position and is clipped to Margin, without image fitting. Drawing stroke mm sets source line thickness; Fill closed shapes fills even-odd interiors per source pen and keeps their stroked borders. Source linework is interpreted as black; each slice still chooses its own output Pen. A shared bounded raster converts the complete drawing; very dense input coarsens it uniformly or is refused whole.  Choose Strips, Grid or seeded Collage rectangles; up to eight slices each keep their own Raster, Size share, Angle, Raster pitch, Ink strength and Pen. Advanced settings exposes these per-slice controls. Lines lengthens hatch marks with tone, Crosshatch adds a second shadow screen, Waves bends broken hatch lines, and Dots/Squares/Diamonds use real filled spiral strokes. All rasters sample one shared image fit: changing a slice never refits the picture inside it. Auto shows an original Tone study until a PNG/JPG is loaded; Image file explicitly requires a loaded picture. Contain preserves the complete image; Cover crops it to the page margin. Gap leaves blank seams. Phase moves the region masks across a stationary image and raster field; Timeline follows ANIMATE in a seamless cycle. Collage seed changes only the partition. Dot fill pitch is physical spiral spacing; match it to your nib. Dense requests uniformly coarsen sampling, pitch and spiral fill for every slice; later slices are never dropped. Style is applied last. Search: slicer, raster, halftone, collage, image, viipale, rasteri.",
+  // Keep Style at index 0 for saved patches; append the blue source input.
+  ins: [Pin("style", "Style"), Pin("paths", "Drawing")], outs: [Pin("paths", "Drawing")],
   params: [
     { key: "file", label: "Image (PNG/JPG)", type: "file", def: "" },
-    { key: "source", label: "Source", type: "select", options: ["Auto", "Image file", "Tone study"], def: "Auto" },
+    { key: "source", label: "Source", type: "select", options: ["Auto", "Image file", "Tone study", "Drawing (wired)"], def: "Auto" },
+    { key: "drawingWidth", label: "Drawing stroke mm", type: "slider", min: 0.2, max: 12, step: 0.1, def: 1.8, showIf: p => !["Image file", "Tone study"].includes(p.source) },
+    { key: "drawingFill", label: "Fill closed shapes", type: "check", def: false, showIf: p => !["Image file", "Tone study"].includes(p.source) },
     { key: "layout", label: "Layout", type: "select", options: ["Strips", "Grid", "Collage"], def: "Strips" },
     { key: "count", label: "Slices", type: "slider", min: 1, max: 8, step: 1, def: 4 },
     { key: "sliceAngle", label: "Slice angle °", type: "slider", min: 0, max: 180, step: 1, def: 0, showIf: p => p.layout === "Strips" },
@@ -52063,18 +52066,84 @@ export default {
     }).flat(),
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 12 },
   ],
-  _layout(p, ctx, node) {
+  _usesDrawing(p, ins) {
+    return p.source === "Drawing (wired)" || (!["Image file", "Tone study"].includes(p.source) && ins?.[1] != null);
+  },
+  _drawingImage(p, ctx, src, frameOnly=false) {
+    const W=Number(ctx?.W),H=Number(ctx?.H),m=Math.max(0,Number.isFinite(+p.margin)?+p.margin:12),fw=W-2*m,fh=H-2*m;
+    if(!Number.isFinite(W)||!Number.isFinite(H)||fw<4||fh<4||!Array.isArray(src?.paths)||src.paths.length>30000)return null;
+    const width=Math.max(.1,Math.min(30,Number.isFinite(+p.drawingWidth)?+p.drawingWidth:1.8)),segments=[],polys=new Map();let count=0;
+    // Refuse malformed/oversized requests whole. Never join across invalid
+    // vertices or retain only the beginning of a large incoming drawing.
+    const valid=q=>Array.isArray(q)&&q.length>=2&&q.slice(0,2).every(v=>Number.isFinite(v)&&Math.abs(v)<=1e12);
+    const clip=(a,b)=>{
+      let lo=0,hi=1;const dx=b[0]-a[0],dy=b[1]-a[1];
+      for(const [v,q]of [[-dx,a[0]-m+width],[dx,W-m+width-a[0]],[-dy,a[1]-m+width],[dy,H-m+width-a[1]]]){
+        if(Math.abs(v)<1e-12){if(q<0)return null;}else{const t=q/v;if(v<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);if(lo>hi)return null;}
+      }
+      return [[a[0]+dx*lo,a[1]+dy*lo],[a[0]+dx*hi,a[1]+dy*hi]];
+    };
+    for(const path of src.paths){
+      if(!Array.isArray(path?.pts)||(count+=path.pts.length)>120000||!path.pts.every(valid))return null;
+      const pts=path.pts;if(pts.length<2)continue;
+      if(p.drawingFill&&path.closed&&pts.length>=3){const layer=Number.isFinite(path.layer)?Math.max(0,Math.min(11,Math.round(path.layer))):0;if(!polys.has(layer))polys.set(layer,[]);polys.get(layer).push(pts);}
+      for(let i=1;i<pts.length+(path.closed?1:0);i++){const s=clip(pts[i-1],pts[i%pts.length]);if(s)segments.push(s);}
+    }
+    if(!segments.length&&!polys.size)return null;
+    // One canvas-space raster for every slice. Retry at lower resolution as a
+    // whole; both polygon crossings and stroke coverage have a hard work cap.
+    for(let attempt=0;attempt<6;attempt++){
+      const resolution=Math.max(64,Math.floor(640/1.6**attempt)),w=Math.max(2,Math.round(fw/Math.max(fw,fh)*resolution)),h=Math.max(2,Math.round(fh/Math.max(fw,fh)*resolution));
+      if(frameOnly)return {w,h};
+      const sx=fw/w,sy=fh/h,g=new Float32Array(w*h);let work=0;
+      const render=()=>{
+        for(const list of polys.values()){
+          const rows=Array.from({length:h},()=>[]);
+          for(const pts of list)for(let i=0;i<pts.length;i++){
+            const a=pts[i],b=pts[(i+1)%pts.length];if(a[1]===b[1])continue;
+            const lo=Math.max(0,Math.ceil((Math.min(a[1],b[1])-m)/sy-.5)),hi=Math.min(h-1,Math.ceil((Math.max(a[1],b[1])-m)/sy-.5)-1);
+            for(let y=lo;y<=hi;y++){if(++work>8000000)return false;const t=(m+(y+.5)*sy-a[1])/(b[1]-a[1]);rows[y].push((a[0]*(1-t)+b[0]*t-m)/sx);}
+          }
+          for(let y=0;y<h;y++){
+            const xs=rows[y].sort((a,b)=>a-b);
+            for(let i=0;i+1<xs.length;i+=2){const lo=Math.max(0,Math.floor(xs[i])),hi=Math.min(w-1,Math.ceil(xs[i+1])-1);
+              for(let x=lo;x<=hi;x++){if(++work>8000000)return false;const k=y*w+x;g[k]=Math.max(g[k],Math.min(x+1,xs[i+1])-Math.max(x,xs[i]));}
+            }
+          }
+        }
+        const pixel=Math.max(sx,sy),reach=width/2+pixel/2;
+        for(const [a,b]of segments){
+          const dx=b[0]-a[0],dy=b[1]-a[1],length2=dx*dx+dy*dy;
+          const lo=Math.max(0,Math.ceil((Math.min(a[1],b[1])-reach-m)/sy-.5)),hi=Math.min(h-1,Math.floor((Math.max(a[1],b[1])+reach-m)/sy-.5));
+          for(let y=lo;y<=hi;y++){
+            const yy=m+(y+.5)*sy;let t0=0,t1=1;
+            if(Math.abs(dy)>1e-12){const u=(yy-reach-a[1])/dy,v=(yy+reach-a[1])/dy;t0=Math.max(0,Math.min(u,v));t1=Math.min(1,Math.max(u,v));if(t0>t1)continue;}
+            const x0=a[0]+dx*t0,x1=a[0]+dx*t1,left=Math.max(0,Math.ceil((Math.min(x0,x1)-reach-m)/sx-.5)),right=Math.min(w-1,Math.floor((Math.max(x0,x1)+reach-m)/sx-.5));
+            for(let x=left;x<=right;x++){
+              if(++work>8000000)return false;
+              const xx=m+(x+.5)*sx,t=length2?Math.max(0,Math.min(1,((xx-a[0])*dx+(yy-a[1])*dy)/length2)):0,k=y*w+x;
+              g[k]=Math.max(g[k],Math.max(0,Math.min(1,(reach-Math.hypot(xx-a[0]-t*dx,yy-a[1]-t*dy))/pixel)));
+            }
+          }
+        }
+        return true;
+      };
+      if(render())return {w,h,g};
+    }
+    return null;
+  },
+  _layout(p, ctx, node, ins, frameOnly=false) {
     const num = (v, d, lo, hi) => Math.max(lo, Math.min(hi, Number.isFinite(+v) ? +v : d));
     const W = num(ctx?.W, 0, 0, 100000), H = num(ctx?.H, 0, 0, 100000), m = num(p.margin, 12, 0, 100000);
     if (W - 2*m < 4 || H - 2*m < 4) return null;
-    const loaded = node?.data?.img;
-    const valid = loaded && Number.isInteger(loaded.w) && Number.isInteger(loaded.h) && loaded.w >= 2 && loaded.h >= 2 && loaded.w*loaded.h <= 2560000 && loaded.g?.length === loaded.w*loaded.h;
+    const drawing=this._usesDrawing(p,ins),loaded=drawing?this._drawingImage(p,ctx,ins?.[1],frameOnly):node?.data?.img;
+    const valid = loaded && Number.isInteger(loaded.w) && Number.isInteger(loaded.h) && loaded.w >= 2 && loaded.h >= 2 && loaded.w*loaded.h <= 2560000 && (drawing&&frameOnly||loaded.g?.length === loaded.w*loaded.h);
     const img = p.source === "Tone study" ? null : valid ? loaded : null;
-    if (!img && p.source === "Image file") return null;
+    if (!img && (drawing||p.source === "Image file")) return null;
     const iw = img?.w || 128, ih = img?.h || 90;
     const scale = (p.fit === "Cover" ? Math.max : Math.min)((W-2*m)/iw, (H-2*m)/ih);
-    const ox = (W-iw*scale)/2, oy = (H-ih*scale)/2;
-    const box = p.fit === "Cover" ? {x0:m,y0:m,x1:W-m,y1:H-m} : {x0:ox,y0:oy,x1:W-ox,y1:H-oy};
+    const ox = drawing?m:(W-iw*scale)/2, oy = drawing?m:(H-ih*scale)/2;
+    const box = drawing||p.fit === "Cover" ? {x0:m,y0:m,x1:W-m,y1:H-m} : {x0:ox,y0:oy,x1:W-ox,y1:H-oy};
     const {x0,y0,x1,y1} = box, w=x1-x0, h=y1-y0;
     const n = Math.round(num(p.count,4,1,8)), gap=num(p.gap,.75,0,100);
     const configs=Array.from({length:n},(_,i)=>({id:i+1,type:["Lines","Dots","Crosshatch","Waves","Squares","Diamonds","Off"].includes(p["raster"+(i+1)])?p["raster"+(i+1)]:["Lines","Dots","Crosshatch","Waves"][i%4],share:num(p["share"+(i+1)],1,.2,10),angle:num(p["angle"+(i+1)],0,-360,360)*Math.PI/180,pitch:num(p["pitch"+(i+1)],2,.4,20),strength:num(p["strength"+(i+1)],1,0,3),pen:Math.round(num(p["pen"+(i+1)],0,0,11))}));
@@ -52119,7 +52188,7 @@ export default {
       if(x<x0-1e-8||x>x1+1e-8||y<y0-1e-8||y>y1+1e-8)return 0;
       let d;
       if(!img){const nx=(x-ox)/(iw*scale),ny=(y-oy)/(ih*scale),r=Math.hypot((nx-.34)/.24,(ny-.43)/.34);d=r<1?.2+.72*(1-r*.65):0;if(nx>.59&&nx<.87&&ny>.17&&ny<.71)d=Math.max(d,.18+.72*(ny-.17)/.54);if(ny>.77&&ny<.85&&nx>.12&&nx<.87)d=Math.max(d,.22+.7*(nx-.12)/.75);}
-      else {const u=Math.max(0,Math.min(iw-1,(x-ox)/scale-.5)),v=Math.max(0,Math.min(ih-1,(y-oy)/scale-.5)),a=Math.floor(u),b=Math.floor(v),fx=u-a,fy=v-b;const at=(ix,iy)=>num(img.g[Math.min(ih-1,iy)*iw+Math.min(iw-1,ix)],0,0,1);d=at(a,b)*(1-fx)*(1-fy)+at(a+1,b)*fx*(1-fy)+at(a,b+1)*(1-fx)*fy+at(a+1,b+1)*fx*fy;}
+      else {const u=Math.max(0,Math.min(iw-1,(x-ox)/(drawing?(W-2*m)/iw:scale)-.5)),v=Math.max(0,Math.min(ih-1,(y-oy)/(drawing?(H-2*m)/ih:scale)-.5)),a=Math.floor(u),b=Math.floor(v),fx=u-a,fy=v-b;const at=(ix,iy)=>num(img.g[Math.min(ih-1,iy)*iw+Math.min(iw-1,ix)],0,0,1);d=at(a,b)*(1-fx)*(1-fy)+at(a+1,b)*fx*(1-fy)+at(a,b+1)*(1-fx)*fy+at(a+1,b+1)*fx*fy;}
       if(p.invert)d=1-d;return Math.max(0,Math.min(1,((d-.5)*contrast+.5-cutoff)/(1-cutoff)))**gamma;
     };
     return {W,H,m,box,w,h,scale,ox,oy,iw,ih,img,configs,regions,rawSample,num,tau};
@@ -52139,11 +52208,11 @@ export default {
     flush();return output;
   },
   overlay(p,ctx,ins,node) {
-    const G=this._layout(p,ctx,node);if(!G)return [];
+    const G=this._layout(p,ctx,node,ins,true);if(!G)return [];
     return G.regions.map(r=>({kind:"poly",pts:[...r.poly,r.poly[0]]}));
   },
   compute(ins,p,ctx,node) {
-    const G=this._layout(p,ctx,node);if(!G)return EMPTY;
+    const G=this._layout(p,ctx,node,ins);if(!G)return EMPTY;
     const {configs,num,rawSample,tau}=G,area=G.w*G.h;
     let estimate=0,candidates=0;
     for(const c of configs)if(c.type!=="Off"&&c.strength>0){const cells=area/(c.pitch*c.pitch);estimate+=cells*(c.type==="Dots"||c.type==="Squares"||c.type==="Diamonds"?85:c.type==="Waves"?15:5)/configs.length;candidates+=cells;}

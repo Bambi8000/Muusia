@@ -96,7 +96,7 @@ export downloads a ZIP with frame numbers and registration marks. DOWNLOAD
 RECEIPT FILE saves the selected still. Sending files to the printer is separate.
 These are graphic particle models, without a physical explosion/collision solver.
 
-**Slice Raster** — one registered image interpreted with different halftones
+**Slice Raster** — one registered image or wired drawing interpreted with different halftones
 in up to eight slices. Strips uses a shared Slice angle; Grid uses Columns;
 Collage makes seeded non-overlapping rectangular partitions. Each active slice
 has its own Raster selector. Advanced slice settings exposes Size share, raster
@@ -106,7 +106,18 @@ width, per-row Grid width or target Collage area. Raster choices are Lines
 shadow screen), Waves (tone-modulated broken wave hatches), Squares, Diamonds
 and Off. Dot fill pitch is actual spiral spacing; match it to the physical nib.
 Changing pitch produces the coarse/fine collage effect across one image.
-Auto starts with an original procedural Tone study until a PNG/JPG is loaded.
+The blue *Drawing* input accepts another node's Paths, including text and shapes.
+Source Auto prioritises a connected drawing, including an empty one. Drawing
+(wired) requires that input; Image file and Tone study ignore the wire. Style
+keeps its original input index. Drawing stroke mm sets the interpreted source
+line width; Fill closed shapes fills even-odd interiors per source pen while
+retaining stroke borders. Open paths remain strokes. Source paths are interpreted
+as black; each slice's Pen controls output ink. Drawings retain their canvas
+coordinates and are clipped to Margin, independent of Image fit. Every slice
+samples one stationary drawing raster. Source caps: 30k paths / 120k points;
+bounded raster work coarsens the complete field or refuses the whole request.
+Help: Slice Raster · Wired lettering.
+Without a wire, Auto starts with the original Tone study until a PNG/JPG is loaded.
 Image file requires a valid image; Tone study explicitly ignores the file.
 Contain fits the whole picture; Cover crops it to the paper margin. All slices
 sample this one shared mapping and retain the image's proportions and position.
