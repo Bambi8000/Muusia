@@ -1455,7 +1455,7 @@
   },
   "lastGifReceipt": {
     "date": "2026-11-19",
-    "status": "ready_local_only",
+    "status": "release_2.207_pending_public_verification",
     "baseCommit": "176ff8b4fca5506f0c04df353835970fe549915b",
     "branch": "codex/gif-to-receipt",
     "worktree": "/private/tmp/muusia-gif-to-receipt-20261118",
@@ -1463,7 +1463,8 @@
     "validation": "1373 focused checks, 120 computed frames, 66 browser checks, 244 Help graphs, 62 long rolls, 50 m limits, catalog/build/37914 Learn. Native 24 SVG and receipt frames verified; continuous strip byte-identical; Print accepted offline and cut only at end.",
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-receipt",
     "proof": "docs/gif-receipt-checks.json",
-    "publication": "not requested; existing public Muusia remains 2.206 Eyelashes",
-    "physicalPrintSent": false
+    "publication": "User authorized publication on 2026-11-19; 2.207 release tested, deployment verification pending",
+    "physicalPrintSent": false,
+    "releaseEvidence": "docs/gif-receipt-release-checks.json"
   }
 }

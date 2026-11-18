@@ -1,0 +1,37 @@
+{
+  "version": "2.207",
+  "date": "2026-11-19",
+  "implementationCommit": "57ea4ba7cbcf8fc3acc5813357575bc499697bf9",
+  "baseCommit": "176ff8b4fca5506f0c04df353835970fe549915b",
+  "branch": "codex/gif-to-receipt",
+  "worktree": "/private/tmp/muusia-gif-to-receipt-20261118",
+  "status": "Release tested; deployment and public verification pending",
+  "published": false,
+  "moduleCount": 368,
+  "registryCount": 370,
+  "generators": 235,
+  "features": [
+    "Animated GIF import, fixed-aspect scale/rotation, all frozen RGB source frames saved",
+    "Colour channels, levels, gamma and five monochrome conversion modes",
+    "Outlines and light tone for hand-colouring printed animation frames",
+    "Receipt strip × N joins complete numbered frames into one continuous receipt; cut only at the end or disabled"
+  ],
+  "checks": {
+    "gifReceipt": 1373,
+    "actualComputedFrames": 120,
+    "implementationBrowserChecks": 66,
+    "helpGraphs": 244,
+    "longRollCases": 62,
+    "receipt50m": "pass",
+    "catalog": "pass",
+    "build": "pass",
+    "learn": 37914,
+    "nativeExports": "See docs/gif-receipt-checks.json; exact 24 SVG frames, registered receipt frames and a 512×17712 continuous strip. Offline Print accepts the strip; ESC/POS cut only at end."
+  },
+  "testedAppSha256": "f808e8ad76b27aad693983497007cda0f08f3b672049936059d1b2f62440a94b",
+  "url": "https://bambi8000.github.io/Muusia/",
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-receipt",
+  "snapshot": "/private/tmp/muusia-gif-receipt-release-snapshot-20261119 (refresh after final metadata commit; local only)",
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false
+}

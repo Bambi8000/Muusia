@@ -8052,3 +8052,27 @@ Native exports, saved project, portable examples, an actual-receipt animation
 GIF and ready screenshot are in WORKSTATE lastGifReceipt.artifacts. Local app
 port 5202 remains on the imported GIF colouring outline. Next step is Daniel's
 visual review and, when requested, normal version bump/release/public checks.
+
+
+### 2.207 — 2026-11-19 · GIF to Receipt and continuous colouring strips
+
+Daniel authorized publication after the completed local implementation
+`57ea4ba7cbcf8fc3acc5813357575bc499697bf9`. Publishes the GIF to Receipt Text &
+Image generator, original-aspect scale/rotation and unlocked Stretch X/Y,
+colour/monochrome controls, colouring outlines/light tone, frozen GIF frames and
+saved timeline frame count. Five live Help starters. ANIMATE Receipt strip × N
+joins every complete numbered frame on one continuous raster, with no cuts or
+extra feed between frames. Cut applies only at the end, or can be disabled.
+Existing separate receipt files remain available. No Pi update or physical print.
+
+Source/recency/catalog regenerated. Version changes only APP_VERSION from the
+previously captured implementation. Focused 1373 checks / 120 computed frames,
+244 Help graphs, 62 long-roll cases and 50 m JS/Python limits pass. Ordered
+catalog → build → 37914 Learn checks pass; tracked reference export provenance
+remains valid. Implementation's 66 real-browser checks and complete native
+GIF/SVG/G-code/receipt exports are recorded in `docs/gif-receipt-checks.json`.
+Release proof: `docs/gif-receipt-release-checks.json`; exact-commit deployment,
+public-byte and actual public-browser verification follow below when complete.
+Source counts: 368 modules / 370 registry entries / 235 generators. Primary
+dirty checkout and hardware unchanged. Refresh the clean project snapshot at
+`/private/tmp/muusia-gif-receipt-release-snapshot-20261119` after final metadata.
