@@ -1,0 +1,36 @@
+{
+  "version": "2.205",
+  "date": "2026-11-18",
+  "baseCommit": "f349893709d8b8ba8f484b6761100d4ade777562",
+  "remoteBaseCommit": "9cfb0ff17a83e5a81c5fdb2a529fd37161255bf9",
+  "branch": "codex/slice-raster-input-release",
+  "worktree": "/private/tmp/muusia-slice-raster-input-20261118",
+  "status": "Tested Muusia 2.205 release; awaiting exact-commit deployment and public verification",
+  "published": false,
+  "features": [
+    "Slice Raster blue Drawing input accepts live text and vector drawings",
+    "Auto source priority, explicit Drawing source, physical Drawing stroke width and optional closed even-odd fill",
+    "Source keeps canvas coordinates and existing slice rasters/motion/output pens; old Style index and image modes stay compatible",
+    "New wired Lettering starter alongside four preserved image starters"
+  ],
+  "moduleCount": 366,
+  "registryCount": 368,
+  "checks": {
+    "drawingWithBaseline": 793,
+    "legacyCasesByteIdentical": 144,
+    "actualWiredAnimationFrames": 90,
+    "legacySliceRaster": 545,
+    "helpGraphs": 233,
+    "lint": "passed",
+    "catalog": "passed",
+    "build": "passed",
+    "implementationNativeBrowser": "docs/slice-raster-input-checks.json records blue wire, live controls, empty source/restoration and source-identical native SVG/G-code. Version-only release leaves geometry unchanged.",
+    "learn": 37914
+  },
+  "testedAppSha256": "9495145360854c16c3e5ae96b5e79ac10b5da646a202ccc3aef56548f92f9150",
+  "url": "https://bambi8000.github.io/Muusia/",
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/slice-raster-input-release",
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "snapshot": "/private/tmp/muusia-slice-raster-input-release-snapshot-20261118 (refresh after final metadata commit; local only)"
+}

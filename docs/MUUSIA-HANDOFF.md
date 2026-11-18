@@ -7873,3 +7873,27 @@ Local app port 5200 remains open on the wired example. No push/publication was
 requested for this addition; published 2.204 and the primary dirty checkout stay
 untouched. Refresh `/private/tmp/muusia-slice-raster-input-snapshot-20261118` after
 commit; no Claude project UI upload claimed.
+
+### 2.205 — 2026-11-18 · Slice Raster Drawing input release
+
+Daniel explicitly requested publication. Integration base
+`f349893709d8b8ba8f484b6761100d4ade777562`, fetched origin/main
+`9cfb0ff17a83e5a81c5fdb2a529fd37161255bf9`; clean isolated worktree
+`/private/tmp/muusia-slice-raster-input-20261118`, branch
+`codex/slice-raster-input-release`. The single reviewed feature commit adds the
+blue Drawing source, width/fill interpretation and wired Lettering starter while
+preserving Style index 0 and all four previous image starters. Version-only
+App change to 2.205; no new engine, exporter, shared helper or machine changes.
+
+Release checks: 793 Drawing checks with previous source comparison, including
+144 exact old image/tone cases and 90 wired animation poses; all 545 existing
+Slice Raster checks, focused lint and all 233 Help graphs pass. Ordered
+catalog/build/37,914 Learn gate passes. Source/catalog/recency regenerated;
+366 modules, 368 registry entries, 233 generators. Actual implementation native
+SVG/G-code and UI evidence remains in `docs/slice-raster-input-checks.json`.
+Release proof `docs/slice-raster-input-release-checks.json` records tested app
+SHA-256. Exact-commit deployment and fresh public verification follow this
+release commit; publication is not inferred from the local build. No physical
+print or primary dirty checkout changes. Refresh
+`/private/tmp/muusia-slice-raster-input-release-snapshot-20261118` after final
+metadata; no Claude UI upload claimed.
