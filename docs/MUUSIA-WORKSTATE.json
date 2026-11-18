@@ -1131,5 +1131,36 @@
     "physicalPrintSent": false,
     "primaryDirtyWorkspaceChanged": false,
     "snapshot": "/private/tmp/muusia-word-slice-cloth-release-snapshot-20261118 (refreshed after final metadata commit)"
+  },
+  "lastPixelBlast": {
+    "date": "2026-11-18",
+    "baseCommit": "f37850d433c0d19d85878264f67c5d91d1587b75",
+    "branch": "codex/pixel-explosions",
+    "worktree": "/private/tmp/muusia-pixel-explosions-20261118",
+    "status": "Complete local Pixel Blast and digital receipt animations; not published; APP_VERSION remains 2.202",
+    "models": [
+      "Firework",
+      "Willow",
+      "Volley",
+      "Mushroom cloud",
+      "Ground blast",
+      "Shockwave",
+      "Collision",
+      "Fountain"
+    ],
+    "validation": {
+      "focused": 764,
+      "helpGraphs": 225,
+      "catalog": "passed",
+      "build": "passed",
+      "learn": 37914,
+      "nativeBrowser": "All eight models; real SVG/G-code, 24 source-identical Mushroom SVG frames, 192 actual receipt frames and one 480 mm contact strip. Offline Print parser accepts all files without queueing.",
+      "lint": "passed"
+    },
+    "evidence": "docs/pixel-blast-checks.json",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/pixel-blast",
+    "physicalPrintSent": false,
+    "primaryDirtyWorkspaceChanged": false,
+    "snapshot": "/private/tmp/muusia-pixel-blast-snapshot-20261118 (refresh after commit)"
   }
 }

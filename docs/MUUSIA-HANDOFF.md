@@ -7501,3 +7501,60 @@ Preview tool reproduces three new GIFs from actual node paths (not screenshots),
 as well as all six self-contained projects/SVGs. Earlier local Word Shape/Slice
 Raster work and user hardware confirmations retained; Robot Cave Art absent.
 APP_VERSION remains 2.201; no push, publication or hardware execution.
+
+
+### W — 2026-11-18 · Pixel Blast, local receipt animation node
+
+Branch `codex/pixel-explosions`, clean worktree
+`/private/tmp/muusia-pixel-explosions-20261118`, base
+`f37850d433c0d19d85878264f67c5d91d1587b75` (verified public Muusia 2.202).
+Daniel requested original animated pixel explosions for receipts, including
+fireworks and mushroom clouds, inspired by the current browser example.
+Reference inspected read-only: bustavo, Particle Collision 2, Instagram
+DfzdGzBIUnu. No reference code/media/artwork copied. No publication requested
+for this follow-up; APP_VERSION stays 2.202. Primary dirty checkout untouched.
+
+New generator `pixel_blast` / Pixel Blast in Text & Image. Eight distinct
+seeded models: Firework, Willow, Volley, Mushroom cloud, Ground blast,
+Shockwave, Collision and Fountain. Fixed physical pixel grid, size/fill,
+filled serpentine ink versus outlines, scoped trails/gravity/wind/smoke/rings,
+grain, composition/seed/pen. Manual Phase or Timeline whole cycles; exact
+endpoints, blank reset interval, scrubbing without state. Real XY strokes use
+existing SVG/G-code/receipt exports. No engine, exporter, printer or hardware
+change. Grid work 45k cells; path allocation preflight, uniform coarsening and
+110k-point whole-result limit. Impossible complete requests refused, not clipped
+to a path prefix. Nine Help starters: eight 72 × 100 mm effects and one static
+72 × 480 mm strip of six Manual poses merged on a shared 1 mm grid.
+
+Prototype imported with the actual Node chooser and viewed in the app. 717 lab
+checks passed; baked and checked again, then removed the graduated lab copy.
+Final validator: 764 checks (all modes, liveness, logical-pixel containment,
+real filled/outlined geometry, deterministic seeds, exact loops, fixed grid,
+cloud cap/stem, gravity, wind, collision transformation, extreme complete output,
+portable sources/projects, actual SVG/servo/bed-Z export). Focused lint clean;
+225 Help graphs, catalog/build/37,914 Learn checks and diff check pass.
+Counts now 365 source modules, 367 registry entries, 232 generators.
+
+Native built-in app: Mushroom 299 paths/1,794 points, SVG byte-identical to
+source; G-code 299 lowers/1,495 draw moves and no bounds warning. All 24 actual
+Mushroom SVG frames match source exactly. Actual current-frame receipt is
+512 × 711; numbered frames are 512 × 738. Loaded all eight Help starters and
+exported eight real 24-frame receipt batches (192 files). Validation checks
+format/width/height/data/frame ids and image-body changes independently from
+labels/marks (22–24 distinct image bodies per style, including the reset gap).
+The unchanged Print server's inspect_file accepts every style ZIP OFFLINE
+(24 < 64 files) and the 512 × 3,413 static receipt strip; no server/queue started.
+Native strip is 1,214 paths/12,140 points. UI Play/Pause, pixel size, Manual
+Phase and restoration checked. Final reload has no browser errors/warnings.
+
+Full proof: `docs/pixel-blast-checks.json`, WORKSTATE artifact directory.
+`tools/preview-pixel-blast.mjs <directory>` reproduces nine self-contained
+projects, SVGs, node source, gallery and actual-vector GIF. Eight native receipt
+ZIPs are bundled inside pixel-blast-8-receipt-animations.zip: extract the outer
+collection and import ONE chosen style ZIP in Print. README explains this;
+never promise the outer ZIP itself is a Print package (it contains nested ZIPs).
+Gallery PNG is a first-frame conversion; receipt PNGs decode actual exported
+bitmap bytes. These are not UI screenshots. Local app port 5198 → Help →
+Pixel Blast; final enlarged Firework preview is kept open at 24 frames.
+Previous Word Shape/Slice Raster/Drape release and hardware confirmations remain
+intact; Robot Cave Art remains absent. No physical print or publish in this task.

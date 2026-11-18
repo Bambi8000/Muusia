@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 366 built-in nodes in the current Muusia source. Conventions used below:
+All 367 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -28,7 +28,33 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (231)
+## Generators (232)
+
+**Pixel Blast** — eight seeded animated black pixel effects: Firework, falling
+Willow trails, three-burst Volley, rising Mushroom cloud, Ground blast,
+concentric Shockwave, opposing-beam Collision and a jetted Fountain. Designed
+for 72 × 100 mm receipts as well as ordinary vector output. Manual Phase selects
+a still; Timeline adds the current frame and an integer Loops per timeline.
+Phase offsets the cycle. A short empty interval resets each event; loop endpoints
+match exactly and scrubbing never accumulates old particles. Each pose uses the
+same physical grid and framing. Pixel size is in canvas millimetres; Pixel fill
+controls the gap. At 100%, adjacent filled cells merge into scanline runs. Filled
+pixels are real tightly spaced serpentine strokes; Pixel outlines retains each
+cell's outline. No SVG fill or screen-only opacity is required. Source paths
+therefore work with SVG, G-code and the normal black receipt raster renderer.
+Trails, Gravity, Wind, Smoke and Rings appear for the effects that use them.
+Centre, Blast size, Grain and Seed change the composition. Guides never export.
+Grid work is bounded at 45k cells; dense results uniformly increase pixel size
+and retry before allocating paths. The complete result fits 110k points or is
+refused whole. Extreme aspect ratios that cannot hold a square grid are refused.
+No tail of a drawing or later receipt rows are silently truncated.
+
+Help includes eight live receipt-sized starters and a static 72 × 480 mm strip
+of six manual firework poses on the same 1 mm grid. For individually numbered
+animation receipts, choose 24 or 32 ANIMATE frames and Receipt × N: the existing
+export downloads a ZIP with frame numbers and registration marks. DOWNLOAD
+RECEIPT FILE saves the selected still. Sending files to the printer is separate.
+These are graphic particle models, without a physical explosion/collision solver.
 
 **Slice Raster** — one registered image interpreted with different halftones
 in up to eight slices. Strips uses a shared Slice angle; Grid uses Columns;

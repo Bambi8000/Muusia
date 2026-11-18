@@ -909,6 +909,32 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 ];
 
 export const EXAMPLES = [
+  ...[
+    { title: "Firework", effect: "Firework", phase: 45, cy: 50, amount: 640, gravity: 35, trails: 65, grain: 22 },
+    { title: "Willow trails", effect: "Willow", phase: 58, cy: 37, amount: 480, gravity: 85, trails: 100, grain: 25 },
+    { title: "Volley", effect: "Volley", phase: 58, cy: 50, amount: 1000, gravity: 35, trails: 65, grain: 22 },
+    { title: "Mushroom cloud", effect: "Mushroom cloud", phase: 58, cy: 84, amount: 640, gravity: 45, trails: 60, grain: 65, smoke: 75 },
+    { title: "Ground blast", effect: "Ground blast", phase: 48, cy: 78, amount: 800, gravity: 55, trails: 80, grain: 45, smoke: 55 },
+    { title: "Shockwave", effect: "Shockwave", phase: 52, cy: 50, amount: 640, gravity: 45, trails: 60, grain: 30, rings: 4 },
+    { title: "Collision", effect: "Collision", phase: 62, cy: 50, amount: 520, gravity: 30, trails: 70, grain: 40 },
+    { title: "Fountain", effect: "Fountain", phase: 48, cy: 88, amount: 480, gravity: 50, trails: 85, grain: 25 },
+  ].map(m => ({
+    name: "Pixel Blast · " + m.title,
+    desc: "Select Pixel Blast. " + m.effect + " is an original seeded black pixel effect on a 72 × 100 mm receipt canvas. Open ANIMATE, set 24 or 32 frames and Play. Time source Timeline uses the current frame; Phase offsets the cycle and Loops per timeline changes speed in whole cycles. Manual freezes a Phase for one print. Pixel size stays in physical millimetres; Pixel fill 100% joins adjacent blocks. Filled pixels are real serpentine ink paths, so SVG, G-code and receipt exports share the drawing. Choose Receipt × N to download numbered receipt frames with registration marks in one ZIP, then send selected files from Print. DOWNLOAD RECEIPT FILE saves only the current still. These actions download files; they do not print. Trails, Gravity, Wind, Smoke and Rings appear where used. The same Seed keeps particle identities and framing stable; each cycle has an empty interval. Try another Explosion or Seed for a different event.",
+    canvas: { W: 72, H: 100 },
+    make: defaults => ({ nodes: [
+      { id: 9001, type: "pixel_blast", x: 40, y: 20, params: { ...defaults("pixel_blast"), effect: m.effect, motion: "Timeline", phase: m.phase, cy: m.cy, amount: m.amount, gravity: m.gravity, trails: m.trails, grain: m.grain, smoke: m.smoke ?? 65, rings: m.rings ?? 3, fill: 100, size: 100 } },
+    ], edges: [] }),
+  })),
+  {
+    name: "Pixel Blast · Receipt strip",
+    desc: "Select Merge for one 72 × 480 mm receipt showing six stages from launch to dissipating sparks. The six Pixel Blast nodes use the same Seed and physical 1 mm grid; Manual Phase advances down the strip. It is a static contact strip, not an animation batch. DOWNLOAD RECEIPT FILE saves the entire strip as one file. For separately numbered, registered animation frames, load the Firework starter and use ANIMATE → Receipt × N. No printer command is sent when loading an example or downloading a file.",
+    canvas: { W: 72, H: 480 },
+    make: defaults => ({ nodes: [
+      ...[15,30,45,60,75,88].map((phase,i) => ({ id: 9001+i, type: "pixel_blast", x: 20, y: 20+i*180, params: { ...defaults("pixel_blast"), motion: "Manual", phase, cy: (i+.5)*100/6, pixel: 1, fill: 100, gravity: 10, trails: 35, amount: 420, size: 92 } })),
+      { id: 9007, type: "merge", x: 390, y: 300, params: { ...defaults("merge"), count: 6 } },
+    ], edges: Array.from({length:6},(_,i)=>({ id: "e"+(9101+i), from: 9001+i, fromPort: 0, to: 9007, toPort: i })) }),
+  },
   {
     name: "Slice Raster · Four screens",
     desc: "One image continues across four differently rasterised strips: Lines, Dots, Crosshatch and Waves. Auto starts with an original tone study. Choose an image to replace it. Advanced slice settings exposes each slice's independent size share, raster angle, raster pitch, ink strength and pen. A4 wide.",

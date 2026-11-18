@@ -1,0 +1,240 @@
+{
+  "date": "2026-11-18",
+  "baseCommit": "f37850d433c0d19d85878264f67c5d91d1587b75",
+  "branch": "codex/pixel-explosions",
+  "worktree": "/private/tmp/muusia-pixel-explosions-20261118",
+  "status": "Complete local Pixel Blast node and ready-to-print digital artifacts; not published; APP_VERSION stays 2.202",
+  "reference": {
+    "url": "https://www.instagram.com/p/DfzdGzBIUnu/?img_index=1",
+    "author": "bustavo / Gustavo Munoz",
+    "title": "Particle Collision 2",
+    "inspection": "Read-only user-opened Chrome video (9.8 s): black square particle tracks and opposing collision lobes. Independent eight-mode implementation; no reference code, video or artwork copied."
+  },
+  "features": [
+    "Eight seeded effects: Firework, Willow, Volley, Mushroom cloud, Ground blast, Shockwave, Collision, Fountain",
+    "Manual Phase or periodic Timeline; integer loops, exact endpoints, random-access poses",
+    "Fixed physical square grid, pixel size/fill, filled serpentine ink or outlines",
+    "Trails, gravity, wind, smoke, rings, grain, position, size, seed and pen; scoped control visibility",
+    "Real XY geometry for existing SVG/G-code/receipt pipeline; no engine or printer change",
+    "Whole-output grid/point budgets, preflight before allocating paths, uniform coarsening or whole refusal",
+    "Eight 72 x 100 mm live starters plus one static 72 x 480 mm contact strip",
+    "Eight native 24-frame receipt ZIPs, 192 labelled and registered receipt frames total, in one outer collection"
+  ],
+  "validation": {
+    "prototype": "Imported lab definition through actual Node chooser, rendered Firework/Mushroom. Validated 717 checks in lab, baked, reran, removed the graduated lab copy.",
+    "focused": 764,
+    "helpGraphs": 225,
+    "catalog": "passed; 365 modules / 367 registry entries / 232 generators",
+    "build": "passed",
+    "learn": 37914,
+    "lint": "changed node, examples and tools pass without warnings/errors",
+    "actualNodeModels": [
+      {
+        "name": "Pixel Blast · Firework",
+        "paths": 494,
+        "points": 2964
+      },
+      {
+        "name": "Pixel Blast · Willow trails",
+        "paths": 816,
+        "points": 4896
+      },
+      {
+        "name": "Pixel Blast · Volley",
+        "paths": 641,
+        "points": 3846
+      },
+      {
+        "name": "Pixel Blast · Mushroom cloud",
+        "paths": 299,
+        "points": 1794
+      },
+      {
+        "name": "Pixel Blast · Ground blast",
+        "paths": 511,
+        "points": 3066
+      },
+      {
+        "name": "Pixel Blast · Shockwave",
+        "paths": 426,
+        "points": 2556
+      },
+      {
+        "name": "Pixel Blast · Collision",
+        "paths": 556,
+        "points": 3336
+      },
+      {
+        "name": "Pixel Blast · Fountain",
+        "paths": 286,
+        "points": 1716
+      },
+      {
+        "name": "Pixel Blast · Receipt strip",
+        "paths": 1214,
+        "points": 12140
+      }
+    ],
+    "nativeBrowser": {
+      "mushroom": {
+        "paths": 299,
+        "points": 1794,
+        "svgPaths": 299,
+        "servoLowers": 299,
+        "drawMoves": 1495,
+        "boundsWarning": false,
+        "svgByteParity": true,
+        "matchingSvgFrames": 24,
+        "stillReceiptWidth": 512,
+        "stillReceiptHeight": 711
+      },
+      "allEightModels": "Loaded each built-in Help starter and exported an actual 24-frame Receipt ZIP. Source stats matched every native preview.",
+      "animationReceipts": [
+        {
+          "name": "Firework",
+          "frames": 24,
+          "width": 512,
+          "height": 738,
+          "distinctImageBodies": 23,
+          "blankBodies": 2,
+          "sha256": "74a8756f4609bd737b28bbe02e940bdedfafe4baf17a55fb4ae4019a21d1424a"
+        },
+        {
+          "name": "Willow",
+          "frames": 24,
+          "width": 512,
+          "height": 738,
+          "distinctImageBodies": 23,
+          "blankBodies": 2,
+          "sha256": "b7b1ae2394a1f83612c10340ed0d22902e74b6c15480ac5cc257abae8d156677"
+        },
+        {
+          "name": "Volley",
+          "frames": 24,
+          "width": 512,
+          "height": 738,
+          "distinctImageBodies": 23,
+          "blankBodies": 2,
+          "sha256": "91ef1f6514645722870fca6c89c93134771783101140bd816d9c85dc334517ef"
+        },
+        {
+          "name": "Mushroom cloud",
+          "frames": 24,
+          "width": 512,
+          "height": 738,
+          "distinctImageBodies": 23,
+          "blankBodies": 2,
+          "sha256": "b1ba814f45eee6f019fe3bf305df9a33af4329890763b2e3fc6c9488bcb9b50b"
+        },
+        {
+          "name": "Ground blast",
+          "frames": 24,
+          "width": 512,
+          "height": 738,
+          "distinctImageBodies": 24,
+          "blankBodies": 1,
+          "sha256": "55782810b367e35e1fa412b96fb9a29ed4d8a313529ac4f92fa06a3b7b31120f"
+        },
+        {
+          "name": "Shockwave",
+          "frames": 24,
+          "width": 512,
+          "height": 738,
+          "distinctImageBodies": 23,
+          "blankBodies": 2,
+          "sha256": "a6d00f81b6da50db97adc07b32bde4aa73cf861815d56b6f24fa3d541e82a891"
+        },
+        {
+          "name": "Collision",
+          "frames": 24,
+          "width": 512,
+          "height": 738,
+          "distinctImageBodies": 22,
+          "blankBodies": 3,
+          "sha256": "ff14aaa140edfd70fa3ac08b3fbd0d94557ada30eea38b56af17b05fd865db73"
+        },
+        {
+          "name": "Fountain",
+          "frames": 24,
+          "width": 512,
+          "height": 738,
+          "distinctImageBodies": 24,
+          "blankBodies": 1,
+          "sha256": "6eb11ad7e593813b503c8f604efddf7c3f5c80f2ebcae8ca5a545e01453b3553"
+        }
+      ],
+      "staticReceiptStrip": {
+        "paths": 1214,
+        "points": 12140,
+        "widthDots": 512,
+        "heightDots": 3413,
+        "canvasMm": [
+          72,
+          480
+        ]
+      },
+      "controls": "Play/Pause and frame stepping; physical pixel 0.7 to 1.0 mm changes 494 to 200 paths; Manual Phase 65 shows 820 paths; restoring Timeline Phase 45 restores exact 494 paths / 2964 points.",
+      "freshLoad": "Baked node loads without custom import; final reload shows Firework with 24 frames; no browser warnings/errors since reload.",
+      "finalTab": "http://127.0.0.1:5198/ — Pixel Blast Firework enlarged preview, ready to Play"
+    },
+    "offlinePrintParser": {
+      "stylePackages": [
+        {
+          "file": "01-firework-24-frames.zip",
+          "acceptedFrames": 24
+        },
+        {
+          "file": "02-willow-24-frames.zip",
+          "acceptedFrames": 24
+        },
+        {
+          "file": "03-volley-24-frames.zip",
+          "acceptedFrames": 24
+        },
+        {
+          "file": "04-mushroom-24-frames.zip",
+          "acceptedFrames": 24
+        },
+        {
+          "file": "05-ground-blast-24-frames.zip",
+          "acceptedFrames": 24
+        },
+        {
+          "file": "06-shockwave-24-frames.zip",
+          "acceptedFrames": 24
+        },
+        {
+          "file": "07-collision-24-frames.zip",
+          "acceptedFrames": 24
+        },
+        {
+          "file": "08-fountain-24-frames.zip",
+          "acceptedFrames": 24
+        }
+      ],
+      "totalAcceptedFrames": 192,
+      "staticStrip": {
+        "width": 512,
+        "height": 3413,
+        "accepted": true
+      },
+      "serverStarted": false,
+      "jobsQueued": 0
+    },
+    "physicalPrintSent": false
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/pixel-blast",
+  "collection": {
+    "file": "pixel-blast-8-receipt-animations.zip",
+    "sha256": "bca9116d35b8187e214667352c4425ba4df9268850e4d03d5ccc50aa10f5f2d5",
+    "instructions": "Extract the outer collection, then choose one inner 24-frame style ZIP for Muusia Print. Each inner ZIP is below the 64-file import limit."
+  },
+  "media": "Gallery GIF renders actual node paths; receipt PNGs decode actual exported 1-bit receipt bytes. Neither is a fabricated browser screenshot.",
+  "publication": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "limits": [
+    "Graphic particle effects, not physical blast/collision simulation.",
+    "Dense/long canvases uniformly increase pixel pitch; impossible complete results are refused whole.",
+    "A short blank interval between events is intentional."
+  ]
+}
