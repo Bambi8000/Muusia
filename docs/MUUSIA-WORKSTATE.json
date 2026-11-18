@@ -1419,14 +1419,7 @@
     "published": true,
     "releaseEvidence": "docs/eyelashes-release-checks.json"
   },
-  "pendingUserRequests": [
-    {
-      "id": "gif-to-receipt",
-      "status": "ready_to_start",
-      "request": "Create a GIF to Receipt node with animated GIF file intake, scaling and rotation with optional locked aspect ratio, monochrome conversion controls, and receipt animation export.",
-      "requestedDate": "2026-11-18"
-    }
-  ],
+  "pendingUserRequests": [],
   "lastEyelashesRelease": {
     "version": "2.206",
     "date": "2026-11-18",
@@ -1459,5 +1452,18 @@
     "physicalPrintSent": false,
     "primaryDirtyWorkspaceChanged": false,
     "evidence": "docs/eyelashes-release-checks.json"
+  },
+  "lastGifReceipt": {
+    "date": "2026-11-19",
+    "status": "ready_local_only",
+    "baseCommit": "176ff8b4fca5506f0c04df353835970fe549915b",
+    "branch": "codex/gif-to-receipt",
+    "worktree": "/private/tmp/muusia-gif-to-receipt-20261118",
+    "outcome": "Animated GIF import with frozen RGB frames, aspect-preserving transforms and colour/monochrome controls; hand-colouring outlines and one continuous numbered receipt strip without inter-frame cuts.",
+    "validation": "1373 focused checks, 120 computed frames, 66 browser checks, 244 Help graphs, 62 long rolls, 50 m limits, catalog/build/37914 Learn. Native 24 SVG and receipt frames verified; continuous strip byte-identical; Print accepted offline and cut only at end.",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-receipt",
+    "proof": "docs/gif-receipt-checks.json",
+    "publication": "not requested; existing public Muusia remains 2.206 Eyelashes",
+    "physicalPrintSent": false
   }
 }

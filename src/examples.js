@@ -910,6 +910,20 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   ...[
+    {name:"Colour to dots",params:{}},
+    {name:"Colouring outlines",params:{render:"Outlines",edge:14,columns:192}},
+    {name:"Light colouring guide",params:{render:"Outlines + light tone",ink:18,mode:"Bayer 4×4",columns:160}},
+    {name:"Turned animation",params:{angle:-25,scale:125,mode:"Atkinson",contrast:1.25,columns:160}},
+    {name:"Bold threshold",params:{mode:"Threshold",channel:"Darkest channel",threshold:60,scale:85}}
+  ].map(p=>({
+    name:"GIF to Receipt · "+p.name,
+    frames:24,
+    desc:"Select GIF to Receipt, then Choose animated GIF to open your animation. Import keeps every source frame and sets ANIMATE Frames. These starters use the built-in colour demo. Scale, Rotation, Offset and Keep aspect ratio place it on the receipt. Drawing Outlines leaves white areas for colouring by hand; Light tone adds a faint guide. Colour channel, Brightness, Contrast, Gamma, Black/White points, Threshold, Invert and five monochrome modes tune black reproduction. Bayer stays fixed between frames. Time source Timeline follows Play; Manual picks a still. Every source frame uses each frame once when ANIMATE Frames matches the GIF, Phase is zero and Cycles is one; Original timing samples its delays into equally spaced output frames. Receipt strip × N downloads ONE continuous numbered receipt: no cuts or extra feeds between frames, Cut only at the end. Receipt × N keeps separate files. Registration marks help rephotograph a hand-coloured strip. No printing happens on download.",
+    canvas:{W:72,H:100},
+    make:defaults=>({nodes:[{id:9001,type:"gif_receipt",x:40,y:30,params:{...defaults("gif_receipt"),...p.params,source:"Colour demo",time:"Timeline"}}],edges:[]})
+  })),
+
+  ...[
   {
     "name": "Beautiful accident",
     "params": {

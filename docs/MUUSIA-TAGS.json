@@ -629,6 +629,12 @@
   "penout",
   "pens"
  ],
+ "gif_receipt": [
+  "animation",
+  "image",
+  "raster",
+  "retro"
+ ],
  "girih": [
   "geometric",
   "grid",

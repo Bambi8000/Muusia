@@ -22,7 +22,9 @@ export function renderReceiptRaster(paths, widthMm, heightMm) {
   const drawable = paths.filter(path => path.pts?.length > 1).map(path => {
     let lo = Infinity, hi = -Infinity;
     for (const [, y] of path.pts) { lo = Math.min(lo, y); hi = Math.max(hi, y); }
-    return { path, lo: lo * scaleY, hi: hi * scaleY };
+    const lineWidth = Number.isFinite(path.receiptStrokeWidth) && path.receiptStrokeWidth > 0
+      ? Math.min(10, path.receiptStrokeWidth) : Math.max(0.3, widthMm / width * 1.25);
+    return { path, lo: lo * scaleY, hi: hi * scaleY, lineWidth };
   });
   for (let row = 0; row < height; row += renderRows) {
     const rows = Math.min(renderRows, height - row);
@@ -35,8 +37,9 @@ export function renderReceiptRaster(paths, widthMm, heightMm) {
     ctx.lineWidth = Math.max(0.3, widthMm / width * 1.25);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    const pad = ctx.lineWidth * scaleY / 2 + 1;
-    for (const { path, lo, hi } of drawable) {
+    for (const { path, lo, hi, lineWidth } of drawable) {
+      ctx.lineWidth = lineWidth;
+      const pad = lineWidth * scaleY / 2 + 1;
       if (hi + pad < row || lo - pad > row + rows) continue;
       // Draw whole paths in a translated strip: no artificial pen caps or
       // missing antialiased pixels where consecutive raster stripes meet.

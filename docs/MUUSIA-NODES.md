@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 369 built-in nodes in the current Muusia source. Conventions used below:
+All 370 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -28,7 +28,39 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (234)
+## Generators (235)
+
+**GIF to Receipt** — open animated GIFs and convert every frame to black receipt
+linework. Import sets ANIMATE Frames and preserves all frames, transparency,
+frame disposal and delays. A built-in colour demo works without a file.
+Scale, Rotation and offsets position the image; Keep aspect ratio uses the
+original GIF proportions. Unlock it for independent Stretch X/Y. Contain or
+Cover sets the initial fit; Margin crops at the paper edge.
+Luminance, Average, individual RGB or Darkest channel feed Brightness, Contrast,
+Gamma, Black/White points and Invert. Monochrome offers fixed Bayer 4×4/8×8,
+Floyd–Steinberg, Atkinson or Threshold, with strength and alternating scans.
+Drawing Outlines leaves white interiors for colouring by hand; Outlines + light
+tone and Ink amount create a faint colouring guide. Outline threshold controls
+edge detail. Detail is uniformly reduced if necessary to keep complete frames
+within the point budget; the grid stays fixed during animation.
+Manual selects a source still. Timeline Every source frame visits each source
+once with matching frame counts, one Cycle and zero Phase. Original timing
+samples delays into equally spaced timeline frames. Play previews motion.
+**Receipt strip × N** joins all numbered, registered frames into ONE continuous
+receipt file, without cuts or extra feed between frames. Cut applies only at
+the end; turn Cut off to leave even the strip attached. Maximum strip length
+is 50 m including registration margins. **Receipt × N** retains separate files.
+The strip is useful for hand-colouring then rephotographing the animation.
+Downloads do not print. Native receipt output honours each sampled row's width;
+SVG/preview use the same hint, while G-code/DXF remain centreline geometry.
+GIF intake supports up to 20 MB, 240 frames and 4 million canvas pixels; all
+frames are kept with uniform downsampling to at most 6 million frozen pixels
+in total (long side ≤1024). The portable project includes these decoded RGB
+frames and the saved ANIMATE frame count, so the original file is unnecessary
+after saving. Malformed or larger
+files report an error instead of silently dropping frames. Browser import uses
+ImageDecoder with a disposal/interlace-aware image-bitmap fallback.
+
 
 **Eyelashes** — irregular lash bundles inspired by an accidental wet-ink plot.
 Almond, Oval and Swept eye shapes carry seeded curved hairs with varied lengths,

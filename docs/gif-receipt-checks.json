@@ -1,0 +1,81 @@
+{
+  "feature": "GIF to Receipt and continuous colouring strip",
+  "date": "2026-11-19",
+  "baseCommit": "176ff8b4fca5506f0c04df353835970fe549915b",
+  "branch": "codex/gif-to-receipt",
+  "worktree": "/private/tmp/muusia-gif-to-receipt-20261118",
+  "appVersion": "2.206",
+  "localOnly": true,
+  "published": false,
+  "counts": {
+    "modules": 368,
+    "registry": 370,
+    "generators": 235,
+    "helpExamples": 244
+  },
+  "validation": {
+    "focusedChecks": 1373,
+    "actualComputedFrames": 120,
+    "browserChecks": 66,
+    "helpGraphs": 244,
+    "longRollCases": 62,
+    "receipt50mLimits": "pass; 353357 rows, JS/Python parity",
+    "catalog": "pass",
+    "productionBuild": "pass",
+    "learnChecks": 37914,
+    "newFileLint": "clean",
+    "appLint": "existing warnings only"
+  },
+  "browser": {
+    "prototypeNodeImport": true,
+    "actualColourGifPicker": true,
+    "partialDisposalInterlaceGifPicker": true,
+    "sourceFrameCountAutoChanges": [
+      5,
+      24
+    ],
+    "sourceSwitchesFromDemoToFile": true,
+    "playAdvancesFrames": true,
+    "manualRotateScale": true,
+    "aspectUnlockThenRelock": true,
+    "savedFrameCount": 24,
+    "loadAfterChangingFrameCountTo7Restores24": true,
+    "allFrozenFramesSaved": 24,
+    "nativeSvgMatchesCurrentNode": true,
+    "nativeSvgBatchFramesIdentical": 24,
+    "nativeGcodeDrawingMoves": 298,
+    "nativeGcodeBoundsWarning": false,
+    "legacyReceiptPixels": "exact on short and striped tall canvas",
+    "decoderParity": "native/fallback + independent RGB oracle + 8 background/transparency variants"
+  },
+  "continuousStrip": {
+    "frames": 24,
+    "width": 512,
+    "height": 17712,
+    "lengthMetres": 2.506,
+    "rowsByteIdenticalToSeparateFrames": true,
+    "offlinePrintAccepted": 1,
+    "escposRasterChunks": 70,
+    "escposCuts": 1,
+    "cutOnlyAfterAllPixels": true,
+    "cutFalseOmitsFinalCut": true,
+    "noPrintJobQueued": true,
+    "sha256": "961c62fe76fd035cfe0db17c3618c10b3bc9354d947135ab3f040e38ac970e2a"
+  },
+  "limits": {
+    "gifBytes": 20000000,
+    "frames": 240,
+    "canvasPixels": 4000000,
+    "frozenPixelsTotal": 6000000,
+    "longestFrozenSide": 1024,
+    "receiptStripMetres": 50,
+    "thermalTextInContinuousStrip": false
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-receipt",
+  "readyScreenshot": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-receipt/native-ready.jpg",
+  "preview": "http://127.0.0.1:5202/",
+  "buildSha256": "90506cb2daafd64e651414eb28aa70bdf428807e82818e4f17476877d2eab28d",
+  "physicalPrintSent": false,
+  "hardwareChanged": false,
+  "primaryDirtyCheckoutModified": false
+}

@@ -7985,3 +7985,70 @@ and checks are in the artifact directory; public tab is kept on Wired dream.
 Final metadata-only push uses skip-ci and leaves verified app bytes unchanged.
 Snapshot refreshed after that commit. No physical print or Claude UI upload.
 GIF to Receipt is the next authorized implementation task.
+
+
+### W — 2026-11-19 · GIF to Receipt, hand-colouring and a continuous strip (local)
+
+Daniel requested an animated GIF file node with scale/rotation, aspect lock and
+colour-to-monochrome controls, then asked to draw/colour the printed frames by
+hand and keep them on one uncut receipt. Implemented in the isolated
+`codex/gif-to-receipt` worktree `/private/tmp/muusia-gif-to-receipt-20261118`, based
+on `176ff8b4fca5506f0c04df353835970fe549915b`. Primary dirty checkout untouched.
+**Local only; no publication requested for this feature.** Public Muusia remains
+2.206 (verified Eyelashes release). No printer job, device or hardware change.
+
+`gif_receipt` is a new Text & Image generator. Prototype was imported through
+Node ⇣ and a real colour GIF picker, then baked and the lab copy removed.
+Import parses GIF89a framing/timing, decodes every frame with ImageDecoder or
+an image-bitmap patch fallback, handles transparency/local palettes/interlace
+and disposals 2/3, and freezes RGB bytes in `node.data.svg`. Browser GIF canvas
+background/disposal behaviour was checked against native decoding, including
+nonwhite global backgrounds, partially filled canvases and changing transparency.
+Limits: 20 MB, 240 frames, 4 million canvas pixels; uniform downsampling retains
+all frames within 6 million frozen pixels total and 1024 px per longest side.
+
+Contain/Cover, Scale, Rotation, offsets and optional independent Stretch X/Y use
+original GIF aspect and fixed framing. Luminance/Average/R/G/B/Darkest channels,
+brightness/contrast/gamma/levels/inversion feed Bayer 4×4/8×8, Floyd–Steinberg,
+Atkinson or Threshold. Drawing Outlines leaves white interiors; Outlines + light
+tone with low Ink amount makes a colouring guide. Detail has a fixed worst-case
+point budget shared by all frames. Timeline can visit every source frame once
+or sample its original delays; Manual picks a still. Five live Help starters
+set 24 frames. A successful file import switches Source to GIF file, stops Play,
+resets to frame zero and sets the imported count. Async onFile results are guarded
+against later selections and graph loads. Saved projects now retain
+`animation.frames`; real save/reload after changing 24→7 restored 24 and all RGB
+frames without selecting the original GIF again. New API flags/hints documented.
+
+ANIMATE **Receipt strip × N** produces one ordinary muusia-receipt JSON image:
+all complete registered frames concatenated as packed rows, no inter-frame gap,
+feed or cut. Cut applies only at the end; disabling it leaves the whole strip
+attached. Existing Receipt × N separate downloads stay available. Maximum total
+strip is 50 m; continuous strips reject Thermal Text rather than lose its blocks.
+`receiptStrokeWidth` is a narrow opt-in row coverage hint in receipt-raster;
+paths without it, including older strokeWidth paths, keep legacy output bytes.
+SVG/preview use strokeWidth; G-code/DXF remain actual centreline paths.
+
+Validation: 1373 focused checks and 120 actual computed frames, five real Help
+starters, 66 real-browser decoder/raster/continuous-row checks, all 244 Help
+graphs, 62 long-roll cases and the 50 m JS/Python limits check pass. New-file lint
+is clean; App retains its existing lint warnings. Ordered catalog → production
+build → 37914 Learn checks pass, with unchanged reference export provenance.
+Counts: 368 source modules / 370 registry entries / 235 generators.
+
+Actual file-picker GIF import yielded 24 frames; the partial/interlaced fixture
+changed the count to 5, and another import restored 24. Native Play advanced;
+scale, rotation and aspect unlock/relock changed the actual drawing. Static SVG
+and all 24 native SVG frames match current node evaluation exactly; G-code has
+all 298 outline runs and no bounds warning. Real Receipt ×24 and Receipt strip
+×24 downloads contain identical 738-row registered frame bodies. Strip is
+512×17712 dots (~2.506 m). Offline Print accepted one strip and all 24 separate
+frames without a queued job; parsed ESC/POS contains 70 raster blocks followed
+by exactly one final cut, or no cut when disabled. No physical ink/paper test.
+
+Proof: `docs/gif-receipt-checks.json`. Fixtures and exact RGB oracle live under
+`fixtures/gif-receipt/`; browser probe is `tools/gif-receipt-browser-probe.html`.
+Native exports, saved project, portable examples, an actual-receipt animation
+GIF and ready screenshot are in WORKSTATE lastGifReceipt.artifacts. Local app
+port 5202 remains on the imported GIF colouring outline. Next step is Daniel's
+visual review and, when requested, normal version bump/release/public checks.

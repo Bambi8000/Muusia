@@ -79,6 +79,12 @@ Everything flowing through blue wires is a **path set**:
   a physical pen command: G-code and DXF remain centreline geometry. Modifiers
   that reconstruct paths may discard optional presentation metadata.
 
+- `receiptStrokeWidth` — optional finite positive coverage width in millimetres,
+  capped at 10 mm, honoured only by receipt rasterization. GIF to Receipt opts
+  in so its sampled dot rows keep their coverage. Existing paths (including
+  paths with only `strokeWidth`) retain their historical receipt pixels.
+  G-code and DXF remain centreline geometry; modifiers may discard this hint.
+
 Curves do not exist: everything is a polyline. Sample curves densely enough
 (typically a point every 0.5–2 mm) to look smooth.
 
@@ -106,15 +112,20 @@ that silently loses later details, pen layers and Merge inputs.
 | `bgImage` | flag (2.51) | Background-underlay node: the file param intakes via the Portrait image pipeline (EXIF orientation honored, long side 1280 px, JPEG dataURL frozen at `node.data.src` + dims/grayscale at `node.data.img`), and the preview draws the node's `bgRender()` UNDER the paths — always visible, not only when selected. One bgImage node renders at a time. The image travels inside the patch. |
 | `bgRender` | function (2.51) | `(params, ctx, node) => {src, cx, cy, w, h, rotDeg, opacity, gray} \| null` — what the preview draws for a `bgImage` node, in canvas mm. Never plotted, never exported. Must never throw; return `null` to hide. |
 | `hidden` | flag | Hides the node from the palette while old patches keep loading and rendering unchanged — the legacy-alias mechanism (Route since 2.3x, Trace Image since 2.51). |
-| `onFile` | function, optional | `(text) => data` — parse a file for a `type:"file"` param. **The result is stored at `node.data.svg`** (the `.svg` key is a historical artifact of Import SVG and applies to every file node — Point Cloud reads its point data from there too); `compute` must read `node && node.data && node.data.svg`. |
+| `onFile` | function, optional | `(text) => data | Promise<data>` — parse a file for a `type:"file"` param. **The result is stored at `node.data.svg`** (the `.svg` key is a historical artifact of Import SVG and applies to every file node — Point Cloud reads its point data from there too); `compute` must read `node && node.data && node.data.svg`. |
 | `fileLabel` | string, optional | Label for the file picker button (default "Choose SVG…"). **Definition-level field** — set it next to `key`/`name`, not inside the param descriptor. |
 | `fileButtonLabels` | object, optional | Per-file-param button text, e.g. `{ file: "Choose image A…", file2: "Choose image B…" }`. Overrides `fileLabel` and the usual image picker label for those keys. |
 | `fileAccept` | string, optional | `accept` attribute for the file input, e.g. `".geojson,.json"` (default `.svg`). **Definition-level field**; a `fileAccept` placed inside the param descriptor is silently ignored. |
 | `fileBinary` | boolean, optional | Definition-level flag (v2.49). The file is read as a **dataURL** (like `fileImage`) but routed to the normal `onFile` branch, so `onFile` receives the dataURL string and can base64-decode binary formats (see Sound Line's WAV parser). Result still lands at `node.data.svg`. Set `fileAccept` too — it now wins over the `image/*` default. |
+| `fileAnimation` | boolean, optional | Opt-in for animated file nodes with `onFile`. A successful result can include integer `frameCount` (1–999) to stop Play, reset to the first frame and set ANIMATE Frames; an optional short `summary` is appended to the file label. Only the most recently selected file for the same node/param can commit an asynchronous result. Frozen frames still belong at `node.data.svg`. GIF to Receipt decodes in the browser only during import, then evaluates saved RGB data synchronously. |
 | `fileImage` | boolean, optional | Definition-level flag. The file picker reads a **dataURL** and the engine decodes the raster itself; the button label becomes "Choose image…" automatically. The result is frozen at **`node.data.img`** = `{ w, h, g, rgb }`: `w`/`h` are the downsampled pixel dimensions (long side capped at 160 px by default, or `imageMax` up to 1600), `g` is a `w*h` array of **darkness** 0..1 (1 = black, alpha composited over white), and `rgb` (since 2.61) is a `w*h*3` array of 0..255 channel bytes in the same pixel order, also flattened over white. Read a pixel as `img.g[y * img.w + x]` / `img.rgb[(y * img.w + x) * 3 + channel]`. **`rgb` may be absent** on photos loaded by a pre-2.61 build — always guard (`img.rgb && img.rgb.length === img.w * img.h * 3`) and fall back to `g`. `compute` must read frozen data and return `EMPTY` when it is missing. |
 | `fileImageSlots` | object, optional | For multiple `fileImage` picker params, map each param key to a distinct `node.data` field, e.g. `{ file: "img", file2: "img2" }`. Without a mapping, each picker writes `node.data.img`. Saved patches include both frozen images. Image Compare shows the two-image pattern. |
 | `faceAnalysis` | boolean, optional | Definition-level flag. File intake switches to the portrait pipeline (EXIF orientation honored, long side resized to 1280 px, re-encoded JPEG frozen at `node.data.src`) and the inspector shows an **Analyze face** button when a photo is loaded. The result is frozen to `node.data.analysis` (schema: MUUSIA-PORTRAIT-SPEC.md); a new photo invalidates it. Compute reads only frozen data. |
 
+
+Saved Muusia projects may include `animation: { frames: 24 }` (integer 1–999).
+Loading restores the timeline count at its first frame with Play stopped. Help
+examples may opt into a starting count with a top-level `frames` field.
 
 **File intake needs two halves.** The definition-level fields above configure how
 a file is read (`onFile`, `fileBinary`, `fileImage`, `fileAccept`, `fileLabel`),

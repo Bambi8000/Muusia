@@ -25,6 +25,7 @@ import PreviewCropControls from "./preview-crop-controls.jsx";
 import { directionPassFiles } from "./direction-pass-export.js";
 import DirectionPassControls from "./direction-pass-controls.jsx";
 import MuusiaGuide from "./muusia-guide.jsx";
+import { joinReceiptFrames } from "./receipt-animation.js";
 import { asciiReceipt, asciiLayers, encodeAsciiReceipt, RECEIPT_FONTS } from "./receipt-ascii.js";
 import { renderReceipt, sendReceipt, nativeFontTests, nativeFontTest, nativeFontBinary, sendNativeFontTest, nativePageCatalog, nativePageGlyphs, previewNativeComposition, nativeCompositionBinary, sendNativeComposition, RECEIPT_MAX_HEIGHT_DOTS, RECEIPT_DOTS_PER_MM } from "./thermal-print.js";
 import { DEFAULT_NEEDLE_MACHINE, needleExportError, upgradeNeedleProfile, DEFAULT_MACHINE, DEFAULT_MACHINE_B, DEFAULT_MACHINE_C, DEFAULT_SVG_MACHINE, MACHINE_FILE_VERSION, MACHINE_MIN_APP, SVG_WORKFLOW_HELP, isGcodeWorkflow, gcodeRefusal, normalizeMachine, normalizeMachines, readMachineFile, writeMachineFile, convertWorkflow, machineCtx, nextId, assignIds } from "./machine.js";
@@ -2029,6 +2030,7 @@ export default function App() {
   useEffect(() => { if (selIds.length) setLastSel(selIds[selIds.length - 1]); }, [selIds]);
 
   /* --- animaatio: freimit --- */
+  const fileLoadRef = useRef(new Map());
   const [frameCount, setFrameCount] = useState(12);
   const [animBusy, setAnimBusy] = useState(0);
   const [frameExportOrder, setFrameExportOrder] = useState("frames");
@@ -2283,6 +2285,10 @@ export default function App() {
   /* --- aloittelijaesimerkit: src/examples.js; make(defaults) saa defaults-funktion tästä --- */
   const loadExample = (ex) => {
     const data = ex.make(defaults);
+    fileLoadRef.current.clear();
+    if (Number.isInteger(ex.frames) && ex.frames >= 1 && ex.frames <= 999) {
+      setAnimPlay(false); setFrameIdx(0); setFrameCount(ex.frames);
+    }
     setSurfaceSession(createSurfaceSession());
     setSurfaceLayouts(readSurfaceLayouts());
     setSurfaceFamily("Strips");
@@ -3145,11 +3151,12 @@ export default function App() {
     setAnimBusy(0.001);
     doOne();
   };
-  const exportReceiptFrames = () => {
+  const exportReceiptFrames = (continuous = false) => {
     if (!primaryNode || animBusy || megaOn) return;
     const n = Math.max(1, frameCount);
     let f = 0;
     const files = [];
+    const receipts = [];
     const doOne = () => {
       try {
         const ctxF = { W: canvasW, H: canvasH, frameIdx: f, frameCount: n, machine: machineCtx(prof) };
@@ -3167,11 +3174,17 @@ export default function App() {
         const out = res.out[primaryNode.id];
         const ps = out && out[0] && out[0].paths ? out[0] : EMPTY;
         const receipt = renderReceipt(ps.paths, canvasW, canvasH, { number: f + 1, count: n }, ps.thermalText);
-        files.push({ name: `${projName || "patch"}-f${String(f + 1).padStart(3, "0")}.muusia-receipt.json`,
+        if (continuous) {
+          if (receipt.thermalText?.length) throw new Error("Continuous strips do not support Thermal Text. Disconnect it or use separate receipt frames.");
+          if (receipt.height * n > RECEIPT_MAX_HEIGHT_DOTS) throw new Error("The animation strip exceeds 50 m. Reduce Frames or canvas height.");
+          receipts.push(receipt);
+        } else files.push({ name: `${projName || "patch"}-f${String(f + 1).padStart(3, "0")}.muusia-receipt.json`,
           text: JSON.stringify({ format: "muusia-receipt", version: 1, ...receipt, cut: printCut, frame: f + 1, frameCount: n }) });
         f++;
         setAnimBusy(f < n ? f / n : 0);
         if (f < n) { setTimeout(doOne, 8); return; }
+        if (continuous) files.push({ name: `${projName || "patch"}-animation-strip.muusia-receipt.json`,
+          text: JSON.stringify({ format: "muusia-receipt", version: 1, ...joinReceiptFrames(receipts), cut: printCut }) });
         const single = files.length === 1;
         const blob = single
           ? new Blob([files[0].text], { type: "application/json" })
@@ -3212,7 +3225,7 @@ export default function App() {
   /* a generated file belongs to the profile that made it: switching profile or workflow clears the preview */
   useEffect(() => { setGcode(null); }, [machineIdx, prof.workflow]);
   const buildPatchJSON = () =>
-    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels, kind: megaKind, rollW, rollLen, rollStrips, rollSeg } : null, surface: surfaceSession, surfaceLayouts, prof, machines, machineIdx, machineFormat: MACHINE_FILE_VERSION, customNodes, root }, null, 1);
+    JSON.stringify({ app: "muusia", v: 1, name: projName, canvas: { W: canvasW, H: canvasH }, animation: { frames: frameCount }, jig: { mode: jigMode, magnets: manualMags }, mega: megaOn ? { C: megaC, R: megaR, seam: megaSeam, mode: megaMode, marks: megaMarks, markPen: megaMarkPen, labels: megaLabels, kind: megaKind, rollW, rollLen, rollStrips, rollSeg } : null, surface: surfaceSession, surfaceLayouts, prof, machines, machineIdx, machineFormat: MACHINE_FILE_VERSION, customNodes, root }, null, 1);
   const savePatch = () => {
     const data = buildPatchJSON();
     try {
@@ -3251,6 +3264,10 @@ export default function App() {
         }
       };
       scan(data.root);
+      fileLoadRef.current.clear();
+      if (Number.isInteger(data.animation?.frames) && data.animation.frames >= 1 && data.animation.frames <= 999) {
+        setAnimPlay(false); setFrameIdx(0); setFrameCount(data.animation.frames);
+      }
       NEXT_ID = maxId + 1;
       setStack([]);
       setSelIds([]);
@@ -4035,15 +4052,26 @@ export default function App() {
                                     };
                                     img.src = dataUrl;
                                   } : pd.type === "file" && def.onFile ? (text, name) => {
+                                    const loadKey = node.id + ":" + pd.key, token = {};
+                                    fileLoadRef.current.set(loadKey, token);
                                     setNodesL((ns) => ns.map((n) => n.id === node.id
                                       ? { ...n, params: { ...n.params, [pd.key]: `Loading ${name}…` }, data: { ...(n.data || {}), svg: undefined } } : n));
                                     Promise.resolve().then(() => def.onFile(text)).then((parsed) => {
+                                      if (fileLoadRef.current.get(loadKey) !== token) return;
+                                      fileLoadRef.current.delete(loadKey);
+                                      const summary = def.fileAnimation && typeof parsed?.summary === "string" ? " · " + parsed.summary.slice(0, 180) : "";
+                                      if (def.fileAnimation && Number.isInteger(parsed?.frameCount) && parsed.frameCount >= 1 && parsed.frameCount <= 999) {
+                                        setAnimPlay(false); setFrameIdx(0); setFrameCount(parsed.frameCount);
+                                      }
                                       setNodesL((ns) => ns.map((n) => n.id === node.id
-                                        ? { ...n, params: { ...n.params, [pd.key]: name,
+                                        ? { ...n, params: { ...n.params, [pd.key]: name + summary,
                                           ...(def.key === "svgimport" ? { visibleLayers: {} } : {}),
-                                          ...(def.key === "pdfimport" ? { page: 1 } : {}) },
+                                          ...(def.key === "pdfimport" ? { page: 1 } : {}),
+                                          ...(def.key === "gif_receipt" ? { source: "GIF file" } : {}) },
                                           data: { ...(n.data || {}), svg: parsed } } : n));
                                     }).catch((err) => {
+                                      if (fileLoadRef.current.get(loadKey) !== token) return;
+                                      fileLoadRef.current.delete(loadKey);
                                       setNodesL((ns) => ns.map((n) => n.id === node.id
                                         ? { ...n, params: { ...n.params, [pd.key]: "Error: " + err.message } } : n));
                                     });
@@ -4258,13 +4286,18 @@ export default function App() {
                   DXF {"\u00D7"} {frameCount}
                 </button>
               </div>
-              <button onClick={exportReceiptFrames} disabled={!!nativeReceipt || animBusy > 0 || !hasReceiptContent || megaOn}
+              <button onClick={() => exportReceiptFrames(false)} disabled={!!nativeReceipt || animBusy > 0 || !hasReceiptContent || megaOn}
                 title={megaOn ? "Turn off Mega Canvas for receipt frames" : "One numbered receipt per frame, with large L marks and a machine-readable frame number; downloads a ZIP when there are multiple frames"}
                 style={{ width: "100%", marginTop: 6, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: hasReceiptContent && !megaOn ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
                 Receipt {"\u00D7"} {frameCount}{animBusy > 0 ? " " + Math.round(animBusy * 100) + "%" : ""}
               </button>
+              <button onClick={() => exportReceiptFrames(true)} disabled={!!nativeReceipt || animBusy > 0 || !hasReceiptContent || megaOn}
+                title="One continuous receipt file with every numbered frame in order. No cuts or feeds between frames; Cut applies only at the end. Maximum 50 m."
+                style={{ width: "100%", marginTop: 6, padding: "5px 0", borderRadius: 4, border: `1px solid ${T.line}`, background: "transparent", color: hasReceiptContent && !megaOn ? T.text : T.dim, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>
+                Receipt strip {"\u00D7"} {frameCount}
+              </button>
               <div style={{ fontSize: 9, color: T.dim, lineHeight: 1.4, marginTop: 5 }}>
-                Noise, Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes. Receipt exports one file per frame with large L marks and a readable number strip.
+                Noise, Venation, Moving Lines, Move / Scale motion, Mold, Murmuration, Concrete Poetry and 3D Spikes modulation follow Play with Timeline. For other parameters, wire a Frame node (math). Files download in a ZIP; All frames by pen separates the colour passes. Receipt exports separate files with L marks and frame numbers. Receipt strip joins all frames on one uncut paper strip, ready for colouring by hand; Cut applies at the end.
               </div>
               </div>
               {customSurfaceOutput && <div style={{ color: T.dim, fontSize: 10 }}>Export this paper layout in Surface Composer. Animation batches use the selected graph with a regular layout.</div>}

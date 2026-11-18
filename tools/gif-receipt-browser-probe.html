@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>GIF receipt browser checks</title><style>body{font:16px system-ui;margin:32px;background:#f4f0e6;color:#17272b}pre{white-space:pre-wrap}canvas{width:256px;border:1px solid #aaa;margin:8px}button{padding:12px}</style><h1>GIF receipt browser checks</h1><pre id="results">Running…</pre><div id="images"></div><button id="save" disabled>Download decoded project</button><script type="module">
+import * as H from '/src/defs/helpers.js';
+import {renderReceiptRaster} from '/src/receipt-raster.js';
+import {renderReceiptRaster as before} from '/fixtures/gif-receipt/legacy-raster.js';
+import {renderReceipt} from '/src/thermal-print.js';
+import {joinReceiptFrames} from '/src/receipt-animation.js';
+const out=document.querySelector('#results'),lines=[];
+const ok=(v,s)=>{lines.push((v?'PASS ':'FAIL ')+s);out.textContent=lines.join('\n');if(!v)throw Error(s);};
+const eq=(a,b,s)=>ok(JSON.stringify(a)===JSON.stringify(b),s);
+try{
+ const lab=new URLSearchParams(location.search).has('lab'),N=lab?new Function(...Object.keys(H),'return '+await(await fetch('/nodes-lab/gif_receipt.plotternode.js')).text())(...Object.values(H)):(await import(/* @vite-ignore */ ['/src/defs/nodes/','gif_receipt.js'].join(''))).default;
+ let decoded;
+ for(const name of ['disposal-interlace','colour-orbit']){
+  const bytes=new Uint8Array(await(await fetch('/fixtures/gif-receipt/'+name+'.gif')).arrayBuffer()),meta=N._meta(bytes),native=await N._decodeNative(bytes,meta),fallback=await N._decodePatches(bytes,meta);
+  ok(native!==null,'native ImageDecoder available');
+  eq(native,fallback,name+' native and fallback complete frames/delays');
+  if(name==='disposal-interlace'){const expected=await(await fetch('/fixtures/gif-receipt/'+name+'.expected.json')).json();eq(fallback,expected.frames,'independent disposal 2/3, transparency, local palette and interlaced pixels');
+   for(const transparent of [false,true])for(const larger of [false,true])for(const transparentClear of [false,true]){const variant=bytes.slice();variant[11]=2;if(larger){variant[6]=24;variant[8]=20;}if(transparent)variant[13+meta.global.length+3]|=1;const offset=13+meta.global.length+meta.frames.slice(0,2).reduce((n,f)=>n+18+f.palette.length+f.data.length,0)+3;if(!transparentClear)variant[offset]&=254;const m=N._meta(variant);eq(await N._decodeNative(variant,m),await N._decodePatches(variant,m),'nonwhite background, first-frame transparency '+transparent+', larger canvas '+larger+', transparent disposal '+transparentClear);}
+  }
+  else {decoded=await N.onFile('data:image/gif;base64,'+btoa(String.fromCharCode(...bytes)));ok(decoded.frameCount===24&&decoded.frames.length===24,'onFile retains all 24 frames');}
+ }
+ const oldPaths=[{pts:[[0,0],[72,100]],closed:false,layer:0},{pts:[[5,18],[55,20],[66,95]],closed:true,layer:3,strokeWidth:5},{pts:[[-10,555],[15,570],[80,580]],closed:false,layer:0}];
+ for(const height of [100,620])eq(renderReceiptRaster(oldPaths,72,height),before(oldPaths,72,height),'legacy receipt byte parity '+height+' mm');
+ const thin=renderReceiptRaster([{pts:[[5,10],[65,10]],receiptStrokeWidth:.12}],72,20),thick=renderReceiptRaster([{pts:[[5,10],[65,10]],receiptStrokeWidth:2}],72,20);
+ ok(thin.data!==thick.data,'opt-in receipt width changes ink coverage');
+ const p=Object.fromEntries(N.params.map(q=>[q.key,q.def])),receipts=[];
+ for(let f=0;f<24;f++){const ps=N.compute([],{...p,render:'Outlines'}, {W:72,H:100,frameIdx:f,frameCount:24},{data:{svg:decoded}});ok(ps.sourceFrame===f,'source frame '+f+' selected exactly');receipts.push(renderReceipt(ps.paths,72,100,{number:f+1,count:24}));}
+ const strip=joinReceiptFrames(receipts),raw=atob(strip.data);ok(strip.height===receipts.reduce((n,r)=>n+r.height,0),'continuous strip adds exact frame heights');
+ for(let i=0;i<receipts.length;i++)eq(raw.slice(strip.frames[i].y*64,(strip.frames[i].y+strip.frames[i].height)*64),atob(receipts[i].data),'strip frame '+i+' byte-for-byte, no gap/crop');
+ function show(r){const c=document.createElement('canvas');c.width=r.width;c.height=r.height;const g=c.getContext('2d'),d=g.createImageData(r.width,r.height),s=atob(r.data);for(let y=0;y<r.height;y++)for(let x=0;x<r.width;x++){const v=s.charCodeAt(y*64+(x>>3))&(128>>(x&7))?0:255,k=(y*r.width+x)*4;d.data.set([v,v,v,255],k);}g.putImageData(d,0,0);document.querySelector('#images').append(c);}
+ show(receipts[0]);show(receipts[6]);
+ const project={app:'muusia',v:1,name:'Imported GIF test',canvas:{W:72,H:100},root:{nodes:[{id:9001,type:'gif_receipt',x:40,y:30,params:{...p,file:'colour-orbit.gif',source:'GIF file'},data:{svg:decoded}}],edges:[]}};
+ document.querySelector('#save').disabled=false;document.querySelector('#save').onclick=()=>{const a=document.createElement('a');a.download='gif-imported.muusia.json';a.href=URL.createObjectURL(new Blob([JSON.stringify(project)],{type:'application/json'}));a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+ lines.push('COMPLETE — '+lines.length+' checks passed. No printer accessed.');out.textContent=lines.join('\n');
+}catch(e){out.textContent+='\nERROR '+e.stack;}
+</script></html>
