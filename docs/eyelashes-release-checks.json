@@ -4,8 +4,8 @@
   "baseCommit": "fafaf7c4747a00cd4357313e5c7a149490e43208",
   "branch": "codex/eyelashes",
   "worktree": "/private/tmp/muusia-eyelashes-20261118",
-  "status": "Tested Eyelashes 2.206 release; awaiting exact-commit deployment and public verification",
-  "published": false,
+  "status": "Verified public Muusia 2.206; Eyelashes with masked blinking eye and tapered spikes; exact tested app bytes",
+  "published": true,
   "features": [
     "Eyelashes Hairs and Tapered spikes, broad real-fill bases converging to sharp tips",
     "Optional lower lid, manual/Timeline blinking, stable seeded roots and four iris choices",
@@ -22,12 +22,67 @@
     "catalog": "passed",
     "build": "passed",
     "implementationNativeBrowser": "See docs/eyelashes-checks.json for actual import/baked UI, masked closure, complete spike G-code, 24 source-identical SVG frames and 24 offline-validated native receipts.",
-    "learn": 37914
+    "learn": 37914,
+    "publicBrowser": "All six starters match source stats; wired image fully hidden at frame 19/24 (1042 paths / 17510 points) and restored open at 1058 / 17656; no warning/error logs."
   },
   "testedAppSha256": "8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7",
   "url": "https://bambi8000.github.io/Muusia/",
   "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/eyelashes",
-  "snapshot": "/private/tmp/muusia-eyelashes-release-snapshot-20261118 (refresh after final metadata commit; local only)",
+  "snapshot": "/private/tmp/muusia-eyelashes-release-snapshot-20261118 (refreshed after final metadata commit; local only)",
   "physicalPrintSent": false,
-  "primaryDirtyWorkspaceChanged": false
+  "primaryDirtyWorkspaceChanged": false,
+  "releaseCommit": "dd4cde334e6fdd28dcd6425fb179e33e39cd35dc",
+  "pagesRunId": 44403120381,
+  "publicAppSha256": "8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7",
+  "matchesTestedBuild": true,
+  "publicBrowser": {
+    "version": "2.206",
+    "freshLoadAt": "2026-11-18T21:39:39.694Z",
+    "models": [
+      {
+        "name": "Beautiful accident",
+        "paths": 1938,
+        "points": 32814,
+        "stats": "361 text 1938  paths \u00b7  \u200732814  pts \u00b7  \u200726.18  m"
+      },
+      {
+        "name": "Blinking eye",
+        "paths": 1475,
+        "points": 25439,
+        "stats": "361 text 1475  paths \u00b7  \u200725439  pts \u00b7  \u200721.21  m"
+      },
+      {
+        "name": "Slit eye",
+        "paths": 881,
+        "points": 19698,
+        "stats": "361 text \u2007881  paths \u00b7  \u200719698  pts \u00b7  \u200713.64  m"
+      },
+      {
+        "name": "Wired dream",
+        "paths": 1058,
+        "points": 17656,
+        "stats": "361 text 1058  paths \u00b7  \u200717656  pts \u00b7  \u200715.47  m"
+      },
+      {
+        "name": "Receipt blink",
+        "paths": 555,
+        "points": 8770,
+        "stats": "361 text \u2007555  paths \u00b7  \u2007\u20078770  pts \u00b7  \u2007\u20072.08  m"
+      },
+      {
+        "name": "Tapered spikes",
+        "paths": 1814,
+        "points": 34330,
+        "stats": "361 text 1814  paths \u00b7  \u200734330  pts \u00b7  \u200727.60  m"
+      }
+    ],
+    "timelineClosed": "\t\t\t361 text 1042  paths \u00b7  \u200717510  pts \u00b7  \u200714.52  m\n\t\t\t363 text ANIMATE  \u2014  frame  19 / 24 Frames",
+    "restored": {
+      "frame": 1,
+      "frameCount": 24,
+      "paths": 1058,
+      "points": 17656
+    },
+    "logs": []
+  }
 }

@@ -7974,3 +7974,14 @@ metadata; no Claude UI upload claimed.
 Next authorized request after this release: GIF to Receipt node, animated GIF file
 intake, scaling/rotation with aspect lock, monochrome conversion/dither controls
 and registered receipt animation export. Recorded in WORKSTATE pendingUserRequests.
+
+Publication verified: release `dd4cde334e6fdd28dcd6425fb179e33e39cd35dc`, exact-commit Pages run
+`44403120381` completed successfully. Public app SHA-256
+`8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7` matches the tested build byte-for-byte.
+Fresh public browser shows 2.206; all six starters match source statistics.
+Wired artwork is completely hidden at frame 19/24 (1,042 paths / 17,510 points)
+and reset restores 1,058 / 17,656. No warning/error logs. Actual public screenshot
+and checks are in the artifact directory; public tab is kept on Wired dream.
+Final metadata-only push uses skip-ci and leaves verified app bytes unchanged.
+Snapshot refreshed after that commit. No physical print or Claude UI upload.
+GIF to Receipt is the next authorized implementation task.

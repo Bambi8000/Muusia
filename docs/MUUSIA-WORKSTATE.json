@@ -1,42 +1,15 @@
 {
   "schemaVersion": 1,
-  "active": [
-    {
-      "id": "eyelashes",
-      "owner": "Astra",
-      "role": "Implement and publish Eyelashes with blink, masked artwork and tapered spikes",
-      "baseCommit": "fafaf7c4747a00cd4357313e5c7a149490e43208",
-      "files": [
-        "nodes-lab/eyelashes.plotternode.js",
-        "src/defs/nodes/eyelashes.js",
-        "src/examples.js",
-        "tools/preview-eyelashes.mjs",
-        "tools/validate-eyelashes.mjs",
-        "src/defs/node-recency-data.js",
-        "src/defs/catalog.js",
-        "docs/MUUSIA-NODES-SRC.md",
-        "docs/MUUSIA-NODES.md",
-        "docs/MUUSIA-TAGS.json",
-        "docs/MUUSIA-HANDOFF.md",
-        "docs/MUUSIA-WORKSTATE.json",
-        "docs/eyelashes-checks.json",
-        "learn/generated/manifest.json",
-        "src/App.jsx",
-        "docs/eyelashes-release-checks.json"
-      ],
-      "status": "in_progress",
-      "outcome": "Publish the complete requested Eyelashes node, including lower lid, iris choices, masked blue artwork input and thick-base pointed lashes."
-    }
-  ],
+  "active": [],
   "lastPublished": {
-    "version": "2.205",
-    "commit": "f774747b76dcb9eff1595c631c094c60c4a839b5",
-    "pagesRunId": 44323205833,
-    "publicAppSha256": "9495145360854c16c3e5ae96b5e79ac10b5da646a202ccc3aef56548f92f9150",
+    "version": "2.206",
+    "commit": "dd4cde334e6fdd28dcd6425fb179e33e39cd35dc",
+    "pagesRunId": 44403120381,
+    "publicAppSha256": "8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7",
     "matchesTestedBuild": true,
     "date": "2026-11-18",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.205; Slice Raster blue Drawing source and wired lettering starter; exact tested bytes",
+    "status": "verified public 2.206; animated Eyelashes with optional lower lid, iris choices, masked artwork and tapered spikes; exact tested bytes",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -1431,7 +1404,7 @@
     "snapshot": "/private/tmp/muusia-eyelashes-release-snapshot-20261118 (refresh after final metadata commit; local only)",
     "physicalPrintSent": false,
     "primaryDirtyWorkspaceChanged": false,
-    "status": "Complete implementation; publication requested and being prepared as 2.206",
+    "status": "Published and verified in Muusia 2.206; implementation evidence retained",
     "evidence": "docs/eyelashes-checks.json",
     "validation": {
       "eyelashes": 2196,
@@ -1442,12 +1415,14 @@
       "build": "passed",
       "implementationNativeBrowser": "See docs/eyelashes-checks.json for actual import/baked UI, masked closure, complete spike G-code, 24 source-identical SVG frames and 24 offline-validated native receipts.",
       "learn": 37914
-    }
+    },
+    "published": true,
+    "releaseEvidence": "docs/eyelashes-release-checks.json"
   },
   "pendingUserRequests": [
     {
       "id": "gif-to-receipt",
-      "status": "next_after_eyelashes_release",
+      "status": "ready_to_start",
       "request": "Create a GIF to Receipt node with animated GIF file intake, scaling and rotation with optional locked aspect ratio, monochrome conversion controls, and receipt animation export.",
       "requestedDate": "2026-11-18"
     }
@@ -1458,8 +1433,8 @@
     "baseCommit": "fafaf7c4747a00cd4357313e5c7a149490e43208",
     "branch": "codex/eyelashes",
     "worktree": "/private/tmp/muusia-eyelashes-20261118",
-    "status": "Tested Eyelashes 2.206 release; awaiting exact-commit deployment and public verification",
-    "published": false,
+    "status": "Verified public Muusia 2.206; Eyelashes with masked blinking eye and tapered spikes; exact tested app bytes",
+    "published": true,
     "moduleCount": 367,
     "registryCount": 369,
     "checks": {
@@ -1470,12 +1445,17 @@
       "catalog": "passed",
       "build": "passed",
       "implementationNativeBrowser": "See docs/eyelashes-checks.json for actual import/baked UI, masked closure, complete spike G-code, 24 source-identical SVG frames and 24 offline-validated native receipts.",
-      "learn": 37914
+      "learn": 37914,
+      "publicBrowser": "All six starters match source stats; wired image fully hidden at frame 19/24 (1042 paths / 17510 points) and restored open at 1058 / 17656; no warning/error logs."
     },
     "testedAppSha256": "8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7",
+    "publicAppSha256": "8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7",
+    "matchesTestedBuild": true,
+    "releaseCommit": "dd4cde334e6fdd28dcd6425fb179e33e39cd35dc",
+    "pagesRunId": 44403120381,
     "url": "https://bambi8000.github.io/Muusia/",
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/eyelashes",
-    "snapshot": "/private/tmp/muusia-eyelashes-release-snapshot-20261118 (refresh after final metadata commit; local only)",
+    "snapshot": "/private/tmp/muusia-eyelashes-release-snapshot-20261118 (refreshed after final metadata commit; local only)",
     "physicalPrintSent": false,
     "primaryDirtyWorkspaceChanged": false,
     "evidence": "docs/eyelashes-release-checks.json"

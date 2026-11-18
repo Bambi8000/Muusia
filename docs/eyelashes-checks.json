@@ -3,7 +3,7 @@
   "baseCommit": "fafaf7c4747a00cd4357313e5c7a149490e43208",
   "branch": "codex/eyelashes",
   "worktree": "/private/tmp/muusia-eyelashes-20261118",
-  "status": "Complete requested Eyelashes implementation; release preparation in progress",
+  "status": "Published and verified in Muusia 2.206; implementation evidence retained",
   "reference": "Two user-supplied plot photographs: irregular dark lash roots, uneven fine hairs and an open oval fringe caused by an accidental wet-ink plot. Independent vector implementation; reference media not committed.",
   "behavior": [
     "Seeded Hairs and Tapered spikes with curved strands, clumped roots, varied lengths, real tapered outline/fill geometry and adjustable spike base width.",
@@ -228,5 +228,11 @@
     "The eyelid mask is a sampled polygon. Artwork exceeding source/intersection budgets is refused whole.",
     "Very dense requests reduce lash samples/fill uniformly; the source is never partially retained.",
     "Receipt images repeat during the open hold: 24 registered files contain seven distinct image bodies in the default blink."
-  ]
+  ],
+  "publication": {
+    "releaseCommit": "dd4cde334e6fdd28dcd6425fb179e33e39cd35dc",
+    "pagesRunId": 44403120381,
+    "publicAppSha256": "8157a7daf2905f69e91f0549692cc968cc0edcbc29e4fa27982423a9c3a8dcb7",
+    "matchesTestedBuild": true
+  }
 }
