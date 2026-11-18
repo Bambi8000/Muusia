@@ -1,0 +1,36 @@
+{
+  "version": "2.204",
+  "date": "2026-11-18",
+  "baseCommit": "718a2e7de227c95b0f96de8f6628ea8e6dcc2758",
+  "remoteBaseCommit": "55e93007deaf1c0f50c052b63e1e693f774edd95",
+  "branch": "codex/text-roll-release",
+  "worktree": "/private/tmp/muusia-text-roll-20261118",
+  "status": "Tested Muusia 2.204 release; awaiting exact-commit deployment and public verification",
+  "published": false,
+  "moduleCount": 366,
+  "registryCount": 368,
+  "features": [
+    "Text Roll Floating letters on Drum/Ring; Scroll/Rock/Tumble and Manual/Timeline loops",
+    "Raised ribbon with continuous horizontal rows rising into the lettering, counters and spaces remaining on the band",
+    "Hidden-line seam fix removing spurious long diagonal connections; transparent ink preserved",
+    "Four Floating and three ribbon live Help starters; native SVG/G-code and receipt animation export"
+  ],
+  "checks": {
+    "floating": 786,
+    "ribbon": 438,
+    "clipping": 1607,
+    "clippingComputeFrames": 392,
+    "helpGraphs": 232,
+    "lint": "passed",
+    "catalog": "passed",
+    "build": "passed",
+    "implementationNativeBrowser": "See docs/text-roll-clipping-checks.json and docs/text-ribbon-checks.json for exact native SVG/G-code/receipt checks. The version-only release leaves that geometry unchanged.",
+    "learn": 37914
+  },
+  "testedAppSha256": "ca237d6c54b7cc6b70b9ebb67323dd7d879924aad5e805e98e6625f8b59057ea",
+  "url": "https://bambi8000.github.io/Muusia/",
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/text-roll-release",
+  "physicalPrintSent": false,
+  "primaryDirtyWorkspaceChanged": false,
+  "snapshot": "/private/tmp/muusia-text-roll-release-snapshot-20261118 (refresh after final metadata commit)"
+}

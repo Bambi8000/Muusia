@@ -7782,3 +7782,29 @@ at frame 1/24. Visibility retains its existing 420-cell approximation for fine
 stroke splits. APP_VERSION remains 2.203; no push/publication or primary dirty
 checkout changes. Refresh `/private/tmp/muusia-text-roll-clean-snapshot-20261118`
 after commit; no Claude UI upload claimed.
+
+### 2.204 — 2026-11-18 · Text Roll release
+
+Daniel explicitly requested publication of the completed Text Roll. Integration
+base `718a2e7de227c95b0f96de8f6628ea8e6dcc2758`, fetched origin/main
+`55e93007deaf1c0f50c052b63e1e693f774edd95`; clean isolated worktree
+`/private/tmp/muusia-text-roll-20261118`, branch `codex/text-roll-release`.
+The three reviewed local commits add Floating letters, Raised ribbon and the
+hidden-gap seam fix. No unrelated source changes.
+
+Release includes Drum/Ring, Scroll/Rock/Tumble, integer Timeline loops, camera
+and transparent/hidden ink controls; continuous horizontal ribbon rows that
+rise into the lettering, and four Floating plus three ribbon Help starters.
+Version-only App change to 2.204; glyph and ribbon geometry matches the verified
+implementation. No exporter, engine or machine contract change.
+
+Final focused gates: 786 Floating, 438 ribbon and 1,607 clipping checks with
+392 actual animation poses; all 232 Help graphs and focused lint pass. Ordered
+catalog/build/37,914 Learn checks pass. Generated source/catalog/recency refreshed;
+366 modules, 368 registry entries, 233 generators. Actual implementation native
+SVG/G-code and 24-frame SVG/receipt checks are retained in the three Text Roll
+evidence files. Release proof `docs/text-roll-release-checks.json` records exact
+tested app SHA-256. Push/deployment and fresh public UI verification follow this
+release commit; do not infer publication from the local build. No physical print
+or primary dirty checkout changes. Refresh snapshot at
+`/private/tmp/muusia-text-roll-release-snapshot-20261118` after final metadata.
