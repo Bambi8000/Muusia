@@ -5,8 +5,8 @@
   "remoteBaseCommit": "9cfb0ff17a83e5a81c5fdb2a529fd37161255bf9",
   "branch": "codex/slice-raster-input-release",
   "worktree": "/private/tmp/muusia-slice-raster-input-20261118",
-  "status": "Tested Muusia 2.205 release; awaiting exact-commit deployment and public verification",
-  "published": false,
+  "status": "Verified public Muusia 2.205; Slice Raster blue Drawing source and wired starter; exact tested app bytes",
+  "published": true,
   "features": [
     "Slice Raster blue Drawing input accepts live text and vector drawings",
     "Auto source priority, explicit Drawing source, physical Drawing stroke width and optional closed even-odd fill",
@@ -25,12 +25,71 @@
     "catalog": "passed",
     "build": "passed",
     "implementationNativeBrowser": "docs/slice-raster-input-checks.json records blue wire, live controls, empty source/restoration and source-identical native SVG/G-code. Version-only release leaves geometry unchanged.",
-    "learn": 37914
+    "learn": 37914,
+    "publicBrowser": "All five starters match source stats; Drawing wire visible; Fill off gives 376 paths / 2885 points; Timeline advances to frame 3/24 (643 / 15518); Manual/reset restores 622 / 16629; no warning/error logs."
   },
   "testedAppSha256": "9495145360854c16c3e5ae96b5e79ac10b5da646a202ccc3aef56548f92f9150",
   "url": "https://bambi8000.github.io/Muusia/",
   "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/slice-raster-input-release",
   "physicalPrintSent": false,
   "primaryDirtyWorkspaceChanged": false,
-  "snapshot": "/private/tmp/muusia-slice-raster-input-release-snapshot-20261118 (refresh after final metadata commit; local only)"
+  "snapshot": "/private/tmp/muusia-slice-raster-input-release-snapshot-20261118 (refreshed after final metadata commit; local only)",
+  "releaseCommit": "f774747b76dcb9eff1595c631c094c60c4a839b5",
+  "pagesRunId": 44323205833,
+  "publicAppSha256": "9495145360854c16c3e5ae96b5e79ac10b5da646a202ccc3aef56548f92f9150",
+  "matchesTestedBuild": true,
+  "publicBrowser": {
+    "url": "https://bambi8000.github.io/Muusia/",
+    "version": "2.205",
+    "freshLoadAt": "2026-11-18T14:23:01.761Z",
+    "models": [
+      {
+        "name": "Four screens",
+        "stats": "361 text 4843  paths \u00b7  \u200762281  pts \u00b7  \u200718.05  m"
+      },
+      {
+        "name": "Diagonal resolutions",
+        "paths": 1208,
+        "points": 50000,
+        "stats": "361 text 1208  paths \u00b7  \u200750000  pts \u00b7  \u200718.17  m"
+      },
+      {
+        "name": "Collage in six rasters",
+        "paths": 4943,
+        "points": 67881,
+        "stats": "361 text 4943  paths \u00b7  \u200767881  pts \u00b7  \u200719.66  m"
+      },
+      {
+        "name": "Moving raster windows",
+        "paths": 5308,
+        "points": 33672,
+        "stats": "361 text 5308  paths \u00b7  \u200733672  pts \u00b7  \u200711.78  m"
+      },
+      {
+        "name": "Wired lettering",
+        "paths": 622,
+        "points": 16629,
+        "stats": "361 text \u2007622  paths \u00b7  \u200716629  pts \u00b7  \u2007\u20076.30  m"
+      }
+    ],
+    "drawingWireVisible": true,
+    "outline": {
+      "paths": 376,
+      "points": 2885
+    },
+    "play": {
+      "frame": 3,
+      "frameCount": 24,
+      "paths": 643,
+      "points": 15518
+    },
+    "restored": {
+      "frame": 1,
+      "frameCount": 24,
+      "paths": 622,
+      "points": 16629,
+      "motion": "Manual"
+    },
+    "logs": []
+  }
 }

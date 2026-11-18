@@ -7897,3 +7897,18 @@ release commit; publication is not inferred from the local build. No physical
 print or primary dirty checkout changes. Refresh
 `/private/tmp/muusia-slice-raster-input-release-snapshot-20261118` after final
 metadata; no Claude UI upload claimed.
+
+Publication verified: release `f774747b76dcb9eff1595c631c094c60c4a839b5`,
+exact-commit Pages run `44323205833` completed successfully. Public
+https://bambi8000.github.io/Muusia/ SHA-256
+`9495145360854c16c3e5ae96b5e79ac10b5da646a202ccc3aef56548f92f9150`
+matches the tested app byte-for-byte. Fresh public browser shows 2.205; all five
+Slice Raster starters match source stats. The blue Lettering → Drawing wire is
+visible. Fill closed shapes off gives 376 paths / 2,885 points; restoring fill
+returns 622 / 16,629. Timeline Play advances to frame 3/24 (643 / 15,518);
+pausing/resetting and restoring Manual returns the exact 622 / 16,629. No browser
+warning/error logs. Public screenshot/checks are in the release artifact folder
+recorded in WORKSTATE. Public tab is kept on the wired lettering starter.
+Final documentation-only metadata is pushed with skip-ci; verified app bytes
+remain unchanged. Snapshot refreshed after that final commit; no Claude project
+UI upload or physical print.
