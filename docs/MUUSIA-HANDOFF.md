@@ -7619,3 +7619,17 @@ pixel-mushroom-checks.json. Public deployment is pending at this entry; final
 exact-commit Pages run, checksum and browser verification will be appended after
 success. Release proof: `docs/pixel-blast-release-checks.json`. Refresh snapshot
 `/private/tmp/muusia-pixel-blast-release-snapshot-20261118` after final metadata.
+
+Publication verified: release `7f772fce0e7fe988fb0c3b89ea421b0c1ac0bf81`,
+exact-commit Pages run `44286154604` completed successfully. Public
+https://bambi8000.github.io/Muusia/ SHA-256
+`b56c63ce9f3fe7584f077141f3767bb5cd313132b983e9a191fadce4f444ed0f`
+matches the locally tested app byte-for-byte. Fresh public browser shows 2.203;
+all eight built-in starters match source stats. Mushroom controls are present,
+Play advances to frame 4/24 (436 paths / 2,616 points); pausing/resetting restores
+309 paths / 1,854 points. No browser warning/error logs. Actual public screenshot
+and model checks are in the release artifact directory recorded in WORKSTATE.
+The public tab is kept open on the enlarged mushroom preview at frame 1/24.
+Final documentation-only metadata is pushed with skip-ci; app bytes remain those
+of the verified release. Snapshot refreshed locally after that final commit;
+no Claude project UI upload and no physical print.

@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.202",
-    "commit": "c070526bc2113bcdca0c698d9b77621edeed04a0",
-    "pagesRunId": 44193790243,
-    "publicAppSha256": "59cb422738479b83a2e5f342c4ae56de50275138681c293d06b9aa0f5c6534ca",
+    "version": "2.203",
+    "commit": "7f772fce0e7fe988fb0c3b89ea421b0c1ac0bf81",
+    "pagesRunId": 44286154604,
+    "publicAppSha256": "b56c63ce9f3fe7584f077141f3767bb5cd313132b983e9a191fadce4f444ed0f",
     "matchesTestedBuild": true,
     "date": "2026-11-18",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.202; Word Shape, Slice Raster and Drape Flying with all motions and optional transparency; exact tested bytes",
+    "status": "verified public 2.203; all eight Pixel Blast effects and refined rolling mushroom cloud; exact tested bytes",
     "physicalPrintSent": false
   },
   "lastIntegration": {
@@ -1137,7 +1137,7 @@
     "baseCommit": "f37850d433c0d19d85878264f67c5d91d1587b75",
     "branch": "codex/pixel-explosions",
     "worktree": "/private/tmp/muusia-pixel-explosions-20261118",
-    "status": "Complete local Pixel Blast and digital receipt animations; not published; APP_VERSION remains 2.202",
+    "status": "Published and verified in Muusia 2.203; implementation and receipt export evidence retained; release 7f772fce0e7fe988fb0c3b89ea421b0c1ac0bf81",
     "models": [
       "Firework",
       "Willow",
@@ -1169,7 +1169,7 @@
     "baseCommit": "0e8f229cbfddb4fabd077f41ec2a0bf3c2e294a4",
     "branch": "codex/pixel-explosions",
     "worktree": "/private/tmp/muusia-pixel-explosions-20261118",
-    "status": "Complete local mushroom cloud refinement; not published; APP_VERSION remains 2.202",
+    "status": "Published and verified in Muusia 2.203; implementation and receipt export evidence retained; release 7f772fce0e7fe988fb0c3b89ea421b0c1ac0bf81",
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/pixel-mushroom-v2",
     "physicalPrintSent": false,
     "primaryDirtyWorkspaceChanged": false,
@@ -1192,8 +1192,8 @@
     "baseCommit": "872b5aca00dd053d48f2794ec3b4362d75ae3bbc",
     "branch": "codex/pixel-blast-release",
     "worktree": "/private/tmp/muusia-pixel-explosions-20261118",
-    "status": "Validated and prepared for the user-authorized release; public verification pending",
-    "published": false,
+    "status": "Verified public Muusia 2.203; all eight Pixel Blast starters and refined mushroom motion; exact tested app bytes",
+    "published": true,
     "moduleCount": 365,
     "registryCount": 367,
     "checks": {
@@ -1203,13 +1203,19 @@
       "catalog": "passed",
       "build": "passed",
       "learn": 37914,
-      "implementationNativeBrowser": "See docs/pixel-blast-checks.json and docs/pixel-mushroom-checks.json for actual SVG/G-code/receipt captures, exact source parity and no queued printing."
+      "implementationNativeBrowser": "See docs/pixel-blast-checks.json and docs/pixel-mushroom-checks.json for actual SVG/G-code/receipt captures, exact source parity and no queued printing.",
+      "publicBrowser": "All eight Help starters match source stats; mushroom controls and Play/Pause verified; 309 paths / 1854 points restored; no warning/error logs."
     },
     "testedAppSha256": "b56c63ce9f3fe7584f077141f3767bb5cd313132b983e9a191fadce4f444ed0f",
     "url": "https://bambi8000.github.io/Muusia/",
     "physicalPrintSent": false,
     "primaryDirtyWorkspaceChanged": false,
-    "snapshot": "/private/tmp/muusia-pixel-blast-release-snapshot-20261118 (refresh after final metadata commit)",
-    "evidence": "docs/pixel-blast-release-checks.json"
+    "snapshot": "/private/tmp/muusia-pixel-blast-release-snapshot-20261118 (refreshed after final metadata commit; local only)",
+    "evidence": "docs/pixel-blast-release-checks.json",
+    "releaseCommit": "7f772fce0e7fe988fb0c3b89ea421b0c1ac0bf81",
+    "pagesRunId": 44286154604,
+    "publicAppSha256": "b56c63ce9f3fe7584f077141f3767bb5cd313132b983e9a191fadce4f444ed0f",
+    "matchesTestedBuild": true,
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/pixel-blast-release"
   }
 }

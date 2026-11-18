@@ -5,8 +5,8 @@
   "remoteBaseCommit": "f37850d433c0d19d85878264f67c5d91d1587b75",
   "branch": "codex/pixel-blast-release",
   "worktree": "/private/tmp/muusia-pixel-explosions-20261118",
-  "status": "Validated and prepared for the user-authorized release; public verification pending",
-  "published": false,
+  "status": "Verified public Muusia 2.203; all eight Pixel Blast starters and refined mushroom motion; exact tested app bytes",
+  "published": true,
   "features": [
     "Pixel Blast: Firework, Willow, Volley, Mushroom cloud, Ground blast, Shockwave, Collision and Fountain",
     "Refined mushroom cloud with staged lift, counter-rolling billows and coherent smoke breakup",
@@ -28,5 +28,58 @@
   "url": "https://bambi8000.github.io/Muusia/",
   "physicalPrintSent": false,
   "primaryDirtyWorkspaceChanged": false,
-  "snapshot": "/private/tmp/muusia-pixel-blast-release-snapshot-20261118 (refresh after final metadata commit)"
+  "snapshot": "/private/tmp/muusia-pixel-blast-release-snapshot-20261118 (refreshed after final metadata commit; local only)",
+  "releaseCommit": "7f772fce0e7fe988fb0c3b89ea421b0c1ac0bf81",
+  "pagesRunId": 44286154604,
+  "pagesRunUrl": "https://github.com/Bambi8000/Muusia/actions/runs/44286154604",
+  "pagesConclusion": "success",
+  "publicAppSha256": "b56c63ce9f3fe7584f077141f3767bb5cd313132b983e9a191fadce4f444ed0f",
+  "matchesTestedBuild": true,
+  "publicBrowser": {
+    "version": "2.203",
+    "url": "https://bambi8000.github.io/Muusia/",
+    "models": [
+      {
+        "title": "Firework",
+        "stats": "~\t\t\t361 text \u2007494  paths \u00b7  \u2007\u20072964  pts \u00b7  \u2007\u20073.84  m"
+      },
+      {
+        "title": "Willow trails",
+        "stats": "~\t\t\t361 text \u2007816  paths \u00b7  \u2007\u20074896  pts \u00b7  \u2007\u20076.13  m"
+      },
+      {
+        "title": "Volley",
+        "stats": "~\t\t\t361 text \u2007641  paths \u00b7  \u2007\u20073846  pts \u00b7  \u2007\u20074.09  m"
+      },
+      {
+        "title": "Ground blast",
+        "stats": "~\t\t\t361 text \u2007511  paths \u00b7  \u2007\u20073066  pts \u00b7  \u2007\u20076.27  m"
+      },
+      {
+        "title": "Shockwave",
+        "stats": "~\t\t\t361 text \u2007426  paths \u00b7  \u2007\u20072556  pts \u00b7  \u2007\u20071.27  m"
+      },
+      {
+        "title": "Collision",
+        "stats": "~\t\t\t361 text \u2007556  paths \u00b7  \u2007\u20073336  pts \u00b7  \u2007\u20071.77  m"
+      },
+      {
+        "title": "Fountain",
+        "stats": "~\t\t\t361 text \u2007286  paths \u00b7  \u2007\u20071716  pts \u00b7  \u2007\u20071.17  m"
+      },
+      {
+        "title": "Mushroom cloud",
+        "stats": "~\t\t\t361 text \u2007309  paths \u00b7  \u2007\u20071854  pts \u00b7  \u2007\u20073.49  m"
+      }
+    ],
+    "mushroomControls": [
+      "Cloud rise %",
+      "Cap width %",
+      "Cap roll %"
+    ],
+    "playObserved": "frame 4/24; 436 paths / 2616 points",
+    "restored": "frame 1/24; 309 paths / 1854 points",
+    "logs": []
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/pixel-blast-release"
 }
