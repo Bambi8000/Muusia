@@ -8091,3 +8091,67 @@ Screenshot, native public strip and `public-browser-checks.json` are in the
 artifact directory. Public tab remains on the imported GIF colouring outline.
 Final metadata-only push uses skip-ci, leaving verified app bytes unchanged.
 Clean snapshot refreshed after that commit; no Claude UI upload or physical print.
+
+
+### W — 2026-11-19 · GIF to G-code plotter node (local)
+
+Daniel requested a GIF to G-code node after the GIF Receipt release. Implemented
+in `/private/tmp/muusia-gif-to-gcode-20261119`, branch `codex/gif-to-gcode`, based
+on `2d99c4a53229ca40ef80b0a5168b41cf9d9db614`. **Local only; publication was not
+requested for this new node.** Public Muusia remains verified 2.207. Primary
+dirty checkout, machine profiles and hardware untouched; no machine job sent.
+
+New `gif_gcode` generator under Text & Image produces actual XY path sets:
+Drawing, Contours and Shading outputs. Modes: Contours + hatching, Contours,
+Hatching, Crosshatching and Stipple. Contours uses joined interpolated marching
+squares, including crop closure and holes, with physical RDP simplification and
+minimum path length. Hatching uses page-anchored straight lines at physical
+spacing with fixed tonal levels; white gaps split strokes with pen lifts.
+Crosshatching adds a perpendicular shadow family. Stipple is real closed
+12-point circles using fixed seeded density or tone-sized radii. Dot diameter
+is capped to 90% of its cell spacing; vanishingly small size-mode marks are
+skipped. Separate contour/shading pens. No raster stroke-width approximation.
+
+Native node inherits GIF to Receipt's decoder, frozen frame contract, source
+selection/timing, transforms and tone sampler rather than copying the decoder.
+No changes to the Receipt node. Portable custom definitions inline that base;
+validator checks exact portable/native geometry and shared method identity.
+Prototype was inspected via real Node ⇣ + GIF picker, then baked, factored to the
+native import and validated; lab copy removed. App's existing file intake adds
+`gif_gcode` to the explicit Source → GIF file switch on successful import.
+All original GIF frames and delays are retained within the same documented GIF
+limits; saved projects include decoded RGB frames and ANIMATE count. Aspect
+lock, independent stretch, scale/rotation/offsets, channels, levels, gamma and
+inversion apply to every frame. Dense requests coarsen the full sampling grid or
+physical pitch using frame-independent bounds. Output never keeps only a prefix.
+
+Uses the existing machine-aware GENERATE G-CODE and ANIMATE G-code × N, with one
+complete program per frame in a ZIP; SVG/DXF use the same actual strokes. Machine
+origin/speed/lift and workflow gates remain unchanged. Five live Help starters
+with 24 frames, portable projects, actual SVGs and a four-panel animation gallery.
+
+Validation: 1604 focused checks / 120 demo animation frames, closed annulus outer
+and inner contours, disconnected silhouettes, an independent white hatch gap,
+physical stipple radii, simplification, extreme bounds, exact loops and portable
+source. Browser probe checks real imports in all five modes: 304 checks covering
+145 imported frame computations, including partial updates, local palettes,
+interlace/transparency/disposals against an independent RGB oracle. Five actual
+Help starters match source counts. Native file picker sets 24 frames; Play
+advances; 70% scale + 18° rotation changes the actual drawing; saved project
+reload restores original geometry and 24 frames after changing the count to 7.
+No warning/error browser logs.
+
+Native imported-GIF still has 93 paths / 291 points. Actual static SVG and G-code
+are byte-identical to current evaluation/export; every one of 24 downloaded SVG
+frames and 24 G-code programs is likewise identical, with every drawing move and
+no bounds warning. Existing GIF Receipt regression: 1373 checks pass. All 249
+Help graphs, new-file lint and ordered catalog → build → 37914 Learn checks pass;
+reference provenance unchanged. Counts: 369 modules / 371 registry / 236 generators.
+
+Proof `docs/gif-gcode-checks.json`; preview/validator/browser probe under tools.
+Artifacts, actual saved RGB project, native exports, gallery and screenshot are
+in WORKSTATE lastGifGcode.artifacts. Local app port 5203 stays on the imported GIF
+with Contours + hatching. Refresh the clean snapshot at
+`/private/tmp/muusia-gif-gcode-snapshot-20261119` after the local commit; no Claude
+UI upload claimed. Next step: Daniel's visual review, then normal release only
+when requested.

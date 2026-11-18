@@ -555,6 +555,11 @@ export const NODE_RECENCY = {
     "order": 42,
     "sha256": "6db681a890668ac9a3cae902511e4ef4f84d8505b193c85eda49f601f014efd9"
   },
+  "gif_gcode": {
+    "date": "2026-11-18",
+    "order": 158,
+    "sha256": "b053cdab0946284802c159b79b9d17ee3668df8309db907f469f317f5f2b767f"
+  },
   "gif_receipt": {
     "date": "2026-11-18",
     "order": 157,

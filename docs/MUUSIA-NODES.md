@@ -1,6 +1,6 @@
 # MUUSIA — Node Reference
 
-All 370 built-in nodes in the current Muusia source. Conventions used below:
+All 371 built-in nodes in the current Muusia source. Conventions used below:
 most generators accept a **Style** input (wire a Stroke node to get dashes etc.)
 and have **Margin**, **Seed** and
 **Pen** parameters; those are not repeated in every entry. All numeric parameters
@@ -28,7 +28,34 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (235)
+## Generators (236)
+
+**GIF to G-code** — animated GIFs become genuine pen-plotter XY paths. Open a GIF
+or start with the colour demo. Contours traces joined closed tonal boundaries,
+including holes; Contours + hatching adds shading. Hatching uses straight
+page-anchored lines with stable tonal levels. Crosshatching adds a perpendicular
+family in shadows. Stipple draws real closed 12-point circles, with fixed seeded
+Density or tone-dependent Size. Dot diameter is physical and capped to 90% of
+its cell spacing. Drawing, Contours and Shading are separate blue outputs.
+Contour threshold selects the traced tone; Simplify and Min path length remove
+tiny moves. Line / dot spacing is in millimetres. Sampling controls the tonal
+field; frame-independent worst-case bounds may uniformly reduce sampling or
+increase spacing, retaining complete frames within the point budget.
+Contain/Cover, Scale, Rotation, offsets and Keep aspect ratio use the original
+GIF proportions. Unlock for independent Stretch X/Y. Colour channel, brightness,
+contrast, gamma, black/white points and inversion tune colour conversion.
+File intake reuses GIF to Receipt's tested full-frame decoder and frozen RGB
+format: transparency, interlace, local palettes, disposals and original delays.
+Import sets ANIMATE Frames. Manual selects a still; Timeline follows Play.
+Matching frame counts, one Cycle and zero Phase visit each source once; Original
+timing samples delays. Saved projects retain all decoded frames and timeline count.
+Select Drawing and use GENERATE G-CODE for one frame or ANIMATE G-code × N for
+a ZIP with one complete machine-profile program per frame. The existing origin,
+speed, pen-lift and workflow gates apply. SVG/DXF contain the same actual strokes;
+there is no raster-width approximation. Downloading does not run the plotter.
+Limits match GIF to Receipt: 20 MB / 240 frames / 4 million source canvas pixels,
+uniformly downsampled to at most 6 million frozen pixels and a 1024 px long side.
+
 
 **GIF to Receipt** — open animated GIFs and convert every frame to black receipt
 linework. Import sets ANIMATE Frames and preserves all frames, transparency,

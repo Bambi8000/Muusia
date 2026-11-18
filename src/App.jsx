@@ -4067,7 +4067,7 @@ export default function App() {
                                         ? { ...n, params: { ...n.params, [pd.key]: name + summary,
                                           ...(def.key === "svgimport" ? { visibleLayers: {} } : {}),
                                           ...(def.key === "pdfimport" ? { page: 1 } : {}),
-                                          ...(def.key === "gif_receipt" ? { source: "GIF file" } : {}) },
+                                          ...(["gif_receipt", "gif_gcode"].includes(def.key) ? { source: "GIF file" } : {}) },
                                           data: { ...(n.data || {}), svg: parsed } } : n));
                                     }).catch((err) => {
                                       if (fileLoadRef.current.get(loadKey) !== token) return;

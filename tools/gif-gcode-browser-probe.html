@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>GIF plotter browser checks</title><style>body{font:16px system-ui;margin:32px;background:#f4f0e6;color:#17272b}pre{white-space:pre-wrap}canvas{width:420px;border:1px solid #aaa;margin:8px}</style><h1>GIF plotter browser checks</h1><pre id="results">Running…</pre><div id="images"></div><script type="module">
+import N from '/src/defs/nodes/gif_gcode.js';
+import Receipt from '/src/defs/nodes/gif_receipt.js';
+const out=document.querySelector('#results'),lines=[],ok=(v,s)=>{lines.push((v?'PASS ':'FAIL ')+s);out.textContent=lines.join('\n');if(!v)throw Error(s);};
+try{
+ const defaults=Object.fromEntries(N.params.map(q=>[q.key,q.def]));
+ ok(N.onFile===Receipt.onFile&&N._decodePatches===Receipt._decodePatches,'shared tested GIF intake, no copied decoder');
+ for(const name of ['disposal-interlace','colour-orbit']){
+  const bytes=new Uint8Array(await(await fetch('/fixtures/gif-receipt/'+name+'.gif')).arrayBuffer()),data='data:image/gif;base64,'+btoa(String.fromCharCode(...bytes)),decoded=await N.onFile(data);
+  ok(decoded.frameCount===(name==='colour-orbit'?24:5),'complete imported '+name+' frame count');
+  if(name==='disposal-interlace'){const expected=await(await fetch('/fixtures/gif-receipt/'+name+'.expected.json')).json();ok(JSON.stringify(decoded.frames)===JSON.stringify(expected.frames),'partial updates, interlace, local palettes, transparency and disposals match independent RGB oracle');}
+  for(const drawing of ['Contours + hatching','Contours','Hatching','Crosshatching','Stipple']){
+   const p={...defaults,drawing,source:'GIF file',file:name+'.gif'},node={data:{svg:decoded}},results=[];
+   for(let frameIdx=0;frameIdx<decoded.frameCount;frameIdx++){
+    const r=N.compute([],p,{W:297,H:210,frameIdx,frameCount:decoded.frameCount},node);ok(r[0].sourceFrame===frameIdx&&r[0].sourceFrames===decoded.frameCount,drawing+' source frame '+frameIdx);
+    ok(r[0].paths.reduce((n,q)=>n+q.pts.length,0)<=120000&&r[0].paths.every(q=>q.pts.every(v=>v.length===2&&v.every(Number.isFinite)))&&r[0].paths.every(q=>!q.strokeWidth&&!q.receiptStrokeWidth),'physical XY and complete budget '+drawing+' '+frameIdx);results.push(JSON.stringify(r[0].paths));
+    if(frameIdx===0&&name==='colour-orbit'&&['Contours + hatching','Stipple'].includes(drawing)){const c=document.createElement('canvas');c.width=840;c.height=594;const g=c.getContext('2d');g.fillStyle='white';g.fillRect(0,0,c.width,c.height);g.scale(840/297,594/210);g.strokeStyle='black';g.lineWidth=.3;for(const q of r[0].paths){g.beginPath();q.pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));if(q.closed)g.closePath();g.stroke();}document.querySelector('#images').append(c);}
+   }
+   ok(new Set(results).size>1,'actual imported animation changes '+drawing);
+  }
+ }
+ lines.push('COMPLETE — '+lines.length+' checks passed. No machine contacted.');out.textContent=lines.join('\n');
+}catch(e){out.textContent+='\nERROR '+e.stack;}
+</script></html>

@@ -910,6 +910,20 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 
 export const EXAMPLES = [
   ...[
+    {name:"Engraved motion",params:{}},
+    {name:"Contour film",params:{drawing:"Contours",simplify:.15}},
+    {name:"Crosshatched motion",params:{drawing:"Crosshatching",pitch:2.2,hatchAngle:-35,levels:4}},
+    {name:"Stipple film",params:{drawing:"Stipple",pitch:3,dotDiameter:.8}},
+    {name:"Small plot frames",canvas:{W:72,H:100},params:{drawing:"Contours + hatching",pitch:.7,minLength:.3,margin:4,columns:192,simplify:.08}}
+  ].map(p=>({
+    name:"GIF to G-code · "+p.name,
+    frames:24,
+    desc:"Select GIF to G-code. Choose animated GIF imports all source frames, switches from the demo to your file and sets ANIMATE Frames. Drawing chooses joined contour loops, physical hatch strokes, crosshatched shadows or real small stipple circles. Simplify and Min path length reduce tiny moves; Line / dot spacing is in millimetres, with a fixed whole-frame budget that may coarsen dense requests uniformly. Contour threshold controls the traced tonal boundary, including holes. Scale, Rotation, Offset, Contain/Cover and Keep aspect ratio place the image; unlock for independent stretch. Colour channel, levels, brightness, contrast, gamma and inversion tune the ink. Manual selects a still; Timeline follows Play. Keep matching frame counts, Phase 0 and Cycles 1 to visit each source frame once; Original timing samples delays. Select Drawing and use GENERATE G-CODE for the current frame or ANIMATE G-code × N for one complete program per frame in a ZIP. Set your machine's pen lift, speed and origin in Machine setup. SVG/DXF export the same actual XY strokes. Blue Contours and Shading outputs allow separate processing. Downloads do not run the plotter.",
+    canvas:p.canvas||{W:297,H:210},
+    make:defaults=>({nodes:[{id:9001,type:"gif_gcode",x:40,y:30,params:{...defaults("gif_gcode"),...p.params,source:"Colour demo",time:"Timeline"}}],edges:[]})
+  })),
+
+  ...[
     {name:"Colour to dots",params:{}},
     {name:"Colouring outlines",params:{render:"Outlines",edge:14,columns:192}},
     {name:"Light colouring guide",params:{render:"Outlines + light tone",ink:18,mode:"Bayer 4×4",columns:160}},

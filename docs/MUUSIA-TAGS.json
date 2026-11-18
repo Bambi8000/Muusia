@@ -629,6 +629,13 @@
   "penout",
   "pens"
  ],
+ "gif_gcode": [
+  "animation",
+  "image",
+  "hatch",
+  "trace",
+  "dots"
+ ],
  "gif_receipt": [
   "animation",
   "image",

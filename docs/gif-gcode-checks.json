@@ -1,0 +1,247 @@
+{
+  "feature": "GIF to G-code",
+  "date": "2026-11-19",
+  "baseCommit": "2d99c4a53229ca40ef80b0a5168b41cf9d9db614",
+  "branch": "codex/gif-to-gcode",
+  "worktree": "/private/tmp/muusia-gif-to-gcode-20261119",
+  "appVersion": "2.207",
+  "localOnly": true,
+  "published": false,
+  "counts": {
+    "modules": 369,
+    "registry": 371,
+    "generators": 236,
+    "helpExamples": 249
+  },
+  "validation": {
+    "focusedChecks": 1604,
+    "actualDemoFrames": 120,
+    "actualImportedFramesAcrossFiveModes": 145,
+    "browserProbeChecks": 304,
+    "gifReceiptRegressionChecks": 1373,
+    "helpGraphs": 249,
+    "catalog": "pass",
+    "productionBuild": "pass",
+    "learnChecks": 37914,
+    "newFileLint": "clean",
+    "actualNativeExports": {
+      "nativeImportFrames": 24,
+      "savedTimelineFrames": 24,
+      "staticSvgExact": true,
+      "staticGcodeExact": true,
+      "svgBatchFramesExact": 24,
+      "gcodeBatchFramesExact": 24,
+      "boundsWarnings": 0,
+      "frameStats": [
+        {
+          "frame": 0,
+          "paths": 93,
+          "points": 291,
+          "moves": 201
+        },
+        {
+          "frame": 1,
+          "paths": 94,
+          "points": 287,
+          "moves": 196
+        },
+        {
+          "frame": 2,
+          "paths": 96,
+          "points": 289,
+          "moves": 196
+        },
+        {
+          "frame": 3,
+          "paths": 95,
+          "points": 299,
+          "moves": 207
+        },
+        {
+          "frame": 4,
+          "paths": 90,
+          "points": 274,
+          "moves": 187
+        },
+        {
+          "frame": 5,
+          "paths": 79,
+          "points": 241,
+          "moves": 164
+        },
+        {
+          "frame": 6,
+          "paths": 73,
+          "points": 215,
+          "moves": 143
+        },
+        {
+          "frame": 7,
+          "paths": 67,
+          "points": 206,
+          "moves": 140
+        },
+        {
+          "frame": 8,
+          "paths": 64,
+          "points": 196,
+          "moves": 133
+        },
+        {
+          "frame": 9,
+          "paths": 65,
+          "points": 220,
+          "moves": 156
+        },
+        {
+          "frame": 10,
+          "paths": 66,
+          "points": 214,
+          "moves": 150
+        },
+        {
+          "frame": 11,
+          "paths": 67,
+          "points": 215,
+          "moves": 150
+        },
+        {
+          "frame": 12,
+          "paths": 64,
+          "points": 205,
+          "moves": 143
+        },
+        {
+          "frame": 13,
+          "paths": 66,
+          "points": 210,
+          "moves": 146
+        },
+        {
+          "frame": 14,
+          "paths": 66,
+          "points": 212,
+          "moves": 148
+        },
+        {
+          "frame": 15,
+          "paths": 66,
+          "points": 219,
+          "moves": 155
+        },
+        {
+          "frame": 16,
+          "paths": 68,
+          "points": 216,
+          "moves": 150
+        },
+        {
+          "frame": 17,
+          "paths": 71,
+          "points": 229,
+          "moves": 160
+        },
+        {
+          "frame": 18,
+          "paths": 75,
+          "points": 236,
+          "moves": 163
+        },
+        {
+          "frame": 19,
+          "paths": 81,
+          "points": 258,
+          "moves": 179
+        },
+        {
+          "frame": 20,
+          "paths": 93,
+          "points": 289,
+          "moves": 199
+        },
+        {
+          "frame": 21,
+          "paths": 96,
+          "points": 298,
+          "moves": 205
+        },
+        {
+          "frame": 22,
+          "paths": 97,
+          "points": 290,
+          "moves": 196
+        },
+        {
+          "frame": 23,
+          "paths": 97,
+          "points": 298,
+          "moves": 204
+        }
+      ]
+    }
+  },
+  "browser": {
+    "presets": [
+      {
+        "preset": 1,
+        "paths": 92,
+        "points": 283
+      },
+      {
+        "preset": 2,
+        "paths": 3,
+        "points": 158
+      },
+      {
+        "preset": 3,
+        "paths": 97,
+        "points": 194
+      },
+      {
+        "preset": 4,
+        "paths": 932,
+        "points": 11184
+      },
+      {
+        "preset": 5,
+        "paths": 66,
+        "points": 207
+      }
+    ],
+    "importedFile": [
+      "colour-orbit.gif · 128 × 96 · 24 frames · 2.32 s"
+    ],
+    "turnedStats": "71  paths ·     366  pts ·    2.80  m",
+    "play": "ANIMATE  —  frame   2 / 24 Frames",
+    "restored": "ANIMATE  —  frame   1 / 24 Frames",
+    "logs": []
+  },
+  "architecture": "Native node inherits the tested GIF decoder/sampler from gif_receipt.js; portable examples inline that definition and validate exact geometry. Existing machine exporters and gates are unchanged. Only App file-intake source selection adds gif_gcode.",
+  "outputs": [
+    "Drawing",
+    "Contours",
+    "Shading"
+  ],
+  "drawingModes": [
+    "Contours + hatching",
+    "Contours",
+    "Hatching",
+    "Crosshatching",
+    "Stipple"
+  ],
+  "gifLimits": {
+    "bytes": 20000000,
+    "frames": 240,
+    "sourceCanvasPixels": 4000000,
+    "totalFrozenPixels": 6000000,
+    "longestFrozenSide": 1024
+  },
+  "geometry": "Actual XY polylines only. Contours preserve holes; physical hatch segments lift across white intervals; stipple is closed 12-point circles. Whole-frame coarsening uses frame-independent bounds, never a truncated prefix.",
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-gcode",
+  "readyScreenshot": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-gcode/native-ready.jpg",
+  "preview": "http://127.0.0.1:5203/",
+  "buildSha256": "c16dfd8f2762f9e296b859bb2e7ff456aaca7b2d9f84a43fbf73ecd4d8b1c533",
+  "physicalPlotSent": false,
+  "hardwareChanged": false,
+  "primaryDirtyCheckoutModified": false
+}

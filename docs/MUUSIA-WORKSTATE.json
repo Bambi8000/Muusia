@@ -1470,5 +1470,18 @@
     "releaseCommit": "15cdd484b5e9440a55ce46131bb76fde4b507567",
     "pagesRunId": 44418804368,
     "publicAppSha256": "f808e8ad76b27aad693983497007cda0f08f3b672049936059d1b2f62440a94b"
+  },
+  "lastGifGcode": {
+    "date": "2026-11-19",
+    "status": "ready_local_only",
+    "baseCommit": "2d99c4a53229ca40ef80b0a5168b41cf9d9db614",
+    "branch": "codex/gif-to-gcode",
+    "worktree": "/private/tmp/muusia-gif-to-gcode-20261119",
+    "outcome": "GIF to G-code generator with real closed contours/holes, hatching/crosshatching, physical stipple circles, aspect transforms, colour/tone controls and per-frame native G-code export.",
+    "validation": "1604 focused checks / 120 demo frames; 304 browser checks / 145 imported frames; all five live starters; exact native static and 24-frame SVG/G-code, no bounds warnings; 1373 GIF Receipt regressions; 249 Help graphs; catalog/build/37914 Learn.",
+    "proof": "docs/gif-gcode-checks.json",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-gcode",
+    "publication": "not requested for this feature; public Muusia remains verified 2.207 GIF to Receipt",
+    "physicalPlotSent": false
   }
 }
