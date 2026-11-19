@@ -8192,3 +8192,36 @@ saved RGB project, G-code ZIP and public-browser-checks.json are in artifacts.
 Public tab stays on the imported GIF with Contours + hatching, frame 1/24.
 Final metadata-only push uses skip-ci and leaves the verified app bytes unchanged.
 Clean project snapshot refreshed afterward; no machine job or Claude UI upload.
+
+
+### W — 2026-11-19 · Remove Eyelashes completely (local)
+
+Daniel requested removal of Silmäripsi / Eyelashes, then explicitly confirmed
+that old-project support is unnecessary because no projects were created with
+it. The final change deletes the implementation rather than retaining a hidden
+alias or compatibility layer. Deletes `src/defs/nodes/eyelashes.js`, its six Help
+starters and dedicated preview/validator, node reference and tags, plus generated
+catalog/recency/source-bundle entries. Historical release records and user
+reference images/artifacts remain historical evidence, not active dependencies.
+
+Worktree `/private/tmp/muusia-remove-eyelashes-20261119`, branch
+`codex/remove-eyelashes`, base `38aa43d7d9980040107ca542ff65395ec9f34d1d`.
+**Local only; not published.** Existing public Muusia remains 2.208. No primary
+dirty checkout, machine/profile or hardware changes.
+
+GIF G-code's preview tool previously imported the generic raster renderer from
+preview-eyelashes. Extracted that identical function into
+`tools/preview-path-gallery.mjs`, so all Eyelashes source/tool references are gone
+without breaking GIF tooling. Regenerated the 24-frame GIF gallery: byte-identical
+SHA-256 `a9bd2c5943b21949fa42fecca37d7065faff6d6b3b3ca55665ea59080aabeb72`.
+GIF node implementations, App and machine exports are unchanged from the base.
+
+Checks: real app palette, Help, catalog search and Latest nodes search contain
+no Eyelashes; quick search shows zero results. GIF G-code starter still renders
+92 paths / 283 points, with no browser warning/error logs. 1604 GIF G-code and
+1373 GIF Receipt checks pass; all 243 Help graphs, focused lint and ordered
+catalog → build → 37914 Learn checks pass. Counts now 368 source modules /
+370 registry entries / 235 generators. Proof `docs/remove-eyelashes-checks.json`;
+screenshot/browser record in WORKSTATE lastEyelashesRemoval.artifacts. Clean
+snapshot refresh after commit: `/private/tmp/muusia-remove-eyelashes-snapshot-20261119`.
+No Claude UI upload or physical plot. Next step is a release when requested.

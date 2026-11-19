@@ -1489,5 +1489,20 @@
     "releaseCommit": "d489b1dfd6b8a14be568a3fdb619bd8a0a6c4dbb",
     "pagesRunId": 44505089489,
     "publicAppSha256": "dd9ea39db67d3c0d529125f77562a00071ac03db9d4bbafabfe7d33738bebd18"
+  },
+  "lastEyelashesRemoval": {
+    "date": "2026-11-19",
+    "status": "ready_local_only",
+    "baseCommit": "38aa43d7d9980040107ca542ff65395ec9f34d1d",
+    "branch": "codex/remove-eyelashes",
+    "worktree": "/private/tmp/muusia-remove-eyelashes-20261119",
+    "completeRemoval": true,
+    "legacySupport": false,
+    "userDecision": "No old-project support needed; user did not create projects with Eyelashes.",
+    "outcome": "Deleted Eyelashes node, its six Help starters, dedicated preview/validator, reference/tags/catalog/recency entries. GIF preview uses a standalone generic path renderer.",
+    "validation": "No active source/tool references; real palette/Help/catalog/quick-search absence, no browser errors; GIF G-code 1604, GIF Receipt 1373, 243 Help graphs, lint/catalog/build/37914 Learn; GIF gallery byte-identical.",
+    "proof": "docs/remove-eyelashes-checks.json",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/remove-eyelashes",
+    "publication": "not requested for this change; public Muusia remains 2.208 until a release is requested"
   }
 }

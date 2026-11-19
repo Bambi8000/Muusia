@@ -3,7 +3,7 @@ import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import * as H from '../src/defs/helpers.js';
 import gifenc from 'gifenc';
-import {raster} from './preview-eyelashes.mjs';
+import {raster} from './preview-path-gallery.mjs';
 import {source as receiptSource,toSVG} from './preview-gif-receipt.mjs';
 export {toSVG};
 const root=fileURLToPath(new URL('../',import.meta.url)),baked=path.join(root,'src/defs/nodes/gif_gcode.js'),lab=path.join(root,'nodes-lab/gif_gcode.plotternode.js');

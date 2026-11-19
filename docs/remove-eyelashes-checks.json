@@ -1,0 +1,50 @@
+{
+  "feature": "Complete Eyelashes removal",
+  "date": "2026-11-19",
+  "baseCommit": "38aa43d7d9980040107ca542ff65395ec9f34d1d",
+  "branch": "codex/remove-eyelashes",
+  "worktree": "/private/tmp/muusia-remove-eyelashes-20261119",
+  "localOnly": true,
+  "published": false,
+  "legacySupport": false,
+  "userClarification": "User explicitly confirmed that no old-project compatibility is needed; no projects were made with this node.",
+  "deletedFiles": [
+    "src/defs/nodes/eyelashes.js",
+    "tools/preview-eyelashes.mjs",
+    "tools/validate-eyelashes.mjs"
+  ],
+  "removedHelpExamples": 6,
+  "activeCodeReferences": 0,
+  "counts": {
+    "modules": 368,
+    "registry": 370,
+    "generators": 235,
+    "helpExamples": 243
+  },
+  "gifGallerySha256": "a9bd2c5943b21949fa42fecca37d7065faff6d6b3b3ca55665ea59080aabeb72",
+  "gifGalleryByteIdentical": true,
+  "checks": {
+    "gifGcode": 1604,
+    "gifReceipt": 1373,
+    "helpExamples": 243,
+    "catalog": "pass",
+    "build": "pass",
+    "learn": 37914,
+    "focusedLint": "pass"
+  },
+  "browser": {
+    "completeRemoval": true,
+    "paletteButtons": 0,
+    "helpEntries": 0,
+    "gifGcodeStats": "92  paths ·     283  pts ·    5.32  m",
+    "quickSearchNoMatches": true,
+    "catalogSearchNoMatches": true,
+    "logs": []
+  },
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/remove-eyelashes",
+  "preview": "http://127.0.0.1:5204/",
+  "snapshot": "/private/tmp/muusia-remove-eyelashes-snapshot-20261119 (refresh after local commit)",
+  "physicalPlotSent": false,
+  "hardwareChanged": false,
+  "primaryDirtyCheckoutModified": false
+}
