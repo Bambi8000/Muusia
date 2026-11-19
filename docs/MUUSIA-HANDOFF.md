@@ -8155,3 +8155,25 @@ with Contours + hatching. Refresh the clean snapshot at
 `/private/tmp/muusia-gif-gcode-snapshot-20261119` after the local commit; no Claude
 UI upload claimed. Next step: Daniel's visual review, then normal release only
 when requested.
+
+
+### 2.208 — 2026-11-19 · GIF to G-code
+
+Daniel authorized publication of implementation
+`397769934676074281fe8488b65b973f4a9bcbd2`. Publishes GIF to G-code under Text &
+Image: joined contours/holes, physical hatching/crosshatching and stipple circles,
+locked-aspect placement and tonal conversion, all frozen GIF frames, separate
+Drawing/Contours/Shading outputs and five live 24-frame Help starters. Uses the
+existing machine-profile G-code/SVG/DXF exporters; no hardware/profile change,
+no machine job or physical plot. Primary dirty checkout untouched.
+
+Version is 2.208. Source/recency/catalog regenerated. Focused 1604 checks / 120
+demo frames, existing GIF Receipt 1373 checks, 249 Help graphs and new-file lint
+pass. Ordered catalog → build → 37914 Learn checks pass with reference provenance
+unchanged. Implementation proof has 304 real-browser checks / 145 imported frames,
+exact native still exports and all 24 complete SVG/G-code frame programs with no
+bounds warning. Counts: 369 modules / 371 registry entries / 236 generators.
+Release proof `docs/gif-gcode-release-checks.json`; exact-commit Pages deployment,
+public-byte and actual public GIF/batch checks will be recorded when complete.
+Clean snapshot refresh after final metadata:
+`/private/tmp/muusia-gif-gcode-release-snapshot-20261119`; no Claude UI upload.

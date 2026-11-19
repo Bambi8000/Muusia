@@ -1473,7 +1473,7 @@
   },
   "lastGifGcode": {
     "date": "2026-11-19",
-    "status": "ready_local_only",
+    "status": "release_2.208_pending_public_verification",
     "baseCommit": "2d99c4a53229ca40ef80b0a5168b41cf9d9db614",
     "branch": "codex/gif-to-gcode",
     "worktree": "/private/tmp/muusia-gif-to-gcode-20261119",
@@ -1481,7 +1481,8 @@
     "validation": "1604 focused checks / 120 demo frames; 304 browser checks / 145 imported frames; all five live starters; exact native static and 24-frame SVG/G-code, no bounds warnings; 1373 GIF Receipt regressions; 249 Help graphs; catalog/build/37914 Learn.",
     "proof": "docs/gif-gcode-checks.json",
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-gcode",
-    "publication": "not requested for this feature; public Muusia remains verified 2.207 GIF to Receipt",
-    "physicalPlotSent": false
+    "publication": "User authorized publication on 2026-11-19; 2.208 tested, deployment/public checks pending",
+    "physicalPlotSent": false,
+    "releaseEvidence": "docs/gif-gcode-release-checks.json"
   }
 }

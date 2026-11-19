@@ -1,0 +1,38 @@
+{
+  "version": "2.208",
+  "date": "2026-11-19",
+  "implementationCommit": "397769934676074281fe8488b65b973f4a9bcbd2",
+  "baseCommit": "2d99c4a53229ca40ef80b0a5168b41cf9d9db614",
+  "branch": "codex/gif-to-gcode",
+  "worktree": "/private/tmp/muusia-gif-to-gcode-20261119",
+  "status": "Release tested; deployment and public checks pending",
+  "published": false,
+  "moduleCount": 369,
+  "registryCount": 371,
+  "generators": 236,
+  "features": [
+    "GIF to G-code with true closed contours, hatching, crosshatching and physical stipple circles",
+    "All source GIF frames, aspect-preserving placement and colour/tone conversion",
+    "Drawing, Contours and Shading outputs; five live Help starters",
+    "Existing machine-aware still and per-frame G-code export, plus SVG/DXF"
+  ],
+  "checks": {
+    "gifGcode": 1604,
+    "actualDemoFrames": 120,
+    "implementationBrowserChecks": 304,
+    "actualImportedFramesAcrossFiveModes": 145,
+    "gifReceiptRegressionChecks": 1373,
+    "helpGraphs": 249,
+    "lint": "pass for new node/tools",
+    "catalog": "pass",
+    "build": "pass",
+    "learn": 37914,
+    "nativeExports": "See docs/gif-gcode-checks.json: actual static and all 24 SVG/G-code frame downloads exactly match current evaluation; complete drawing moves and no bounds warnings."
+  },
+  "testedAppSha256": "dd9ea39db67d3c0d529125f77562a00071ac03db9d4bbafabfe7d33738bebd18",
+  "url": "https://bambi8000.github.io/Muusia/",
+  "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-gcode",
+  "snapshot": "/private/tmp/muusia-gif-gcode-release-snapshot-20261119 (refresh after final metadata commit; local only)",
+  "physicalPlotSent": false,
+  "primaryDirtyWorkspaceChanged": false
+}
