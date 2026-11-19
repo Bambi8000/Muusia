@@ -5,8 +5,8 @@
   "baseCommit": "2d99c4a53229ca40ef80b0a5168b41cf9d9db614",
   "branch": "codex/gif-to-gcode",
   "worktree": "/private/tmp/muusia-gif-to-gcode-20261119",
-  "status": "Release tested; deployment and public checks pending",
-  "published": false,
+  "status": "Verified public Muusia 2.208; five starters, real GIF import, playback and complete 24-frame G-code batch verified",
+  "published": true,
   "moduleCount": 369,
   "registryCount": 371,
   "generators": 236,
@@ -34,5 +34,56 @@
   "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-gcode",
   "snapshot": "/private/tmp/muusia-gif-gcode-release-snapshot-20261119 (refresh after final metadata commit; local only)",
   "physicalPlotSent": false,
-  "primaryDirtyWorkspaceChanged": false
+  "primaryDirtyWorkspaceChanged": false,
+  "releaseCommit": "d489b1dfd6b8a14be568a3fdb619bd8a0a6c4dbb",
+  "pagesRunId": 44505089489,
+  "publicAppSha256": "dd9ea39db67d3c0d529125f77562a00071ac03db9d4bbafabfe7d33738bebd18",
+  "matchesTestedBuild": true,
+  "publicBrowser": {
+    "version": "2.208",
+    "presets": [
+      {
+        "name": "Engraved motion",
+        "paths": 92,
+        "points": 283
+      },
+      {
+        "name": "Contour film",
+        "paths": 3,
+        "points": 158
+      },
+      {
+        "name": "Crosshatched motion",
+        "paths": 97,
+        "points": 194
+      },
+      {
+        "name": "Stipple film",
+        "paths": 932,
+        "points": 11184
+      },
+      {
+        "name": "Small plot frames",
+        "paths": 66,
+        "points": 207
+      }
+    ],
+    "loadedFile": [
+      "colour-orbit.gif · 128 × 96 · 24 frames · 2.32 s"
+    ],
+    "animation": "ANIMATE  —  frame   1 / 24 Frames",
+    "importedStats": "93  paths ·     291  pts ·    5.35  m",
+    "project": "/Users/daniel/Downloads/patch.muusia (15).json",
+    "gcodeBatch": "/Users/daniel/Downloads/patch-frames-gcode (7).zip",
+    "playing": "ANIMATE  —  frame   5 / 24 Frames",
+    "logs": [],
+    "nativeGcode": {
+      "frames": 24,
+      "allFramesMatchSourceExactly": true,
+      "completeDrawingMoves": 4071,
+      "boundsWarnings": 0,
+      "archiveSha256": "995e8e53e32d9244e6a0a5971d8b06ec6003a23a17ed18acfb895e3f635dae39",
+      "physicalPlotSent": false
+    }
+  }
 }

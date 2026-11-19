@@ -8177,3 +8177,18 @@ Release proof `docs/gif-gcode-release-checks.json`; exact-commit Pages deploymen
 public-byte and actual public GIF/batch checks will be recorded when complete.
 Clean snapshot refresh after final metadata:
 `/private/tmp/muusia-gif-gcode-release-snapshot-20261119`; no Claude UI upload.
+
+
+Publication verified: release `d489b1dfd6b8a14be568a3fdb619bd8a0a6c4dbb`, exact-commit
+Pages run `44505089489` completed successfully. Public app SHA-256
+`dd9ea39db67d3c0d529125f77562a00071ac03db9d4bbafabfe7d33738bebd18`
+matches the tested release build byte-for-byte. Fresh public app shows 2.208;
+all five starters match source counts. Real GIF picker loads all 24 frames,
+sets ANIMATE 24 and selects GIF file; Play advances. Public G-code ×24 download
+contains all 24 complete programs, each byte-identical to current source
+export with the saved public machine profile: all 4071 drawing moves present,
+zero bounds warnings. No warning/error browser logs. Screenshot, actual public
+saved RGB project, G-code ZIP and public-browser-checks.json are in artifacts.
+Public tab stays on the imported GIF with Contours + hatching, frame 1/24.
+Final metadata-only push uses skip-ci and leaves the verified app bytes unchanged.
+Clean project snapshot refreshed afterward; no machine job or Claude UI upload.

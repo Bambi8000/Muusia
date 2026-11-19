@@ -2,15 +2,16 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.207",
-    "commit": "15cdd484b5e9440a55ce46131bb76fde4b507567",
-    "pagesRunId": 44418804368,
-    "publicAppSha256": "f808e8ad76b27aad693983497007cda0f08f3b672049936059d1b2f62440a94b",
+    "version": "2.208",
+    "commit": "d489b1dfd6b8a14be568a3fdb619bd8a0a6c4dbb",
+    "pagesRunId": 44505089489,
+    "publicAppSha256": "dd9ea39db67d3c0d529125f77562a00071ac03db9d4bbafabfe7d33738bebd18",
     "matchesTestedBuild": true,
     "date": "2026-11-19",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.207; GIF to Receipt with colour/monochrome and colouring outlines, all frames frozen and continuous animation strip; exact tested bytes",
-    "physicalPrintSent": false
+    "status": "verified public 2.208; GIF to G-code physical contours/hatching/stipple, all five starters and exact complete 24-frame G-code batch; tested app bytes match",
+    "physicalPrintSent": false,
+    "physicalPlotSent": false
   },
   "lastIntegration": {
     "version": "2.189",
@@ -1473,7 +1474,7 @@
   },
   "lastGifGcode": {
     "date": "2026-11-19",
-    "status": "release_2.208_pending_public_verification",
+    "status": "verified_public_2.208",
     "baseCommit": "2d99c4a53229ca40ef80b0a5168b41cf9d9db614",
     "branch": "codex/gif-to-gcode",
     "worktree": "/private/tmp/muusia-gif-to-gcode-20261119",
@@ -1481,8 +1482,12 @@
     "validation": "1604 focused checks / 120 demo frames; 304 browser checks / 145 imported frames; all five live starters; exact native static and 24-frame SVG/G-code, no bounds warnings; 1373 GIF Receipt regressions; 249 Help graphs; catalog/build/37914 Learn.",
     "proof": "docs/gif-gcode-checks.json",
     "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/gif-gcode",
-    "publication": "User authorized publication on 2026-11-19; 2.208 tested, deployment/public checks pending",
+    "publication": "Muusia 2.208 published and verified on 2026-11-19; five starters, real 24-frame GIF intake/playback and complete source-identical G-code batch",
     "physicalPlotSent": false,
-    "releaseEvidence": "docs/gif-gcode-release-checks.json"
+    "releaseEvidence": "docs/gif-gcode-release-checks.json",
+    "published": true,
+    "releaseCommit": "d489b1dfd6b8a14be568a3fdb619bd8a0a6c4dbb",
+    "pagesRunId": 44505089489,
+    "publicAppSha256": "dd9ea39db67d3c0d529125f77562a00071ac03db9d4bbafabfe7d33738bebd18"
   }
 }
