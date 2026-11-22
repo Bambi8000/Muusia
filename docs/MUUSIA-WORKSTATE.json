@@ -17,8 +17,8 @@
         "docs/MUUSIA-WORKSTATE.json"
       ],
       "goal": "New generator node Tick Grid: a minimal regular lattice of individually randomized pen ticks - position (Jitter), angle (Angle +/- scatter), length (% of cell +/- variation) and bend, all hashed per node and seeded; density from sparse constellations to dense woven texture; budget-safe full-sheet coverage; optional second accent pen; Help example, tags and generated data. Local branch; publication only on Daniel's release instruction.",
-      "status": "completed_unpublished_branch",
-      "outcome": "Built-in tick_grid node (13 params) + tools/validate-tick-grid.mjs + four Help examples + reference paragraph and tags; catalog/recency/bundle/manifest regenerated; shared gate green. See lastTickGrid for check details."
+      "status": "integrated_into_release_2.209_branch",
+      "outcome": "Built-in tick_grid node (13 params) + tools/validate-tick-grid.mjs + four Help examples + reference paragraph and tags; catalog/recency/bundle/manifest regenerated; shared gate green. Merged with the verified Eyelashes removal per Daniel's release scope decision 2026-11-22; published as Muusia 2.209. See lastTickGrid for check details."
     }
   ],
   "lastPublished": {
@@ -1510,14 +1510,29 @@
     "pagesRunId": 44505089489,
     "publicAppSha256": "dd9ea39db67d3c0d529125f77562a00071ac03db9d4bbafabfe7d33738bebd18"
   },
+  "lastEyelashesRemoval": {
+    "date": "2026-11-19",
+    "status": "released_with_2.209",
+    "baseCommit": "38aa43d7d9980040107ca542ff65395ec9f34d1d",
+    "branch": "codex/remove-eyelashes",
+    "worktree": "/private/tmp/muusia-remove-eyelashes-20261119",
+    "completeRemoval": true,
+    "legacySupport": false,
+    "userDecision": "No old-project support needed; user did not create projects with Eyelashes.",
+    "outcome": "Deleted Eyelashes node, its six Help starters, dedicated preview/validator, reference/tags/catalog/recency entries. GIF preview uses a standalone generic path renderer.",
+    "validation": "No active source/tool references; real palette/Help/catalog/quick-search absence, no browser errors; GIF G-code 1604, GIF Receipt 1373, 243 Help graphs, lint/catalog/build/37914 Learn; GIF gallery byte-identical.",
+    "proof": "docs/remove-eyelashes-checks.json",
+    "artifacts": "/Users/daniel/.codex/visualizations/2026/11/17/01a1eb31-8a04-78c3-9430-da3c3d177d03/remove-eyelashes",
+    "publication": "Requested by Daniel 2026-11-22; integrated into Muusia 2.209 on codex/qwen-minimal-grid together with Tick Grid."
+  },
   "lastTickGrid": {
     "date": "2026-11-21",
     "baseCommit": "38aa43d7d9980040107ca542ff65395ec9f34d1d",
     "branch": "codex/qwen-minimal-grid",
     "worktree": "/Users/daniel/muusia-qwen",
     "outcome": "Tick Grid generator: every lattice node makes its own seeded decision - occupancy (Density), turn (Angle +/- Scatter), length (% of cell +/- Length variation), position offset (Jitter) and single-arc Bend; optional Accent share on a second pen; budget-safe full sheet (cells grow instead of truncating); marks clipped to canvas.",
-    "checks": "47-check node validator ALL OK (flat lattice 27x18 on A4 landscape, determinism, seed sensitivity, angle dot 1.0000, length range, bend bulge, accent pen assignment, 300-config fuzz in-bounds, Viivain fine lattice under point budget, style pass-through, NaN/degenerate ctx); validate-examples 253 OK incl. four new Tick Grid Help examples; validate-catalog 372 ok; npm run build (app + Learn) ok; check:learn 37914 ok. Counts now 370 modules / 372 registry entries / 237 generators / 253 Help examples.",
-    "browserCheck": "Not performed: built-in browser navigation to the local dev server is denied by Web settings (private network / nonstandard port). Daniel to open the app, load the four Tick Grid Help examples, tune parameters and export SVG/G-code before any release integration.",
+    "checks": "47-check node validator ALL OK (flat lattice 27x18 on A4 landscape, determinism, seed sensitivity, angle dot 1.0000, length range, bend bulge, accent pen assignment, 300-config fuzz in-bounds, Viivain fine lattice under point budget, style pass-through, NaN/degenerate ctx); validate-examples 253 OK incl. four new Tick Grid Help examples; validate-catalog 372 ok; npm run build (app + Learn) ok; check:learn 37914 ok. Counts then 370 modules / 372 registry entries / 237 generators / 253 Help examples; merged-tree counts recorded in the 2.209 release entry.",
+    "browserCheck": "Pending live in-app check on the merged tree (Web-settings browser access being enabled); 47-check validator and full example validation stand as automated proof until then.",
     "published": false
   }
 }

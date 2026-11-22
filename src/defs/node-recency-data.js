@@ -430,11 +430,6 @@ export const NODE_RECENCY = {
     "order": 1,
     "sha256": "1cba589dfd741c9a3c5ab98741a339e5eabc594664cfca1d59022dbe3908f399"
   },
-  "eyelashes": {
-    "date": "2026-11-18",
-    "order": 156,
-    "sha256": "81f4a0fd393a2e4b53ca3560e2e9b24c8bc7f00facd70111fa9c9eeadd51f96c"
-  },
   "fabric": {
     "date": "2026-07-22",
     "order": 1,
