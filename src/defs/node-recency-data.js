@@ -81,9 +81,9 @@ export const NODE_RECENCY = {
     "sha256": "e5c987f00d9fe8824578de9abfea10c3bdccc32d9149c0d2ac61c64979d3edce"
   },
   "bg_fill": {
-    "date": "2026-09-10",
-    "order": 41,
-    "sha256": "75799399490cbd5399ae52ba34c199d6b4101b131a081716ca48d343034c99ac"
+    "date": "2026-11-22",
+    "order": 163,
+    "sha256": "b4e07d91dae4d8c1eea8fead48cfeacb71d383d87cb73fd25dad75905bb12862"
   },
   "bitcrush": {
     "date": "2026-07-22",
@@ -617,8 +617,8 @@ export const NODE_RECENCY = {
   },
   "guilloche": {
     "date": "2026-11-22",
-    "order": 162,
-    "sha256": "207e55c4ee536acd52b494e58d7992cb7d15a7a794976d74e41d792d324fd9ce"
+    "order": 163,
+    "sha256": "35adddee3dedea7b9704d84e4116ad034073510827d94ab7a8216d06c2a0e4ce"
   },
   "gull_tracks": {
     "date": "2026-08-13",

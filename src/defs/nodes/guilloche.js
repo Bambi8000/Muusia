@@ -1,4 +1,5 @@
-import { Pin, EMPTY, mulberry32, noise2, applyStyle } from "../helpers.js";
+import { Pin, EMPTY, applyStyle } from "../helpers.js";
+import { guillocheFamily } from "../guilloche-family.js";
 
 export default {
   /* Guilloché — banknote fine-line patterns, one node, five styles. Rosette
@@ -82,14 +83,6 @@ export default {
     const layer = Math.max(0, Math.min(11, Math.round(num(p.layer, 0, 0, 11))));
     const layer2 = Math.max(0, Math.min(11, Math.round(num(p.pen2, 3, 0, 11))));
 
-    // Sampling steps per curve, with a hard ceiling per style.
-    let S;
-    if (mode === "Fan") S = Math.min(161, Math.max(16, Math.round(2 * Math.sqrt(2 * k) + 1)));
-    else if (mode === "Spiral") {
-      const turns = Math.max(2, Math.min(60, Math.round(N * 0.5)));
-      S = Math.min(60000, Math.max(128, Math.round(k * turns * 2)));
-    } else S = Math.min(720, Math.max(64, Math.round(2 * k)));
-
     const paths = [];
     const pushCurve = (pts, closed, pen, outside) => {
       // Clip to the sheet like real security printing: keep what is inside,
@@ -114,59 +107,11 @@ export default {
       else if (!outside) { /* fully off-sheet curve: dropped on purpose */ }
     };
 
-    const copyMeta = [];
-    for (let i = 0; i < N; i++) {
-      const rng = mulberry32((seed ^ Math.imul(i + 1, 0x9e3779b9) | 0) >>> 0);
-      copyMeta.push({ phi: rng() * Math.PI * 2, delta: (rng() * 2 - 1) * jit * (Math.PI / N) * 0.5, pick: rng() });
-    }
-    const wob = (theta, i) => jit * e * R * 0.5 * (noise2(theta * 1.7 + i * 6.17, i * 2.31, seed) * 2 - 1);
-
-    if (mode === "Fan") {
-      for (let i = 0; i < N; i++) {
-        const beta = rot + (Math.PI * 2 * i) / N + copyMeta[i].delta * 2;
-        const d = R * (0.25 + 0.65 * mulberry32((seed ^ Math.imul(i + 1, 0x51ed270b) | 0) >>> 0)());
-        const dd = Math.min(d, R * 0.92);
-        const half = Math.sqrt(Math.max(0, R * R - dd * dd)) * 0.9;
-        const ux = -Math.sin(beta), uy = Math.cos(beta);
-        const bx = cx + Math.cos(beta) * dd, by = cy + Math.sin(beta) * dd;
-        const pts = [];
-        for (let s = 0; s <= S; s++) {
-          const t = s / S * 2 - 1;
-          const w = e * R * 0.35 * Math.sin(k * Math.PI * t + copyMeta[i].phi) + wob(t * Math.PI, i) * 0.5;
-          pts.push([bx + ux * t * half + ux * w, by + uy * t * half + uy * w]);
-        }
-        pushCurve(pts, false, accentF > 0 && copyMeta[i].pick < accentF ? layer2 : layer, false);
-      }
-    } else if (mode === "Spiral") {
-      const turns = Math.max(2, Math.min(60, Math.round(N * 0.5)));
-      const m0 = copyMeta[0];
-      const pts = [];
-      for (let s = 0; s <= S; s++) {
-        const th = (s / S) * turns * Math.PI * 2;
-        const shrink = 1 - (th / (turns * Math.PI * 2)) * 0.88;
-        const r = R * shrink * (1 - e * Math.cos(k * th + m0.phi)) + wob(th, 0);
-        const a = th + rot;
-        pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
-      }
-      pushCurve(pts, false, layer, false);
-    } else {
-      const weave = mode === "Weave";
-      const rings = mode === "Rings";
-      for (let i = 0; i < N; i++) {
-        const fam = weave ? (i % 2 === 1 ? 1 : -1) : 1;
-        const scale = (1 + i * g) * (weave && fam === 1 ? 1.04 : 1);
-        const a0 = rot + (Math.PI * 2 * i) / N + copyMeta[i].delta + (weave && fam === 1 ? Math.PI / k : 0);
-        const pen = accentF > 0 && copyMeta[i].pick < accentF ? layer2 : layer;
-        const pts = new Array(S);
-        for (let s = 0; s < S; s++) {
-          const th = (s / S) * Math.PI * 2;
-          const base = rings ? (1 + 0.6 * e * Math.cos(k * th + copyMeta[i].phi)) : (1 - e * fam * Math.cos(k * th + copyMeta[i].phi));
-          const r = R * scale * base + wob(th, i);
-          const a = th + a0;
-          pts[s] = [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-        }
-        pushCurve(pts, true, pen, false);
-      }
+    // Complete unclipped family from the shared banknote mathematics, then the
+    // node's own sheet clipping, pen mapping and budget policy on top.
+    const fam = guillocheFamily({ mode, waves: k, copies: N, amplitude: e, growth: g, jitter: jit, angle: rot, seed, R, cx, cy, accent: accentF });
+    for (const f of fam) {
+      pushCurve(f.pts, f.closed, f.slot === 1 ? layer2 : layer, false);
     }
 
     // Point budget: thin the densest curves before any other compromise.

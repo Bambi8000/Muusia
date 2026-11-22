@@ -32,7 +32,7 @@ const run = (p, ctx, ins) => def.compute(ins || [undefined, undefined], p, ctx |
 const npts = (r) => r.paths.reduce((a, q) => a + q.pts.length, 0);
 const finiteAll = (r) => r.paths.every((q) => q.pts.every((pt) => Number.isFinite(pt[0]) && Number.isFinite(pt[1])));
 
-const MODES = ["Drape", "Magnet", "Grain", "Scales", "Torn", "Pleat", "Circles"];
+const MODES = def.params.find((q) => q.key === "mode").options;
 const p0 = defaults();
 
 /* --- universal invariants, per mode --- */
@@ -74,6 +74,10 @@ const OWNER = {
   spineAng: "Torn", voidLen: "Torn", voidW: "Torn", vWobble: "Torn", fan: "Torn",
   cellW: "Pleat", cellH: "Pleat", foldP: "Pleat", stagger: "Pleat",
   cMin: "Circles", cMax: "Circles", cGap: "Circles", cStyle: "Circles",
+  gStyle: "Guilloché", gSize: "Guilloché", gOver: "Guilloché", gFill: "Guilloché",
+  gAccent: "Guilloché", pen2: "Guilloché",
+  gWaves: "Guilloché", gCopies: "Guilloché", gAmp: "Guilloché", gGrowth: "Guilloché",
+  gJit: "Guilloché", gAngle: "Guilloché",
 };
 const bump = (pd) => {
   if (pd.type === "select") return pd.options.find((o) => o !== pd.def);
@@ -86,6 +90,7 @@ for (const pd of def.params) {
   if (pd.key === "mode" || pd.key === "rayMode" || pd.key === "vClear") continue;
   const mo = OWNER[pd.key] || "Grain";
   const base = { ...p0, mode: mo };
+  if (pd.key === "pen2") base.gAccent = 40;   // accent share must be nonzero for the second pen to draw
   const bJ = JSON.stringify(run(base));
   const r = run({ ...base, [pd.key]: bump(pd) });
   ok(JSON.stringify(r) !== bJ, "param live in " + mo + ": " + pd.key);
@@ -231,6 +236,127 @@ for (const mo of MODES) {
   const r = run({ ...p0, mode: "Pleat", vClear: 3 }, undefined, [undefined, voidIn]);
   const viol = r.paths.reduce((a, q) => a + q.pts.filter((pt) => edgeD(pt[0], pt[1]) < 3 - 0.35).length, 0);
   ok(viol === 0, "closed void edges keep the clearance halo (violations=" + viol + ")");
+}
+
+/* --- Guilloché mode: the security-paper tiling guarantees --- */
+{
+  const GU = MODES.find((o) => o.toLowerCase().startsWith("guilloch"));
+  ok(!!GU, "Guilloché exists as a BG Fill mode");
+  /* full-sheet coverage: probe every 10mm cell of the (margin-zero) sheet,
+     tolerant 8mm, against a point-bucket index - no blank region anywhere */
+  for (const [W, H] of [[297, 210], [210, 297], [420, 297]]) {
+    const r = run({ ...p0, mode: GU, margin: 0 }, { W, H });
+    const cell = 4, tol = 8;
+    const buckets = new Map();
+    for (const q of r.paths) for (const [x, y] of q.pts) {
+      const k = Math.floor(x / cell) + "," + Math.floor(y / cell);
+      let b = buckets.get(k); if (!b) { b = []; buckets.set(k, b); } b.push([x, y]);
+    }
+    const dist = (gx, gy) => {
+      let best = Infinity;
+      for (let bx = -1; bx <= 1; bx++) for (let by = -1; by <= 1; by++) {
+        const b = buckets.get((Math.floor(gx / cell) + bx) + "," + (Math.floor(gy / cell) + by));
+        if (!b) continue;
+        for (const [px, py] of b) best = Math.min(best, Math.hypot(px - gx, py - gy));
+      }
+      return best;
+    };
+    let covered = 0, total = 0, worst = 0;
+    for (let gx = 2; gx < W; gx += 10) for (let gy = 2; gy < H; gy += 10) {
+      total++;
+      const d = dist(gx, gy);
+      if (d <= tol) covered++; else worst = Math.max(worst, d);
+    }
+    const corners = [dist(3, 3), dist(W - 3, 3), dist(3, H - 3), dist(W - 3, H - 3)].every((d) => d <= tol);
+    ok(covered / total >= 0.95 && corners && worst <= tol,
+      `Guilloché fills the whole ${W}x${H} sheet: ${(100 * covered / total).toFixed(1)}% of cells covered, corners ${(corners ? "yes" : "NO")}, worst gap ${worst.toFixed(1)}mm`);
+  }
+  /* the margin frame is honoured like every other mode */
+  const mR = run({ ...p0, mode: GU, margin: 15 });
+  const bandViol = mR.paths.reduce((a, q) => a + q.pts.filter(([x, y]) => x < 15 - 0.35 || x > 297 - 15 + 0.35 || y < 15 - 0.35 || y > 210 - 15 + 0.35).length, 0);
+  ok(bandViol === 0 && JSON.stringify(mR) !== JSON.stringify(run({ ...p0, mode: GU, margin: 0 })),
+    "Guilloché: margin trims the lattice and keeps the band blank (" + bandViol + " violations)");
+  /* the shared family module: exactly one curve per copy (spiral: one open curve) */
+  {
+    const fammod = await import("../src/defs/guilloche-family.js");
+    for (const st of ["Rosette", "Rings", "Fan", "Weave", "Spiral"]) {
+      const fam = fammod.guillocheFamily({ mode: st, waves: 48, copies: 14, amplitude: 0.18, growth: 0.012, jitter: 0.15, angle: 0, seed: 7, R: 100, cx: 0, cy: 0, accent: 0, samples: 32 });
+      ok(fam.length === fammod.guillocheCurveCount(st, 14), st + ": family emits one curve per copy (" + fam.length + ")");
+    }
+  }
+  /* each style tiles non-empty, finite, and visibly distinct from the others */
+  {
+    const seen = new Map();
+    for (const st of ["Rosette", "Rings", "Fan", "Weave", "Spiral"]) {
+      const r = run({ ...p0, mode: GU, gStyle: st });
+      ok(r.paths.length > 0 && finiteAll(r), st + " tiled renders (" + r.paths.length + " paths)");
+      seen.set(st, JSON.stringify(r));
+    }
+    ok(seen.get("Rosette") !== seen.get("Fan") && seen.get("Rings") !== seen.get("Weave"), "tiled styles are geometrically distinct");
+  }
+  const sp = run({ ...p0, mode: GU, gStyle: "Spiral" });
+  ok(sp.paths.length > 0 && sp.paths.every((q) => !q.closed), "Spiral: plates are open curves (" + sp.paths.length + ")");
+  ok(run({ ...p0, mode: GU }, { W: 420, H: 297 }).paths.length > run({ ...p0, mode: GU }).paths.length, "plate count grows with sheet size");
+  /* accent split: the second pen draws the accent share of the copies */
+  const a0 = run({ ...p0, mode: GU, gAccent: 0, pen2: 5 });
+  const a50 = run({ ...p0, mode: GU, gAccent: 50, pen2: 5 });
+  const a100 = run({ ...p0, mode: GU, gAccent: 100, pen2: 5 });
+  ok(a0.paths.length > 0 && a0.paths.every((q) => q.layer === p0.layer), "Guilloché accent 0%: all ink on the main pen");
+  ok(a100.paths.length > 0 && a100.paths.every((q) => q.layer === 5), "Guilloché accent 100%: all ink on the accent pen");
+  ok(a50.paths.some((q) => q.layer === p0.layer) && a50.paths.some((q) => q.layer === 5), "Guilloché accent 50%: both pens draw");
+  /* determinism and seed liveness at this density */
+  const d1 = JSON.stringify(run({ ...p0, mode: GU }));
+  const d2 = JSON.stringify(run({ ...p0, mode: GU }));
+  ok(d1 === d2, "Guilloché: deterministic double run");
+  ok(JSON.stringify(run({ ...p0, mode: GU, seed: p0.seed + 31 })) !== d1, "Guilloché: seed is live");
+  /* wired voids: interior cut AND clearance halo respected */
+  const star = [];
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    const rr = i % 2 ? 18 : 42;
+    star.push([148 + Math.cos(a) * rr, 105 + Math.sin(a) * rr]);
+  }
+  const edgeD = (x, y) => {
+    let dm = Infinity;
+    for (let i = 0, j = star.length - 1; i < star.length; j = i++) {
+      const ax = star[j][0], ay = star[j][1], bx = star[i][0], by = star[i][1];
+      const dx = bx - ax, dy = by - ay;
+      const L2 = dx * dx + dy * dy;
+      const t = L2 < 1e-9 ? 0 : Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+      dm = Math.min(dm, Math.hypot(x - (ax + dx * t), y - (ay + dy * t)));
+    }
+    return dm;
+  };
+  for (const vc of [2, 5]) {
+    const r = run({ ...p0, mode: GU, vClear: vc }, undefined, [undefined, voidIn]);
+    const viol = r.paths.reduce((a, q) => a + q.pts.filter((pt) => edgeD(pt[0], pt[1]) < vc - 0.35).length, 0);
+    ok(viol === 0, "Guilloché wired void: clearance halo " + vc + "mm respected (" + viol + " violations)");
+  }
+  /* smooth geometry + a void: no closed path may hide a chord across a cut gap */
+  {
+    const r = run({ ...p0, mode: GU, gWaves: 48, gCopies: 14, gAmp: 0.05, gJit: 0.2, gSize: 120, gOver: 0.5 },
+      undefined, [undefined, voidIn]);
+    let suspects = 0;
+    for (const q of r.paths) {
+      if (!q.closed) continue;
+      const segs = [];
+      for (let i = 1; i <= q.pts.length; i++) {
+        const a = q.pts[i - 1], b = q.pts[i % q.pts.length];
+        segs.push(Math.hypot(b[0] - a[0], b[1] - a[1]));
+      }
+      const med = [...segs].sort((a, b) => a - b)[Math.floor(segs.length / 2)];
+      if (med > 0 && Math.max(...segs) / med > 8) suspects++;
+    }
+    ok(suspects === 0, "Guilloché cut rings never close with a chord (" + suspects + " suspects)");
+  }
+  /* budget extremes on A3: hard cap, finite, fast */
+  {
+    const t0 = Date.now();
+    const r = run({ ...p0, mode: GU, gWaves: 3600, gCopies: 120, gSize: 20, gOver: 0, gFill: 1, gAmp: 2, gGrowth: 1, gJit: 5, gAngle: 3600 }, { W: 420, H: 297 });
+    const ms = Date.now() - t0;
+    ok(finiteAll(r) && npts(r) <= 115000 && ms < 10000,
+      "Guilloché extreme density holds the 115k cap (" + npts(r) + " pts in " + ms + "ms)");
+  }
 }
 
 /* --- style passthrough --- */

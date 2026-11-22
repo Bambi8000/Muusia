@@ -5861,6 +5861,14 @@ Needle Punch changes; bump the app version once at an authorized final release.
   bake + dev-server HMR with the lab file as the working copy, never via
   browser import. Symptom of forgetting: "the slider does nothing" while
   editing the lab file - the browser is running the old bake.
+- ACCENTED LITERALS ARE NFC IN SOURCE AND SILENTLY BREAK FROM SHELLS. The
+  option string "Guilloché" in bg_fill.js is NFC (single U+00E9); a script
+  whose "Guilloché" went through a heredoc or terminal layer can arrive NFD
+  (e + combining acute, bytes 101 204 129 vs 195 169) and fail `===`
+  matches with zero errors - the branch just returns the untextured sheet.
+  In tooling scripts select such options programmatically
+  (`options.find(o => o.toLowerCase().startsWith("guilloch"))`) or write
+  "\u00e9" escapes; verify with a TextEncoder byte dump when in doubt.
 
 ## Roadmap / ideas
 
@@ -8277,15 +8285,66 @@ record (release commit, Pages run, public bytes) in the following note.
 
 Deployment record: release commit 388f0024c6c539a1b73d18b11fc36c22b2e766f0
 pushed to main on 2026-11-22 (fast-forward from 38aa43d; the branch carried
-the Eyelashes removal, Tick Grid, their merge, Guilloché and the version bump).
+the Eyelashes removal, Tick Grid, their merge, Guilloché and the version bump).
 Pages run 45010524283 completed / success for exactly that commit. Public
 https://bambi8000.github.io/Muusia/ fetched at 5 631 945 bytes with SHA-256
 1985f58e25529bbfeaeff2a56c0560f0b79cadd1ba7cc076d1c7b9ec879a2477 — identical
 to the locally built, fully gated dist/index.html. The public bundle contains
-both new nodes (Tick Grid, Guilloché with its three Help starters) and zero
+both new nodes (Tick Grid, Guilloché with its three Help starters) and zero
 Eyelashes references, and renders version 2.209 in the header. No live
 browser screenshots were captured: the single-file app exceeds the
 conversation browser's render budget; the node validators, all 250 Help graph
 validations, the ordered catalog → build → Learn gate and the green CI run
 stand as proof. Learn, LATU and Liike sources are untouched by this release.
 Next step: none requested; source snapshot refreshed for the next session.
+
+### 2.210 — 2026-11-22 · BG Fill Guilloché: banknote underprint across the whole sheet
+
+Daniel liked the standalone Guilloché Fan plate on 2026-11-22 (Mode
+Fan, Seed 7982, Copies 96, Jitter 1) and asked for the same effect in BG
+Fill, explicitly with the lines filling the whole canvas rather than one
+centred round region. Continued on branch `codex/qwen-minimal-grid` from
+`d408ce2`.
+
+The shared curve engine behind the Guilloché node was extracted into
+`src/defs/guilloche-family.js` (`guillocheFamily`, `guillocheCurveCount`,
+`guillocheSamples`); all five constructions stay output-identical against
+the committed node (byte diff, every style at A4/A3). BG Fill gains an
+eighth mode, **Guilloché**: instead of one centred plate it lays a
+staggered lattice of plates edge to edge. Motif size and Overlap set the
+lattice spacing; rows offset alternately and carry a seeded angle drift per
+row, so the grid never reads as a grid, and overlapping plates produce the
+moiré density ripples of real security paper. Each plate stamps its full
+family (Rosette / Rings / Fan / Weave / Spiral — the same parameters as
+the generator) at plate scale; Fill star-scales every copy toward the
+centre (clamped by a tiny bullseye ring so no promised copy vanishes),
+keeping small plates closed, and the tiled field then covers every
+millimetre; lower Fill for an open-ring mesh. An Accent share draws part of
+every motif in the second pen, like the faint underlayer beneath a dark
+banknote plate; wired Void carves interior clearances plus the halo exactly
+like the other modes; the Margin frame trims the lattice — Margin 0
+reaches the paper edge. Sampling auto-thins to keep the 115k-point budget
+on extreme settings.
+
+Numbers on A4 landscape (297×210): ≈6.6k points (≈15 ms) at
+defaults; 22k points (22 ms) at Fan/Copies 96/Jitter 1, the dense case
+Daniel sent; extremes cap at 115k points in ≈20 ms. A 10 mm probe grid
+confirms 100% coverage of the inset box including corners on A4L/A4P/A3,
+with the margin band itself staying blank, and a wired star void leaves a
+clean clearance halo (zero violations) with no closed path closing over a
+cut gap. Files: `src/defs/nodes/bg_fill.js` (mode + twelve parameters under
+Mode = Guilloché), `src/defs/guilloche-family.js` (new shared module),
+`src/defs/nodes/guilloche.js` (now uses the module),
+`tools/validate-bg_fill.mjs` (253 checks including the probes above), two
+new Help examples (BG Fill · Rosette field, BG Fill · Fan underprint,
+both Margin 0), regenerated catalog/recency/source-bundle/Learn manifest.
+All seven pre-existing modes verified byte-identical against the
+pre-change tree (42 runs, A4L/A4P/A3 × two seeds each).
+
+Checks: `node tools/validate-bg_fill.mjs` ALL OK (253 checks);
+`node tools/validate-guilloche.mjs` ALL OK (65); all 252 Help graphs
+validate; ordered catalog → build → Learn gate green (37,914 Learn
+checks; the built single-file app renders v2.210 in the browser). Evidence
+SVGs rendered from `compute()` confirm the drawing edge to edge. Version
+bumped once, 2.209 → 2.210, in `src/App.jsx`. Release and deployment
+record follow below.

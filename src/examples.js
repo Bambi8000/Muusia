@@ -2509,4 +2509,14 @@ export const EXAMPLES = [
     canvas: p.canvas || { W: 297, H: 210 },
     make: defaults => ({ nodes: [{ id: 9001, type: "guilloche", x: 40, y: 30, params: { ...defaults("guilloche"), ...p.params } }], edges: [] })
   })),
+
+  ...[
+    { name: "Rosette field", params: { mode: "Guilloché", gStyle: "Rosette", gWaves: 72, gCopies: 18, gAmp: 0.2, gGrowth: 0.014, gJit: 0.35, gSize: 200, gOver: 0.5, gFill: 1, gAngle: 12, margin: 0, seed: 21 } },
+    { name: "Fan underprint", params: { mode: "Guilloché", gStyle: "Fan", gWaves: 16, gCopies: 26, gAmp: 0.3, gGrowth: 0.02, gJit: 0.8, gSize: 240, gOver: 0.55, gFill: 1, gAngle: 25, gAccent: 40, pen2: 2, margin: 0, seed: 8 } },
+  ].map(p => ({
+    name: "BG Fill · " + p.name,
+    desc: "Select Guilloché in BG Fill to lay identical banknote plates edge to edge across the whole sheet: unlike one centred plate, the staggered lattice tiles every corner, and with Margin at zero the fine lines reach the paper edge. Motif size and Overlap set how often each plate repeats; Waves, Copies, Amplitude, Growth and Jitter shape each motif exactly like the Guilloché generator; Fill keeps every plate a complete bullseye so no millimetre of sheet stays blank, and Angle rotates the whole lattice with its seeded drift. Wire any path into Void to carve it out of the field, and raise Accent to run part of every plate in a second pen - banknotes often print a faint underlayer beneath the dark design. Layer it under Scanner or Portrait output, then export SVG or G-code.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "bg_fill", x: 40, y: 30, params: { ...defaults("bg_fill"), ...p.params } }], edges: [] })
+  })),
 ];
