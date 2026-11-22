@@ -615,6 +615,11 @@ export const NODE_RECENCY = {
     "order": 132,
     "sha256": "45b7325cb5ce909841c35f72d64f1517f0b2d5299b9a582dc023db867c4dc3c6"
   },
+  "guilloche": {
+    "date": "2026-11-22",
+    "order": 162,
+    "sha256": "207e55c4ee536acd52b494e58d7992cb7d15a7a794976d74e41d792d324fd9ce"
+  },
   "gull_tracks": {
     "date": "2026-08-13",
     "order": 27,

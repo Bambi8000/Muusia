@@ -706,6 +706,16 @@
   "seed",
   "texture"
  ],
+ "guilloche": [
+  "geometric",
+  "grid",
+  "spiral",
+  "wave",
+  "weave",
+  "chaos",
+  "seed",
+  "texture"
+ ],
  "group": [
   "combine",
   "engine"

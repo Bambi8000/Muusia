@@ -2498,4 +2498,15 @@ export const EXAMPLES = [
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [{ id: 9001, type: "tick_grid", x: 30, y: 20, params: { ...defaults("tick_grid"), ...{"cell": 6, "density": 1, "length": 65, "lengthVar": 0.35, "angle": 0, "scatter": 100, "jitter": 0.4, "bend": 0.4, "margin": 10, "accent": 8, "pen2": 9, "seed": 5} } }], edges: [] }),
   },
+
+  ...[
+    { name: "Rosette plate", params: { mode: "Rosette", waves: 96, copies: 40, amplitude: 0.35, growth: 0.004, jitter: 0.25, accent: 30, seed: 11 } },
+    { name: "Weave lattice", params: { mode: "Weave", waves: 48, copies: 36, amplitude: 0.3, growth: 0.006, jitter: 0.3, seed: 23 } },
+    { name: "Seal rings", params: { mode: "Rings", waves: 160, copies: 28, amplitude: 0.22, growth: 0.02, jitter: 0.2, accent: 100, pen2: 2, seed: 5 } },
+  ].map(p => ({
+    name: "Guilloché · " + p.name,
+    desc: "Select Guilloché, the banknote fine-line generator: " + p.params.mode + " draws its whole family with one node. Waves sets the lobe count, Copies the family size, Amplitude the wave depth and Growth the radial step between successive copies. Jitter adds the seeded hand-cut wobble that separates these sheets from machined engraving, and Angle rotates the whole family. Raise Accent to draw part of the family in the second pen, as banknotes often run a faint underlayer beneath the dark plate. The family centres on the sheet inside Margin and clips to the paper edge; under the point budget it thins sampling rather than cutting the drawing, so exports stay complete. Try the other four styles (Rosette, Rings, Fan, Weave, Spiral) in the Mode dropdown, then export SVG or G-code; chain into Brush or Warp downstream.",
+    canvas: p.canvas || { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "guilloche", x: 40, y: 30, params: { ...defaults("guilloche"), ...p.params } }], edges: [] })
+  })),
 ];

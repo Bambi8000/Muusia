@@ -28,7 +28,7 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (236)
+## Generators (237)
 
 **GIF to G-code** — animated GIFs become genuine pen-plotter XY paths. Open a GIF
 or start with the colour demo. Contours traces joined closed tonal boundaries,
@@ -2884,7 +2884,22 @@ truncates the sheet mid-way: if the full drawing would exceed the plotter's
 point budget, cells grow silently larger instead, so every sheet stays whole.
 Marks are clipped at the sheet edge. Tip: Angle 90° with low Scatter gives
 leaning columns; Cell 4–6 mm reads as dense texture, 12 mm and up as a
-starfield.
+starfield. 
+
+**Guilloché** — the fine-line plates of banknotes: a whole family of seeded,
+near-identical curves drawn on one sheet. *Mode* picks the construction: Rosette
+rotates one wavy ring through the sheet, Rings marches a serrated circle inward
+(seal-like), Fan radiates from an off-centre point, Weave turns the ring family
+into a woven lattice and Spiral sweeps it into a rosette turn. *Waves* is the
+lobe count, *Copies* the family size, *Amplitude* the wave depth and *Growth*
+the radial step between successive copies. *Jitter* adds the seeded hand-cut
+wobble that separates these sheets from machined engraving; *Angle* rotates the
+family. *Accent* % of the family draws in a second pen, like the faint underlayer
+beneath a dark plate. The family centres on the sheet inside *Margin* and clips
+at the paper edge; over the point budget it thins sampling rather than cutting
+the drawing, so exports stay complete. Tip: Waves 60–160 with low Amplitude and
+steady Growth reads as security printing; raise Jitter above 0.5 for a looser,
+hand-drawn rosette. Export SVG or G-code, or chain into Brush or Warp downstream.
 
 ## Modifiers (92)
 
