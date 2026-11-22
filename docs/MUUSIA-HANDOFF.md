@@ -8225,3 +8225,51 @@ catalog → build → 37914 Learn checks pass. Counts now 368 source modules /
 screenshot/browser record in WORKSTATE lastEyelashesRemoval.artifacts. Clean
 snapshot refresh after commit: `/private/tmp/muusia-remove-eyelashes-snapshot-20261119`.
 No Claude UI upload or physical plot. Next step is a release when requested.
+Daniel requested that release on 2026-11-22; the removal ships in Muusia 2.209 (below).
+During the same session Daniel commissioned a second node — the fine banknote
+guilloché plates — so the release carries both.
+
+
+### 2.209 — 2026-11-22 · Tick Grid, Guilloché and Eyelashes removal
+
+Release scope per the Qwen handoff, branch `codex/qwen-minimal-grid`:
+Tick Grid plus the verified, earlier completed Eyelashes removal integrated
+from `codex/remove-eyelashes` (`092979114720eac688b4482bcaf408ce2234737b`, base
+confirmed ancestor of main), plus the new Guilloché generator. Primary dirty
+checkout untouched.
+
+Tick Grid (`tick_grid`, Generators / geometric) adds a minimal mark lattice:
+every lattice node of a Cell mm grid makes its own seeded decision — occupancy
+(Density 0.02–1), turn (Angle ± Scatter), length (% of cell ± Length variation),
+position offset (Jitter) and single-arc Bend — plus an optional Accent share on a
+second pen. One Density value spans sparse constellations to dense woven texture;
+when the full lattice would exceed the point budget the cells grow larger instead
+of truncating, so every sheet always draws whole; marks are clipped at the sheet
+edge. Files: `src/defs/nodes/tick_grid.js`, `tools/validate-tick-grid.mjs`, four
+Help examples, reference paragraph, tags.
+
+Guilloché (`guilloche`, Generators / geometric) is the banknote fine-line
+generator: one node draws a whole family of seeded near-identical curves in five
+selectable constructions — Rosette (one wavy ring rotated through the sheet),
+Rings (a serrated circle marching inward, seal-like), Fan (radiating from an
+off-centre point), Weave (the ring family turned into a woven lattice) and
+Spiral (swept into a rosette turn). Waves sets the lobe count, Copies the family
+size, Amplitude the wave depth and Growth the radial step between successive
+copies; Jitter adds the seeded hand-cut wobble that separates these sheets from
+machined engraving, Angle rotates the family, and an Accent % of it draws in a
+second pen, like the faint underlayer beneath a dark plate. The family centres
+on the sheet inside Margin and clips at the paper edge; under the plotter's
+point budget it thins sampling and caps the radius while keeping every curve
+whole, so exports stay complete. Files: `src/defs/nodes/guilloche.js`,
+`tools/validate-guilloche.mjs`, three Help examples, reference paragraph, tags.
+
+Counts on the final tree: 370 source modules / 372 registry entries / 237
+generators / 250 Help examples (2.208 baseline 369 / 371 / 236 / 249; eyelashes
+−1, tick_grid +1, guilloche +1; examples −6 +4 +3). Checks: 65-check Guilloché
+validator ALL OK (determinism per seed, per-mode geometry, accent assignment,
+300k-point budget thinning, degenerate input); 47-check Tick Grid validator ALL
+OK; all 250 Help graphs validate; ordered catalog → build → Learn gate green with
+reference provenance unchanged. Version bumped once, 2.208 → 2.209, in
+`src/App.jsx` (single source: UI header and G-code stamp). Catalog, recency,
+source bundle and Learn manifest regenerated from the merged tree. Deployment
+record (release commit, Pages run, public bytes) in the following note.

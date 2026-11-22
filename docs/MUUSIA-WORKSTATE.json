@@ -16,9 +16,26 @@
         "src/defs/catalog.js, src/defs/node-recency-data.js, docs/MUUSIA-NODES-SRC.md, docs/MUUSIA-NODES.md, learn/generated/manifest.json (generated)",
         "docs/MUUSIA-WORKSTATE.json"
       ],
-      "goal": "New generator node Tick Grid: a minimal regular lattice of individually randomized pen ticks - position (Jitter), angle (Angle +/- scatter), length (% of cell +/- variation) and bend, all hashed per node and seeded; density from sparse constellations to dense woven texture; budget-safe full-sheet coverage; optional second accent pen; Help example, tags and generated data. Local branch; publication only on Daniel's release instruction.",
+      "goal": "New generator node Tick Grid: a minimal regular lattice of individually randomized pen ticks - position (Jitter), angle (Angle +/- scatter), length (% of cell +/- variation) and bend, all hashed per node and seeded; density from sparse constellations to dense woven texture; budget-safe full-sheet coverage; optional second accent pen; Help example, tags and generated data. Release 2.209 carries this node plus the later-commissioned Guilloché generator; main push and Pages verification in progress.",
       "status": "integrated_into_release_2.209_branch",
-      "outcome": "Built-in tick_grid node (13 params) + tools/validate-tick-grid.mjs + four Help examples + reference paragraph and tags; catalog/recency/bundle/manifest regenerated; shared gate green. Merged with the verified Eyelashes removal per Daniel's release scope decision 2026-11-22; published as Muusia 2.209. See lastTickGrid for check details."
+      "outcome": "Built-in tick_grid node (13 params) + tools/validate-tick-grid.mjs + four Help examples + reference paragraph and tags; catalog/recency/bundle/manifest regenerated; shared gate green. Merged with the verified Eyelashes removal per Daniel's release scope decision 2026-11-22; Guilloché generator then added to the same 2.209 release. Release commit prepared; main push + Pages verification in progress."
+    },
+    {
+      "id": "qwen-guilloche-20261122",
+      "owner": "Qwen",
+      "role": "node author",
+      "baseCommit": "38aa43d7d9980040107ca542ff65395ec9f34d1d",
+      "worktree": "/Users/daniel/muusia-qwen (branch codex/qwen-minimal-grid)",
+      "files": [
+        "src/defs/nodes/guilloche.js (new built-in)",
+        "tools/validate-guilloche.mjs (new validator)",
+        "src/examples.js (three Help examples)",
+        "docs/MUUSIA-TAGS.json (tags)",
+        "src/defs/catalog.js, src/defs/node-recency-data.js, docs/MUUSIA-NODES-SRC.md, docs/MUUSIA-NODES.md, learn/generated/manifest.json (generated)"
+      ],
+      "goal": "New generator node Guilloché commissioned by Daniel 2026-11-22 while he slept: fine banknote-line plates in five selectable styles (Rosette, Rings, Fan, Weave, Spiral), seeded chaos (Jitter) over dense near-identical curve families, fine-pitched lines, optional second accent pen, budget-safe full-sheet geometry; joins Tick Grid in release 2.209.",
+      "status": "release_commit_prepared_pending_push",
+      "outcome": "Built-in guilloche node (13 params) + tools/validate-guilloche.mjs + three Help examples + reference paragraph and tags; catalog/recency/bundle regenerated from the merged tree; shared gate green. See lastGuilloche for check details."
     }
   ],
   "lastPublished": {
@@ -311,7 +328,7 @@
         "physicalBridgeVerified": true,
         "confirmationDate": "2026-11-13",
         "confirmationSource": "User inspection of the printed test",
-        "userResponse": "Lappu j\u00e4i vasemmalta kiinni",
+        "userResponse": "Lappu jäi vasemmalta kiinni",
         "cutterFeedMeasuredMm": 18,
         "cutterFeedStatus": "User supplied annotated photo: 18 mm cut-to-text minus 3 mm text inset, plus 2 mm raster-to-cut tail, yields about 17 mm extra material per internal cut.",
         "secondJobSent": false,
@@ -428,7 +445,7 @@
       "baseCommit": "5f4ec588289641971973aa070750ecfa4be74309",
       "status": "published and verified; Print service installed",
       "tests": "98 Surface JS, 15 Python Print, focused lint, catalog, build, 37914 Learn checks",
-      "browser": "3 x 1 m Print ZIP, import no auto-send, one manual dry job, one direct dry job; exact ESC/POS equality; selected 500\u20131000 mm retains geometry; live import USB ready/empty queue",
+      "browser": "3 x 1 m Print ZIP, import no auto-send, one manual dry job, one direct dry job; exact ESC/POS equality; selected 500–1000 mm retains geometry; live import USB ready/empty queue",
       "artifacts": "/Users/daniel/.codex/visualizations/2026/11/12/01a1d172-3f43-72a0-91d6-0585656a8b60/surface-print-transfer",
       "serviceBackup": "/home/print/muusia-print/before-print-package-20261113-113049",
       "physicalPrintSent": false,
@@ -656,7 +673,7 @@
     "date": "2026-11-16",
     "baseCommit": "993b54d8e4e7ed96c20e7cfd3e81ce68ca37a82e",
     "status": "published and verified; live Print updated",
-    "validation": "Both ROM fonts at all 1\u20138\u00d7 sizes; native byte parity; 1\u00d7 exact old program; missing-size legacy defaults; width/row bounds; old-server rejection; actual browser 3\u00d7 control/18 columns/36 rows and exact ESC/POS download; 29 Python Print tests; 184 Help graphs; lint/catalog/build/37914 Learn checks.",
+    "validation": "Both ROM fonts at all 1–8× sizes; native byte parity; 1× exact old program; missing-size legacy defaults; width/row bounds; old-server rejection; actual browser 3× control/18 columns/36 rows and exact ESC/POS download; 29 Python Print tests; 184 Help graphs; lint/catalog/build/37914 Learn checks.",
     "serviceBackup": "/home/print/muusia-print/before-ascii-size-20261116",
     "physicalPrintSent": false,
     "commit": "020bf4d6bab44f841550cbe6c2b14012f603c6a8",
@@ -754,7 +771,7 @@
     "status": "published; public export/live Print verified; user confirmed physical Merge print works",
     "physicalEvidence": "User IMG_3556.jpeg: individual ASCII nodes good, Merge has clipped glyph tops and missing small layer. 2.193 paper behavior was not verified by previous byte-parity tests.",
     "fix": "Stable full-page ESC W; explicit ESC $ x and GS $ scaled ROM baseline for every row (A21/B16). Print capability asciiOverlayVersion2.",
-    "validation": "31 Python Print/USB tests including Page-mode bounds for A/B at1\u20138x; 148 user rows checked at baseline-derived positions; JS/Python/actual-browser byte parity; old-server rejection; lint;catalog/build/37914 Learn checks.",
+    "validation": "31 Python Print/USB tests including Page-mode bounds for A/B at1–8x; 148 user rows checked at baseline-derived positions; JS/Python/actual-browser byte parity; old-server rejection; lint;catalog/build/37914 Learn checks.",
     "physicalPrintSent": false,
     "serviceBackup": "/home/print/muusia-print/before-ascii-baseline-20261116",
     "live": {
@@ -819,7 +836,7 @@
       "productionBuild": "passed",
       "lint": "passed; four existing unused-variable warnings in Portrait",
       "actualExporter": "one pen-down and all chords before first lift for servo and bed-Z; SVG one path",
-      "browser": "local real photo, 60/200/400 nail comparisons; app 80\u2192200 control update preserves one path",
+      "browser": "local real photo, 60/200/400 nail comparisons; app 80→200 control update preserves one path",
       "environment": "Reused dependencies from previous release after verifying identical package-lock SHA256; initial older dependency set lacked pdfjs-dist/build/pdf.mjs."
     },
     "physicalPrintSent": false,
@@ -911,7 +928,7 @@
     "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
     "status": "verified public 2.198; Full disc Traces density control and starter present; exact tested bytes",
     "published": true,
-    "behavior": "Expose Traces 1\u20138 and Perturb in Full disc; extra runs extend the same continuous route and shared ink history for a denser result until clearance or budget prevents continuation.",
+    "behavior": "Expose Traces 1–8 and Perturb in Full disc; extra runs extend the same continuous route and shared ink history for a denser result until clearance or budget prevents continuation.",
     "validation": {
       "fullDisc": 219,
       "legacy": "all passed; 12 Gravity/one-run outputs match previous release exactly",
@@ -920,7 +937,7 @@
       "build": "passed",
       "learn": 37914,
       "lint": "passed",
-      "actualBrowser": "Traces 1\u21924:4.83\u21928.86m,one path; SVG one path; G-code one lower and37328draw moves before lift, no mid-stroke travel/bounds warning."
+      "actualBrowser": "Traces 1→4:4.83→8.86m,one path; SVG one path; G-code one lower and37328draw moves before lift, no mid-stroke travel/bounds warning."
     },
     "evidence": "docs/double-pendulum-disc-traces-checks.json",
     "physicalPrintSent": false,
@@ -939,7 +956,7 @@
     "worktree": "/private/tmp/muusia-portrait-string-art-20261116",
     "status": "verified public 2.199; Bounce and Random bounce starter present; exact tested bytes",
     "published": true,
-    "behavior": "Full disc Bounce 0\u2013100% blends orbit with irregular seeded rim-to-centre flights; Seed changes route; rounded turns and all traces share old-ink clearance. Zero preserves old output.",
+    "behavior": "Full disc Bounce 0–100% blends orbit with irregular seeded rim-to-centre flights; Seed changes route; rounded turns and all traces share old-ink clearance. Zero preserves old output.",
     "validation": {
       "fullDisc": 321,
       "legacy": "all passed; twelve old Gravity/Bounce zero cases exactly preserved",
@@ -948,7 +965,7 @@
       "build": "passed",
       "learn": 37914,
       "lint": "passed",
-      "actualBrowser": "Bounce85\u21920\u2192100,Seed1\u21922\u21921;native SVG one path,G-code one lower and all25426moves before lift,no travel or bounds warning."
+      "actualBrowser": "Bounce85→0→100,Seed1→2→1;native SVG one path,G-code one lower and all25426moves before lift,no travel or bounds warning."
     },
     "evidence": "docs/double-pendulum-bounce-checks.json",
     "physicalPrintSent": false,
@@ -976,7 +993,7 @@
       "build": "passed",
       "learn": 37914,
       "lint": "passed",
-      "actualBrowser": "Bounded O with Boundary wiring; Growth 100\u219235\u2192100; Spacing 4.5 mm; native SVG one path; G-code one lower and all 3316 draw moves including closure before lift; no mid-stroke travel or bounds warning."
+      "actualBrowser": "Bounded O with Boundary wiring; Growth 100→35→100; Spacing 4.5 mm; native SVG one path; G-code one lower and all 3316 draw moves including closure before lift; no mid-stroke travel or bounds warning."
     },
     "upstream": {
       "project": "gil336699/line-growth",
@@ -1046,7 +1063,7 @@
       "nativeBrowser": "Exact eleven ABRACADABRA rows; triangle native SVG 242 paths / G-code 242 lowers and 524 draw moves; wired Outside star SVG 1466 paths / G-code 1466 lowers and 5084 draw moves, no bounds warnings; switched star Inside (495 paths); whole-word O (1343 paths) preserves hole."
     },
     "physicalPrintSent": false,
-    "limits": "Uppercase SFONT-based Plotter/Serif (\u00c4\u00d6\u00c5); unsupported glyphs become ?. Complete character boxes can leave gaps at corners. Wired inputs keep coordinates. Dense requests refused whole, not truncated."
+    "limits": "Uppercase SFONT-based Plotter/Serif (ÄÖÅ); unsupported glyphs become ?. Complete character boxes can leave gaps at corners. Wired inputs keep coordinates. Dense requests refused whole, not truncated."
   },
   "lastSliceRaster": {
     "date": "2026-11-18",
@@ -1054,7 +1071,7 @@
     "worktree": "/private/tmp/muusia-slice-raster-20261117",
     "baseCommit": "33a004b6e8a53bc9fd709a649d5f94b218cb9386",
     "status": "Published and verified in Muusia 2.202; implementation and checks retained; release c070526bc2113bcdca0c698d9b77621edeed04a0",
-    "reference": "https://www.instagram.com/p/Df11A5UjRB1/?img_index=1 \u2014 toan_vu_huu caption and video verified in user-opened Chrome tab; independent plotter implementation, no copied reference code/media",
+    "reference": "https://www.instagram.com/p/Df11A5UjRB1/?img_index=1 — toan_vu_huu caption and video verified in user-opened Chrome tab; independent plotter implementation, no copied reference code/media",
     "behavior": "One shared image fit across up to eight Strips/Grid/Collage regions with independent Lines/Dots/Crosshatch/Waves/Squares/Diamonds, size, angle, pitch, ink and pen; moving masks and Timeline cycles. Filled spiral marks are real paths.",
     "validation": {
       "focused": 544,
@@ -1532,7 +1549,17 @@
     "worktree": "/Users/daniel/muusia-qwen",
     "outcome": "Tick Grid generator: every lattice node makes its own seeded decision - occupancy (Density), turn (Angle +/- Scatter), length (% of cell +/- Length variation), position offset (Jitter) and single-arc Bend; optional Accent share on a second pen; budget-safe full sheet (cells grow instead of truncating); marks clipped to canvas.",
     "checks": "47-check node validator ALL OK (flat lattice 27x18 on A4 landscape, determinism, seed sensitivity, angle dot 1.0000, length range, bend bulge, accent pen assignment, 300-config fuzz in-bounds, Viivain fine lattice under point budget, style pass-through, NaN/degenerate ctx); validate-examples 253 OK incl. four new Tick Grid Help examples; validate-catalog 372 ok; npm run build (app + Learn) ok; check:learn 37914 ok. Counts then 370 modules / 372 registry entries / 237 generators / 253 Help examples; merged-tree counts recorded in the 2.209 release entry.",
-    "browserCheck": "Pending live in-app check on the merged tree (Web-settings browser access being enabled); 47-check validator and full example validation stand as automated proof until then.",
+    "browserCheck": "Live in-app check not run locally (approval declined 2026-11-22); the 2.209 public-deployment browser check will cover it. Automated proof stands meanwhile: node validator ALL OK plus all Help graphs validated.",
+    "published": false
+  },
+  "lastGuilloche": {
+    "date": "2026-11-22",
+    "baseCommit": "38aa43d7d9980040107ca542ff65395ec9f34d1d",
+    "branch": "codex/qwen-minimal-grid",
+    "worktree": "/Users/daniel/muusia-qwen",
+    "outcome": "Guilloché generator: banknote fine-line plates. One node draws a whole family of seeded near-identical curves in five constructions - Rosette (rotated wavy ring), Rings (inward serrated circles, seal-like), Fan (radial), Weave (woven lattice), Spiral (rossette turn). Waves/Copies/Amplitude/Growth shape the family; Jitter adds seeded hand-cut wobble; Angle rotates; Accent % runs a second pen. Family centres inside Margin, clips at sheet edge; point budget thins sampling and caps radius, never cuts curves.",
+    "checks": "65-check node validator ALL OK (five-mode geometry bounds, determinism per seed, wobble amplitude, accent pen assignment, 300k-point budget thinning keeps every curve whole, NaN/degenerate ctx); validate-examples 250 OK incl. three new Guilloché starters; 47-check Tick Grid validator ALL OK on the same tree; validate-catalog ok (tags/search/recency); npm run build + check:learn ordered gate green with reference provenance unchanged. Final counts 370 modules / 372 registry entries / 237 generators / 250 Help examples.",
+    "browserCheck": "Live in-app check not run locally (approval declined 2026-11-22); the 2.209 public-deployment browser check will cover it. Automated proof stands meanwhile: node validator ALL OK plus all Help graphs validated.",
     "published": false
   }
 }
