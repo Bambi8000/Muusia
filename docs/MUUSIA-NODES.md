@@ -28,7 +28,7 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (236)
+## Generators (237)
 
 **GIF to G-code** — animated GIFs become genuine pen-plotter XY paths. Open a GIF
 or start with the colour demo. Contours traces joined closed tonal boundaries,
@@ -2901,6 +2901,20 @@ open or closed — carves a *Void clearance* band, so a Ribbon clears its own
 channel; in Grain the flow also bends around wired shapes like riverbanks.
 *Line pitch* is the master density. Tip: two BG Fills on different pens with
 different modes make an instant layered backdrop.
+
+**Tick Grid** — a lattice of small marks where every grid intersection makes
+its own decision. The sheet is divided into *Cell* mm squares; for each lattice
+node a seeded coin roll (from *Seed*) places or withholds one short tick, so the
+whole surface sits anywhere between an orderly matrix and a sparse constellation
+— *Density* picks that point. Each mark is turned *Angle* ± *Scatter* degrees,
+shifted off its node by up to half a cell × *Jitter*, stretched to *Length* % of
+the cell ± *Length variation* %, and bowed into a single soft arc by *Bend*. A
+share of *Accent* % of the marks is drawn in a second pen. The lattice never
+truncates the sheet mid-way: if the full drawing would exceed the plotter's
+point budget, cells grow silently larger instead, so every sheet stays whole.
+Marks are clipped at the sheet edge. Tip: Angle 90° with low Scatter gives
+leaning columns; Cell 4–6 mm reads as dense texture, 12 mm and up as a
+starfield.
 
 ## Modifiers (92)
 

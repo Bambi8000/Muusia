@@ -2581,4 +2581,24 @@ export const EXAMPLES = [
       };
     },
   },
+  {
+    name: "Tick Grid · Free chaos", desc: "Everything at its defaults: about six in ten lattice nodes hold one small bent tick, each turned freely. Every mark is its own seeded decision - press Seed for a different drawing, or raise Cell for bigger calmer spaces.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "tick_grid", x: 30, y: 20, params: { ...defaults("tick_grid"), ...{} } }], edges: [] }),
+  },
+  {
+    name: "Tick Grid · Constellation", desc: "Density under ten percent leaves a handful of floating marks, a few of them in the accent pen. Raise Length variation and Jitter to loosen the field further, or drop Jitter to zero to snap the survivors back onto the lattice.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "tick_grid", x: 30, y: 20, params: { ...defaults("tick_grid"), ...{"cell": 14, "density": 0.09, "length": 70, "lengthVar": 0.6, "angle": 0, "scatter": 90, "jitter": 0.5, "bend": 0.35, "accent": 12, "pen2": 9, "seed": 5} } }], edges: [] }),
+  },
+  {
+    name: "Tick Grid · Column drift", desc: "Angle 90° with a small scatter keeps every tick close to vertical, so the sheet reads as columns that slowly lean. Raise Angle scatter to dissolve the columns into free chaos, or set Angle to 0 for rows.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "tick_grid", x: 30, y: 20, params: { ...defaults("tick_grid"), ...{"cell": 8, "density": 0.5, "length": 55, "lengthVar": 0.4, "angle": 90, "scatter": 20, "jitter": 0.35, "bend": 0.1, "seed": 5} } }], edges: [] }),
+  },
+  {
+    name: "Tick Grid · Dense field", desc: "Cell 6 mm at full density: thousands of small ticks weave into a textured surface while the lattice beneath still shows through. A share of eight percent takes the accent pen; lower Bend for straighter, quieter marks.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "tick_grid", x: 30, y: 20, params: { ...defaults("tick_grid"), ...{"cell": 6, "density": 1, "length": 65, "lengthVar": 0.35, "angle": 0, "scatter": 100, "jitter": 0.4, "bend": 0.4, "margin": 10, "accent": 8, "pen2": 9, "seed": 5} } }], edges: [] }),
+  },
 ];

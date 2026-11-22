@@ -1640,6 +1640,11 @@ export const NODE_RECENCY = {
     "order": 128,
     "sha256": "45358ca610d49b9db7e8f8e4ccf2a7e4c6b406acac30d8fd5910361b0fbab304"
   },
+  "tick_grid": {
+    "date": "2026-11-21",
+    "order": 159,
+    "sha256": "1816716e63e3ca497e2da3fb71d7b084426447be9742e12c007c4e734381f368"
+  },
   "tiles": {
     "date": "2026-10-20",
     "order": 93,
