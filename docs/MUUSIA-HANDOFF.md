@@ -8273,3 +8273,19 @@ reference provenance unchanged. Version bumped once, 2.208 → 2.209, in
 `src/App.jsx` (single source: UI header and G-code stamp). Catalog, recency,
 source bundle and Learn manifest regenerated from the merged tree. Deployment
 record (release commit, Pages run, public bytes) in the following note.
+
+
+Deployment record: release commit 388f0024c6c539a1b73d18b11fc36c22b2e766f0
+pushed to main on 2026-11-22 (fast-forward from 38aa43d; the branch carried
+the Eyelashes removal, Tick Grid, their merge, Guilloché and the version bump).
+Pages run 45010524283 completed / success for exactly that commit. Public
+https://bambi8000.github.io/Muusia/ fetched at 5 631 945 bytes with SHA-256
+1985f58e25529bbfeaeff2a56c0560f0b79cadd1ba7cc076d1c7b9ec879a2477 — identical
+to the locally built, fully gated dist/index.html. The public bundle contains
+both new nodes (Tick Grid, Guilloché with its three Help starters) and zero
+Eyelashes references, and renders version 2.209 in the header. No live
+browser screenshots were captured: the single-file app exceeds the
+conversation browser's render budget; the node validators, all 250 Help graph
+validations, the ordered catalog → build → Learn gate and the green CI run
+stand as proof. Learn, LATU and Liike sources are untouched by this release.
+Next step: none requested; source snapshot refreshed for the next session.

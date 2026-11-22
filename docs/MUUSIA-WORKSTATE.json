@@ -1,54 +1,15 @@
 {
   "schemaVersion": 1,
-  "active": [
-    {
-      "id": "qwen-tick-grid-20261121",
-      "owner": "Qwen",
-      "role": "node author",
-      "baseCommit": "38aa43d7d9980040107ca542ff65395ec9f34d1d",
-      "worktree": "/Users/daniel/muusia-qwen (branch codex/qwen-minimal-grid)",
-      "files": [
-        "src/defs/nodes/tick_grid.js (new built-in)",
-        "nodes-lab/tick_grid.plotternode.js (temporary lab prototype, deleted after bake)",
-        "tools/validate-tick-grid.mjs (new validator)",
-        "src/examples.js (Help example)",
-        "docs/MUUSIA-TAGS.json (tags)",
-        "src/defs/catalog.js, src/defs/node-recency-data.js, docs/MUUSIA-NODES-SRC.md, docs/MUUSIA-NODES.md, learn/generated/manifest.json (generated)",
-        "docs/MUUSIA-WORKSTATE.json"
-      ],
-      "goal": "New generator node Tick Grid: a minimal regular lattice of individually randomized pen ticks - position (Jitter), angle (Angle +/- scatter), length (% of cell +/- variation) and bend, all hashed per node and seeded; density from sparse constellations to dense woven texture; budget-safe full-sheet coverage; optional second accent pen; Help example, tags and generated data. Release 2.209 carries this node plus the later-commissioned Guilloché generator; main push and Pages verification in progress.",
-      "status": "integrated_into_release_2.209_branch",
-      "outcome": "Built-in tick_grid node (13 params) + tools/validate-tick-grid.mjs + four Help examples + reference paragraph and tags; catalog/recency/bundle/manifest regenerated; shared gate green. Merged with the verified Eyelashes removal per Daniel's release scope decision 2026-11-22; Guilloché generator then added to the same 2.209 release. Release commit prepared; main push + Pages verification in progress."
-    },
-    {
-      "id": "qwen-guilloche-20261122",
-      "owner": "Qwen",
-      "role": "node author",
-      "baseCommit": "38aa43d7d9980040107ca542ff65395ec9f34d1d",
-      "worktree": "/Users/daniel/muusia-qwen (branch codex/qwen-minimal-grid)",
-      "files": [
-        "src/defs/nodes/guilloche.js (new built-in)",
-        "tools/validate-guilloche.mjs (new validator)",
-        "src/examples.js (three Help examples)",
-        "docs/MUUSIA-TAGS.json (tags)",
-        "src/defs/catalog.js, src/defs/node-recency-data.js, docs/MUUSIA-NODES-SRC.md, docs/MUUSIA-NODES.md, learn/generated/manifest.json (generated)"
-      ],
-      "goal": "New generator node Guilloché commissioned by Daniel 2026-11-22 while he slept: fine banknote-line plates in five selectable styles (Rosette, Rings, Fan, Weave, Spiral), seeded chaos (Jitter) over dense near-identical curve families, fine-pitched lines, optional second accent pen, budget-safe full-sheet geometry; joins Tick Grid in release 2.209.",
-      "status": "release_commit_prepared_pending_push",
-      "outcome": "Built-in guilloche node (13 params) + tools/validate-guilloche.mjs + three Help examples + reference paragraph and tags; catalog/recency/bundle regenerated from the merged tree; shared gate green. See lastGuilloche for check details."
-    }
-  ],
+  "active": [],
   "lastPublished": {
-    "version": "2.208",
-    "commit": "d489b1dfd6b8a14be568a3fdb619bd8a0a6c4dbb",
-    "pagesRunId": 44505089489,
-    "publicAppSha256": "dd9ea39db67d3c0d529125f77562a00071ac03db9d4bbafabfe7d33738bebd18",
+    "version": "2.209",
+    "commit": "388f0024c6c539a1b73d18b11fc36c22b2e766f0",
+    "pagesRunId": 45010524283,
+    "publicAppSha256": "1985f58e25529bbfeaeff2a56c0560f0b79cadd1ba7cc076d1c7b9ec879a2477",
     "matchesTestedBuild": true,
-    "date": "2026-11-19",
+    "date": "2026-11-22",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "verified public 2.208; GIF to G-code physical contours/hatching/stipple, all five starters and exact complete 24-frame G-code batch; tested app bytes match",
-    "physicalPrintSent": false,
-    "physicalPlotSent": false
+    "status": "verified public 2.209; Tick Grid (seeded mark lattice), Guilloché (banknote fine-line plates, five styles) added, Eyelashes removed. Public bytes identical to the gated local build; CI run for the exact release commit green."
   },
   "lastIntegration": {
     "version": "2.189",
@@ -1549,8 +1510,8 @@
     "worktree": "/Users/daniel/muusia-qwen",
     "outcome": "Tick Grid generator: every lattice node makes its own seeded decision - occupancy (Density), turn (Angle +/- Scatter), length (% of cell +/- Length variation), position offset (Jitter) and single-arc Bend; optional Accent share on a second pen; budget-safe full sheet (cells grow instead of truncating); marks clipped to canvas.",
     "checks": "47-check node validator ALL OK (flat lattice 27x18 on A4 landscape, determinism, seed sensitivity, angle dot 1.0000, length range, bend bulge, accent pen assignment, 300-config fuzz in-bounds, Viivain fine lattice under point budget, style pass-through, NaN/degenerate ctx); validate-examples 253 OK incl. four new Tick Grid Help examples; validate-catalog 372 ok; npm run build (app + Learn) ok; check:learn 37914 ok. Counts then 370 modules / 372 registry entries / 237 generators / 253 Help examples; merged-tree counts recorded in the 2.209 release entry.",
-    "browserCheck": "Live in-app check not run locally (approval declined 2026-11-22); the 2.209 public-deployment browser check will cover it. Automated proof stands meanwhile: node validator ALL OK plus all Help graphs validated.",
-    "published": false
+    "browserCheck": "Published build verified at byte and string level in the public HTML (version 2.209, both nodes present, zero eyelashes refs); in-app screenshots skipped because the single-file app exceeds the conversation browser render budget. Node validator + all Help graphs stand as proof.",
+    "published": true
   },
   "lastGuilloche": {
     "date": "2026-11-22",
@@ -1559,7 +1520,7 @@
     "worktree": "/Users/daniel/muusia-qwen",
     "outcome": "Guilloché generator: banknote fine-line plates. One node draws a whole family of seeded near-identical curves in five constructions - Rosette (rotated wavy ring), Rings (inward serrated circles, seal-like), Fan (radial), Weave (woven lattice), Spiral (rossette turn). Waves/Copies/Amplitude/Growth shape the family; Jitter adds seeded hand-cut wobble; Angle rotates; Accent % runs a second pen. Family centres inside Margin, clips at sheet edge; point budget thins sampling and caps radius, never cuts curves.",
     "checks": "65-check node validator ALL OK (five-mode geometry bounds, determinism per seed, wobble amplitude, accent pen assignment, 300k-point budget thinning keeps every curve whole, NaN/degenerate ctx); validate-examples 250 OK incl. three new Guilloché starters; 47-check Tick Grid validator ALL OK on the same tree; validate-catalog ok (tags/search/recency); npm run build + check:learn ordered gate green with reference provenance unchanged. Final counts 370 modules / 372 registry entries / 237 generators / 250 Help examples.",
-    "browserCheck": "Live in-app check not run locally (approval declined 2026-11-22); the 2.209 public-deployment browser check will cover it. Automated proof stands meanwhile: node validator ALL OK plus all Help graphs validated.",
-    "published": false
+    "browserCheck": "Published build verified at byte and string level in the public HTML (version 2.209, both nodes present, zero eyelashes refs); in-app screenshots skipped because the single-file app exceeds the conversation browser render budget. Node validator + all Help graphs stand as proof.",
+    "published": true
   }
 }
