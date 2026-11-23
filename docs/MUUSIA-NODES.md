@@ -30,6 +30,8 @@ returns no punches when its specified calibration grid cannot fit.
 
 ## Generators (237)
 
+**Avatar 3D** — adult male and female human figures from the CC0 MakeHuman mesh, with repeatable anatomy seeds and 25 body adjustments. Independent head, torso, arm and leg controls supply natural pose presets, smooth pose transitions, walk cycles and running with a flight phase. **Stand / walk / run** blends between Standing, Walking and Running while preserving the shared step phase; speed, stride and arm swing remain adjustable. **Brush** creates minimal broad-ink centerlines; **Contours**, **Hatching** and **Contours + hatching** make fine-pen drawings, with 0.35 mm width and a separate drawing seed. Front, side, back and manual rotation work with anatomical Bust, Feet and Band slicing. Outputs are **Drawing**, **Silhouette** and the complete posed **Full body mesh**, which connects to Mesh Slice. Help includes Run cycle, Stand, walk, run, Walk cycle, Pose transition and Seated pen study starters.
+
 **GIF to G-code** — animated GIFs become genuine pen-plotter XY paths. Open a GIF
 or start with the colour demo. Contours traces joined closed tonal boundaries,
 including holes; Contours + hatching adds shading. Hatching uses straight

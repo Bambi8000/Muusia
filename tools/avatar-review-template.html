@@ -1,0 +1,63 @@
+<div id="avatar-review">
+  <style>
+    #avatar-review{display:grid;gap:calc(var(--font-size-base)*1.15);color:var(--foreground)}
+    #avatar-review .avatar-top{display:flex;flex-wrap:wrap;align-items:end;gap:calc(var(--font-size-base)*.8);padding-right:90px}
+    #avatar-review .avatar-top .form-label{flex:1;min-width:130px}
+    #avatar-review .avatar-top .seed-label{flex:0 1 95px;min-width:80px}
+    #avatar-review .avatar-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--font-size-base)*.65) calc(var(--font-size-base)*1.3)}
+    #avatar-review .control-title{display:flex;justify-content:space-between;gap:calc(var(--font-size-base)*.4);margin-bottom:calc(var(--font-size-base)*.2)}
+    #avatar-review .avatar-comparison{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--font-size-base)*.6)}
+    #avatar-review .avatar-figure{margin:0;min-width:0;display:grid;gap:calc(var(--font-size-base)*.2)}
+    #avatar-review .avatar-canvas{width:100%;height:auto;display:block;aspect-ratio:3/5;max-height:340px;object-fit:contain}
+    #avatar-review .avatar-heading{font-weight:500;display:flex;align-items:center;justify-content:space-between;gap:calc(var(--font-size-base)*.7)}
+    #avatar-review .avatar-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--font-size-base)*1.5)}
+    #avatar-review .detail-canvas{width:100%;height:auto;display:block;aspect-ratio:6/5;max-height:330px;object-fit:contain}
+    #avatar-review .avatar-detail{display:grid;gap:calc(var(--font-size-base)*.5);min-width:0;align-content:start}
+    #avatar-review .detail-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:calc(var(--font-size-base)*.6)}
+    #avatar-review .detail-toolbar .form-label{flex:1;min-width:120px}
+    #avatar-review .avatar-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:calc(var(--font-size-base)*.5)}
+    #avatar-review .avatar-busy{color:var(--muted-foreground)}
+    @media(max-width:620px){#avatar-review .avatar-controls{grid-template-columns:repeat(2,minmax(0,1fr))}#avatar-review .avatar-top{padding-right:0}#avatar-review .avatar-canvas{max-height:265px}}
+    @media(max-width:420px){#avatar-review .avatar-controls{grid-template-columns:1fr}#avatar-review .avatar-details{grid-template-columns:1fr}#avatar-review .avatar-canvas{max-height:200px}}
+  </style>
+  <div class="avatar-top">
+    <label class="form-label">Adjust body
+      <select class="form-select" id="avatar-edit"><option value="Male">Male</option><option value="Female">Female</option></select>
+    </label>
+    <label class="form-label">Body area
+      <select class="form-select" id="avatar-area"><option>Body</option><option>Head &amp; neck</option><option>Torso</option><option>Chest</option><option>Arms &amp; hands</option><option>Legs &amp; feet</option></select>
+    </label>
+    <label class="form-label seed-label">Seed<input class="form-control" id="avatar-seed" type="number" value="17" min="0" max="999999" inputmode="numeric"></label>
+    <button class="btn" type="button" id="avatar-next">Next seed</button>
+  </div>
+  <div class="avatar-controls" id="avatar-controls" aria-label="Body proportions"></div>
+  <div class="avatar-heading"><span>Male</span><span id="avatar-male-meta" class="text-small text-muted"></span></div>
+  <div class="avatar-comparison" aria-label="Male front side and back views">
+    <figure class="avatar-figure"><canvas id="avatar-male-front" class="avatar-canvas" width="330" height="550" role="img" aria-label="Male full body front view"></canvas><figcaption class="text-center text-small">Front</figcaption></figure>
+    <figure class="avatar-figure"><canvas id="avatar-male-side" class="avatar-canvas" width="330" height="550" role="img" aria-label="Male full body side view"></canvas><figcaption class="text-center text-small">Side</figcaption></figure>
+    <figure class="avatar-figure"><canvas id="avatar-male-back" class="avatar-canvas" width="330" height="550" role="img" aria-label="Male full body back view"></canvas><figcaption class="text-center text-small">Back</figcaption></figure>
+  </div>
+  <div class="avatar-heading"><span>Female</span><span id="avatar-female-meta" class="text-small text-muted"></span></div>
+  <div class="avatar-comparison" aria-label="Female front side and back views">
+    <figure class="avatar-figure"><canvas id="avatar-female-front" class="avatar-canvas" width="330" height="550" role="img" aria-label="Female full body front view"></canvas><figcaption class="text-center text-small">Front</figcaption></figure>
+    <figure class="avatar-figure"><canvas id="avatar-female-side" class="avatar-canvas" width="330" height="550" role="img" aria-label="Female full body side view"></canvas><figcaption class="text-center text-small">Side</figcaption></figure>
+    <figure class="avatar-figure"><canvas id="avatar-female-back" class="avatar-canvas" width="330" height="550" role="img" aria-label="Female full body back view"></canvas><figcaption class="text-center text-small">Back</figcaption></figure>
+  </div>
+  <hr>
+  <div class="avatar-details">
+    <div class="avatar-detail">
+      <div class="avatar-heading"><span id="avatar-bust-label">Male · bust</span><button type="button" class="btn" id="avatar-play">Rotate bust</button></div>
+      <canvas id="avatar-bust" class="detail-canvas" width="510" height="425" role="img" aria-label="Rotatable head and shoulders with a 3D cut"></canvas>
+      <label class="form-label"><span class="control-title"><span>Turn</span><output id="avatar-turn-value" class="tabular-nums">0°</output></span><input class="form-range" id="avatar-turn" aria-label="Bust turn angle" type="range" min="0" max="360" step="1" value="0"></label>
+      <label class="form-label"><span class="control-title"><span>Bust cut height</span><output id="avatar-bust-cut-value" class="tabular-nums"></output></span><input class="form-range" id="avatar-bust-cut" aria-label="Bust cut height" type="range" min="60" max="87" step="1" value="74"></label>
+    </div>
+    <div class="avatar-detail">
+      <div class="avatar-heading"><span id="avatar-feet-label">Male · feet only</span></div>
+      <canvas id="avatar-feet" class="detail-canvas" width="510" height="425" role="img" aria-label="Feet retained below a horizontal 3D cutting plane"></canvas>
+      <label class="form-label"><span class="control-title"><span>Feet cut height</span><output id="avatar-feet-cut-value" class="tabular-nums">9%</output></span><input class="form-range" id="avatar-feet-cut" aria-label="Feet cut height" type="range" min="3" max="24" step="1" value="9"></label>
+      <label class="form-check"><input class="form-check-input" id="avatar-lock-scale" type="checkbox"><span class="form-check-label">Keep full-body scale in cut views</span></label>
+    </div>
+  </div>
+  <div class="avatar-meta text-small text-muted"><span id="avatar-status" aria-live="polite">Building body meshes…</span><span>MakeHuman HM08 · CC0 · mesh review</span></div>
+</div>
+<!-- AVATAR_REVIEW_SCRIPT -->

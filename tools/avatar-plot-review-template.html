@@ -1,0 +1,61 @@
+<div id="avatar-plot-review">
+  <style>
+    #avatar-plot-review{color:var(--foreground);display:grid;gap:calc(var(--font-size-base)*1.1)}
+    #avatar-plot-review [hidden]{display:none!important}
+    #avatar-plot-review .plot-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:calc(var(--font-size-base)*.8);padding-right:90px}
+    #avatar-plot-review .plot-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--font-size-base)*.65) calc(var(--font-size-base)*1.3)}
+    #avatar-plot-review .plot-label{display:flex;justify-content:space-between;gap:calc(var(--font-size-base)*.4);margin-bottom:calc(var(--font-size-base)*.2)}
+    #avatar-plot-review .plot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--font-size-base)*1.8) calc(var(--font-size-base)*1.4)}
+    #avatar-plot-review .plot-figure{margin:0;min-width:0;display:grid;align-content:start;gap:calc(var(--font-size-base)*.5)}
+    #avatar-plot-review .plot-art{width:100%;display:block;max-height:480px;object-fit:contain;color:var(--foreground)}
+    #avatar-plot-review .plot-art .plot-svg{width:100%;height:auto;max-height:480px;display:block;color:inherit}
+    #avatar-plot-review .plot-caption{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--font-size-base)*.5);flex-wrap:wrap}
+    #avatar-plot-review .plot-name{font-weight:500}
+    #avatar-plot-review .plot-stats{color:var(--muted-foreground)}
+    #avatar-plot-review .plot-body-fields{display:grid;gap:calc(var(--font-size-base)*.8);margin-top:calc(var(--font-size-base)*.8)}
+    #avatar-plot-review .plot-body-top{display:flex;align-items:end;gap:calc(var(--font-size-base)*.8);flex-wrap:wrap}
+    #avatar-plot-review .plot-body-top label{flex:1;min-width:110px}
+    #avatar-plot-review .plot-body-top .seed-field{flex:0 1 115px}
+    #avatar-plot-review .plot-status{display:flex;justify-content:space-between;gap:calc(var(--font-size-base)*.8);flex-wrap:wrap}
+    #avatar-plot-review .plot-footer{display:flex;justify-content:space-between;gap:calc(var(--font-size-base)*.8);flex-wrap:wrap}
+    #avatar-plot-review summary{font-weight:500}
+    @media(max-width:640px){#avatar-plot-review .plot-top{grid-template-columns:1fr 1fr;padding-right:0}#avatar-plot-review .plot-controls{grid-template-columns:1fr 1fr}}
+    @media(max-width:430px){#avatar-plot-review .plot-top,#avatar-plot-review .plot-controls,#avatar-plot-review .plot-grid{grid-template-columns:1fr}#avatar-plot-review .plot-art .plot-svg{max-height:410px}}
+  </style>
+  <div class="plot-top">
+    <label class="form-label">Body<select id="plot-body" class="form-select"><option>Female</option><option>Male</option></select></label>
+    <label class="form-label">Visible body<select id="plot-region" class="form-select"><option>Full body</option><option>Bust</option><option>Feet</option><option>Band</option></select></label>
+    <label class="form-label">View<select id="plot-view" class="form-select"><option>Three-quarter</option><option>Front</option><option>Side</option><option>Back</option><option>Manual</option></select></label>
+  </div>
+  <div class="plot-controls">
+    <label class="form-label"><span class="plot-label"><span>Turn</span><output id="plot-yaw-value" class="tabular-nums">30°</output></span><input class="form-range" id="plot-yaw" aria-label="Turn angle" type="range" min="0" max="360" step="1" value="30"></label>
+    <label class="form-label" id="plot-cut-field" hidden><span class="plot-label"><span>Cut height</span><output id="plot-cut-value" class="tabular-nums">74%</output></span><input class="form-range" id="plot-cut" aria-label="Cut height" type="range" min="1" max="98" step="1" value="74"></label>
+    <label class="form-label"><span class="plot-label"><span>Brush width</span><output id="plot-brush-value" class="tabular-nums">2.5 mm</output></span><input class="form-range" id="plot-brush" aria-label="Brush width" type="range" min="1" max="6" step="0.1" value="2.5"></label>
+    <label class="form-label"><span class="plot-label"><span>Line economy</span><output id="plot-economy-value" class="tabular-nums">82%</output></span><input class="form-range" id="plot-economy" aria-label="Brush line economy" type="range" min="50" max="100" step="1" value="82"></label>
+    <label class="form-label"><span class="plot-label"><span>Fine-line pitch</span><output id="plot-pitch-value" class="tabular-nums">0.9 mm</output></span><input class="form-range" id="plot-pitch" aria-label="Fine line pitch" type="range" min="0.7" max="2" step="0.1" value="0.9"></label>
+    <label class="form-label"><span class="plot-label"><span>Light angle</span><output id="plot-light-value" class="tabular-nums">225°</output></span><input class="form-range" id="plot-light" aria-label="Hatching light angle" type="range" min="0" max="360" step="5" value="225"></label>
+    <label class="form-check"><input class="form-check-input" id="plot-lock" type="checkbox"><span class="form-check-label">Lock whole-body scale</span></label>
+    <label class="form-check"><input class="form-check-input" id="plot-cross" type="checkbox" checked><span class="form-check-label">Crosshatch deep shadows</span></label>
+  </div>
+  <details>
+    <summary>Body adjustments and seeds</summary>
+    <div class="plot-body-fields">
+      <div class="plot-body-top">
+        <label class="form-label">Body area<select class="form-select" id="plot-area"><option>Body</option><option>Head &amp; neck</option><option>Torso</option><option>Chest</option><option>Arms &amp; hands</option><option>Legs &amp; feet</option></select></label>
+        <label class="form-label seed-field">Anatomy seed<input class="form-control" id="plot-body-seed" type="number" min="0" max="999999" value="43"></label>
+        <label class="form-label seed-field">Drawing seed<input class="form-control" id="plot-style-seed" type="number" min="0" max="999999" value="137"></label>
+        <button class="btn" id="plot-next-seed" type="button">Next body seed</button>
+      </div>
+      <div class="plot-controls" id="plot-anatomy"></div>
+    </div>
+  </details>
+  <div class="plot-status text-small text-muted"><span id="plot-status" aria-live="polite">Drawing the four treatments…</span><span id="plot-paper">A4 · 210 × 297 mm</span></div>
+  <div id="plot-grid" class="plot-grid" aria-label="Brush and fine-pen plotting style comparison">
+    <figure class="plot-figure"><div id="plot-art-0" class="plot-art"></div><figcaption><div class="plot-caption"><span class="plot-name">Brush · broad ink strokes</span><button class="btn btn-ghost" id="plot-download-0" type="button">SVG</button></div><div id="plot-stats-0" class="plot-stats text-small"></div></figcaption></figure>
+    <figure class="plot-figure"><div id="plot-art-1" class="plot-art"></div><figcaption><div class="plot-caption"><span class="plot-name">Contours · 0.35 mm</span><button class="btn btn-ghost" id="plot-download-1" type="button">SVG</button></div><div id="plot-stats-1" class="plot-stats text-small"></div></figcaption></figure>
+    <figure class="plot-figure"><div id="plot-art-2" class="plot-art"></div><figcaption><div class="plot-caption"><span class="plot-name">Hatching · 0.35 mm</span><button class="btn btn-ghost" id="plot-download-2" type="button">SVG</button></div><div id="plot-stats-2" class="plot-stats text-small"></div></figcaption></figure>
+    <figure class="plot-figure"><div id="plot-art-3" class="plot-art"></div><figcaption><div class="plot-caption"><span class="plot-name">Contours + hatching · 0.35 mm</span><button class="btn btn-ghost" id="plot-download-3" type="button">SVG</button></div><div id="plot-stats-3" class="plot-stats text-small"></div></figcaption></figure>
+  </div>
+  <div class="plot-footer text-small text-muted"><span>MakeHuman HM08 · CC0 · centerline paths</span><span>SVGs retain the displayed size and line width</span></div>
+</div>
+<!-- AVATAR_REVIEW_SCRIPT -->

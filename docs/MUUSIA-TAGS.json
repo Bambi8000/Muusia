@@ -1,4 +1,13 @@
 {
+ "avatar3d": [
+  "3d",
+  "animation",
+  "creatures",
+  "hatch",
+  "human",
+  "mesh",
+  "organic"
+ ],
  "aaltoilu": [
   "deform",
   "warp",

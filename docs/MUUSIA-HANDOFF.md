@@ -8348,3 +8348,20 @@ checks; the built single-file app renders v2.210 in the browser). Evidence
 SVGs rendered from `compute()` confirm the drawing edge to edge. Version
 bumped once, 2.209 → 2.210, in `src/App.jsx`. Release and deployment
 record follow below.
+
+
+### 2.211 — Avatar 3D, 2026-11-23
+
+Integrated Avatar 3D alone onto public 2.210 (7939a62), preserving the current
+release and all unrelated work in the historical primary checkout. CC0 MakeHuman
+body and rig assets supply male/female body controls, independent joint offsets,
+pose transitions, walking, running and standing/walking/running blends. Four
+plotting styles, seeds, rotation, anatomical cuts and full posed mesh output are
+included, with five Help starters and paused frame counts. Existing release
+stroke-width export/preview support is reused unchanged.
+
+Validation: 654 Avatar checks, catalog/recency, production app+Learn build and
+Learn gate pass. Node source bundle and generated assets regenerated. The older
+local editor was visually checked for its Avatar run starter and frame stepping;
+release node compute checked against current helpers. Exact-commit Pages and
+public-byte verification follow the authorized push. No printer/plotter action.

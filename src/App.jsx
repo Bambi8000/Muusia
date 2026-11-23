@@ -904,7 +904,7 @@ function jigGcode(positions, prof, sheetW, sheetH, label) {
   return { text: lines.join("\n") + "\n", warnings };
 }
 
-const APP_VERSION = "2.210"; /* single source: shown in the UI header and stamped into G-code */
+const APP_VERSION = "2.211"; /* single source: shown in the UI header and stamped into G-code */
 
 function toGcode(ps, ctx, prof) {
   const needleError = needleExportError(ps, prof);
@@ -2298,6 +2298,10 @@ export default function App() {
     setSelIds([]);
     setRoot({ nodes: data.nodes, edges: data.edges });
     if (ex.canvas) { setCanvasW(ex.canvas.W || 300); setCanvasH(ex.canvas.H || 200); }
+    if (ex.animation?.frames) {
+      setAnimPlay(false); setFrameIdx(0);
+      setFrameCount(Math.max(1, Math.min(999, Math.round(ex.animation.frames))));
+    }
     setTestCrop({ active: false, paper: "a4-portrait", margin: DEFAULT_TEST_MARGIN });
     setTestCropError("");
     setGcode(null);

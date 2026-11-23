@@ -1,0 +1,106 @@
+<div id="avatar-pose-review">
+  <style>
+    #avatar-pose-review{color:var(--foreground);display:grid;gap:calc(var(--font-size-base)*1.1);min-width:0}
+    #avatar-pose-review [hidden]{display:none!important}
+    #avatar-pose-review .pose-top{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--font-size-base)*.8);padding-right:90px}
+    #avatar-pose-review .pose-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--font-size-base)*.65) calc(var(--font-size-base)*1.2)}
+    #avatar-pose-review .pose-motion{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);align-items:end;gap:calc(var(--font-size-base)*.8)}
+    #avatar-pose-review .pose-label{display:flex;justify-content:space-between;gap:calc(var(--font-size-base)*.4);margin-bottom:calc(var(--font-size-base)*.2)}
+    #avatar-pose-review .pose-blend-row{display:flex;align-items:center;gap:calc(var(--font-size-base)*.8)}
+    #avatar-pose-review .pose-blend-range{flex:1;min-width:60px}
+    #avatar-pose-review .pose-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--font-size-base)*1.3)}
+    #avatar-pose-review .pose-figure{margin:0;min-width:0;display:grid;align-content:start;gap:calc(var(--font-size-base)*.5)}
+    #avatar-pose-review .pose-stage{position:relative;aspect-ratio:210/297;width:100%;max-height:480px;min-width:0}
+    #avatar-pose-review .pose-canvas,#avatar-pose-review .pose-svg{width:100%;height:100%;max-height:480px;display:block;object-fit:contain}
+    #avatar-pose-review .pose-art{position:absolute;inset:0;color:var(--foreground)}
+    #avatar-pose-review .pose-wait{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted-foreground);text-align:center}
+    #avatar-pose-review .pose-caption{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--font-size-base)*.5);flex-wrap:wrap}
+    #avatar-pose-review .pose-name,#avatar-pose-review summary{font-weight:500}
+    #avatar-pose-review .pose-detail{display:grid;gap:calc(var(--font-size-base)*.8);margin-top:calc(var(--font-size-base)*.8)}
+    #avatar-pose-review .pose-gait{display:grid;gap:calc(var(--font-size-base)*.8)}
+    #avatar-pose-review .pose-edit-top{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--font-size-base)*.8)}
+    #avatar-pose-review .pose-body-top{display:grid;grid-template-columns:2fr 1fr 1fr;gap:calc(var(--font-size-base)*.8)}
+    #avatar-pose-review .pose-status{display:flex;justify-content:space-between;gap:calc(var(--font-size-base)*.8);flex-wrap:wrap}
+    #avatar-pose-review[data-mode="walk"] .pose-motion,#avatar-pose-review[data-mode="walk"] .pose-edit-top{grid-template-columns:minmax(0,1fr)}
+    #avatar-pose-review[data-mode="run"] .pose-motion,#avatar-pose-review[data-mode="run"] .pose-edit-top{grid-template-columns:minmax(0,1fr)}
+    @media(max-width:700px){#avatar-pose-review .pose-top{padding-right:0}#avatar-pose-review .pose-motion{grid-template-columns:repeat(2,minmax(0,1fr))}#avatar-pose-review .pose-blend{grid-column:1/-1}#avatar-pose-review .pose-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:500px){#avatar-pose-review .pose-top{grid-template-columns:minmax(0,1fr)}#avatar-pose-review .pose-body-top{grid-template-columns:repeat(2,minmax(0,1fr))}#avatar-pose-review .pose-body-top>label:first-child{grid-column:1/-1}#avatar-pose-review .pose-grid{grid-template-columns:1fr}#avatar-pose-review .pose-stage{max-height:430px}#avatar-pose-review .pose-canvas,#avatar-pose-review .pose-svg{max-height:430px}}
+    @media(max-width:360px){#avatar-pose-review .pose-fields,#avatar-pose-review .pose-edit-top{grid-template-columns:1fr}}
+  </style>
+  <div class="pose-top">
+    <label class="form-label">Body<select id="pose-body" class="form-select"><option>Female</option><option>Male</option></select></label>
+    <label class="form-label">Movement<select id="pose-mode" class="form-select"><option>Pose transition</option><option>Walk cycle</option><option>Stand / walk / run</option></select></label>
+  </div>
+  <div class="pose-edit-top" id="pose-transition-presets">
+    <label class="form-label">Start A<select id="pose-start" class="form-select"></select></label>
+    <label class="form-label">End B<select id="pose-end" class="form-select"></select></label>
+  </div>
+  <div class="pose-gait" id="pose-gait-fields" hidden>
+    <div class="pose-fields">
+      <label class="form-label">Start movement A<select id="pose-gait-from" class="form-select"><option>Standing</option><option>Walking</option><option>Running</option></select></label>
+      <label class="form-label">End movement B<select id="pose-gait-to" class="form-select"><option>Standing</option><option>Walking</option><option>Running</option></select></label>
+      <label class="form-label">Playback<select id="pose-gait-playback" class="form-select"><option>Cycle</option><option>Transition</option></select></label>
+    </div>
+    <label class="form-label"><span class="pose-label"><span>Movement blend · A → B</span><output id="pose-gait-blend-value" class="tabular-nums">100%</output></span><input id="pose-gait-blend" class="form-range" aria-label="Movement blend from start A to end B" type="range" min="0" max="1" step="0.01" value="1"></label>
+  </div>
+  <div class="pose-motion">
+    <div class="pose-blend">
+      <label class="form-label" for="pose-blend"><span class="pose-label"><span id="pose-blend-label">Pose blend · A → B</span><output id="pose-blend-value" class="tabular-nums">0%</output></span></label>
+      <div class="pose-blend-row"><div class="pose-blend-range"><input class="form-range" id="pose-blend" aria-label="Pose blend from start A to end B" type="range" min="0" max="1" step="0.01" value="0"></div><button class="btn btn-primary" id="pose-play" type="button">Play once</button></div>
+    </div>
+    <label class="form-label" id="pose-cycle-field">Motion<select id="pose-cycle" class="form-select"><option value="Ping-pong">A → B → A</option><option value="One-way">A → B</option></select></label>
+    <label class="form-label" id="pose-easing-field">Easing<select id="pose-easing" class="form-select"><option>Smooth</option><option>Linear</option></select></label>
+  </div>
+  <div class="pose-fields" id="pose-walk-fields" hidden>
+    <label class="form-label"><span class="pose-label"><span>Speed</span><output id="pose-walk-speed-value" class="tabular-nums">1×</output></span><input id="pose-walk-speed" class="form-range" aria-label="Walk speed" type="range" min="1" max="6" step="1" value="1"></label>
+    <label class="form-label"><span class="pose-label"><span>Stride length</span><output id="pose-walk-stride-value" class="tabular-nums">100%</output></span><input id="pose-walk-stride" class="form-range" aria-label="Stride length" type="range" min="0" max="150" step="1" value="100"></label>
+    <label class="form-label"><span class="pose-label"><span>Arm swing</span><output id="pose-walk-arms-value" class="tabular-nums">100%</output></span><input id="pose-walk-arms" class="form-range" aria-label="Arm swing" type="range" min="0" max="150" step="1" value="100"></label>
+  </div>
+  <div class="pose-grid" aria-label="Posed body and plotting preview">
+    <figure class="pose-figure"><div class="pose-stage"><canvas id="pose-canvas" class="pose-canvas" width="420" height="594" role="img" aria-label="Shaded three-dimensional posed body">Posed body preview</canvas></div><figcaption class="pose-caption"><span class="pose-name">Posed mesh</span><span id="pose-frame-label" class="text-small text-muted">Relaxed → Reach · 0%</span></figcaption></figure>
+    <figure class="pose-figure"><div class="pose-stage"><div id="pose-art" class="pose-art"></div><div id="pose-plot-wait" class="pose-wait text-small">Drawing current pose…</div></div><figcaption><div class="pose-caption"><span id="pose-style-label" class="pose-name">Brush · 2.5 mm</span><button class="btn btn-ghost" id="pose-download" type="button" disabled>SVG</button></div><div id="pose-stats" class="text-small text-muted"></div></figcaption></figure>
+  </div>
+  <div class="pose-status text-small text-muted"><span id="pose-status" aria-live="polite">Preparing the posed body…</span><span>A4 · 210 × 297 mm</span></div>
+  <details open>
+    <summary>Pose adjustments</summary>
+    <div class="pose-detail">
+      <div class="pose-edit-top">
+        <label class="form-label" id="pose-edit-field">Edit endpoint<select id="pose-edit" class="form-select"><option value="Start A">Start A</option><option value="End B">End B</option></select></label>
+        <label class="form-label">Pose area<select id="pose-area" class="form-select"><option>Torso</option><option>Head</option><option>Left arm</option><option>Right arm</option><option>Left leg</option><option>Right leg</option></select></label>
+      </div>
+      <div id="pose-joints" class="pose-fields"></div>
+      <label class="form-check"><input id="pose-ground" class="form-check-input" type="checkbox" checked><span id="pose-ground-label" class="form-check-label">Keep lowest foot on ground</span></label>
+    </div>
+  </details>
+  <details open>
+    <summary>View, slicing and plotting</summary>
+    <div class="pose-detail">
+      <div class="pose-fields">
+        <label class="form-label">View<select id="pose-view" class="form-select"><option>Three-quarter</option><option>Front</option><option>Side</option><option>Back</option><option>Manual</option></select></label>
+        <label class="form-label">Visible body<select id="pose-region" class="form-select"><option>Full body</option><option>Bust</option><option>Feet</option><option>Band</option></select></label>
+        <label class="form-label">Plotting style<select id="pose-style" class="form-select"><option>Brush</option><option>Contours</option><option>Hatching</option><option>Contours + hatching</option></select></label>
+        <label class="form-label"><span class="pose-label"><span>Turn</span><output id="pose-yaw-value" class="tabular-nums">30°</output></span><input id="pose-yaw" class="form-range" aria-label="Turn angle" type="range" min="0" max="360" step="1" value="30"></label>
+        <label class="form-label" id="pose-cut-field" hidden><span class="pose-label"><span>Cut height</span><output id="pose-cut-value" class="tabular-nums">74%</output></span><input id="pose-cut" class="form-range" aria-label="Cut height" type="range" min="1" max="98" step="1" value="74"></label>
+        <label class="form-check" id="pose-follow-field" hidden><input id="pose-follow" class="form-check-input" type="checkbox" checked><span class="form-check-label">Follow pose anatomy</span></label>
+        <label class="form-label" id="pose-brush-field"><span class="pose-label"><span>Brush width</span><output id="pose-brush-value" class="tabular-nums">2.5 mm</output></span><input id="pose-brush" class="form-range" aria-label="Brush width" type="range" min="1" max="6" step="0.1" value="2.5"></label>
+        <label class="form-label" id="pose-economy-field"><span class="pose-label"><span>Line economy</span><output id="pose-economy-value" class="tabular-nums">82%</output></span><input id="pose-economy" class="form-range" aria-label="Brush line economy" type="range" min="50" max="100" step="1" value="82"></label>
+        <label class="form-label" id="pose-pitch-field" hidden><span class="pose-label"><span>Fine-line pitch</span><output id="pose-pitch-value" class="tabular-nums">0.9 mm</output></span><input id="pose-pitch" class="form-range" aria-label="Fine line pitch" type="range" min="0.7" max="2" step="0.1" value="0.9"></label>
+        <label class="form-label" id="pose-light-field" hidden><span class="pose-label"><span>Light angle</span><output id="pose-light-value" class="tabular-nums">225°</output></span><input id="pose-light" class="form-range" aria-label="Hatching light angle" type="range" min="0" max="360" step="5" value="225"></label>
+        <label class="form-check" id="pose-cross-field" hidden><input id="pose-cross" class="form-check-input" type="checkbox" checked><span class="form-check-label">Crosshatch deep shadows</span></label>
+      </div>
+    </div>
+  </details>
+  <details>
+    <summary>Body adjustments and seeds</summary>
+    <div class="pose-detail">
+      <div class="pose-body-top">
+        <label class="form-label">Body area<select id="pose-body-area" class="form-select"><option>Body</option><option>Head &amp; neck</option><option>Torso</option><option>Chest</option><option>Arms &amp; hands</option><option>Legs &amp; feet</option></select></label>
+        <label class="form-label">Anatomy seed<input id="pose-body-seed" class="form-control" type="number" min="0" max="999999" value="43"></label>
+        <label class="form-label">Drawing seed<input id="pose-style-seed" class="form-control" type="number" min="0" max="999999" value="137"></label>
+      </div>
+      <div id="pose-anatomy" class="pose-fields"></div>
+    </div>
+  </details>
+  <div class="text-small text-muted">MakeHuman HM08 · CC0 · 0.35 mm fine pen · SVG centerline paths</div>
+</div>
+<!-- AVATAR_REVIEW_SCRIPT -->

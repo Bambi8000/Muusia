@@ -909,6 +909,39 @@ const MULTICOLOUR_GRID_EXAMPLES = [
 ];
 
 export const EXAMPLES = [
+  {
+    name: "Avatar 3D · Run cycle",
+    desc: "A running figure with bent elbows, knee recovery and a flight phase. Open ANIMATE to play or scrub the 24-frame loop. Posing Stand / walk / run keeps the cycle phase continuous while Movement blend changes from Standing through Walking to Running. Stride, arm swing, body adjustments, joint offsets, drawing styles, seeds, camera and cuts remain available.",
+    canvas: { W: 210, H: 297 },
+    animation: { frames: 24 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "avatar3d", x: 30, y: 20, params: { ...defaults("avatar3d"), preset: "Female", seed: 43, poseMode: "Stand / walk / run", gaitFrom: "Standing", gaitTo: "Running", gaitBlend: 1, gaitTransition: "Manual", gaitMotion: "Timeline", plotStyle: "Brush", brushWidth: 2.5 } }], edges: [] }),
+  },
+  {
+    name: "Avatar 3D · Stand, walk, run",
+    desc: "A repeatable transition from Standing through Walking to Running and back. ANIMATE supplies a shared step phase and a smooth ping-pong movement blend. The 72-frame sequence gives the gait time to change. For a one-way start or stop, choose Transition playback One-way; swap Start movement and End movement to reverse it.",
+    canvas: { W: 210, H: 297 },
+    animation: { frames: 72 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "avatar3d", x: 30, y: 20, params: { ...defaults("avatar3d"), preset: "Male", seed: 17, poseMode: "Stand / walk / run", gaitFrom: "Standing", gaitTo: "Running", gaitTransition: "Timeline", gaitCycle: "Ping-pong", gaitMotion: "Timeline", gaitSpeed: 3, plotStyle: "Contours", penWidth: .35, linePitch: .9 } }], edges: [] }),
+  },
+  {
+    name: "Avatar 3D · Walk cycle",
+    desc: "An in-place walking figure with a seamless animation loop. Open ANIMATE to scrub or play. Walk speed sets complete cycles per loop; Stride length and Arm swing shape the gait independently. Use more frames for a smoother sequence at higher speeds. Body area changes anatomy, Pose body part adds joint offsets, and the camera, slicing and plotting styles remain available.",
+    canvas: { W: 210, H: 297 },
+    animation: { frames: 24 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "avatar3d", x: 30, y: 20, params: { ...defaults("avatar3d"), preset: "Female", seed: 43, poseMode: "Walk cycle", walkMotion: "Timeline", walkSpeed: 1, walkStride: 1, walkArmSwing: 1, walkGround: true, plotStyle: "Brush", brushWidth: 2.5 } }], edges: [] }),
+  },
+  {
+    name: "Avatar 3D · Pose transition",
+    desc: "A grounded figure moves from Relaxed to Reach. Open ANIMATE and scrub or play the frames. Start pose A and End pose B each keep independent arm, leg, head and torso offsets. Pose motion uses the timeline; Motion controls rotation and slicing separately. Brush uses broad 2.5 mm gestures; switch Drawing style for fine pen contours or hatching.",
+    canvas: { W: 210, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "avatar3d", x: 30, y: 20, params: { ...defaults("avatar3d"), preset: "Female", seed: 43, posePreset: "Relaxed", poseTarget: "Reach", poseMotion: "Timeline", poseCycle: "Ping-pong", poseGround: true, plotStyle: "Brush", brushWidth: 2.5 } }], edges: [] }),
+  },
+  {
+    name: "Avatar 3D · Seated pen study",
+    desc: "A seated male study with 0.35 mm contours and hatching. Adjust pose Start A, then choose a Pose body part to change each limb, head or torso independently. Body area changes proportions while preserving the pose. Visible body isolates a bust, feet or band; turn View to inspect front, side and back.",
+    canvas: { W: 210, H: 297 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "avatar3d", x: 30, y: 20, params: { ...defaults("avatar3d"), preset: "Male", seed: 17, posePreset: "Seated", poseTarget: "Seated", poseGround: true, plotStyle: "Contours + hatching", penWidth: .35, linePitch: .9, poseArea: "Left arm" } }], edges: [] }),
+  },
   ...[
     {name:"Engraved motion",params:{}},
     {name:"Contour film",params:{drawing:"Contours",simplify:.15}},

@@ -65,6 +65,11 @@ export const NODE_RECENCY = {
     "order": 93,
     "sha256": "1e3009d3a966f82066518feb47ca7a64680e9c34b5a651406f0bf648e68c9ce0"
   },
+  "avatar3d": {
+    "date": "2026-11-23",
+    "order": 164,
+    "sha256": "e6089ec34ba7513c488a558539c839205ee2c31745e87993ed2d8924c34d567b"
+  },
   "barbed_wire": {
     "date": "2026-11-05",
     "order": 106,
