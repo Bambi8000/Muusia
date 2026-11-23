@@ -8367,7 +8367,7 @@ release node compute checked against current helpers. Exact-commit Pages and
 public-byte verification follow the authorized push. No printer/plotter action.
 
 
-### Unreleased — Tick Grid and Guilloché fixes, 2026-11-23
+### 2.212 — Tick Grid and Guilloché fixes, 2026-11-23
 
 Prepared on `codex/fix-tick-grid-guilloche` from published 2.211 (`750260d`).
 Tick Grid assigns accent pens independently of the geometry random stream. A
@@ -8392,5 +8392,8 @@ catalog/recency checks, production app + Learn build and 37,914 Learn checks
 pass. Focused lint has no errors and retains eight pre-existing warnings.
 Catalog, recency, node source bundle and Learn manifest regenerated.
 
-This is a source-fix commit only: APP_VERSION remains 2.211 and nothing has been
-pushed or deployed. The historical dirty main checkout has been preserved.
+Source fixes committed as `81f64eb`. Daniel authorized publication on 2026-11-23.
+APP_VERSION is now 2.212; the release build and Learn gate are checked again
+with that version. Exact-commit deployment and public-byte verification are
+recorded after the authorized push. The historical dirty main checkout has
+been preserved.

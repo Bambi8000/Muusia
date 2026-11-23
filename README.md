@@ -1,4 +1,9 @@
-# MUUSIA v2.202
+# MUUSIA v2.212
+
+Version 2.212 fixes **Tick Grid** accent pens and **Guilloché** edge clipping.
+**BG Fill → Guilloché** keeps dense and rotated backgrounds across the full
+sheet, preserves crossing lines and wired voids, and honours the Spiral accent
+pen. Growth controls appear only in modes where they affect the drawing.
 
 Version 2.202 adds **Word Shape** for words inside or outside shapes, **Slice Raster**
 for independent halftones in different regions of one image, and **Drape → Flying**
