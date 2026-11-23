@@ -1,4 +1,5 @@
 import { Pin, EMPTY, mulberry32, applyStyle } from "../helpers.js";
+import { clipPolylineToRect } from "../clip-rectangle.js";
 
 export default {
   /* Tick Grid — minimal chaos on a regular lattice. Every lattice node can
@@ -101,7 +102,8 @@ export default {
         const ny = oy + (j + 0.5) * cell + (rng() * 2 - 1) * jit * cell;
         const a = ang + (rng() * 2 - 1) * scat;
         const len = Math.max(0.5, lenPct * cell * (1 - 0.7 * lenVar * rng()));
-        const pen = accentF > 0 && rng() < accentF ? layer2 : layer;
+        // Pen choice has its own stream: enabling Accent must not change Bend.
+        const pen = mulberry32(cellSeed ^ 0x51ed270b)() < accentF ? layer2 : layer;
         const ca = Math.cos(a), sa = Math.sin(a);
         const sx = nx - ca * len / 2, sy = ny - sa * len / 2;
         const ex = nx + ca * len / 2, ey = ny + sa * len / 2;
@@ -128,14 +130,7 @@ export default {
         if (minX >= -1e-4 && minY >= -1e-4 && maxX <= W + 1e-4 && maxY <= H + 1e-4) {
           paths.push({ pts, closed: false, layer: pen });
         } else {
-          const cp = [];
-          for (let s = 0; s < pts.length; s++) {
-            const x = Math.min(W, Math.max(0, pts[s][0]));
-            const y = Math.min(H, Math.max(0, pts[s][1]));
-            const last = cp[cp.length - 1];
-            if (!last || (x - last[0]) * (x - last[0]) + (y - last[1]) * (y - last[1]) > 1e-6) cp.push([x, y]);
-          }
-          if (cp.length >= 2) paths.push({ pts: cp, closed: false, layer: pen });
+          for (const part of clipPolylineToRect(pts, false, 0, 0, W, H)) paths.push({ ...part, layer: pen });
         }
       }
     }

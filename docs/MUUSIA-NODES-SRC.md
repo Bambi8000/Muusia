@@ -2253,13 +2253,14 @@ export default {
 ```js
 import { Pin, EMPTY, mulberry32, noise2, resample, pathLength, applyStyle, signedArea } from "../helpers.js";
 import { guillocheFamily, guillocheSamples, guillocheCurveCount } from "../guilloche-family.js";
+import { clipPolylineToRect } from "../clip-rectangle.js";
 
 export default {
   key: "bg_fill",
   name: "BG Fill",
   cat: "gen",
   group: "geometric",
-  desc: "Eight full-sheet background fills in one node, picked with Mode. Drape: concentric fur-stroke arc bands folded by sharp creases like hanging fabric. Magnet: iron-filing dashes tracing a two-pole field, Attract or Repel. Grain: dense parallel woodgrain lines that part around voids and leave them blank. Scales: staggered fish-scale rows rendered as rain of vertical dashes, best with a light pen on dark paper. Torn: fine straight strokes fanning off a diagonal spine and stopping at a wobbly lens-shaped rip. Pleat: vertical lines pinched into a diamond pleat grid like folded wallpaper. Circles: greedy largest-first circle packing, tangent at Gap 0 for the Apollonian look; Rings fills every circle with concentric rings at Line pitch. Guilloché: a real security-paper backdrop - identical banknote plates (Rosette, Rings, Fan, Weave or Spiral) tiled edge to edge across the whole sheet, so the fine lines fill every corner instead of one round region. Motif size and Overlap set the lattice spacing; Waves, Copies, Amplitude, Growth and Jitter shape each motif exactly like the Guilloché node; Fill collapses each plate's ring family toward its centre so every motif becomes a complete bullseye and the tiled field covers every millimetre - lower it for a mesh of open rings; Angle rotates the whole lattice, and an optional Accent share draws part of every motif in a second pen; the Margin frame trims the lattice like every other mode - set it to 0 for true edge-to-edge engraving. The field auto-thins its sampling to stay under the point budget: enlarge Motif size for smoother lines, or push the density far past the budget and the lattice draws top-down until it runs out. The optional Void input cuts wired geometry out of every mode - closed interiors AND a Void clearance band around every line, open or closed, so a wired Ribbon carves its stroke out of the fill; in Grain mode the flow also bends around them (built-in seeded voids are used when nothing is wired) while open lines deflect the flow like riverbanks, and in Torn mode a wired path becomes the rip itself: rays shoot out of it From center or Perpendicular to the line, open polylines raying both sides. Line pitch is the master density for the other modes - halve it for double ink. Tip: two BG Fills on different pens with different modes make an instant layered backdrop.",
+  desc: "Eight full-sheet background fills in one node, picked with Mode. Drape: concentric fur-stroke arc bands folded by sharp creases like hanging fabric. Magnet: iron-filing dashes tracing a two-pole field, Attract or Repel. Grain: dense parallel woodgrain lines that part around voids and leave them blank. Scales: staggered fish-scale rows rendered as rain of vertical dashes, best with a light pen on dark paper. Torn: fine straight strokes fanning off a diagonal spine and stopping at a wobbly lens-shaped rip. Pleat: vertical lines pinched into a diamond pleat grid like folded wallpaper. Circles: greedy largest-first circle packing, tangent at Gap 0 for the Apollonian look; Rings fills every circle with concentric rings at Line pitch. Guilloché: a real security-paper backdrop - identical banknote plates (Rosette, Rings, Fan, Weave or Spiral) tiled edge to edge across the whole sheet, so the fine lines fill every corner instead of one round region. Motif size and Overlap set the lattice spacing; Waves, Copies, Amplitude, Growth and Jitter shape each motif exactly like the Guilloché node; Fill collapses each plate's ring family toward its centre so every motif becomes a complete bullseye and the tiled field covers every millimetre - lower it for a mesh of open rings; Angle rotates the whole lattice, and an optional Accent share draws part of every motif in a second pen; the Margin frame trims the lattice like every other mode - set it to 0 for true edge-to-edge engraving. The field reduces sampling and, when necessary, grows the lattice spacing evenly to keep the whole sheet within the point budget; enlarge Motif size for smoother lines. The optional Void input cuts wired geometry out of every mode - closed interiors AND a Void clearance band around every line, open or closed, so a wired Ribbon carves its stroke out of the fill; in Grain mode the flow also bends around them (built-in seeded voids are used when nothing is wired) while open lines deflect the flow like riverbanks, and in Torn mode a wired path becomes the rip itself: rays shoot out of it From center or Perpendicular to the line, open polylines raying both sides. Line pitch is the master density for the other modes - halve it for double ink. Tip: two BG Fills on different pens with different modes make an instant layered backdrop.",
   ins: [Pin("style", "Style"), Pin("paths", "Void")],
   outs: [Pin("paths")],
   params: [
@@ -2305,7 +2306,7 @@ export default {
     { key: "gWaves", label: "Waves", type: "slider", min: 4, max: 360, step: 1, def: 48, showIf: (p) => p.mode === "Guilloché" },
     { key: "gCopies", label: "Copies", type: "slider", min: 1, max: 200, step: 1, def: 14, showIf: (p) => p.mode === "Guilloché" },
     { key: "gAmp", label: "Amplitude", type: "slider", min: 0, max: 2, step: 0.01, def: 0.18, showIf: (p) => p.mode === "Guilloché" },
-    { key: "gGrowth", label: "Growth", type: "slider", min: 0, max: 1, step: 0.002, def: 0.012, showIf: (p) => p.mode === "Guilloché" },
+    { key: "gGrowth", label: "Growth", type: "slider", min: 0, max: 1, step: 0.002, def: 0.012, showIf: (p) => p.mode === "Guilloché" && p.gStyle !== "Fan" && p.gStyle !== "Spiral" },
     { key: "gJit", label: "Jitter", type: "slider", min: 0, max: 5, step: 0.01, def: 0.15, showIf: (p) => p.mode === "Guilloché" },
     { key: "gAngle", label: "Angle °", type: "slider", min: -360, max: 360, step: 1, def: 0, showIf: (p) => p.mode === "Guilloché" },
     { key: "gSize", label: "Motif size", type: "slider", min: 20, max: 600, step: 5, def: 180, showIf: (p) => p.mode === "Guilloché" },
@@ -2336,7 +2337,8 @@ export default {
       if (p.mode === "Guilloché") {
         const size = Math.max(20, p.gSize || 180);
         const N = Math.max(1, Math.round(p.gCopies || 14));
-        const ext = size * (1 + (N - 1) * Math.max(0, p.gGrowth || 0)) + size * Math.max(0, p.gAmp || 0) * (1 + 0.5 * Math.max(0, p.gJit || 0)) + 2;
+        const growth = p.gStyle === "Fan" || p.gStyle === "Spiral" ? 0 : Math.max(0, p.gGrowth || 0);
+        const ext = size * (1 + (N - 1) * growth) + size * Math.max(0, p.gAmp || 0) * (1 + 0.5 * Math.max(0, p.gJit || 0)) + 2;
         g.push({ kind: "circle", cx: W / 2, cy: H / 2, r: ext });
       }
       if (p.mode === "Torn") {
@@ -3014,9 +3016,9 @@ export default {
       const size = num(p.gSize, 180, 20, 600);
       const over = num(p.gOver, 0.45, 0, 0.95);
       const k = Math.round(num(p.gWaves, 48, 1, 4000));
-      const N = Math.round(num(p.gCopies, 14, 1, 120));
+      const N = Math.round(num(p.gCopies, 14, 1, 200));
       const e = num(p.gAmp, 0.18, 0, 2);
-      const g = num(p.gGrowth, 0.012, 0, 1);
+      const g = style === "Fan" || style === "Spiral" ? 0 : num(p.gGrowth, 0.012, 0, 1);
       const j = num(p.gJit, 0.15, 0, 5);
       const rot = num(p.gAngle, 0, -3600, 3600) * Math.PI / 180;
       const fill = num(p.gFill, 1, 0, 1);
@@ -3031,56 +3033,90 @@ export default {
       const cosA = Math.cos(rot), sinA = Math.sin(rot);
 
       const emitG = (pts, closed, pen) => {
-        // Drop points outside the margin box and inside voids (clearance band
-        // included), splitting runs at every cut - exactly the house convention.
-        // A fragment is only reported closed if nothing of the ring was cut.
-        let cur = [];
-        let cut = false;
-        const flush = () => {
-          if (cur.length >= 2) emitRaw(cur, closed && !cut, pen);
-          cur = [];
-        };
-        for (const [x0, y0] of pts) {
-          if (!inBox(x0, y0) || (hasVoid && inAnyVoid(x0, y0))) { cut = true; flush(); continue; }
-          const last = cur[cur.length - 1];
-          if (!last || (x0 - last[0]) * (x0 - last[0]) + (y0 - last[1]) * (y0 - last[1]) > 1e-6) cur.push([x0, y0]);
+        // Clip crossing segments too: both sampled endpoints can be outside
+        // while the line between them is visible on the sheet.
+        for (const part of clipPolylineToRect(pts, closed, lox, loy, hix, hiy)) {
+          if (!hasVoid) { emitRaw(part.pts, part.closed, pen); continue; }
+          let cur = [], cut = false;
+          let lastGood = part.pts[0];
+          const flush = () => {
+            if (cur.length >= 2) emitRaw(cur, false, pen);
+            cur = [];
+          };
+          // Long clipped chords must also respect the Void input between their
+          // endpoints. Probe the mask, retaining vertices only at real cuts.
+          const visit = (pt, vertex) => {
+            if (inAnyVoid(pt[0], pt[1])) {
+              if (cur.length && Math.hypot(cur.at(-1)[0] - lastGood[0], cur.at(-1)[1] - lastGood[1]) > 1e-6) cur.push(lastGood);
+              cut = true; flush();
+            } else {
+              if (!cur.length || vertex) cur.push(pt);
+              lastGood = pt;
+            }
+          };
+          visit(part.pts[0], true);
+          for (let i = 0; i < part.pts.length - (part.closed ? 0 : 1); i++) {
+            const a = part.pts[i], b = part.pts[(i + 1) % part.pts.length];
+            const steps = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / .5));
+            for (let j = 1; j <= steps; j++) visit([
+              a[0] + (b[0] - a[0]) * j / steps, a[1] + (b[1] - a[1]) * j / steps,
+            ], j === steps);
+          }
+          if (cut) flush(); else emitRaw(part.pts, part.closed, pen);
         }
-        flush();
       };
       const emitRaw = (pts, closed, pen) => {
-        if (cnt >= BUDGET || pts.length < 2) return;
-        if (cnt + pts.length > BUDGET) {
-          pts = pts.slice(0, Math.max(2, BUDGET - cnt));
-          closed = false;   // a truncated ring is an open arc, never a chord
-        }
+        if (pts.length < 2) return;
         cnt += pts.length;
         paths.push({ pts, closed: !!closed, layer: pen });
       };
 
-      // Lattice geometry (dry count first, so every plate gets an even share of
-      // the sampling budget).
-      const sp = Math.max(6, size * (1 - over));
+      // Budget the entire lattice before drawing any plate. On dense sheets
+      // grow its spacing uniformly, keeping a full family and at least sixteen
+      // samples per curve at every surviving motif, including the bottom rows.
       const diag = Math.hypot(W, H) / 2;
-      const centers = [];
-      let guard = 0;
-      for (let gy = Math.floor(-ext / sp) * sp; gy <= H + ext && guard < 1200; gy += sp) {
-        const rowOff = ((Math.round(gy / sp) % 2) ? sp * 0.5 : 0);
-        for (let gx = Math.floor((-ext + rowOff) / sp) * sp + rowOff; gx <= W + ext && guard < 1200; gx += sp) {
-          guard++;
-          const px = gx + jx * sp * 0.35, py = gy + jy * sp * 0.35;
-          const rx = (px - W / 2) * cosA - (py - H / 2) * sinA + W / 2;
-          const ry = (px - W / 2) * sinA + (py - H / 2) * cosA + H / 2;
-          if (Math.hypot(rx - W / 2, ry - H / 2) > diag + ext) continue;  // cannot reach the sheet
-          centers.push([rx, ry]);
-        }
-      }
-      // Even sampling share: total raw points ~ 1.3x budget, no curve starved.
+      // Huge growing rings need not add thousands of far-away motifs. Keep
+      // nearby plates around the whole page and bound the off-page halo.
+      const halo = Math.min(ext, diag * 2);
+      const corners = [[lox, loy], [hix, loy], [lox, hiy], [hix, hiy]].map(([x, y]) => [
+        (x - W / 2) * cosA + (y - H / 2) * sinA + W / 2,
+        -(x - W / 2) * sinA + (y - H / 2) * cosA + H / 2,
+      ]);
+      const xmin = Math.min(...corners.map((q) => q[0])) - halo;
+      const xmax = Math.max(...corners.map((q) => q[0])) + halo;
+      const ymin = Math.min(...corners.map((q) => q[1])) - halo;
+      const ymax = Math.max(...corners.map((q) => q[1])) + halo;
       const curvesPerPlate = guillocheCurveCount(style, N);
+      const maxPlates = Math.min(1200, Math.floor(BUDGET / (curvesPerPlate * 17)));
+      const layout = (sp) => {
+        const centers = [];
+        const driftX = jx * sp * 0.35, driftY = jy * sp * 0.35;
+        for (let row = Math.floor((ymin - driftY) / sp); row * sp <= ymax - driftY; row++) {
+          const rowOff = row % 2 ? sp * 0.5 : 0;
+          for (let col = Math.floor((xmin - driftX - rowOff) / sp); col * sp + rowOff <= xmax - driftX; col++) {
+            const px = col * sp + rowOff + driftX, py = row * sp + driftY;
+            const rx = (px - W / 2) * cosA - (py - H / 2) * sinA + W / 2;
+            const ry = (px - W / 2) * sinA + (py - H / 2) * cosA + H / 2;
+            if (Math.hypot(rx - W / 2, ry - H / 2) > diag + halo) continue;
+            centers.push([rx, ry]);
+            if (centers.length > maxPlates) return null;
+          }
+        }
+        return centers;
+      };
+      let spacing = Math.max(6, size * (1 - over));
+      let centers = layout(spacing);
+      while (centers === null) {
+        spacing *= 1.15;
+        centers = layout(spacing);
+      }
+      // Open curves have S+1 points; reserving that extra point also bounds
+      // closed curves. Clipping can add intersection points, handled below.
       const S = Math.max(16, Math.min(
         guillocheSamples(style, k, N),
-        Math.floor((BUDGET * 1.3) / Math.max(1, curvesPerPlate) / Math.max(1, centers.length))));
+        Math.floor(BUDGET / curvesPerPlate / Math.max(1, centers.length)) - 1));
 
-      for (let i = 0; i < centers.length && cnt < BUDGET; i++) {
+      for (let i = 0; i < centers.length; i++) {
         const [cx, cy] = centers[i];
         const pseed = (seed ^ Math.imul(i + 1, 0x9e3779b9) | 0) >>> 0;
         const fam = guillocheFamily({ mode: style, waves: k, copies: N, amplitude: e, growth: g, jitter: j, angle: a2, seed: pseed, R: size, cx, cy, accent: accentF, samples: S });
@@ -3088,7 +3124,7 @@ export default {
         // star scaling): at 1 every motif is a complete bullseye, so the tiled
         // field covers every millimetre of sheet; lower it for open ring meshes.
         const m1 = Math.max(1, N - 1);
-        for (let i = 0; i < fam.length && cnt < BUDGET; i++) {
+        for (let i = 0; i < fam.length; i++) {
           const f = fam[i];
           let pts = f.pts;
           if (fill > 0 && style !== "Spiral") {
@@ -3098,6 +3134,29 @@ export default {
             pts = f.pts.map((q) => [cx + (q[0] - cx) * s, cy + (q[1] - cy) * s]);
           }
           emitG(pts, f.closed, f.slot === 1 ? layer2 : layer);
+        }
+      }
+      // Intersection points can take clipped curves over the raw-point
+      // allocation. Thin every region together, never stop at a top-row prefix.
+      while (cnt > BUDGET) {
+        const before = cnt;
+        for (const path of paths) {
+          // Do not replace void-following bends with chords through the mask.
+          if (hasVoid || path.pts.length <= (path.closed ? 3 : 2)) continue;
+          const pts = [path.pts[0]];
+          for (let i = 2; i < path.pts.length - 1; i += 2) pts.push(path.pts[i]);
+          pts.push(path.pts.at(-1));
+          if (path.closed && pts.length < 3) pts.splice(1, 0, path.pts[1]);
+          cnt -= path.pts.length - pts.length;
+          path.pts = pts;
+        }
+        if (cnt === before) {
+          let kept = 0;
+          cnt = 0;
+          for (let i = 0; i < paths.length; i += 2) {
+            paths[kept++] = paths[i]; cnt += paths[i].pts.length;
+          }
+          paths.length = kept;
         }
       }
     }
@@ -20940,6 +20999,7 @@ export default {
 ```js
 import { Pin, EMPTY, applyStyle } from "../helpers.js";
 import { guillocheFamily } from "../guilloche-family.js";
+import { clipPolylineToRect } from "../clip-rectangle.js";
 
 export default {
   /* Guilloché — banknote fine-line patterns, one node, five styles. Rosette
@@ -20965,7 +21025,7 @@ export default {
     { key: "waves", label: "Waves", type: "slider", min: 8, max: 360, step: 1, def: 96 },
     { key: "copies", label: "Copies", type: "slider", min: 2, max: 96, step: 1, def: 24 },
     { key: "amplitude", label: "Amplitude", type: "slider", min: 0.02, max: 0.6, step: 0.01, def: 0.18 },
-    { key: "growth", label: "Growth", type: "slider", min: 0, max: 0.06, step: 0.002, def: 0.012 },
+    { key: "growth", label: "Growth", type: "slider", min: 0, max: 0.06, step: 0.002, def: 0.012, showIf: (p) => p.mode !== "Fan" && p.mode !== "Spiral" },
     { key: "jitter", label: "Jitter", type: "slider", min: 0, max: 1, step: 0.05, def: 0.15 },
     { key: "angle", label: "Angle °", type: "slider", min: -180, max: 180, step: 5, def: 0 },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
@@ -20994,7 +21054,7 @@ export default {
       const L = this._layout(p, ctx);
       if (!L) return [];
       const num = (v, d, lo, hi) => { v = +v; return Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; };
-      const g = num(p.growth, 0.012, 0, 1);
+      const g = p.mode === "Fan" || p.mode === "Spiral" ? 0 : num(p.growth, 0.012, 0, 1);
       const e = num(p.amplitude, 0.18, 0, 1);
       const N = Math.round(num(p.copies, 24, 1, 1000));
       const ext = L.R * (1 + Math.max(0, N - 1) * g) + L.R * e * 0.6 + 2;
@@ -21024,34 +21084,13 @@ export default {
     const layer2 = Math.max(0, Math.min(11, Math.round(num(p.pen2, 3, 0, 11))));
 
     const paths = [];
-    const pushCurve = (pts, closed, pen, outside) => {
-      // Clip to the sheet like real security printing: keep what is inside,
-      // clamp stray samples onto the edge, drop degenerate stubs.
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const [x, y] of pts) {
-        if (x < minX) minX = x; else if (x > maxX) maxX = x;
-        if (y < minY) minY = y; else if (y > maxY) maxY = y;
-      }
-      if (minX >= -1e-6 && minY >= -1e-6 && maxX <= W + 1e-6 && maxY <= H + 1e-6) {
-        paths.push({ pts, closed, layer: pen });
-        return;
-      }
-      const cp = [];
-      for (let s = 0; s < pts.length; s++) {
-        const x = Math.min(W, Math.max(0, pts[s][0]));
-        const y = Math.min(H, Math.max(0, pts[s][1]));
-        const last = cp[cp.length - 1];
-        if (!last || (x - last[0]) * (x - last[0]) + (y - last[1]) * (y - last[1]) > 1e-6) cp.push([x, y]);
-      }
-      if (cp.length >= 2) paths.push({ pts: cp, closed, layer: pen });
-      else if (!outside) { /* fully off-sheet curve: dropped on purpose */ }
-    };
-
     // Complete unclipped family from the shared banknote mathematics, then the
     // node's own sheet clipping, pen mapping and budget policy on top.
     const fam = guillocheFamily({ mode, waves: k, copies: N, amplitude: e, growth: g, jitter: jit, angle: rot, seed, R, cx, cy, accent: accentF });
     for (const f of fam) {
-      pushCurve(f.pts, f.closed, f.slot === 1 ? layer2 : layer, false);
+      for (const part of clipPolylineToRect(f.pts, f.closed, 0, 0, W, H)) {
+        paths.push({ ...part, layer: f.slot === 1 ? layer2 : layer });
+      }
     }
 
     // Point budget: thin the densest curves before any other compromise.
@@ -59157,6 +59196,7 @@ export default {
 
 ```js
 import { Pin, EMPTY, mulberry32, applyStyle } from "../helpers.js";
+import { clipPolylineToRect } from "../clip-rectangle.js";
 
 export default {
   /* Tick Grid — minimal chaos on a regular lattice. Every lattice node can
@@ -59259,7 +59299,8 @@ export default {
         const ny = oy + (j + 0.5) * cell + (rng() * 2 - 1) * jit * cell;
         const a = ang + (rng() * 2 - 1) * scat;
         const len = Math.max(0.5, lenPct * cell * (1 - 0.7 * lenVar * rng()));
-        const pen = accentF > 0 && rng() < accentF ? layer2 : layer;
+        // Pen choice has its own stream: enabling Accent must not change Bend.
+        const pen = mulberry32(cellSeed ^ 0x51ed270b)() < accentF ? layer2 : layer;
         const ca = Math.cos(a), sa = Math.sin(a);
         const sx = nx - ca * len / 2, sy = ny - sa * len / 2;
         const ex = nx + ca * len / 2, ey = ny + sa * len / 2;
@@ -59286,14 +59327,7 @@ export default {
         if (minX >= -1e-4 && minY >= -1e-4 && maxX <= W + 1e-4 && maxY <= H + 1e-4) {
           paths.push({ pts, closed: false, layer: pen });
         } else {
-          const cp = [];
-          for (let s = 0; s < pts.length; s++) {
-            const x = Math.min(W, Math.max(0, pts[s][0]));
-            const y = Math.min(H, Math.max(0, pts[s][1]));
-            const last = cp[cp.length - 1];
-            if (!last || (x - last[0]) * (x - last[0]) + (y - last[1]) * (y - last[1]) > 1e-6) cp.push([x, y]);
-          }
-          if (cp.length >= 2) paths.push({ pts: cp, closed: false, layer: pen });
+          for (const part of clipPolylineToRect(pts, false, 0, 0, W, H)) paths.push({ ...part, layer: pen });
         }
       }
     }

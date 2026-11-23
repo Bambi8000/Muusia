@@ -51,10 +51,10 @@ ok(new Set(def.params.map((pr) => pr.key)).size === def.params.length, "param ke
 ok(def.params.filter((pr) => pr.type === "pen").every((pr) => Number.isInteger(pr.def) && pr.def >= 0 && pr.def <= 11), "pen defaults 0..11");
 ok(def.params.filter((pr) => pr.type === "select").every((pr) => Array.isArray(pr.options) && pr.options.includes(pr.def)), "select defaults in options");
 
-/* --- structure per mode (defaults: 297x210 sheet) --- */
+/* --- structure per mode before clipping (297x210 sheet) --- */
 const MODES = ["Rosette", "Rings", "Fan", "Weave", "Spiral"];
 for (const m of MODES) {
-  const p = defaults(); p.mode = m;
+  const p = { ...defaults(), mode: m, growth: 0 };
   let out;
   try { out = run(p); } catch (e) { ok(false, m + ": compute threw (" + e.message + ")"); continue; }
   const wantN = m === "Spiral" ? 1 : Math.round(p.copies);
@@ -68,10 +68,10 @@ for (const m of MODES) {
 
 /* --- determinism and seed --- */
 {
-  const p = defaults();
-  const a = run(p), b = run(defaults());
+  const p = { ...defaults(), growth: 0 };
+  const a = run(p), b = run(p);
   ok(deepEq(a.paths, b.paths), "deterministic: identical repeat run");
-  const c = run({ ...defaults(), seed: 8 });
+  const c = run({ ...p, seed: 8 });
   ok(!deepEq(a.paths, c.paths) && c.paths.length === a.paths.length, "seed changes geometry, keeps structure");
 }
 

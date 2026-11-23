@@ -95,7 +95,7 @@ export function guillocheFamily(o) {
       const a = th + rot;
       pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
     }
-    pushCurve(pts, false, 0);
+    pushCurve(pts, false, slotOf(0));
   } else {
     const weave = mode === "Weave";
     const rings = mode === "Rings";

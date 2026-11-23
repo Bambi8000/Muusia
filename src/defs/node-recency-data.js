@@ -86,9 +86,9 @@ export const NODE_RECENCY = {
     "sha256": "e5c987f00d9fe8824578de9abfea10c3bdccc32d9149c0d2ac61c64979d3edce"
   },
   "bg_fill": {
-    "date": "2026-11-22",
-    "order": 163,
-    "sha256": "b4e07d91dae4d8c1eea8fead48cfeacb71d383d87cb73fd25dad75905bb12862"
+    "date": "2026-11-23",
+    "order": 165,
+    "sha256": "154b3931ad5078d6ff5aaefc3d3b5978f9ed8ca4ded54aac40c5e4107a807ff1"
   },
   "bitcrush": {
     "date": "2026-07-22",
@@ -621,9 +621,9 @@ export const NODE_RECENCY = {
     "sha256": "45b7325cb5ce909841c35f72d64f1517f0b2d5299b9a582dc023db867c4dc3c6"
   },
   "guilloche": {
-    "date": "2026-11-22",
-    "order": 163,
-    "sha256": "35adddee3dedea7b9704d84e4116ad034073510827d94ab7a8216d06c2a0e4ce"
+    "date": "2026-11-23",
+    "order": 165,
+    "sha256": "164b7b9e19a286878be5f095b879e32ea35a3d80215684154fa8adbe796cfeb5"
   },
   "gull_tracks": {
     "date": "2026-08-13",
@@ -1646,9 +1646,9 @@ export const NODE_RECENCY = {
     "sha256": "45358ca610d49b9db7e8f8e4ccf2a7e4c6b406acac30d8fd5910361b0fbab304"
   },
   "tick_grid": {
-    "date": "2026-11-21",
-    "order": 159,
-    "sha256": "1816716e63e3ca497e2da3fb71d7b084426447be9742e12c007c4e734381f368"
+    "date": "2026-11-23",
+    "order": 165,
+    "sha256": "fe11daaae0cf35cc2ca40c32238987032c786b1df5c48e5663af54021d54ac5a"
   },
   "tiles": {
     "date": "2026-10-20",

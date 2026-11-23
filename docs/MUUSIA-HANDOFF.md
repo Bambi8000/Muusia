@@ -8365,3 +8365,32 @@ Learn gate pass. Node source bundle and generated assets regenerated. The older
 local editor was visually checked for its Avatar run starter and frame stepping;
 release node compute checked against current helpers. Exact-commit Pages and
 public-byte verification follow the authorized push. No printer/plotter action.
+
+
+### Unreleased — Tick Grid and Guilloché fixes, 2026-11-23
+
+Prepared on `codex/fix-tick-grid-guilloche` from published 2.211 (`750260d`).
+Tick Grid assigns accent pens independently of the geometry random stream. A
+shared rectangle clipper now retains true intersections and splits cut curves
+into open arcs in Tick Grid, Guilloché and BG Fill Guilloché, dropping wholly
+off-sheet curves instead of flattening them onto paper borders. Spiral honours
+the accent pen in both Guilloché consumers. Growth is hidden in Fan and Spiral.
+
+BG Fill budgets the complete rotated lattice before drawing: bounded off-page
+padding, uniform spacing growth at high density, and a sampling share for every
+motif. Clipped intersection points are budgeted across the full result instead
+of truncating the bottom of the page. Crossing segments survive even when both
+sampled endpoints are off-page; wired voids are checked along those segments.
+The Copies control now honours its existing full 1–200 range. The other seven
+BG Fill modes are byte-identical to published 2.211 in 42 comparisons, and the
+default unaccented Tick Grid output is unchanged.
+
+Validation: 28 review regression checks (including 100 seeded random background
+configurations, rotated whole-sheet coverage and void-crossing checks), 49 Tick
+Grid checks, 65 Guilloché checks and 271 BG Fill checks pass. All 257 Help graphs,
+catalog/recency checks, production app + Learn build and 37,914 Learn checks
+pass. Focused lint has no errors and retains eight pre-existing warnings.
+Catalog, recency, node source bundle and Learn manifest regenerated.
+
+This is a source-fix commit only: APP_VERSION remains 2.211 and nothing has been
+pushed or deployed. The historical dirty main checkout has been preserved.

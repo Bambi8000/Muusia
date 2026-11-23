@@ -2856,7 +2856,7 @@ plot, which needs *Optimize route* switched off, since a nearest-neighbour sort
 sees two identical crosses as zero travel and plots them back to back. The
 square is on its own pen, every mark and label on a second.
 
-**BG Fill** — seven full-sheet background fills in one node, picked with *Mode*.
+**BG Fill** — eight full-sheet background fills in one node, picked with *Mode*.
 *Drape*: concentric fur-stroke arc bands folded by sharp creases like hanging
 fabric. *Magnet*: iron-filing dashes tracing a two-pole field, *Attract* or
 *Repel*. *Grain*: dense woodgrain lines that part around voids — seeded blobs,
@@ -2867,7 +2867,12 @@ into Void and IT becomes the rip, rays leaving it *From center* or
 *Perpendicular* (open lines ray both sides). *Pleat*: vertical lines pinched
 into a diamond pleat grid like folded wallpaper. *Circles*: greedy largest-first
 circle packing, tangent at *Gap* 0 for the Apollonian look; *Rings* fills every
-circle with concentric rings at *Line pitch*. The Void input works in every mode
+circle with concentric rings at *Line pitch*. *Guilloché* tiles banknote plates
+(Rosette, Rings, Fan, Weave or Spiral) across the sheet. Motif size, Overlap and
+Fill control the field; Accent assigns curves to a second pen, including Spiral.
+At high density, sampling and lattice spacing adjust evenly across the whole
+sheet to stay within the point budget. Growth appears for the ring-based plate
+styles, where it changes the radial step between copies. The Void input works in every mode
 with Negative Space semantics: closed interiors cut out, and every wired line —
 open or closed — carves a *Void clearance* band, so a Ribbon clears its own
 channel; in Grain the flow also bends around wired shapes like riverbanks.
@@ -2881,7 +2886,8 @@ whole surface sits anywhere between an orderly matrix and a sparse constellation
 — *Density* picks that point. Each mark is turned *Angle* ± *Scatter* degrees,
 shifted off its node by up to half a cell × *Jitter*, stretched to *Length* % of
 the cell ± *Length variation* %, and bowed into a single soft arc by *Bend*. A
-share of *Accent* % of the marks is drawn in a second pen. The lattice never
+share of *Accent* % of the marks is drawn in a second pen without changing
+their geometry. The lattice never
 truncates the sheet mid-way: if the full drawing would exceed the plotter's
 point budget, cells grow silently larger instead, so every sheet stays whole.
 Marks are clipped at the sheet edge. Tip: Angle 90° with low Scatter gives
@@ -2894,11 +2900,14 @@ rotates one wavy ring through the sheet, Rings marches a serrated circle inward
 (seal-like), Fan radiates from an off-centre point, Weave turns the ring family
 into a woven lattice and Spiral sweeps it into a rosette turn. *Waves* is the
 lobe count, *Copies* the family size, *Amplitude* the wave depth and *Growth*
-the radial step between successive copies. *Jitter* adds the seeded hand-cut
+the radial step between successive copies in Rosette, Rings and Weave; Growth
+is hidden for Fan and Spiral. *Jitter* adds the seeded hand-cut
 wobble that separates these sheets from machined engraving; *Angle* rotates the
 family. *Accent* % of the family draws in a second pen, like the faint underlayer
 beneath a dark plate. The family centres on the sheet inside *Margin* and clips
-at the paper edge; over the point budget it thins sampling rather than cutting
+at the paper edge into open arcs, discarding off-page curves without adding
+border lines. Accent also applies to the single Spiral curve. Over the point
+budget it thins sampling rather than cutting
 the drawing, so exports stay complete. Tip: Waves 60–160 with low Amplitude and
 steady Growth reads as security printing; raise Jitter above 0.5 for a looser,
 hand-drawn rosette. Export SVG or G-code, or chain into Brush or Warp downstream.

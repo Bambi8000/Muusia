@@ -1,5 +1,6 @@
 import { Pin, EMPTY, applyStyle } from "../helpers.js";
 import { guillocheFamily } from "../guilloche-family.js";
+import { clipPolylineToRect } from "../clip-rectangle.js";
 
 export default {
   /* Guilloché — banknote fine-line patterns, one node, five styles. Rosette
@@ -25,7 +26,7 @@ export default {
     { key: "waves", label: "Waves", type: "slider", min: 8, max: 360, step: 1, def: 96 },
     { key: "copies", label: "Copies", type: "slider", min: 2, max: 96, step: 1, def: 24 },
     { key: "amplitude", label: "Amplitude", type: "slider", min: 0.02, max: 0.6, step: 0.01, def: 0.18 },
-    { key: "growth", label: "Growth", type: "slider", min: 0, max: 0.06, step: 0.002, def: 0.012 },
+    { key: "growth", label: "Growth", type: "slider", min: 0, max: 0.06, step: 0.002, def: 0.012, showIf: (p) => p.mode !== "Fan" && p.mode !== "Spiral" },
     { key: "jitter", label: "Jitter", type: "slider", min: 0, max: 1, step: 0.05, def: 0.15 },
     { key: "angle", label: "Angle °", type: "slider", min: -180, max: 180, step: 5, def: 0 },
     { key: "margin", label: "Margin mm", type: "slider", min: 0, max: 60, step: 1, def: 10 },
@@ -54,7 +55,7 @@ export default {
       const L = this._layout(p, ctx);
       if (!L) return [];
       const num = (v, d, lo, hi) => { v = +v; return Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; };
-      const g = num(p.growth, 0.012, 0, 1);
+      const g = p.mode === "Fan" || p.mode === "Spiral" ? 0 : num(p.growth, 0.012, 0, 1);
       const e = num(p.amplitude, 0.18, 0, 1);
       const N = Math.round(num(p.copies, 24, 1, 1000));
       const ext = L.R * (1 + Math.max(0, N - 1) * g) + L.R * e * 0.6 + 2;
@@ -84,34 +85,13 @@ export default {
     const layer2 = Math.max(0, Math.min(11, Math.round(num(p.pen2, 3, 0, 11))));
 
     const paths = [];
-    const pushCurve = (pts, closed, pen, outside) => {
-      // Clip to the sheet like real security printing: keep what is inside,
-      // clamp stray samples onto the edge, drop degenerate stubs.
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const [x, y] of pts) {
-        if (x < minX) minX = x; else if (x > maxX) maxX = x;
-        if (y < minY) minY = y; else if (y > maxY) maxY = y;
-      }
-      if (minX >= -1e-6 && minY >= -1e-6 && maxX <= W + 1e-6 && maxY <= H + 1e-6) {
-        paths.push({ pts, closed, layer: pen });
-        return;
-      }
-      const cp = [];
-      for (let s = 0; s < pts.length; s++) {
-        const x = Math.min(W, Math.max(0, pts[s][0]));
-        const y = Math.min(H, Math.max(0, pts[s][1]));
-        const last = cp[cp.length - 1];
-        if (!last || (x - last[0]) * (x - last[0]) + (y - last[1]) * (y - last[1]) > 1e-6) cp.push([x, y]);
-      }
-      if (cp.length >= 2) paths.push({ pts: cp, closed, layer: pen });
-      else if (!outside) { /* fully off-sheet curve: dropped on purpose */ }
-    };
-
     // Complete unclipped family from the shared banknote mathematics, then the
     // node's own sheet clipping, pen mapping and budget policy on top.
     const fam = guillocheFamily({ mode, waves: k, copies: N, amplitude: e, growth: g, jitter: jit, angle: rot, seed, R, cx, cy, accent: accentF });
     for (const f of fam) {
-      pushCurve(f.pts, f.closed, f.slot === 1 ? layer2 : layer, false);
+      for (const part of clipPolylineToRect(f.pts, f.closed, 0, 0, W, H)) {
+        paths.push({ ...part, layer: f.slot === 1 ? layer2 : layer });
+      }
     }
 
     // Point budget: thin the densest curves before any other compromise.
