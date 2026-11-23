@@ -8397,3 +8397,11 @@ APP_VERSION is now 2.212; the release build and Learn gate are checked again
 with that version. Exact-commit deployment and public-byte verification are
 recorded after the authorized push. The historical dirty main checkout has
 been preserved.
+
+
+Publication verified: release `a497cd0ea28f4807c6981b3510bbdbcd8715702e`
+was pushed to main. Pages run [45235154361](https://github.com/Bambi8000/Muusia/actions/runs/45235154361)
+completed successfully for that exact commit. Public Muusia 2.212 is 6,626,501
+bytes; SHA-256 `09f710387e85ceafae8a3a9e601169dce08871dd0ba7fa1749e2b33acd11181d`
+matches the tested release build. The public Learn homepage also matches the
+local 2.212 build byte for byte. Evidence: `docs/node-fixes-release-checks.json`.
