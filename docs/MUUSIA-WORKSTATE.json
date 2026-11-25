@@ -1,6 +1,33 @@
 {
   "schemaVersion": 1,
-  "active": [],
+  "active": [
+    {
+      "id": "bust-generator-2.213",
+      "owner": "Qwen",
+      "role": "implementation",
+      "date": "2026-11-25",
+      "branch": "codex/bust",
+      "worktree": "/Users/daniel/muusia-qwen",
+      "baseCommit": "7635f5bacee1f33c271c4d8bb0927fb5386cddcc",
+      "files": [
+        "src/defs/nodes/bust.js",
+        "tools/validate-bust.mjs",
+        "tools/render-bust.mjs",
+        "src/examples.js",
+        "src/App.jsx",
+        "src/defs/catalog.js",
+        "src/defs/node-recency-data.js",
+        "docs/MUUSIA-NODES.md",
+        "docs/MUUSIA-TAGS.json",
+        "docs/MUUSIA-NODES-SRC.md",
+        "docs/MUUSIA-HANDOFF.md",
+        "learn/generated/manifest.json"
+      ],
+      "status": "in_progress",
+      "outcome": "New Bust generator (Female/Male designed-silhouette forms - placed anchors + catmull-rom spline - six stroke styles including banknote Rosette) with four Help starters. Silhouette re-cut from a gaussian radial profile to anchored anatomy (shoulders/neck scoop/chest/waist/hips) after 2026-11-24 review; validated, released as 2.213.",
+      "nextStep": "Integration into main and Pages publication verification follow the authorized push; preview renders in output/bust-preview, before/after sheet output/sheet-v6.html."
+    }
+  ],
   "lastPublished": {
     "version": "2.212",
     "commit": "a497cd0ea28f4807c6981b3510bbdbcd8715702e",
@@ -342,7 +369,7 @@
           28.9,
           92.6,
           61.1,
-          144.0
+          144
         ],
         "units": "degrees; visible opening between the indicated physical edges"
       },

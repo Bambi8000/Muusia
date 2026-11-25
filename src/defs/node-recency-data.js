@@ -140,6 +140,11 @@ export const NODE_RECENCY = {
     "order": 11,
     "sha256": "b57b0951641e6c51c00eb2a136606ac0dc150ea58349e16180702da0d00efc7a"
   },
+  "bust": {
+    "date": "2026-11-25",
+    "order": 166,
+    "sha256": "f673e74bbebb9fa83dea9b505ba4e0f7e0c5eda0712a3813e923dbdd8646ee7e"
+  },
   "cables": {
     "date": "2026-07-22",
     "order": 1,

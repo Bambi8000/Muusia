@@ -2552,4 +2552,25 @@ export const EXAMPLES = [
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [{ id: 9001, type: "bg_fill", x: 40, y: 30, params: { ...defaults("bg_fill"), ...p.params } }], edges: [] })
   })),
+
+  {
+    name: "Bust · Ink study", desc: "Select Bust, the nude figure study: Form picks Female or Male, each drawn as one smooth designed silhouette - broad shoulders, a neck scoop, chest mounds, an S-curve waist and flared hips, cut by Crop into a flat hem. Wobble at zero is a glass-smooth edge made for broad ink; raise it to 8-15 for a hand-cut frilled line. Size sets the figure height in millimetres and the whole drawing auto-fits inside Margin. Press Seed for a different body.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "bust", x: 40, y: 30, params: { ...defaults("bust"), ...{ form: "Female", style: "Outline", seed: 7, size: 190 } } }], edges: [] }),
+  },
+  {
+    name: "Bust · Banknote rosette", desc: "Rosette clips counter-rotated banknote circle families into the form, twin petals around the areola focus - the look of money guilloché drawn on a single figure. The outline runs in the Pen, the rosette families in the Detail pen (here a faint gray underlayer, as banknotes print). Raise Rosette orbit to push the circle rings toward the hem, and Petal size for coarser engraving.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "bust", x: 40, y: 30, params: { ...defaults("bust"), ...{ form: "Female", style: "Rosette", seed: 5, size: 170, rPetals: 22, rOrbit: 0.34, rPetalR: 0.6, penDetail: 9 } } }], edges: [] }),
+  },
+  {
+    name: "Bust · Crosshatched pair", desc: "Layout Pair places two facing studies; Asymmetry breaks the mirror so the bodies differ in size, tilt and rise while the seeds keep them related. Crosshatch sweeps two off-centre fan families across the form in the Detail pen, hatch pitch below one millimetre reads as engraving with a 0.35 mm technical pen. Overlap sets how close the pair stands.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "bust", x: 40, y: 30, params: { ...defaults("bust"), ...{ form: "Male", style: "Crosshatch", seed: 3, size: 120, hSpacing: 0.9, hLift: 4, layout: "Pair", overlap: 10, asym: 40, penDetail: 1 } } }], edges: [] }),
+  },
+  {
+    name: "Bust · Stipple stack", desc: "Stipple seeds dots denser toward the shaded lower hemisphere - Shade bias pushes the darkness down, Dot gap sets the field density. Layout Stacked rises top over bottom, like a pair of studies on one sheet; Asymmetry gives the two bodies their own size and lean. Wobble at 8 keeps the edge alive while the dot work stays crisp.",
+    canvas: { W: 297, H: 210 },
+    make: defaults => ({ nodes: [{ id: 9001, type: "bust", x: 40, y: 30, params: { ...defaults("bust"), ...{ form: "Female", style: "Stipple", seed: 11, size: 100, wobble: 8, sDots: 1200, sGap: 0.8, sDotR: 0.3, sBias: 0.7, layout: "Stacked", asym: 25 } } }], edges: [] }),
+  },
 ];

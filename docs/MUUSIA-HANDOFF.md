@@ -8405,3 +8405,61 @@ completed successfully for that exact commit. Public Muusia 2.212 is 6,626,501
 bytes; SHA-256 `09f710387e85ceafae8a3a9e601169dce08871dd0ba7fa1749e2b33acd11181d`
 matches the tested release build. The public Learn homepage also matches the
 local 2.212 build byte for byte. Evidence: `docs/node-fixes-release-checks.json`.
+
+
+### 2.213 — Bust generator, 2026-11-23
+
+Prepared on `codex/bust` from main at `7635f5b` (published 2.212, release
+commit `a497cd0`).
+
+New **Bust** generator in Creatures: a nude figure study in one stroke
+language. *Form* picks Female or Male; each is a single smooth designed
+silhouette - broad rounded shoulders, a shallow neck scoop, chest mounds, a soft
+S-curve waist and flared hips - placed from per-form anchors
+(shoulder tip, armpit dent, hip flare, hem corner) and joined by a centripetal
+catmull-rom spline, then flattened by the *Crop bottom* hem so it prints like a
+bust plate. Re-cut 2026-11-25 after review: the original gaussian radial profile
+read as an egg with a tooth-top, and its local-radius wobble folded on the thin
+waist; the anchored form gives real anatomy in both forms. Seeded *Wobble*
+ripples the edge a fixed fraction of the figure height along three seeded
+octaves, so it stays clean even in thin places; wobble zero is a glass-smooth
+line for broad ink. *Style* details the form: Outline (the female adds areola
+and nipple circles); Contours (nested copies closing on the chest); Curved Hatch
+and Crosshatch (warped families of pen-style strokes circulating into the shadow
+under the mounds, one or two directions, pitch down to 0.4 mm for engraving);
+Stipple (dots denser in that shade, pushed by Shade bias); Rosette
+(counter-rotated banknote circle families clipped into the form, optional twin
+around the areola). Layouts Single, Pair (two facing studies) and Stacked, with
+Asymmetry breaking the mirror, Overlap setting pair spacing, Tilt, Position X/Y
+and Margin; the composition auto-fits the paper inside Margin. Pen and Detail
+pen route the outline and the interior work to separate pens. Over the point
+budget the detail stops starting new strokes rather than cutting paths, so
+exports stay complete. Four Help starters: Ink study, Banknote rosette,
+Crosshatched pair, Stipple stack.
+
+Files: `src/defs/nodes/bust.js` (new; anchors + spline re-cut on 2026-11-25),
+`tools/validate-bust.mjs` (new, 90 checks), `tools/render-bust.mjs` (new, A4 SVG
+preview renderer writing `output/bust-preview/*.svg`, ignored via
+`info/exclude`), `src/examples.js` (+4), `docs/MUUSIA-NODES.md` (paragraph,
+generator count 237 → 238), `docs/MUUSIA-TAGS.json`, regenerated
+`src/defs/catalog.js`, `src/defs/node-recency-data.js`,
+`docs/MUUSIA-NODES-SRC.md` (372 nodes) and `learn/generated/manifest.json`;
+APP_VERSION 2.212 → 2.213.
+
+Validation: all 90 Bust checks pass — determinism, seed sensitivity, wobble
+zero invariance, size scaling (size 90 draws exactly 90.0 mm tall, taller than
+wide), margin fit including a size-400 figure clamped inside A4 landscape and a
+size-260 figure on a 100 mm canvas, all six styles in both forms and all three
+layouts in paper and overlay, crop flattening the hem, zero self-crossing
+outlines across ten max-wobble runs (worst kink 73 deg, hand-drawn not folded),
+pen routing, stipple bias, dashed style pass-through, point budgets
+(crosshatch worst case 91 747 pts; stipple 85 746; contours 91 425) and worst-
+case compute 488 ms. All 261 Help graphs pass; validate-examples passes;
+catalog, recency and node source bundle regenerated; validate-catalog passes.
+No plotter or print-server action. Node module count is now 372; the catalog
+matches 374 entries.
+
+APP_VERSION is now 2.213. Daniel authorized publication on 2026-11-23 and again
+on 2026-11-25 for the re-cut release ("commit and publish").
+Exact-commit deployment and public-byte verification are recorded after the
+authorized push.

@@ -1,4 +1,13 @@
-# MUUSIA v2.212
+# MUUSIA v2.213
+
+Version 2.213 adds **Bust** (Creatures): a nude figure study in one line
+language. *Form* picks Female or Male; *Style* offers Outline (the female adds
+areola and nipple detail), nested Contours, warped Curved hatch and Crosshatch
+with pitch down to 0.4 mm for a 0.35 mm pen, Stipple, and Rosette —
+counter-rotating banknote circle families clipped into the form. Seeded
+Wobble breaks the machine straightness, Crop bottom gives the bust its plate
+hem, and Pair / Stacked layouts with Asymmetry compose several studies that
+auto-fit the paper. Four ready-wired starters are in Help.
 
 Version 2.212 fixes **Tick Grid** accent pens and **Guilloché** edge clipping.
 **BG Fill → Guilloché** keeps dense and rotated backgrounds across the full
@@ -143,7 +152,7 @@ live-previewed, and every numeric parameter can be driven by other nodes — inc
 frame clock for producing hand-plotted animations.
 
 Muusia runs entirely locally, has zero network dependencies, and builds into a single
-HTML file you can double-click. The current source has **361 built-in node modules** across Generators,
+HTML file you can double-click. The current source has **372 built-in node modules** across Generators,
 Modifiers, Decorators, Combiners and Math, plus multi-sheet output (Mega Canvas),
 production layout (Mini Canvas), a laser-guided magnet jig for paper hold-down,
 and real-city map import from OpenStreetMap GeoJSON extracts (docs/MUUSIA-MAP.md).
