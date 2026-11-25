@@ -23,21 +23,21 @@
         "docs/MUUSIA-HANDOFF.md",
         "learn/generated/manifest.json"
       ],
-      "status": "in_progress",
+      "status": "complete",
       "outcome": "New Bust generator (Female/Male designed-silhouette forms - placed anchors + catmull-rom spline - six stroke styles including banknote Rosette) with four Help starters. Silhouette re-cut from a gaussian radial profile to anchored anatomy (shoulders/neck scoop/chest/waist/hips) after 2026-11-24 review; validated, released as 2.213.",
-      "nextStep": "Integration into main and Pages publication verification follow the authorized push; preview renders in output/bust-preview, before/after sheet output/sheet-v6.html."
+      "nextStep": "None: published as 2.213 and verified 2026-11-25 (Pages run 45609268536, exact-commit byte match). Optional follow-up: first plotted print review."
     }
   ],
   "lastPublished": {
-    "version": "2.212",
-    "commit": "a497cd0ea28f4807c6981b3510bbdbcd8715702e",
-    "pagesRunId": 45235154361,
-    "publicAppSha256": "09f710387e85ceafae8a3a9e601169dce08871dd0ba7fa1749e2b33acd11181d",
+    "version": "2.213",
+    "commit": "e50514bf6bd974640b0922ec8768cf77966627fa",
+    "pagesRunId": 45609268536,
+    "publicAppSha256": "e8e27df72f321c7e11517d6e579c14589bf0d697e316796afb2ce87dead78fa0",
     "matchesTestedBuild": true,
-    "date": "2026-11-23",
+    "date": "2026-11-25",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "Verified public 2.212: Tick Grid accent geometry, Guilloche clipping and Spiral accents, and full-sheet BG Fill fixes. Public app and Learn homepage bytes match the gated local build; exact-commit Pages deployment succeeded.",
-    "checks": "docs/node-fixes-release-checks.json"
+    "status": "Verified public Muusia 2.213: Bust figure study node (Female/Male designed silhouettes, six stroke styles, banknote Rosette) published; public app 6,645,217 bytes and Learn homepage match the gated local build byte for byte.",
+    "checks": "docs/bust-release-checks.json"
   },
   "lastIntegration": {
     "version": "2.212",
@@ -1550,5 +1550,20 @@
     "checks": "65-check node validator ALL OK (five-mode geometry bounds, determinism per seed, wobble amplitude, accent pen assignment, 300k-point budget thinning keeps every curve whole, NaN/degenerate ctx); validate-examples 250 OK incl. three new Guilloché starters; 47-check Tick Grid validator ALL OK on the same tree; validate-catalog ok (tags/search/recency); npm run build + check:learn ordered gate green with reference provenance unchanged. Final counts 370 modules / 372 registry entries / 237 generators / 250 Help examples.",
     "browserCheck": "Published build verified at byte and string level in the public HTML (version 2.209, both nodes present, zero eyelashes refs); in-app screenshots skipped because the single-file app exceeds the conversation browser render budget. Node validator + all Help graphs stand as proof.",
     "published": true
+  },
+  "lastBust": {
+    "date": "2026-11-25",
+    "baseCommit": "7635f5bacee1f33c271c4d8bb0927fb5386cddcc",
+    "branch": "codex/bust",
+    "worktree": "/Users/daniel/muusia-qwen",
+    "outcome": "New Bust generator (Creatures): Female/Male drawn as one smooth designed silhouette from placed anchors joined by a centripetal catmull-rom spline - broad shoulders, neck scoop, chest mounds, S-curve waist, flared hips, flat crop hem. Re-cut 2026-11-25 from the original gaussian radial profile after review (it read as an egg with a tooth-top; anchored form gives real anatomy, wobble fraction-of-height stays clean in thin places). Six styles, budgets that never cut paths, four Help starters.",
+    "checks": "90-check validator green; 261 Help graphs; catalog/recency/lint/build/37914 Learn gate pass.",
+    "releaseCommit": "e50514bf6bd974640b0922ec8768cf77966627fa",
+    "pagesRunId": 45609268536,
+    "publicAppSha256": "e8e27df72f321c7e11517d6e579c14589bf0d697e316796afb2ce87dead78fa0",
+    "matchesTestedBuild": true,
+    "published": true,
+    "physicalPrintSent": false,
+    "evidence": "docs/bust-release-checks.json"
   }
 }

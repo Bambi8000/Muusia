@@ -8463,3 +8463,14 @@ APP_VERSION is now 2.213. Daniel authorized publication on 2026-11-23 and again
 on 2026-11-25 for the re-cut release ("commit and publish").
 Exact-commit deployment and public-byte verification are recorded after the
 authorized push.
+
+
+Publication verified: release `e50514bf6bd974640b0922ec8768cf77966627fa`
+was pushed to main (and to refs/heads/codex/bust, which records the feature
+branch). Pages run [45609268536](https://github.com/Bambi8000/Muusia/actions/runs/45609268536)
+completed successfully for that exact commit. Public Muusia 2.213 is 6,645,217
+bytes; SHA-256 `e8e27df72f321c7e11517d6e579c14589bf0d697e316796afb2ce87dead78fa0`
+matches the gated local build. The public Learn homepage also matches the local
+2.213 build byte for byte (SHA-256
+`a3508470cc6cfb3b90857e0cc5fe42fbb428eae9a0ca402a75bf231371f55237`,
+15,538 bytes). Evidence: `docs/bust-release-checks.json`.
