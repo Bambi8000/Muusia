@@ -1,33 +1,6 @@
 {
   "schemaVersion": 1,
-  "active": [
-    {
-      "id": "bust-generator-2.213",
-      "owner": "Qwen",
-      "role": "implementation",
-      "date": "2026-11-25",
-      "branch": "codex/bust",
-      "worktree": "/Users/daniel/muusia-qwen",
-      "baseCommit": "7635f5bacee1f33c271c4d8bb0927fb5386cddcc",
-      "files": [
-        "src/defs/nodes/bust.js",
-        "tools/validate-bust.mjs",
-        "tools/render-bust.mjs",
-        "src/examples.js",
-        "src/App.jsx",
-        "src/defs/catalog.js",
-        "src/defs/node-recency-data.js",
-        "docs/MUUSIA-NODES.md",
-        "docs/MUUSIA-TAGS.json",
-        "docs/MUUSIA-NODES-SRC.md",
-        "docs/MUUSIA-HANDOFF.md",
-        "learn/generated/manifest.json"
-      ],
-      "status": "complete",
-      "outcome": "New Bust generator (Female/Male designed-silhouette forms - placed anchors + catmull-rom spline - six stroke styles including banknote Rosette) with four Help starters. Silhouette re-cut from a gaussian radial profile to anchored anatomy (shoulders/neck scoop/chest/waist/hips) after 2026-11-24 review; validated, released as 2.213.",
-      "nextStep": "None: published as 2.213 and verified 2026-11-25 (Pages run 45609268536, exact-commit byte match). Optional follow-up: first plotted print review."
-    }
-  ],
+  "active": [],
   "lastPublished": {
     "version": "2.213",
     "commit": "e50514bf6bd974640b0922ec8768cf77966627fa",
@@ -36,8 +9,7 @@
     "matchesTestedBuild": true,
     "date": "2026-11-25",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "Verified public Muusia 2.213: Bust figure study node published; public app (6,645,225 bytes) and Learn homepage match the gated local build byte for byte, including the 2026-11-26 stipple wording fix.",
-    "checks": "docs/bust-release-checks.json"
+    "status": "Verified public Muusia 2.213 before the pending standalone-generator removal; this removal is not published yet."
   },
   "lastIntegration": {
     "version": "2.212",
@@ -1551,21 +1523,13 @@
     "browserCheck": "Published build verified at byte and string level in the public HTML (version 2.209, both nodes present, zero eyelashes refs); in-app screenshots skipped because the single-file app exceeds the conversation browser render budget. Node validator + all Help graphs stand as proof.",
     "published": true
   },
-  "lastBust": {
-    "date": "2026-11-25",
-    "baseCommit": "7635f5bacee1f33c271c4d8bb0927fb5386cddcc",
-    "branch": "codex/bust",
-    "worktree": "/Users/daniel/muusia-qwen",
-    "outcome": "New Bust generator (Creatures): Female/Male drawn as one smooth designed silhouette from placed anchors joined by a centripetal catmull-rom spline - broad shoulders, neck scoop, chest mounds, S-curve waist, flared hips, flat crop hem. Re-cut 2026-11-25 from the original gaussian radial profile after review (it read as an egg with a tooth-top; anchored form gives real anatomy, wobble fraction-of-height stays clean in thin places). Six styles, budgets that never cut paths, four Help starters.",
-    "checks": "90-check validator green; 261 Help graphs; catalog/recency/lint/build/37914 Learn gate pass.",
-    "releaseCommit": "e50514bf6bd974640b0922ec8768cf77966627fa",
-    "pagesRunId": 45609268536,
-    "publicAppSha256": "e8e27df72f321c7e11517d6e579c14589bf0d697e316796afb2ce87dead78fa0",
-    "matchesTestedBuild": true,
-    "published": true,
-    "physicalPrintSent": false,
-    "evidence": "docs/bust-release-checks.json",
-    "commit": "e50514bf6bd974640b0922ec8768cf77966627fa",
-    "postReleaseFix": "93226ef (stipple example wording, 2026-11-26); public re-verified byte-identical (Pages run 45819719546)."
+  "lastNodeRemoval": {
+    "date": "2026-11-26",
+    "node": "bust",
+    "requestedBy": "Daniel",
+    "branch": "codex/remove-bust",
+    "published": false,
+    "scope": "Standalone node, four Help starters, dedicated validator/renderer, feature reference text, tags, registry/recency and release-evidence file. Original Avatar 3D remains unchanged.",
+    "checks": "docs/remove-bust-checks.json"
   }
 }

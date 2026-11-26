@@ -2280,6 +2280,5 @@
  "slice_raster": ["image", "hatch", "dots", "texture", "animation", "pens", "text", "paths"],
  "pixel_blast": ["pixel", "animation", "receipt", "particles", "firework", "kuitti"],
  "text_roll": ["text", "typography", "3d", "animation", "roll", "ring", "receipt", "teksti", "rulla"],
- "tick_grid": ["geometric", "grid", "chaos", "seed", "texture"],
- "bust": ["human","organic","body","hatch","stipple","rosette","seed","chaos"]
+ "tick_grid": ["geometric", "grid", "chaos", "seed", "texture"]
 }

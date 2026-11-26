@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-26",
+  "baseCommit": "10aff67430933a636574e3928b3c895ec1a490e1",
+  "branch": "codex/remove-bust",
+  "published": false,
+  "removedNode": "bust",
+  "removedHelpExamples": 4,
+  "removedDedicatedFiles": [
+    "src/defs/nodes/bust.js",
+    "tools/render-bust.mjs",
+    "tools/validate-bust.mjs",
+    "docs/bust-release-checks.json"
+  ],
+  "sharedSourcesMatchPreFeatureCommit": "7635f5b",
+  "avatar3dUnchanged": true,
+  "validation": {
+    "sourceModules": 371,
+    "catalogEntries": 373,
+    "helpExamples": 257,
+    "exampleNodeTypes": "all registered; no bust nodes",
+    "catalogAndRecency": "pass",
+    "productionBuild": "pass",
+    "builtBundleStandaloneNodeAndStarters": "absent",
+    "learnChecks": 37914
+  },
+  "note": "Complete standalone-feature removal requested by Daniel. Original Avatar 3D and other independent nodes retained. No Git history rewriting or publication."
+}

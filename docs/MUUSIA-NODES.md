@@ -28,7 +28,7 @@ returns no punches when its specified calibration grid cannot fit.
 
 ---
 
-## Generators (238)
+## Generators (237)
 
 **Avatar 3D** — adult male and female human figures from the CC0 MakeHuman mesh, with repeatable anatomy seeds and 25 body adjustments. Independent head, torso, arm and leg controls supply natural pose presets, smooth pose transitions, walk cycles and running with a flight phase. **Stand / walk / run** blends between Standing, Walking and Running while preserving the shared step phase; speed, stride and arm swing remain adjustable. **Brush** creates minimal broad-ink centerlines; **Contours**, **Hatching** and **Contours + hatching** make fine-pen drawings, with 0.35 mm width and a separate drawing seed. Front, side, back and manual rotation work with anatomical Bust, Feet and Band slicing. Outputs are **Drawing**, **Silhouette** and the complete posed **Full body mesh**, which connects to Mesh Slice. Help includes Run cycle, Stand, walk, run, Walk cycle, Pose transition and Seated pen study starters.
 
@@ -2911,29 +2911,6 @@ budget it thins sampling rather than cutting
 the drawing, so exports stay complete. Tip: Waves 60–160 with low Amplitude and
 steady Growth reads as security printing; raise Jitter above 0.5 for a looser,
 hand-drawn rosette. Export SVG or G-code, or chain into Brush or Warp downstream.
-
-**Bust** — a nude figure study in one stroke language. *Form* picks Female or
-Male; each is a single smooth designed silhouette - broad rounded shoulders, a
-shallow neck scoop, chest mounds, a soft S-curve waist and flared hips - with a
-flat *Crop bottom* hem so it prints like a bust plate. Seeded *Wobble* ripples
-the edge a fixed fraction of the figure height along three seeded octaves, so it
-stays clean even in thin places (wobble zero is a glass-smooth line for broad-ink
-drawing). *Style* details the form: Outline draws the silhouette (the female adds
-areola and nipple circles); Contours nests copies closing on the chest; Curved
-Hatch and Crosshatch sweep warped families of pen-style strokes that circulate
-into the shadow under the mounds, one or two directions, at hatch pitch down to
-0.4 mm; Stipple seeds dots denser in that shade, pushed by *Shade bias*; Rosette
-clips counter-rotated banknote circle families into the form, optionally with a
-twin family around the areola. Layout Pair places two facing studies and Stacked
-a top/bottom pair, with Asymmetry breaking the mirror and Overlap setting pair
-spacing; Tilt, Position X/Y and Margin steer placement, and the composition
-auto-fits the paper. Pen and Detail pen route the outline and the interior work
-to separate pens: broad ink for the line, a fine technical pen for the detail.
-Over the point budget the detail stops starting new strokes rather than cutting
-paths, so exports stay complete. Tip: Wobble 8–15 reads hand-cut; a Rosette or
-Crosshatch in a faint second pen over a bold Outline prints like security paper
-on a body.
-
 
 ## Modifiers (92)
 
