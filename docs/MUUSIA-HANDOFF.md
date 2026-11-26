@@ -8473,4 +8473,9 @@ bytes; SHA-256 `e8e27df72f321c7e11517d6e579c14589bf0d697e316796afb2ce87dead78fa0
 matches the gated local build. The public Learn homepage also matches the local
 2.213 build byte for byte (SHA-256
 `a3508470cc6cfb3b90857e0cc5fe42fbb428eae9a0ca402a75bf231371f55237`,
-15,538 bytes). Evidence: `docs/bust-release-checks.json`.
+15,538 bytes). Evidence: `docs/bust-release-checks.json`. On 2026-11-26 a
+post-release wording fix (the Stipple stack example still described the v5
+radial-form shading) was published as `93226ef`; Pages run 45819719546
+completed for that commit and the public app again matches the gated local
+build byte for byte (6,645,225 bytes; SHA-256
+`44899a64ade36b65b5ea1e786acc0f13fc13e4b49bb2a6f3c83c508643e1057b`).

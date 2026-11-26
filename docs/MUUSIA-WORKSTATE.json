@@ -31,12 +31,12 @@
   "lastPublished": {
     "version": "2.213",
     "commit": "e50514bf6bd974640b0922ec8768cf77966627fa",
-    "pagesRunId": 45609268536,
-    "publicAppSha256": "e8e27df72f321c7e11517d6e579c14589bf0d697e316796afb2ce87dead78fa0",
+    "pagesRunId": 45819719546,
+    "publicAppSha256": "44899a64ade36b65b5ea1e786acc0f13fc13e4b49bb2a6f3c83c508643e1057b",
     "matchesTestedBuild": true,
     "date": "2026-11-25",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "Verified public Muusia 2.213: Bust figure study node (Female/Male designed silhouettes, six stroke styles, banknote Rosette) published; public app 6,645,217 bytes and Learn homepage match the gated local build byte for byte.",
+    "status": "Verified public Muusia 2.213: Bust figure study node published; public app (6,645,225 bytes) and Learn homepage match the gated local build byte for byte, including the 2026-11-26 stipple wording fix.",
     "checks": "docs/bust-release-checks.json"
   },
   "lastIntegration": {
@@ -1564,6 +1564,8 @@
     "matchesTestedBuild": true,
     "published": true,
     "physicalPrintSent": false,
-    "evidence": "docs/bust-release-checks.json"
+    "evidence": "docs/bust-release-checks.json",
+    "commit": "e50514bf6bd974640b0922ec8768cf77966627fa",
+    "postReleaseFix": "93226ef (stipple example wording, 2026-11-26); public re-verified byte-identical (Pages run 45819719546)."
   }
 }
