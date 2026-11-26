@@ -2,7 +2,7 @@
   "date": "2026-11-26",
   "baseCommit": "10aff67430933a636574e3928b3c895ec1a490e1",
   "branch": "codex/remove-bust",
-  "published": false,
+  "published": true,
   "removedNode": "bust",
   "removedHelpExamples": 4,
   "removedDedicatedFiles": [
@@ -23,6 +23,20 @@
     "builtBundleStandaloneNodeAndStarters": "absent",
     "learnChecks": 37914
   },
-  "note": "Complete standalone-feature removal requested by Daniel. Publication authorized 2026-11-26. Original Avatar 3D and other independent nodes retained; Git history preserved.",
-  "version": "2.214"
+  "note": "Complete standalone-feature removal requested and published with Daniel's authorization. Original Avatar 3D and other independent nodes retained; Git history preserved.",
+  "version": "2.214",
+  "url": "https://bambi8000.github.io/Muusia/",
+  "releaseCommit": "acea09641103aa30a0afde7607a3abd3295a2d99",
+  "pagesRunId": 45853635877,
+  "pagesRunUrl": "https://github.com/Bambi8000/Muusia/actions/runs/45853635877",
+  "publicBytes": 6626501,
+  "publicAppSha256": "256390ad589b23f755ec775c2aa16635f14800125c5b8e59b1c2f5d53ceeb3a2",
+  "localAppSha256": "256390ad589b23f755ec775c2aa16635f14800125c5b8e59b1c2f5d53ceeb3a2",
+  "appMatchesTestedBuild": true,
+  "learnHomepageSha256": "f0b71ca906d652dc038bd4b7d9efb142193d865aa6d2b633fb3a860bb673529e",
+  "learnMatchesTestedBuild": true,
+  "standaloneBustAbsent": true,
+  "avatar3dPresent": true,
+  "workflowConclusion": "success",
+  "implementationCommit": "7618ff404edcbeab98a9ba3f878bc434bf557c42"
 }

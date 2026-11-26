@@ -8426,3 +8426,12 @@ build; 37,914 Learn checks. The built app contains neither the standalone node
 nor its four starters. Shared node catalogs, examples, tags and reference sources
 match pre-feature `7635f5b` exactly. Do not reintroduce this feature from older
 commits; its complete removal was explicitly requested.
+
+
+Publication verified: release `acea09641103aa30a0afde7607a3abd3295a2d99`
+was pushed to main. Pages run [45853635877](https://github.com/Bambi8000/Muusia/actions/runs/45853635877)
+completed successfully for that exact commit. Public Muusia 2.214 is 6,626,501
+bytes; SHA-256 `256390ad589b23f755ec775c2aa16635f14800125c5b8e59b1c2f5d53ceeb3a2`
+matches the tested local build. The public Learn homepage also matches byte
+for byte. Verified absence of the standalone node and all four starters, and
+presence of the unchanged Avatar 3D. Evidence: `docs/remove-bust-checks.json`.

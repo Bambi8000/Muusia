@@ -2,31 +2,32 @@
   "schemaVersion": 1,
   "active": [],
   "lastPublished": {
-    "version": "2.213",
-    "commit": "e50514bf6bd974640b0922ec8768cf77966627fa",
-    "pagesRunId": 45819719546,
-    "publicAppSha256": "44899a64ade36b65b5ea1e786acc0f13fc13e4b49bb2a6f3c83c508643e1057b",
+    "version": "2.214",
+    "commit": "acea09641103aa30a0afde7607a3abd3295a2d99",
+    "pagesRunId": 45853635877,
+    "publicAppSha256": "256390ad589b23f755ec775c2aa16635f14800125c5b8e59b1c2f5d53ceeb3a2",
     "matchesTestedBuild": true,
-    "date": "2026-11-25",
+    "date": "2026-11-26",
     "url": "https://bambi8000.github.io/Muusia/",
-    "status": "Verified public Muusia 2.213 before the pending standalone-generator removal; this removal is not published yet."
+    "status": "Verified public Muusia 2.214: standalone Bust node and its associated feature materials removed; Avatar 3D unchanged. Public app and Learn homepage match the tested release build byte for byte.",
+    "checks": "docs/remove-bust-checks.json"
   },
   "lastIntegration": {
-    "version": "2.212",
-    "date": "2026-11-23",
-    "baseCommit": "750260d3e37a6a970560d2803ba006c473766efc",
-    "branch": "codex/fix-tick-grid-guilloche",
-    "worktree": "/private/tmp/muusia-node-fixes-20261123",
+    "version": "2.214",
+    "date": "2026-11-26",
+    "baseCommit": "10aff67430933a636574e3928b3c895ec1a490e1",
+    "branch": "codex/remove-bust",
+    "worktree": "/private/tmp/muusia-remove-bust-20261126",
     "published": true,
-    "status": "Muusia 2.212 published and verified",
+    "status": "Muusia 2.214 published and verified",
     "moduleCount": 371,
     "registryCount": 373,
-    "validation": "413 focused node checks (including 100 seeded backgrounds), 257 Help examples, catalog/recency, production build and 37914 Learn checks.",
-    "implementationCommit": "81f64ebae759c0f6a6128a0fbc5e9547a9782704",
-    "commit": "a497cd0ea28f4807c6981b3510bbdbcd8715702e",
-    "pagesRunId": 45235154361,
-    "checks": "docs/node-fixes-release-checks.json",
-    "note": "Historical dirty main checkout preserved. No printer/plotter actions."
+    "validation": "257 registered Help graphs, catalog/recency, production app + Learn build and 37914 Learn checks. Built and public bundles contain no standalone Bust node or its four starters.",
+    "implementationCommit": "7618ff404edcbeab98a9ba3f878bc434bf557c42",
+    "commit": "acea09641103aa30a0afde7607a3abd3295a2d99",
+    "pagesRunId": 45853635877,
+    "checks": "docs/remove-bust-checks.json",
+    "note": "Only the requested standalone-feature removal. Avatar 3D retained; no hardware changes."
   },
   "lastArtifact": {
     "id": "multicolour-cell-warp-patches",
@@ -1528,8 +1529,11 @@
     "node": "bust",
     "requestedBy": "Daniel",
     "branch": "codex/remove-bust",
-    "published": false,
+    "published": true,
     "scope": "Standalone node, four Help starters, dedicated validator/renderer, feature reference text, tags, registry/recency and release-evidence file. Original Avatar 3D remains unchanged.",
-    "checks": "docs/remove-bust-checks.json"
+    "checks": "docs/remove-bust-checks.json",
+    "version": "2.214",
+    "commit": "acea09641103aa30a0afde7607a3abd3295a2d99",
+    "pagesRunId": 45853635877
   }
 }
