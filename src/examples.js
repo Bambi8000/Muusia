@@ -2569,7 +2569,7 @@ export const EXAMPLES = [
     make: defaults => ({ nodes: [{ id: 9001, type: "bust", x: 40, y: 30, params: { ...defaults("bust"), ...{ form: "Male", style: "Crosshatch", seed: 3, size: 120, hSpacing: 0.9, hLift: 4, layout: "Pair", overlap: 10, asym: 40, penDetail: 1 } } }], edges: [] }),
   },
   {
-    name: "Bust · Stipple stack", desc: "Stipple seeds dots denser toward the shaded lower hemisphere - Shade bias pushes the darkness down, Dot gap sets the field density. Layout Stacked rises top over bottom, like a pair of studies on one sheet; Asymmetry gives the two bodies their own size and lean. Wobble at 8 keeps the edge alive while the dot work stays crisp.",
+    name: "Bust · Stipple stack", desc: "Stipple seeds dots denser in the shadow under the mounds - Shade bias slides that darkness toward the hips, Dot gap sets the field density. Layout Stacked rises top over bottom, like a pair of studies on one sheet; Asymmetry gives the two bodies their own size and lean. Wobble at 8 keeps the edge alive while the dot work stays crisp.",
     canvas: { W: 297, H: 210 },
     make: defaults => ({ nodes: [{ id: 9001, type: "bust", x: 40, y: 30, params: { ...defaults("bust"), ...{ form: "Female", style: "Stipple", seed: 11, size: 100, wobble: 8, sDots: 1200, sGap: 0.8, sDotR: 0.3, sBias: 0.7, layout: "Stacked", asym: 25 } } }], edges: [] }),
   },
