@@ -8407,7 +8407,7 @@ matches the tested release build. The public Learn homepage also matches the
 local 2.212 build byte for byte. Evidence: `docs/node-fixes-release-checks.json`.
 
 
-### Unreleased — remove the standalone Bust generator, 2026-11-26
+### 2.214 — remove the standalone Bust generator, 2026-11-26
 
 Daniel requested removal of the Bust node and all Qwen work associated with
 that feature. Removed `src/defs/nodes/bust.js`, its four Help starters, dedicated
@@ -8415,9 +8415,10 @@ preview renderer and validator, feature reference and tags, source-bundle and
 catalog/recency entries, feature release evidence and implementation notes.
 The earlier Avatar 3D implementation and its anatomical cut modes are unchanged.
 
-Based on public main `10aff67` (2.213). This is a local removal, not a release;
-APP_VERSION stays 2.213 until the next authorized publication. Validation is
-recorded in `docs/remove-bust-checks.json`. Historical Git commits are preserved.
+Based on public main `10aff67` (2.213). Daniel authorized publication on
+2026-11-26. APP_VERSION is 2.214; exact-commit deployment and public-byte
+verification are recorded after the authorized push. Validation is in
+`docs/remove-bust-checks.json`. Historical Git commits are preserved.
 
 Checks passed: all 257 Help graphs reference registered nodes; 371 source node
 modules / 373 catalog entries; catalog and recency gates; production app + Learn

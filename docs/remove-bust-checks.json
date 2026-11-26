@@ -23,5 +23,6 @@
     "builtBundleStandaloneNodeAndStarters": "absent",
     "learnChecks": 37914
   },
-  "note": "Complete standalone-feature removal requested by Daniel. Original Avatar 3D and other independent nodes retained. No Git history rewriting or publication."
+  "note": "Complete standalone-feature removal requested by Daniel. Publication authorized 2026-11-26. Original Avatar 3D and other independent nodes retained; Git history preserved.",
+  "version": "2.214"
 }

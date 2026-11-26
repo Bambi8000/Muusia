@@ -1,7 +1,7 @@
-# MUUSIA v2.213
+# MUUSIA v2.214
 
-Pending release: the standalone Bust generator and its four Help examples have
-been removed, together with their preview tools and feature documentation.
+Version 2.214 removes the standalone Bust generator, its four Help examples,
+and the associated preview tools and feature documentation.
 
 Version 2.212 fixes **Tick Grid** accent pens and **Guilloché** edge clipping.
 **BG Fill → Guilloché** keeps dense and rotated backgrounds across the full
